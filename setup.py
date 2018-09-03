@@ -5,6 +5,7 @@ with open("README.md", "r") as fh:
 '''
 Instructions:
 # Build:
+rm -rf dist/ omegaconf.egg-info/
 python3 setup.py sdist bdist_wheel
 # Upload:
 twine upload dist/*
