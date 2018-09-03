@@ -136,7 +136,7 @@ class OmegaConf(Config):
 
     @staticmethod
     def from_file(file: io.TextIOBase):
-        assert isinstance(file, io.TextIOBase)
+        assert isinstance(file, io.IOBase)
         return Config(yaml.load(file))
 
     @staticmethod
