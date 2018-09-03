@@ -27,10 +27,10 @@ To load config.yaml:
 ### Access
 You can read and write variables using dot and dictionary notations:
 ```
-assert training.batch_size == 128
-assert train_timesteps == 200
+assert conf.training.batch_size == 128
+assert conf.train_timesteps == 200
 assert conf['training'] == 128
-assert conf['training.batch_size'] == 128
+assert conf['training']['batch_size'] == 128
 ```
 
 ### Overriding values 
