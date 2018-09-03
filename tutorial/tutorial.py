@@ -26,7 +26,18 @@ def initialization():
 
 
 def access():
-    cfg = OmegaConf.from_filename('config.yaml')
+    yaml = '''
+key: value
+list: [
+  1, 2, 3
+]
+
+nested:
+  nested:
+    key:
+      value
+'''
+    cfg = OmegaConf.from_string(yaml)
     # Pretty print the config:
     print("print 1:\n", cfg.pretty())
 
