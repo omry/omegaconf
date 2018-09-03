@@ -302,3 +302,18 @@ def test_subscript_set():
     c['a'] = 'b'
     assert {'a': 'b'} == c
 
+
+def test_pretty():
+    c = OmegaConf.from_string('''
+hello: world
+list: [
+    1,
+    2
+]
+''')
+    expected = '''hello: world
+list:
+- 1
+- 2
+'''
+    assert expected == c.pretty()
