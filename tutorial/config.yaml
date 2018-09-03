@@ -1,0 +1,10 @@
+key: value
+list: [
+  1, 2, 3
+]
+
+nested: {
+  nested: {
+    key: value
+  }
+}

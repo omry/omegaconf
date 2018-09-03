@@ -131,10 +131,12 @@ class OmegaConf(Config):
 
     @staticmethod
     def from_filename(filename: str):
+        assert isinstance(filename, str)
         return OmegaConf.from_file(io.open(filename, 'r'))
 
     @staticmethod
     def from_file(file: io.TextIOBase):
+        assert isinstance(file, io.TextIOBase)
         return Config(yaml.load(file))
 
     @staticmethod
