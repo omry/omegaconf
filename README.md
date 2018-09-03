@@ -11,7 +11,7 @@ OmegaConf is a flexible yaml based configuration library, supporting dot access,
 ### Loading from a file
 Given the file *config.yaml* with this content:
 ```
-env_name: '???'
+env_name: '???' # '???' denotes mandatory variables, see below
 num_trials: 1
 train_timesteps: 200
 render: False
@@ -20,15 +20,17 @@ training:
   batch_size: 128
 ```
 
-To load config.yaml:
-```
-conf = OmegaConf.from_filename('config.yaml')
-```
+To load config.yaml: 
+ 
+```conf = OmegaConf.from_filename('config.yaml')```
 
-### dot access:
+### Access
+You can read and write variables using dot and dictionary notations:
 ```
-assert conf.training == 128
+assert training.batch_size == 128
 assert train_timesteps == 200
+assert conf['training'] == 128
+assert conf['training.batch_size'] == 128
 ```
 
 ### Overriding values 
@@ -41,6 +43,7 @@ conf.training.batch_size = 256
 conf.update('env_name', 'NewEnv-v2')
 conf.update('training.batch_size', 256)
 ```
+update() will allow you to automatically create subtree if a node is missing.
 
 
 ### Mandatory variables
@@ -50,11 +53,11 @@ In the above example, such a variable is env_name
 
 ### CLI based configuration
 To access the CLI arguments (sys.argv), you can get a cli_config:
-```
-conf = OmegaConf.from_cli()
-```
+```conf = OmegaConf.from_cli()```
 For example, if your CLI arguments are:
-python prog.py **a=1 b=2 c.a = 3 c.b = 4**
+
+```python prog.py a=1 b=2 c.a = 3 c.b = 4```
+
 Although CLI only allow simple key=value pairs, you can use dot notation to create more complex configurations.
 The arguments above will contain the config:
 ```
@@ -68,27 +71,19 @@ c: {
 
 ### Environment based configuration
 Similarly to CLI config, you can have a config that is based on your system environment:
-```
-conf = OmegaConf.from_env()
-```
+```conf = OmegaConf.from_env()```
 
-## Merging configurations
-You can merge any number of configurations, in a specific order.
-for example, imagine you have a configuration file which you want to override from the cli.
+### Merging configurations
+A powerful feature of OmegaConf is the ability to layer configurations in a specific order.
+Any number of configurations can be merged into a single tree in a specific order:
 you could do something like:
 ```
-fileconf = OmegaConf.from_filename('config.yaml')
-cliconf = OmegaConf.from_cli()
-conf = OmegaConf.merge(fileconf, cliconf)
-```
-
-Now conf would contain the merge of the two configs, if a value exists in both the cli one would take precedence because
-it was specified after the fileconf.
-similarly you can have two files, env and cli, all being merged into the same config: 
-
-```
-file1conf = OmegaConf.from_filename('config.yaml')
-file2conf = OmegaConf.from_filename('config2.yaml')
+file1conf = OmegaConf.from_filename('conf1.yaml')
+file2conf = OmegaConf.from_filename('conf2.yaml')
 envconf = OmegaConf.from_env()
+cliconf = OmegaConf.from_cli()
 conf = OmegaConf.merge(file1econf, file2econf, envconf, cliconf)
 ```
+
+Merged ```conf``` would contain the merge of all four configurations, if a value exist in two config, 
+the one mentioned later in the merge will win over.
