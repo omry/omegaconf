@@ -26,17 +26,16 @@ def initialization():
 
 
 def access():
+    # For simplicity, I am inlining the yaml content here.
     yaml = '''
 key: value
-list: [
-  1, 2, 3
-]
-
+list: [1, 2, 3]
 nested:
   nested:
     key:
       value
 '''
+
     cfg = OmegaConf.from_string(yaml)
     # Pretty print the config:
     print("print 1:\n", cfg.pretty())
