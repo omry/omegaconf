@@ -11,7 +11,7 @@ twine upload dist/*
 '''
 setuptools.setup(
     name="omegaconf",
-    version="1.0.0",
+    version="1.0.1",
     author="Omry Yadan",
     author_email="omry@yadan.net",
     description="A flexible configuration library",
