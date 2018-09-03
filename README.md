@@ -1,3 +1,5 @@
+[![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)
+
 # OmegaConf
 OmegaConf is a flexible yaml based configuration library, supporting dot access, deep updates and more.
 
