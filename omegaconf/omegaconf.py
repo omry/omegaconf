@@ -3,6 +3,7 @@ import io
 import copy
 import sys
 import os
+import six
 from ruamel import yaml
 
 
@@ -11,7 +12,7 @@ class MissingMandatoryValue(Exception):
     indicate that the value was not set"""
 
 
-class Config:
+class Config(object):
     """Config implementation"""
 
     def __init__(self, content):
@@ -103,7 +104,7 @@ class Config:
 class CLIConfig(Config):
     """Config wrapping CLI arguments"""
     def __init__(self):
-        super().__init__(None)
+        super(CLIConfig, self).__init__(None)
         for i, arg in enumerate(sys.argv):
             # Skip program name
             if i == 0:
@@ -120,7 +121,7 @@ class CLIConfig(Config):
 class EnvConfig(Config):
     """Config wrapping environment variables"""
     def __init__(self, lowercase_keys=True):
-        super().__init__(None)
+        super(EnvConfig, self).__init__(None)
         for key, value in os.environ.items():
             # load with yaml to get correct automatic typing with the same rules as yaml parsing
             value = yaml.safe_load(value)
@@ -137,7 +138,7 @@ class OmegaConf(Config):
         return OmegaConf.from_string('')
 
     @staticmethod
-    def from_filename(filename: str):
+    def from_filename(filename):
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
         return OmegaConf.from_file(io.open(filename, 'r'))
@@ -145,12 +146,14 @@ class OmegaConf(Config):
     @staticmethod
     def from_file(file):
         """Creates config from the content of the specified file object"""
-        assert isinstance(file, io.IOBase)
+        if six.PY3:
+            assert isinstance(file, io.IOBase)
         return Config(yaml.safe_load(file))
 
     @staticmethod
-    def from_string(content: str):
+    def from_string(content):
         """Creates config from the content of string"""
+        assert isinstance(content, str)
         yamlstr = yaml.safe_load(content)
         return Config(yamlstr)
 
