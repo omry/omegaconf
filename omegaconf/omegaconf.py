@@ -24,7 +24,7 @@ class Config(object):
             else:
                 self.__dict__['content'] = content
 
-    def get(self, key, default_value = None):
+    def get(self, key, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
         v = self.__getattr__(key)
         if v is None:
@@ -61,6 +61,12 @@ class Config(object):
 
     def __eq__(self, other):
         return other == self.content
+
+    def keys(self):
+        return self.content.keys()
+
+    def items(self):
+        return self.content.items()
 
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
@@ -106,6 +112,7 @@ class Config(object):
 
 class CLIConfig(Config):
     """Config wrapping CLI arguments"""
+
     def __init__(self):
         super(CLIConfig, self).__init__(None)
         for i, arg in enumerate(sys.argv):
@@ -123,6 +130,7 @@ class CLIConfig(Config):
 
 class EnvConfig(Config):
     """Config wrapping environment variables"""
+
     def __init__(self, lowercase_keys=True):
         super(EnvConfig, self).__init__(None)
         for key, value in os.environ.items():
@@ -135,6 +143,7 @@ class EnvConfig(Config):
 
 class OmegaConf(Config):
     """OmegaConf primary class"""
+
     @staticmethod
     def empty():
         """Creates an empty config"""

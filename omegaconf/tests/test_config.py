@@ -336,3 +336,12 @@ def test_with_default():
     assert c.get('missing', 4) == 4
     assert c.hello.get('missing', 5) == 5
     assert {'hello': {'a': 2}} == c
+
+
+def test_map_expansion():
+    c = OmegaConf.from_string('{a: 2, b: 10}')
+
+    def foo(a, b):
+        return a + b
+
+    assert 12 == foo(**c)
