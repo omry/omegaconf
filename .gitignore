@@ -1,3 +1,4 @@
+*.pyc
 .pytest_cache
 .tox
 build
