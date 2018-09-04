@@ -1,16 +1,18 @@
+"""OmegaConf module"""
 import io
-from ruamel import yaml
 import copy
 import sys
 import os
+from ruamel import yaml
 
 
 class MissingMandatoryValue(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+    """Thrown when a variable flagged with '???' value is accessed to
+    indicate that the value was not set"""
 
 
 class Config:
+    """Config implementation"""
 
     def __init__(self, content):
         if content is None:
@@ -22,6 +24,7 @@ class Config:
                 self.__dict__['content'] = content
 
     def get(self, key):
+        """returns the value with the specified key, like obj.key and obj['key']"""
         return self.__getattr__(key)
 
     def __setattr__(self, key, value):
@@ -29,13 +32,12 @@ class Config:
 
     # return a ConfigAccess to the result, or the actual result if it's a leaf in content
     def __getattr__(self, key):
-        x = self.content.get(key)
-        if type(x) == dict:
-            return Config(x)
-        else:
-            if x == '???':
-                raise MissingMandatoryValue(key)
-            return x
+        val = self.content.get(key)
+        if isinstance(val, dict):
+            return Config(val)
+        if val == '???':
+            raise MissingMandatoryValue(key)
+        return val
 
     def __setitem__(self, key, value):
         self.content[key] = value
@@ -56,64 +58,67 @@ class Config:
     def __eq__(self, other):
         return other == self.content
 
-    def update_key(self, key, value=None):
-        self.__setattr__(key, value)
-
     def update(self, key, value=None):
+        """Updates a dot separated key sequence to a value"""
         split = key.split('.')
-
         root = self
         for i in range(len(split) - 1):
             k = split[i]
             next_root = root.get(k)
             # if next_root is a primitive (string, int etc) replace it with an empty map
             if not isinstance(next_root, Config):
-                root.update_key(k, {})
+                root[k] = {}
                 next_root = root.get(k)
             root = next_root
 
         last = split[-1]
-        root.update_key(last, value)
+        root[last] = value
 
     def is_empty(self):
+        """return true if config is empty"""
         return self.content == {}
 
     def pretty(self):
+        """return a pretty dump of the config content"""
         return yaml.dump(self.content, default_flow_style=False)
 
     @staticmethod
     def map_merge(dest, src):
+        """merge src into dest and return a new copy, does not modified input"""
         ret = copy.deepcopy(dest)
-        for k, v in src.items():
-            if k in dest and isinstance(dest[k], dict):
-                ret[k] = Config.map_merge(dest[k], src[k])
+        for key, value in src.items():
+            if key in dest and isinstance(dest[key], dict):
+                ret[key] = Config.map_merge(dest[key], value)
             else:
-                ret[k] = src[k]
+                ret[key] = src[key]
         return ret
 
     def merge_from(self, *others):
+        """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
             self.__dict__['content'] = Config.map_merge(self.content, other.content)
 
 
 class CLIConfig(Config):
+    """Config wrapping CLI arguments"""
     def __init__(self):
         super().__init__(None)
         for i, arg in enumerate(sys.argv):
             # Skip program name
             if i == 0:
                 continue
-            a2 = arg.split('=')
-            key = a2[0]
+            args = arg.split('=')
+            key = args[0]
             value = None
-            if len(a2) > 1:
+            if len(args) > 1:
                 # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                value = yaml.safe_load(a2[1])
+                value = yaml.safe_load(args[1])
             self.update(key, value)
 
 
 class EnvConfig(Config):
+    """Config wrapping environment variables"""
     def __init__(self, lowercase_keys=True):
         super().__init__(None)
         for key, value in os.environ.items():
@@ -125,35 +130,43 @@ class EnvConfig(Config):
 
 
 class OmegaConf(Config):
+    """OmegaConf primary class"""
     @staticmethod
     def empty():
+        """Creates an empty config"""
         return OmegaConf.from_string('')
 
     @staticmethod
     def from_filename(filename: str):
+        """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
         return OmegaConf.from_file(io.open(filename, 'r'))
 
     @staticmethod
-    def from_file(file: io.TextIOBase):
+    def from_file(file):
+        """Creates config from the content of the specified file object"""
         assert isinstance(file, io.IOBase)
         return Config(yaml.safe_load(file))
 
     @staticmethod
     def from_string(content: str):
-        s = yaml.safe_load(content)
-        return Config(s)
+        """Creates config from the content of string"""
+        yamlstr = yaml.safe_load(content)
+        return Config(yamlstr)
 
     @staticmethod
     def from_cli():
+        """Creates config from the content sys.argv"""
         return CLIConfig()
 
     @staticmethod
     def from_env():
+        """Creates config from the content os.environ"""
         return EnvConfig()
 
     @staticmethod
     def merge(*others):
+        """Merge a list of previously created configs into a single one"""
         target = Config({})
         target.merge_from(*others)
         return target

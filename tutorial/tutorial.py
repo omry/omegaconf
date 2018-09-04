@@ -1,9 +1,10 @@
-from omegaconf import OmegaConf
 import io
 import sys
+from omegaconf import OmegaConf
 
 
 def initialization():
+    """Initialization example"""
     # You can initialize the config in various ways, regardless of how you created it the features are the same:
 
     # Empty configuration
@@ -26,6 +27,7 @@ def initialization():
 
 
 def access():
+    """Access example"""
     # For simplicity, I am inlining the yaml content here.
     yaml = '''
 key: value
@@ -81,6 +83,7 @@ nested:
 
 
 def merging_configs():
+    """Merging example"""
     # Configs can be merges in a specific order.
     # Variables that appears in both will be overridden by the config mentioned last.
     c1 = OmegaConf.from_string('a : {b: 1}')

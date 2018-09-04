@@ -1,38 +1,44 @@
-from omegaconf import OmegaConf
-from omegaconf import MissingMandatoryValue
-from omegaconf.omegaconf import Config
-import pytest
-
+"""Testing for OmegaConf"""
 import tempfile
 import sys
 import os
+from pytest import raises
+from omegaconf import OmegaConf
+from omegaconf import MissingMandatoryValue
+from omegaconf.omegaconf import Config
+
 
 
 def test_value():
+    """Test a simple value"""
     s = 'hello'
     c = OmegaConf.from_string(s)
     assert {'hello': None} == c
 
 
 def test_key_value():
+    """Test a simple key:value"""
     s = 'hello: world'
     c = OmegaConf.from_string(s)
     assert {'hello': 'world'} == c
 
 
 def test_key_map():
+    """Test a key to map"""
     s = '{hello: {a : 2}}'
     c = OmegaConf.from_string(s)
     assert {'hello': {'a': 2}} == c
 
 
 def test_empty_input():
+    """Test empty input"""
     s = ''
     c = OmegaConf.from_string(s)
     assert c == {}
 
 
 def test_update_empty_to_value():
+    """"""
     s = ''
     c = OmegaConf.from_string(s)
     c.update('hello')
@@ -40,6 +46,7 @@ def test_update_empty_to_value():
 
 
 def test_update_same_value():
+    """"""
     s = 'hello'
     c = OmegaConf.from_string(s)
     c.update('hello')
@@ -140,7 +147,7 @@ def test_setattr_deep_value():
 
 def test_setattr_deep_from_empty():
     c = OmegaConf.empty()
-    # Unforunately we can't just do c.a.b = 9 here.
+    # Unfortunately we can't just do c.a.b = 9 here.
     # The reason is that if c.a is being resolved first and it does not exist, so there
     # is nothing to call .b = 9 on.
     # The alternative is to auto-create fields as they are being accessed, but this is opening
@@ -280,13 +287,13 @@ def test_env_config():
 
 def test_mandatory_value():
     c = OmegaConf.from_string('{a: "???"}')
-    with pytest.raises(MissingMandatoryValue):
+    with raises(MissingMandatoryValue):
         c.get('a')
 
 
 def test_override_mandatory_value():
     c = OmegaConf.from_string('{a: "???"}')
-    with pytest.raises(MissingMandatoryValue):
+    with raises(MissingMandatoryValue):
         c.get('a')
     c.update('a', 123)
     assert {'a': 123} == c
