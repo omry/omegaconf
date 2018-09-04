@@ -8,7 +8,6 @@ from omegaconf import MissingMandatoryValue
 from omegaconf.omegaconf import Config
 
 
-
 def test_value():
     """Test a simple value"""
     s = 'hello'
@@ -329,3 +328,11 @@ list:
 def test_scientific_number():
     c = OmegaConf.from_string('a: 10e-3')
     assert 10e-3 == c.a
+
+
+def test_with_default():
+    s = '{hello: {a : 2}}'
+    c = OmegaConf.from_string(s)
+    assert c.get('missing', 4) == 4
+    assert c.hello.get('missing', 5) == 5
+    assert {'hello': {'a': 2}} == c

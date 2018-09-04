@@ -52,6 +52,9 @@ nested:
     assert cfg['nested']['nested']['key'] == 'value'
     assert cfg['list'][0] == 1
 
+    # also with default values:
+    assert cfg.get('missing', 666) == 666
+
     # write access as well:
     cfg.key = 'new value'
     cfg.nested.nested.key = 'new value 2'

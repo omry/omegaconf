@@ -24,9 +24,12 @@ class Config(object):
             else:
                 self.__dict__['content'] = content
 
-    def get(self, key):
+    def get(self, key, default_value = None):
         """returns the value with the specified key, like obj.key and obj['key']"""
-        return self.__getattr__(key)
+        v = self.__getattr__(key)
+        if v is None:
+            v = default_value
+        return v
 
     def __setattr__(self, key, value):
         self.content[key] = value
