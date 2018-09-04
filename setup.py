@@ -8,7 +8,7 @@ Instructions:
 rm -rf dist/ omegaconf.egg-info/
 python3 setup.py sdist bdist_wheel
 # Upload:
-python3 -m twine upload --repository-url dist/*
+python3 -m twine upload dist/*
 '''
 setuptools.setup(
     name="omegaconf",
