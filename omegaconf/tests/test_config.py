@@ -317,3 +317,8 @@ list:
 - 2
 '''
     assert expected == c.pretty()
+
+
+def test_scientific_number():
+    c = OmegaConf.from_string('a: 10e-3')
+    assert 10e-3 == c.a

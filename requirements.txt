@@ -1,1 +1,2 @@
-pyyaml
+# 0.14 is compatible with pyyaml
+ruamel.yaml<0.15

@@ -1,5 +1,5 @@
 import io
-import yaml
+from ruamel import yaml
 import copy
 import sys
 import os
@@ -109,7 +109,7 @@ class CLIConfig(Config):
             value = None
             if len(a2) > 1:
                 # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                value = yaml.load(a2[1])
+                value = yaml.safe_load(a2[1])
             self.update(key, value)
 
 
@@ -118,7 +118,7 @@ class EnvConfig(Config):
         super().__init__(None)
         for key, value in os.environ.items():
             # load with yaml to get correct automatic typing with the same rules as yaml parsing
-            value = yaml.load(value)
+            value = yaml.safe_load(value)
             if lowercase_keys:
                 key = key.lower()
             self.update(key, value)
@@ -137,11 +137,11 @@ class OmegaConf(Config):
     @staticmethod
     def from_file(file: io.TextIOBase):
         assert isinstance(file, io.IOBase)
-        return Config(yaml.load(file))
+        return Config(yaml.safe_load(file))
 
     @staticmethod
     def from_string(content: str):
-        s = yaml.load(content)
+        s = yaml.safe_load(content)
         return Config(s)
 
     @staticmethod
