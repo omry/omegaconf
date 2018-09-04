@@ -8,11 +8,11 @@ Instructions:
 rm -rf dist/ omegaconf.egg-info/
 python3 setup.py sdist bdist_wheel
 # Upload:
-twine upload dist/*
+python3 -m twine upload --repository-url dist/*
 '''
 setuptools.setup(
     name="omegaconf",
-    version="1.0.1",
+    version="1.0.2",
     author="Omry Yadan",
     author_email="omry@yadan.net",
     description="A flexible configuration library",
