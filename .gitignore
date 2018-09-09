@@ -5,3 +5,4 @@ build
 dist
 omegaconf.egg-info
 venv
+.envrc
