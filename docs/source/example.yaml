@@ -1,0 +1,5 @@
+server:
+    port: 8080
+log:
+    file: log.txt
+    rotation: 3600
