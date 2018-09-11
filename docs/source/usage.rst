@@ -2,6 +2,13 @@
 
     from omegaconf import OmegaConf
 
+.. testsetup:: loaded
+
+    import os
+    os.chdir('source')
+    from omegaconf import OmegaConf
+    conf = OmegaConf.from_filename('example.yaml')
+
 Usage
 =====
 
@@ -14,73 +21,57 @@ Just pip install::
 
 Basic example
 ^^^^^^^^^^^^^
-Let's say we have an example.yaml file:
+We will use this simple **example.yaml** file:
 
 .. include:: example.yaml
    :code: yaml
 
+Loading:
+--------
 
-The following program would load it:
+.. doctest:: loaded
 
-.. testcode::
+    >>> from omegaconf import OmegaConf
+    >>> conf = OmegaConf.from_filename('example.yaml')
+    >>> conf
+    {'server': {'port': 80}, 'log': {'file': 'log.txt', 'rotation': 3600}}
 
-    from omegaconf import OmegaConf
+Reading values:
+---------------
 
-    conf = OmegaConf.from_filename('source/example.yaml')
-    print(conf.server.port)
-    print(conf['log'])
+.. doctest:: loaded
 
-
-Output:
-
-.. testoutput::
-
-    8080
+    >>> # Object style access
+    >>> conf.server.port
+    80
+    >>> # Map style access
+    >>> conf['log']
     {'file': 'log.txt', 'rotation': 3600}
 
+Reading with default values:
+----------------------------
 
-Overriding configuration
-^^^^^^^^^^^^^^^^^^^^^^^^
-OmegaConf supports overriding configuraitons easily, let's say you have a file with the perfect
-configuration, you want to use that but you want to make just a few small changes.
+.. doctest:: loaded
 
-.. testcode::
+    >>> conf.missing_key or 'a default value'
+    'a default value'
+    >>> conf.get('missing_key', 'a default value')
+    'a default value'
 
-    conf = OmegaConf.from_filename('source/example.yaml')
-    conf.update('server.port', 8081)
-    print(conf.server.port)
+Manipulating config:
+--------------------
 
-Output:
+.. doctest:: loaded
 
-.. testoutput::
+    >>> # Changing existing keys
+    >>> conf.server.port = 81
+    >>> # Adding new keys
+    >>> conf.server.hostname = "localhost"
+    >>> # Or new sections
+    >>> conf.database = {'hostname': 'database01', 'port': 3306}
 
-    8081
 
-You could also merge whole config files:
 
-Base file, example.yaml:
 
-.. include:: example.yaml
-   :code: yaml
 
-Overriding file example2.yaml:
 
-.. include:: example2.yaml
-   :code: yaml
-
-.. testcode::
-
-    conf1 = OmegaConf.from_filename('source/example.yaml')
-    conf2 = OmegaConf.from_filename('source/example2.yaml')
-    conf = OmegaConf.merge(conf1, conf2)
-    print(conf.server.port)
-    print(conf.log.file)
-    print(conf.log.rotation)
-
-Output:
-
-.. testoutput::
-
-    8081
-    /tmp/log.txt
-    3600
