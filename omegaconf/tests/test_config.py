@@ -280,8 +280,26 @@ def test_env_config():
         'a': '1',
         'b.c': '2'
     }
-    c = OmegaConf.from_env()
+    c = OmegaConf.from_env(whitelist=['a', 'b.c'])
     assert {'a': 1, 'b': {'c': 2}} == c
+
+
+def test_env_config_lowercase():
+    os.environ = {
+        'A': '1',
+        'B.C': '2'
+    }
+    c = OmegaConf.from_env(whitelist=['A', 'B.C'], lowercase_keys=False)
+    assert {'A': 1, 'B': {'C': 2}} == c
+
+
+def test_env_config_whitelist():
+    os.environ = {
+        'a': '1',
+        'b.c': '2'
+    }
+    c = OmegaConf.from_env(whitelist=['a'])
+    assert {'a': 1} == c
 
 
 def test_mandatory_value():
@@ -345,3 +363,8 @@ def test_map_expansion():
         return a + b
 
     assert 12 == foo(**c)
+
+
+def test_items():
+    c = OmegaConf.from_string('{a: 2, b: 10}')
+    assert {'a': 2, 'b': 10}.items() == c.items()

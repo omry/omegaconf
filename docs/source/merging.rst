@@ -58,4 +58,20 @@ For simplicity, we will simulate command line arguments by setting sys.argv.
     'log2.txt'
 
 
+Putting it all together
+-----------------------
+Let's say you want the following structure:
+A file acting as a base configuration, environment variables overriding that file, and command line arguments overriding both.
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf
+    >>> conf = OmegaConf.from_filename('source/example.yaml')
+    >>> cli = OmegaConf.from_cli()
+    >>> # Note that for environment we need a whitelist specifying what can be overridden
+    >>> env = OmegaConf.from_env(whitelist=['server.port'])
+    >>> conf = OmegaConf.merge(conf, env, cli)
+
+
+
 
