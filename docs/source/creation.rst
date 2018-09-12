@@ -1,12 +1,11 @@
 .. _creation:
+Creating
+========
 
 .. testsetup:: *
 
     from omegaconf import OmegaConf
     import io
-
-Creating
-========
 
 Empty config
 ------------
