@@ -4,10 +4,8 @@
 
 .. testsetup:: loaded
 
-    import os
-    os.chdir('source')
     from omegaconf import OmegaConf
-    conf = OmegaConf.from_filename('example.yaml')
+    conf = OmegaConf.from_filename('source/example.yaml')
 
 Usage
 =====
@@ -29,10 +27,10 @@ We will use this simple **example.yaml** file:
 Loading:
 --------
 
-.. doctest:: loaded
+.. doctest::
 
     >>> from omegaconf import OmegaConf
-    >>> conf = OmegaConf.from_filename('example.yaml')
+    >>> conf = OmegaConf.from_filename('source/example.yaml')
     >>> conf
     {'server': {'port': 80}, 'log': {'file': 'log.txt', 'rotation': 3600}}
 

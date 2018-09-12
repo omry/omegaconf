@@ -1,5 +1,5 @@
 server:
-    port: 80
+  port: 80
 log:
-    file: log.txt
-    rotation: 3600
+  file: log.txt
+  rotation: 3600

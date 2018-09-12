@@ -141,7 +141,7 @@ class EnvConfig(Config):
             self.update(key, value)
 
 
-class OmegaConf(Config):
+class OmegaConf:
     """OmegaConf primary class"""
 
     @staticmethod
@@ -153,6 +153,7 @@ class OmegaConf(Config):
     def from_filename(filename):
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
+        filename = os.path.abspath(filename)
         return OmegaConf.from_file(io.open(filename, 'r'))
 
     @staticmethod
