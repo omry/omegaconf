@@ -3,6 +3,8 @@
 [![Documentation Status](https://readthedocs.org/projects/omegaconf/badge/?version=latest)](https://omegaconf.readthedocs.io/en/latest/?badge=latest)
 
 # OmegaConf
-OmegaConf is a flexible yaml based configuration library, supporting dot access, deep updates and more.
 
-See the [tutorial](https://github.com/omry/omegaconf/blob/master/tutorial/tutorial.py) for usage example.
+OmegaConf is a YAML based hierarchical configuration system, with support for merging configurations from multiple sources (files, CLI argument, environment variables)
+providing a consistent API regardless of how the configuration was created.
+
+[Read the docs](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
