@@ -159,7 +159,8 @@ class OmegaConf:
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
         filename = os.path.abspath(filename)
-        return OmegaConf.from_file(io.open(filename, 'r'))
+        with io.open(filename, 'r') as file:
+            return OmegaConf.from_file(file)
 
     @staticmethod
     def from_file(file):
