@@ -4,7 +4,9 @@ Configuration can be created from various sources, like YAML files, CLI argument
 
 see :ref:`creation` for more details.
 
-Here are a few examples where you would want to merge different configurations:
+You can combine configurations, regardless of their source.
+
+Here are a few examples where you might want to merge different configurations:
 
 - You want to use more than one configuration file but access them uniformly through the same object
 - You want to override some configuration in a file with that from another file
