@@ -68,7 +68,8 @@ A file acting as a base configuration, environment variables overriding that fil
     >>> from omegaconf import OmegaConf
     >>> conf = OmegaConf.from_filename('source/example.yaml')
     >>> cli = OmegaConf.from_cli()
-    >>> # Note that for environment we need a whitelist specifying what can be overridden
+    >>> # Note that for environment we need a whitelist
+    >>> # specifying what can be overridden
     >>> env = OmegaConf.from_env(whitelist=['server.port'])
     >>> conf = OmegaConf.merge(conf, env, cli)
 
