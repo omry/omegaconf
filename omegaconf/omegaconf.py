@@ -62,6 +62,18 @@ class Config(object):
     def __eq__(self, other):
         return other == self.content
 
+    def __getstate__(self):
+        """ allows pickling
+        :return:
+        """
+        return self.__dict__
+
+    def __setstate__(self, d):
+        """ allows pickling
+        :return:
+        """
+        self.__dict__.update(d)
+
     def keys(self):
         return self.content.keys()
 

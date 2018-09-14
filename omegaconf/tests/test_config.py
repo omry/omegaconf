@@ -368,3 +368,15 @@ def test_map_expansion():
 def test_items():
     c = OmegaConf.from_string('{a: 2, b: 10}')
     assert {'a': 2, 'b': 10}.items() == c.items()
+
+
+def test_pickle():
+    with tempfile.TemporaryFile() as fp:
+        s = 'a: b'
+        import pickle
+        c = OmegaConf.from_string(s)
+        pickle.dump(c, fp)
+        fp.flush()
+        fp.seek(0)
+        c1 = pickle.load(fp)
+        assert c == c1
