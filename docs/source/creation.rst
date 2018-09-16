@@ -47,10 +47,7 @@ sys.argv before you initialize the conf from_cli().
 
 From environment
 ----------------
-Environment keys are prefixed by default with "OC.", you can change the prefix.
-This requires a whitelist of what you want to access through the environment.
-The reason for the whitelist is that the environment contains unparseable YAML in many cases,
-which cauases issues when trying to initialize this config.
+Environment keys are prefixed by default with "OC.", you can change the prefix by passing it to from_env()
 
 .. doctest::
 
