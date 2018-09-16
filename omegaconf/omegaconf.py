@@ -143,17 +143,14 @@ class CLIConfig(Config):
 class EnvConfig(Config):
     """Config wrapping environment variables"""
 
-    def __init__(self, whitelist, lowercase_keys):
-        assert isinstance(whitelist, list)
-        assert len(whitelist) > 0, "Whitelist must contain at least one item"
+    def __init__(self, prefix):
+        assert isinstance(prefix, str)
+        assert prefix != "", "Whitelist must contain at least one item"
         super(EnvConfig, self).__init__(None)
-        if lowercase_keys:
-            whitelist = [key.lower() for key in whitelist]
         for key, value in os.environ.items():
-            # load with yaml to get correct automatic typing with the same rules as yaml parsing
-            if lowercase_keys:
-                key = key.lower()
-            if key in whitelist:
+            if str.startswith(key, prefix):
+                # load with yaml to get correct automatic typing with the same rules as yaml parsing
+                key = key[len(prefix):]
                 value = yaml.safe_load(value)
                 self.update(key, value)
 
@@ -194,9 +191,9 @@ class OmegaConf:
         return CLIConfig()
 
     @staticmethod
-    def from_env(whitelist, lowercase_keys=True):
+    def from_env(prefix = "OC."):
         """Creates config from the content os.environ"""
-        return EnvConfig(whitelist, lowercase_keys)
+        return EnvConfig(prefix)
 
     @staticmethod
     def merge(*others):

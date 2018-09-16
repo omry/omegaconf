@@ -7,6 +7,7 @@ Creating
 
     from omegaconf import OmegaConf
     import io
+    import os
 
 Empty config
 ------------
@@ -46,11 +47,15 @@ sys.argv before you initialize the conf from_cli().
 
 From environment
 ----------------
+Environment keys are prefixed by default with "OC.", you can change the prefix.
 This requires a whitelist of what you want to access through the environment.
 The reason for the whitelist is that the environment contains unparseable YAML in many cases,
 which cauases issues when trying to initialize this config.
 
 .. doctest::
 
-    >>> whitelist = ['server.port', 'server.log.file']
-    >>> conf = OmegaConf.from_env(whitelist)
+    >>> # Simulate environment variable
+    >>> os.environ['OC.a.b'] = '1'
+    >>> conf = OmegaConf.from_env()
+    >>> conf.a.b
+    1
