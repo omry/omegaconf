@@ -27,5 +27,5 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=['ruamel.yaml<0.15', 'pylint', 'six']
+        install_requires=['ruamel.yaml<0.15', 'six']
     )
