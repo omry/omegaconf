@@ -79,6 +79,9 @@ class Config(object):
     def __iter__(self):
         return self.content.__iter__()
 
+    def pop(self, key, default=None):
+        return self.content.pop(key, default)
+
     def keys(self):
         return self.content.keys()
 

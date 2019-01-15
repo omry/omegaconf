@@ -371,3 +371,12 @@ def test_iterate():
     for k in c:
         m2[k] = c[k]
     assert m2 == c
+
+
+def test_pop():
+    c = OmegaConf.from_string('''
+    a : 1
+    b : 2
+    ''')
+    assert 1 == c.pop('a')
+    assert {'b': 2} == c
