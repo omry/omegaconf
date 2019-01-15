@@ -360,3 +360,14 @@ def test_pickle():
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
+
+
+def test_iterate():
+    c = OmegaConf.from_string('''
+    a : 1
+    b : 2
+    ''')
+    m2 = {}
+    for k in c:
+        m2[k] = c[k]
+    assert m2 == c

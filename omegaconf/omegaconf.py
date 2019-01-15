@@ -21,8 +21,10 @@ class Config(object):
         else:
             if isinstance(content, str):
                 self.__dict__['content'] = {content: None}
-            else:
+            elif isinstance(content, dict):
                 self.__dict__['content'] = content
+            else:
+                raise TypeError()
 
     def get(self, key, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
@@ -73,6 +75,9 @@ class Config(object):
         :return:
         """
         self.__dict__.update(d)
+
+    def __iter__(self):
+        return self.content.__iter__()
 
     def keys(self):
         return self.content.keys()
@@ -191,7 +196,7 @@ class OmegaConf:
         return CLIConfig()
 
     @staticmethod
-    def from_env(prefix = "OC."):
+    def from_env(prefix="OC."):
         """Creates config from the content os.environ"""
         return EnvConfig(prefix)
 
