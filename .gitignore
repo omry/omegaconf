@@ -1,3 +1,4 @@
+.cache
 *.pyc
 .pytest_cache
 .tox

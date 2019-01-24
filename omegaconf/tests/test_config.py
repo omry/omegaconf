@@ -274,6 +274,12 @@ def test_cli_config():
     c = OmegaConf.from_cli()
     assert {'a': 1, 'b': {'c': 2}} == c
 
+def test_cli_passing():
+    args_list = ['a=1', 'b.c=2']
+    c = OmegaConf.from_cli(args_list)
+    assert {'a': 1, 'b': {'c': 2}} == c
+
+
 
 def test_env_config():
     os.environ['PREFIX.a'] = '1'
