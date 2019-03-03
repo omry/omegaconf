@@ -4,12 +4,28 @@ import copy
 import sys
 import os
 import six
-from ruamel import yaml
+import yaml
+import re
 
 
 class MissingMandatoryValue(Exception):
     """Thrown when a variable flagged with '???' value is accessed to
     indicate that the value was not set"""
+
+
+def get_yaml_loader():
+    loader = yaml.SafeLoader
+    loader.add_implicit_resolver(
+        u'tag:yaml.org,2002:float',
+        re.compile(u'''^(?:
+         [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+        |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+        |\\.[0-9_]+(?:[eE][-+][0-9]+)?
+        |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
+        |[-+]?\\.(?:inf|Inf|INF)
+        |\\.(?:nan|NaN|NAN))$''', re.X),
+        list(u'-+0123456789.'))
+    return loader
 
 
 class Config(object):
@@ -145,7 +161,7 @@ class CLIConfig(Config):
             value = None
             if len(args) > 1:
                 # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                value = yaml.safe_load(args[1])
+                value = yaml.load(args[1], Loader=get_yaml_loader())
             self.update(key, value)
 
 
@@ -160,7 +176,7 @@ class EnvConfig(Config):
             if str.startswith(key, prefix):
                 # load with yaml to get correct automatic typing with the same rules as yaml parsing
                 key = key[len(prefix):]
-                value = yaml.safe_load(value)
+                value = yaml.load(value, Loader=get_yaml_loader())
                 self.update(key, value)
 
 
@@ -185,13 +201,13 @@ class OmegaConf:
         """Creates config from the content of the specified file object"""
         if six.PY3:
             assert isinstance(file, io.IOBase)
-        return Config(yaml.safe_load(file))
+        return Config(yaml.load(file, Loader=get_yaml_loader()))
 
     @staticmethod
     def from_string(content):
         """Creates config from the content of string"""
         assert isinstance(content, str)
-        yamlstr = yaml.safe_load(content)
+        yamlstr = yaml.load(content, Loader=get_yaml_loader())
         return Config(yamlstr)
 
     @staticmethod
