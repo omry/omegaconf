@@ -133,7 +133,7 @@ class Config(object):
 class CLIConfig(Config):
     """Config wrapping CLI arguments"""
 
-    def __init__(self, args_list = None):
+    def __init__(self, args_list=None):
         super(CLIConfig, self).__init__(None)
         # if args list is not passed use sys.argv without the program name
         if args_list is None:
@@ -177,7 +177,7 @@ class OmegaConf:
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
         filename = os.path.abspath(filename)
-        with io.open(filename, 'r') as file:
+        with io.open(filename, mode='r') as file:
             return OmegaConf.from_file(file)
 
     @staticmethod
@@ -195,7 +195,7 @@ class OmegaConf:
         return Config(yamlstr)
 
     @staticmethod
-    def from_cli(args_list = None):
+    def from_cli(args_list=None):
         """Creates config from the content sys.argv or from the specified args list of not None"""
         return CLIConfig(args_list)
 

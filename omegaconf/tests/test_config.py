@@ -256,17 +256,24 @@ def test_from_file():
         fp.write(s)
         fp.flush()
         fp.seek(0)
-        c = OmegaConf.from_file(fp)
+        c = OmegaConf.from_file(fp.file)
         assert {'a': 'b'} == c
 
 
 def test_from_filename():
-    with tempfile.NamedTemporaryFile() as fp:
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
         s = b'a: b'
         fp.write(s)
         fp.flush()
-        c = OmegaConf.from_filename(fp.name)
+        filename = fp.name
+
+    # NamedTemporaryFile returns an open file.
+    # On Windows, we can't re-open that file, so we must close it first and then reopen it, and finally delete it.
+    try:
+        c = OmegaConf.from_filename(filename)
         assert {'a': 'b'} == c
+    finally:
+        os.unlink(filename)
 
 
 def test_cli_config():
@@ -282,10 +289,11 @@ def test_cli_passing():
 
 
 def test_env_config():
-    os.environ['PREFIX.a'] = '1'
-    os.environ['PREFIX.b.c'] = '2'
-    c = OmegaConf.from_env(prefix="PREFIX.")
-    assert {'a': 1, 'b': {'c': 2}} == c
+    # On Windows, environment variables are always returned in upper case. Thanks BillG.
+    os.environ['PREFIX_A'] = '1'
+    os.environ['PREFIX_B.C'] = '2'
+    c = OmegaConf.from_env(prefix="PREFIX_")
+    assert {'A': 1, 'B': {'C': 2}} == c
 
 
 def test_mandatory_value():
