@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setuptools.setup(
         name="omegaconf",
-        version="1.0.10",
+        version="1.0.11",
         author="Omry Yadan",
         author_email="omry@yadan.net",
         description="A flexible configuration library",
@@ -27,5 +27,5 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=['six']
+        install_requires=['six', 'PyYAML']
     )
