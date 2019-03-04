@@ -28,7 +28,13 @@ def get_yaml_loader():
     return loader
 
 
-class Config(object):
+if six.PY2:
+    from collections import MutableMapping
+else:
+    from collections.abc import MutableMapping
+
+
+class Config(MutableMapping):
     """Config implementation"""
 
     def __init__(self, content):
@@ -91,6 +97,12 @@ class Config(object):
         :return:
         """
         self.__dict__.update(d)
+
+    def __delitem__(self, key):
+        return self.content.__delitem__(key)
+
+    def __len__(self):
+        return len(self.content)
 
     def __iter__(self):
         return self.content.__iter__()
