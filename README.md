@@ -4,7 +4,7 @@
 
 # OmegaConf
 
-OmegaConf is a YAML based hierarchical configuration system, with support for merging configurations from multiple sources (files, CLI argument, environment variables)
+OmegaConf is a YAML based hierarchical configuration system, with support for merging configurations from multiple sources (multiple config files, CLI argument)
 providing a consistent API regardless of how the configuration was created.
 
 [Read the docs](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
