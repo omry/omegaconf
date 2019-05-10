@@ -191,20 +191,33 @@ def test_merge1():
 
 
 def test_merge2():
+    # replaces an element with an element
     c1 = OmegaConf.from_string('{a: 1, b: 2}')
     c2 = OmegaConf.from_string('{b: 3}')
     c3 = OmegaConf.merge(c1, c2)
     assert {'a': 1, 'b': 3} == c3
 
 
+def test_merge3():
+    # replaces an element with a map
+    c1 = OmegaConf.from_string('{a: 1, b: 2}')
+    c2 = OmegaConf.from_string('{b: {c: 3}}')
+    c3 = OmegaConf.merge(c1, c2)
+    assert {'a': 1, 'b': {'c': 3}} == c3
+
+def test_merge4():
+    # replaces a map with an element
+    c1 = OmegaConf.from_string('{b: {c: 1}}')
+    c2 = OmegaConf.from_string('{b: 1}')
+    c3 = OmegaConf.merge(c1, c2)
+    assert {'b': 1} == c3
+
 def test_3way_merge():
     c1 = OmegaConf.from_string('{a: 1, b: 2}')
     c2 = OmegaConf.from_string('{b: 3}')
     c3 = OmegaConf.from_string('{a: 2, c: 3}')
-
     c4 = OmegaConf.merge(c1, c2, c3)
     assert {'a': 2, 'b': 3, 'c': 3} == c4
-
 
 def test_dir():
     c = OmegaConf.from_string('a: b')

@@ -146,7 +146,10 @@ class Config(MutableMapping):
         ret = copy.deepcopy(dest)
         for key, value in src.items():
             if key in dest and isinstance(dest[key], dict):
-                ret[key] = Config.map_merge(dest[key], value)
+                if isinstance(value, dict):
+                    ret[key] = Config.map_merge(dest[key], value)
+                else:
+                    ret[key] = value
             else:
                 ret[key] = src[key]
         return ret
