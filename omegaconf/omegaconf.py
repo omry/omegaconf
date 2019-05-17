@@ -113,9 +113,6 @@ class Config(MutableMapping):
     def keys(self):
         return self.content.keys()
 
-    def items(self):
-        return self.content.items()
-
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
         split = key.split('.')
@@ -164,7 +161,7 @@ class Config(MutableMapping):
 class CLIConfig(Config):
     """Config wrapping CLI arguments"""
 
-    def __init__(self, args_list = None):
+    def __init__(self, args_list=None):
         super(CLIConfig, self).__init__(None)
         # if args list is not passed use sys.argv without the program name
         if args_list is None:
@@ -226,7 +223,7 @@ class OmegaConf:
         return Config(yamlstr)
 
     @staticmethod
-    def from_cli(args_list = None):
+    def from_cli(args_list=None):
         """Creates config from the content sys.argv or from the specified args list of not None"""
         return CLIConfig(args_list)
 

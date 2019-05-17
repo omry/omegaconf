@@ -205,6 +205,7 @@ def test_merge3():
     c3 = OmegaConf.merge(c1, c2)
     assert {'a': 1, 'b': {'c': 3}} == c3
 
+
 def test_merge4():
     # replaces a map with an element
     c1 = OmegaConf.from_string('{b: {c: 1}}')
@@ -212,12 +213,14 @@ def test_merge4():
     c3 = OmegaConf.merge(c1, c2)
     assert {'b': 1} == c3
 
+
 def test_3way_merge():
     c1 = OmegaConf.from_string('{a: 1, b: 2}')
     c2 = OmegaConf.from_string('{b: 3}')
     c3 = OmegaConf.from_string('{a: 2, c: 3}')
     c4 = OmegaConf.merge(c1, c2, c3)
     assert {'a': 2, 'b': 3, 'c': 3} == c4
+
 
 def test_dir():
     c = OmegaConf.from_string('a: b')
@@ -287,11 +290,11 @@ def test_cli_config():
     c = OmegaConf.from_cli()
     assert {'a': 1, 'b': {'c': 2}} == c
 
+
 def test_cli_passing():
     args_list = ['a=1', 'b.c=2']
     c = OmegaConf.from_cli(args_list)
     assert {'a': 1, 'b': {'c': 2}} == c
-
 
 
 def test_env_config():
@@ -390,6 +393,20 @@ def test_iterate():
     for k in c:
         m2[k] = c[k]
     assert m2 == c
+
+
+def test_items():
+    c = OmegaConf.from_string('''
+    a:
+      v: 1
+    b:
+      v: 1
+    ''')
+    for k, v in c.items():
+        v.v = 2
+
+    assert c.a.v == 2
+    assert c.b.v == 2
 
 
 def test_pop():
