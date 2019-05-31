@@ -138,20 +138,40 @@ class Config(MutableMapping):
         """return true if config is empty"""
         return self.content == {}
 
+    @staticmethod
+    def to_simple_map(conf):
+        ret = {}
+        if isinstance(conf, Config):
+            conf = conf.content
+
+        for k, v in conf.items():
+            if isinstance(v, Config):
+                ret[k] = Config.to_simple_map(v)
+            else:
+                ret[k] = v
+        return ret
+
+    def to_dict(self):
+        return Config.to_simple_map(self)
+
     def pretty(self):
         """return a pretty dump of the config content"""
-        return yaml.dump(self.content, default_flow_style=False)
+        return yaml.dump(self.to_dict(), default_flow_style=False)
 
     @staticmethod
     def map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
+
+        def dict_type(x):
+            return isinstance(x, Config) or isinstance(x, dict)
+
         if isinstance(dest, Config):
             dest = dest.content
         # deep copy:
         ret = OmegaConf.from_dict(dest)
         for key, value in src.items():
-            if key in dest and isinstance(dest[key], dict):
-                if isinstance(value, dict):
+            if key in dest and dict_type(dest[key]):
+                if dict_type(value):
                     ret[key] = Config.map_merge(dest[key], value)
                 else:
                     ret[key] = value
