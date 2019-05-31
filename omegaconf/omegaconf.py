@@ -39,13 +39,11 @@ class Config(MutableMapping):
 
     def __init__(self, content):
         if content is None:
-            # self.__dict__['content'] = {}
             self.set_dict({})
         else:
             if isinstance(content, str):
                 self.set_dict({content: None})
             elif isinstance(content, dict):
-                # self.__dict__['content'] = content
                 self.set_dict(content)
             else:
                 raise TypeError()
@@ -139,20 +137,20 @@ class Config(MutableMapping):
         return self.content == {}
 
     @staticmethod
-    def to_simple_map(conf):
+    def _to_dict(conf):
         ret = {}
         if isinstance(conf, Config):
             conf = conf.content
 
         for k, v in conf.items():
             if isinstance(v, Config):
-                ret[k] = Config.to_simple_map(v)
+                ret[k] = Config._to_dict(v)
             else:
                 ret[k] = v
         return ret
 
     def to_dict(self):
-        return Config.to_simple_map(self)
+        return Config._to_dict(self)
 
     def pretty(self):
         """return a pretty dump of the config content"""
@@ -185,7 +183,6 @@ class Config(MutableMapping):
             assert isinstance(other, Config)
             self.set_dict(Config.map_merge(self, other))
 
-
     def set_dict(self, content):
         if isinstance(content, Config):
             content = content.content
@@ -193,11 +190,9 @@ class Config(MutableMapping):
         self.__dict__['content'] = {}
         for k, v in content.items():
             if isinstance(v, dict):
-                self.__setitem__(k, Config(None))
-                self.__getitem__(k).set_dict(v)
+                self[k] = Config(v)
             else:
                 self[k] = v
-
 
 
 class CLIConfig(Config):
