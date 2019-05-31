@@ -39,12 +39,14 @@ class Config(MutableMapping):
 
     def __init__(self, content):
         if content is None:
-            self.__dict__['content'] = {}
+            # self.__dict__['content'] = {}
+            self.set_dict({})
         else:
             if isinstance(content, str):
-                self.__dict__['content'] = {content: None}
+                self.set_dict({content: None})
             elif isinstance(content, dict):
-                self.__dict__['content'] = content
+                # self.__dict__['content'] = content
+                self.set_dict(content)
             else:
                 raise TypeError()
 
@@ -56,18 +58,21 @@ class Config(MutableMapping):
         return v
 
     def __setattr__(self, key, value):
+        if isinstance(value, dict):
+            value = Config(value)
         self.content[key] = value
 
     # return a ConfigAccess to the result, or the actual result if it's a leaf in content
     def __getattr__(self, key):
         val = self.content.get(key)
-        if isinstance(val, dict):
-            return Config(val)
+        assert not isinstance(val, dict)
         if val == '???':
             raise MissingMandatoryValue(key)
         return val
 
     def __setitem__(self, key, value):
+        if isinstance(value, dict):
+            value = Config(value)
         self.content[key] = value
 
     def __getitem__(self, key):
@@ -155,7 +160,19 @@ class Config(MutableMapping):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
-            self.__dict__['content'] = Config.map_merge(self.content, other.content)
+            self.set_dict(Config.map_merge(self.content, other.content))
+
+
+    def set_dict(self, content):
+        assert isinstance(content, dict)
+        self.__dict__['content'] = {}
+        for k, v in content.items():
+            if isinstance(v, dict):
+                self.__setitem__(k, Config(None))
+                self.__getitem__(k).set_dict(v)
+            else:
+                self[k] = v
+
 
 
 class CLIConfig(Config):
@@ -221,6 +238,12 @@ class OmegaConf:
         assert isinstance(content, str)
         yamlstr = yaml.load(content, Loader=get_yaml_loader())
         return Config(yamlstr)
+
+    @staticmethod
+    def from_dict(map):
+        """Creates config from the content of string"""
+        assert isinstance(map, dict)
+        return Config(map)
 
     @staticmethod
     def from_cli(args_list=None):

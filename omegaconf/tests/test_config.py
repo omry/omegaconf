@@ -285,6 +285,24 @@ def test_from_filename():
         assert {'a': 'b'} == c
 
 
+def test_from_dict1():
+    d = {'a': 2, 'b': 10}
+    c = OmegaConf.from_dict(d)
+    assert d == c
+
+
+def test_from_dict2():
+    d = dict(a=2, b=10)
+    c = OmegaConf.from_dict(d)
+    assert d == c
+
+
+def test_from_nested_dict():
+    d = {'a': 2, 'b': {'c': {'f': 1}, 'd': {}}}
+    c = OmegaConf.from_dict(d)
+    assert d == c
+
+
 def test_cli_config():
     sys.argv = ['program.py', 'a=1', 'b.c=2']
     c = OmegaConf.from_cli()
@@ -416,3 +434,24 @@ def test_pop():
     ''')
     assert 1 == c.pop('a')
     assert {'b': 2} == c
+
+
+def test_merge_from_1():
+    a = OmegaConf.empty()
+    b = OmegaConf.from_string('''
+    a : 1
+    b : 2
+    ''')
+    a.merge_from(b)
+    assert a == b
+
+
+def test_merge_from_2():
+    a = OmegaConf.empty()
+    a.inner = {}
+    b = OmegaConf.from_string('''
+    a : 1
+    b : 2
+    ''')
+    a.inner.merge_from(b)
+    assert a.inner == b
