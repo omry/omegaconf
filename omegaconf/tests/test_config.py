@@ -168,6 +168,14 @@ def test_map_merge_1():
     c = Config.map_merge(a, b)
     assert b == c
 
+def test_map_merge_no_modify():
+    # Test that map_merge does not modify the input
+    a = {}
+    b = {'a': 1}
+    Config.map_merge(a, b)
+    assert a == {}
+    assert b == {'a': 1}
+
 
 def test_map_merge_2():
     a = {'a': 1}

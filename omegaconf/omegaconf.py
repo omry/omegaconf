@@ -145,7 +145,10 @@ class Config(MutableMapping):
     @staticmethod
     def map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
-        ret = copy.deepcopy(dest)
+        if isinstance(dest, Config):
+            dest = dest.content
+        # deep copy:
+        ret = OmegaConf.from_dict(dest)
         for key, value in src.items():
             if key in dest and isinstance(dest[key], dict):
                 if isinstance(value, dict):
@@ -160,10 +163,12 @@ class Config(MutableMapping):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
-            self.set_dict(Config.map_merge(self.content, other.content))
+            self.set_dict(Config.map_merge(self, other))
 
 
     def set_dict(self, content):
+        if isinstance(content, Config):
+            content = content.content
         assert isinstance(content, dict)
         self.__dict__['content'] = {}
         for k, v in content.items():
