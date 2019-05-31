@@ -168,6 +168,7 @@ def test_map_merge_1():
     c = Config.map_merge(a, b)
     assert b == c
 
+
 def test_map_merge_no_modify():
     # Test that map_merge does not modify the input
     a = {}
@@ -463,3 +464,22 @@ def test_merge_from_2():
     ''')
     a.inner.merge_from(b)
     assert a.inner == b
+
+def test_nested_map_merge_bug():
+    cfg = """
+launcher:
+  queue: a
+  queues:
+    local:
+      clazz: foo
+
+"""
+    cli = """
+launcher:
+  instances: 2
+"""
+    cfg = OmegaConf.from_string(cfg)
+    cli = OmegaConf.from_string(cli)
+    ret = OmegaConf.merge(cfg, cli)
+    assert ret.launcher.queues is not None
+
