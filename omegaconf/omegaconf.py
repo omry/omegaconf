@@ -39,13 +39,11 @@ class Config(MutableMapping):
 
     def __init__(self, content):
         if content is None:
-            # self.__dict__['content'] = {}
             self.set_dict({})
         else:
             if isinstance(content, str):
                 self.set_dict({content: None})
             elif isinstance(content, dict):
-                # self.__dict__['content'] = content
                 self.set_dict(content)
             else:
                 raise TypeError()
@@ -138,20 +136,40 @@ class Config(MutableMapping):
         """return true if config is empty"""
         return self.content == {}
 
+    @staticmethod
+    def _to_dict(conf):
+        ret = {}
+        if isinstance(conf, Config):
+            conf = conf.content
+
+        for k, v in conf.items():
+            if isinstance(v, Config):
+                ret[k] = Config._to_dict(v)
+            else:
+                ret[k] = v
+        return ret
+
+    def to_dict(self):
+        return Config._to_dict(self)
+
     def pretty(self):
         """return a pretty dump of the config content"""
-        return yaml.dump(self.content, default_flow_style=False)
+        return yaml.dump(self.to_dict(), default_flow_style=False)
 
     @staticmethod
     def map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
+
+        def dict_type(x):
+            return isinstance(x, Config) or isinstance(x, dict)
+
         if isinstance(dest, Config):
             dest = dest.content
         # deep copy:
         ret = OmegaConf.from_dict(dest)
         for key, value in src.items():
-            if key in dest and isinstance(dest[key], dict):
-                if isinstance(value, dict):
+            if key in dest and dict_type(dest[key]):
+                if dict_type(value):
                     ret[key] = Config.map_merge(dest[key], value)
                 else:
                     ret[key] = value
@@ -165,7 +183,6 @@ class Config(MutableMapping):
             assert isinstance(other, Config)
             self.set_dict(Config.map_merge(self, other))
 
-
     def set_dict(self, content):
         if isinstance(content, Config):
             content = content.content
@@ -173,11 +190,9 @@ class Config(MutableMapping):
         self.__dict__['content'] = {}
         for k, v in content.items():
             if isinstance(v, dict):
-                self.__setitem__(k, Config(None))
-                self.__getitem__(k).set_dict(v)
+                self[k] = Config(v)
             else:
                 self[k] = v
-
 
 
 class CLIConfig(Config):
