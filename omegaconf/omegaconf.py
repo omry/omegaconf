@@ -116,6 +116,9 @@ class Config(MutableMapping):
     def keys(self):
         return self.content.keys()
 
+    def __contains__(self, item):
+        return item in self.content
+
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
         split = key.split('.')

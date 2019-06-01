@@ -422,6 +422,20 @@ def test_iterate():
     assert m2 == c
 
 
+def test_iterate_keys():
+    # Test for k in conf loop returns all keys
+    c = OmegaConf.from_dict(dict(
+        a=1,
+        b=2,
+        c={}))
+
+    keys = set(['a', 'b', 'c'])
+    for k in c:
+        assert k in keys
+        keys.remove(k)
+    assert len(keys) == 0
+
+
 def test_items():
     c = OmegaConf.from_string('''
     a:
@@ -465,6 +479,7 @@ def test_merge_from_2():
     a.inner.merge_from(b)
     assert a.inner == b
 
+
 def test_nested_map_merge_bug():
     cfg = """
 launcher:
@@ -483,3 +498,12 @@ launcher:
     ret = OmegaConf.merge(cfg, cli)
     assert ret.launcher.queues is not None
 
+def test_in():
+    c = OmegaConf.from_dict(dict(
+        a=1,
+        b=2,
+        c={}))
+    assert 'a' in c
+    assert 'b' in c
+    assert 'c' in c
+    assert 'd' not in c
