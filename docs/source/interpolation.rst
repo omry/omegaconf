@@ -1,5 +1,6 @@
 .. testsetup:: *
 
+    import os
     from omegaconf import OmegaConf
 
 Interpolation
@@ -10,6 +11,9 @@ as we are composing yaml files dynamically and such referencing should be delaye
 composing the configuration.
 
 OmegaConf supports interpolation using values from other part of the configuration tree.
+
+String interpolation
+^^^^^^^^^^^^^^^^^^^^
 
 
 We will use this simple **interpolation.yaml** file in the example:
@@ -58,6 +62,29 @@ OmegaConf supports full string interpolation, for example:
       name: fire_the_nuke
       path: /var/experiments/fire_the_nuke
     <BLANKLINE>
+
+
+Environment variables interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to the above string interpolation, OmegaConf also support environment variable interpolation.
+
+
+.. include:: interpolation3.yaml
+   :code: yaml
+
+We can test it by simulating an environment variable:
+
+.. doctest::
+
+    >>> os.environ['user'] = 'omry'
+    >>> conf = OmegaConf.from_filename('source/interpolation3.yaml')
+    >>> conf.resolve()
+    >>> print(conf.pretty())
+    experiment:
+      path: /var/experiments/omry
+    <BLANKLINE>
+
 
 * :ref:`genindex`
 * :ref:`modindex`
