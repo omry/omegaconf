@@ -1,6 +1,5 @@
 """OmegaConf module"""
 import io
-import copy
 import sys
 import os
 import six
@@ -11,6 +10,13 @@ import re
 class MissingMandatoryValue(Exception):
     """Thrown when a variable flagged with '???' value is accessed to
     indicate that the value was not set"""
+
+
+class ResolveOverflow(Exception):
+    """
+    Thrown when resolve takes too many iterations to converge, this is probably an indication of a
+    problem with the interpolated strings that causes endless changes
+    """
 
 
 def get_yaml_loader():
@@ -211,8 +217,22 @@ class Config(MutableMapping):
             else:
                 self[k] = v
 
-    def resolve(self):
-        self._resolve(node=self, root=self)
+    def resolve(self, max_iterations=10):
+        assert max_iterations >= 0
+        last = self.to_dict()
+        # iterate max_iterations + 1 to for a final iteration to find if after max_iterations
+        # we interpolated everything.
+        identical = False
+        for i in range(max_iterations + 1):
+            self._resolve(node=self, root=self)
+            new = self.to_dict()
+            if last == new:
+                identical = True
+                break
+            last = new
+
+        if not identical:
+            raise ResolveOverflow("Max iterations {} reached".format(max_iterations))
 
     @staticmethod
     def _resolve(node, root):
@@ -248,7 +268,7 @@ class Config(MutableMapping):
                     ret = None
             else:
                 raise ValueError("Unsupported interpolation type {}".format(inter_type[0:-1]))
-            
+
             validate(inter_type, inter_key, ret)
             return ret
 

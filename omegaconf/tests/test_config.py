@@ -6,7 +6,7 @@ import tempfile
 import pytest
 from pytest import raises
 
-from omegaconf import MissingMandatoryValue
+from omegaconf import MissingMandatoryValue, ResolveOverflow
 from omegaconf import OmegaConf
 from omegaconf.omegaconf import Config
 
@@ -645,6 +645,31 @@ def test_interpolation_fails_on_config():
 
     with pytest.raises(ValueError):
         c.resolve()
+
+
+def test_2_step_interpolation():
+    c = OmegaConf.from_dict(dict(
+        src='bar',
+        copy_src='${src}',
+        copy_copy='${copy_src}',
+    ))
+    # this would take two resolve iterations to interpolate all strings
+    c.resolve()
+    assert c.copy_src == 'bar'
+    assert c.copy_copy == 'bar'
+
+
+def test_resolve_overflow():
+    # this test is a bit fragile because it depends on the iteration order
+    # which is different between different versions of python.
+    c = OmegaConf.from_dict(dict(
+        src='bar',
+        copy_copy='${copy_src}',
+        copy_src='${src}',
+    ))
+    # with just one iteration this would not converge
+    with pytest.raises(ResolveOverflow):
+        c.resolve(max_iterations=1)
 
 
 def test_env_interpolation1():
