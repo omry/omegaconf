@@ -7,3 +7,4 @@ dist
 omegaconf.egg-info
 venv
 .envrc
+.idea

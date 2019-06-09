@@ -276,22 +276,26 @@ def test_list_value_update():
 
 
 def test_from_file():
-    with tempfile.TemporaryFile() as fp:
-        s = b'a: b'
-        fp.write(s)
-        fp.flush()
-        fp.seek(0)
-        c = OmegaConf.from_file(fp)
-        assert {'a': 'b'} == c
-
-
-def test_from_filename():
     with tempfile.NamedTemporaryFile() as fp:
         s = b'a: b'
         fp.write(s)
         fp.flush()
-        c = OmegaConf.from_filename(fp.name)
+        fp.seek(0)
+        c = OmegaConf.from_file(fp.file)
         assert {'a': 'b'} == c
+
+
+def test_from_filename():
+    # note that delete=False here is a work around windows incompetence.
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            s = b'a: b'
+            fp.write(s)
+            fp.flush()
+            c = OmegaConf.from_filename(fp.name)
+            assert {'a': 'b'} == c
+    finally:
+        os.unlink(fp.name)
 
 
 def test_from_dict1():
