@@ -540,7 +540,8 @@ def test_str_interpolation_1():
 def test_str_interpolation_2():
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.from_dict(dict(
-        a='${not.found}',
+        a='${not_found}',
+        b='${not.found}',
     ))
 
     with pytest.raises(KeyError):
@@ -643,4 +644,25 @@ def test_interpolation_fails_on_config():
     ))
 
     with pytest.raises(ValueError):
+        c.resolve()
+
+
+def test_env_interpolation1():
+    try:
+        os.environ['foobar'] = '1234'
+        c = OmegaConf.from_dict(dict(
+            path='/test/${env:foobar}',
+        ))
+        c.resolve()
+    finally:
+        del os.environ['foobar']
+
+    assert c.path == '/test/1234'
+
+
+def test_env_interpolation_not_found():
+    c = OmegaConf.from_dict(dict(
+        path='/test/${env:foobar}',
+    ))
+    with pytest.raises(KeyError):
         c.resolve()

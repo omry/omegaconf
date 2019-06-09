@@ -229,33 +229,46 @@ class Config(MutableMapping):
         :return:
         """
 
-        def validate(_key, _value):
+        def validate(itype, _key, _value):
             if _value is None:
-                raise KeyError("String interpolation key '{}' not found".format(_key))
+                raise KeyError("{} interpolation key '{}' not found".format(itype[0:-1], _key))
             if isinstance(_value, Config):
                 # Currently this is not supported. interpolated value must be an actual value (str, int etc)
                 raise ValueError("String interpolation key '{}' refer a config node".format(_key))
+
+        def resolve_value(root_node, inter_type, inter_key):
+            inter_type = 'str:' if inter_type is None else inter_type
+            if inter_type == 'str:':
+                ret = root_node.select(inter_key)
+            elif inter_type == 'env:':
+                try:
+                    ret = os.environ[inter_key]
+                except KeyError:
+                    # validate will raise a KeyError
+                    ret = None
+            else:
+                raise ValueError("Unsupported interpolation type {}".format(inter_type[0:-1]))
+            
+            validate(inter_type, inter_key, ret)
+            return ret
 
         for key, value in node.items():
             if isinstance(value, Config):
                 Config._resolve(value, root)
             elif isinstance(value, str):
-                m = list(re.finditer(r"\${([\w\.]+?)}", value))
-                orig = node[key]
-                new = ''
-                last_index = 0
-
-                if len(m) == 1 and value == m[0][0]:
+                match_list = list(re.finditer(r"\${(\w+:)?([\w\.]+?)}", value))
+                if len(match_list) == 1 and value == match_list[0][0]:
                     # simple interpolation, inherit type
-                    val = root.select(m[0][1])
-                    validate(m[0][1], val)
-                    node[key] = val
+                    group = match_list[0]
+                    node[key] = resolve_value(root, group[1], group[2])
                 else:
-                    for g in m:
-                        val = root.select(g[1])
-                        validate(g[1], val)
-                        new += orig[last_index:g.start(0)] + str(val)
-                        last_index = g.end(0)
+                    orig = node[key]
+                    new = ''
+                    last_index = 0
+                    for group in match_list:
+                        new_val = resolve_value(root, group[1], group[2])
+                        new += orig[last_index:group.start(0)] + str(new_val)
+                        last_index = group.end(0)
 
                     new += orig[last_index:]
                     if new != '':
