@@ -257,18 +257,18 @@ class Config(MutableMapping):
                 Config._resolve(value, root)
             elif isinstance(value, str):
                 match_list = list(re.finditer(r"\${(\w+:)?([\w\.]+?)}", value))
-                if len(match_list) == 1 and value == match_list[0][0]:
+                if len(match_list) == 1 and value == match_list[0].group(0):
                     # simple interpolation, inherit type
-                    group = match_list[0]
-                    node[key] = resolve_value(root, group[1], group[2])
+                    match = match_list[0]
+                    node[key] = resolve_value(root, match.group(1), match.group(2))
                 else:
                     orig = node[key]
                     new = ''
                     last_index = 0
-                    for group in match_list:
-                        new_val = resolve_value(root, group[1], group[2])
-                        new += orig[last_index:group.start(0)] + str(new_val)
-                        last_index = group.end(0)
+                    for match in match_list:
+                        new_val = resolve_value(root, match.group(1), match.group(2))
+                        new += orig[last_index:match.start(0)] + str(new_val)
+                        last_index = match.end(0)
 
                     new += orig[last_index:]
                     if new != '':
