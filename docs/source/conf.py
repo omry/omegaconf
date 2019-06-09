@@ -153,7 +153,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'OmegaConf', 'OmegaConf Documentation',
-     author, 'OmegaConf', 'One line description of project.',
+     author, 'OmegaConf', 'Flexible python configuration system.',
      'Miscellaneous'),
 ]
 

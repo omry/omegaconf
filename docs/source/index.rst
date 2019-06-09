@@ -10,9 +10,9 @@ providing a consistent API regardless of how the configuration was created.
    :maxdepth: 3
 
    usage
+   interpolation
    merging
    creation
-
 
 
 Indices and tables

@@ -1,0 +1,5 @@
+database_server:
+  port: 1234
+
+database_client:
+  server_port: ${database_server.port}

@@ -31,8 +31,13 @@ Loading:
 
     >>> from omegaconf import OmegaConf
     >>> conf = OmegaConf.from_filename('source/example.yaml')
-    >>> conf
-    {'server': {'port': 80}, 'log': {'file': 'log.txt', 'rotation': 3600}}
+    >>> print(conf.pretty())
+    log:
+      file: log.txt
+      rotation: 3600
+    server:
+      port: 80
+    <BLANKLINE>
 
 Reading values:
 ---------------

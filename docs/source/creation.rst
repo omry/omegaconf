@@ -20,15 +20,15 @@ Empty config
 
 
 From a dictionary
--------------
+-----------------
 .. doctest::
 
     >>> conf1 = OmegaConf.from_dict({'a':2, 'b':1})
     >>> conf1
-    {'a':2, 'b':1}
+    {'a': 2, 'b': 1}
     >>> conf2 = OmegaConf.from_dict(dict(a=2, b=1))
     >>> conf2
-    {'a':2, 'b':1}
+    {'a': 2, 'b': 1}
 
 
 From filename
