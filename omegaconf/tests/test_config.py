@@ -328,13 +328,6 @@ def test_cli_passing():
     assert {'a': 1, 'b': {'c': 2}} == c
 
 
-def test_env_config():
-    os.environ['PREFIX.a'] = '1'
-    os.environ['PREFIX.b.c'] = '2'
-    c = OmegaConf.from_env(prefix="PREFIX.")
-    assert {'a': 1, 'b': {'c': 2}} == c
-
-
 def test_mandatory_value():
     c = OmegaConf.from_string('{a: "???"}')
     with raises(MissingMandatoryValue):

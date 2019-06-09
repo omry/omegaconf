@@ -274,11 +274,6 @@ class OmegaConf:
         return CLIConfig(args_list)
 
     @staticmethod
-    def from_env(prefix="OC."):
-        """Creates config from the content os.environ"""
-        return EnvConfig(prefix)
-
-    @staticmethod
     def merge(*others):
         """Merge a list of previously created configs into a single one"""
         target = Config({})

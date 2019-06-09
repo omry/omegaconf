@@ -57,15 +57,3 @@ sys.argv before you initialize the conf from_cli().
 
     >>> conf = OmegaConf.from_cli()
 
-
-From environment
-----------------
-Environment keys are prefixed by default with "OC.", you can change the prefix by passing it to from_env()
-
-.. doctest::
-
-    >>> # Simulate environment variable
-    >>> os.environ['OC.a.b'] = '1'
-    >>> conf = OmegaConf.from_env()
-    >>> conf.a.b
-    1
