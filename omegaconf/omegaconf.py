@@ -121,6 +121,20 @@ class Config(MutableMapping):
 
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
+        root, last = self._select(key)
+        assert isinstance(root, Config)
+        root[last] = value
+
+    def select(self, key):
+        """
+        Select a value using dot separated key sequence
+        :param key:
+        :return:
+        """
+        root, last = self._select(key)
+        return root[last]
+
+    def _select(self, key):
         split = key.split('.')
         root = self
         for i in range(len(split) - 1):
@@ -133,7 +147,7 @@ class Config(MutableMapping):
             root = next_root
 
         last = split[-1]
-        root[last] = value
+        return root, last
 
     def is_empty(self):
         """return true if config is empty"""
@@ -196,6 +210,56 @@ class Config(MutableMapping):
                 self[k] = Config(v)
             else:
                 self[k] = v
+
+    def resolve(self):
+        self._resolve(node=self, root=self)
+
+    @staticmethod
+    def _resolve(node, root):
+        """
+        Resolve interpolated values
+        example:
+            a=bar
+            b=#{a}
+
+        after resolve we will have
+        a=bar
+        b=bar
+
+        :return:
+        """
+
+        def validate(_key, _value):
+            if _value is None:
+                raise KeyError("String interpolation key '{}' not found".format(_key))
+            if isinstance(_value, Config):
+                # Currently this is not supported. interpolated value must be an actual value (str, int etc)
+                raise ValueError("String interpolation key '{}' refer a config node".format(_key))
+
+        for key, value in node.items():
+            if isinstance(value, Config):
+                Config._resolve(value, root)
+            elif isinstance(value, str):
+                m = list(re.finditer(r"\${([\w\.]+?)}", value))
+                orig = node[key]
+                new = ''
+                last_index = 0
+
+                if len(m) == 1 and value == m[0][0]:
+                    # simple interpolation, inherit type
+                    val = root.select(m[0][1])
+                    validate(m[0][1], val)
+                    node[key] = val
+                else:
+                    for g in m:
+                        val = root.select(g[1])
+                        validate(g[1], val)
+                        new += orig[last_index:g.start(0)] + str(val)
+                        last_index = g.end(0)
+
+                    new += orig[last_index:]
+                    if new != '':
+                        node[key] = new
 
 
 class CLIConfig(Config):

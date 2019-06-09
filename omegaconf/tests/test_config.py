@@ -1,10 +1,13 @@
 """Testing for OmegaConf"""
-import tempfile
-import sys
 import os
+import sys
+import tempfile
+
+import pytest
 from pytest import raises
-from omegaconf import OmegaConf
+
 from omegaconf import MissingMandatoryValue
+from omegaconf import OmegaConf
 from omegaconf.omegaconf import Config
 
 
@@ -130,6 +133,22 @@ def test_update_deep_with_map_update():
     c = OmegaConf.from_string('a: {b : {c: 1}}')
     c.update('a.b.d', 2)
     assert {'a': {'b': {'c': 1, 'd': 2}}} == c
+
+
+def test_select():
+    c = OmegaConf.from_dict(dict(
+        a=dict(
+            v=1
+        ),
+        b=dict(
+            v=1
+        ),
+    ))
+
+    assert c.select('a') == {'v': 1}
+    assert c.select('a.v') == 1
+    assert c.select('b.v') == 1
+    assert c.select('nope') is None
 
 
 def test_setattr_value():
@@ -495,6 +514,7 @@ launcher:
     ret = OmegaConf.merge(cfg, cli)
     assert ret.launcher.queues is not None
 
+
 def test_in():
     c = OmegaConf.from_dict(dict(
         a=1,
@@ -504,3 +524,123 @@ def test_in():
     assert 'b' in c
     assert 'c' in c
     assert 'd' not in c
+
+
+def test_str_interpolation_1():
+    # Simplest str_interpolation
+    c = OmegaConf.from_dict(dict(
+        a='${referenced}',
+        referenced='bar',
+    ))
+    c.resolve()
+    assert c.referenced == 'bar'
+    assert c.a == 'bar'
+
+
+def test_str_interpolation_2():
+    # Test that a KeyError is thrown if an str_interpolation key is not available
+    c = OmegaConf.from_dict(dict(
+        a='${not.found}',
+    ))
+
+    with pytest.raises(KeyError):
+        c.resolve()
+
+
+def test_str_interpolation_3():
+    # Test that str_interpolation works with complex strings
+    c = OmegaConf.from_dict(dict(
+        a='the year ${year}',
+        year='of the cat',
+    ))
+    c.resolve()
+
+    assert c.a == 'the year of the cat'
+
+
+def test_str_interpolation_4():
+    # Test that a string with multiple str_interpolations works
+    c = OmegaConf.from_dict(dict(
+        a='${ha} ${ha} ${ha}, said Pennywise, ${ha} ${ha}... ${ha}!',
+        ha='HA',
+    ))
+    c.resolve()
+
+    assert c.a == 'HA HA HA, said Pennywise, HA HA... HA!'
+
+
+def test_deep_str_interpolation_1():
+    # Test deep str_interpolation works
+    c = OmegaConf.from_dict(dict(
+        a='the answer to the universe and everything is ${nested.value}',
+        nested=dict(
+            value=42
+        ),
+    ))
+    c.resolve()
+
+    assert c.a == 'the answer to the universe and everything is 42'
+
+
+def test_deep_str_interpolation_2():
+    # Test that str_interpolation of a key that is nested works
+    c = OmegaConf.from_dict(dict(
+        out=42,
+        deep=dict(
+            inside='the answer to the universe and everything is ${out}',
+        ),
+    ))
+    c.resolve()
+
+    assert c.deep.inside == 'the answer to the universe and everything is 42'
+
+
+def test_simple_str_interpolation_inherit_type():
+    # Test that str_interpolation of a key that is nested works
+    c = OmegaConf.from_dict(dict(
+        inter1='${answer1}',
+        inter2='${answer2}',
+        inter3='${answer3}',
+        inter4='${answer4}',
+        answer1=42,
+        answer2=42.0,
+        answer3=False,
+        answer4='string',
+    ))
+    c.resolve()
+
+    assert type(c.inter1) == int
+    assert type(c.inter2) == float
+    assert type(c.inter3) == bool
+    assert type(c.inter4) == str
+
+
+def test_complex_str_interpolation_is_always_str_1():
+    c = OmegaConf.from_dict(dict(
+        two=2,
+        four=4,
+        inter1='${four}${two}',
+        inter2='4${two}',
+    ))
+    c.resolve()
+
+    assert type(c.inter1) == str
+    assert c.inter1 == '42'
+    assert type(c.inter2) == str
+    assert c.inter2 == '42'
+
+
+def test_interpolation_fails_on_config():
+    # Test that a ValueError is thrown if an string interpolation used on config value
+    c = OmegaConf.from_dict(dict(
+        config_obj=dict(
+            value1=42,
+            value2=43,
+        ),
+        deep=dict(
+            inside='${config_obj}',
+        ),
+    ))
+
+    with pytest.raises(ValueError):
+        c.resolve()
