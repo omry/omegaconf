@@ -526,6 +526,18 @@ def test_in():
     assert 'd' not in c
 
 
+def test_get_root():
+    c = OmegaConf.from_dict(dict(
+        a=123,
+        b=dict(
+            bb=456,
+            cc=7,
+        ),
+    ))
+    assert c._get_root() == c
+    assert c.b._get_root() == c
+
+
 def test_str_interpolation_1():
     # Simplest str_interpolation
     c = OmegaConf.from_dict(dict(
@@ -690,4 +702,23 @@ def test_env_interpolation_not_found():
         path='/test/${env:foobar}',
     ))
     with pytest.raises(KeyError):
-        c.resolve()
+        c.path
+
+
+def test_env_interpolation_recursive1():
+    c = OmegaConf.from_dict(dict(
+        path='/test/${path}',
+    ))
+
+    # with pytest.raises(RuntimeError):
+    c.path
+
+
+def test_env_interpolation_recursive2():
+    c = OmegaConf.from_dict(dict(
+        path1='/test/${path2}',
+        path2='/test/${path1}',
+    ))
+
+    # with pytest.raises(RuntimeError):
+    c.path1
