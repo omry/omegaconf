@@ -12,13 +12,6 @@ class MissingMandatoryValue(Exception):
     indicate that the value was not set"""
 
 
-class ResolveOverflow(Exception):
-    """
-    Thrown when resolve takes too many iterations to converge, this is probably an indication of a
-    problem with the interpolated strings that causes endless changes
-    """
-
-
 def get_yaml_loader():
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(
@@ -43,7 +36,9 @@ else:
 class Config(MutableMapping):
     """Config implementation"""
 
-    def __init__(self, content):
+    def __init__(self, content, parent=None):
+        assert parent is None or isinstance(parent, Config)
+        self.__dict__['parent'] = parent
         if content is None:
             self.set_dict({})
         else:
@@ -61,22 +56,28 @@ class Config(MutableMapping):
             v = default_value
         return v
 
+    def _get_root(self):
+        root = self.__dict__['parent']
+        if root is None:
+            return self
+        while root.__dict__['parent'] is not None:
+            root = root.__dict__['parent']
+        return root
+
     def __setattr__(self, key, value):
         if isinstance(value, dict):
-            value = Config(value)
+            value = Config(value, parent=self)
         self.content[key] = value
 
-    # return a ConfigAccess to the result, or the actual result if it's a leaf in content
     def __getattr__(self, key):
         val = self.content.get(key)
-        assert not isinstance(val, dict)
         if val == '???':
             raise MissingMandatoryValue(key)
-        return val
+        return self._resolve_single(val) if isinstance(val, str) else val
 
     def __setitem__(self, key, value):
         if isinstance(value, dict):
-            value = Config(value)
+            value = Config(value, parent=self)
         self.content[key] = value
 
     def __getitem__(self, key):
@@ -127,7 +128,19 @@ class Config(MutableMapping):
 
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
-        root, last = self._select(key)
+        split = key.split('.')
+        root = self
+        for i in range(len(split) - 1):
+            k = split[i]
+            next_root = root[k]
+            # if next_root is a primitive (string, int etc) replace it with an empty map
+            if not isinstance(next_root, Config):
+                root[k] = {}
+                next_root = root[k]
+            root = next_root
+
+        last = split[-1]
+
         assert isinstance(root, Config)
         root[last] = value
 
@@ -137,23 +150,21 @@ class Config(MutableMapping):
         :param key:
         :return:
         """
-        root, last = self._select(key)
-        return root[last]
-
-    def _select(self, key):
         split = key.split('.')
         root = self
         for i in range(len(split) - 1):
             k = split[i]
-            next_root = root.get(k)
-            # if next_root is a primitive (string, int etc) replace it with an empty map
-            if not isinstance(next_root, Config):
-                root[k] = {}
-                next_root = root.get(k)
-            root = next_root
+            root = root[k]
+
+        if root is None:
+            return None
 
         last = split[-1]
-        return root, last
+
+        if last in root:
+            return root[last]
+        else:
+            return None
 
     def is_empty(self):
         """return true if config is empty"""
@@ -213,86 +224,55 @@ class Config(MutableMapping):
         self.__dict__['content'] = {}
         for k, v in content.items():
             if isinstance(v, dict):
-                self[k] = Config(v)
+                self[k] = Config(v, parent=self)
             else:
                 self[k] = v
 
-    def resolve(self, max_iterations=10):
-        assert max_iterations >= 0
-        last = self.to_dict()
-        # iterate max_iterations + 1 to for a final iteration to find if after max_iterations
-        # we interpolated everything.
-        identical = False
-        for i in range(max_iterations + 1):
-            self._resolve(node=self, root=self)
-            new = self.to_dict()
-            if last == new:
-                identical = True
-                break
-            last = new
-
-        if not identical:
-            raise ResolveOverflow("Max iterations {} reached".format(max_iterations))
-
     @staticmethod
-    def _resolve(node, root):
-        """
-        Resolve interpolated values
-        example:
-            a=bar
-            b=#{a}
+    def resolve_value(root_node, inter_type, inter_key):
+        inter_type = 'str:' if inter_type is None else inter_type
+        if inter_type == 'str:':
+            ret = root_node.select(inter_key)
+        elif inter_type == 'env:':
+            try:
+                ret = os.environ[inter_key]
+            except KeyError:
+                # validate will raise a KeyError
+                ret = None
+        else:
+            raise ValueError("Unsupported interpolation type {}".format(inter_type[0:-1]))
 
-        after resolve we will have
-        a=bar
-        b=bar
+        if ret is None:
+            raise KeyError("{} interpolation key '{}' not found".format(inter_type[0:-1], inter_key))
+        if isinstance(ret, Config):
+            # Currently this is not supported. interpolated value must be an actual value (str, int etc)
+            raise ValueError("String interpolation key '{}' refer a config node".format(inter_key))
 
-        :return:
-        """
+        return ret
 
-        def validate(itype, _key, _value):
-            if _value is None:
-                raise KeyError("{} interpolation key '{}' not found".format(itype[0:-1], _key))
-            if isinstance(_value, Config):
-                # Currently this is not supported. interpolated value must be an actual value (str, int etc)
-                raise ValueError("String interpolation key '{}' refer a config node".format(_key))
+    def _resolve_single(self, value):
+        if value is None:
+            return None
+        match_list = list(re.finditer(r"\${(\w+:)?([\w\.]+?)}", value))
+        if len(match_list) == 0:
+            return value
 
-        def resolve_value(root_node, inter_type, inter_key):
-            inter_type = 'str:' if inter_type is None else inter_type
-            if inter_type == 'str:':
-                ret = root_node.select(inter_key)
-            elif inter_type == 'env:':
-                try:
-                    ret = os.environ[inter_key]
-                except KeyError:
-                    # validate will raise a KeyError
-                    ret = None
-            else:
-                raise ValueError("Unsupported interpolation type {}".format(inter_type[0:-1]))
+        root = self._get_root()
+        if len(match_list) == 1 and value == match_list[0].group(0):
+            # simple interpolation, inherit type
+            match = match_list[0]
+            return Config.resolve_value(root, match.group(1), match.group(2))
+        else:
+            orig = value
+            new = ''
+            last_index = 0
+            for match in match_list:
+                new_val = Config.resolve_value(root, match.group(1), match.group(2))
+                new += orig[last_index:match.start(0)] + str(new_val)
+                last_index = match.end(0)
 
-            validate(inter_type, inter_key, ret)
-            return ret
-
-        for key, value in node.items():
-            if isinstance(value, Config):
-                Config._resolve(value, root)
-            elif isinstance(value, str):
-                match_list = list(re.finditer(r"\${(\w+:)?([\w\.]+?)}", value))
-                if len(match_list) == 1 and value == match_list[0].group(0):
-                    # simple interpolation, inherit type
-                    match = match_list[0]
-                    node[key] = resolve_value(root, match.group(1), match.group(2))
-                else:
-                    orig = node[key]
-                    new = ''
-                    last_index = 0
-                    for match in match_list:
-                        new_val = resolve_value(root, match.group(1), match.group(2))
-                        new += orig[last_index:match.start(0)] + str(new_val)
-                        last_index = match.end(0)
-
-                    new += orig[last_index:]
-                    if new != '':
-                        node[key] = new
+            new += orig[last_index:]
+            return new
 
 
 class CLIConfig(Config):
@@ -332,6 +312,9 @@ class EnvConfig(Config):
 class OmegaConf:
     """OmegaConf primary class"""
 
+    def __init__(self):
+        raise NotImplemented("Use one of the static construction functions")
+
     @staticmethod
     def empty():
         """Creates an empty config"""
@@ -346,11 +329,11 @@ class OmegaConf:
             return OmegaConf.from_file(file)
 
     @staticmethod
-    def from_file(file):
+    def from_file(file_):
         """Creates config from the content of the specified file object"""
         if six.PY3:
-            assert isinstance(file, io.IOBase)
-        return Config(yaml.load(file, Loader=get_yaml_loader()))
+            assert isinstance(file_, io.IOBase)
+        return Config(yaml.load(file_, Loader=get_yaml_loader()))
 
     @staticmethod
     def from_string(content):
@@ -360,10 +343,10 @@ class OmegaConf:
         return Config(yamlstr)
 
     @staticmethod
-    def from_dict(map):
+    def from_dict(dict_):
         """Creates config from the content of string"""
-        assert isinstance(map, dict)
-        return Config(map)
+        assert isinstance(dict_, dict)
+        return Config(dict_)
 
     @staticmethod
     def from_cli(args_list=None):
