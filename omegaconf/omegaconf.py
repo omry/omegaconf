@@ -37,8 +37,7 @@ class Config(MutableMapping):
     """Config implementation"""
 
     def __init__(self, content, parent=None):
-        assert parent is None or isinstance(parent, Config)
-        self.__dict__['parent'] = parent
+        self._set_parent(parent)
         if content is None:
             self.set_dict({})
         else:
@@ -55,6 +54,10 @@ class Config(MutableMapping):
         if v is None:
             v = default_value
         return v
+
+    def _set_parent(self, parent):
+        assert parent is None or isinstance(parent, Config)
+        self.__dict__['parent'] = parent
 
     def _get_root(self):
         root = self.__dict__['parent']
@@ -216,6 +219,15 @@ class Config(MutableMapping):
         for other in others:
             assert isinstance(other, Config)
             self.set_dict(Config.map_merge(self, other))
+
+        def re_parent(node):
+            # update parents of first level Config nodes to self
+            for _key, value in node.__dict__['content'].items():
+                if isinstance(value, Config):
+                    value._set_parent(node)
+                    re_parent(value)
+        # recursively correct the parent hierarchy after the merge
+        re_parent(self)
 
     def set_dict(self, content):
         if isinstance(content, Config):

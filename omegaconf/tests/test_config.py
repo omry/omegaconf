@@ -537,6 +537,30 @@ def test_get_root():
     assert c._get_root() == c
     assert c.b._get_root() == c
 
+def test_get_root_of_merged():
+    c1 = OmegaConf.from_dict(dict(
+        a=dict(
+            a1=1,
+            a2=2,
+        ),
+    ))
+
+    c2 = OmegaConf.from_dict(dict(
+        b=dict(
+            b1='???',
+            b2=4,
+            bb=dict(
+                bb1=3,
+                bb2=4,
+            ),
+        ),
+    ))
+    c3 = OmegaConf.merge(c1, c2)
+
+    assert c3._get_root() == c3
+    assert c3.a._get_root() == c3
+    assert c3.b._get_root() == c3
+    assert c3.b.bb._get_root() == c3
 
 def test_str_interpolation_1():
     # Simplest str_interpolation
