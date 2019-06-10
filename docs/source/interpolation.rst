@@ -6,27 +6,28 @@
 Interpolation
 =============
 
-While YAML supports anchors this does not work well for OmegaConf
-as we are composing yaml files dynamically and such referencing should be delayed until we are done
-composing the configuration.
-
-OmegaConf supports interpolation using values from other part of the configuration tree.
+OmegaConf supports interpolation of strings using either parts of the config and using environment variables.
 
 String interpolation
 ^^^^^^^^^^^^^^^^^^^^
-
 
 We will use this simple **interpolation.yaml** file in the example:
 
 .. include:: interpolation.yaml
    :code: yaml
 
-
 Let's load it and take a look:
 
 .. doctest::
 
     >>> conf = OmegaConf.from_filename('source/interpolation.yaml')
+    >>> conf.database_client.server_port
+    1234
+
+If you pretty print you get the source yaml file, but when you access a field it resolves at runtime.
+
+.. doctest::
+
     >>> print(conf.pretty())
     database_client:
       server_port: ${database_server.port}
@@ -34,56 +35,36 @@ Let's load it and take a look:
       port: 1234
     <BLANKLINE>
 
-Note that the client port is not resolved yet, this gives us a change to only do it when it gets it's final value.
-For example, we may want to allow overriding things from the command line, and we should only resolve once everything
-got it's final value.
-
-.. doctest::
-
-    >>> conf.resolve()
-    >>> print(conf.pretty())
-    database_client:
-      server_port: 1234
-    database_server:
-      port: 1234
-    <BLANKLINE>
-
-OmegaConf supports full string interpolation, for example:
+Interpolation can also construct complex strings:
 
 .. include:: interpolation2.yaml
    :code: yaml
 
+
 .. doctest::
 
     >>> conf = OmegaConf.from_filename('source/interpolation2.yaml')
-    >>> conf.resolve()
-    >>> print(conf.pretty())
-    experiment:
-      name: fire_the_nuke
-      path: /var/experiments/fire_the_nuke
-    <BLANKLINE>
-
+    >>> conf.experiment.path
+    '/var/experiments/fire_the_nuke'
 
 Environment variables interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In addition to the above string interpolation, OmegaConf also support environment variable interpolation.
+In addition to resolving using other parts of the config, OmegaConf also support using environment variables with the
+env: prefix in the interpolated value.
 
 
 .. include:: interpolation3.yaml
    :code: yaml
 
-We can test it by simulating an environment variable:
+Let's test it:
 
 .. doctest::
 
     >>> os.environ['user'] = 'omry'
     >>> conf = OmegaConf.from_filename('source/interpolation3.yaml')
-    >>> conf.resolve()
-    >>> print(conf.pretty())
-    experiment:
-      path: /var/experiments/omry
-    <BLANKLINE>
+    >>> conf.experiment.path
+    '/var/experiments/omry'
 
 
 * :ref:`genindex`

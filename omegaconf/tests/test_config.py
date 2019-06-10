@@ -6,7 +6,7 @@ import tempfile
 import pytest
 from pytest import raises
 
-from omegaconf import MissingMandatoryValue, ResolveOverflow
+from omegaconf import MissingMandatoryValue
 from omegaconf import OmegaConf
 from omegaconf.omegaconf import Config
 
@@ -544,20 +544,28 @@ def test_str_interpolation_1():
         a='${referenced}',
         referenced='bar',
     ))
-    c.resolve()
     assert c.referenced == 'bar'
     assert c.a == 'bar'
 
 
-def test_str_interpolation_2():
+def test_str_interpolation_key_error_1():
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.from_dict(dict(
         a='${not_found}',
-        b='${not.found}',
     ))
 
     with pytest.raises(KeyError):
-        c.resolve()
+        c.a
+
+
+def test_str_interpolation_key_error_2():
+    # Test that a KeyError is thrown if an str_interpolation key is not available
+    c = OmegaConf.from_dict(dict(
+        a='${not.found}',
+    ))
+
+    with pytest.raises(KeyError):
+        c.a
 
 
 def test_str_interpolation_3():
@@ -566,7 +574,6 @@ def test_str_interpolation_3():
         a='the year ${year}',
         year='of the cat',
     ))
-    c.resolve()
 
     assert c.a == 'the year of the cat'
 
@@ -577,7 +584,6 @@ def test_str_interpolation_4():
         a='${ha} ${ha} ${ha}, said Pennywise, ${ha} ${ha}... ${ha}!',
         ha='HA',
     ))
-    c.resolve()
 
     assert c.a == 'HA HA HA, said Pennywise, HA HA... HA!'
 
@@ -590,7 +596,6 @@ def test_deep_str_interpolation_1():
             value=42
         ),
     ))
-    c.resolve()
 
     assert c.a == 'the answer to the universe and everything is 42'
 
@@ -603,7 +608,6 @@ def test_deep_str_interpolation_2():
             inside='the answer to the universe and everything is ${out}',
         ),
     ))
-    c.resolve()
 
     assert c.deep.inside == 'the answer to the universe and everything is 42'
 
@@ -620,7 +624,6 @@ def test_simple_str_interpolation_inherit_type():
         answer3=False,
         answer4='string',
     ))
-    c.resolve()
 
     assert type(c.inter1) == int
     assert type(c.inter2) == float
@@ -635,7 +638,6 @@ def test_complex_str_interpolation_is_always_str_1():
         inter1='${four}${two}',
         inter2='4${two}',
     ))
-    c.resolve()
 
     assert type(c.inter1) == str
     assert c.inter1 == '42'
@@ -656,7 +658,7 @@ def test_interpolation_fails_on_config():
     ))
 
     with pytest.raises(ValueError):
-        c.resolve()
+        c.deep.inside
 
 
 def test_2_step_interpolation():
@@ -665,23 +667,8 @@ def test_2_step_interpolation():
         copy_src='${src}',
         copy_copy='${copy_src}',
     ))
-    # this would take two resolve iterations to interpolate all strings
-    c.resolve()
     assert c.copy_src == 'bar'
     assert c.copy_copy == 'bar'
-
-
-def test_resolve_overflow():
-    # this test is a bit fragile because it depends on the iteration order
-    # which is different between different versions of python.
-    c = OmegaConf.from_dict(dict(
-        src='bar',
-        copy_copy='${copy_src}',
-        copy_src='${src}',
-    ))
-    # with just one iteration this would not converge
-    with pytest.raises(ResolveOverflow):
-        c.resolve(max_iterations=1)
 
 
 def test_env_interpolation1():
@@ -690,11 +677,9 @@ def test_env_interpolation1():
         c = OmegaConf.from_dict(dict(
             path='/test/${env:foobar}',
         ))
-        c.resolve()
+        assert c.path == '/test/1234'
     finally:
         del os.environ['foobar']
-
-    assert c.path == '/test/1234'
 
 
 def test_env_interpolation_not_found():
@@ -710,8 +695,8 @@ def test_env_interpolation_recursive1():
         path='/test/${path}',
     ))
 
-    # with pytest.raises(RuntimeError):
-    c.path
+    with pytest.raises(RuntimeError):
+        c.path
 
 
 def test_env_interpolation_recursive2():
@@ -720,5 +705,18 @@ def test_env_interpolation_recursive2():
         path2='/test/${path1}',
     ))
 
-    # with pytest.raises(RuntimeError):
-    c.path1
+    with pytest.raises(RuntimeError):
+        c.path1
+
+
+def test_interpolation_doctest_1():
+    c = OmegaConf.from_dict(dict(
+        database_server=dict(
+            port=1234
+        ),
+        database_client=dict(
+            server_port='${database_server.port}'
+        )
+    ))
+
+    assert c.database_client.server_port == 1234
