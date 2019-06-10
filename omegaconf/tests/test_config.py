@@ -707,16 +707,3 @@ def test_env_interpolation_recursive2():
 
     with pytest.raises(RuntimeError):
         c.path1
-
-
-def test_interpolation_doctest_1():
-    c = OmegaConf.from_dict(dict(
-        database_server=dict(
-            port=1234
-        ),
-        database_client=dict(
-            server_port='${database_server.port}'
-        )
-    ))
-
-    assert c.database_client.server_port == 1234
