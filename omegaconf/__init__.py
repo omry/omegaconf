@@ -1,3 +1,3 @@
-from .omegaconf import MissingMandatoryValue, ResolveOverflow
+from .omegaconf import MissingMandatoryValue
 from .omegaconf import OmegaConf
 name = "omegaconf"
