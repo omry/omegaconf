@@ -2,7 +2,7 @@
 import os
 import sys
 import tempfile
-
+import copy
 import pytest
 from pytest import raises
 
@@ -427,6 +427,45 @@ def test_pickle():
         assert c == c1
 
 
+def test_pickle_get_root():
+    # Test that get_root() is reconstructed correctly for pickle loaded files.
+    with tempfile.TemporaryFile() as fp:
+        c1 = OmegaConf.from_dict(dict(
+            a=dict(
+                a1=1,
+                a2=2,
+            ),
+        ))
+
+        c2 = OmegaConf.from_dict(dict(
+            b=dict(
+                b1='???',
+                b2=4,
+                bb=dict(
+                    bb1=3,
+                    bb2=4,
+                ),
+            ),
+        ))
+        c3 = OmegaConf.merge(c1, c2)
+
+        import pickle
+        pickle.dump(c3, fp)
+        fp.flush()
+        fp.seek(0)
+        loaded_c3 = pickle.load(fp)
+
+        def test(conf):
+            assert conf._get_root() == conf
+            assert conf.a._get_root() == conf
+            assert conf.b._get_root() == conf
+            assert conf.b.bb._get_root() == conf
+
+        assert c3 == loaded_c3
+        test(c3)
+        test(loaded_c3)
+
+
 def test_iterate():
     c = OmegaConf.from_string('''
     a : 1
@@ -537,6 +576,7 @@ def test_get_root():
     assert c._get_root() == c
     assert c.b._get_root() == c
 
+
 def test_get_root_of_merged():
     c1 = OmegaConf.from_dict(dict(
         a=dict(
@@ -561,6 +601,7 @@ def test_get_root_of_merged():
     assert c3.a._get_root() == c3
     assert c3.b._get_root() == c3
     assert c3.b.bb._get_root() == c3
+
 
 def test_str_interpolation_1():
     # Simplest str_interpolation
@@ -731,3 +772,16 @@ def test_env_interpolation_recursive2():
 
     with pytest.raises(RuntimeError):
         c.path1
+
+
+def test_deepcopy():
+    c1 = OmegaConf.from_dict(dict(
+        foo1='foo1',
+        foo2='foo2',
+    ))
+
+    c2 = copy.deepcopy(c1)
+    assert c2 == c1
+    c1.foo1 = "bar"
+    assert c1.foo1 == 'bar'
+    assert c2.foo1 == 'foo1'

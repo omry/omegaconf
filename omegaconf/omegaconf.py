@@ -286,6 +286,9 @@ class Config(MutableMapping):
             new += orig[last_index:]
             return new
 
+    def __deepcopy__(self, memodict={}):
+        return OmegaConf.from_dict(self.__dict__['content'])
+
 
 class CLIConfig(Config):
     """Config wrapping CLI arguments"""
