@@ -24,6 +24,7 @@ with open("README.md", "r") as fh:
         packages=setuptools.find_packages(),
         classifiers=[
             "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "License :: OSI Approved :: BSD License",
