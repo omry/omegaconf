@@ -3,7 +3,7 @@ import io
 import os
 import re
 import sys
-
+from collections import defaultdict
 import six
 import yaml
 
@@ -26,6 +26,16 @@ def get_yaml_loader():
         |\\.(?:nan|NaN|NAN))$''', re.X),
         list(u'-+0123456789.'))
     return loader
+
+
+def register_default_resolvers():
+    def env(key):
+        try:
+            return os.environ[key]
+        except KeyError:
+            raise KeyError("Environment variable '{}' not found".format(key))
+
+    OmegaConf.register_resolver('env', env)
 
 
 if six.PY2:
@@ -249,11 +259,6 @@ class Config(MutableMapping):
             ret = root_node.select(inter_key)
             if ret is None:
                 raise KeyError("{} interpolation key '{}' not found".format(inter_type, inter_key))
-        elif inter_type == 'env':
-            try:
-                ret = os.environ[inter_key]
-            except KeyError:
-                raise KeyError("{} environment variable '{}' not found".format(inter_type, inter_key))
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
@@ -383,14 +388,15 @@ class OmegaConf:
         return target
 
     _resolvers = {}
+    _resolvers_cache = defaultdict(dict)
 
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
         assert name not in OmegaConf._resolvers, "resolved {} is already registered".format(name)
-        cache = {}
 
         def caching(key):
+            cache = OmegaConf._resolvers_cache[name]
             val = cache[key] if key in cache else resolver(key)
             cache[key] = val
             return val
@@ -404,3 +410,9 @@ class OmegaConf:
     @staticmethod
     def clear_resolvers():
         OmegaConf._resolvers = {}
+        OmegaConf._resolvers_cache = defaultdict(dict)
+        register_default_resolvers()
+
+
+# register all default resolvers
+register_default_resolvers()

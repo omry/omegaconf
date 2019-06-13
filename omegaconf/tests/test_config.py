@@ -746,6 +746,7 @@ def test_env_interpolation1():
         assert c.path == '/test/1234'
     finally:
         del os.environ['foobar']
+        OmegaConf.clear_resolvers()
 
 
 def test_env_interpolation_not_found():
