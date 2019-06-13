@@ -47,13 +47,13 @@ Interpolation can also construct complex strings:
     >>> conf.experiment.path
     '/var/experiments/fire_the_nuke'
 
-Environment variables interpolation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Standard resolvers library
+==========================
 
-In addition to resolving using other parts of the config, OmegaConf also support using environment variables with the
-env: prefix in the interpolated value.
+The following resolvers are supported:
 
-
+Environment variable resolver
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. include:: interpolation3.yaml
    :code: yaml
 
@@ -66,6 +66,16 @@ Let's test it:
     >>> conf.experiment.path
     '/var/experiments/omry'
 
+Plugable resolves
+^^^^^^^^^^^^^^^^^
+You can add easily add your own resolvers:
+let's say we want a resolver that adds 10 the the given value.
+The value 999 will be passed to the plus_10 lambda, and the int 1000 will be returned.
+
+    >>> OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    >>> c = OmegaConf.from_dict({'key': '${plus_10:990}'})
+    >>> c.key
+    1000
 
 * :ref:`genindex`
 * :ref:`modindex`
