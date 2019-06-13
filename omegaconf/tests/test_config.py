@@ -5,6 +5,7 @@ import tempfile
 import copy
 import pytest
 from pytest import raises
+import random
 
 from omegaconf import MissingMandatoryValue
 from omegaconf import OmegaConf
@@ -785,3 +786,50 @@ def test_deepcopy():
     c1.foo1 = "bar"
     assert c1.foo1 == 'bar'
     assert c2.foo1 == 'foo1'
+
+
+def test_register_resolver_twice_error():
+    try:
+        OmegaConf.register_resolver("foo", lambda: 10)
+        with pytest.raises(AssertionError):
+            OmegaConf.register_resolver("foo", lambda: 10)
+    finally:
+        OmegaConf.clear_resolvers()
+
+
+def test_clear_resolvers():
+    assert OmegaConf.get_resolver('foo') is None
+    try:
+        OmegaConf.register_resolver('foo', lambda x: int(x) + 10)
+        assert OmegaConf.get_resolver('foo') is not None
+    finally:
+        OmegaConf.clear_resolvers()
+        assert OmegaConf.get_resolver('foo') is None
+
+
+def test_register_resolver_1():
+    try:
+        OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+        c = OmegaConf.from_dict(dict(
+            k='${plus_10:990}',
+        ))
+
+        assert type(c.k) == int
+        assert c.k == 1000
+    finally:
+        OmegaConf.clear_resolvers()
+
+
+def test_register_resolver_2():
+    # resolvers are always converted to stateless idempotent functions
+    # subsequent calls to the same function with the same argument will always return the same value.
+    # this is important to allow embedding of functions like time() without having the value change during
+    # the program execution.
+    try:
+        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+        c = OmegaConf.from_dict(dict(
+            k='${random:_}',
+        ))
+        assert c.k == c.k
+    finally:
+        OmegaConf.clear_resolvers()
