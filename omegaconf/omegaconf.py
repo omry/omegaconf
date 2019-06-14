@@ -85,7 +85,7 @@ class Config(MutableMapping):
 
     def __getattr__(self, key):
         val = self.content.get(key)
-        if val == '???':
+        if type(val) == str and val == '???':
             raise MissingMandatoryValue(key)
         return self._resolve_single(val) if isinstance(val, str) else val
 
