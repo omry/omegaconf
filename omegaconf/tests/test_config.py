@@ -295,6 +295,11 @@ def test_list_value():
     assert {'a': [1, 2]} == c
 
 
+def test_tupple_value():
+    c = OmegaConf.create((1, 2))
+    assert (1, 2) == c
+
+
 def test_list_of_dicts():
     v = dict(
         list=[
@@ -873,7 +878,15 @@ def test_is_dict():
     assert not c.is_sequence()
 
 
-def test_is_sequence():
+def test_is_sequence_with_list():
     c = OmegaConf.create([])
     assert not c.is_dict()
     assert c.is_sequence()
+
+
+def test_is_sequence_with_tupple():
+    c = OmegaConf.create(())
+    assert not c.is_dict()
+    assert c.is_sequence()
+
+# test items on sequence

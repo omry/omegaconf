@@ -42,9 +42,9 @@ def register_default_resolvers():
 
 
 if six.PY2:
-    from collections import MutableMapping
+    from collections import MutableMapping, Sequence
 else:
-    from collections.abc import MutableMapping
+    from collections.abc import MutableMapping, Sequence
 
 
 class Config(MutableMapping):
@@ -57,7 +57,7 @@ class Config(MutableMapping):
         else:
             if isinstance(content, str):
                 self._set_content({content: None})
-            elif isinstance(content, dict) or isinstance(content, list):
+            elif isinstance(content, dict) or isinstance(content, Sequence):
                 self._set_content(content)
             else:
                 raise RuntimeError("Unsupported content type {}".format(type(content)))
@@ -89,8 +89,8 @@ class Config(MutableMapping):
     def __getattr__(self, key):
         if isinstance(self.content, dict):
             val = self.content.get(key)
-        elif isinstance(self.content, list):
-            assert type(key) == int, "Indexing into list node with a non int type ({})".format(type(key))
+        elif isinstance(self.content, (list, tuple)):
+            assert type(key) == int, "Indexing into Sequence node with a non int type ({})".format(type(key))
             val = self.content[key]
         if type(val) == str and val == '???':
             raise MissingMandatoryValue(key)
@@ -204,7 +204,7 @@ class Config(MutableMapping):
                 else:
                     ret[key] = value
             return ret
-        elif isinstance(conf, list):
+        elif isinstance(conf, Sequence):
             ret = []
             for item in conf:
                 if isinstance(item, Config):
@@ -222,7 +222,7 @@ class Config(MutableMapping):
 
     def to_list(self):
         content = Config._to_content(self)
-        assert isinstance(content, list), "Configuration is a {} and not a list".format(type(content))
+        assert isinstance(content, Sequence), "Configuration is a {} and not a Sequence".format(type(content))
         return content
 
     def pretty(self):
@@ -275,12 +275,13 @@ class Config(MutableMapping):
                 if isinstance(v, dict):
                     v = Config(v, parent=self)
                 self[k] = v
-        elif isinstance(content, list):
-            self.__dict__['content'] = []
+        elif isinstance(content, (list, tuple)):
+            target = []
             for item in content:
-                if isinstance(item, dict) or isinstance(item, list):
+                if isinstance(item, dict) or isinstance(item, (list, tuple)):
                     item = Config(item, parent=self)
-                self.__dict__['content'].append(item)
+                target.append(item)
+            self.__dict__['content'] = target if isinstance(content, list) else tuple(target)
         else:
             raise RuntimeError("Unsupported type for content: {}".format(type(content)))
 
@@ -337,7 +338,7 @@ class Config(MutableMapping):
         return isinstance(self.content, dict)
 
     def is_sequence(self):
-        return isinstance(self.content, list)
+        return isinstance(self.content, Sequence)
 
 
 class OmegaConf:
@@ -355,9 +356,10 @@ class OmegaConf:
         :return:
         """
         if isinstance(obj, str):
-            return Config(yaml.load(obj, Loader=get_yaml_loader()))
+            obj = yaml.load(obj, Loader=get_yaml_loader())
+            return Config(obj)
         else:
-            assert obj is None or isinstance(obj, list) or isinstance(obj, dict)
+            assert obj is None or isinstance(obj, (list, tuple)) or isinstance(obj, dict)
             return Config(content=obj)
 
     @staticmethod
