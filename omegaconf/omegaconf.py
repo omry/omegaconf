@@ -1,10 +1,11 @@
 """OmegaConf module"""
 import io
-import sys
 import os
+import re
+import sys
+from collections import defaultdict
 import six
 import yaml
-import re
 
 
 class MissingMandatoryValue(Exception):
@@ -25,6 +26,16 @@ def get_yaml_loader():
         |\\.(?:nan|NaN|NAN))$''', re.X),
         list(u'-+0123456789.'))
     return loader
+
+
+def register_default_resolvers():
+    def env(key):
+        try:
+            return os.environ[key]
+        except KeyError:
+            raise KeyError("Environment variable '{}' not found".format(key))
+
+    OmegaConf.register_resolver('env', env)
 
 
 if six.PY2:
@@ -78,7 +89,7 @@ class Config(MutableMapping):
         elif isinstance(self.content, list):
             assert type(key) == int, "Indexing into list node with a non int type ({})".format(type(key))
             val = self.content[key]
-        if val == '???':
+        if type(val) == str and val == '???':
             raise MissingMandatoryValue(key)
         return self._resolve_single(val) if isinstance(val, str) else val
 
@@ -272,22 +283,22 @@ class Config(MutableMapping):
 
     @staticmethod
     def resolve_value(root_node, inter_type, inter_key):
-        inter_type = 'str:' if inter_type is None else inter_type
-        if inter_type == 'str:':
+        inter_type = ('str:' if inter_type is None else inter_type)[0:-1]
+        if inter_type == 'str':
             ret = root_node.select(inter_key)
-        elif inter_type == 'env:':
-            try:
-                ret = os.environ[inter_key]
-            except KeyError:
-                # validate will raise a KeyError
-                ret = None
+            if ret is None:
+                raise KeyError("{} interpolation key '{}' not found".format(inter_type, inter_key))
         else:
-            raise ValueError("Unsupported interpolation type {}".format(inter_type[0:-1]))
+            resolver = OmegaConf.get_resolver(inter_type)
+            if resolver is not None:
+                ret = resolver(inter_key)
+                if ret is None:
+                    raise KeyError("{} failed to resolve {}".format(inter_type, inter_key))
+            else:
+                raise ValueError("Unsupported interpolation type {}".format(inter_type))
 
-        if ret is None:
-            raise KeyError("{} interpolation key '{}' not found".format(inter_type[0:-1], inter_key))
         if isinstance(ret, Config):
-            # Currently this is not supported. interpolated value must be an actual value (str, int etc)
+            # Currently this is not supported. interpolated value must be a primitive
             raise ValueError("String interpolation key '{}' refer a config node".format(inter_key))
 
         return ret
@@ -410,3 +421,33 @@ class OmegaConf:
         target = Config({})
         target.merge_from(*others)
         return target
+
+    _resolvers = {}
+    _resolvers_cache = defaultdict(dict)
+
+    @staticmethod
+    def register_resolver(name, resolver):
+        assert callable(resolver), "resolver must be callable"
+        assert name not in OmegaConf._resolvers, "resolved {} is already registered".format(name)
+
+        def caching(key):
+            cache = OmegaConf._resolvers_cache[name]
+            val = cache[key] if key in cache else resolver(key)
+            cache[key] = val
+            return val
+
+        OmegaConf._resolvers[name] = caching
+
+    @staticmethod
+    def get_resolver(name):
+        return OmegaConf._resolvers[name] if name in OmegaConf._resolvers else None
+
+    @staticmethod
+    def clear_resolvers():
+        OmegaConf._resolvers = {}
+        OmegaConf._resolvers_cache = defaultdict(dict)
+        register_default_resolvers()
+
+
+# register all default resolvers
+register_default_resolvers()
