@@ -39,14 +39,14 @@ class Config(MutableMapping):
     def __init__(self, content, parent=None):
         self._set_parent(parent)
         if content is None:
-            self.set_dict({})
+            self._set_content({})
         else:
             if isinstance(content, str):
-                self.set_dict({content: None})
-            elif isinstance(content, dict):
-                self.set_dict(content)
+                self._set_content({content: None})
+            elif isinstance(content, dict) or isinstance(content, list):
+                self._set_content(content)
             else:
-                raise TypeError()
+                raise RuntimeError("Unsupported content type {}".format(type(content)))
 
     def get(self, key, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
@@ -73,13 +73,17 @@ class Config(MutableMapping):
         self.content[key] = value
 
     def __getattr__(self, key):
-        val = self.content.get(key)
+        if isinstance(self.content, dict):
+            val = self.content.get(key)
+        elif isinstance(self.content, list):
+            assert type(key) == int, "Indexing into list node with a non int type ({})".format(type(key))
+            val = self.content[key]
         if val == '???':
             raise MissingMandatoryValue(key)
         return self._resolve_single(val) if isinstance(val, str) else val
 
     def __setitem__(self, key, value):
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, list):
             value = Config(value, parent=self)
         self.content[key] = value
 
@@ -174,20 +178,35 @@ class Config(MutableMapping):
         return self.content == {}
 
     @staticmethod
-    def _to_dict(conf):
-        ret = {}
+    def _to_content(conf):
         if isinstance(conf, Config):
             conf = conf.content
 
-        for k, v in conf.items():
-            if isinstance(v, Config):
-                ret[k] = Config._to_dict(v)
-            else:
-                ret[k] = v
-        return ret
+        if isinstance(conf, dict):
+            ret = {}
+            for key, value in conf.items():
+                if isinstance(value, Config):
+                    ret[key] = Config._to_content(value)
+                else:
+                    ret[key] = value
+            return ret
+        elif isinstance(conf, list):
+            ret = []
+            for item in conf:
+                if isinstance(item, Config):
+                    item = Config._to_content(item)
+                ret.append(item)
+            return ret
 
     def to_dict(self):
-        return Config._to_dict(self)
+        content = Config._to_content(self)
+        assert isinstance(content, dict), "Configuration is a {} and not a dictionary".format(type(content))
+        return content
+
+    def to_list(self):
+        content = Config._to_content(self)
+        assert isinstance(content, list), "Configuration is a {} and not a list".format(type(content))
+        return content
 
     def pretty(self):
         """return a pretty dump of the config content"""
@@ -218,7 +237,7 @@ class Config(MutableMapping):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
-            self.set_dict(Config.map_merge(self, other))
+            self._set_content(Config.map_merge(self, other))
 
         def re_parent(node):
             # update parents of first level Config nodes to self
@@ -226,19 +245,27 @@ class Config(MutableMapping):
                 if isinstance(value, Config):
                     value._set_parent(node)
                     re_parent(value)
+
         # recursively correct the parent hierarchy after the merge
         re_parent(self)
 
-    def set_dict(self, content):
+    def _set_content(self, content):
         if isinstance(content, Config):
             content = content.content
-        assert isinstance(content, dict)
-        self.__dict__['content'] = {}
-        for k, v in content.items():
-            if isinstance(v, dict):
-                self[k] = Config(v, parent=self)
-            else:
+        if isinstance(content, dict):
+            self.__dict__['content'] = {}
+            for k, v in content.items():
+                if isinstance(v, dict):
+                    v = Config(v, parent=self)
                 self[k] = v
+        elif isinstance(content, list):
+            self.__dict__['content'] = []
+            for item in content:
+                if isinstance(item, dict) or isinstance(item, list):
+                    item = Config(item, parent=self)
+                self.__dict__['content'].append(item)
+        else:
+            raise RuntimeError("Unsupported type for content: {}".format(type(content)))
 
     @staticmethod
     def resolve_value(root_node, inter_type, inter_key):
@@ -359,9 +386,15 @@ class OmegaConf:
 
     @staticmethod
     def from_dict(dict_):
-        """Creates config from the content of string"""
+        """Creates config from a dictionary"""
         assert isinstance(dict_, dict)
         return Config(dict_)
+
+    @staticmethod
+    def from_list(list_):
+        """Creates config from a list"""
+        assert isinstance(list_, list)
+        return Config(list_)
 
     @staticmethod
     def from_cli(args_list=None):

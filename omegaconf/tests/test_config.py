@@ -287,6 +287,17 @@ def test_list_value():
     assert {'a': [1, 2]} == c
 
 
+def test_list_of_dicts():
+    v = dict(
+        list=[
+            dict(key1='value1'),
+            dict(key2='value2')
+        ])
+    c = OmegaConf.from_dict(v)
+    assert c.list[0].key1 == 'value1'
+    assert c.list[1].key2 == 'value2'
+
+
 def test_list_value_update():
     # List update is always a replace because a list can be merged in too many ways
     c = OmegaConf.from_string('a: [1,2]')
@@ -372,18 +383,31 @@ def test_subscript_set():
     assert {'a': 'b'} == c
 
 
-def test_pretty():
-    c = OmegaConf.from_string('''
-hello: world
-list: [
-    1,
-    2
-]
-''')
+def test_pretty_dict():
+    c = OmegaConf.from_dict(dict(
+        hello='world',
+        list=[
+            1,
+            2
+        ]
+    ))
     expected = '''hello: world
 list:
 - 1
 - 2
+'''
+    assert expected == c.pretty()
+
+
+def test_pretty_list():
+    c = OmegaConf.from_list([
+        'item1',
+        'item2',
+        dict(key3='value3')
+    ])
+    expected = '''- item1
+- item2
+- key3: value3
 '''
     assert expected == c.pretty()
 
