@@ -198,6 +198,9 @@ class Config(MutableMapping):
                 ret.append(item)
             return ret
 
+    def to_container(self):
+        return Config._to_content(self)
+
     def to_dict(self):
         content = Config._to_content(self)
         assert isinstance(content, dict), "Configuration is a {} and not a dictionary".format(type(content))
@@ -210,7 +213,7 @@ class Config(MutableMapping):
 
     def pretty(self):
         """return a pretty dump of the config content"""
-        return yaml.dump(self.to_dict(), default_flow_style=False)
+        return yaml.dump(self.to_container(), default_flow_style=False)
 
     @staticmethod
     def map_merge(dest, src):
