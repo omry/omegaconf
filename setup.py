@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setuptools.setup(
         name="omegaconf",
-        version="1.1.3",
+        version="1.1.4",
         author="Omry Yadan",
         author_email="omry@yadan.net",
         description="A flexible configuration library",
