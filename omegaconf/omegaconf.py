@@ -1,11 +1,14 @@
 """OmegaConf module"""
+import copy
 import io
 import os
 import re
 import sys
 from collections import defaultdict
+
 import six
 import yaml
+from deprecated import deprecated
 
 
 class MissingMandatoryValue(Exception):
@@ -186,7 +189,7 @@ class Config(MutableMapping):
 
     def is_empty(self):
         """return true if config is empty"""
-        return self.content == {}
+        return len(self.content) == 0
 
     @staticmethod
     def _to_content(conf):
@@ -236,7 +239,7 @@ class Config(MutableMapping):
         if isinstance(dest, Config):
             dest = dest.content
         # deep copy:
-        ret = OmegaConf.from_dict(dest)
+        ret = copy.deepcopy(dest)
         for key, value in src.items():
             if key in dest and dict_type(dest[key]):
                 if dict_type(value):
@@ -328,14 +331,98 @@ class Config(MutableMapping):
             return new
 
     def __deepcopy__(self, memodict={}):
-        return OmegaConf.from_dict(self.__dict__['content'])
+        return Config(content=self.content)
+
+    def is_dict(self):
+        return isinstance(self.content, dict)
+
+    def is_sequence(self):
+        return isinstance(self.content, list)
 
 
-class CLIConfig(Config):
-    """Config wrapping CLI arguments"""
+class OmegaConf:
+    """OmegaConf primary class"""
 
-    def __init__(self, args_list=None):
-        super(CLIConfig, self).__init__(None)
+    def __init__(self):
+        raise NotImplemented("Use one of the static construction functions")
+
+    @staticmethod
+    def create(obj=None):
+        """
+        Create a config object.
+        If no input is provided we get an emtpy dictionary config.
+        :param obj: a list of a dictionary (determining the type of the root node).
+        :return:
+        """
+        if isinstance(obj, str):
+            return Config(yaml.load(obj, Loader=get_yaml_loader()))
+        else:
+            assert obj is None or isinstance(obj, list) or isinstance(obj, dict)
+            return Config(content=obj)
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
+    def empty():
+        """Creates an empty config"""
+        return Config(content=None)
+
+    @staticmethod
+    def load(file_):
+        if isinstance(file_, str):
+            with io.open(os.path.abspath(file_), 'r') as f:
+                return Config(yaml.load(f, Loader=get_yaml_loader()))
+        elif getattr(file_, 'read'):
+            return Config(yaml.load(file_, Loader=get_yaml_loader()))
+        else:
+            raise ValueError("Unexpected file type")
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
+    def from_filename(filename):
+        """Creates config from the content of the specified filename"""
+        assert isinstance(filename, str)
+        filename = os.path.abspath(filename)
+        with io.open(filename, 'r') as file:
+            return OmegaConf.from_file(file)
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
+    def from_file(file_):
+        """Creates config from the content of the specified file object"""
+        if six.PY3:
+            assert isinstance(file_, io.IOBase)
+        return Config(yaml.load(file_, Loader=get_yaml_loader()))
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
+    def from_string(content):
+        """Creates config from the content of string"""
+        assert isinstance(content, str)
+        yamlstr = yaml.load(content, Loader=get_yaml_loader())
+        return Config(yamlstr)
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
+    def from_dict(dict_):
+        """Creates config from a dictionary"""
+        assert isinstance(dict_, dict)
+        return Config(dict_)
+
+    @staticmethod
+    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
+    def from_list(list_):
+        """Creates config from a list"""
+        assert isinstance(list_, list)
+        return Config(list_)
+
+    @staticmethod
+    def from_cli(args_list=None):
+        """
+        Creates config from the content sys.argv or from the specified args list of not None
+        :param args_list:
+        :return:
+        """
+        conf = OmegaConf.create()
         # if args list is not passed use sys.argv without the program name
         if args_list is None:
             # Skip program name
@@ -347,73 +434,8 @@ class CLIConfig(Config):
             if len(args) > 1:
                 # load with yaml to get correct automatic typing with the same rules as yaml parsing
                 value = yaml.load(args[1], Loader=get_yaml_loader())
-            self.update(key, value)
-
-
-class EnvConfig(Config):
-    """Config wrapping environment variables"""
-
-    def __init__(self, prefix):
-        assert isinstance(prefix, str)
-        assert prefix != "", "Whitelist must contain at least one item"
-        super(EnvConfig, self).__init__(None)
-        for key, value in os.environ.items():
-            if str.startswith(key, prefix):
-                # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                key = key[len(prefix):]
-                value = yaml.load(value, Loader=get_yaml_loader())
-                self.update(key, value)
-
-
-class OmegaConf:
-    """OmegaConf primary class"""
-
-    def __init__(self):
-        raise NotImplemented("Use one of the static construction functions")
-
-    @staticmethod
-    def empty():
-        """Creates an empty config"""
-        return OmegaConf.from_string('')
-
-    @staticmethod
-    def from_filename(filename):
-        """Creates config from the content of the specified filename"""
-        assert isinstance(filename, str)
-        filename = os.path.abspath(filename)
-        with io.open(filename, 'r') as file:
-            return OmegaConf.from_file(file)
-
-    @staticmethod
-    def from_file(file_):
-        """Creates config from the content of the specified file object"""
-        if six.PY3:
-            assert isinstance(file_, io.IOBase)
-        return Config(yaml.load(file_, Loader=get_yaml_loader()))
-
-    @staticmethod
-    def from_string(content):
-        """Creates config from the content of string"""
-        assert isinstance(content, str)
-        yamlstr = yaml.load(content, Loader=get_yaml_loader())
-        return Config(yamlstr)
-
-    @staticmethod
-    def from_dict(dict_):
-        """Creates config from a dictionary"""
-        assert isinstance(dict_, dict)
-        return Config(dict_)
-
-    @staticmethod
-    def from_list(list_):
-        """Creates config from a list"""
-        assert isinstance(list_, list)
-        return Config(list_)
-
-    @staticmethod
-    def from_cli(args_list=None):
-        """Creates config from the content sys.argv or from the specified args list of not None"""
-        return CLIConfig(args_list)
+            conf.update(key, value)
+        return conf
 
     @staticmethod
     def merge(*others):

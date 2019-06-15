@@ -30,5 +30,5 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=['six', 'PyYAML']
+        install_requires=['six', 'PyYAML', 'Deprecated']
     )
