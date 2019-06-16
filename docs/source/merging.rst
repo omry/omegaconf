@@ -2,7 +2,7 @@ Merging
 =======
 Configuration can be created from various sources, like YAML files, CLI arguments and more.
 
-see :doc:`creation` for more details.
+see :doc:`usage` for more details.
 
 You can combine configurations, regardless of their source.
 

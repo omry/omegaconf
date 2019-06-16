@@ -12,7 +12,6 @@ providing a consistent API regardless of how the configuration was created.
    usage
    interpolation
    merging
-   creation
 
 
 Indices and tables
