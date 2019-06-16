@@ -47,7 +47,7 @@ else:
     from collections.abc import Sequence
 
 
-class Config:
+class Config(object):
     """Config implementation"""
 
     def __init__(self, content, parent=None):
