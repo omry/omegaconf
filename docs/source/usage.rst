@@ -2,11 +2,6 @@
 
     from omegaconf import OmegaConf
 
-.. testsetup:: loaded
-
-    from omegaconf import OmegaConf
-    conf = OmegaConf.load('source/example.yaml')
-
 Usage
 =====
 
@@ -17,37 +12,50 @@ Just pip install::
     pip install omegaconf
 
 
-Basic example
-^^^^^^^^^^^^^
-We will use this simple **example.yaml** file in the example below.
-
-.. include:: example.yaml
-   :code: yaml
-
 Creating:
 ---------
+You can create an empty config:
+
 .. doctest::
 
     >>> from omegaconf import OmegaConf
-    >>>
-    >>> # Empty config
     >>> conf = OmegaConf.create()
     >>> conf
     {}
 
-    >>> # from dictionary
-    >>> conf = OmegaConf.create(dict(key='value'))
+Or a config from a dictionary
+
+.. doctest::
+
+    >>> conf = OmegaConf.create(dict(k='v',list=[1,2,dict(a='1',b='2')]))
     >>> print(conf.pretty())
-    key: value
+    k: v
+    list:
+    - 1
+    - 2
+    - a: '1'
+      b: '2'
     <BLANKLINE>
-    >>> # from list
-    >>> conf = OmegaConf.create([1,2,3])
+
+Or a config from a list
+
+.. doctest::
+
+    >>> conf = OmegaConf.create([1, 2, 3, dict(a=10, b=12, c=dict(d=10))])
     >>> print(conf.pretty())
     - 1
     - 2
     - 3
+    - a: 10
+      b: 12
+      c:
+        d: 10
     <BLANKLINE>
-    >>> # From a yaml file:
+
+Or from from a yaml file:
+
+.. doctest::
+
     >>> conf = OmegaConf.load('source/example.yaml')
     >>> print(conf.pretty())
     log:
@@ -55,8 +63,24 @@ Creating:
       rotation: 3600
     server:
       port: 80
+    users:
+    - user1
+    - user2
+    - user3
     <BLANKLINE>
 
+Or even a yaml string:
+
+.. doctest::
+
+    >>> conf = OmegaConf.create("a: b\nb: c\nlist:\n- item1\n- item2\n")
+    >>> print(conf.pretty())
+    a: b
+    b: c
+    list:
+    - item1
+    - item2
+    <BLANKLINE>
 
 Creating from CLI arguments
 ---------------------------
@@ -69,8 +93,8 @@ sys.argv before you initialize the conf from_cli().
 .. doctest::
 
     >>> dot_list = ['server.port=82', 'log.file=log2.txt']
-    >>> conf = OmegaConf.from_cli(dot_list)
-    >>> print(conf.pretty())
+    >>> cliconf = OmegaConf.from_cli(dot_list)
+    >>> print(cliconf.pretty())
     log:
       file: log2.txt
     server:
@@ -78,33 +102,22 @@ sys.argv before you initialize the conf from_cli().
     <BLANKLINE>
 
 
-Reading:
+Accessing:
 ---------------
 
-.. doctest:: loaded
+For dictionary nodes, you can use object style or map style access.
+For lists you can use subscript:
+.. doctest::
 
-    >>> # Object style access
+    >>> conf = OmegaConf.load('source/example.yaml')
     >>> conf.server.port
     80
-
-    >>> # Map style access
-    >>> conf['log']
-    {'file': 'log.txt', 'rotation': 3600}
-
-    >>> # with default value
+    >>> conf['log'].rotation
+    3600
     >>> conf.missing_key or 'a default value'
     'a default value'
-
-    >>> # another style for default value
     >>> conf.get('missing_key', 'a default value')
     'a default value'
-
-
-Changing:
---------------------
-
-.. doctest:: loaded
-
     >>> # Changing existing keys
     >>> conf.server.port = 81
     >>> # Adding new keys

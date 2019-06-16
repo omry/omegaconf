@@ -3,3 +3,7 @@ server:
 log:
   file: log.txt
   rotation: 3600
+users:
+  - user1
+  - user2
+  - user3
