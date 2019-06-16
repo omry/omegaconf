@@ -232,12 +232,15 @@ class Config(object):
     @staticmethod
     def map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
+        assert isinstance(dest, Config)
+        assert isinstance(src, Config)
+        assert dest.is_dict()
+        assert src.is_dict()
 
         def dict_type(x):
             return isinstance(x, Config) or isinstance(x, dict)
 
-        if isinstance(dest, Config):
-            dest = dest.content
+        dest = dest.content
         # deep copy:
         ret = copy.deepcopy(dest)
         for key, value in src.items():
@@ -250,11 +253,25 @@ class Config(object):
                 ret[key] = src[key]
         return ret
 
+    @staticmethod
+    def sequence_merge(dest, src):
+        assert isinstance(dest, Config)
+        assert isinstance(src, Config)
+        assert dest.is_sequence()
+        assert src.is_sequence()
+
+        dest = dest.content
+
     def merge_from(self, *others):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
-            self._set_content(Config.map_merge(self, other))
+            if self.is_dict() and other.is_dict():
+                self._set_content(Config.map_merge(self, other))
+            elif self.is_sequence() and other.is_sequence():
+                self._set_content(Config.sequence_merge(self, other))
+            else:
+                raise NotImplemented("Merging of list with dict is not implemented")
 
         def re_parent(node):
             # update parents of first level Config nodes to self
@@ -448,7 +465,8 @@ class OmegaConf:
     @staticmethod
     def merge(*others):
         """Merge a list of previously created configs into a single one"""
-        target = Config({})
+        assert len(others) > 0
+        target = Config({} if others[0].is_dict() else [])
         target.merge_from(*others)
         return target
 

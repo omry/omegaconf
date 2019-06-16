@@ -182,44 +182,44 @@ def test_setattr_deep_map():
     assert {'a': {'b': {'z': 10}}} == c
 
 
-def test_map_merge_1():
-    a = {}
-    b = {'a': 1}
+def test_dict_merge_1():
+    a = OmegaConf.create({})
+    b = OmegaConf.create({'a': 1})
     c = Config.map_merge(a, b)
     assert b == c
 
 
-def test_map_merge_no_modify():
+def test_dict_merge_no_modify():
     # Test that map_merge does not modify the input
-    a = {}
-    b = {'a': 1}
+    a = OmegaConf.create({})
+    b = OmegaConf.create({'a': 1})
     Config.map_merge(a, b)
     assert a == {}
     assert b == {'a': 1}
 
 
-def test_map_merge_2():
-    a = {'a': 1}
-    b = {'b': 2}
+def test_dict_merge_2():
+    a = OmegaConf.create({'a': 1})
+    b = OmegaConf.create({'b': 2})
     c = Config.map_merge(a, b)
     assert {'a': 1, 'b': 2} == c
 
 
-def test_map_merge_3():
-    a = {'a': {'a1': 1, 'a2': 2}}
-    b = {'a': {'a1': 2}}
+def test_dict_merge_3():
+    a = OmegaConf.create({'a': {'a1': 1, 'a2': 2}})
+    b = OmegaConf.create({'a': {'a1': 2}})
     c = Config.map_merge(a, b)
     assert {'a': {'a1': 2, 'a2': 2}} == c
 
 
-def test_merge1():
+def test_dict_merge_4():
     c1 = OmegaConf.create('a')
     c2 = OmegaConf.create('b')
     c3 = OmegaConf.merge(c1, c2)
     assert {'a': None, 'b': None} == c3
 
 
-def test_merge2():
+def test_dict_merge5():
     # replaces an element with an element
     c1 = OmegaConf.create('{a: 1, b: 2}')
     c2 = OmegaConf.create('{b: 3}')
@@ -227,7 +227,7 @@ def test_merge2():
     assert {'a': 1, 'b': 3} == c3
 
 
-def test_merge3():
+def test_dict_merge_dict6():
     # replaces an element with a map
     c1 = OmegaConf.create('{a: 1, b: 2}')
     c2 = OmegaConf.create('{b: {c: 3}}')
@@ -235,7 +235,7 @@ def test_merge3():
     assert {'a': 1, 'b': {'c': 3}} == c3
 
 
-def test_merge4():
+def test_dict_merge7():
     # replaces a map with an element
     c1 = OmegaConf.create('{b: {c: 1}}')
     c2 = OmegaConf.create('{b: 1}')
@@ -243,7 +243,7 @@ def test_merge4():
     assert {'b': 1} == c3
 
 
-def test_3way_merge():
+def test_3way_dict_merge():
     c1 = OmegaConf.create('{a: 1, b: 2}')
     c2 = OmegaConf.create('{b: 3}')
     c3 = OmegaConf.create('{a: 2, c: 3}')
@@ -895,3 +895,9 @@ def test_items_on_list():
     c = OmegaConf.create([1, 2])
     with raises(TypeError):
         c.items()
+
+# def test_merge_list_root():
+#     c1 = OmegaConf.create([1, 2, 3])
+#     c2 = OmegaConf.create([4, 5, 6])
+#     c3 = OmegaConf.merge(c1, c2)
+#     print(c3)
