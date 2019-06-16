@@ -5,7 +5,7 @@
 .. testsetup:: loaded
 
     from omegaconf import OmegaConf
-    conf = OmegaConf.from_filename('source/example.yaml')
+    conf = OmegaConf.load('source/example.yaml')
 
 Usage
 =====

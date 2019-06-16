@@ -20,7 +20,7 @@ Let's load it and take a look:
 
 .. doctest::
 
-    >>> conf = OmegaConf.from_filename('source/interpolation.yaml')
+    >>> conf = OmegaConf.load('source/interpolation.yaml')
     >>> conf.database_client.server_port
     1234
 
@@ -43,7 +43,7 @@ Interpolation can also construct complex strings:
 
 .. doctest::
 
-    >>> conf = OmegaConf.from_filename('source/interpolation2.yaml')
+    >>> conf = OmegaConf.load('source/interpolation2.yaml')
     >>> conf.experiment.path
     '/var/experiments/fire_the_nuke'
 
@@ -62,7 +62,7 @@ Let's test it:
 .. doctest::
 
     >>> os.environ['user'] = 'omry'
-    >>> conf = OmegaConf.from_filename('source/interpolation3.yaml')
+    >>> conf = OmegaConf.load('source/interpolation3.yaml')
     >>> conf.experiment.path
     '/var/experiments/omry'
 
@@ -72,8 +72,10 @@ You can add easily add your own resolvers:
 let's say we want a resolver that adds 10 the the given value.
 The value 999 will be passed to the plus_10 lambda, and the int 1000 will be returned.
 
+.. doctest::
+
     >>> OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
-    >>> c = OmegaConf.from_dict({'key': '${plus_10:990}'})
+    >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
 

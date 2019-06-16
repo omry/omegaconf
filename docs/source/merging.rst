@@ -32,8 +32,8 @@ We will use two config files:
 .. doctest::
 
     >>> from omegaconf import OmegaConf
-    >>> conf1 = OmegaConf.from_filename('source/example.yaml')
-    >>> conf2 = OmegaConf.from_filename('source/example2.yaml')
+    >>> conf1 = OmegaConf.load('source/example.yaml')
+    >>> conf2 = OmegaConf.load('source/example2.yaml')
     >>> conf = OmegaConf.merge(conf1, conf2)
     >>> conf.server.port
     81
@@ -49,7 +49,7 @@ For simplicity, we will simulate command line arguments by setting sys.argv.
 
     >>> from omegaconf import OmegaConf
     >>> import sys
-    >>> conf1 = OmegaConf.from_filename('source/example.yaml')
+    >>> conf1 = OmegaConf.load('source/example.yaml')
     >>> # Simulate command line arguments
     >>> sys.argv = ['program.py', 'server.port=82', 'log.file=log2.txt']
     >>> cli = OmegaConf.from_cli()
