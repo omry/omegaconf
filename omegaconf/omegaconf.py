@@ -42,12 +42,12 @@ def register_default_resolvers():
 
 
 if six.PY2:
-    from collections import MutableMapping, Sequence
+    from collections import Sequence
 else:
-    from collections.abc import MutableMapping, Sequence
+    from collections.abc import Sequence
 
 
-class Config(MutableMapping):
+class Config:
     """Config implementation"""
 
     def __init__(self, content, parent=None):
@@ -339,6 +339,12 @@ class Config(MutableMapping):
 
     def is_sequence(self):
         return isinstance(self.content, Sequence)
+
+    def items(self):
+        if self.is_dict():
+            return self.content.items()
+        else:
+            raise TypeError("Content of config is not a dictionary, items() is not a valid call")
 
 
 class OmegaConf:

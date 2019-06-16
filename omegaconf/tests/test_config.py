@@ -503,29 +503,22 @@ def test_pickle_get_root():
         test(loaded_c3)
 
 
-def test_iterate():
+def test_iterate_dictionary():
     c = OmegaConf.create('''
     a : 1
     b : 2
     ''')
     m2 = {}
-    for k in c:
-        m2[k] = c[k]
+    for key in c:
+        m2[key] = c[key]
     assert m2 == c
 
 
-def test_iterate_keys():
-    # Test for k in conf loop returns all keys
-    c = OmegaConf.create(dict(
-        a=1,
-        b=2,
-        c={}))
-
-    keys = set(['a', 'b', 'c'])
-    for k in c:
-        assert k in keys
-        keys.remove(k)
-    assert len(keys) == 0
+def test_iterate_list():
+    c = OmegaConf.create([1, 2])
+    items = [x for x in c]
+    assert items[0] == 1
+    assert items[1] == 2
 
 
 def test_items():
@@ -591,7 +584,7 @@ launcher:
     assert ret.launcher.queues is not None
 
 
-def test_in():
+def test_in_dict():
     c = OmegaConf.create(dict(
         a=1,
         b=2,
@@ -600,6 +593,14 @@ def test_in():
     assert 'b' in c
     assert 'c' in c
     assert 'd' not in c
+
+
+def test_in_list():
+    c = OmegaConf.create([10, 11, dict(a=12)])
+    assert 10 in c
+    assert 11 in c
+    assert dict(a=12) in c
+    assert 'blah' not in c
 
 
 def test_get_root():
@@ -889,4 +890,8 @@ def test_is_sequence_with_tupple():
     assert not c.is_dict()
     assert c.is_sequence()
 
-# test items on sequence
+
+def test_items_on_list():
+    c = OmegaConf.create([1, 2])
+    with raises(TypeError):
+        c.items()
