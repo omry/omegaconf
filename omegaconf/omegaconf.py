@@ -441,17 +441,13 @@ class OmegaConf:
     def from_filename(filename):
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
-        filename = os.path.abspath(filename)
-        with io.open(filename, 'r') as file:
-            return OmegaConf.from_file(file)
+        return OmegaConf.load(filename)
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
     def from_file(file_):
         """Creates config from the content of the specified file object"""
-        if six.PY3:
-            assert isinstance(file_, io.IOBase)
-        return Config(yaml.load(file_, Loader=get_yaml_loader()))
+        return OmegaConf.load(file_)
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
