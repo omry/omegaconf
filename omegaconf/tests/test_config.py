@@ -40,118 +40,6 @@ def test_empty_input():
     assert c == {}
 
 
-def test_update_empty_to_value():
-    """"""
-    s = ''
-    c = OmegaConf.create(s)
-    c.update('hello')
-    assert {'hello': None} == c
-
-
-def test_update_same_value():
-    """"""
-    s = 'hello'
-    c = OmegaConf.create(s)
-    c.update('hello')
-    assert {'hello': None} == c
-
-
-def test_update_value_to_map():
-    s = 'hello'
-    c = OmegaConf.create(s)
-    c.update('hi', 'there')
-    assert {'hello': None, 'hi': 'there'} == c
-
-
-def test_update_map_empty_to_map():
-    s = ''
-    c = OmegaConf.create(s)
-    c.update('hello', 'there')
-    assert {'hello': 'there'} == c
-
-
-def test_update__map_value():
-    # Replacing an existing key in a map
-    s = 'hello: world'
-    c = OmegaConf.create(s)
-    c.update('hello', 'there')
-    assert {'hello': 'there'} == c
-
-
-def test_update_map_new_keyvalue():
-    # Adding another key to a map
-    s = 'hello: world'
-    c = OmegaConf.create(s)
-    c.update('who', 'goes there')
-    assert {'hello': 'world', 'who': 'goes there'} == c
-
-
-def test_update_map_to_value():
-    # changing map to single node
-    s = 'hello: world'
-    c = OmegaConf.create(s)
-    c.update('value')
-    assert {'hello': 'world', 'value': None} == c
-
-
-def test_update_with_empty_map_value():
-    c = OmegaConf.create()
-    c.update('a', {})
-    assert {'a': {}} == c
-
-
-def test_update_with_map_value():
-    c = OmegaConf.create()
-    c.update('a', {'aa': 1, 'bb': 2})
-    assert {'a': {'aa': 1, 'bb': 2}} == c
-
-
-def test_update_deep_from_empty():
-    c = OmegaConf.create()
-    c.update('a.b', 1)
-    assert {'a': {'b': 1}} == c
-
-
-def test_update_deep_with_map():
-    c = OmegaConf.create('a: b')
-    c.update('a.b', {'c': 1})
-    assert {'a': {'b': {'c': 1}}} == c
-
-
-def test_update_deep_with_value():
-    c = OmegaConf.create()
-    c.update('a.b', 1)
-    assert {'a': {'b': 1}} == c
-
-
-def test_update_deep_with_map2():
-    c = OmegaConf.create('a: 1')
-    c.update('b.c', 2)
-    assert {'a': 1, 'b': {'c': 2}} == c
-
-
-def test_update_deep_with_map_update():
-    c = OmegaConf.create('a: {b : {c: 1}}')
-    c.update('a.b.d', 2)
-    assert {'a': {'b': {'c': 1, 'd': 2}}} == c
-
-
-def test_select():
-    c = OmegaConf.create(dict(
-        a=dict(
-            v=1
-        ),
-        b=dict(
-            v=1
-        ),
-    ))
-
-    assert c.select('a') == {'v': 1}
-    assert c.select('a.v') == 1
-    assert c.select('b.v') == 1
-    assert c.select('nope') is None
-
-
 def test_setattr_value():
     c = OmegaConf.create('a: {b : {c: 1}}')
     c.a = 9
@@ -311,13 +199,6 @@ def test_list_of_dicts():
     assert c.list[1].key2 == 'value2'
 
 
-def test_list_value_update():
-    # List update is always a replace because a list can be merged in too many ways
-    c = OmegaConf.create('a: [1,2]')
-    c.update('a', [2, 3, 4])
-    assert {'a': [2, 3, 4]} == c
-
-
 def test_from_file():
     with tempfile.NamedTemporaryFile() as fp:
         s = b'a: b'
@@ -375,14 +256,6 @@ def test_mandatory_value():
     c = OmegaConf.create('{a: "???"}')
     with raises(MissingMandatoryValue):
         c.get('a')
-
-
-def test_override_mandatory_value():
-    c = OmegaConf.create('{a: "???"}')
-    with raises(MissingMandatoryValue):
-        c.get('a')
-    c.update('a', 123)
-    assert {'a': 123} == c
 
 
 def test_subscript_get():
@@ -896,8 +769,37 @@ def test_items_on_list():
     with raises(TypeError):
         c.items()
 
-# def test_merge_list_root():
-#     c1 = OmegaConf.create([1, 2, 3])
-#     c2 = OmegaConf.create([4, 5, 6])
-#     c3 = OmegaConf.merge(c1, c2)
-#     print(c3)
+
+def test_merge_list_root():
+    c1 = OmegaConf.create([1, 2, 3])
+    c2 = OmegaConf.create([4, 5, 6])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, 3, 4, 5, 6]
+
+
+def test_merge_tuple_root():
+    c1 = OmegaConf.create((1, 2, 3))
+    c2 = OmegaConf.create((4, 5, 6))
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, 3, 4, 5, 6]
+
+
+def test_merge_list_nested_in_list():
+    c1 = OmegaConf.create([[1, 2, 3]])
+    c2 = OmegaConf.create([[4, 5, 6]])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [[1, 2, 3], [4, 5, 6]]
+
+
+def test_merge_list_nested_in_dict():
+    c1 = OmegaConf.create(dict(list=[1, 2, 3]))
+    c2 = OmegaConf.create(dict(list=[4, 5, 6]))
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == dict(list=[1, 2, 3, 4, 5, 6])
+
+
+def test_merge_dict_nested_in_list():
+    c1 = OmegaConf.create([1, 2, dict(a=10)])
+    c2 = OmegaConf.create([4, 5, dict(b=20)])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, dict(a=10), 4, 5, dict(b=20)]

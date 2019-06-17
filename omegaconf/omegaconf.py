@@ -41,6 +41,14 @@ def register_default_resolvers():
     OmegaConf.register_resolver('env', env)
 
 
+def isint(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 if six.PY2:
     from collections import Sequence
 else:
@@ -147,23 +155,43 @@ class Config(object):
     def __contains__(self, item):
         return item in self.content
 
+    @staticmethod
+    def _select_one(c, key_):
+        if c.is_dict():
+            if key_ in c:
+                return c[key_], key_
+            else:
+                return None, key_
+        elif c.is_sequence():
+            if not isint(key_):
+                raise ValueError("Index {} is not an int".format(key_))
+            idx = int(key_)
+            if idx < 0 or idx + 1 > len(c):
+                return None, idx
+            return c[idx], idx
+        else:
+            raise RuntimeError("Unexpected config type")
+
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
         split = key.split('.')
         root = self
         for i in range(len(split) - 1):
             k = split[i]
-            next_root = root[k]
             # if next_root is a primitive (string, int etc) replace it with an empty map
+            next_root, key_ = Config._select_one(root, k)
             if not isinstance(next_root, Config):
-                root[k] = {}
-                next_root = root[k]
-            root = next_root
+                root[key_] = {}
+            root = root[key_]
 
         last = split[-1]
 
         assert isinstance(root, Config)
-        root[last] = value
+        if root.is_dict():
+            root[last] = value
+        elif root.is_sequence():
+            idx = int(last)
+            root[idx] = value
 
     def select(self, key):
         """
@@ -171,21 +199,20 @@ class Config(object):
         :param key:
         :return:
         """
+
         split = key.split('.')
         root = self
         for i in range(len(split) - 1):
+            if root is None:
+                break
             k = split[i]
-            root = root[k]
+            root, _ = Config._select_one(root, k)
 
         if root is None:
             return None
 
-        last = split[-1]
-
-        if last in root:
-            return root[last]
-        else:
-            return None
+        value, _ = Config._select_one(root, split[-1])
+        return value
 
     def is_empty(self):
         """return true if config is empty"""
@@ -237,21 +264,18 @@ class Config(object):
         assert dest.is_dict()
         assert src.is_dict()
 
-        def dict_type(x):
-            return isinstance(x, Config) or isinstance(x, dict)
-
         dest = dest.content
-        # deep copy:
-        ret = copy.deepcopy(dest)
+        dest = copy.deepcopy(dest)
+        src = copy.deepcopy(src)
         for key, value in src.items():
-            if key in dest and dict_type(dest[key]):
-                if dict_type(value):
-                    ret[key] = Config.map_merge(dest[key], value)
+            if key in dest and isinstance(dest[key], Config):
+                if isinstance(value, Config):
+                    dest[key].merge_from(value)
                 else:
-                    ret[key] = value
+                    dest[key] = value
             else:
-                ret[key] = src[key]
-        return ret
+                dest[key] = src[key]
+        return dest
 
     @staticmethod
     def sequence_merge(dest, src):
@@ -259,8 +283,11 @@ class Config(object):
         assert isinstance(src, Config)
         assert dest.is_sequence()
         assert src.is_sequence()
-
-        dest = dest.content
+        dest = copy.deepcopy(dest)
+        src = copy.deepcopy(src)
+        for item in src:
+            dest.content.append(item)
+        return dest
 
     def merge_from(self, *others):
         """merge a list of other Config objects into this one, overriding as needed"""
@@ -275,10 +302,18 @@ class Config(object):
 
         def re_parent(node):
             # update parents of first level Config nodes to self
-            for _key, value in node.__dict__['content'].items():
-                if isinstance(value, Config):
-                    value._set_parent(node)
-                    re_parent(value)
+            if node.is_dict():
+                for _key, value in node.items():
+                    if isinstance(value, Config):
+                        value._set_parent(node)
+                        re_parent(value)
+            elif node.is_sequence():
+                for item in node:
+                    if isinstance(item, Config):
+                        item._set_parent(node)
+                        re_parent(item)
+            else:
+                raise RuntimeError("Unknown node type")
 
         # recursively correct the parent hierarchy after the merge
         re_parent(self)
