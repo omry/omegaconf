@@ -1,5 +1,5 @@
 server:
-  port: 81
-database:
-  port: 3306
-  host: dbhost
+  port: 80
+log:
+  file: log.txt
+  rotation: 3600
