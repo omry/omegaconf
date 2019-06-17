@@ -7,11 +7,9 @@ OmegaConf is a YAML based hierarchical configuration system, with support for me
 providing a consistent API regardless of how the configuration was created.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    usage
-   interpolation
-   merging
 
 
 Indices and tables

@@ -1,3 +1,0 @@
-experiment:
-  name: fire_the_nuke
-  path: /var/experiments/${experiment.name}

@@ -298,7 +298,7 @@ class Config(object):
             elif self.is_sequence() and other.is_sequence():
                 self._set_content(Config.sequence_merge(self, other))
             else:
-                raise NotImplemented("Merging of list with dict is not implemented")
+                raise NotImplementedError("Merging of list with dict is not implemented")
 
         def re_parent(node):
             # update parents of first level Config nodes to self
@@ -403,7 +403,7 @@ class OmegaConf:
     """OmegaConf primary class"""
 
     def __init__(self):
-        raise NotImplemented("Use one of the static construction functions")
+        raise NotImplementedError("Use one of the static construction functions")
 
     @staticmethod
     def create(obj=None):
