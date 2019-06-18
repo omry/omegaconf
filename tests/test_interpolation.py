@@ -223,3 +223,12 @@ def test_register_resolver_2():
         assert c.k == c.k
     finally:
         OmegaConf.clear_resolvers()
+
+def test_date_pattern():
+    supported_chars ='%_-abc123.'
+    c = OmegaConf.create(dict(
+        dir1 = '${copy:' + supported_chars + '}',
+    ))
+
+    OmegaConf.register_resolver("copy", lambda x: x)
+    assert c.dir1 == supported_chars
