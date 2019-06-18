@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setuptools.setup(
         name="omegaconf",
-        version="1.1.6",
+        version="1.1.7",
         author="Omry Yadan",
         author_email="omry@yadan.net",
         description="A flexible configuration library",
@@ -21,7 +21,7 @@ with open("README.md", "r") as fh:
         long_description_content_type="text/markdown",
         url="https://github.com/omry/omegaconf",
         keywords='yaml configuration config',
-        packages=setuptools.find_packages(),
+        packages=['omegaconf'],
         classifiers=[
             "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3.5",

@@ -41,14 +41,6 @@ def register_default_resolvers():
     OmegaConf.register_resolver('env', env)
 
 
-def isint(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
 if six.PY2:
     from collections import Sequence
 else:
@@ -157,6 +149,14 @@ class Config(object):
 
     @staticmethod
     def _select_one(c, key_):
+
+        def isint(s):
+            try:
+                int(s)
+                return True
+            except ValueError:
+                return False
+
         if c.is_dict():
             if key_ in c:
                 return c[key_], key_
