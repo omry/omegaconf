@@ -362,7 +362,7 @@ class Config(object):
     def _resolve_single(self, value):
         if value is None:
             return None
-        match_list = list(re.finditer(r"\${(\w+:)?([\w\.]+?)}", value))
+        match_list = list(re.finditer(r"\${(\w+:)?([\w\.%_-]+?)}", value))
         if len(match_list) == 0:
             return value
 
