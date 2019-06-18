@@ -69,3 +69,78 @@ def test_3way_dict_merge():
     c3 = OmegaConf.create('{a: 2, c: 3}')
     c4 = OmegaConf.merge(c1, c2, c3)
     assert {'a': 2, 'b': 3, 'c': 3} == c4
+
+
+def test_merge_list_root():
+    c1 = OmegaConf.create([1, 2, 3])
+    c2 = OmegaConf.create([4, 5, 6])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, 3, 4, 5, 6]
+
+
+def test_merge_tuple_root():
+    c1 = OmegaConf.create((1, 2, 3))
+    c2 = OmegaConf.create((4, 5, 6))
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, 3, 4, 5, 6]
+
+
+def test_merge_list_nested_in_list():
+    c1 = OmegaConf.create([[1, 2, 3]])
+    c2 = OmegaConf.create([[4, 5, 6]])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [[1, 2, 3], [4, 5, 6]]
+
+
+def test_merge_list_nested_in_dict():
+    c1 = OmegaConf.create(dict(list=[1, 2, 3]))
+    c2 = OmegaConf.create(dict(list=[4, 5, 6]))
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == dict(list=[1, 2, 3, 4, 5, 6])
+
+
+def test_merge_dict_nested_in_list():
+    c1 = OmegaConf.create([1, 2, dict(a=10)])
+    c2 = OmegaConf.create([4, 5, dict(b=20)])
+    c3 = OmegaConf.merge(c1, c2)
+    assert c3 == [1, 2, dict(a=10), 4, 5, dict(b=20)]
+
+
+def test_merge_from_1():
+    a = OmegaConf.create()
+    b = OmegaConf.create('''
+    a : 1
+    b : 2
+    ''')
+    a.merge_from(b)
+    assert a == b
+
+
+def test_merge_from_2():
+    a = OmegaConf.create()
+    a.inner = {}
+    b = OmegaConf.create('''
+    a : 1
+    b : 2
+    ''')
+    a.inner.merge_from(b)
+    assert a.inner == b
+
+
+def test_nested_map_merge_bug():
+    cfg = """
+launcher:
+  queue: a
+  queues:
+    local:
+      clazz: foo
+
+"""
+    cli = """
+launcher:
+  instances: 2
+"""
+    cfg = OmegaConf.create(cfg)
+    cli = OmegaConf.create(cli)
+    ret = OmegaConf.merge(cfg, cli)
+    assert ret.launcher.queues is not None
