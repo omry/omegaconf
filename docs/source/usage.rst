@@ -190,31 +190,48 @@ variation of your task.
 
 Machine learning experiment example:
 
-   OmegaConf.merge(base_config, model_config, optimizer_config, dataset_config)
+.. code-block:: python
+
+   conf = OmegaConf.merge(base_cfg, model_cfg, optimizer_cfg, dataset_cfg)
 
 Web server configuration example:
 
-   OmegaConf.merge(server_config, plugin1_config, site1_config, site2_config)
+.. code-block:: python
 
-Later configurations may add new values, override previous values, or even append to lists.
+   conf = OmegaConf.merge(server_cfg, plugin1_cfg, site1_cfg, site2_cfg)
 
-**example.yaml** file:
+The following example creates two configs from files, and one from the cli. it then combines them into a single object.
+Note how the port changes to 82, and how the users list is combined.
 
-.. include:: example.yaml
+**example2.yaml** file:
+
+.. include:: example2.yaml
    :code: yaml
+
+**more_users.yaml** file:
+
+.. include:: more_users.yaml
+   :code: yaml
+
 
 .. doctest::
 
     >>> from omegaconf import OmegaConf
     >>> import sys
-    >>> conf = OmegaConf.load('source/example2.yaml')
+    >>> base_conf = OmegaConf.load('source/example2.yaml')
+    >>> users_conf = OmegaConf.load('source/more_users.yaml')
     >>> # Simulate command line arguments
     >>> sys.argv = ['program.py', 'server.port=82']
-    >>> cli = OmegaConf.from_cli()
-    >>> # Overlay cli on top of conf
-    >>> conf = OmegaConf.merge(conf, cli)
-    >>> conf.server.port
-    82
-    >>> # TODO: list merge example
+    >>> cli_conf = OmegaConf.from_cli()
+    >>> # Overlay configs:
+    >>> conf = OmegaConf.merge(base_conf, users_conf, cli_conf)
+    >>> print(conf.pretty())
+    server:
+      port: 82
+    users:
+    - user1
+    - user2
+    - user3
+    <BLANKLINE>
 
 
