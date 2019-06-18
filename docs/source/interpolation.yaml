@@ -7,5 +7,5 @@ client:
   server_port: ${server.port}
 
 user:
-  name: ${env:user}
-  home: /home/${env:user}
+  name: ${env:USER}
+  home: /home/${env:USER}

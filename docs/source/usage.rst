@@ -2,7 +2,7 @@
 
     from omegaconf import OmegaConf
     import os
-    os.environ['user'] = 'omry'
+    os.environ['USER'] = 'omry'
 
 Installation
 ------------
@@ -40,7 +40,6 @@ Or a config from a list:
 .. doctest::
 
     >>> conf = OmegaConf.create([1, dict(a=10, b=dict(a=10))])
-    >>> # Output is identical to the yaml file
     >>> print(conf.pretty())
     - 1
     - a: 10
@@ -53,6 +52,7 @@ Or from from a yaml file:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/example.yaml')
+    >>> # Output is identical to the yaml file
     >>> print(conf.pretty())
     log:
       file: ???
@@ -112,7 +112,7 @@ Input yaml file:
     80
 
     >>> # dictionary style access
-    >>> conf['log'].rotation
+    >>> conf['log']['rotation']
     3600
 
     >>> # items in list
