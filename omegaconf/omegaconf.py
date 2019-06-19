@@ -89,12 +89,45 @@ class Config(object):
     def __getattr__(self, key):
         if isinstance(self.content, dict):
             val = self.content.get(key)
+
         elif isinstance(self.content, (list, tuple)):
             assert type(key) == int, "Indexing into Sequence node with a non int type ({})".format(type(key))
             val = self.content[key]
         if type(val) == str and val == '???':
-            raise MissingMandatoryValue(key)
+            raise MissingMandatoryValue(self.get_full_key(key))
         return self._resolve_single(val) if isinstance(val, str) else val
+
+    def get_full_key(self, key):
+        full_key = ''
+        child = None
+        parent = self
+        while parent is not None:
+            if parent.is_dict():
+                if child is None:
+                    full_key = "{}".format(key)
+                else:
+                    for parent_key, v in parent.items():
+                        if v == child:
+                            if child.is_sequence():
+                                full_key = "{}{}".format(parent_key, full_key)
+                            else:
+                                full_key = "{}.{}".format(parent_key, full_key)
+                            break
+            elif parent.is_sequence():
+                if child is None:
+                    full_key = "[{}]".format(key)
+                else:
+                    for idx, v in enumerate(parent):
+                        if v == child:
+                            if child.is_sequence():
+                                full_key = "[{}]{}".format(idx, full_key)
+                            else:
+                                full_key = "[{}].{}".format(idx, full_key)
+                            break
+            child = parent
+            parent = child.__dict__['parent']
+
+        return full_key
 
     def __setitem__(self, key, value):
         if isinstance(value, dict) or isinstance(value, list):
