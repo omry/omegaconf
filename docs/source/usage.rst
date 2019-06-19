@@ -93,15 +93,6 @@ From a yaml string
 From a dot-list
 ^^^^^^^^^^^^^^^^
 
-OmegaConf supports creating a configuration tree from a dot separated list:
-A dot separated list is a list of strings like this one:
-
-.. code-block:: python
-
-   ["key1=foo", "node.child1=bar", "node.child2=baz"]
-
-OmegaConf can construct a configuration object from this list, for example:
-
 .. doctest::
 
     >>> dot_list = ["a.aa.aaa=1", "a.aa.bbb=2", "a.bb.aaa=3", "a.bb.bbb=4"]
@@ -133,17 +124,20 @@ To parse the content of sys.arg:
       port: 82
     <BLANKLINE>
 
+
 Access and manipulation
 -----------------------
 
-Input yaml file:
+Input yaml file for this section:
 
 .. literalinclude:: example.yaml
    :language: yaml
 
-.. doctest::
+Access
+^^^^^^
 
-    >>> conf = OmegaConf.load('source/example.yaml')
+.. doctest:: loaded
+
     >>> # object style access of dictionary elements
     >>> conf.server.port
     80
@@ -156,6 +150,11 @@ Input yaml file:
     >>> conf.users[0]
     'user1'
 
+
+Manipulation
+^^^^^^^^^^^^
+.. doctest:: loaded
+
     >>> # Changing existing keys
     >>> conf.server.port = 81
 
@@ -165,9 +164,17 @@ Input yaml file:
     >>> # Adding a new dictionary
     >>> conf.database = {'hostname': 'database01', 'port': 3306}
 
+
+Default values
+^^^^^^^^^^^^^^
+You can provided default values directly in the accessing code:
+
+.. doctest:: loaded
+
     >>> # providing default values
     >>> conf.missing_key or 'a default value'
     'a default value'
+
     >>> conf.get('missing_key', 'a default value')
     'a default value'
 
