@@ -5,7 +5,3 @@ server:
 client:
   url: http://${server.host}:${server.port}/
   server_port: ${server.port}
-
-user:
-  name: ${env:USER}
-  home: /home/${env:USER}

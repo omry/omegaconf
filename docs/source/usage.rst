@@ -2,7 +2,13 @@
 
     from omegaconf import OmegaConf
     import os
+    import sys
     os.environ['USER'] = 'omry'
+
+.. testsetup:: loaded
+
+    from omegaconf import OmegaConf
+    conf = OmegaConf.load('source/example.yaml')
 
 Installation
 ------------
@@ -13,16 +19,19 @@ Just pip install::
 
 Creating
 --------
-You can create an empty config:
+Empty
+^^^^^
 
 .. doctest::
 
     >>> from omegaconf import OmegaConf
     >>> conf = OmegaConf.create()
-    >>> conf
+    >>> print(conf.pretty())
     {}
+    <BLANKLINE>
 
-Or a config from a dictionary:
+From a dictionary
+^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -35,7 +44,8 @@ Or a config from a dictionary:
       b: '2'
     <BLANKLINE>
 
-Or a config from a list:
+From a list
+^^^^^^^^^^^
 
 .. doctest::
 
@@ -47,7 +57,8 @@ Or a config from a list:
         a: 10
     <BLANKLINE>
 
-Or from from a yaml file:
+From a yaml file
+^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -64,7 +75,9 @@ Or from from a yaml file:
     - user2
     <BLANKLINE>
 
-Or even a yaml string:
+
+From a yaml string
+^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -77,24 +90,48 @@ Or even a yaml string:
     - item2
     <BLANKLINE>
 
-OmegaConf supports creating a configuration tree from a dot separated list:
+From a dot-list
+^^^^^^^^^^^^^^^^
 
-This is typically used to override values using command line arguments.
-from_cli() will parse anything in sys.argv.
-Note that if you want to use this with a CLI parser, it will have to clear anything it already parsed from
-sys.argv before you initialize the conf from_cli().
+OmegaConf supports creating a configuration tree from a dot separated list:
+A dot separated list is a list of strings like this one:
+
+.. code-block:: python
+
+   ["key1=foo", "node.child1=bar", "node.child2=baz"]
+
+OmegaConf can construct a configuration object from this list, for example:
 
 .. doctest::
 
-    >>> dot_list = ['server.port=82', 'log.file=log2.txt']
-    >>> cli_conf = OmegaConf.from_cli(dot_list)
-    >>> print(cli_conf.pretty())
+    >>> dot_list = ["a.aa.aaa=1", "a.aa.bbb=2", "a.bb.aaa=3", "a.bb.bbb=4"]
+    >>> conf = OmegaConf.from_dotlist(dot_list)
+    >>> print(conf.pretty())
+    a:
+      aa:
+        aaa: 1
+        bbb: 2
+      bb:
+        aaa: 3
+        bbb: 4
+    <BLANKLINE>
+
+From command line arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To parse the content of sys.arg:
+
+.. doctest::
+
+    >>> # Simulating command line arguments
+    >>> sys.argv = ['your-program.py', 'server.port=82', 'log.file=log2.txt']
+    >>> conf = OmegaConf.from_cli()
+    >>> print(conf.pretty())
     log:
       file: log2.txt
     server:
       port: 82
     <BLANKLINE>
-
 
 Access and manipulation
 -----------------------
@@ -134,44 +171,73 @@ Input yaml file:
     >>> conf.get('missing_key', 'a default value')
     'a default value'
 
-Accessing fields with the value *???* will cause a MissingMandatoryValue exception.
-Use this to indicate that the value must be set before accessing.
+Mandatory values
+^^^^^^^^^^^^^^^^
+Use the value ??? to indicate parameters that need to be set prior to access
+
+.. doctest:: loaded
+
+    >>> conf.log.file
+    Traceback (most recent call last):
+    ...
+    omegaconf.MissingMandatoryValue: log.file
 
 
-String interpolation
---------------------
-Built-in resolvers
-^^^^^^^^^^^^^^^^^^
-OmegaConf supports string interpolation.
-The basic form supports referencing other nodes in the configuration tree.
-Additionally, environment variable interpolation is supported.
+Variable interpolation
+----------------------
+
+OmegaConf support variable interpolation, Interpolations are evaluated lazily on access.
+
+Config node interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+The interpolated variable can be the dot-path to another node in the configuration, and in that case
+the value will be the value of that node.
 
 Input yaml file:
 
-.. include:: interpolation.yaml
+.. include:: config_interpolation.yaml
    :code: yaml
 
 
-Interpolations are evaluated lazily on field access.
+Example:
 
 .. doctest::
 
-    >>> conf = OmegaConf.load('source/interpolation.yaml')
-
-    >>> # Primitive interpolations type is inherited from the referenced value
-    >>> # Composite interpolations type is always string
-    >>> conf.client.server_port
+    >>> conf = OmegaConf.load('source/config_interpolation.yaml')
+    >>> # Primitive interpolation types are inherited from the referenced value
+    >>> print(conf.client.server_port)
     80
-    >>> conf.client.url
-    'http://localhost:80/'
+    >>> print(type(conf.client.server_port).__name__)
+    int
 
-    >>> conf.user.name
-    'omry'
-    >>> conf.user.home
-    '/home/omry'
+    >>> # Composite interpolation types are always string
+    >>> print(conf.client.url)
+    http://localhost:80/
+    >>> print(type(conf.client.url).__name__)
+    str
 
-Plugable resolvers
-^^^^^^^^^^^^^^^^^^^
+
+Environment variable interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Environment variable interpolation is also supported.
+
+Input yaml file:
+
+.. include:: env_interpolation.yaml
+   :code: yaml
+
+.. doctest::
+
+    >>> conf = OmegaConf.load('source/env_interpolation.yaml')
+    >>> print(conf.user.name)
+    omry
+    >>> print(conf.user.home)
+    /home/omry
+
+
+Custom interpolations
+^^^^^^^^^^^^^^^^^^^^^
 You can add additional interpolation types using custom resolvers.
 This example creates a resolver that adds 10 the the given value.
 
@@ -185,8 +251,8 @@ This example creates a resolver that adds 10 the the given value.
 
 Merging configurations
 ----------------------
-Merging configurations enables the use of logical components instead of a single config file for each
-variation of your task.
+Merging configurations enables the creation of reusable configuration files for each logical component
+instead of a single config file for each variation of your task.
 
 Machine learning experiment example:
 
@@ -200,8 +266,8 @@ Web server configuration example:
 
    conf = OmegaConf.merge(server_cfg, plugin1_cfg, site1_cfg, site2_cfg)
 
-The following example creates two configs from files, and one from the cli. it then combines them into a single object.
-Note how the port changes to 82, and how the users list is combined.
+The following example creates two configs from files, and one from the cli. It then combines them into a single object.
+Note how the port changes to 82, and how the users lists are combined.
 
 **example2.yaml** file:
 
@@ -220,10 +286,12 @@ Note how the port changes to 82, and how the users list is combined.
     >>> import sys
     >>> base_conf = OmegaConf.load('source/example2.yaml')
     >>> users_conf = OmegaConf.load('source/more_users.yaml')
+
     >>> # Simulate command line arguments
     >>> sys.argv = ['program.py', 'server.port=82']
     >>> cli_conf = OmegaConf.from_cli()
-    >>> # Overlay configs:
+
+    >>> # Merge configs:
     >>> conf = OmegaConf.merge(base_conf, users_conf, cli_conf)
     >>> print(conf.pretty())
     server:
@@ -233,5 +301,3 @@ Note how the port changes to 82, and how the users list is combined.
     - user2
     - user3
     <BLANKLINE>
-
-

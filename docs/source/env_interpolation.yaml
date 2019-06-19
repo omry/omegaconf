@@ -1,0 +1,3 @@
+user:
+  name: ${env:USER}
+  home: /home/${env:USER}
