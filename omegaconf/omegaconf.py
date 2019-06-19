@@ -506,16 +506,19 @@ class OmegaConf:
 
     @staticmethod
     def from_cli(args_list=None):
+        if args_list is None:
+            # Skip program name
+            args_list = sys.argv[1:]
+        return OmegaConf.from_dotlist(args_list)
+
+    @staticmethod
+    def from_dotlist(args_list):
         """
         Creates config from the content sys.argv or from the specified args list of not None
         :param args_list:
         :return:
         """
         conf = OmegaConf.create()
-        # if args list is not passed use sys.argv without the program name
-        if args_list is None:
-            # Skip program name
-            args_list = sys.argv[1:]
         for arg in args_list:
             args = arg.split('=')
             key = args[0]

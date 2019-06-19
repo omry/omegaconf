@@ -94,12 +94,6 @@ def test_list_of_dicts():
     assert c.list[1].key2 == 'value2'
 
 
-def test_cli_passing():
-    args_list = ['a=1', 'b.c=2']
-    c = OmegaConf.from_cli(args_list)
-    assert {'a': 1, 'b': {'c': 2}} == c
-
-
 def test_mandatory_value():
     c = OmegaConf.create(dict(a='???'))
     with raises(MissingMandatoryValue, match='a'):
@@ -452,8 +446,6 @@ def test_get_full_key__lll():
 def test_get_full_key__lld():
     c = OmegaConf.create([[dict(a=1)]])
     assert c[0][0].get_full_key('a') == '[0][0].a'
-
-
 
 
 def test_get_full_key__lldddl():

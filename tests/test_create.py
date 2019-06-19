@@ -84,3 +84,15 @@ def test_create_from_cli():
     sys.argv = ['program.py', 'a=1', 'b.c=2']
     c = OmegaConf.from_cli()
     assert {'a': 1, 'b': {'c': 2}} == c
+
+
+def test_cli_passing():
+    args_list = ['a=1', 'b.c=2']
+    c = OmegaConf.from_cli(args_list)
+    assert {'a': 1, 'b': {'c': 2}} == c
+
+
+def test_dotlist():
+    args_list = ['a=1', 'b.c=2']
+    c = OmegaConf.from_dotlist(args_list)
+    assert {'a': 1, 'b': {'c': 2}} == c
