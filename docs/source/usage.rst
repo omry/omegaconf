@@ -150,21 +150,6 @@ Access
     >>> conf.users[0]
     'user1'
 
-
-Manipulation
-^^^^^^^^^^^^
-.. doctest:: loaded
-
-    >>> # Changing existing keys
-    >>> conf.server.port = 81
-
-    >>> # Adding new keys
-    >>> conf.server.hostname = "localhost"
-
-    >>> # Adding a new dictionary
-    >>> conf.database = {'hostname': 'database01', 'port': 3306}
-
-
 Default values
 ^^^^^^^^^^^^^^
 You can provided default values directly in the accessing code:
@@ -188,6 +173,20 @@ Use the value ??? to indicate parameters that need to be set prior to access
     Traceback (most recent call last):
     ...
     omegaconf.MissingMandatoryValue: log.file
+
+
+Manipulation
+^^^^^^^^^^^^
+.. doctest:: loaded
+
+    >>> # Changing existing keys
+    >>> conf.server.port = 81
+
+    >>> # Adding new keys
+    >>> conf.server.hostname = "localhost"
+
+    >>> # Adding a new dictionary
+    >>> conf.database = {'hostname': 'database01', 'port': 3306}
 
 
 Variable interpolation
