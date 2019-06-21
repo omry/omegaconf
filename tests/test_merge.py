@@ -75,55 +75,52 @@ def test_merge_list_root():
     c1 = OmegaConf.create([1, 2, 3])
     c2 = OmegaConf.create([4, 5, 6])
     c3 = OmegaConf.merge(c1, c2)
-    assert c3 == [1, 2, 3, 4, 5, 6]
+    assert c3 == [4, 5, 6]
 
 
 def test_merge_tuple_root():
     c1 = OmegaConf.create((1, 2, 3))
     c2 = OmegaConf.create((4, 5, 6))
     c3 = OmegaConf.merge(c1, c2)
-    assert c3 == [1, 2, 3, 4, 5, 6]
+    assert c3 == [4, 5, 6]
 
 
 def test_merge_list_nested_in_list():
     c1 = OmegaConf.create([[1, 2, 3]])
     c2 = OmegaConf.create([[4, 5, 6]])
     c3 = OmegaConf.merge(c1, c2)
-    assert c3 == [[1, 2, 3], [4, 5, 6]]
+    assert c3 == [[4, 5, 6]]
 
 
 def test_merge_list_nested_in_dict():
     c1 = OmegaConf.create(dict(list=[1, 2, 3]))
     c2 = OmegaConf.create(dict(list=[4, 5, 6]))
     c3 = OmegaConf.merge(c1, c2)
-    assert c3 == dict(list=[1, 2, 3, 4, 5, 6])
+    assert c3 == dict(list=[4, 5, 6])
 
 
 def test_merge_dict_nested_in_list():
     c1 = OmegaConf.create([1, 2, dict(a=10)])
     c2 = OmegaConf.create([4, 5, dict(b=20)])
     c3 = OmegaConf.merge(c1, c2)
-    assert c3 == [1, 2, dict(a=10), 4, 5, dict(b=20)]
+    assert c3 == [4, 5, dict(b=20)]
 
 
-def test_merge_from_1():
+def test_merge_with_1():
     a = OmegaConf.create()
-    b = OmegaConf.create('''
-    a : 1
-    b : 2
-    ''')
-    a.merge_from(b)
+    b = OmegaConf.create(dict(a=1, b=2))
+    a.merge_with(b)
     assert a == b
 
 
-def test_merge_from_2():
+def test_merge_with_2():
     a = OmegaConf.create()
     a.inner = {}
     b = OmegaConf.create('''
     a : 1
     b : 2
     ''')
-    a.inner.merge_from(b)
+    a.inner.merge_with(b)
     assert a.inner == b
 
 

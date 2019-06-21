@@ -8,3 +8,5 @@ omegaconf.egg-info
 venv
 .envrc
 .idea
+TODO
+.ipynb_checkpoints

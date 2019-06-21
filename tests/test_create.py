@@ -35,8 +35,9 @@ def test_create_empty_string():
 
 
 def test_create_tupple_value():
+    # For simplicity, tuples are converted to lists.
     c = OmegaConf.create((1, 2))
-    assert (1, 2) == c
+    assert [1, 2] == c
 
 
 def test_load_file():

@@ -152,3 +152,7 @@ def test_update_list_make_dict():
     assert c[1].b.b == 'bb'
 
 
+def test_merge_with_dotlist():
+    c = OmegaConf.create([1, 2, 3])
+    c.merge_with_dotlist(["0=bar", "2.a=100"])
+    assert c == ["bar", 2, dict(a=100)]

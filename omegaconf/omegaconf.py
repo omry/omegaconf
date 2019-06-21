@@ -87,10 +87,9 @@ class Config(object):
         self.content[key] = value
 
     def __getattr__(self, key):
-        if isinstance(self.content, dict):
+        if self.is_dict():
             val = self.content.get(key)
-
-        elif isinstance(self.content, (list, tuple)):
+        elif self.is_sequence():
             assert type(key) == int, "Indexing into Sequence node with a non int type ({})".format(type(key))
             val = self.content[key]
         if type(val) == str and val == '???':
@@ -205,6 +204,20 @@ class Config(object):
         else:
             raise RuntimeError("Unexpected config type")
 
+    def merge_with_cli(self):
+        args_list = sys.argv[1:]
+        self.merge_with_dotlist(args_list)
+
+    def merge_with_dotlist(self, dotlist):
+        for arg in dotlist:
+            args = arg.split('=')
+            key = args[0]
+            value = None
+            if len(args) > 1:
+                # load with yaml to get correct automatic typing with the same rules as yaml parsing
+                value = yaml.load(args[1], Loader=get_yaml_loader())
+            self.update(key, value)
+
     def update(self, key, value=None):
         """Updates a dot separated key sequence to a value"""
         split = key.split('.')
@@ -303,7 +316,7 @@ class Config(object):
         for key, value in src.items():
             if key in dest and isinstance(dest[key], Config):
                 if isinstance(value, Config):
-                    dest[key].merge_from(value)
+                    dest[key].merge_with(value)
                 else:
                     dest[key] = value
             else:
@@ -316,20 +329,20 @@ class Config(object):
         assert isinstance(src, Config)
         assert dest.is_sequence()
         assert src.is_sequence()
-        dest = copy.deepcopy(dest)
-        src = copy.deepcopy(src)
-        for item in src:
-            dest.content.append(item)
-        return dest
+        return copy.deepcopy(src)
 
+    @deprecated(version='1.1.10', reason="Use Config.merge_with(), this function will be removed soon")
     def merge_from(self, *others):
+        self.merge_with(*others)
+
+    def merge_with(self, *others):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             assert isinstance(other, Config)
             if self.is_dict() and other.is_dict():
                 self._set_content(Config.map_merge(self, other))
             elif self.is_sequence() and other.is_sequence():
-                self._set_content(Config.sequence_merge(self, other))
+                self._set_content(other.content)
             else:
                 raise NotImplementedError("Merging of list with dict is not implemented")
 
@@ -366,7 +379,7 @@ class Config(object):
                 if isinstance(item, dict) or isinstance(item, (list, tuple)):
                     item = Config(item, parent=self)
                 target.append(item)
-            self.__dict__['content'] = target if isinstance(content, list) else tuple(target)
+            self.__dict__['content'] = target
         else:
             raise RuntimeError("Unsupported type for content: {}".format(type(content)))
 
@@ -512,21 +525,14 @@ class OmegaConf:
         return OmegaConf.from_dotlist(args_list)
 
     @staticmethod
-    def from_dotlist(args_list):
+    def from_dotlist(dotlist):
         """
         Creates config from the content sys.argv or from the specified args list of not None
-        :param args_list:
+        :param dotlist:
         :return:
         """
         conf = OmegaConf.create()
-        for arg in args_list:
-            args = arg.split('=')
-            key = args[0]
-            value = None
-            if len(args) > 1:
-                # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                value = yaml.load(args[1], Loader=get_yaml_loader())
-            conf.update(key, value)
+        conf.merge_with_dotlist(dotlist)
         return conf
 
     @staticmethod
@@ -534,7 +540,7 @@ class OmegaConf:
         """Merge a list of previously created configs into a single one"""
         assert len(others) > 0
         target = Config({} if others[0].is_dict() else [])
-        target.merge_from(*others)
+        target.merge_with(*others)
         return target
 
     _resolvers = {}

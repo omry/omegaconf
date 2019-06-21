@@ -280,9 +280,9 @@ Note how the port changes to 82, and how the users lists are combined.
 .. include:: example2.yaml
    :code: yaml
 
-**more_users.yaml** file:
+**example3.yaml** file:
 
-.. include:: more_users.yaml
+.. include:: example3.yaml
    :code: yaml
 
 
@@ -291,19 +291,19 @@ Note how the port changes to 82, and how the users lists are combined.
     >>> from omegaconf import OmegaConf
     >>> import sys
     >>> base_conf = OmegaConf.load('source/example2.yaml')
-    >>> users_conf = OmegaConf.load('source/more_users.yaml')
+    >>> second_conf = OmegaConf.load('source/example3.yaml')
+
+    >>> # Merge configs:
+    >>> conf = OmegaConf.merge(base_conf, second_conf)
 
     >>> # Simulate command line arguments
     >>> sys.argv = ['program.py', 'server.port=82']
-    >>> cli_conf = OmegaConf.from_cli()
-
-    >>> # Merge configs:
-    >>> conf = OmegaConf.merge(base_conf, users_conf, cli_conf)
+    >>> # Merge with cli arguments
+    >>> conf.merge_with_cli()
     >>> print(conf.pretty())
     server:
       port: 82
     users:
     - user1
     - user2
-    - user3
     <BLANKLINE>
