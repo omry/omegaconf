@@ -106,6 +106,11 @@ def test_nested_dict_mandatory_value():
         c.a.b
 
 
+def test_mandatory_with_default():
+    c = OmegaConf.create(dict(name='???'))
+    assert c.get('name', 'default value') == 'default value'
+
+
 def test_subscript_get():
     c = OmegaConf.create('a: b')
     assert 'b' == c['a']
