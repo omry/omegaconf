@@ -62,13 +62,6 @@ class Config(object):
             else:
                 raise RuntimeError("Unsupported content type {}".format(type(content)))
 
-    def get(self, key, default_value=None):
-        """returns the value with the specified key, like obj.key and obj['key']"""
-        v = self.__getattr__(key)
-        if v is None:
-            v = default_value
-        return v
-
     def _set_parent(self, parent):
         assert parent is None or isinstance(parent, Config)
         self.__dict__['parent'] = parent
@@ -86,15 +79,25 @@ class Config(object):
             value = Config(value, parent=self)
         self.content[key] = value
 
-    def __getattr__(self, key):
+    def get(self, key, default_value=None):
+        """returns the value with the specified key, like obj.key and obj['key']"""
         if self.is_dict():
             val = self.content.get(key)
         elif self.is_sequence():
             assert type(key) == int, "Indexing into Sequence node with a non int type ({})".format(type(key))
             val = self.content[key]
-        if type(val) == str and val == '???':
+
+        def is_mandatory_missing():
+            return type(val) == str and val == '???'
+
+        if default_value is not None and (val is None or is_mandatory_missing()):
+            val = default_value
+        if is_mandatory_missing():
             raise MissingMandatoryValue(self.get_full_key(key))
         return self._resolve_single(val) if isinstance(val, str) else val
+
+    def __getattr__(self, key):
+        return self.get(key=key, default_value=None)
 
     def get_full_key(self, key):
         full_key = ''
