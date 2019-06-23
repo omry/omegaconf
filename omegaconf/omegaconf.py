@@ -6,7 +6,7 @@ import re
 import sys
 from collections import Sequence
 from collections import defaultdict
-
+import six
 import yaml
 from deprecated import deprecated
 
@@ -48,6 +48,17 @@ class Config(object):
         Can't be instantiated
         """
         raise NotImplementedError
+
+    def save(self, file_):
+        data = self.pretty()
+        if isinstance(file_, str):
+            with io.open(os.path.abspath(file_), 'w', encoding='utf-8') as f:
+                f.write(six.u(data))
+        elif getattr(file_, 'write'):
+            file_.write(data)
+            file_.flush()
+        else:
+            raise TypeError("Unexpected file type")
 
     def _set_parent(self, parent):
         assert parent is None or isinstance(parent, Config)
@@ -364,6 +375,23 @@ class Config(object):
     def __deepcopy__(self, memodict={}):
         return OmegaConf.create(self.content)
 
+    def validate(self, key, value):
+        """
+        Ensures this value type is a as a note value.
+        Throws ValueError otherwise
+        :param key:
+        :param value:
+        :return:
+        """
+
+        # None is valid
+        if value is None:
+            return
+        valid = (bool, int, str, float, DictConfig, ListConfig)
+        if type(value) not in valid:
+            full_key = self.get_full_key(key)
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
+
 
 class DictConfig(Config):
     def __init__(self, content, parent=None):
@@ -377,6 +405,7 @@ class DictConfig(Config):
         assert isinstance(key, str)
         if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
             value = OmegaConf.create(value, parent=self)
+        self.validate(key, value)
         self.__dict__['content'][key] = value
 
     # hide content while inspecting in debugger
@@ -392,6 +421,7 @@ class DictConfig(Config):
         """
         if isinstance(value, (dict, list, tuple)):
             value = OmegaConf.create(value, parent=self)
+        self.validate(key, value)
         self.content[key] = value
 
     def __getattr__(self, key):
@@ -452,17 +482,20 @@ class ListConfig(Config, list):
         assert isinstance(index, int)
         if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
             value = OmegaConf.create(value, parent=self)
+        self.validate(index, value)
         self.__dict__['content'][index] = value
 
     def pop(self, key=-1):
         return self.content.pop(key)
 
-    def append(self, value):
-        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
-            value = OmegaConf.create(value, parent=self)
-        self.__dict__['content'].append(value)
+    def append(self, item):
+        if not isinstance(item, Config) and (isinstance(item, dict) or isinstance(item, list)):
+            item = OmegaConf.create(item, parent=self)
+        self.validate(len(self), item)
+        self.__dict__['content'].append(item)
 
     def insert(self, index, item):
+        self.validate(index, item)
         self.cotnent.insert(index, item)
 
     def sort(self, key=None, reverse=False):
@@ -509,7 +542,7 @@ class OmegaConf:
         elif getattr(file_, 'read'):
             return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
         else:
-            raise ValueError("Unexpected file type")
+            raise TypeError("Unexpected file type")
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
