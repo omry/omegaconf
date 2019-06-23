@@ -14,3 +14,5 @@ matrix:
       env: TOXENV=py37
       dist: xenial
       sudo: true    
+    - python: docs
+      env: TOXENV=docs
