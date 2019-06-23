@@ -5,6 +5,8 @@ import pytest
 
 from omegaconf import OmegaConf
 
+import six
+
 
 def test_str_interpolation_1():
     # Simplest str_interpolation
@@ -159,13 +161,21 @@ def test_env_interpolation_not_found():
         c.path
 
 
+def catch_recursion(f):
+    if six.PY2:
+        with pytest.raises(RuntimeError):
+            f()
+    else:
+        with pytest.raises(RecursionError):
+            f()
+
+
 def test_env_interpolation_recursive1():
     c = OmegaConf.create(dict(
         path='/test/${path}',
     ))
 
-    with pytest.raises(RuntimeError):
-        c.path
+    catch_recursion(lambda: c.path)
 
 
 def test_env_interpolation_recursive2():
@@ -174,8 +184,7 @@ def test_env_interpolation_recursive2():
         path2='/test/${path1}',
     ))
 
-    with pytest.raises(RuntimeError):
-        c.path1
+    catch_recursion(lambda: c.path1)
 
 
 def test_register_resolver_twice_error():

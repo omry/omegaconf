@@ -22,8 +22,7 @@ def test_create_key_value():
 
 def test_create_key_map():
     """Test a key to map"""
-    s = '{hello: {a : 2}}'
-    c = OmegaConf.create(s)
+    c = OmegaConf.create(dict(hello=dict(a=2)))
     assert {'hello': {'a': 2}} == c
 
 
@@ -32,6 +31,11 @@ def test_create_empty_string():
     s = ''
     c = OmegaConf.create(s)
     assert c == {}
+
+
+def test_create_list_value():
+    c = OmegaConf.create([1, 2])
+    assert [1, 2] == c
 
 
 def test_create_tupple_value():
