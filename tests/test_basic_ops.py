@@ -436,3 +436,31 @@ def test_list_assign_illegal_value():
     with raises(ValueError, match=re.escape("key a[0]")):
         c = OmegaConf.create(dict(a=[None]))
         c.a[0] = IllegalType()
+
+
+def test_assign_list_in_list():
+    c = OmegaConf.create([10, 11])
+    c[0] = ['a', 'b']
+    assert c == [['a', 'b'], 11]
+    assert isinstance(c[0], ListConfig)
+
+
+def test_assign_list_in_dict():
+    c = OmegaConf.create(dict())
+    c.foo = ['a', 'b']
+    assert c == dict(foo=['a', 'b'])
+    assert isinstance(c.foo, ListConfig)
+
+
+def test_assign_dict_in_list():
+    c = OmegaConf.create([None])
+    c[0] = dict(foo='bar')
+    assert c[0] == dict(foo='bar')
+    assert isinstance(c[0], DictConfig)
+
+
+def test_assign_dict_in_dict():
+    c = OmegaConf.create(dict())
+    c.foo = dict(foo='bar')
+    assert c.foo == dict(foo='bar')
+    assert isinstance(c.foo, DictConfig)
