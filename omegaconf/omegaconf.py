@@ -387,7 +387,10 @@ class Config(object):
         # None is valid
         if value is None:
             return
-        valid = (bool, int, str, float, DictConfig, ListConfig)
+        valid = [bool, int, str, float, DictConfig, ListConfig]
+        if six.PY2:
+            valid.append(unicode)
+        
         if type(value) not in valid:
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
