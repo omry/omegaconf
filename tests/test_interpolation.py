@@ -242,3 +242,12 @@ def test_date_pattern():
 
     OmegaConf.register_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
+
+def test_pretty_with_resolve():
+    c = OmegaConf.create(dict(
+        a1='${ref}',
+        a2='${ref}',
+        ref='bar',
+    ))
+    s = c.pretty()
+

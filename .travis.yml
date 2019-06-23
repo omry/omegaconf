@@ -13,6 +13,6 @@ matrix:
     - python: 3.7
       env: TOXENV=py37
       dist: xenial
-      sudo: true    
-    - python: docs
+      sudo: true
+    - python: 3.7
       env: TOXENV=docs
