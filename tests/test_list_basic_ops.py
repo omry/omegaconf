@@ -149,3 +149,14 @@ def test_assign_list_in_dict():
     c.foo = ['a', 'b']
     assert c == dict(foo=['a', 'b'])
     assert isinstance(c.foo, ListConfig)
+
+
+def test_list_append():
+    c = OmegaConf.create([])
+    c.append(1)
+    c.append(2)
+    c.append({})
+    c.append([])
+    assert isinstance(c[2], DictConfig)
+    assert isinstance(c[3], ListConfig)
+    assert c == [1, 2, {}, []]
