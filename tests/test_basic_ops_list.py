@@ -160,3 +160,11 @@ def test_list_append():
     assert isinstance(c[2], DictConfig)
     assert isinstance(c[3], ListConfig)
     assert c == [1, 2, {}, []]
+
+
+def test_to_container():
+    src = [1, None, dict(a=12), [1, 2]]
+    c = OmegaConf.create(src)
+    result = c.to_container()
+    assert type(result) == type(src)
+    assert result == src

@@ -332,3 +332,11 @@ def test_assign_dict_in_dict():
     c.foo = dict(foo='bar')
     assert c.foo == dict(foo='bar')
     assert isinstance(c.foo, DictConfig)
+
+
+def test_to_container():
+    src = dict(a=1, b=2, c=dict(aa=10))
+    c = OmegaConf.create(src)
+    result = c.to_container()
+    assert type(result) == type(src)
+    assert result == src
