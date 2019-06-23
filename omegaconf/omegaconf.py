@@ -261,16 +261,6 @@ class Config(object):
     def to_container(self):
         return Config._to_content(self)
 
-    def to_dict(self):
-        content = Config._to_content(self)
-        assert isinstance(content, dict), "Configuration is a {} and not a dictionary".format(type(content))
-        return content
-
-    def to_list(self):
-        content = Config._to_content(self)
-        assert isinstance(content, Sequence), "Configuration is a {} and not a Sequence".format(type(content))
-        return content
-
     def pretty(self):
         """return a pretty dump of the config content"""
         return yaml.dump(self.to_container(), default_flow_style=False)
@@ -390,7 +380,7 @@ class Config(object):
         valid = [bool, int, str, float, DictConfig, ListConfig]
         if six.PY2:
             valid.append(unicode)
-        
+
         if type(value) not in valid:
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
@@ -433,7 +423,7 @@ class DictConfig(Config):
         :param key:
         :return:
         """
-        return self._resolve_with_default(key=key, value=self.content[key], default_value=None)
+        return self._resolve_with_default(key=key, value=self.get(key), default_value=None)
 
     def __getitem__(self, key):
         """

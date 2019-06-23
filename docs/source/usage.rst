@@ -301,6 +301,8 @@ Note how the port changes to 82, and how the users lists are combined.
     >>> # Merge with cli arguments
     >>> conf.merge_with_cli()
     >>> print(conf.pretty())
+    log:
+      file: log.txt
     server:
       port: 82
     users:

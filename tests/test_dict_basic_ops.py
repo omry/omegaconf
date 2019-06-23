@@ -115,6 +115,16 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_default_value():
+    c = OmegaConf.create()
+    assert c.missing_key or 'a default value' == 'a default value'
+
+
+def test_get_default_value():
+    c = OmegaConf.create()
+    assert c.get('missing_key', 'a default value') == 'a default value'
+
+
 def test_scientific_notation_float():
     c = OmegaConf.create('a: 10e-3')
     assert 10e-3 == c.a
