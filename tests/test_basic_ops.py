@@ -1,11 +1,12 @@
 """Testing for OmegaConf"""
 import copy
+import re
 import tempfile
 
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue
-from omegaconf import OmegaConf, DictConfig, ListConfig, Config
+from omegaconf import OmegaConf, DictConfig, ListConfig
 
 
 def test_setattr_value():
@@ -139,6 +140,7 @@ list:
 - 2
 '''
     assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
 
 
 def test_pretty_list():
@@ -152,6 +154,7 @@ def test_pretty_list():
 - key3: value3
 '''
     assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
 
 
 def test_scientific_notation_float():
@@ -190,28 +193,6 @@ def test_items():
 def test_dict_keys():
     c = OmegaConf.create('{a: 2, b: 10}')
     assert {'a': 2, 'b': 10}.keys() == c.keys()
-
-
-def test_pickle_dict():
-    with tempfile.TemporaryFile() as fp:
-        import pickle
-        c = OmegaConf.create(dict(a='b'))
-        pickle.dump(c, fp)
-        fp.flush()
-        fp.seek(0)
-        c1 = pickle.load(fp)
-        assert c == c1
-
-
-def test_pickle_list():
-    with tempfile.TemporaryFile() as fp:
-        import pickle
-        c = OmegaConf.create([1, 2, 3])
-        pickle.dump(c, fp)
-        fp.flush()
-        fp.seek(0)
-        c1 = pickle.load(fp)
-        assert c == c1
 
 
 def test_pickle_get_root():
@@ -432,3 +413,26 @@ def test_dict_len():
 def test_list_len():
     c = OmegaConf.create([1, 2])
     assert len(c) == 2
+
+
+class IllegalType:
+    def __init__(self):
+        pass
+
+
+def test_dict_assign_illegal_value():
+    with raises(ValueError, match=re.escape("key a")):
+        c = OmegaConf.create(dict())
+        c.a = IllegalType()
+
+
+def test_dict_assign_illegal_value_nested():
+    with raises(ValueError, match=re.escape("key a.b")):
+        c = OmegaConf.create(dict(a=dict()))
+        c.a.b = IllegalType()
+
+
+def test_list_assign_illegal_value():
+    with raises(ValueError, match=re.escape("key a[0]")):
+        c = OmegaConf.create(dict(a=[None]))
+        c.a[0] = IllegalType()

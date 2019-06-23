@@ -1,7 +1,8 @@
 """Testing for OmegaConf"""
-import os
+import re
 import sys
-import tempfile
+
+from pytest import raises
 
 from omegaconf import OmegaConf
 
@@ -44,29 +45,6 @@ def test_create_tupple_value():
     assert [1, 2] == c
 
 
-def test_load_file():
-    with tempfile.NamedTemporaryFile() as fp:
-        s = b'a: b'
-        fp.write(s)
-        fp.flush()
-        fp.seek(0)
-        c = OmegaConf.load(fp.file)
-        assert {'a': 'b'} == c
-
-
-def test_load_filename():
-    # note that delete=False here is a work around windows incompetence.
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            s = b'a: b'
-            fp.write(s)
-            fp.flush()
-            c = OmegaConf.load(fp.name)
-            assert {'a': 'b'} == c
-    finally:
-        os.unlink(fp.name)
-
-
 def test_create_from_dict1():
     d = {'a': 2, 'b': 10}
     c = OmegaConf.create(d)
@@ -101,3 +79,30 @@ def test_dotlist():
     args_list = ['a=1', 'b.c=2']
     c = OmegaConf.from_dotlist(args_list)
     assert {'a': 1, 'b': {'c': 2}} == c
+
+
+class IllegalType:
+    def __init__(self):
+        pass
+
+
+def test_create_list_with_illegal_value_idx0():
+    with raises(ValueError, match=re.escape("key [0]")):
+        OmegaConf.create([IllegalType()])
+
+
+def test_create_list_with_illegal_value_idx1():
+    with raises(ValueError, match=re.escape("key [1]")):
+        OmegaConf.create([1, IllegalType(), 3])
+
+
+def test_create_dict_with_illegal_value():
+    with raises(ValueError, match=re.escape("key a")):
+        OmegaConf.create(dict(a=IllegalType()))
+
+
+# TODO: improve exception message to contain full key a.b
+# https://github.com/omry/omegaconf/issues/14
+def test_create_nested_dict_with_illegal_value():
+    with raises(ValueError, match=re.escape("key b")):
+        OmegaConf.create(dict(a=dict(b=IllegalType())))
