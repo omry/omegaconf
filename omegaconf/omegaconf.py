@@ -4,9 +4,9 @@ import io
 import os
 import re
 import sys
+from collections import Sequence
 from collections import defaultdict
 
-import six
 import yaml
 from deprecated import deprecated
 
@@ -41,26 +41,13 @@ def register_default_resolvers():
     OmegaConf.register_resolver('env', env)
 
 
-if six.PY2:
-    from collections import Sequence
-else:
-    from collections.abc import Sequence
-
-
 class Config(object):
-    """Config implementation"""
 
-    def __init__(self, content, parent=None):
-        self._set_parent(parent)
-        if content is None:
-            self._set_content({})
-        else:
-            if isinstance(content, str):
-                self._set_content({content: None})
-            elif isinstance(content, dict) or isinstance(content, Sequence):
-                self._set_content(content)
-            else:
-                raise RuntimeError("Unsupported content type {}".format(type(content)))
+    def __init__(self):
+        """
+        Can't be instantiated
+        """
+        raise NotImplementedError
 
     def _set_parent(self, parent):
         assert parent is None or isinstance(parent, Config)
@@ -74,70 +61,54 @@ class Config(object):
             root = root.__dict__['parent']
         return root
 
-    def __setattr__(self, key, value):
-        if isinstance(value, dict):
-            value = Config(value, parent=self)
-        self.content[key] = value
-
     def get(self, key, default_value=None):
+        raise NotImplementedError
+
+    def _resolve_with_default(self, key, value, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
-        if self.is_dict():
-            val = self.content.get(key)
-        elif self.is_sequence():
-            assert type(key) == int, "Indexing into Sequence node with a non int type ({})".format(type(key))
-            val = self.content[key]
 
         def is_mandatory_missing():
-            return type(val) == str and val == '???'
+            return type(value) == str and value == '???'
 
-        if default_value is not None and (val is None or is_mandatory_missing()):
-            val = default_value
+        if default_value is not None and (value is None or is_mandatory_missing()):
+            value = default_value
         if is_mandatory_missing():
             raise MissingMandatoryValue(self.get_full_key(key))
-        return self._resolve_single(val) if isinstance(val, str) else val
-
-    def __getattr__(self, key):
-        return self.get(key=key, default_value=None)
+        return self._resolve_single(value) if isinstance(value, str) else value
 
     def get_full_key(self, key):
         full_key = ''
         child = None
         parent = self
         while parent is not None:
-            if parent.is_dict():
+            if isinstance(parent, DictConfig):
                 if child is None:
                     full_key = "{}".format(key)
                 else:
                     for parent_key, v in parent.items():
                         if v == child:
-                            if child.is_sequence():
+                            if isinstance(child, ListConfig):
                                 full_key = "{}{}".format(parent_key, full_key)
                             else:
                                 full_key = "{}.{}".format(parent_key, full_key)
                             break
-            elif parent.is_sequence():
+            elif isinstance(parent, ListConfig):
                 if child is None:
                     full_key = "[{}]".format(key)
                 else:
                     for idx, v in enumerate(parent):
                         if v == child:
-                            if child.is_sequence():
+                            if isinstance(child, ListConfig):
                                 full_key = "[{}]{}".format(idx, full_key)
                             else:
                                 full_key = "[{}].{}".format(idx, full_key)
                             break
+            else:
+                raise TypeError
             child = parent
             parent = child.__dict__['parent']
 
         return full_key
-
-    def __setitem__(self, key, value):
-        if isinstance(value, dict) or isinstance(value, list):
-            value = Config(value, parent=self)
-        self.content[key] = value
-
-    def __getitem__(self, key):
-        return self.__getattr__(key)
 
     def __str__(self):
         return self.content.__str__()
@@ -145,42 +116,28 @@ class Config(object):
     def __repr__(self):
         return self.content.__repr__()
 
-    # Allow debugger to autocomplete correct fields
-    def __dir__(self):
-        return self.content.keys()
-
     def __eq__(self, other):
         return other == self.content
 
+    # Support pickle
     def __getstate__(self):
-        """ allows pickling
-        :return:
-        """
         return self.__dict__
 
+    # Support pickle
     def __setstate__(self, d):
-        """ allows pickling
-        :return:
-        """
         self.__dict__.update(d)
 
     def __delitem__(self, key):
-        return self.content.__delitem__(key)
+        self.content.__delitem__(key)
 
     def __len__(self):
-        return len(self.content)
+        return self.content.__len__()
 
     def __iter__(self):
         return self.content.__iter__()
 
-    def pop(self, key, default=None):
-        return self.content.pop(key, default)
-
-    def keys(self):
-        return self.content.keys()
-
     def __contains__(self, item):
-        return item in self.content
+        return self.content.__contains__(item)
 
     @staticmethod
     def _select_one(c, key_):
@@ -192,12 +149,12 @@ class Config(object):
             except ValueError:
                 return False
 
-        if c.is_dict():
+        if isinstance(c, DictConfig):
             if key_ in c:
                 return c[key_], key_
             else:
                 return None, key_
-        elif c.is_sequence():
+        elif isinstance(c, ListConfig):
             if not isint(key_):
                 raise ValueError("Index {} is not an int".format(key_))
             idx = int(key_)
@@ -205,7 +162,7 @@ class Config(object):
                 return None, idx
             return c[idx], idx
         else:
-            raise RuntimeError("Unexpected config type")
+            raise TypeError("Unexpected config type")
 
     def merge_with_cli(self):
         args_list = sys.argv[1:]
@@ -236,11 +193,13 @@ class Config(object):
         last = split[-1]
 
         assert isinstance(root, Config)
-        if root.is_dict():
+        if isinstance(root, DictConfig):
             root[last] = value
-        elif root.is_sequence():
+        elif isinstance(root, ListConfig):
             idx = int(last)
             root[idx] = value
+        else:
+            raise TypeError()
 
     def select(self, key):
         """
@@ -308,10 +267,8 @@ class Config(object):
     @staticmethod
     def map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
-        assert isinstance(dest, Config)
-        assert isinstance(src, Config)
-        assert dest.is_dict()
-        assert src.is_dict()
+        assert isinstance(dest, DictConfig)
+        assert isinstance(src, DictConfig)
 
         dest = dest.content
         dest = copy.deepcopy(dest)
@@ -326,14 +283,6 @@ class Config(object):
                 dest[key] = src[key]
         return dest
 
-    @staticmethod
-    def sequence_merge(dest, src):
-        assert isinstance(dest, Config)
-        assert isinstance(src, Config)
-        assert dest.is_sequence()
-        assert src.is_sequence()
-        return copy.deepcopy(src)
-
     @deprecated(version='1.1.10', reason="Use Config.merge_with(), this function will be removed soon")
     def merge_from(self, *others):
         self.merge_with(*others)
@@ -341,50 +290,30 @@ class Config(object):
     def merge_with(self, *others):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
-            assert isinstance(other, Config)
-            if self.is_dict() and other.is_dict():
-                self._set_content(Config.map_merge(self, other))
-            elif self.is_sequence() and other.is_sequence():
-                self._set_content(other.content)
+            if isinstance(self, DictConfig) and isinstance(other, DictConfig):
+                self.__dict__['content'] = Config.map_merge(self, other)
+            elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                self.__dict__['content'] = copy.deepcopy(other.content)
             else:
-                raise NotImplementedError("Merging of list with dict is not implemented")
+                raise TypeError("Merging DictConfig with ListConfig is not supported")
 
         def re_parent(node):
             # update parents of first level Config nodes to self
-            if node.is_dict():
+            if isinstance(node, DictConfig):
                 for _key, value in node.items():
                     if isinstance(value, Config):
                         value._set_parent(node)
                         re_parent(value)
-            elif node.is_sequence():
+            elif isinstance(node, ListConfig):
                 for item in node:
                     if isinstance(item, Config):
                         item._set_parent(node)
                         re_parent(item)
             else:
-                raise RuntimeError("Unknown node type")
+                raise TypeError()
 
         # recursively correct the parent hierarchy after the merge
         re_parent(self)
-
-    def _set_content(self, content):
-        if isinstance(content, Config):
-            content = content.content
-        if isinstance(content, dict):
-            self.__dict__['content'] = {}
-            for k, v in content.items():
-                if isinstance(v, dict):
-                    v = Config(v, parent=self)
-                self[k] = v
-        elif isinstance(content, (list, tuple)):
-            target = []
-            for item in content:
-                if isinstance(item, dict) or isinstance(item, (list, tuple)):
-                    item = Config(item, parent=self)
-                target.append(item)
-            self.__dict__['content'] = target
-        else:
-            raise RuntimeError("Unsupported type for content: {}".format(type(content)))
 
     @staticmethod
     def resolve_value(root_node, inter_type, inter_key):
@@ -433,19 +362,111 @@ class Config(object):
             return new
 
     def __deepcopy__(self, memodict={}):
-        return Config(content=self.content)
+        return OmegaConf.create(self.content)
 
-    def is_dict(self):
-        return isinstance(self.content, dict)
 
-    def is_sequence(self):
-        return isinstance(self.content, Sequence)
+class DictConfig(Config):
+    def __init__(self, content, parent=None):
+        assert isinstance(content, dict)
+        self.__dict__['content'] = {}
+        self.__dict__['parent'] = parent
+        for k, v in content.items():
+            self[k] = v
+
+    def __setitem__(self, key, value):
+        assert isinstance(key, str)
+        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
+            value = OmegaConf.create(value, parent=self)
+        self.__dict__['content'][key] = value
+
+    # hide content while inspecting in debugger
+    def __dir__(self):
+        return self.content.keys()
+
+    def __setattr__(self, key, value):
+        """
+        Allow assigning attributes to DictConfig
+        :param key:
+        :param value:
+        :return:
+        """
+        if isinstance(value, (dict, list, tuple)):
+            value = OmegaConf.create(value, parent=self)
+        self.content[key] = value
+
+    def __getattr__(self, key):
+        """
+        Allow accessing dictionary values as attributes
+        :param key:
+        :return:
+        """
+        return self._resolve_with_default(key=key, value=self.content[key], default_value=None)
+
+    def __getitem__(self, key):
+        """
+        Allow map style access
+        :param key:
+        :return:
+        """
+        return self.__getattr__(key)
+
+    def get(self, key, default_value=None):
+        return self._resolve_with_default(key=key, value=self.content.get(key), default_value=default_value)
+
+    __marker = object()
+
+    def pop(self, key, default=__marker):
+        val = self.content.pop(key, default)
+        if val is self.__marker:
+            raise KeyError(key)
+        return val
+
+    def keys(self):
+        return self.content.keys()
 
     def items(self):
-        if self.is_dict():
-            return self.content.items()
-        else:
-            raise TypeError("Content of config is not a dictionary, items() is not a valid call")
+        return self.content.items()
+
+
+class ListConfig(Config, list):
+    def __init__(self, content, parent=None):
+        assert isinstance(content, (list, tuple))
+        self.__dict__['content'] = []
+        self.__dict__['parent'] = parent
+        for item in content:
+            if isinstance(item, dict) or isinstance(item, (list, tuple)):
+                item = OmegaConf.create(item, parent=self)
+            self.append(item)
+
+    # hide content while inspecting in debugger
+    def __dir__(self):
+        return dir(self.content)
+
+    def __getitem__(self, item):
+        return self.content[item]
+
+    def get(self, key, default_value=None):
+        return self._resolve_with_default(key=key, value=self.content[key], default_value=default_value)
+
+    def __setitem__(self, index, value):
+        assert isinstance(index, int)
+        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
+            value = OmegaConf.create(value, parent=self)
+        self.__dict__['content'][index] = value
+
+    def pop(self, key=-1):
+        return self.content.pop(key)
+
+    def append(self, value):
+        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
+            value = OmegaConf.create(value, parent=self)
+        self.__dict__['content'].append(value)
+
+    def insert(self, index, item):
+        self.cotnent.insert(index, item)
+
+    def sort(self, key=None, reverse=False):
+        self.content.sort(key, reverse)
 
 
 class OmegaConf:
@@ -455,19 +476,24 @@ class OmegaConf:
         raise NotImplementedError("Use one of the static construction functions")
 
     @staticmethod
-    def create(obj=None):
-        """
-        Create a config object.
-        If no input is provided we get an emtpy dictionary config.
-        :param obj: a list of a dictionary (determining the type of the root node).
-        :return:
-        """
+    def create(obj=None, parent=None):
         if isinstance(obj, str):
-            obj = yaml.load(obj, Loader=get_yaml_loader())
-            return Config(obj)
+            new_obj = yaml.load(obj, Loader=get_yaml_loader())
+            if new_obj is None:
+                new_obj = {}
+            elif isinstance(new_obj, str):
+                new_obj = {obj: None}
+            return OmegaConf.create(new_obj)
         else:
-            assert obj is None or isinstance(obj, (list, tuple)) or isinstance(obj, dict)
-            return Config(content=obj)
+            if obj is None:
+                obj = {}
+
+            if isinstance(obj, dict):
+                return DictConfig(obj, parent)
+            elif isinstance(obj, (list, tuple)):
+                return ListConfig(obj, parent)
+            else:
+                raise RuntimeError("Unsupported type {}".format(type(obj).__name__))
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
@@ -479,9 +505,9 @@ class OmegaConf:
     def load(file_):
         if isinstance(file_, str):
             with io.open(os.path.abspath(file_), 'r') as f:
-                return Config(yaml.load(f, Loader=get_yaml_loader()))
+                return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
         elif getattr(file_, 'read'):
-            return Config(yaml.load(file_, Loader=get_yaml_loader()))
+            return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
         else:
             raise ValueError("Unexpected file type")
 
@@ -504,21 +530,21 @@ class OmegaConf:
         """Creates config from the content of string"""
         assert isinstance(content, str)
         yamlstr = yaml.load(content, Loader=get_yaml_loader())
-        return Config(yamlstr)
+        return OmegaConf.create(yamlstr)
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def from_dict(dict_):
         """Creates config from a dictionary"""
         assert isinstance(dict_, dict)
-        return Config(dict_)
+        return OmegaConf.create(dict_)
 
     @staticmethod
     @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def from_list(list_):
         """Creates config from a list"""
         assert isinstance(list_, list)
-        return Config(list_)
+        return OmegaConf.create(list_)
 
     @staticmethod
     def from_cli(args_list=None):
@@ -542,8 +568,8 @@ class OmegaConf:
     def merge(*others):
         """Merge a list of previously created configs into a single one"""
         assert len(others) > 0
-        target = Config({} if others[0].is_dict() else [])
-        target.merge_with(*others)
+        target = copy.deepcopy(others[0])
+        target.merge_with(*others[1:])
         return target
 
     _resolvers = {}

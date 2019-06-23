@@ -1,12 +1,11 @@
 """Testing for OmegaConf"""
 import copy
-import re
 import tempfile
 
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig, ListConfig, Config
 
 
 def test_setattr_value():
@@ -59,9 +58,14 @@ def test_str():
     assert "{'a': 'b'}" == str(c)
 
 
-def test_repr():
-    c = OmegaConf.create('a: b')
+def test_repr_dict():
+    c = OmegaConf.create(dict(a='b'))
     assert "{'a': 'b'}" == repr(c)
+
+
+def test_repr_list():
+    c = OmegaConf.create([1, 2, 3])
+    assert "[1, 2, 3]" == repr(c)
 
 
 def test_is_empty_dict():
@@ -84,14 +88,13 @@ def test_list_value():
 
 
 def test_list_of_dicts():
-    v = dict(
-        list=[
-            dict(key1='value1'),
-            dict(key2='value2')
-        ])
+    v = [
+        dict(key1='value1'),
+        dict(key2='value2')
+    ]
     c = OmegaConf.create(v)
-    assert c.list[0].key1 == 'value1'
-    assert c.list[1].key2 == 'value2'
+    assert c[0].key1 == 'value1'
+    assert c[1].key2 == 'value2'
 
 
 def test_mandatory_value():
@@ -156,11 +159,18 @@ def test_scientific_notation_float():
     assert 10e-3 == c.a
 
 
-def test_get_with_default():
+def test_dict_get_with_default():
     s = '{hello: {a : 2}}'
     c = OmegaConf.create(s)
     assert c.get('missing', 4) == 4
     assert c.hello.get('missing', 5) == 5
+
+
+def test_list_get_with_default():
+    c = OmegaConf.create([None, "???", "found"])
+    assert c.get(0, 'default_value') == 'default_value'
+    assert c.get(1, 'default_value') == 'default_value'
+    assert c.get(2, 'default_value') == 'found'
 
 
 def test_map_expansion():
@@ -177,16 +187,26 @@ def test_items():
     assert {'a': 2, 'b': 10}.items() == c.items()
 
 
-def test_keys():
+def test_dict_keys():
     c = OmegaConf.create('{a: 2, b: 10}')
     assert {'a': 2, 'b': 10}.keys() == c.keys()
 
 
-def test_pickle():
+def test_pickle_dict():
     with tempfile.TemporaryFile() as fp:
-        s = 'a: b'
         import pickle
-        c = OmegaConf.create(s)
+        c = OmegaConf.create(dict(a='b'))
+        pickle.dump(c, fp)
+        fp.flush()
+        fp.seek(0)
+        c1 = pickle.load(fp)
+        assert c == c1
+
+
+def test_pickle_list():
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+        c = OmegaConf.create([1, 2, 3])
         pickle.dump(c, fp)
         fp.flush()
         fp.seek(0)
@@ -265,13 +285,22 @@ def test_items():
     assert c.b.v == 2
 
 
-def test_pop():
-    c = OmegaConf.create('''
-    a : 1
-    b : 2
-    ''')
-    assert 1 == c.pop('a')
-    assert {'b': 2} == c
+def test_dict_pop():
+    c = OmegaConf.create(dict(a=1, b=2))
+    assert c.pop('a') == 1
+    assert c.pop('not_found', 'default') == 'default'
+    assert c == {'b': 2}
+    with raises(KeyError):
+        c.pop('not_found')
+
+
+def test_list_pop():
+    c = OmegaConf.create([1, 2, 3, 4])
+    assert c.pop(0) == 1
+    assert c.pop() == 4
+    assert c == [2, 3]
+    with raises(IndexError):
+        c.pop(100)
 
 
 def test_in_dict():
@@ -344,27 +373,24 @@ def test_deepcopy():
     assert c2.foo1 == 'foo1'
 
 
-def test_is_dict():
+def test_dict_config():
     c = OmegaConf.create(dict())
-    assert c.is_dict()
-    assert not c.is_sequence()
+    assert isinstance(c, DictConfig)
 
 
-def test_is_sequence_with_list():
+def test_list_config_with_list():
     c = OmegaConf.create([])
-    assert not c.is_dict()
-    assert c.is_sequence()
+    assert isinstance(c, ListConfig)
 
 
-def test_is_sequence_with_tupple():
+def test_list_config_with_tuple():
     c = OmegaConf.create(())
-    assert not c.is_dict()
-    assert c.is_sequence()
+    assert isinstance(c, ListConfig)
 
 
 def test_items_on_list():
     c = OmegaConf.create([1, 2])
-    with raises(TypeError):
+    with raises(AttributeError):
         c.items()
 
 
@@ -378,3 +404,31 @@ def test_list_enumerate():
 
     for v in src:
         assert v is None
+
+
+def test_dict_delitem():
+    c = OmegaConf.create(dict(a=10, b=11))
+    assert c == dict(a=10, b=11)
+    del c['a']
+    assert c == dict(b=11)
+    with raises(KeyError):
+        del c['not_found']
+
+
+def test_list_delitem():
+    c = OmegaConf.create([1, 2, 3])
+    assert c == [1, 2, 3]
+    del c[0]
+    assert c == [2, 3]
+    with raises(IndexError):
+        del c[100]
+
+
+def test_dict_len():
+    c = OmegaConf.create(dict(a=10, b=11))
+    assert len(c) == 2
+
+
+def test_list_len():
+    c = OmegaConf.create([1, 2])
+    assert len(c) == 2
