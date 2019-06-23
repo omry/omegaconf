@@ -16,3 +16,5 @@ matrix:
       sudo: true
     - python: 3.7
       env: TOXENV=docs
+      dist: xenial
+      sudo: true
