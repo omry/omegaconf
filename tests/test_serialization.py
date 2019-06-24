@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import io
 import os
 import tempfile
-import io
+from pytest import raises
 from omegaconf import OmegaConf
-import six
 
 
 def save_load_file(conf):
@@ -57,4 +57,9 @@ def test_pickle_list():
 
 
 def test_save_load_unicode():
-    save_load_filename(OmegaConf.create([(u"היי,", u"מה נשמע?")]))
+    save_load_filename(OmegaConf.create([(u"שלום")]))
+
+
+def test_save_illegal_type():
+    with raises(TypeError):
+        OmegaConf.create().save(1000)

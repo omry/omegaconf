@@ -4,11 +4,13 @@ import io
 import os
 import re
 import sys
-from collections import Sequence
 from collections import defaultdict
+
 import six
 import yaml
 from deprecated import deprecated
+
+from abc import abstractmethod
 
 
 class MissingMandatoryValue(Exception):
@@ -49,14 +51,14 @@ class Config(object):
         """
         raise NotImplementedError
 
-    def save(self, file_):
+    def save(self, f):
         data = self.pretty()
-        if isinstance(file_, str):
-            with io.open(os.path.abspath(file_), 'w', encoding='utf-8') as f:
+        if isinstance(f, str):
+            with io.open(os.path.abspath(f), 'w', encoding='utf-8') as f:
                 f.write(six.u(data))
-        elif getattr(file_, 'write'):
-            file_.write(data)
-            file_.flush()
+        elif hasattr(f, 'write'):
+            f.write(data)
+            f.flush()
         else:
             raise TypeError("Unexpected file type")
 
@@ -72,6 +74,7 @@ class Config(object):
             root = root.__dict__['parent']
         return root
 
+    @abstractmethod
     def get(self, key, default_value=None):
         raise NotImplementedError
 
@@ -92,6 +95,7 @@ class Config(object):
         child = None
         parent = self
         while parent is not None:
+            assert isinstance(parent, (DictConfig, ListConfig))
             if isinstance(parent, DictConfig):
                 if child is None:
                     full_key = "{}".format(key)
@@ -114,8 +118,6 @@ class Config(object):
                             else:
                                 full_key = "[{}].{}".format(idx, full_key)
                             break
-            else:
-                raise TypeError
             child = parent
             parent = child.__dict__['parent']
 

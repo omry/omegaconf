@@ -5,7 +5,7 @@ import tempfile
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue
-from omegaconf import OmegaConf, DictConfig, ListConfig
+from omegaconf import OmegaConf, DictConfig, Config
 
 
 def test_setattr_value():
@@ -363,3 +363,8 @@ def test_pretty_with_resolve():
     assert c2.a1 == 'bar'
     c2.ref = 'changed'
     assert c2.a1 == 'bar'
+
+
+def test_instantiate_config_fails():
+    with raises(NotImplementedError):
+        Config()

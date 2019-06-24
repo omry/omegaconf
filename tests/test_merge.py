@@ -1,6 +1,8 @@
 from omegaconf import OmegaConf
 from omegaconf.omegaconf import Config
 
+from pytest import raises
+
 
 def test_dict_merge_1():
     a = OmegaConf.create({})
@@ -141,3 +143,16 @@ launcher:
     cli = OmegaConf.create(cli)
     ret = OmegaConf.merge(cfg, cli)
     assert ret.launcher.queues is not None
+
+
+def test_merge_list_list():
+    a = OmegaConf.create([1, 2, 3])
+    b = OmegaConf.create([4, 5, 6])
+    assert a.merge_with(b) == b
+
+
+def test_merge_with_exception():
+    a = OmegaConf.create({})
+    b = OmegaConf.create([])
+    with raises(TypeError):
+        a.merge_with(b)

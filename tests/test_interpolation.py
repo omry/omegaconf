@@ -2,10 +2,9 @@ import os
 import random
 
 import pytest
+import six
 
 from omegaconf import OmegaConf
-
-import six
 
 
 def test_str_interpolation_dict_1():
@@ -170,23 +169,6 @@ def catch_recursion(f):
             f()
 
 
-def test_env_interpolation_recursive1():
-    c = OmegaConf.create(dict(
-        path='/test/${path}',
-    ))
-
-    catch_recursion(lambda: c.path)
-
-
-def test_env_interpolation_recursive2():
-    c = OmegaConf.create(dict(
-        path1='/test/${path2}',
-        path2='/test/${path1}',
-    ))
-
-    catch_recursion(lambda: c.path1)
-
-
 def test_register_resolver_twice_error():
     try:
         OmegaConf.register_resolver("foo", lambda: 10)
@@ -269,4 +251,3 @@ def test_interpolation_into_list():
     ))
 
     assert c.foo == 'bar'
-
