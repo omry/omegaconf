@@ -1,4 +1,5 @@
 from omegaconf import OmegaConf
+from pytest import raises
 
 
 def test_select_key_from_empty():
@@ -48,3 +49,9 @@ def test_select_from_dict_in_list():
     assert c.select("1.b") is None
     assert c.select("1.c.0") == 'foo'
     assert c.select("1.c.1") == 'bar'
+
+
+def test_list_select_non_int_key():
+    c = OmegaConf.create([1, 2, 3])
+    with raises(TypeError):
+        c.select("a")

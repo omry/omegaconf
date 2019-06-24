@@ -4,13 +4,12 @@ import io
 import os
 import re
 import sys
+from abc import abstractmethod
 from collections import defaultdict
 
 import six
 import yaml
 from deprecated import deprecated
-
-from abc import abstractmethod
 
 
 class MissingMandatoryValue(Exception):
@@ -162,6 +161,7 @@ class Config(object):
             except ValueError:
                 return False
 
+        assert isinstance(c, (DictConfig, ListConfig))
         if isinstance(c, DictConfig):
             if key_ in c:
                 return c[key_], key_
@@ -169,13 +169,11 @@ class Config(object):
                 return None, key_
         elif isinstance(c, ListConfig):
             if not isint(key_):
-                raise ValueError("Index {} is not an int".format(key_))
+                raise TypeError("Index {} is not an int".format(key_))
             idx = int(key_)
             if idx < 0 or idx + 1 > len(c):
                 return None, idx
             return c[idx], idx
-        else:
-            raise TypeError("Unexpected config type")
 
     def merge_with_cli(self):
         args_list = sys.argv[1:]
@@ -205,14 +203,12 @@ class Config(object):
 
         last = split[-1]
 
-        assert isinstance(root, Config)
+        assert isinstance(root, (DictConfig, ListConfig))
         if isinstance(root, DictConfig):
             root[last] = value
         elif isinstance(root, ListConfig):
             idx = int(last)
             root[idx] = value
-        else:
-            raise TypeError()
 
     def select(self, key):
         """
@@ -310,6 +306,7 @@ class Config(object):
 
         def re_parent(node):
             # update parents of first level Config nodes to self
+            assert isinstance(node, (DictConfig, ListConfig))
             if isinstance(node, DictConfig):
                 for _key, value in node.items():
                     if isinstance(value, Config):
@@ -320,8 +317,6 @@ class Config(object):
                     if isinstance(item, Config):
                         item._set_parent(node)
                         re_parent(item)
-            else:
-                raise TypeError()
 
         # recursively correct the parent hierarchy after the merge
         re_parent(self)
@@ -337,13 +332,11 @@ class Config(object):
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
                 ret = resolver(inter_key)
-                if ret is None:
-                    raise KeyError("{} failed to resolve {}".format(inter_type, inter_key))
             else:
                 raise ValueError("Unsupported interpolation type {}".format(inter_type))
 
         if isinstance(ret, Config):
-            # Currently this is not supported. interpolated value must be a primitive
+            # this is not supported. interpolated value must be a primitive
             raise ValueError("String interpolation key '{}' refer a config node".format(inter_key))
 
         return ret

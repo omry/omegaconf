@@ -1,3 +1,5 @@
+import sys
+
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue
@@ -155,4 +157,11 @@ def test_update_list_make_dict():
 def test_merge_with_dotlist():
     c = OmegaConf.create([1, 2, 3])
     c.merge_with_dotlist(["0=bar", "2.a=100"])
+    assert c == ["bar", 2, dict(a=100)]
+
+
+def test_merge_with_cli():
+    c = OmegaConf.create([1, 2, 3])
+    sys.argv = ["app.py", "0=bar", "2.a=100"]
+    c.merge_with_cli()
     assert c == ["bar", 2, dict(a=100)]

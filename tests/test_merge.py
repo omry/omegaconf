@@ -157,3 +157,5 @@ def test_merge_with_exception():
     b = OmegaConf.create([])
     with raises(TypeError):
         a.merge_with(b)
+
+

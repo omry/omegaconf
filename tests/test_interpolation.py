@@ -1,7 +1,7 @@
 import os
 import random
 
-import pytest
+from pytest import raises
 import six
 
 from omegaconf import OmegaConf
@@ -23,7 +23,7 @@ def test_str_interpolation_key_error_1():
         a='${not_found}',
     ))
 
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         c.a
 
 
@@ -33,7 +33,7 @@ def test_str_interpolation_key_error_2():
         a='${not.found}',
     ))
 
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         c.a
 
 
@@ -126,7 +126,7 @@ def test_interpolation_fails_on_config():
         ),
     ))
 
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         c.deep.inside
 
 
@@ -156,23 +156,23 @@ def test_env_interpolation_not_found():
     c = OmegaConf.create(dict(
         path='/test/${env:foobar}',
     ))
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         c.path
 
 
 def catch_recursion(f):
     if six.PY2:
-        with pytest.raises(RuntimeError):
+        with raises(RuntimeError):
             f()
     else:
-        with pytest.raises(RecursionError):
+        with raises(RecursionError):
             f()
 
 
 def test_register_resolver_twice_error():
     try:
         OmegaConf.register_resolver("foo", lambda: 10)
-        with pytest.raises(AssertionError):
+        with raises(AssertionError):
             OmegaConf.register_resolver("foo", lambda: 10)
     finally:
         OmegaConf.clear_resolvers()
@@ -239,7 +239,7 @@ def test_interpolation_in_list_key_error():
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(['${10}'])
 
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         c[0]
 
 
@@ -251,3 +251,20 @@ def test_interpolation_into_list():
     ))
 
     assert c.foo == 'bar'
+
+
+def test_unsuppoerted_interpolation_type():
+    c = OmegaConf.create(dict(
+        foo='${wrong_type:ref}',
+    ))
+
+    with raises(ValueError):
+        c.foo
+
+
+def test_resolve_none():
+    c = OmegaConf.create(dict(
+        foo=None
+    ))
+
+    assert c.foo is None

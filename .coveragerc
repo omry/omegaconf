@@ -4,5 +4,11 @@ omit = *tests*,docs/*
 [report]
 exclude_lines =
     pragma: no cover
-    @deprecated
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
     raise NotImplementedError
+    raise TypeError
+    @deprecated
+
+[html]
+directory = docs/build/coverage
