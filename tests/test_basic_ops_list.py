@@ -11,7 +11,7 @@ def test_repr_list():
 
 
 def test_is_empty_list():
-    c = OmegaConf.create('[1,2,3]')
+    c = OmegaConf.create([1, 2, 3])
     assert not c.is_empty()
     c = OmegaConf.create([])
     assert c.is_empty()
@@ -184,3 +184,18 @@ def test_pretty_with_resolve():
     c2 = OmegaConf.create(c.pretty(resolve=True))
     c2[0] = 1000
     assert c[1] == 100
+
+
+def test_index_slice():
+    c = OmegaConf.create([10, 11, 12, 13])
+    assert c[1:3] == [11, 12]
+
+
+def test_index_slice2():
+    c = OmegaConf.create([10, 11, 12, 13])
+    assert c[0:3:2] == [10, 12]
+
+
+def test_negative_index():
+    c = OmegaConf.create([10, 11, 12, 13])
+    assert c[-1] == 13

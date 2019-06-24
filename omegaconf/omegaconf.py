@@ -6,7 +6,7 @@ import re
 import sys
 from abc import abstractmethod
 from collections import defaultdict
-
+import itertools
 import six
 import yaml
 from deprecated import deprecated
@@ -464,12 +464,53 @@ class ListConfig(Config, list):
                 item = OmegaConf.create(item, parent=self)
             self.append(item)
 
+    def __getattr__(self, obj):
+        getattr(self.content, obj)
+
+    def __iter__(self):
+        return iter(self.content)
+
     # hide content while inspecting in debugger
     def __dir__(self):
         return dir(self.content)
 
+    def __len__(self):
+        return len(self.content)
+
     def __getitem__(self, index):
-        return self.get(index=index, default_value=None)
+        assert isinstance(index, (int, slice))
+        if isinstance(index, slice):
+            result = []
+            for slice_idx in itertools.islice(range(0, len(self)), index.start, index.stop, index.step):
+                val = self._resolve_with_default(key=slice_idx, value=self.content[slice_idx], default_value=None)
+                result.append(val)
+            return result
+        else:
+            return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
+
+    if six.PY2:
+        def __getslice__(self, start, stop):
+            result = []
+            for slice_idx in itertools.islice(range(0, len(self)), start, stop, 1):
+                val = self._resolve_with_default(key=slice_idx, value=self.content[slice_idx], default_value=None)
+                result.append(val)
+            return ListConfig(content=result, parent=self.__dict__['parent'])
+
+    def get(self, index, default_value=None):
+        assert type(index) == int
+        return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
+
+    def __delitem__(self, key):
+        self.content.__delitem__(key)
+
+    def __setitem__(self, key, value):
+        self.content.__setitem__(key, value)
+
+    def insert(self, index, item):
+        self.cotnent.insert(index, item)
+
+    def sort(self, key=None, reverse=False):
+        self.content.sort(key, reverse)
 
     def __setitem__(self, index, value):
         assert isinstance(index, int)
@@ -477,10 +518,6 @@ class ListConfig(Config, list):
             value = OmegaConf.create(value, parent=self)
         self.validate(index, value)
         self.__dict__['content'][index] = value
-
-    def get(self, index, default_value=None):
-        assert type(index) == int
-        return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
     def pop(self, index=-1):
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
