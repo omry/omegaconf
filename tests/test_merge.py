@@ -148,7 +148,8 @@ launcher:
 def test_merge_list_list():
     a = OmegaConf.create([1, 2, 3])
     b = OmegaConf.create([4, 5, 6])
-    assert a.merge_with(b) == b
+    a.merge_with(b)
+    assert a == b
 
 
 def test_merge_with_exception():
