@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 import six
 
 
-def test_str_interpolation_1():
+def test_str_interpolation_dict_1():
     # Simplest str_interpolation
     c = OmegaConf.create(dict(
         a='${referenced}',
@@ -243,11 +243,30 @@ def test_date_pattern():
     OmegaConf.register_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
 
-def test_pretty_with_resolve():
+
+def test_str_interpolation_list_1():
+    # interpolating a value in a list
     c = OmegaConf.create(dict(
-        a1='${ref}',
-        a2='${ref}',
-        ref='bar',
+        foo=['${ref}'],
+        ref='bar'
     ))
-    s = c.pretty()
+    assert c.foo[0] == 'bar'
+
+
+def test_interpolation_in_list_key_error():
+    # Test that a KeyError is thrown if an str_interpolation key is not available
+    c = OmegaConf.create(['${10}'])
+
+    with pytest.raises(KeyError):
+        c[0]
+
+
+def test_interpolation_into_list():
+    # Test that a KeyError is thrown if an str_interpolation key is not available
+    c = OmegaConf.create(dict(
+        list=['bar'],
+        foo='${list.0}'
+    ))
+
+    assert c.foo == 'bar'
 

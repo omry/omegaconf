@@ -340,3 +340,26 @@ def test_to_container():
     result = c.to_container()
     assert type(result) == type(src)
     assert result == src
+
+
+def test_pretty_without_resolve():
+    c = OmegaConf.create(dict(
+        a1='${ref}',
+        ref='bar',
+    ))
+    # without resolve, references are preserved
+    c2 = OmegaConf.create(c.pretty(resolve=False))
+    assert c2.a1 == 'bar'
+    c2.ref = 'changed'
+    assert c2.a1 == 'changed'
+
+
+def test_pretty_with_resolve():
+    c = OmegaConf.create(dict(
+        a1='${ref}',
+        ref='bar',
+    ))
+    c2 = OmegaConf.create(c.pretty(resolve=True))
+    assert c2.a1 == 'bar'
+    c2.ref = 'changed'
+    assert c2.a1 == 'bar'

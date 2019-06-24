@@ -238,32 +238,40 @@ class Config(object):
         return len(self.content) == 0
 
     @staticmethod
-    def _to_content(conf):
-        if isinstance(conf, Config):
-            conf = conf.content
-
-        if isinstance(conf, dict):
+    def _to_content(conf, resolve):
+        assert isinstance(conf, Config)
+        if isinstance(conf, DictConfig):
             ret = {}
             for key, value in conf.items():
                 if isinstance(value, Config):
-                    ret[key] = Config._to_content(value)
+                    ret[key] = Config._to_content(value, resolve)
                 else:
+                    if resolve:
+                        value = conf[key]
                     ret[key] = value
             return ret
-        elif isinstance(conf, Sequence):
+        elif isinstance(conf, ListConfig):
             ret = []
-            for item in conf:
+            for index, item in enumerate(conf):
                 if isinstance(item, Config):
-                    item = Config._to_content(item)
+                    item = Config._to_content(item, resolve)
+
+                if resolve:
+                    item = conf[index]
                 ret.append(item)
             return ret
 
-    def to_container(self):
-        return Config._to_content(self)
+    def to_container(self, resolve=False):
+        return Config._to_content(self, resolve)
 
-    def pretty(self):
-        """return a pretty dump of the config content"""
-        return yaml.dump(self.to_container(), default_flow_style=False)
+    def pretty(self, resolve=False):
+        """
+        returns a yaml dump of this config object.
+        :param resolve: if True, will return a string with the interpolations resolved, otherwise
+        interpolations are preserved
+        :return: A string containing the yaml representation.
+        """
+        return yaml.dump(self.to_container(resolve=resolve), default_flow_style=False)
 
     @staticmethod
     def map_merge(dest, src):
@@ -465,11 +473,8 @@ class ListConfig(Config, list):
     def __dir__(self):
         return dir(self.content)
 
-    def __getitem__(self, item):
-        return self.content[item]
-
-    def get(self, key, default_value=None):
-        return self._resolve_with_default(key=key, value=self.content[key], default_value=default_value)
+    def __getitem__(self, index):
+        return self.get(index=index, default_value=None)
 
     def __setitem__(self, index, value):
         assert isinstance(index, int)
@@ -478,8 +483,12 @@ class ListConfig(Config, list):
         self.validate(index, value)
         self.__dict__['content'][index] = value
 
-    def pop(self, key=-1):
-        return self.content.pop(key)
+    def get(self, index, default_value=None):
+        assert type(index) == int
+        return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
+
+    def pop(self, index=-1):
+        return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def append(self, item):
         if not isinstance(item, Config) and (isinstance(item, dict) or isinstance(item, list)):

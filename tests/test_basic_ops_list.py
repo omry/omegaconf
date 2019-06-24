@@ -168,3 +168,19 @@ def test_to_container():
     result = c.to_container()
     assert type(result) == type(src)
     assert result == src
+
+
+def test_pretty_without_resolve():
+    c = OmegaConf.create([100, '${0}'])
+    # without resolve, references are preserved
+    c2 = OmegaConf.create(c.pretty(resolve=False))
+    c2[0] = 1000
+    assert c2[1] == 1000
+
+
+def test_pretty_with_resolve():
+    c = OmegaConf.create([100, '${0}'])
+    # with resolve, references are not preserved.
+    c2 = OmegaConf.create(c.pretty(resolve=True))
+    c2[0] = 1000
+    assert c[1] == 100
