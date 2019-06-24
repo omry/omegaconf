@@ -1,6 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)
 [![Build Status](https://travis-ci.com/omry/omegaconf.svg?branch=master)](https://travis-ci.com/omry/omegaconf)
 [![Documentation Status](https://readthedocs.org/projects/omegaconf/badge/?version=latest)](https://omegaconf.readthedocs.io/en/latest/?badge=latest)
+[![downloads](https://img.shields.io/pypi/dm/anybadge.svg)](https://pypistats.org/packages/omegaconf)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/omegaconf.svg)
 # OmegaConf
