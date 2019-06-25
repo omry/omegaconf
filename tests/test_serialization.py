@@ -26,12 +26,40 @@ def save_load_filename(conf):
         os.unlink(fp.name)
 
 
+def save_load__from_file(conf):
+    with tempfile.NamedTemporaryFile(mode="wt") as fp:
+        conf.save(fp.file)
+        fp.seek(0)
+        with io.open(os.path.abspath(fp.name), 'rt') as handle:
+            c2 = OmegaConf.from_file(handle)
+        assert conf == c2
+
+
+def save_load__from_filename(conf):
+    # note that delete=False here is a work around windows incompetence.
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            conf.save(fp.name)
+            c2 = OmegaConf.from_filename(fp.name)
+            assert conf == c2
+    finally:
+        os.unlink(fp.name)
+
+
 def test_save_load_file():
     save_load_file(OmegaConf.create(dict(a=10)))
 
 
 def test_save_load_filename():
     save_load_filename(OmegaConf.create(dict(a=10)))
+
+
+def test_save_load__from_file():
+    save_load__from_file(OmegaConf.create(dict(a=10)))
+
+
+def test_save_load__from_filename():
+    save_load__from_filename(OmegaConf.create(dict(a=10)))
 
 
 def test_pickle_dict():

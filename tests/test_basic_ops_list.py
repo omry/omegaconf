@@ -204,3 +204,36 @@ def test_negative_index():
 def test_list_dir():
     c = OmegaConf.create([1, 2, 3])
     assert ["0", "1", "2"] == dir(c)
+
+
+def test_getattr():
+    c = OmegaConf.create(['a', 'b', 'c'])
+    assert getattr(c, "0") == 'a'
+    assert getattr(c, "1") == 'b'
+    assert getattr(c, "2") == 'c'
+    with raises(AttributeError):
+        getattr(c, "anything")
+
+
+def test_setitem():
+    c = OmegaConf.create(['a', 'b', 'c'])
+    c[1] = 10
+    assert c == ['a', 10, 'c']
+
+
+def test_insert():
+    c = OmegaConf.create(['a', 'b', 'c'])
+    c.insert(1, 100)
+    assert c == ['a', 100, 'b', 'c']
+
+
+def test_sort():
+    c = OmegaConf.create(['bbb', 'aa', 'c'])
+    c.sort()
+    assert ['aa', 'bbb', 'c'] == c
+    c.sort(reverse=True)
+    assert ['c', 'bbb', 'aa'] == c
+    c.sort(key=len)
+    assert ['c', 'aa', 'bbb'] == c
+    c.sort(key=len, reverse=True)
+    assert ['bbb', 'aa', 'c'] == c

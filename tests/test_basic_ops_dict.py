@@ -9,13 +9,13 @@ from omegaconf import OmegaConf, DictConfig, Config
 
 
 def test_setattr_value():
-    c = OmegaConf.create('a: {b : {c: 1}}')
+    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
     c.a = 9
     assert {'a': 9} == c
 
 
 def test_setattr_deep_value():
-    c = OmegaConf.create('a: {b : {c: 1}}')
+    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
     c.a.b = 9
     assert {'a': {'b': 9}} == c
 
@@ -33,7 +33,7 @@ def test_setattr_deep_from_empty():
 
 
 def test_setattr_deep_map():
-    c = OmegaConf.create('a: {b : {c: 1}}')
+    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
     c.a.b = {'z': 10}
     assert {'a': {'b': {'z': 10}}} == c
 
@@ -363,3 +363,8 @@ def test_pretty_with_resolve():
 def test_instantiate_config_fails():
     with raises(NotImplementedError):
         Config()
+
+
+def test_dir():
+    c = OmegaConf.create(dict(a=1, b=2, c=3))
+    assert ['a', 'b', 'c'] == dir(c)

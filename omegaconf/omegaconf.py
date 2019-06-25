@@ -5,12 +5,12 @@ import itertools
 import os
 import re
 import sys
+import warnings
 from abc import abstractmethod
 from collections import defaultdict
 
 import six
 import yaml
-from deprecated import deprecated
 
 
 class MissingMandatoryValue(Exception):
@@ -291,8 +291,10 @@ class Config(object):
                 dest[key] = src[key]
         return dest
 
-    @deprecated(version='1.1.10', reason="Use Config.merge_with(), this function will be removed soon")
     def merge_from(self, *others):
+        warnings.warn("Use Config.merge_with() (since 1.1.10)", DeprecationWarning,
+                      stacklevel=2)
+
         self.merge_with(*others)
 
     def merge_with(self, *others):
@@ -343,8 +345,6 @@ class Config(object):
         return ret
 
     def _resolve_single(self, value):
-        if value is None:
-            return None
         match_list = list(re.finditer(r"\${(\w+:)?([\w\.%_-]+?)}", value))
         if len(match_list) == 0:
             return value
@@ -492,6 +492,16 @@ class ListConfig(Config):
         else:
             return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
 
+    def __setitem__(self, index, value):
+        assert isinstance(index, int)
+        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
+            value = OmegaConf.create(value, parent=self)
+        self.validate(index, value)
+        self.__dict__['content'][index] = value
+
+    def __delitem__(self, key):
+        self.content.__delitem__(key)
+
     if six.PY2:
         def __getslice__(self, start, stop):
             result = []
@@ -504,24 +514,8 @@ class ListConfig(Config):
         assert type(index) == int
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
-    def __delitem__(self, key):
-        self.content.__delitem__(key)
-
-    def __setitem__(self, key, value):
-        self.content.__setitem__(key, value)
-
-    def insert(self, index, item):
-        self.cotnent.insert(index, item)
-
     def sort(self, key=None, reverse=False):
         self.content.sort(key, reverse)
-
-    def __setitem__(self, index, value):
-        assert isinstance(index, int)
-        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
-            value = OmegaConf.create(value, parent=self)
-        self.validate(index, value)
-        self.__dict__['content'][index] = value
 
     def pop(self, index=-1):
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
@@ -534,10 +528,10 @@ class ListConfig(Config):
 
     def insert(self, index, item):
         self.validate(index, item)
-        self.cotnent.insert(index, item)
+        self.content.insert(index, item)
 
     def sort(self, key=None, reverse=False):
-        self.content.sort(key, reverse)
+        self.content.sort(key=key, reverse=reverse)
 
 
 class OmegaConf:
@@ -567,10 +561,11 @@ class OmegaConf:
                 raise RuntimeError("Unsupported type {}".format(type(obj).__name__))
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def empty():
+        warnings.warn("Use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
         """Creates an empty config"""
-        return Config(content=None)
+        return OmegaConf.create()
 
     @staticmethod
     def load(file_):
@@ -583,37 +578,43 @@ class OmegaConf:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
     def from_filename(filename):
+        warnings.warn("use OmegaConf.load() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
+
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
         return OmegaConf.load(filename)
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.load(), this function will be removed soon")
     def from_file(file_):
         """Creates config from the content of the specified file object"""
+        warnings.warn("use OmegaConf.load() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
         return OmegaConf.load(file_)
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def from_string(content):
+        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
         """Creates config from the content of string"""
         assert isinstance(content, str)
         yamlstr = yaml.load(content, Loader=get_yaml_loader())
         return OmegaConf.create(yamlstr)
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def from_dict(dict_):
         """Creates config from a dictionary"""
+        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
         assert isinstance(dict_, dict)
         return OmegaConf.create(dict_)
 
     @staticmethod
-    @deprecated(version='1.1.5', reason="Use OmegaConf.create(), this function will be removed soon")
     def from_list(list_):
         """Creates config from a list"""
+        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
+                      stacklevel=2)
         assert isinstance(list_, list)
         return OmegaConf.create(list_)
 
