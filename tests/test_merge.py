@@ -159,3 +159,8 @@ def test_merge_with_exception():
         a.merge_with(b)
 
 
+def test_merge_list_list__deprecated():
+    a = OmegaConf.create([1, 2, 3])
+    b = OmegaConf.create([4, 5, 6])
+    a.merge_from(b)
+    assert a == b

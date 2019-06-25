@@ -8,7 +8,6 @@ exclude_lines =
     raise AssertionError
     raise NotImplementedError
     raise TypeError
-    @deprecated
 
 [html]
 directory = docs/build/coverage
