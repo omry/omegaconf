@@ -199,3 +199,8 @@ def test_index_slice2():
 def test_negative_index():
     c = OmegaConf.create([10, 11, 12, 13])
     assert c[-1] == 13
+
+
+def test_list_dir():
+    c = OmegaConf.create([1, 2, 3])
+    assert ["0", "1", "2"] == dir(c)

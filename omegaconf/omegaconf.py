@@ -1,12 +1,13 @@
 """OmegaConf module"""
 import copy
 import io
+import itertools
 import os
 import re
 import sys
 from abc import abstractmethod
 from collections import defaultdict
-import itertools
+
 import six
 import yaml
 from deprecated import deprecated
@@ -40,6 +41,14 @@ def register_default_resolvers():
             raise KeyError("Environment variable '{}' not found".format(key))
 
     OmegaConf.register_resolver('env', env)
+
+
+def isint(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 
 class Config(object):
@@ -153,14 +162,6 @@ class Config(object):
 
     @staticmethod
     def _select_one(c, key_):
-
-        def isint(s):
-            try:
-                int(s)
-                return True
-            except ValueError:
-                return False
-
         assert isinstance(c, (DictConfig, ListConfig))
         if isinstance(c, DictConfig):
             if key_ in c:
@@ -454,7 +455,7 @@ class DictConfig(Config):
         return self.content.items()
 
 
-class ListConfig(Config, list):
+class ListConfig(Config):
     def __init__(self, content, parent=None):
         assert isinstance(content, (list, tuple))
         self.__dict__['content'] = []
@@ -465,14 +466,17 @@ class ListConfig(Config, list):
             self.append(item)
 
     def __getattr__(self, obj):
-        getattr(self.content, obj)
+        if isinstance(obj, str) and isint(obj):
+            return self.__getitem__(int(obj))
+        else:
+            raise AttributeError()
 
     def __iter__(self):
         return iter(self.content)
 
     # hide content while inspecting in debugger
     def __dir__(self):
-        return dir(self.content)
+        return [str(x) for x in range(0, len(self))]
 
     def __len__(self):
         return len(self.content)

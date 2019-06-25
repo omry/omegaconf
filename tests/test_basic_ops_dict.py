@@ -38,11 +38,6 @@ def test_setattr_deep_map():
     assert {'a': {'b': {'z': 10}}} == c
 
 
-def test_dir():
-    c = OmegaConf.create('a: b')
-    assert ['a'] == dir(c)
-
-
 def test_getattr():
     c = OmegaConf.create('a: b')
     assert 'b' == c.a
