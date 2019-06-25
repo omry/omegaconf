@@ -10,3 +10,6 @@ venv
 .idea
 TODO
 .ipynb_checkpoints
+.coveralls.yml
+.coverage
+.eggs

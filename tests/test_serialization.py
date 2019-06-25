@@ -7,12 +7,14 @@ from omegaconf import OmegaConf
 
 
 def save_load_file(conf):
-    with tempfile.NamedTemporaryFile(mode="wt") as fp:
-        conf.save(fp.file)
-        fp.seek(0)
+    try:
+        with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
+            conf.save(fp.file)
         with io.open(os.path.abspath(fp.name), 'rt') as handle:
             c2 = OmegaConf.load(handle)
         assert conf == c2
+    finally:
+        os.unlink(fp.name)
 
 
 def save_load_filename(conf):
@@ -27,12 +29,14 @@ def save_load_filename(conf):
 
 
 def save_load__from_file(conf):
-    with tempfile.NamedTemporaryFile(mode="wt") as fp:
-        conf.save(fp.file)
-        fp.seek(0)
+    try:
+        with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
+            conf.save(fp.file)
         with io.open(os.path.abspath(fp.name), 'rt') as handle:
             c2 = OmegaConf.from_file(handle)
         assert conf == c2
+    finally:
+        os.unlink(fp.name)
 
 
 def save_load__from_filename(conf):

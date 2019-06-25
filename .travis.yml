@@ -18,3 +18,4 @@ matrix:
       env: TOXENV=docs
       dist: xenial
       sudo: true
+
