@@ -164,3 +164,16 @@ def test_merge_list_list__deprecated():
     b = OmegaConf.create([4, 5, 6])
     a.merge_from(b)
     assert a == b
+
+
+def test_merge_with_interpolation():
+    src = dict(
+        data=123,
+        reference='${data}'
+    )
+    a = OmegaConf.create(src)
+    b = OmegaConf.create(src)
+    merged = OmegaConf.merge(a, b)
+    merged.data = 456
+    assert merged.reference == 456
+    assert merged.data == 456

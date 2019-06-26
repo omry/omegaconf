@@ -288,7 +288,7 @@ class Config(object):
                 else:
                     dest[key] = value
             else:
-                dest[key] = src[key]
+                dest[key] = src.content[key]
         return dest
 
     def merge_from(self, *others):
