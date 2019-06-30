@@ -1,5 +1,4 @@
-from omegaconf import OmegaConf
-from omegaconf.omegaconf import Config
+from omegaconf import OmegaConf, Config
 
 from pytest import raises
 
