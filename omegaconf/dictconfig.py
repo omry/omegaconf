@@ -14,7 +14,10 @@ class DictConfig(Config):
         if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
             from omegaconf import OmegaConf
             value = OmegaConf.create(value, parent=self)
-        self.validate(key, value)
+        if not self.is_primitive_type(value):
+            full_key = self.get_full_key(key)
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
+
         self.__dict__['content'][key] = value
 
     # hide content while inspecting in debugger
@@ -28,11 +31,7 @@ class DictConfig(Config):
         :param value:
         :return:
         """
-        if isinstance(value, (dict, list, tuple)):
-            from omegaconf import OmegaConf
-            value = OmegaConf.create(value, parent=self)
-        self.validate(key, value)
-        self.__dict__['content'][key] = value
+        self.__setitem__(key, value)
 
     def __getattr__(self, key):
         """
