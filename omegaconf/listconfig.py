@@ -43,13 +43,33 @@ class ListConfig(Config):
         else:
             return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
 
-    def __setitem__(self, index, value):
-        assert isinstance(index, int)
+    def _create(self, value):
         if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
             from omegaconf import OmegaConf
             value = OmegaConf.create(value, parent=self)
-        self.validate(index, value)
+        return value
+
+    def __setitem__(self, index, value):
+        assert isinstance(index, int)
+        value = self._create(value)
+        if not self.is_primitive_type(value):
+            full_key = self.get_full_key(index)
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
         self.__dict__['content'][index] = value
+
+    def append(self, item):
+        item = self._create(item)
+        if not self.is_primitive_type(item):
+            full_key = self.get_full_key(self.__len__())
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
+        self.__dict__['content'].append(item)
+
+    def insert(self, index, item):
+        item = self._create(item)
+        if not self.is_primitive_type(item):
+            full_key = self.get_full_key(index)
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
+        self.content.insert(index, item)
 
     def __delitem__(self, key):
         self.content.__delitem__(key)
@@ -71,17 +91,6 @@ class ListConfig(Config):
 
     def pop(self, index=-1):
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
-
-    def append(self, item):
-        if not isinstance(item, Config) and (isinstance(item, dict) or isinstance(item, list)):
-            from omegaconf import OmegaConf
-            item = OmegaConf.create(item, parent=self)
-        self.validate(len(self), item)
-        self.__dict__['content'].append(item)
-
-    def insert(self, index, item):
-        self.validate(index, item)
-        self.content.insert(index, item)
 
     def sort(self, key=None, reverse=False):
         self.content.sort(key=key, reverse=reverse)
