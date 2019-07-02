@@ -1,5 +1,6 @@
 from .config import Config
 from .types import Type, Any
+import copy
 
 
 class DictConfig(Config):
@@ -20,9 +21,14 @@ class DictConfig(Config):
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if not isinstance(value, Type):
-            value = Any(value)
-        self.__dict__['content'][key] = value
+        if key in self and not isinstance(value, Type):
+            self.__dict__['content'][key].set_value(value)
+        else:
+            if not isinstance(value, Type):
+                value = Any(value)
+            else:
+                value = copy.deepcopy(value)
+            self.__dict__['content'][key] = value
 
     # hide content while inspecting in debugger
     def __dir__(self):
