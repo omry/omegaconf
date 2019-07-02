@@ -2,7 +2,7 @@ import re
 
 from pytest import raises
 
-from omegaconf import OmegaConf, DictConfig, ListConfig
+from omegaconf import OmegaConf, DictConfig, ListConfig, types
 
 
 def test_repr_list():
@@ -238,46 +238,46 @@ def test_sort():
     c.sort(key=len, reverse=True)
     assert ['bbb', 'aa', 'c'] == c
 
-# TODO: implement for list:
-#
-# def dict_eq_test(d1, d2):
-#     c1 = OmegaConf.create(d1)
-#     c2 = OmegaConf.create(d2)
-#     assert c1 == c2
-#     assert c1 == d1
-#     assert d2 == c2
-#     assert not c1 != c2
-#     assert not c1 != d1
-#     assert not d2 != c2
-#
-#
-# def test_dict_eq_empty():
-#     dict_eq_test(dict(), dict())
-#
-#
-# def test_dict_eq_value():
-#     dict_eq_test(dict(a=12), dict(a=12))
-#
-#
-# def test_dict_eq_raw_vs_any():
-#     dict_eq_test(dict(a=12), dict(a=types.Any(12)))
-#
-#
-# def test_dict_eq_nested_dict_1():
-#     d = dict(a=12, b=dict())
-#     dict_eq_test(d, d)
-#
-#
-# def test_dict_eq_nested_dict_2():
-#     d = dict(a=12, b=dict(c=10))
-#     dict_eq_test(d, d)
-#
-#
-# def test_dict_eq_nested_list():
-#     d = dict(a=12, b=[1, 2, 3])
-#     dict_eq_test(d, d)
-#
-#
-# def test_dict_eq_nested_list_with_any():
-#     d = dict(a=12, b=[1, 2, types.Any(3)])
-#     dict_eq_test(d, d)
+
+def list_eq_test(l1, l2):
+    c1 = OmegaConf.create(l1)
+    c2 = OmegaConf.create(l2)
+    assert c1 == c2
+    assert c1 == l1
+    assert l2 == c2
+    assert not c1 != c2
+    assert not c1 != l1
+    assert not l2 != c2
+
+
+def test_list_eq_empty():
+    list_eq_test([], [])
+
+
+def test_list_eq_value():
+    lst = ['a', 12, '15']
+    list_eq_test(lst, lst)
+
+
+def test_list_eq_raw_vs_any():
+    list_eq_test([1, 2, 12], [1, 2, types.Any(12)])
+
+
+def test_list_eq_nested_dict_1():
+    d = [12, dict()]
+    list_eq_test(d, d)
+
+
+def test_list_eq_nested_dict_2():
+    d = [12, dict(c=10)]
+    list_eq_test(d, d)
+
+
+def test_list_eq_nested_list():
+    d = [1, 2, 3, [10, 20, 30]]
+    list_eq_test(d, d)
+
+
+def test_list_eq_nested_list_with_any():
+    d = [1, 2, 3, [1, 2, types.Any(3)]]
+    list_eq_test(d, d)
