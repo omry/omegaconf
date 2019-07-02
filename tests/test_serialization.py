@@ -89,7 +89,7 @@ def test_pickle_list():
 
 
 def test_save_load_unicode():
-    save_load_filename(OmegaConf.create([(u"שלום")]))
+    save_load_filename(OmegaConf.create([u"שלום"]))
 
 
 def test_save_illegal_type():

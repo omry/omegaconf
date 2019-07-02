@@ -570,7 +570,7 @@ class OmegaConf:
     @staticmethod
     def load(file_):
         if isinstance(file_, str):
-            with io.open(os.path.abspath(file_), 'r') as f:
+            with io.open(os.path.abspath(file_), 'r', encoding='utf-8') as f:
                 return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
         elif getattr(file_, 'read'):
             return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
