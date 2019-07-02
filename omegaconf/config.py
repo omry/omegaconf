@@ -10,6 +10,7 @@ import six
 import yaml
 
 from .errors import MissingMandatoryValue
+from .types import Type
 
 
 def isint(s):
@@ -73,13 +74,19 @@ class Config(object):
     def _resolve_with_default(self, key, value, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
 
-        def is_mandatory_missing():
-            return type(value) == str and value == '???'
+        def is_mandatory_missing(val):
+            if isinstance(val, Type):
+                val = val.value()
+            return type(val) == str and val == '???'
 
-        if default_value is not None and (value is None or is_mandatory_missing()):
+        if default_value is not None and (value is None or is_mandatory_missing(value)):
             value = default_value
-        if is_mandatory_missing():
+        if is_mandatory_missing(value):
             raise MissingMandatoryValue(self.get_full_key(key))
+
+        if isinstance(value, Type):
+            value = value.value()
+
         return self._resolve_single(value) if isinstance(value, str) else value
 
     def get_full_key(self, key):
@@ -367,22 +374,74 @@ class Config(object):
         from omegaconf import OmegaConf
         return OmegaConf.create(self.content)
 
-    def is_primitive_type(self, value):
+    @staticmethod
+    def is_primitive_type(value):
         """
-        Ensures this value type is a as a note value.
+        Ensures this value type is of a valid type
         Throws ValueError otherwise
-        :param key:
         :param value:
         :return:
         """
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
-
         # None is valid
         if value is None:
             return True
-        valid = [bool, int, str, float, DictConfig, ListConfig]
+        valid = [bool, int, str, float, DictConfig, ListConfig, Type]
         if six.PY2:
             valid.append(unicode)
 
-        return type(value) in valid
+        return isinstance(value, tuple(valid))
+
+    @staticmethod
+    def _item_eq(v1, v2):
+        if isinstance(v1, Config) and isinstance(v2, Config):
+            if not Config._config_eq(v1, v2):
+                return False
+
+        return True
+
+    @staticmethod
+    def _list_eq(l1, l2):
+        assert isinstance(l1, list)
+        assert isinstance(l2, list)
+        if len(l1) != len(l2):
+            return False
+        for i in range(len(l1)):
+            v1 = l1[i]
+            v2 = l2[i]
+            if not Config._item_eq(v1, v2):
+                return False
+
+        return True
+
+    @staticmethod
+    def _dict_eq(d1, d2):
+        assert isinstance(d1, dict)
+        assert isinstance(d2, dict)
+        if len(d1) != len(d2):
+            return False
+        k1 = d1.keys()
+        k2 = d2.keys()
+        if k1 != k2:
+            return False
+        for k in k1:
+            v1 = d1[k]
+            v2 = d2[k]
+            if not Config._item_eq(v1, v2):
+                return False
+
+        return True
+
+    @staticmethod
+    def _config_eq(c1, c2):
+        from .listconfig import ListConfig
+        from .dictconfig import DictConfig
+        assert isinstance(c1, Config)
+        assert isinstance(c2, Config)
+        if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
+            return Config._dict_eq(c1.content, c2.content)
+        if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
+            return Config._list_eq(c1.content, c2.content)
+        # if type does not match objects are different
+        return False
