@@ -94,7 +94,7 @@ class ListConfig(Config):
 
     def __eq__(self, other):
         if isinstance(other, list):
-            return Config._dict_eq(self.content, other)
+            return Config._list_eq(self.content, other)
         if isinstance(other, ListConfig):
             return Config._list_eq(self.content, other.content)
         return NotImplemented
