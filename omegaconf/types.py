@@ -1,39 +1,40 @@
-class ValidationError(Exception):
-    """
-    Thrown when a value fails validation
-    """
+from .errors import ValidationError
 
 
 class Validator(object):
-    def __call__(self, t):
+    def __call__(self, value):
         pass
 
 
 class NullValidator(Validator):
-    def __call__(self, t):
+    def __call__(self, value):
         pass
 
 
 class IntegerValidator(Validator):
-    def __call__(self, t):
+    def __call__(self, value):
         try:
-            int(t.value())
+            int(value)
         except ValueError:
-            raise ValidationError("Value {} is not an integer".format(t.value))
+            raise ValidationError("Value {} is not an integer".format(value))
 
 
 class Type(object):
     def __init__(self, value, validator=NullValidator()):
         assert isinstance(validator, Validator)
         self.validator = validator
-        self.val = value
-        self.validate()
+        self.val = None
+        self.set_value(value)
 
     def value(self):
         return self.val
 
-    def validate(self):
-        self.validator(self)
+    def set_value(self, value):
+        self.validate(value)
+        self.val = value
+
+    def validate(self, val):
+        self.validator(val)
 
     def __str__(self):
         return str(self.val)
@@ -63,4 +64,4 @@ class Any(Type):
 
 class Integer(Type):
     def __init__(self, n):
-        super(Any, self).__init__(value=n, validator=IntegerValidator())
+        super(Integer, self).__init__(value=n, validator=IntegerValidator())
