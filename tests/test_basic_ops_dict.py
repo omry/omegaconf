@@ -4,8 +4,9 @@ import tempfile
 
 from pytest import raises
 
-from omegaconf import MissingMandatoryValue
 from omegaconf import OmegaConf, DictConfig, Config
+from omegaconf import types
+from omegaconf.errors import MissingMandatoryValue
 
 
 def test_setattr_value():
@@ -191,10 +192,7 @@ def test_pickle_get_root():
 
 
 def test_iterate_dictionary():
-    c = OmegaConf.create('''
-    a : 1
-    b : 2
-    ''')
+    c = OmegaConf.create(dict(a=1, b=2))
     m2 = {}
     for key in c:
         m2[key] = c[key]
@@ -202,12 +200,7 @@ def test_iterate_dictionary():
 
 
 def test_items():
-    c = OmegaConf.create('''
-    a:
-      v: 1
-    b:
-      v: 1
-    ''')
+    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
     for k, v in c.items():
         v.v = 2
 
@@ -368,3 +361,46 @@ def test_instantiate_config_fails():
 def test_dir():
     c = OmegaConf.create(dict(a=1, b=2, c=3))
     assert ['a', 'b', 'c'] == dir(c)
+
+
+def dict_eq_test(d1, d2):
+    c1 = OmegaConf.create(d1)
+    c2 = OmegaConf.create(d2)
+    assert c1 == c2
+    assert c1 == d1
+    assert d2 == c2
+    assert not c1 != c2
+    assert not c1 != d1
+    assert not d2 != c2
+
+
+def test_dict_eq_empty():
+    dict_eq_test(dict(), dict())
+
+
+def test_dict_eq_value():
+    dict_eq_test(dict(a=12), dict(a=12))
+
+
+def test_dict_eq_raw_vs_any():
+    dict_eq_test(dict(a=12), dict(a=types.Any(12)))
+
+
+def test_dict_eq_nested_dict_1():
+    d = dict(a=12, b=dict())
+    dict_eq_test(d, d)
+
+
+def test_dict_eq_nested_dict_2():
+    d = dict(a=12, b=dict(c=10))
+    dict_eq_test(d, d)
+
+
+def test_dict_eq_nested_list():
+    d = dict(a=12, b=[1, 2, 3])
+    dict_eq_test(d, d)
+
+
+def test_dict_eq_nested_list_with_any():
+    d = dict(a=12, b=[1, 2, types.Any(3)])
+    dict_eq_test(d, d)
