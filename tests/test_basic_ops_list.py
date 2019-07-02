@@ -238,7 +238,6 @@ def test_sort():
     c.sort(key=len, reverse=True)
     assert ['bbb', 'aa', 'c'] == c
 
-
 def list_eq_test(l1, l2):
     c1 = OmegaConf.create(l1)
     c2 = OmegaConf.create(l2)
