@@ -22,9 +22,6 @@ class ListConfig(Config):
         else:
             raise AttributeError()
 
-    def __iter__(self):
-        return iter(self.content)
-
     # hide content while inspecting in debugger
     def __dir__(self):
         return [str(x) for x in range(0, len(self))]
@@ -52,21 +49,21 @@ class ListConfig(Config):
     def __setitem__(self, index, value):
         assert isinstance(index, int)
         value = self._create(value)
-        if not self.is_primitive_type(value):
+        if not Config.is_primitive_type(value):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
         self.__dict__['content'][index] = value
 
     def append(self, item):
         item = self._create(item)
-        if not self.is_primitive_type(item):
+        if not Config.is_primitive_type(item):
             full_key = self.get_full_key(self.__len__())
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
         self.__dict__['content'].append(item)
 
     def insert(self, index, item):
         item = self._create(item)
-        if not self.is_primitive_type(item):
+        if not Config.is_primitive_type(item):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
         self.content.insert(index, item)
@@ -94,3 +91,20 @@ class ListConfig(Config):
 
     def sort(self, key=None, reverse=False):
         self.content.sort(key=key, reverse=reverse)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return Config._dict_eq(self.content, other)
+        if isinstance(other, ListConfig):
+            return Config._list_eq(self.content, other.content)
+        return NotImplemented
+
+    def __ne__(self, other):
+        x = self.__eq__(other)
+        if x is not NotImplemented:
+            return not x
+        return NotImplemented
+
+    def __hash__(self):
+        # TODO: should actually iterate
+        return hash(str(self))
