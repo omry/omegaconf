@@ -2,7 +2,7 @@ import re
 
 from pytest import raises
 
-from omegaconf import OmegaConf, DictConfig, ListConfig, types
+from omegaconf import OmegaConf, DictConfig, ListConfig, nodes
 
 
 def test_repr_list():
@@ -238,6 +238,7 @@ def test_sort():
     c.sort(key=len, reverse=True)
     assert ['bbb', 'aa', 'c'] == c
 
+
 def list_eq_test(l1, l2):
     c1 = OmegaConf.create(l1)
     c2 = OmegaConf.create(l2)
@@ -259,7 +260,7 @@ def test_list_eq_value():
 
 
 def test_list_eq_raw_vs_any():
-    list_eq_test([1, 2, 12], [1, 2, types.Any(12)])
+    list_eq_test([1, 2, 12], [1, 2, nodes.AnyNode(12)])
 
 
 def test_list_eq_nested_dict_1():
@@ -278,5 +279,5 @@ def test_list_eq_nested_list():
 
 
 def test_list_eq_nested_list_with_any():
-    d = [1, 2, 3, [1, 2, types.Any(3)]]
+    d = [1, 2, 3, [1, 2, nodes.AnyNode(3)]]
     list_eq_test(d, d)

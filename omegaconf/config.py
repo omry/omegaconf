@@ -10,7 +10,7 @@ import six
 import yaml
 
 from .errors import MissingMandatoryValue
-from .types import Type
+from .nodes import BaseNode
 
 
 def isint(s):
@@ -71,21 +71,29 @@ class Config(object):
     def get(self, key, default_value=None):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_node(self, key):
+        """
+        returns raw node object for this key
+        :param key:
+        :return:
+        """
+        raise NotImplementedError
+
     def _resolve_with_default(self, key, value, default_value=None):
         """returns the value with the specified key, like obj.key and obj['key']"""
 
         def is_mandatory_missing(val):
-            if isinstance(val, Type):
-                val = val.value()
             return type(val) == str and val == '???'
+
+        if isinstance(value, BaseNode):
+            value = value.value()
 
         if default_value is not None and (value is None or is_mandatory_missing(value)):
             value = default_value
+
         if is_mandatory_missing(value):
             raise MissingMandatoryValue(self.get_full_key(key))
-
-        if isinstance(value, Type):
-            value = value.value()
 
         return self._resolve_single(value) if isinstance(value, str) else value
 
@@ -130,8 +138,17 @@ class Config(object):
     def __repr__(self):
         return self.content.__repr__()
 
+    @abstractmethod
     def __eq__(self, other):
-        return other == self.content
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __ne__(self, other):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __hash__(self):
+        raise NotImplementedError()
 
     # Support pickle
     def __getstate__(self):
@@ -148,7 +165,25 @@ class Config(object):
         return self.content.__len__()
 
     def __iter__(self):
-        return self.content.__iter__()
+        class MyItems(object):
+            def __init__(self, l):
+                self.lst = l
+                self.iterator = iter(l)
+
+            def __iter__(self):
+                return self
+
+            # Python 3 compatibility
+            def __next__(self):
+                return self.next()
+
+            def next(self):
+                v = next(self.iterator)
+                if isinstance(v, BaseNode):
+                    v = v.value()
+                return v
+
+        return MyItems(self.content)
 
     def __contains__(self, item):
         return self.content.__contains__(item)
@@ -328,7 +363,7 @@ class Config(object):
         re_parent(self)
 
     @staticmethod
-    def resolve_value(root_node, inter_type, inter_key):
+    def _resolve_value(root_node, inter_type, inter_key):
         from omegaconf import OmegaConf
         inter_type = ('str:' if inter_type is None else inter_type)[0:-1]
         if inter_type == 'str':
@@ -357,13 +392,13 @@ class Config(object):
         if len(match_list) == 1 and value == match_list[0].group(0):
             # simple interpolation, inherit type
             match = match_list[0]
-            return Config.resolve_value(root, match.group(1), match.group(2))
+            return Config._resolve_value(root, match.group(1), match.group(2))
         else:
             orig = value
             new = ''
             last_index = 0
             for match in match_list:
-                new_val = Config.resolve_value(root, match.group(1), match.group(2))
+                new_val = Config._resolve_value(root, match.group(1), match.group(2))
                 new += orig[last_index:match.start(0)] + str(new_val)
                 last_index = match.end(0)
 
@@ -387,7 +422,7 @@ class Config(object):
         # None is valid
         if value is None:
             return True
-        valid = [bool, int, str, float, DictConfig, ListConfig, Type]
+        valid = [bool, int, str, float, DictConfig, ListConfig, BaseNode]
         if six.PY2:
             valid.append(unicode)
 
