@@ -3,6 +3,7 @@ import itertools
 import six
 
 from .config import Config, isint
+from nodes import BaseNode, AnyNode
 
 
 class ListConfig(Config):
@@ -40,33 +41,44 @@ class ListConfig(Config):
         else:
             return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
 
-    def _create(self, value):
+    def _set_at_index(self, index, value):
         if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
             from omegaconf import OmegaConf
             value = OmegaConf.create(value, parent=self)
-        return value
 
-    def __setitem__(self, index, value):
-        assert isinstance(index, int)
-        value = self._create(value)
         if not Config.is_primitive_type(value):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
-        self.__dict__['content'][index] = value
+
+        if not isinstance(value, BaseNode):
+            self.__dict__['content'][index].set_value(value)
+        else:
+            if not isinstance(value, BaseNode):
+                value = AnyNode(value)
+            # TODO: deep copy?
+            # else:
+            #     value = copy.deepcopy(value)
+            self.__dict__['content'][index] = value
+
+    def __setitem__(self, index, value):
+        assert isinstance(index, int)
+        self._set_at_index(index, value)
 
     def append(self, item):
-        item = self._create(item)
-        if not Config.is_primitive_type(item):
-            full_key = self.get_full_key(self.__len__())
-            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
-        self.__dict__['content'].append(item)
+        try:
+            self.__dict__['content'].append(AnyNode(None))
+            self._set_at_index(len(self) - 1, item)
+        except Exception:
+            del self[len(self) - 1]
+            raise
 
     def insert(self, index, item):
-        item = self._create(item)
-        if not Config.is_primitive_type(item):
-            full_key = self.get_full_key(index)
-            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(item).__name__))
-        self.content.insert(index, item)
+        try:
+            self.content.insert(index, AnyNode(None))
+            self._set_at_index(index, item)
+        except Exception:
+            del self[index]
+            raise
 
     def __delitem__(self, key):
         self.content.__delitem__(key)
@@ -79,6 +91,10 @@ class ListConfig(Config):
                 result.append(val)
             return ListConfig(content=result, parent=self.__dict__['parent'])
 
+    def get_node(self, index):
+        assert type(index) == int
+        return self.content[index]
+
     def get(self, index, default_value=None):
         assert type(index) == int
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
@@ -90,7 +106,13 @@ class ListConfig(Config):
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
-        self.content.sort(key=key, reverse=reverse)
+        if key is None:
+            def key1(x):
+                return x.value()
+        else:
+            def key1(x):
+                return key(x.value())
+        self.content.sort(key=key1, reverse=reverse)
 
     def __eq__(self, other):
         if isinstance(other, list):

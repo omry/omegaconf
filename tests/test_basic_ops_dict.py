@@ -5,7 +5,7 @@ import tempfile
 from pytest import raises
 
 from omegaconf import OmegaConf, DictConfig, Config
-from omegaconf import types
+from omegaconf import nodes
 from omegaconf.errors import MissingMandatoryValue
 
 
@@ -383,7 +383,7 @@ def test_dict_eq_value():
 
 
 def test_dict_eq_raw_vs_any():
-    dict_eq_test(dict(a=12), dict(a=types.Any(12)))
+    dict_eq_test(dict(a=12), dict(a=nodes.AnyNode(12)))
 
 
 def test_dict_eq_nested_dict_1():
@@ -402,5 +402,5 @@ def test_dict_eq_nested_list():
 
 
 def test_dict_eq_nested_list_with_any():
-    d = dict(a=12, b=[1, 2, types.Any(3)])
+    d = dict(a=12, b=[1, 2, nodes.AnyNode(3)])
     dict_eq_test(d, d)

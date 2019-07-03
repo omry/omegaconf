@@ -19,7 +19,7 @@ class IntegerValidator(Validator):
             raise ValidationError("Value {} is not an integer".format(value))
 
 
-class Type(object):
+class BaseNode(object):
     def __init__(self, value, validator=NullValidator()):
         assert isinstance(validator, Validator)
         self.validator = validator
@@ -43,7 +43,7 @@ class Type(object):
         return repr(self.val)
 
     def __eq__(self, other):
-        if isinstance(other, Type):
+        if isinstance(other, BaseNode):
             return self.val == other.val
         else:
             return self.val == other
@@ -55,13 +55,13 @@ class Type(object):
         return NotImplemented
 
 
-class Any(Type):
+class AnyNode(BaseNode):
     def __init__(self, value):
-        super(Any, self).__init__(value=value, validator=NullValidator())
+        super(AnyNode, self).__init__(value=value, validator=NullValidator())
 
-        super(Any, self).__init__(value=value, validator=NullValidator())
+        super(AnyNode, self).__init__(value=value, validator=NullValidator())
 
 
-class Integer(Type):
+class IntegerNode(BaseNode):
     def __init__(self, n):
-        super(Integer, self).__init__(value=n, validator=IntegerValidator())
+        super(IntegerNode, self).__init__(value=n, validator=IntegerValidator())

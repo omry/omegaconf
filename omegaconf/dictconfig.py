@@ -1,5 +1,5 @@
 from .config import Config
-from .types import Type, Any
+from .nodes import BaseNode, AnyNode
 import copy
 
 
@@ -21,11 +21,11 @@ class DictConfig(Config):
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if key in self and not isinstance(value, Type):
+        if key in self and not isinstance(value, BaseNode):
             self.__dict__['content'][key].set_value(value)
         else:
-            if not isinstance(value, Type):
-                value = Any(value)
+            if not isinstance(value, BaseNode):
+                value = AnyNode(value)
             else:
                 value = copy.deepcopy(value)
             self.__dict__['content'][key] = value
@@ -62,6 +62,9 @@ class DictConfig(Config):
     def get(self, key, default_value=None):
         return self._resolve_with_default(key=key, value=self.content.get(key), default_value=default_value)
 
+    def get_node(self, key):
+        return self.content.get(key)
+
     __marker = object()
 
     def pop(self, key, default=__marker):
@@ -89,7 +92,7 @@ class DictConfig(Config):
             def next(self):
                 k = next(self.iterator)
                 v = self.map.content[k]
-                if isinstance(v, Type):
+                if isinstance(v, BaseNode):
                     v = v.value()
                 kv = (k, v)
                 return kv
