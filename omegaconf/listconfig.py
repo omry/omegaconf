@@ -3,7 +3,7 @@ import itertools
 import six
 
 from .config import Config, isint
-from nodes import BaseNode, AnyNode
+from .nodes import BaseNode, AnyNode
 
 
 class ListConfig(Config):

@@ -1,8 +1,8 @@
 import re
 
-from pytest import raises
-
+import pytest
 from omegaconf import OmegaConf, DictConfig, ListConfig, nodes
+from . import IllegalType
 
 
 def test_repr_list():
@@ -65,7 +65,7 @@ def test_list_pop():
     assert c.pop(0) == 1
     assert c.pop() == 4
     assert c == [2, 3]
-    with raises(IndexError):
+    with pytest.raises(IndexError):
         c.pop(100)
 
 
@@ -89,7 +89,7 @@ def test_list_config_with_tuple():
 
 def test_items_on_list():
     c = OmegaConf.create([1, 2])
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         c.items()
 
 
@@ -110,7 +110,7 @@ def test_list_delitem():
     assert c == [1, 2, 3]
     del c[0]
     assert c == [2, 3]
-    with raises(IndexError):
+    with pytest.raises(IndexError):
         del c[100]
 
 
@@ -133,13 +133,8 @@ def test_assign_dict_in_list():
     assert isinstance(c[0], DictConfig)
 
 
-class IllegalType:
-    def __init__(self):
-        pass
-
-
 def test_nested_list_assign_illegal_value():
-    with raises(ValueError, match=re.escape("key a[0]")):
+    with pytest.raises(ValueError, match=re.escape("key a[0]")):
         c = OmegaConf.create(dict(a=[None]))
         c.a[0] = IllegalType()
 
@@ -211,7 +206,7 @@ def test_getattr():
     assert getattr(c, "0") == 'a'
     assert getattr(c, "1") == 'b'
     assert getattr(c, "2") == 'c'
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         getattr(c, "anything")
 
 
@@ -250,34 +245,37 @@ def list_eq_test(l1, l2):
     assert not l2 != c2
 
 
-def test_list_eq_empty():
-    list_eq_test([], [])
+@pytest.mark.parametrize('lst1,lst2', [
+    # empty list
+    ([], []),
+    # simple list
+    (['a', 12, '15'], ['a', 12, '15']),
+    # raw vs any
+    ([1, 2, 12], [1, 2, nodes.AnyNode(12)]),
+    # nested empty dict
+    ([12, dict()], [12, dict()]),
+    # nested dict
+    ([12, dict(c=10)], [12, dict(c=10)]),
+    # nested list
+    ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
+    # nested list with any
+    ([1, 2, 3, [1, 2, nodes.AnyNode(3)]], [1, 2, 3, [1, 2, nodes.AnyNode(3)]])
+])
+def test_list_eq(lst1, lst2):
+    list_eq_test(lst1, lst2)
 
 
-def test_list_eq_value():
-    lst = ['a', 12, '15']
-    list_eq_test(lst, lst)
+def test_insert_throws_not_changing_list():
+    c = OmegaConf.create([])
+    with pytest.raises(ValueError):
+        c.insert(0, IllegalType())
+    assert len(c) == 0
+    assert c == []
 
 
-def test_list_eq_raw_vs_any():
-    list_eq_test([1, 2, 12], [1, 2, nodes.AnyNode(12)])
-
-
-def test_list_eq_nested_dict_1():
-    d = [12, dict()]
-    list_eq_test(d, d)
-
-
-def test_list_eq_nested_dict_2():
-    d = [12, dict(c=10)]
-    list_eq_test(d, d)
-
-
-def test_list_eq_nested_list():
-    d = [1, 2, 3, [10, 20, 30]]
-    list_eq_test(d, d)
-
-
-def test_list_eq_nested_list_with_any():
-    d = [1, 2, 3, [1, 2, nodes.AnyNode(3)]]
-    list_eq_test(d, d)
+def test_append_throws_not_changing_list():
+    c = OmegaConf.create([])
+    with pytest.raises(ValueError):
+        c.append(IllegalType())
+    assert len(c) == 0
+    assert c == []

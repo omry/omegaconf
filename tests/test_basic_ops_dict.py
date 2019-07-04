@@ -2,11 +2,12 @@ import copy
 import re
 import tempfile
 
-from pytest import raises
+import pytest
 
 from omegaconf import OmegaConf, DictConfig, Config
 from omegaconf import nodes
 from omegaconf.errors import MissingMandatoryValue
+from . import IllegalType
 
 
 def test_setattr_value():
@@ -68,13 +69,13 @@ def test_is_empty_dict():
 
 def test_mandatory_value():
     c = OmegaConf.create(dict(a='???'))
-    with raises(MissingMandatoryValue, match='a'):
+    with pytest.raises(MissingMandatoryValue, match='a'):
         c.a
 
 
 def test_nested_dict_mandatory_value():
     c = OmegaConf.create(dict(a=dict(b='???')))
-    with raises(MissingMandatoryValue):
+    with pytest.raises(MissingMandatoryValue):
         c.a.b
 
 
@@ -213,7 +214,7 @@ def test_dict_pop():
     assert c.pop('a') == 1
     assert c.pop('not_found', 'default') == 'default'
     assert c == {'b': 2}
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         c.pop('not_found')
 
 
@@ -289,7 +290,7 @@ def test_dict_delitem():
     assert c == dict(a=10, b=11)
     del c['a']
     assert c == dict(b=11)
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         del c['not_found']
 
 
@@ -298,19 +299,14 @@ def test_dict_len():
     assert len(c) == 2
 
 
-class IllegalType:
-    def __init__(self):
-        pass
-
-
 def test_dict_assign_illegal_value():
-    with raises(ValueError, match=re.escape("key a")):
+    with pytest.raises(ValueError, match=re.escape("key a")):
         c = OmegaConf.create(dict())
         c.a = IllegalType()
 
 
 def test_dict_assign_illegal_value_nested():
-    with raises(ValueError, match=re.escape("key a.b")):
+    with pytest.raises(ValueError, match=re.escape("key a.b")):
         c = OmegaConf.create(dict(a=dict()))
         c.a.b = IllegalType()
 
@@ -354,7 +350,7 @@ def test_pretty_with_resolve():
 
 
 def test_instantiate_config_fails():
-    with raises(NotImplementedError):
+    with pytest.raises(NotImplementedError):
         Config()
 
 
@@ -374,33 +370,21 @@ def dict_eq_test(d1, d2):
     assert not d2 != c2
 
 
-def test_dict_eq_empty():
-    dict_eq_test(dict(), dict())
-
-
-def test_dict_eq_value():
-    dict_eq_test(dict(a=12), dict(a=12))
-
-
-def test_dict_eq_raw_vs_any():
-    dict_eq_test(dict(a=12), dict(a=nodes.AnyNode(12)))
-
-
-def test_dict_eq_nested_dict_1():
-    d = dict(a=12, b=dict())
-    dict_eq_test(d, d)
-
-
-def test_dict_eq_nested_dict_2():
-    d = dict(a=12, b=dict(c=10))
-    dict_eq_test(d, d)
-
-
-def test_dict_eq_nested_list():
-    d = dict(a=12, b=[1, 2, 3])
-    dict_eq_test(d, d)
-
-
-def test_dict_eq_nested_list_with_any():
-    d = dict(a=12, b=[1, 2, nodes.AnyNode(3)])
-    dict_eq_test(d, d)
+@pytest.mark.parametrize('input_, expected', [
+    # empty
+    (dict(), dict()),
+    # simple
+    (dict(a=12), dict(a=12)),
+    # any vs raw
+    (dict(a=12), dict(a=nodes.AnyNode(12))),
+    # nested dict empty
+    (dict(a=12, b=dict()), dict(a=12, b=dict())),
+    # nested dict
+    (dict(a=12, b=dict(c=10)), dict(a=12, b=dict(c=10))),
+    # nested list
+    (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
+    # nested list with any
+    (dict(a=12, b=[1, 2, nodes.AnyNode(3)]), dict(a=12, b=[1, 2, nodes.AnyNode(3)])),
+])
+def dict_eq(input_, expected):
+    dict_eq_test(input_, expected)
