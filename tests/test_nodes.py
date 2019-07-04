@@ -1,5 +1,8 @@
-from omegaconf import OmegaConf, nodes, ValidationError
 import pytest
+
+from omegaconf import OmegaConf, nodes
+from omegaconf.errors import ValidationError
+from . import IllegalType
 
 
 def test_dict_any():
@@ -39,7 +42,3 @@ def test_list_any():
     assert type(c.get_node(0)) == nodes.AnyNode
     c[0] = 'string'
     assert c[0] == 'string'
-
-
-
-# TODO: test insert and append that throws does not change list.
