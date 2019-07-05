@@ -19,6 +19,12 @@ class IntegerValidator(Validator):
             raise ValidationError("Value {} is not an integer".format(value))
 
 
+class StringValidator(Validator):
+    def __call__(self, value):
+        if not isinstance(value, str):
+            raise ValidationError("Value {} is not a string".format(value))
+
+
 class BaseNode(object):
     def __init__(self, value, validator=NullValidator()):
         assert isinstance(validator, Validator)
@@ -65,3 +71,8 @@ class AnyNode(BaseNode):
 class IntegerNode(BaseNode):
     def __init__(self, n):
         super(IntegerNode, self).__init__(value=n, validator=IntegerValidator())
+
+
+class StringNode(BaseNode):
+    def __init__(self, n):
+        super(StringNode, self).__init__(value=n, validator=StringValidator())

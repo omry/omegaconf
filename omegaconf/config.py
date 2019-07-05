@@ -318,11 +318,14 @@ class Config(object):
         dest = copy.deepcopy(dest)
         src = copy.deepcopy(src)
         for key, value in src.items():
-            if key in dest and isinstance(dest[key].value(), Config):
-                if isinstance(value, Config):
-                    dest[key].value().merge_with(value)
+            if key in dest:
+                if isinstance(dest[key].value(), Config):
+                    if isinstance(value, Config):
+                        dest[key].value().merge_with(value)
+                    else:
+                        dest[key].set_value(value)
                 else:
-                    dest[key] = value
+                    dest[key].set_value(src.content[key].value())
             else:
                 dest[key] = src.content[key]
         return dest
