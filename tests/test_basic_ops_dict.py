@@ -376,7 +376,7 @@ def dict_eq_test(d1, d2):
     # simple
     (dict(a=12), dict(a=12)),
     # any vs raw
-    (dict(a=12), dict(a=nodes.AnyNode(12))),
+    (dict(a=12), dict(a=nodes.UntypedNode(12))),
     # nested dict empty
     (dict(a=12, b=dict()), dict(a=12, b=dict())),
     # nested dict
@@ -384,7 +384,7 @@ def dict_eq_test(d1, d2):
     # nested list
     (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
     # nested list with any
-    (dict(a=12, b=[1, 2, nodes.AnyNode(3)]), dict(a=12, b=[1, 2, nodes.AnyNode(3)])),
+    (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(3)])),
 ])
 def dict_eq(input_, expected):
     dict_eq_test(input_, expected)

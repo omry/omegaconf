@@ -251,7 +251,7 @@ def list_eq_test(l1, l2):
     # simple list
     (['a', 12, '15'], ['a', 12, '15']),
     # raw vs any
-    ([1, 2, 12], [1, 2, nodes.AnyNode(12)]),
+    ([1, 2, 12], [1, 2, nodes.UntypedNode(12)]),
     # nested empty dict
     ([12, dict()], [12, dict()]),
     # nested dict
@@ -259,7 +259,7 @@ def list_eq_test(l1, l2):
     # nested list
     ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
     # nested list with any
-    ([1, 2, 3, [1, 2, nodes.AnyNode(3)]], [1, 2, 3, [1, 2, nodes.AnyNode(3)]])
+    ([1, 2, 3, [1, 2, nodes.UntypedNode(3)]], [1, 2, 3, [1, 2, nodes.UntypedNode(3)]])
 ])
 def test_list_eq(lst1, lst2):
     list_eq_test(lst1, lst2)

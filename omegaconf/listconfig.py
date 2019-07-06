@@ -3,7 +3,7 @@ import itertools
 import six
 
 from .config import Config, isint
-from .nodes import BaseNode, AnyNode
+from .nodes import BaseNode, UntypedNode
 
 
 class ListConfig(Config):
@@ -54,7 +54,7 @@ class ListConfig(Config):
             self.__dict__['content'][index].set_value(value)
         else:
             if not isinstance(value, BaseNode):
-                value = AnyNode(value)
+                value = UntypedNode(value)
             # TODO: deep copy?
             # else:
             #     value = copy.deepcopy(value)
@@ -66,7 +66,7 @@ class ListConfig(Config):
 
     def append(self, item):
         try:
-            self.__dict__['content'].append(AnyNode(None))
+            self.__dict__['content'].append(UntypedNode(None))
             self._set_at_index(len(self) - 1, item)
         except Exception:
             del self[len(self) - 1]
@@ -74,7 +74,7 @@ class ListConfig(Config):
 
     def insert(self, index, item):
         try:
-            self.content.insert(index, AnyNode(None))
+            self.content.insert(index, UntypedNode(None))
             self._set_at_index(index, item)
         except Exception:
             del self[index]
