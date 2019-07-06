@@ -92,14 +92,20 @@ class BooleanNode(BaseNode):
     def set_value(self, value):
         if isinstance(value, bool):
             self.val = value
+        if isinstance(value, int):
+            self.val = value != 0
         elif value is None:
             self.val = False
         elif isinstance(value, str):
-            if value.lower() in ("yes", "y", "on", 'true'):
-                self.val = True
-            elif value.lower() in ("no", "n", "off", 'false'):
-                self.val = False
-            else:
-                raise ValidationError("Value '{}' is not a valid bool".format(value))
+            try:
+                self.set_value(int(value))
+                return
+            except ValueError:
+                if value.lower() in ("yes", "y", "on", 'true'):
+                    self.val = True
+                elif value.lower() in ("no", "n", "off", 'false'):
+                    self.val = False
+                else:
+                    raise ValidationError("Value '{}' is not a valid bool".format(value))
         else:
             raise ValidationError("Value '{}' has unsupported type {}".format(value, type(value).__name__))
