@@ -4,13 +4,67 @@ from omegaconf import OmegaConf, nodes
 from omegaconf.errors import ValidationError
 
 
+# testing valid conversions
+@pytest.mark.parametrize('type_,input_,output_', [
+    # string
+    (nodes.StringNode, "abc", "abc"),
+    (nodes.StringNode, 100, "100"),
+    # integer
+    (nodes.IntegerNode, 10, 10),
+    (nodes.IntegerNode, 10.1, 10),
+    (nodes.IntegerNode, '10', 10),
+    (nodes.IntegerNode, -100, -100),
+    (nodes.IntegerNode, "-100", -100),
+    # float
+    (nodes.FloatNode, float('inf'), float('inf')),
+    (nodes.FloatNode, float('nan'), float('nan')),  # Yes, we treat nan as equal to nan in OmegaConf
+    (nodes.FloatNode, 10, 10.0),
+    (nodes.FloatNode, 10.1, 10.1),
+    (nodes.FloatNode, "10.2", 10.2),
+    (nodes.FloatNode, "10e-3", 10e-3),
+    # bool true
+    (nodes.BooleanNode, True, True),
+    (nodes.BooleanNode, "Y", True),
+    (nodes.BooleanNode, "true", True),
+    (nodes.BooleanNode, "Yes", True),
+    (nodes.BooleanNode, "On", True),
+    # bool false
+    (nodes.BooleanNode, False, False),
+    (nodes.BooleanNode, "N", False),
+    (nodes.BooleanNode, "false", False),
+    (nodes.BooleanNode, "No", False),
+    (nodes.BooleanNode, "Off", False),
+])
+def test_valid_inputs(type_, input_, output_):
+    node = type_(input_)
+    assert node == output_
+
+
+# testing invalid conversions
+@pytest.mark.parametrize('type_,input_', [
+    (nodes.IntegerNode, 'abc'),
+    (nodes.IntegerNode, '-1132c'),
+    (nodes.FloatNode, 'abc'),
+    (nodes.IntegerNode, '-abc'),
+    (nodes.BooleanNode, "Nope"),
+    (nodes.BooleanNode, "Yup"),
+])
+def test_invalid_inputs(type_, input_):
+    empty_node = type_()
+    with pytest.raises(ValidationError):
+        empty_node.set_value(input_)
+
+    with pytest.raises(ValidationError):
+        type_(input_)
+
+
 # dict
 def test_dict_any():
     c = OmegaConf.create()
     # default type is Any
     c.foo = 10
     assert c.foo == 10
-    assert type(c.get_node('foo')) == nodes.AnyNode
+    assert type(c.get_node('foo')) == nodes.UntypedNode
     c.foo = 'string'
     assert c.foo == 'string'
 
@@ -38,16 +92,17 @@ def test_list_any():
     # default type is Any
     c.append(10)
     assert c[0] == 10
-    assert type(c.get_node(0)) == nodes.AnyNode
+    assert type(c.get_node(0)) == nodes.UntypedNode
     c[0] = 'string'
     assert c[0] == 'string'
 
 
-def test_list_integer_1():
+def test_list_integer():
+    val = 10
     c = OmegaConf.create([])
-    c.append(nodes.IntegerNode(10))
+    c.append(nodes.IntegerNode(val))
     assert type(c.get_node(0)) == nodes.IntegerNode
-    assert c.get(0) == 10
+    assert c.get(0) == val
 
 
 def test_list_integer_rejects_string():

@@ -1,5 +1,5 @@
 from .config import Config
-from .nodes import BaseNode, AnyNode
+from .nodes import BaseNode, UntypedNode
 import copy
 
 
@@ -25,7 +25,7 @@ class DictConfig(Config):
             self.__dict__['content'][key].set_value(value)
         else:
             if not isinstance(value, BaseNode):
-                value = AnyNode(value)
+                value = UntypedNode(value)
             else:
                 value = copy.deepcopy(value)
             self.__dict__['content'][key] = value

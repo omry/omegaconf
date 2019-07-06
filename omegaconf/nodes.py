@@ -1,46 +1,19 @@
+from abc import abstractmethod
+
 from .errors import ValidationError
-
-
-class Validator(object):
-    def __call__(self, value):
-        pass
-
-
-class NullValidator(Validator):
-    def __call__(self, value):
-        pass
-
-
-class IntegerValidator(Validator):
-    def __call__(self, value):
-        try:
-            int(value)
-        except ValueError:
-            raise ValidationError("Value {} is not an integer".format(value))
-
-
-class StringValidator(Validator):
-    def __call__(self, value):
-        if not isinstance(value, str):
-            raise ValidationError("Value {} is not a string".format(value))
+import math
 
 
 class BaseNode(object):
-    def __init__(self, value, validator=NullValidator()):
-        assert isinstance(validator, Validator)
-        self.validator = validator
+    def __init__(self):
         self.val = None
-        self.set_value(value)
 
     def value(self):
         return self.val
 
+    @abstractmethod
     def set_value(self, value):
-        self.validate(value)
-        self.val = value
-
-    def validate(self, val):
-        self.validator(val)
+        raise NotImplementedError()
 
     def __str__(self):
         return str(self.val)
@@ -61,18 +34,72 @@ class BaseNode(object):
         return NotImplemented
 
 
-class AnyNode(BaseNode):
-    def __init__(self, value):
-        super(AnyNode, self).__init__(value=value, validator=NullValidator())
+class UntypedNode(BaseNode):
+    def __init__(self, value=None):
+        self.val = None
+        self.set_value(value)
 
-        super(AnyNode, self).__init__(value=value, validator=NullValidator())
-
-
-class IntegerNode(BaseNode):
-    def __init__(self, n):
-        super(IntegerNode, self).__init__(value=n, validator=IntegerValidator())
+    def set_value(self, value):
+        self.val = value
 
 
 class StringNode(BaseNode):
-    def __init__(self, n):
-        super(StringNode, self).__init__(value=n, validator=StringValidator())
+    def __init__(self, value=None):
+        self.val = None
+        self.set_value(value)
+
+    def set_value(self, value):
+        self.val = str(value)
+
+
+class IntegerNode(BaseNode):
+    def __init__(self, value=None):
+        self.val = None
+        self.set_value(value)
+
+    def set_value(self, value):
+        try:
+            self.val = int(value) if value is not None else None
+        except ValueError:
+            raise ValidationError("Value '{}' could not be converted to Integer".format(value))
+
+
+class FloatNode(BaseNode):
+    def __init__(self, value=None):
+        self.val = None
+        self.set_value(value)
+
+    def set_value(self, value):
+        try:
+            self.val = float(value) if value is not None else None
+        except ValueError:
+            raise ValidationError("Value '{}' could not be converted to float".format(value))
+
+    def __eq__(self, other):
+        if isinstance(other, BaseNode):
+            other_val = other.val
+        else:
+            other_val = other
+
+        return self.val == other_val or (math.isnan(self.val) and math.isnan(other_val))
+
+
+class BooleanNode(BaseNode):
+    def __init__(self, value=None):
+        self.val = None
+        self.set_value(value)
+
+    def set_value(self, value):
+        if isinstance(value, bool):
+            self.val = value
+        elif value is None:
+            self.val = False
+        elif isinstance(value, str):
+            if value.lower() in ("yes", "y", "on", 'true'):
+                self.val = True
+            elif value.lower() in ("no", "n", "off", 'false'):
+                self.val = False
+            else:
+                raise ValidationError("Value '{}' is not a valid bool".format(value))
+        else:
+            raise ValidationError("Value '{}' has unsupported type {}".format(value, type(value).__name__))
