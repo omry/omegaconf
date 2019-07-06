@@ -1,6 +1,6 @@
 import pytest
 
-from omegaconf import OmegaConf, Config
+from omegaconf import OmegaConf, Config, nodes
 
 
 def test_dict_merge_1():
@@ -34,21 +34,19 @@ def test_dict_merge_3():
 
 
 @pytest.mark.parametrize('a_, b_, expected', [
-    # merge dict 1
+    # dictionaries
     (dict(a=None), dict(b=None), dict(a=None, b=None)),
-    # merge dict 2
     (dict(a=1, b=2), dict(b=3), dict(a=1, b=3)),
-    # merge with nested dict
     (dict(a=1, b=2), dict(b=dict(c=3)), dict(a=1, b=dict(c=3))),
-    # merge nested with dict
     (dict(b=dict(c=1)), dict(b=1), dict(b=1)),
-    # merge lists
-    ([1, 2, 3], [4, 5, 6], [4, 5, 6]),
-    # merge nested lists
-    ([[1, 2, 3]], [[4, 5, 6]], [[4, 5, 6]]),
-    # merge dict(list)
     (dict(list=[1, 2, 3]), dict(list=[4, 5, 6]), dict(list=[4, 5, 6])),
-    # merge list(dict)
+    (dict(a=1), dict(a=nodes.IntegerNode(10)), dict(a=10)),
+    (dict(a=1), dict(a=nodes.IntegerNode(10)), dict(a=nodes.IntegerNode(10))),
+    (dict(a=nodes.IntegerNode(10)), dict(a=1), dict(a=1)),
+    (dict(a=nodes.IntegerNode(10)), dict(a=1), dict(a=nodes.IntegerNode(1))),
+    # lists
+    ([1, 2, 3], [4, 5, 6], [4, 5, 6]),
+    ([[1, 2, 3]], [[4, 5, 6]], [[4, 5, 6]]),
     ([1, 2, dict(a=10)], [4, 5, dict(b=20)], [4, 5, dict(b=20)]),
 ])
 def test_merge(a_, b_, expected):

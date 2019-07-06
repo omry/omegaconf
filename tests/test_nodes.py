@@ -28,12 +28,18 @@ from omegaconf.errors import ValidationError
     (nodes.BooleanNode, "true", True),
     (nodes.BooleanNode, "Yes", True),
     (nodes.BooleanNode, "On", True),
+    (nodes.BooleanNode, "1", True),
+    (nodes.BooleanNode, 100, True),
     # bool false
     (nodes.BooleanNode, False, False),
     (nodes.BooleanNode, "N", False),
     (nodes.BooleanNode, "false", False),
     (nodes.BooleanNode, "No", False),
     (nodes.BooleanNode, "Off", False),
+    (nodes.BooleanNode, None, False),
+    (nodes.BooleanNode, "0", False),
+    (nodes.BooleanNode, 0, False),
+
 ])
 def test_valid_inputs(type_, input_, output_):
     node = type_(input_)
@@ -115,12 +121,12 @@ def test_list_integer_rejects_string():
     assert type(c.get_node(0)) == nodes.IntegerNode
 
 
-# TODO: add additional test cases with lists, and with multiple node types.
-# merge
+# merge validation error
 @pytest.mark.parametrize('c1, c2', [
     (dict(a=nodes.IntegerNode(10)), dict(a='str')),
     (dict(a=nodes.IntegerNode(10)), dict(a=nodes.StringNode('str'))),
     (dict(a=10, b=nodes.IntegerNode(10)), dict(a=20, b='str')),
+    (dict(foo=dict(bar=nodes.IntegerNode(10))), dict(foo=dict(bar='str')))
 ])
 def test_merge_validation_error(c1, c2):
     conf1 = OmegaConf.create(c1)
@@ -130,3 +136,4 @@ def test_merge_validation_error(c1, c2):
     # make sure that conf1 and conf2 were not modified
     assert conf1 == OmegaConf.create(c1)
     assert conf2 == OmegaConf.create(c2)
+
