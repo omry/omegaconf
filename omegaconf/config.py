@@ -463,11 +463,14 @@ class Config(object):
 
     @staticmethod
     def _item_eq(v1, v2):
+        if isinstance(v1, BaseNode):
+            v1 = v1.value()
+        if isinstance(v2, BaseNode):
+            v2 = v2.value()
         if isinstance(v1, Config) and isinstance(v2, Config):
             if not Config._config_eq(v1, v2):
                 return False
-
-        return True
+        return v1 == v2
 
     @staticmethod
     def _list_eq(l1, l2):
@@ -489,8 +492,8 @@ class Config(object):
         assert isinstance(d2, dict)
         if len(d1) != len(d2):
             return False
-        k1 = d1.keys()
-        k2 = d2.keys()
+        k1 = sorted(d1.keys())
+        k2 = sorted(d2.keys())
         if k1 != k2:
             return False
         for k in k1:
