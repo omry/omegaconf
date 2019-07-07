@@ -4,11 +4,13 @@ import six
 
 from .config import Config, isint
 from .nodes import BaseNode, UntypedNode
+from .errors import FrozenConfigError
 
 
 class ListConfig(Config):
     def __init__(self, content, parent=None):
         assert isinstance(content, (list, tuple))
+        self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = []
         self.__dict__['parent'] = parent
         for item in content:
@@ -50,6 +52,9 @@ class ListConfig(Config):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(index))
+
         if not isinstance(value, BaseNode):
             self.__dict__['content'][index].set_value(value)
         else:
@@ -69,19 +74,18 @@ class ListConfig(Config):
             self.__dict__['content'].append(UntypedNode(None))
             self._set_at_index(len(self) - 1, item)
         except Exception:
-            del self[len(self) - 1]
+            del self.__dict__['content'][len(self) - 1]
             raise
 
     def insert(self, index, item):
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
             self._set_at_index(index, item)
         except Exception:
-            del self[index]
+            del self.__dict__['content'][index]
             raise
-
-    def __delitem__(self, key):
-        self.content.__delitem__(key)
 
     if six.PY2:
         def __getslice__(self, start, stop):
@@ -99,13 +103,15 @@ class ListConfig(Config):
         assert type(index) == int
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
-    def sort(self, key=None, reverse=False):
-        self.content.sort(key, reverse)
-
     def pop(self, index=-1):
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(index))
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
+        if self._frozen():
+            raise FrozenConfigError()
+
         if key is None:
             def key1(x):
                 return x.value()

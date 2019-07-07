@@ -1,5 +1,6 @@
 from .config import Config
 from .nodes import BaseNode, UntypedNode
+from .errors import FrozenConfigError
 import copy
 
 
@@ -7,6 +8,7 @@ class DictConfig(Config):
 
     def __init__(self, content, parent=None):
         assert isinstance(content, dict)
+        self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = {}
         self.__dict__['parent'] = parent
         for k, v in content.items():
@@ -20,13 +22,15 @@ class DictConfig(Config):
         if not Config.is_primitive_type(value):
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
-
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(key))
         if key in self and not isinstance(value, BaseNode):
             self.__dict__['content'][key].set_value(value)
         else:
             if not isinstance(value, BaseNode):
                 value = UntypedNode(value)
             else:
+                # TODO? is this deepcopy needed?
                 value = copy.deepcopy(value)
             self.__dict__['content'][key] = value
 
@@ -68,6 +72,8 @@ class DictConfig(Config):
     __marker = object()
 
     def pop(self, key, default=__marker):
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(key))
         val = self.content.pop(key, default)
         if val is self.__marker:
             raise KeyError(key)
