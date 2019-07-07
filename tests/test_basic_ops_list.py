@@ -1,3 +1,4 @@
+import copy
 import re
 
 import pytest
@@ -357,3 +358,12 @@ def test_frozen_list_sort():
     with pytest.raises(FrozenConfigError):
         c.sort()
     assert c == [1, 2, 3]
+
+
+def test_deepcopy():
+    c1 = OmegaConf.create([1, 2, 3])
+    c2 = copy.deepcopy(c1)
+    assert c2 == c1
+    c1[0] = 10
+    assert c1[0] == 10
+    assert c2[0] == 1
