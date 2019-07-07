@@ -1,8 +1,10 @@
+import copy
 import re
 
-from pytest import raises
+import pytest
 
-from omegaconf import OmegaConf, DictConfig, ListConfig
+from omegaconf import *
+from . import IllegalType
 
 
 def test_repr_list():
@@ -65,7 +67,7 @@ def test_list_pop():
     assert c.pop(0) == 1
     assert c.pop() == 4
     assert c == [2, 3]
-    with raises(IndexError):
+    with pytest.raises(IndexError):
         c.pop(100)
 
 
@@ -89,7 +91,7 @@ def test_list_config_with_tuple():
 
 def test_items_on_list():
     c = OmegaConf.create([1, 2])
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         c.items()
 
 
@@ -110,7 +112,7 @@ def test_list_delitem():
     assert c == [1, 2, 3]
     del c[0]
     assert c == [2, 3]
-    with raises(IndexError):
+    with pytest.raises(IndexError):
         del c[100]
 
 
@@ -133,13 +135,8 @@ def test_assign_dict_in_list():
     assert isinstance(c[0], DictConfig)
 
 
-class IllegalType:
-    def __init__(self):
-        pass
-
-
 def test_nested_list_assign_illegal_value():
-    with raises(ValueError, match=re.escape("key a[0]")):
+    with pytest.raises(ValueError, match=re.escape("key a[0]")):
         c = OmegaConf.create(dict(a=[None]))
         c.a[0] = IllegalType()
 
@@ -211,7 +208,7 @@ def test_getattr():
     assert getattr(c, "0") == 'a'
     assert getattr(c, "1") == 'b'
     assert getattr(c, "2") == 'c'
-    with raises(AttributeError):
+    with pytest.raises(AttributeError):
         getattr(c, "anything")
 
 
@@ -237,3 +234,158 @@ def test_sort():
     assert ['c', 'aa', 'bbb'] == c
     c.sort(key=len, reverse=True)
     assert ['bbb', 'aa', 'c'] == c
+
+
+@pytest.mark.parametrize('l1,l2', [
+    # empty list
+    ([], []),
+    # simple list
+    (['a', 12, '15'], ['a', 12, '15']),
+    # raw vs any
+    ([1, 2, 12], [1, 2, nodes.UntypedNode(12)]),
+    # nested empty dict
+    ([12, dict()], [12, dict()]),
+    # nested dict
+    ([12, dict(c=10)], [12, dict(c=10)]),
+    # nested list
+    ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
+    # nested list with any
+    ([1, 2, 3, [1, 2, nodes.UntypedNode(3)]], [1, 2, 3, [1, 2, nodes.UntypedNode(3)]])
+])
+def test_list_eq(l1, l2):
+    c1 = OmegaConf.create(l1)
+    c2 = OmegaConf.create(l2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
+    eq(c1, l1)
+    eq(c2, l2)
+
+
+@pytest.mark.parametrize('input1, input2', [
+    ([], [10]),
+    ([10], [11]),
+    ([12], [nodes.UntypedNode(13)]),
+    ([12, dict()], [13, dict()]),
+    ([12, dict(c=10)], [13, dict(c=10)]),
+    ([12, [1, 2, 3]], [12, [10, 2, 3]]),
+    ([12, [1, 2, nodes.UntypedNode(3)]], [12, [1, 2, nodes.UntypedNode(30)]]),
+])
+def test_list_not_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def neq(a, b):
+        assert a != b
+        assert b != a
+        assert not a == b
+        assert not b == a
+
+    neq(c1, c2)
+
+
+def test_insert_throws_not_changing_list():
+    c = OmegaConf.create([])
+    with pytest.raises(ValueError):
+        c.insert(0, IllegalType())
+    assert len(c) == 0
+    assert c == []
+
+
+def test_append_throws_not_changing_list():
+    c = OmegaConf.create([])
+    with pytest.raises(ValueError):
+        c.append(IllegalType())
+    assert len(c) == 0
+    assert c == []
+
+
+def test_freeze_list():
+    c = OmegaConf.create([])
+    assert not c._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+
+
+def test_freeze_nested_list():
+    c = OmegaConf.create([[1]])
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    assert c[0]._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c[0].freeze(True)
+    assert not c._frozen()
+    assert c[0]._frozen()
+
+
+def test_frozen_list_insert():
+    c = OmegaConf.create([])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[0]'):
+        c.insert(0, 10)
+    assert c == []
+
+
+def test_frozen_list_append():
+    c = OmegaConf.create([])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[0]'):
+        c.append(10)
+    assert c == []
+
+
+def test_frozen_list_change_item():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        c[1] = 10
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_pop():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        c.pop(1)
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_del():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        del c[1]
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_sort():
+    c = OmegaConf.create([3, 1, 2])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError):
+        c.sort()
+    assert c == [3, 1, 2]
+
+
+def test_deepcopy():
+    c1 = OmegaConf.create([1, 2, 3])
+    c2 = copy.deepcopy(c1)
+    assert c2 == c1
+    c1[0] = 10
+    assert c1[0] == 10
+    assert c2[0] == 1

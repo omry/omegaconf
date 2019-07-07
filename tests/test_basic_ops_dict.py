@@ -2,10 +2,12 @@ import copy
 import re
 import tempfile
 
-from pytest import raises
+import pytest
 
-from omegaconf import MissingMandatoryValue
 from omegaconf import OmegaConf, DictConfig, Config
+from omegaconf import nodes
+from omegaconf.errors import MissingMandatoryValue, FrozenConfigError
+from . import IllegalType
 
 
 def test_setattr_value():
@@ -67,13 +69,13 @@ def test_is_empty_dict():
 
 def test_mandatory_value():
     c = OmegaConf.create(dict(a='???'))
-    with raises(MissingMandatoryValue, match='a'):
+    with pytest.raises(MissingMandatoryValue, match='a'):
         c.a
 
 
 def test_nested_dict_mandatory_value():
     c = OmegaConf.create(dict(a=dict(b='???')))
-    with raises(MissingMandatoryValue):
+    with pytest.raises(MissingMandatoryValue):
         c.a.b
 
 
@@ -191,10 +193,7 @@ def test_pickle_get_root():
 
 
 def test_iterate_dictionary():
-    c = OmegaConf.create('''
-    a : 1
-    b : 2
-    ''')
+    c = OmegaConf.create(dict(a=1, b=2))
     m2 = {}
     for key in c:
         m2[key] = c[key]
@@ -202,12 +201,7 @@ def test_iterate_dictionary():
 
 
 def test_items():
-    c = OmegaConf.create('''
-    a:
-      v: 1
-    b:
-      v: 1
-    ''')
+    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
     for k, v in c.items():
         v.v = 2
 
@@ -220,7 +214,7 @@ def test_dict_pop():
     assert c.pop('a') == 1
     assert c.pop('not_found', 'default') == 'default'
     assert c == {'b': 2}
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         c.pop('not_found')
 
 
@@ -296,7 +290,7 @@ def test_dict_delitem():
     assert c == dict(a=10, b=11)
     del c['a']
     assert c == dict(b=11)
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         del c['not_found']
 
 
@@ -305,19 +299,14 @@ def test_dict_len():
     assert len(c) == 2
 
 
-class IllegalType:
-    def __init__(self):
-        pass
-
-
 def test_dict_assign_illegal_value():
-    with raises(ValueError, match=re.escape("key a")):
+    with pytest.raises(ValueError, match=re.escape("key a")):
         c = OmegaConf.create(dict())
         c.a = IllegalType()
 
 
 def test_dict_assign_illegal_value_nested():
-    with raises(ValueError, match=re.escape("key a.b")):
+    with pytest.raises(ValueError, match=re.escape("key a.b")):
         c = OmegaConf.create(dict(a=dict()))
         c.a.b = IllegalType()
 
@@ -361,10 +350,136 @@ def test_pretty_with_resolve():
 
 
 def test_instantiate_config_fails():
-    with raises(NotImplementedError):
+    with pytest.raises(NotImplementedError):
         Config()
 
 
 def test_dir():
     c = OmegaConf.create(dict(a=1, b=2, c=3))
     assert ['a', 'b', 'c'] == dir(c)
+
+
+@pytest.mark.parametrize('input1, input2', [
+    # empty
+    (dict(), dict()),
+    # simple
+    (dict(a=12), dict(a=12)),
+    # any vs raw
+    (dict(a=12), dict(a=nodes.UntypedNode(12))),
+    # nested dict empty
+    (dict(a=12, b=dict()), dict(a=12, b=dict())),
+    # nested dict
+    (dict(a=12, b=dict(c=10)), dict(a=12, b=dict(c=10))),
+    # nested list
+    (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
+    # nested list with any
+    (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(3)])),
+])
+def test_dict_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
+    eq(c1, input1)
+    eq(c2, input2)
+
+
+@pytest.mark.parametrize('input1, input2', [
+    (dict(), dict(a=10)),
+    (dict(a=12), dict(a=13)),
+    (dict(a=12), dict(a=nodes.UntypedNode(13))),
+    (dict(a=12, b=dict()), dict(a=13, b=dict())),
+    (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
+    (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
+    (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(30)])),
+])
+def test_dict_not_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def neq(a, b):
+        assert a != b
+        assert b != a
+        assert not a == b
+        assert not b == a
+
+    neq(c1, c2)
+
+
+def test_dict_not_eq_with_another_class():
+    assert OmegaConf.create() != "string"
+
+
+def test_freeze_dict():
+    c = OmegaConf.create()
+    assert not c._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+
+
+def test_freeze_nested_dict():
+    c = OmegaConf.create(dict(a=dict(b=2)))
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    assert c.a._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.a.freeze(True)
+    assert not c._frozen()
+    assert c.a._frozen()
+
+
+def test_frozen_dict_add_field():
+    c = OmegaConf.create()
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.a = 1
+    assert c == {}
+
+
+def test_frozen_dict_update():
+    c = OmegaConf.create()
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.update("a.b", 10)
+    assert c == {}
+
+
+def test_frozen_dict_change_leaf():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.a = 20
+    assert c == dict(a=10)
+
+
+def test_frozen_dict_pop():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.pop('a')
+    assert c == dict(a=10)
+
+
+def test_frozen_dict_del():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        del c['a']
+    assert c == dict(a=10)
