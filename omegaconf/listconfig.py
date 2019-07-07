@@ -136,3 +136,24 @@ class ListConfig(Config):
     def __hash__(self):
         # TODO: should actually iterate
         return hash(str(self))
+
+    def __iter__(self):
+        class MyItems(object):
+            def __init__(self, l):
+                self.lst = l
+                self.iterator = iter(l)
+
+            def __iter__(self):
+                return self
+
+            # Python 3 compatibility
+            def __next__(self):
+                return self.next()
+
+            def next(self):
+                v = next(self.iterator)
+                if isinstance(v, BaseNode):
+                    v = v.value()
+                return v
+
+        return MyItems(self.content)

@@ -392,7 +392,9 @@ def test_dict_eq(input1, input2):
 
 @pytest.mark.parametrize('input1, input2', [
     (dict(), dict(a=10)),
+    ({}, []),
     (dict(a=12), dict(a=13)),
+    (dict(a=0), dict(b=0)),
     (dict(a=12), dict(a=nodes.UntypedNode(13))),
     (dict(a=12, b=dict()), dict(a=13, b=dict())),
     (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
@@ -410,6 +412,12 @@ def test_dict_not_eq(input1, input2):
         assert not b == a
 
     neq(c1, c2)
+
+
+def test_config_eq_mismatch_types():
+    c1 = OmegaConf.create({})
+    c2 = OmegaConf.create([])
+    assert not Config._config_eq(c1, c2)
 
 
 def test_dict_not_eq_with_another_class():
@@ -483,3 +491,11 @@ def test_frozen_dict_del():
     with pytest.raises(FrozenConfigError, match='a'):
         del c['a']
     assert c == dict(a=10)
+
+
+def test_hash():
+    c1 = OmegaConf.create(dict(a=10))
+    c2 = OmegaConf.create(dict(a=10))
+    assert hash(c1) == hash(c2)
+    c2.a = 20
+    assert hash(c1) != hash(c2)

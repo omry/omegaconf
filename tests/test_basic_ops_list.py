@@ -389,3 +389,11 @@ def test_deepcopy():
     c1[0] = 10
     assert c1[0] == 10
     assert c2[0] == 1
+
+
+def test_hash():
+    c1 = OmegaConf.create([10])
+    c2 = OmegaConf.create([10])
+    assert hash(c1) == hash(c2)
+    c2[0] = 20
+    assert hash(c1) != hash(c2)

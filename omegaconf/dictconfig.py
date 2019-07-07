@@ -81,6 +81,9 @@ class DictConfig(Config):
     def keys(self):
         return self.content.keys()
 
+    def __iter__(self):
+        return iter(self.keys())
+
     def items(self):
         class MyItems(object):
             def __init__(self, m):
