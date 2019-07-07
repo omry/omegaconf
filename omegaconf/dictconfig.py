@@ -30,7 +30,6 @@ class DictConfig(Config):
             if not isinstance(value, BaseNode):
                 value = UntypedNode(value)
             else:
-                # TODO? is this deepcopy needed?
                 value = copy.deepcopy(value)
             self.__dict__['content'][key] = value
 

@@ -1,10 +1,11 @@
+import copy
 import itertools
 
 import six
 
 from .config import Config, isint
-from .nodes import BaseNode, UntypedNode
 from .errors import FrozenConfigError
+from .nodes import BaseNode, UntypedNode
 
 
 class ListConfig(Config):
@@ -60,9 +61,8 @@ class ListConfig(Config):
         else:
             if not isinstance(value, BaseNode):
                 value = UntypedNode(value)
-            # TODO: deep copy?
-            # else:
-            #     value = copy.deepcopy(value)
+            else:
+                value = copy.deepcopy(value)
             self.__dict__['content'][index] = value
 
     def __setitem__(self, index, value):
