@@ -1,7 +1,8 @@
 import re
 
 import pytest
-from omegaconf import OmegaConf, DictConfig, ListConfig, nodes
+
+from omegaconf import *
 from . import IllegalType
 
 
@@ -279,3 +280,80 @@ def test_append_throws_not_changing_list():
         c.append(IllegalType())
     assert len(c) == 0
     assert c == []
+
+
+def test_freeze_list():
+    c = OmegaConf.create([])
+    assert not c._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+
+
+def test_freeze_nested_list():
+    c = OmegaConf.create([[1]])
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    assert c[0]._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+    assert not c[0]._frozen()
+    c[0].freeze(True)
+    assert not c._frozen()
+    assert c[0]._frozen()
+
+
+def test_frozen_list_insert():
+    c = OmegaConf.create([])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[0]'):
+        c.insert(0, 10)
+    assert c == []
+
+
+def test_frozen_list_append():
+    c = OmegaConf.create([])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[0]'):
+        c.append(10)
+    assert c == []
+
+
+def test_frozen_list_change_item():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        c[1] = 10
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_pop():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        c.pop(1)
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_del():
+    c = OmegaConf.create([1, 2, 3])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='[1]'):
+        del c[1]
+    assert c == [1, 2, 3]
+
+
+def test_frozen_list_sort():
+    c = OmegaConf.create([3, 1, 2])
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError):
+        c.sort()
+    assert c == [1, 2, 3]

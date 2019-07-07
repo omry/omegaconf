@@ -9,7 +9,7 @@ from abc import abstractmethod
 import six
 import yaml
 
-from .errors import MissingMandatoryValue
+from .errors import MissingMandatoryValue, FrozenConfigError
 from .nodes import BaseNode
 
 
@@ -66,6 +66,34 @@ class Config(object):
         while root.__dict__['parent'] is not None:
             root = root.__dict__['parent']
         return root
+
+    def freeze(self, flag):
+        """
+        Freezes this config object
+        A frozen config cannot be modified.
+        If an attempt ot modify is made a FrozenConfigError will be thrown
+        By default config objects are not frozen
+        :param flag: True: freeze. False unfreeze, None sets back to default behavior (inherit from parent)
+        :return:
+        """
+        assert flag is None or isinstance(flag, bool)
+        self.__dict__['frozen_flag'] = flag
+
+    def _frozen(self):
+        """
+        Returns True if this config node is frozen.
+        A node is frozen if node.freeze(True) was called
+        or one if it's parents is frozen
+        :return:
+        """
+        if self.__dict__['frozen_flag'] is not None:
+            return self.__dict__['frozen_flag']
+
+        # root leaf, and frozen is not set.
+        if self.__dict__['parent'] is None:
+            return False
+        else:
+            return self.__dict__['parent']._frozen()
 
     @abstractmethod
     def get(self, key, default_value=None):
@@ -159,6 +187,8 @@ class Config(object):
         self.__dict__.update(d)
 
     def __delitem__(self, key):
+        if self._frozen():
+            raise FrozenConfigError(self.get_full_key(key))
         self.content.__delitem__(key)
 
     def __len__(self):

@@ -7,3 +7,9 @@ class ValidationError(Exception):
     """
     Thrown when a value fails validation
     """
+
+
+class FrozenConfigError(Exception):
+    """
+    Thrown when someone tries to modify a frozen config
+    """

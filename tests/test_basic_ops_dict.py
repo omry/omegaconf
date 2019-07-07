@@ -6,7 +6,7 @@ import pytest
 
 from omegaconf import OmegaConf, DictConfig, Config
 from omegaconf import nodes
-from omegaconf.errors import MissingMandatoryValue
+from omegaconf.errors import MissingMandatoryValue, FrozenConfigError
 from . import IllegalType
 
 
@@ -388,3 +388,72 @@ def dict_eq_test(d1, d2):
 ])
 def dict_eq(input_, expected):
     dict_eq_test(input_, expected)
+
+
+def test_freeze_dict():
+    c = OmegaConf.create()
+    assert not c._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+
+
+def test_freeze_nested_dict():
+    c = OmegaConf.create(dict(a=dict(b=2)))
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.freeze(True)
+    assert c._frozen()
+    assert c.a._frozen()
+    c.freeze(False)
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.freeze(None)
+    assert not c._frozen()
+    assert not c.a._frozen()
+    c.a.freeze(True)
+    assert not c._frozen()
+    assert c.a._frozen()
+
+
+def test_frozen_dict_add_field():
+    c = OmegaConf.create()
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.a = 1
+    assert c == {}
+
+
+def test_frozen_dict_update():
+    c = OmegaConf.create()
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.update("a.b", 10)
+    assert c == {}
+
+
+def test_frozen_dict_change_leaf():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.a = 20
+    assert c == dict(a=10)
+
+
+def test_frozen_dict_pop():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        c.pop('a')
+    assert c == dict(a=10)
+
+
+def test_frozen_dict_del():
+    c = OmegaConf.create(dict(a=10))
+    c.freeze(True)
+    with pytest.raises(FrozenConfigError, match='a'):
+        del c['a']
+    assert c == dict(a=10)
