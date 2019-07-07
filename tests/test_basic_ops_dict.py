@@ -359,18 +359,7 @@ def test_dir():
     assert ['a', 'b', 'c'] == dir(c)
 
 
-def dict_eq_test(d1, d2):
-    c1 = OmegaConf.create(d1)
-    c2 = OmegaConf.create(d2)
-    assert c1 == c2
-    assert c1 == d1
-    assert d2 == c2
-    assert not c1 != c2
-    assert not c1 != d1
-    assert not d2 != c2
-
-
-@pytest.mark.parametrize('input_, expected', [
+@pytest.mark.parametrize('input1, input2', [
     # empty
     (dict(), dict()),
     # simple
@@ -386,8 +375,45 @@ def dict_eq_test(d1, d2):
     # nested list with any
     (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(3)])),
 ])
-def dict_eq(input_, expected):
-    dict_eq_test(input_, expected)
+def test_dict_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
+    eq(c1, input1)
+    eq(c2, input2)
+
+
+@pytest.mark.parametrize('input1, input2', [
+    (dict(), dict(a=10)),
+    (dict(a=12), dict(a=13)),
+    (dict(a=12), dict(a=nodes.UntypedNode(13))),
+    (dict(a=12, b=dict()), dict(a=13, b=dict())),
+    (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
+    (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
+    (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(30)])),
+])
+def test_dict_not_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def neq(a, b):
+        assert a != b
+        assert b != a
+        assert not a == b
+        assert not b == a
+
+    neq(c1, c2)
+
+
+def test_dict_not_eq_with_another_class():
+    assert OmegaConf.create() != "string"
 
 
 def test_freeze_dict():

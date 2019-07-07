@@ -236,18 +236,7 @@ def test_sort():
     assert ['bbb', 'aa', 'c'] == c
 
 
-def list_eq_test(l1, l2):
-    c1 = OmegaConf.create(l1)
-    c2 = OmegaConf.create(l2)
-    assert c1 == c2
-    assert c1 == l1
-    assert l2 == c2
-    assert not c1 != c2
-    assert not c1 != l1
-    assert not l2 != c2
-
-
-@pytest.mark.parametrize('lst1,lst2', [
+@pytest.mark.parametrize('l1,l2', [
     # empty list
     ([], []),
     # simple list
@@ -263,8 +252,41 @@ def list_eq_test(l1, l2):
     # nested list with any
     ([1, 2, 3, [1, 2, nodes.UntypedNode(3)]], [1, 2, 3, [1, 2, nodes.UntypedNode(3)]])
 ])
-def test_list_eq(lst1, lst2):
-    list_eq_test(lst1, lst2)
+def test_list_eq(l1, l2):
+    c1 = OmegaConf.create(l1)
+    c2 = OmegaConf.create(l2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
+    eq(c1, l1)
+    eq(c2, l2)
+
+
+@pytest.mark.parametrize('input1, input2', [
+    ([], [10]),
+    ([10], [11]),
+    ([12], [nodes.UntypedNode(13)]),
+    ([12, dict()], [13, dict()]),
+    ([12, dict(c=10)], [13, dict(c=10)]),
+    ([12, [1, 2, 3]], [12, [10, 2, 3]]),
+    ([12, [1, 2, nodes.UntypedNode(3)]], [12, [1, 2, nodes.UntypedNode(30)]]),
+])
+def test_list_not_eq(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def neq(a, b):
+        assert a != b
+        assert b != a
+        assert not a == b
+        assert not b == a
+
+    neq(c1, c2)
 
 
 def test_insert_throws_not_changing_list():
@@ -357,7 +379,7 @@ def test_frozen_list_sort():
     c.freeze(True)
     with pytest.raises(FrozenConfigError):
         c.sort()
-    assert c == [1, 2, 3]
+    assert c == [3, 1, 2]
 
 
 def test_deepcopy():
