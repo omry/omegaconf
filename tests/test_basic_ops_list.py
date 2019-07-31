@@ -62,6 +62,15 @@ def test_iterate_list():
     assert items[1] == 2
 
 
+def test_items_with_interpolation():
+    c = OmegaConf.create([
+        'foo',
+        '${0}'
+    ])
+
+    assert c == ['foo', 'foo']
+
+
 def test_list_pop():
     c = OmegaConf.create([1, 2, 3, 4])
     assert c.pop(0) == 1
@@ -265,6 +274,22 @@ def test_list_eq(l1, l2):
     eq(c1, c2)
     eq(c1, l1)
     eq(c2, l2)
+
+
+@pytest.mark.parametrize('l1,l2', [
+    ([10, '${0}'], [10, 10])
+])
+def test_list_eq_with_interpolation(l1, l2):
+    c1 = OmegaConf.create(l1)
+    c2 = OmegaConf.create(l2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
 
 
 @pytest.mark.parametrize('input1, input2', [

@@ -7,6 +7,7 @@ import copy
 class DictConfig(Config):
 
     def __init__(self, content, parent=None):
+        super(DictConfig, self).__init__()
         assert isinstance(content, dict)
         self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = {}
@@ -84,7 +85,7 @@ class DictConfig(Config):
     def __iter__(self):
         return iter(self.keys())
 
-    def items(self):
+    def items(self, resolve=True):
         class MyItems(object):
             def __init__(self, m):
                 self.map = m
@@ -99,9 +100,12 @@ class DictConfig(Config):
 
             def next(self):
                 k = next(self.iterator)
-                v = self.map.content[k]
-                if isinstance(v, BaseNode):
-                    v = v.value()
+                if resolve:
+                    v = self.map.get(k)
+                else:
+                    v = self.map.content[k]
+                    if isinstance(v, BaseNode):
+                        v = v.value()
                 kv = (k, v)
                 return kv
 
@@ -109,9 +113,9 @@ class DictConfig(Config):
 
     def __eq__(self, other):
         if isinstance(other, dict):
-            return Config._dict_eq(self.content, other)
+            return Config._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
-            return Config._dict_eq(self.content, other.content)
+            return Config._dict_conf_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other):

@@ -10,6 +10,7 @@ from .nodes import BaseNode, UntypedNode
 
 class ListConfig(Config):
     def __init__(self, content, parent=None):
+        super(ListConfig, self).__init__()
         assert isinstance(content, (list, tuple))
         self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = []
@@ -122,9 +123,9 @@ class ListConfig(Config):
 
     def __eq__(self, other):
         if isinstance(other, list):
-            return Config._list_eq(self.content, other)
+            return Config._list_eq(self, ListConfig(other))
         if isinstance(other, ListConfig):
-            return Config._list_eq(self.content, other.content)
+            return Config._list_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other):
