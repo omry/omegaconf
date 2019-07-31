@@ -6,7 +6,7 @@ import pytest
 
 from omegaconf import OmegaConf, DictConfig, Config
 from omegaconf import nodes
-from omegaconf.errors import MissingMandatoryValue, FrozenConfigError
+from omegaconf.errors import MissingMandatoryValue
 from . import IllegalType
 
 
@@ -144,8 +144,27 @@ def test_map_expansion():
 
 
 def test_items():
-    c = OmegaConf.create('{a: 2, b: 10}')
-    assert {'a': 2, 'b': 10}.items() == c.items()
+    c = OmegaConf.create(dict(a=2, b=10))
+    assert sorted([('a', 2), ('b', 10)]) == sorted(list(c.items()))
+
+
+def test_items2():
+    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
+    for k, v in c.items():
+        v.v = 2
+
+    assert c.a.v == 2
+    assert c.b.v == 2
+
+
+def test_items_with_interpolation():
+    c = OmegaConf.create(
+        dict(
+            a=2,
+            b='${a}'
+        )
+    )
+    assert list({'a': 2, 'b': 2}.items()) == list(c.items())
 
 
 def test_dict_keys():
@@ -198,15 +217,6 @@ def test_iterate_dictionary():
     for key in c:
         m2[key] = c[key]
     assert m2 == c
-
-
-def test_items():
-    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
-    for k, v in c.items():
-        v.v = 2
-
-    assert c.a.v == 2
-    assert c.b.v == 2
 
 
 def test_dict_pop():
@@ -391,6 +401,22 @@ def test_dict_eq(input1, input2):
 
 
 @pytest.mark.parametrize('input1, input2', [
+    (dict(a=12, b='${a}'), dict(a=12, b=12)),
+])
+def test_dict_eq_with_interpolation(input1, input2):
+    c1 = OmegaConf.create(input1)
+    c2 = OmegaConf.create(input2)
+
+    def eq(a, b):
+        assert a == b
+        assert b == a
+        assert not a != b
+        assert not b != a
+
+    eq(c1, c2)
+
+
+@pytest.mark.parametrize('input1, input2', [
     (dict(), dict(a=10)),
     ({}, []),
     (dict(a=12), dict(a=13)),
@@ -422,7 +448,6 @@ def test_config_eq_mismatch_types():
 
 def test_dict_not_eq_with_another_class():
     assert OmegaConf.create() != "string"
-
 
 
 def test_hash():

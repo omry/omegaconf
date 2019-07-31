@@ -39,10 +39,8 @@ def get_yaml_loader():
 class Config(object):
 
     def __init__(self):
-        """
-        Can't be instantiated
-        """
-        raise NotImplementedError
+        if type(self) == Config:
+            raise NotImplementedError
 
     def save(self, f):
         data = self.pretty()
@@ -138,7 +136,7 @@ class Config(object):
                     full_key = "{}".format(key)
                 else:
                     for parent_key, v in parent.items():
-                        if v == child:
+                        if id(v) == id(child):
                             if isinstance(child, ListConfig):
                                 full_key = "{}{}".format(parent_key, full_key)
                             else:
@@ -149,7 +147,7 @@ class Config(object):
                     full_key = "[{}]".format(key)
                 else:
                     for idx, v in enumerate(parent):
-                        if v == child:
+                        if id(v) == id(child):
                             if isinstance(child, ListConfig):
                                 full_key = "[{}]{}".format(idx, full_key)
                             else:
@@ -288,12 +286,10 @@ class Config(object):
         assert isinstance(conf, Config)
         if isinstance(conf, DictConfig):
             ret = {}
-            for key, value in conf.items():
+            for key, value in conf.items(resolve=resolve):
                 if isinstance(value, Config):
                     ret[key] = Config._to_content(value, resolve)
                 else:
-                    if resolve:
-                        value = conf[key]
                     ret[key] = value
             return ret
         elif isinstance(conf, ListConfig):
@@ -365,7 +361,7 @@ class Config(object):
             # update parents of first level Config nodes to self
             assert isinstance(node, (DictConfig, ListConfig))
             if isinstance(node, DictConfig):
-                for _key, value in node.items():
+                for _key, value in node.items(resolve=False):
                     if isinstance(value, Config):
                         value._set_parent(node)
                         re_parent(value)
@@ -445,11 +441,20 @@ class Config(object):
         return isinstance(value, tuple(valid))
 
     @staticmethod
-    def _item_eq(v1, v2):
+    def _item_eq(c1, k1, c2, k2):
+        v1 = c1.content[k1]
+        v2 = c2.content[k2]
         if isinstance(v1, BaseNode):
             v1 = v1.value()
+            if isinstance(v1, str):
+                # noinspection PyProtectedMember
+                v1 = c1._resolve_single(v1)
         if isinstance(v2, BaseNode):
             v2 = v2.value()
+            if isinstance(v2, str):
+                # noinspection PyProtectedMember
+                v2 = c2._resolve_single(v2)
+
         if isinstance(v1, Config) and isinstance(v2, Config):
             if not Config._config_eq(v1, v2):
                 return False
@@ -457,22 +462,22 @@ class Config(object):
 
     @staticmethod
     def _list_eq(l1, l2):
-        assert isinstance(l1, list)
-        assert isinstance(l2, list)
+        from .listconfig import ListConfig
+        assert isinstance(l1, ListConfig)
+        assert isinstance(l2, ListConfig)
         if len(l1) != len(l2):
             return False
         for i in range(len(l1)):
-            v1 = l1[i]
-            v2 = l2[i]
-            if not Config._item_eq(v1, v2):
+            if not Config._item_eq(l1, i, l2, i):
                 return False
 
         return True
 
     @staticmethod
-    def _dict_eq(d1, d2):
-        assert isinstance(d1, dict)
-        assert isinstance(d2, dict)
+    def _dict_conf_eq(d1, d2):
+        from .dictconfig import DictConfig
+        assert isinstance(d1, DictConfig)
+        assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
             return False
         k1 = sorted(d1.keys())
@@ -480,9 +485,7 @@ class Config(object):
         if k1 != k2:
             return False
         for k in k1:
-            v1 = d1[k]
-            v2 = d2[k]
-            if not Config._item_eq(v1, v2):
+            if not Config._item_eq(d1, k, d2, k):
                 return False
 
         return True
@@ -494,8 +497,8 @@ class Config(object):
         assert isinstance(c1, Config)
         assert isinstance(c2, Config)
         if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
-            return Config._dict_eq(c1.content, c2.content)
+            return DictConfig._dict_conf_eq(c1, c2)
         if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
-            return Config._list_eq(c1.content, c2.content)
+            return Config._list_eq(c1, c2)
         # if type does not match objects are different
         return False
