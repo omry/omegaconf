@@ -164,7 +164,11 @@ def test_items_with_interpolation():
             b='${a}'
         )
     )
-    assert list({'a': 2, 'b': 2}.items()) == list(c.items())
+    r = {}
+    for k, v in c.items():
+        r[k] = v
+    assert r['a'] == 2
+    assert r['b'] == 2
 
 
 def test_dict_keys():
