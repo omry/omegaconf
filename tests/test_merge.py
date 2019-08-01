@@ -150,3 +150,9 @@ def test_merge_with_interpolation():
     merged.data = 456
     assert merged.reference == 456
     assert merged.data == 456
+
+
+def test_merge_with_none():
+    with pytest.raises(ValueError):
+        a = OmegaConf.create([1, 2, 3])
+        OmegaConf.merge(a, None)

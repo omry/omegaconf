@@ -350,6 +350,8 @@ class Config(object):
         from .dictconfig import DictConfig
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
+            if other is None:
+                raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 self.__dict__['content'] = Config.map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
