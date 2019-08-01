@@ -384,6 +384,8 @@ def test_dir():
     (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
     # nested list with any
     (dict(a=12, b=[1, 2, nodes.UntypedNode(3)]), dict(a=12, b=[1, 2, nodes.UntypedNode(3)])),
+    # In python 3.6 insert order changes iteration order. this ensures that equality is preserved.
+    (dict(a=1, b=2, c=3, d=4, e=5), dict(e=5, b=2, c=3, d=4, a=1)),
 ])
 def test_dict_eq(input1, input2):
     c1 = OmegaConf.create(input1)
