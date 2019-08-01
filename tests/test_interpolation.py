@@ -201,7 +201,7 @@ def test_register_resolver_1():
         OmegaConf.clear_resolvers()
 
 
-def test_register_resolver_2():
+def test_resolver_cache_1():
     # resolvers are always converted to stateless idempotent functions
     # subsequent calls to the same function with the same argument will always return the same value.
     # this is important to allow embedding of functions like time() without having the value change during
@@ -212,6 +212,25 @@ def test_register_resolver_2():
             k='${random:_}',
         ))
         assert c.k == c.k
+    finally:
+        OmegaConf.clear_resolvers()
+
+
+def test_resolver_cache_2():
+    """
+    Tests that resolver cache is not shared between different OmegaConf objects 
+    """
+    try:
+        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+        c1 = OmegaConf.create(dict(
+            k='${random:_}',
+        ))
+        c2 = OmegaConf.create(dict(
+            k='${random:_}',
+        ))
+        assert c1.k != c2.k
+        assert c1.k == c1.k
+        assert c2.k == c2.k
     finally:
         OmegaConf.clear_resolvers()
 
