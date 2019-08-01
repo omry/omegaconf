@@ -65,6 +65,15 @@ class Config(object):
             root = root.__dict__['parent']
         return root
 
+    # noinspection PyProtectedMember
+    def __del__(self):
+        if self.__dict__['parent'] is None:
+            from .omegaconf import OmegaConf
+            # root node, remove resolver cache
+            id_ = id(self)
+            if id_ in OmegaConf._resolvers_cache:
+                del OmegaConf._resolvers_cache[id_]
+
     def freeze(self, flag):
         """
         Freezes this config object
@@ -387,7 +396,7 @@ class Config(object):
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
-                ret = resolver(inter_key)
+                ret = resolver(root_node, inter_key)
             else:
                 raise ValueError("Unsupported interpolation type {}".format(inter_type))
 
