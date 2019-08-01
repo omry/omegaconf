@@ -67,7 +67,7 @@ class Config(object):
 
     # noinspection PyProtectedMember
     def __del__(self):
-        if self.__dict__['parent'] is None:
+        if 'parent' not in self.__dict__ or self.__dict__['parent'] is None:
             from .omegaconf import OmegaConf
             # root node, remove resolver cache
             id_ = id(self)
