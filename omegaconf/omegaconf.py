@@ -136,15 +136,15 @@ class OmegaConf:
         return target
 
     _resolvers = {}
-    _resolvers_cache = defaultdict(dict)
+    _resolvers_cache = defaultdict(lambda: defaultdict(dict))
 
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
         assert name not in OmegaConf._resolvers, "resolved {} is already registered".format(name)
 
-        def caching(key):
-            cache = OmegaConf._resolvers_cache[name]
+        def caching(config, key):
+            cache = OmegaConf._resolvers_cache[id(config)][name]
             val = cache[key] if key in cache else resolver(key)
             cache[key] = val
             return val
@@ -158,7 +158,7 @@ class OmegaConf:
     @staticmethod
     def clear_resolvers():
         OmegaConf._resolvers = {}
-        OmegaConf._resolvers_cache = defaultdict(dict)
+        OmegaConf._resolvers_cache = defaultdict(lambda: defaultdict(dict))
         register_default_resolvers()
 
 
