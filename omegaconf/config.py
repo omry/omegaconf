@@ -334,7 +334,7 @@ class Config(object):
         dest = dest.content
         dest = copy.deepcopy(dest)
         src = copy.deepcopy(src)
-        for key, value in src.items():
+        for key, value in src.items(resolve=False):
             if key in dest:
                 if isinstance(dest[key].value(), Config):
                     if isinstance(value, Config):

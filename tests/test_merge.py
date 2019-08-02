@@ -33,31 +33,29 @@ def test_dict_merge_3():
     assert {'a': {'a1': 2, 'a2': 2}} == c
 
 
-@pytest.mark.parametrize('a_, b_, expected', [
+@pytest.mark.parametrize('inputs, expected', [
     # dictionaries
-    (dict(a=None), dict(b=None), dict(a=None, b=None)),
-    (dict(a=1, b=2), dict(b=3), dict(a=1, b=3)),
-    (dict(a=1, b=2), dict(b=dict(c=3)), dict(a=1, b=dict(c=3))),
-    (dict(b=dict(c=1)), dict(b=1), dict(b=1)),
-    (dict(list=[1, 2, 3]), dict(list=[4, 5, 6]), dict(list=[4, 5, 6])),
-    (dict(a=1), dict(a=nodes.IntegerNode(10)), dict(a=10)),
-    (dict(a=1), dict(a=nodes.IntegerNode(10)), dict(a=nodes.IntegerNode(10))),
-    (dict(a=nodes.IntegerNode(10)), dict(a=1), dict(a=1)),
-    (dict(a=nodes.IntegerNode(10)), dict(a=1), dict(a=nodes.IntegerNode(1))),
+    ((dict(a=None), dict(b=None)), dict(a=None, b=None)),
+    ((dict(a=1, b=2), dict(b=3)), dict(a=1, b=3)),
+    ((dict(a=1, b=2), dict(b=dict(c=3))), dict(a=1, b=dict(c=3))),
+    ((dict(b=dict(c=1)), dict(b=1)), dict(b=1)),
+    ((dict(list=[1, 2, 3]), dict(list=[4, 5, 6])), dict(list=[4, 5, 6])),
+    ((dict(a=1), dict(a=nodes.IntegerNode(10))), dict(a=10)),
+    ((dict(a=1), dict(a=nodes.IntegerNode(10))), dict(a=nodes.IntegerNode(10))),
+    ((dict(a=nodes.IntegerNode(10)), dict(a=1)), dict(a=1)),
+    ((dict(a=nodes.IntegerNode(10)), dict(a=1)), dict(a=nodes.IntegerNode(1))),
     # lists
-    ([1, 2, 3], [4, 5, 6], [4, 5, 6]),
-    ([[1, 2, 3]], [[4, 5, 6]], [[4, 5, 6]]),
-    ([1, 2, dict(a=10)], [4, 5, dict(b=20)], [4, 5, dict(b=20)]),
+    (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
+    (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
+    (([1, 2, dict(a=10)], [4, 5, dict(b=20)]), [4, 5, dict(b=20)]),
+    # Interpolations
+    ((dict(data=123, reference='${data}'), dict(data=456)), dict(data=456, reference=456)),
+    ((dict(missing='${data}'), dict(missing=123)), dict(missing=123)),
+    ((dict(missing=123), dict(missing='${data}'), dict(missing=456)), dict(missing=456)),
 ])
-def test_merge(a_, b_, expected):
-    a = OmegaConf.create(a_)
-    b = OmegaConf.create(b_)
-    c = OmegaConf.merge(a, b)
-    # verify merge did not touch input
-    assert a == a_
-    assert b == b_
-    # verify merge result is expected
-    assert expected == c
+def test_merge(inputs, expected):
+    configs = [OmegaConf.create(c) for c in inputs]
+    assert OmegaConf.merge(*configs) == expected
 
 
 # like above but don't verify merge does not change because even eq does not work no tuples because we convert
@@ -99,37 +97,11 @@ def test_3way_dict_merge():
     assert {'a': 2, 'b': 3, 'c': 3} == c4
 
 
-def test_nested_map_merge_bug():
-    cfg = """
-launcher:
-  queue: a
-  queues:
-    local:
-      clazz: foo
-
-"""
-    cli = """
-launcher:
-  instances: 2
-"""
-    cfg = OmegaConf.create(cfg)
-    cli = OmegaConf.create(cli)
-    ret = OmegaConf.merge(cfg, cli)
-    assert ret.launcher.queues is not None
-
-
 def test_merge_list_list():
     a = OmegaConf.create([1, 2, 3])
     b = OmegaConf.create([4, 5, 6])
     a.merge_with(b)
     assert a == b
-
-
-def test_merge_with_exception():
-    a = OmegaConf.create({})
-    b = OmegaConf.create([])
-    with pytest.raises(TypeError):
-        a.merge_with(b)
 
 
 def test_merge_list_list__deprecated():
@@ -139,20 +111,14 @@ def test_merge_list_list__deprecated():
     assert a == b
 
 
-def test_merge_with_interpolation():
-    src = dict(
-        data=123,
-        reference='${data}'
-    )
-    a = OmegaConf.create(src)
-    b = OmegaConf.create(src)
-    merged = OmegaConf.merge(a, b)
-    merged.data = 456
-    assert merged.reference == 456
-    assert merged.data == 456
-
-
-def test_merge_with_none():
-    with pytest.raises(ValueError):
-        a = OmegaConf.create([1, 2, 3])
-        OmegaConf.merge(a, None)
+@pytest.mark.parametrize('base, merge, exception', [
+    ({}, [], TypeError),
+    ([], {}, TypeError),
+    ([1, 2, 3], None, ValueError),
+    (dict(a=10), None, ValueError),
+])
+def test_merge_error(base, merge, exception):
+    base = OmegaConf.create(base)
+    merge = None if merge is None else OmegaConf.create(merge)
+    with pytest.raises(exception):
+        OmegaConf.merge(base, merge)
