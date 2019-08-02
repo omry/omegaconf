@@ -1,8 +1,7 @@
 import os
 import random
 
-from pytest import raises
-import six
+import pytest
 
 from omegaconf import OmegaConf
 
@@ -23,8 +22,8 @@ def test_str_interpolation_key_error_1():
         a='${not_found}',
     ))
 
-    with raises(KeyError):
-        c.a
+    with pytest.raises(KeyError):
+        _ = c.a
 
 
 def test_str_interpolation_key_error_2():
@@ -33,7 +32,7 @@ def test_str_interpolation_key_error_2():
         a='${not.found}',
     ))
 
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         c.a
 
 
@@ -114,20 +113,17 @@ def test_complex_str_interpolation_is_always_str_1():
     assert c.inter2 == '42'
 
 
-def test_interpolation_fails_on_config():
-    # Test that a ValueError is thrown if an string interpolation used on config value
-    c = OmegaConf.create(dict(
-        config_obj=dict(
-            value1=42,
-            value2=43,
-        ),
-        deep=dict(
-            inside='${config_obj}',
-        ),
-    ))
-
-    with raises(ValueError):
-        c.deep.inside
+@pytest.mark.parametrize('input_,key,expected', [
+    (dict(a=10, b='${a}'), 'b', 10),
+    (dict(a=10, b=[1, '${a}', 3, 4]), 'b.1', 10),
+    (dict(a='${b.1}', b=[1, dict(c=10), 3, 4]), 'a', dict(c=10)),
+    (dict(a='${b}', b=[1, 2]), 'a', [1, 2]),
+    (dict(a='foo-${b}', b=[1, 2]), 'a', 'foo-[1, 2]'),
+    (dict(a='foo-${b}', b=dict(c=10)), 'a', "foo-{'c': 10}"),
+])
+def test_interpolation(input_, key, expected):
+    c = OmegaConf.create(input_)
+    assert c.select(key) == expected
 
 
 def test_2_step_interpolation():
@@ -156,23 +152,14 @@ def test_env_interpolation_not_found():
     c = OmegaConf.create(dict(
         path='/test/${env:foobar}',
     ))
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         c.path
-
-
-def catch_recursion(f):
-    if six.PY2:
-        with raises(RuntimeError):
-            f()
-    else:
-        with raises(RecursionError):
-            f()
 
 
 def test_register_resolver_twice_error():
     try:
         OmegaConf.register_resolver("foo", lambda: 10)
-        with raises(AssertionError):
+        with pytest.raises(AssertionError):
             OmegaConf.register_resolver("foo", lambda: 10)
     finally:
         OmegaConf.clear_resolvers()
@@ -258,7 +245,7 @@ def test_interpolation_in_list_key_error():
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(['${10}'])
 
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         c[0]
 
 
@@ -277,7 +264,7 @@ def test_unsuppoerted_interpolation_type():
         foo='${wrong_type:ref}',
     ))
 
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         c.foo
 
 

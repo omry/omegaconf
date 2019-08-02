@@ -7,18 +7,6 @@ from omegaconf import *
 from . import IllegalType
 
 
-def test_repr_list():
-    c = OmegaConf.create([1, 2, 3])
-    assert "[1, 2, 3]" == repr(c)
-
-
-def test_is_empty_list():
-    c = OmegaConf.create([1, 2, 3])
-    assert not c.is_empty()
-    c = OmegaConf.create([])
-    assert c.is_empty()
-
-
 def test_list_value():
     c = OmegaConf.create('a: [1,2]')
     assert {'a': [1, 2]} == c
@@ -166,14 +154,6 @@ def test_list_append():
     assert isinstance(c[2], DictConfig)
     assert isinstance(c[3], ListConfig)
     assert c == [1, 2, {}, []]
-
-
-def test_to_container():
-    src = [1, None, dict(a=12), [1, 2]]
-    c = OmegaConf.create(src)
-    result = c.to_container()
-    assert type(result) == type(src)
-    assert result == src
 
 
 def test_pretty_without_resolve():

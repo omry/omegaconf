@@ -50,23 +50,6 @@ def test_getattr_dict():
     assert {'b': 1} == c.a
 
 
-def test_str():
-    c = OmegaConf.create('a: b')
-    assert "{'a': 'b'}" == str(c)
-
-
-def test_repr_dict():
-    c = OmegaConf.create(dict(a='b'))
-    assert "{'a': 'b'}" == repr(c)
-
-
-def test_is_empty_dict():
-    c = OmegaConf.create('a: b')
-    assert not c.is_empty()
-    c = OmegaConf.create()
-    assert c.is_empty()
-
-
 def test_mandatory_value():
     c = OmegaConf.create(dict(a='???'))
     with pytest.raises(MissingMandatoryValue, match='a'):

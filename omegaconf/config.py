@@ -304,11 +304,10 @@ class Config(object):
         elif isinstance(conf, ListConfig):
             ret = []
             for index, item in enumerate(conf):
-                if isinstance(item, Config):
-                    item = Config._to_content(item, resolve)
-
                 if resolve:
                     item = conf[index]
+                if isinstance(item, Config):
+                    item = Config._to_content(item, resolve)
                 ret.append(item)
             return ret
 
@@ -399,10 +398,6 @@ class Config(object):
                 ret = resolver(root_node, inter_key)
             else:
                 raise ValueError("Unsupported interpolation type {}".format(inter_type))
-
-        if isinstance(ret, Config):
-            # this is not supported. interpolated value must be a primitive
-            raise ValueError("String interpolation key '{}' refer a config node".format(inter_key))
 
         return ret
 
