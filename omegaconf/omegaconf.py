@@ -5,7 +5,7 @@ import os
 import sys
 import warnings
 from collections import defaultdict
-
+from .config import Config
 import yaml
 
 
@@ -135,30 +135,31 @@ class OmegaConf:
         target.merge_with(*others[1:])
         return target
 
-    _resolvers = {}
-    _resolvers_cache = defaultdict(lambda: defaultdict(dict))
-
+    # noinspection PyProtectedMember
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
-        assert name not in OmegaConf._resolvers, "resolved {} is already registered".format(name)
+        assert name not in Config._resolvers, "resolved {} is already registered".format(name)
 
+        # noinspection PyProtectedMember
         def caching(config, key):
-            cache = OmegaConf._resolvers_cache[id(config)][name]
+            cache = Config._resolvers_cache[id(config)][name]
             val = cache[key] if key in cache else resolver(key)
             cache[key] = val
             return val
 
-        OmegaConf._resolvers[name] = caching
+        Config._resolvers[name] = caching
 
+    # noinspection PyProtectedMember
     @staticmethod
     def get_resolver(name):
-        return OmegaConf._resolvers[name] if name in OmegaConf._resolvers else None
+        return Config._resolvers[name] if name in Config._resolvers else None
 
+    # noinspection PyProtectedMember
     @staticmethod
     def clear_resolvers():
-        OmegaConf._resolvers = {}
-        OmegaConf._resolvers_cache = defaultdict(lambda: defaultdict(dict))
+        Config._resolvers = {}
+        Config._resolvers_cache = defaultdict(lambda: defaultdict(dict))
         register_default_resolvers()
 
 

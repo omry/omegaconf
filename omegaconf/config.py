@@ -8,7 +8,7 @@ from abc import abstractmethod
 
 import six
 import yaml
-
+from collections import defaultdict
 from .errors import MissingMandatoryValue, FrozenConfigError
 from .nodes import BaseNode
 
@@ -37,6 +37,9 @@ def get_yaml_loader():
 
 
 class Config(object):
+    # static fields
+    _resolvers = {}
+    _resolvers_cache = defaultdict(lambda: defaultdict(dict))
 
     def __init__(self):
         if type(self) == Config:
@@ -65,14 +68,12 @@ class Config(object):
             root = root.__dict__['parent']
         return root
 
-    # noinspection PyProtectedMember
     def __del__(self):
         if 'parent' not in self.__dict__ or self.__dict__['parent'] is None:
-            from .omegaconf import OmegaConf
             # root node, remove resolver cache
             id_ = id(self)
-            if id_ in OmegaConf._resolvers_cache:
-                del OmegaConf._resolvers_cache[id_]
+            if id_ in Config._resolvers_cache:
+                del Config._resolvers_cache[id_]
 
     def freeze(self, flag):
         """
