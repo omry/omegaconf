@@ -3,36 +3,6 @@ import re
 from omegaconf import *
 
 
-# dict *
-def test_freeze_dict():
-    c = OmegaConf.create()
-    assert not c._frozen()
-    c.freeze(True)
-    assert c._frozen()
-    c.freeze(False)
-    assert not c._frozen()
-    c.freeze(None)
-    assert not c._frozen()
-
-
-def test_freeze_nested_dict():
-    c = OmegaConf.create(dict(a=dict(b=2)))
-    assert not c._frozen()
-    assert not c.a._frozen()
-    c.freeze(True)
-    assert c._frozen()
-    assert c.a._frozen()
-    c.freeze(False)
-    assert not c._frozen()
-    assert not c.a._frozen()
-    c.freeze(None)
-    assert not c._frozen()
-    assert not c.a._frozen()
-    c.a.freeze(True)
-    assert not c._frozen()
-    assert c.a._frozen()
-
-
 def test_frozen_dict_add_field():
     c = OmegaConf.create()
     c.freeze(True)
@@ -85,31 +55,31 @@ def test_frozen_dict_del():
 
 def test_freeze_list():
     c = OmegaConf.create([])
-    assert not c._frozen()
+    assert not c.frozen()
     c.freeze(True)
-    assert c._frozen()
+    assert c.frozen()
     c.freeze(False)
-    assert not c._frozen()
+    assert not c.frozen()
     c.freeze(None)
-    assert not c._frozen()
+    assert not c.frozen()
 
 
 def test_freeze_nested_list():
     c = OmegaConf.create([[1]])
-    assert not c._frozen()
-    assert not c[0]._frozen()
+    assert not c.frozen()
+    assert not c[0].frozen()
     c.freeze(True)
-    assert c._frozen()
-    assert c[0]._frozen()
+    assert c.frozen()
+    assert c[0].frozen()
     c.freeze(False)
-    assert not c._frozen()
-    assert not c[0]._frozen()
+    assert not c.frozen()
+    assert not c[0].frozen()
     c.freeze(None)
-    assert not c._frozen()
-    assert not c[0]._frozen()
+    assert not c.frozen()
+    assert not c[0].frozen()
     c[0].freeze(True)
-    assert not c._frozen()
-    assert c[0]._frozen()
+    assert not c.frozen()
+    assert c[0].frozen()
 
 
 def test_frozen_list_insert():

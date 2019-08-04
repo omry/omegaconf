@@ -12,7 +12,6 @@ class ListConfig(Config):
     def __init__(self, content, parent=None):
         super(ListConfig, self).__init__()
         assert isinstance(content, (list, tuple))
-        self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = []
         self.__dict__['parent'] = parent
         for item in content:
@@ -54,7 +53,7 @@ class ListConfig(Config):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if self._frozen():
+        if self.frozen():
             raise FrozenConfigError(self.get_full_key(index))
 
         if not isinstance(value, BaseNode):
@@ -79,7 +78,7 @@ class ListConfig(Config):
             raise
 
     def insert(self, index, item):
-        if self._frozen():
+        if self.frozen():
             raise FrozenConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
@@ -105,12 +104,12 @@ class ListConfig(Config):
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
     def pop(self, index=-1):
-        if self._frozen():
+        if self.frozen():
             raise FrozenConfigError(self.get_full_key(index))
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
-        if self._frozen():
+        if self.frozen():
             raise FrozenConfigError()
 
         if key is None:

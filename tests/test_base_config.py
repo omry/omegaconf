@@ -63,3 +63,32 @@ def test_repr(input_):
 def test_str(input_):
     c = OmegaConf.create(input_)
     assert str(input_) == str(c)
+
+
+def test_flag_dict():
+    c = OmegaConf.create()
+    assert not c.get_flag('foo')
+    c.set_flag('foo', True)
+    assert c.get_flag('foo')
+    c.set_flag('foo', False)
+    assert not c.get_flag('foo')
+    c.set_flag('foo', None)
+    assert not c.get_flag('foo')
+
+
+def test_freeze_nested_dict():
+    c = OmegaConf.create(dict(a=dict(b=2)))
+    assert not c.get_flag('foo')
+    assert not c.a.get_flag('foo')
+    c.set_flag('foo', True)
+    assert c.get_flag('foo')
+    assert c.a.get_flag('foo')
+    c.set_flag('foo', False)
+    assert not c.get_flag('foo')
+    assert not c.a.get_flag('foo')
+    c.set_flag('foo', None)
+    assert not c.get_flag('foo')
+    assert not c.a.get_flag('foo')
+    c.a.set_flag('foo', True)
+    assert not c.get_flag('foo')
+    assert c.a.get_flag('foo')

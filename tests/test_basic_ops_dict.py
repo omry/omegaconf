@@ -13,7 +13,7 @@ from . import IllegalType
 def test_setattr_value():
     c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
     c.a = 9
-    assert {'a': 9} == c
+    assert c == dict(a=9)
 
 
 def test_setattr_deep_value():
