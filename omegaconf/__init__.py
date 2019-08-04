@@ -1,4 +1,4 @@
-from .errors import MissingMandatoryValue, ValidationError, FrozenConfigError
+from .errors import MissingMandatoryValue, ValidationError, ReadonlyConfigError
 from .config import Config
 from .listconfig import ListConfig
 from .dictconfig import DictConfig

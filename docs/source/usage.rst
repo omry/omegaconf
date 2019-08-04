@@ -309,3 +309,46 @@ Note how the port changes to 82, and how the users lists are combined.
     - user1
     - user2
     <BLANKLINE>
+
+Configuration flags
+-------------------
+Flags are a new feature in 1.3.0 (Pre release).
+The API is not considered stable yet and might change before 1.3.0 is released.
+
+OmegaConf support several configuration flags.
+Configuration flags can be set on any configuration node (Sequence or Mapping). if a configuration flag is not set
+it inherits the value from the parent of the node.
+The default value inherited from the root node is always false.
+
+Read-only flag
+^^^^^^^^^^^^^^
+A read-only configuration cannot be modified.
+An attempt to modify it will result in omegaconf.ReadonlyConfigError exception
+
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create(dict(a=dict(b=10)))
+    >>> OmegaConf.set_readonly(conf, True)
+    >>> conf.a.b = 20
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.ReadonlyConfigError: a.b
+
+
+
+
+Struct flag
+^^^^^^^^^^^
+By default, OmegaConf dictionaries allow read and write access to unknown fields.
+If a field does not exist, accessing it will return None and writing it will create the field.
+It's sometime useful to change this behavior.
+
+
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create(dict(a=dict(aa=10, bb=20)))
+    >>> OmegaConf.set_struct(conf, True)
+    >>> conf.a.cc = 30
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Accessing unknown key in a struct : a.cc'

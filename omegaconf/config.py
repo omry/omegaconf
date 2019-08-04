@@ -9,7 +9,7 @@ from abc import abstractmethod
 import six
 import yaml
 from collections import defaultdict
-from .errors import MissingMandatoryValue, FrozenConfigError
+from .errors import MissingMandatoryValue, ReadonlyConfigError
 from .nodes import BaseNode
 
 
@@ -50,7 +50,7 @@ class Config(object):
         #   set to false: flag is false
         self.__dict__['flags'] = dict(
             # Frozen config cannot be modified
-            frozen=None,
+            freeze=None,
             # Struct config throws a KeyError if a non existing field is accessed
             struct=None
         )
@@ -85,28 +85,11 @@ class Config(object):
             if id_ in Config._resolvers_cache:
                 del Config._resolvers_cache[id_]
 
-    def freeze(self, flag):
-        """
-        Freezes this config object
-        A frozen config cannot be modified.
-        If an attempt ot modify is made a FrozenConfigError will be thrown
-        By default config objects are not frozen
-        :param flag: True: freeze. False unfreeze, None sets back to default behavior (inherit from parent)
-        :return:
-        """
-        self.set_flag('frozen', flag)
-
-    def frozen(self):
-        """
-        :return: True if this node or one of its parents are frozen
-        """
-        return self.get_flag('frozen')
-
-    def set_flag(self, flag, value):
+    def _set_flag(self, flag, value):
         assert value is None or isinstance(value, bool)
         self.__dict__['flags'][flag] = value
 
-    def get_flag(self, flag):
+    def _get_flag(self, flag):
         """
         Returns True if this config node flag is set
         A flag is set if node.set_flag(True) was called
@@ -120,7 +103,9 @@ class Config(object):
         if self.__dict__['parent'] is None:
             return False
         else:
-            return self.__dict__['parent'].get_flag(flag)
+            # noinspection PyProtectedMember
+            return self.__dict__['parent']._get_flag(flag)
+
 
     @abstractmethod
     def get(self, key, default_value=None):
@@ -214,8 +199,8 @@ class Config(object):
         self.__dict__.update(d)
 
     def __delitem__(self, key):
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(key))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(key))
         self.content.__delitem__(key)
 
     def __len__(self):
@@ -446,10 +431,6 @@ class Config(object):
 
             new += orig[last_index:]
             return new
-
-    # def __deepcopy__(self, memodict={}):
-    #     from omegaconf import OmegaConf
-    #     return OmegaConf.create(self.content)
 
     @staticmethod
     def is_primitive_type(value):

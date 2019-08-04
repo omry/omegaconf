@@ -1,7 +1,6 @@
 from .config import Config
 from .nodes import BaseNode, UntypedNode
-from .errors import FrozenConfigError
-import copy
+from .errors import ReadonlyConfigError
 
 
 class DictConfig(Config):
@@ -22,9 +21,9 @@ class DictConfig(Config):
         if not Config.is_primitive_type(value):
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(key))
-        if key not in self.content and self.get_flag('struct') is True:
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(key))
+        if key not in self.content and self._get_flag('struct') is True:
             raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
 
         if key in self and isinstance(value, BaseNode):
@@ -71,15 +70,15 @@ class DictConfig(Config):
 
     def get_node(self, key):
         value = self.__dict__['content'].get(key)
-        if key not in self.content and self.get_flag('struct'):
+        if key not in self.content and self._get_flag('struct'):
             raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
         return value
 
     __marker = object()
 
     def pop(self, key, default=__marker):
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(key))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(key))
         val = self.content.pop(key, default)
         if val is self.__marker:
             raise KeyError(key)

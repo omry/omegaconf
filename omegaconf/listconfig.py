@@ -4,7 +4,7 @@ import itertools
 import six
 
 from .config import Config, isint
-from .errors import FrozenConfigError
+from .errors import ReadonlyConfigError
 from .nodes import BaseNode, UntypedNode
 
 
@@ -53,8 +53,8 @@ class ListConfig(Config):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
 
         if not isinstance(value, BaseNode):
             self.__dict__['content'][index].set_value(value)
@@ -78,8 +78,8 @@ class ListConfig(Config):
             raise
 
     def insert(self, index, item):
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
             self._set_at_index(index, item)
@@ -104,13 +104,13 @@ class ListConfig(Config):
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
     def pop(self, index=-1):
-        if self.frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
-        if self.frozen():
-            raise FrozenConfigError()
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError()
 
         if key is None:
             def key1(x):
