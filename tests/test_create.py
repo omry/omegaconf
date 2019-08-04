@@ -43,10 +43,12 @@ def test_cli_passing():
     assert {'a': 1, 'b': {'c': 2}} == c
 
 
-def test_dotlist():
-    args_list = ['a=1', 'b.c=2']
-    c = OmegaConf.from_dotlist(args_list)
-    assert {'a': 1, 'b': {'c': 2}} == c
+@pytest.mark.parametrize('input_, expected', [
+    (['a=1', 'b.c=2'], dict(a=1, b=dict(c=2))),
+])
+def test_dotlist(input_, expected):
+    c = OmegaConf.from_dotlist(input_)
+    assert c == expected
 
 
 def test_create_list_with_illegal_value_idx0():
