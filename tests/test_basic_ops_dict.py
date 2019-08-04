@@ -264,19 +264,6 @@ def test_get_root_of_merged():
     assert c3.b.bb._get_root() == c3
 
 
-def test_deepcopy():
-    c1 = OmegaConf.create(dict(
-        foo1='foo1',
-        foo2='foo2',
-    ))
-
-    c2 = copy.deepcopy(c1)
-    assert c2 == c1
-    c1.foo1 = "bar"
-    assert c1.foo1 == 'bar'
-    assert c2.foo1 == 'foo1'
-
-
 def test_dict_config():
     c = OmegaConf.create(dict())
     assert isinstance(c, DictConfig)

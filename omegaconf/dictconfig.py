@@ -1,6 +1,7 @@
 from .config import Config
 from .nodes import BaseNode, UntypedNode
 from .errors import ReadonlyConfigError
+import copy
 
 
 class DictConfig(Config):
@@ -12,6 +13,11 @@ class DictConfig(Config):
         self.__dict__['parent'] = parent
         for k, v in content.items():
             self.__setitem__(k, v)
+
+    def __deepcopy__(self, memodict={}):
+        res = DictConfig({})
+        self._deepcopy_impl(res)
+        return res
 
     def __setitem__(self, key, value):
         assert isinstance(key, str)
@@ -48,8 +54,6 @@ class DictConfig(Config):
         self.__setitem__(key, value)
 
     def __getattr__(self, key):
-        if key in ['__deepcopy__']:
-            return None
         """
         Allow accessing dictionary values as attributes
         :param key:

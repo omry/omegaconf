@@ -11,18 +11,23 @@ from .nodes import BaseNode, UntypedNode
 class ListConfig(Config):
     def __init__(self, content, parent=None):
         super(ListConfig, self).__init__()
-        assert isinstance(content, (list, tuple))
         self.__dict__['content'] = []
         self.__dict__['parent'] = parent
+        assert isinstance(content, (list, tuple))
         for item in content:
             if isinstance(item, dict) or isinstance(item, (list, tuple)):
                 from omegaconf import OmegaConf
                 item = OmegaConf.create(item, parent=self)
             self.append(item)
 
-    def __getattr__(self, obj):
-        if isinstance(obj, str) and isint(obj):
-            return self.__getitem__(int(obj))
+    def __deepcopy__(self, memodict={}):
+        res = ListConfig([])
+        self._deepcopy_impl(res)
+        return res
+
+    def __getattr__(self, key):
+        if isinstance(key, str) and isint(key):
+            return self.__getitem__(int(key))
         else:
             raise AttributeError()
 

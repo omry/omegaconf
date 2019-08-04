@@ -310,15 +310,6 @@ def test_append_throws_not_changing_list():
     assert c == []
 
 
-def test_deepcopy():
-    c1 = OmegaConf.create([1, 2, 3])
-    c2 = copy.deepcopy(c1)
-    assert c2 == c1
-    c1[0] = 10
-    assert c1[0] == 10
-    assert c2[0] == 1
-
-
 def test_hash():
     c1 = OmegaConf.create([10])
     c2 = OmegaConf.create([10])

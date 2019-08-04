@@ -106,7 +106,6 @@ class Config(object):
             # noinspection PyProtectedMember
             return self.__dict__['parent']._get_flag(flag)
 
-
     @abstractmethod
     def get(self, key, default_value=None):
         raise NotImplementedError
@@ -360,6 +359,11 @@ class Config(object):
                       stacklevel=2)
 
         self.merge_with(*others)
+
+    def _deepcopy_impl(self, res, memodict={}):
+        res.__dict__['content'] = copy.deepcopy(self.__dict__['content'], memodict)
+        res.__dict__['parent'] = copy.deepcopy(self.__dict__['parent'], memodict)
+        res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'], memodict)
 
     def merge_with(self, *others):
         from .listconfig import ListConfig

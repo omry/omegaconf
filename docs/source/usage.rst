@@ -312,8 +312,9 @@ Note how the port changes to 82, and how the users lists are combined.
 
 Configuration flags
 -------------------
-Flags are a new feature in 1.3.0 (Pre release).
-The API is not considered stable yet and might change before 1.3.0 is released.
+
+.. note:: Flags are a new feature in 1.3.0 (Pre release). The API is not considered stable yet and might change before 1.3.0 is released.
+
 
 OmegaConf support several configuration flags.
 Configuration flags can be set on any configuration node (Sequence or Mapping). if a configuration flag is not set
@@ -332,9 +333,7 @@ An attempt to modify it will result in omegaconf.ReadonlyConfigError exception
     >>> conf.a.b = 20
     Traceback (most recent call last):
     ...
-    omegaconf.errors.ReadonlyConfigError: a.b
-
-
+    omegaconf.ReadonlyConfigError: a.b
 
 
 Struct flag

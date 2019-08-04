@@ -1,6 +1,8 @@
+import copy
+
 import pytest
 
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, ListConfig, DictConfig, ReadonlyConfigError
 
 
 @pytest.mark.parametrize('input_', [
@@ -92,3 +94,51 @@ def test_freeze_nested_dict():
     c.a._set_flag('foo', True)
     assert not c._get_flag('foo')
     assert c.a._get_flag('foo')
+
+
+copy_list = [
+    [],
+    [1, 2, 3],
+    dict(),
+    dict(a=10),
+]
+
+
+@pytest.mark.parametrize('src', copy_list)
+def test_deepcopy(src):
+    c1 = OmegaConf.create(src)
+    c2 = copy.deepcopy(c1)
+    assert c1 == c2
+    if isinstance(c2, ListConfig):
+        c2.append(1000)
+    elif isinstance(c2, DictConfig):
+        c2.foo = 'bar'
+    assert c1 != c2
+
+
+@pytest.mark.parametrize('src', copy_list)
+def test_deepcopy_readonly(src):
+    c1 = OmegaConf.create(src)
+    OmegaConf.set_readonly(c1, True)
+    c2 = copy.deepcopy(c1)
+    assert c1 == c2
+    if isinstance(c2, ListConfig):
+        with pytest.raises(ReadonlyConfigError):
+            c2.append(1000)
+    elif isinstance(c2, DictConfig):
+        with pytest.raises(ReadonlyConfigError):
+            c2.foo = 'bar'
+    assert c1 == c2
+
+
+@pytest.mark.parametrize('src', copy_list)
+def test_deepcopy_struct(src):
+    c1 = OmegaConf.create(src)
+    OmegaConf.set_struct(c1, True)
+    c2 = copy.deepcopy(c1)
+    assert c1 == c2
+    if isinstance(c2, ListConfig):
+        c2.append(1000)
+    elif isinstance(c2, DictConfig):
+        with pytest.raises(KeyError):
+            c2.foo = 'bar'
