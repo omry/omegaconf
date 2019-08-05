@@ -4,26 +4,30 @@ import itertools
 import six
 
 from .config import Config, isint
-from .errors import FrozenConfigError
+from .errors import ReadonlyConfigError
 from .nodes import BaseNode, UntypedNode
 
 
 class ListConfig(Config):
     def __init__(self, content, parent=None):
         super(ListConfig, self).__init__()
-        assert isinstance(content, (list, tuple))
-        self.__dict__['frozen_flag'] = None
         self.__dict__['content'] = []
         self.__dict__['parent'] = parent
+        assert isinstance(content, (list, tuple))
         for item in content:
             if isinstance(item, dict) or isinstance(item, (list, tuple)):
                 from omegaconf import OmegaConf
                 item = OmegaConf.create(item, parent=self)
             self.append(item)
 
-    def __getattr__(self, obj):
-        if isinstance(obj, str) and isint(obj):
-            return self.__getitem__(int(obj))
+    def __deepcopy__(self, memodict={}):
+        res = ListConfig([])
+        self._deepcopy_impl(res)
+        return res
+
+    def __getattr__(self, key):
+        if isinstance(key, str) and isint(key):
+            return self.__getitem__(int(key))
         else:
             raise AttributeError()
 
@@ -54,8 +58,8 @@ class ListConfig(Config):
             full_key = self.get_full_key(index)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if self._frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
 
         if not isinstance(value, BaseNode):
             self.__dict__['content'][index].set_value(value)
@@ -79,8 +83,8 @@ class ListConfig(Config):
             raise
 
     def insert(self, index, item):
-        if self._frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
             self._set_at_index(index, item)
@@ -105,13 +109,13 @@ class ListConfig(Config):
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
     def pop(self, index=-1):
-        if self._frozen():
-            raise FrozenConfigError(self.get_full_key(index))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(index))
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
-        if self._frozen():
-            raise FrozenConfigError()
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError()
 
         if key is None:
             def key1(x):

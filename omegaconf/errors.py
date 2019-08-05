@@ -9,7 +9,7 @@ class ValidationError(Exception):
     """
 
 
-class FrozenConfigError(Exception):
+class ReadonlyConfigError(Exception):
     """
     Thrown when someone tries to modify a frozen config
     """

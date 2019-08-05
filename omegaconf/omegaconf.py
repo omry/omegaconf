@@ -162,6 +162,26 @@ class OmegaConf:
         Config._resolvers_cache = defaultdict(lambda: defaultdict(dict))
         register_default_resolvers()
 
+    @staticmethod
+    def set_readonly(conf, value):
+        # noinspection PyProtectedMember
+        conf._set_flag('freeze', value)
+
+    @staticmethod
+    def is_readonly(conf):
+        # noinspection PyProtectedMember
+        return conf._get_flag('freeze')
+
+    @staticmethod
+    def set_struct(conf, value):
+        # noinspection PyProtectedMember
+        conf._set_flag('struct', value)
+
+    @staticmethod
+    def is_struct(conf):
+        # noinspection PyProtectedMember
+        return conf._get_flag('struct')
+
 
 # register all default resolvers
 register_default_resolvers()

@@ -201,11 +201,6 @@ def test_getattr():
         getattr(c, "anything")
 
 
-def test_setitem():
-    c = OmegaConf.create(['a', 'b', 'c'])
-    c[1] = 10
-    assert c == ['a', 10, 'c']
-
 
 def test_insert():
     c = OmegaConf.create(['a', 'b', 'c'])
@@ -308,15 +303,6 @@ def test_append_throws_not_changing_list():
         c.append(IllegalType())
     assert len(c) == 0
     assert c == []
-
-
-def test_deepcopy():
-    c1 = OmegaConf.create([1, 2, 3])
-    c2 = copy.deepcopy(c1)
-    assert c2 == c1
-    c1[0] = 10
-    assert c1[0] == 10
-    assert c2[0] == 1
 
 
 def test_hash():

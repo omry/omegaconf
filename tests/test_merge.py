@@ -3,39 +3,12 @@ import pytest
 from omegaconf import OmegaConf, Config, nodes
 
 
-def test_dict_merge_1():
-    a = OmegaConf.create({})
-    b = OmegaConf.create({'a': 1})
-    c = Config.map_merge(a, b)
-    assert b == c
-
-
-def test_dict_merge_no_modify():
-    # Test that map_merge does not modify the input
-    a = OmegaConf.create({})
-    b = OmegaConf.create({'a': 1})
-    Config.map_merge(a, b)
-    assert a == {}
-    assert b == {'a': 1}
-
-
-def test_dict_merge_2():
-    a = OmegaConf.create({'a': 1})
-    b = OmegaConf.create({'b': 2})
-    c = Config.map_merge(a, b)
-    assert {'a': 1, 'b': 2} == c
-
-
-def test_dict_merge_3():
-    a = OmegaConf.create({'a': {'a1': 1, 'a2': 2}})
-    b = OmegaConf.create({'a': {'a1': 2}})
-    c = Config.map_merge(a, b)
-    assert {'a': {'a1': 2, 'a2': 2}} == c
-
-
 @pytest.mark.parametrize('inputs, expected', [
     # dictionaries
+    ((dict(), dict(a=1)), dict(a=1)),
     ((dict(a=None), dict(b=None)), dict(a=None, b=None)),
+    ((dict(a=1), dict(b=2)), dict(a=1, b=2)),
+    ((dict(a=dict(a1=1, a2=2)), dict(a=dict(a1=2))), dict(a=dict(a1=2, a2=2))),
     ((dict(a=1, b=2), dict(b=3)), dict(a=1, b=3)),
     ((dict(a=1, b=2), dict(b=dict(c=3))), dict(a=1, b=dict(c=3))),
     ((dict(b=dict(c=1)), dict(b=1)), dict(b=1)),
@@ -56,6 +29,12 @@ def test_dict_merge_3():
 def test_merge(inputs, expected):
     configs = [OmegaConf.create(c) for c in inputs]
     assert OmegaConf.merge(*configs) == expected
+    # test input configs are not changed.
+    # Note that converting to container without resolving to avoid resolution errors while comparing
+    for i in range(len(inputs)):
+        orig = OmegaConf.create(inputs[i]).to_container(resolve=False)
+        merged = configs[i].to_container(resolve=False)
+        assert orig == merged
 
 
 # like above but don't verify merge does not change because even eq does not work no tuples because we convert

@@ -4,16 +4,9 @@ import tempfile
 
 import pytest
 
-from omegaconf import OmegaConf, DictConfig, Config
-from omegaconf import nodes
+from omegaconf import *
 from omegaconf.errors import MissingMandatoryValue
 from . import IllegalType
-
-
-def test_setattr_value():
-    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
-    c.a = 9
-    assert {'a': 9} == c
 
 
 def test_setattr_deep_value():
@@ -262,19 +255,6 @@ def test_get_root_of_merged():
     assert c3.a._get_root() == c3
     assert c3.b._get_root() == c3
     assert c3.b.bb._get_root() == c3
-
-
-def test_deepcopy():
-    c1 = OmegaConf.create(dict(
-        foo1='foo1',
-        foo2='foo2',
-    ))
-
-    c2 = copy.deepcopy(c1)
-    assert c2 == c1
-    c1.foo1 = "bar"
-    assert c1.foo1 == 'bar'
-    assert c2.foo1 == 'foo1'
 
 
 def test_dict_config():

@@ -9,7 +9,7 @@ from abc import abstractmethod
 import six
 import yaml
 from collections import defaultdict
-from .errors import MissingMandatoryValue, FrozenConfigError
+from .errors import MissingMandatoryValue, ReadonlyConfigError
 from .nodes import BaseNode
 
 
@@ -44,6 +44,16 @@ class Config(object):
     def __init__(self):
         if type(self) == Config:
             raise NotImplementedError
+        # Flags have 3 modes:
+        #   unset : inherit from parent, defaults to false in top level config.
+        #   set to true: flag is true
+        #   set to false: flag is false
+        self.__dict__['flags'] = dict(
+            # Frozen config cannot be modified
+            freeze=None,
+            # Struct config throws a KeyError if a non existing field is accessed
+            struct=None
+        )
 
     def save(self, f):
         data = self.pretty()
@@ -75,33 +85,26 @@ class Config(object):
             if id_ in Config._resolvers_cache:
                 del Config._resolvers_cache[id_]
 
-    def freeze(self, flag):
-        """
-        Freezes this config object
-        A frozen config cannot be modified.
-        If an attempt ot modify is made a FrozenConfigError will be thrown
-        By default config objects are not frozen
-        :param flag: True: freeze. False unfreeze, None sets back to default behavior (inherit from parent)
-        :return:
-        """
-        assert flag is None or isinstance(flag, bool)
-        self.__dict__['frozen_flag'] = flag
+    def _set_flag(self, flag, value):
+        assert value is None or isinstance(value, bool)
+        self.__dict__['flags'][flag] = value
 
-    def _frozen(self):
+    def _get_flag(self, flag):
         """
-        Returns True if this config node is frozen.
-        A node is frozen if node.freeze(True) was called
-        or one if it's parents is frozen
+        Returns True if this config node flag is set
+        A flag is set if node.set_flag(True) was called
+        or one if it's parents is flag is set
         :return:
         """
-        if self.__dict__['frozen_flag'] is not None:
-            return self.__dict__['frozen_flag']
+        if flag in self.__dict__['flags'] and self.__dict__['flags'][flag] is not None:
+            return self.__dict__['flags'][flag]
 
         # root leaf, and frozen is not set.
         if self.__dict__['parent'] is None:
             return False
         else:
-            return self.__dict__['parent']._frozen()
+            # noinspection PyProtectedMember
+            return self.__dict__['parent']._get_flag(flag)
 
     @abstractmethod
     def get(self, key, default_value=None):
@@ -195,8 +198,8 @@ class Config(object):
         self.__dict__.update(d)
 
     def __delitem__(self, key):
-        if self._frozen():
-            raise FrozenConfigError(self.get_full_key(key))
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(key))
         self.content.__delitem__(key)
 
     def __len__(self):
@@ -332,20 +335,23 @@ class Config(object):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
 
-        dest = dest.content
         dest = copy.deepcopy(dest)
         src = copy.deepcopy(src)
         for key, value in src.items(resolve=False):
             if key in dest:
-                if isinstance(dest[key].value(), Config):
+                dest_node = dest.get_node(key)
+                if isinstance(dest_node, Config):
                     if isinstance(value, Config):
-                        dest[key].value().merge_with(value)
+                        dest_node.merge_with(value)
                     else:
-                        dest[key].set_value(value)
+                        dest.__setitem__(key, value)
                 else:
-                    dest[key].set_value(src.content[key].value())
+                    if isinstance(value, Config):
+                        dest.__setitem__(key, value)
+                    else:
+                        dest_node.set_value(value)
             else:
-                dest[key] = src.content[key]
+                dest[key] = src.get_node(key)
         return dest
 
     def merge_from(self, *others):
@@ -353,6 +359,13 @@ class Config(object):
                       stacklevel=2)
 
         self.merge_with(*others)
+
+    def _deepcopy_impl(self, res, memodict={}):
+        res.__dict__['content'] = copy.deepcopy(self.__dict__['content'], memodict)
+        res.__dict__['parent'] = copy.deepcopy(self.__dict__['parent'], memodict)
+        res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'], memodict)
+
+
 
     def merge_with(self, *others):
         from .listconfig import ListConfig
@@ -362,7 +375,8 @@ class Config(object):
             if other is None:
                 raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                self.__dict__['content'] = Config.map_merge(self, other)
+                combined = Config.map_merge(self, other)
+                self.__dict__['content'] = combined.content
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 self.__dict__['content'] = copy.deepcopy(other.content)
             else:
@@ -423,10 +437,6 @@ class Config(object):
 
             new += orig[last_index:]
             return new
-
-    def __deepcopy__(self, memodict={}):
-        from omegaconf import OmegaConf
-        return OmegaConf.create(self.content)
 
     @staticmethod
     def is_primitive_type(value):

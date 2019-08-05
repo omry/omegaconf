@@ -1,7 +1,14 @@
 import pytest
 
-from omegaconf import OmegaConf, nodes
+from omegaconf import *
 from omegaconf.errors import ValidationError
+
+
+def test_base_node():
+    b = BaseNode()
+    assert b.value() is None
+    with pytest.raises(NotImplementedError):
+        b.set_value(10)
 
 
 # testing valid conversions
@@ -44,6 +51,10 @@ from omegaconf.errors import ValidationError
 def test_valid_inputs(type_, input_, output_):
     node = type_(input_)
     assert node == output_
+    assert node == node
+    assert not (node != output_)
+    assert not (node != node)
+    assert str(node) == str(output_)
 
 
 # testing invalid conversions
@@ -64,6 +75,21 @@ def test_invalid_inputs(type_, input_):
         type_(input_)
 
 
+@pytest.mark.parametrize('input_, expected_type', [
+    ({}, DictConfig),
+    ([], ListConfig),
+    (5, UntypedNode),
+    (5.0, UntypedNode),
+    (True, UntypedNode),
+    (False, UntypedNode),
+    ('str', UntypedNode),
+])
+def test_assigned_value_node_type(input_, expected_type):
+    c = OmegaConf.create()
+    c.foo = input_
+    assert type(c.get_node('foo')) == expected_type
+
+
 # dict
 def test_dict_any():
     c = OmegaConf.create()
@@ -80,16 +106,6 @@ def test_dict_integer_1():
     c.foo = nodes.IntegerNode(10)
     assert type(c.get_node('foo')) == nodes.IntegerNode
     assert c.foo == 10
-
-
-def test_dict_integer_rejects_string():
-    c = OmegaConf.create()
-    c.foo = nodes.IntegerNode(10)
-    assert c.foo == 10
-    with pytest.raises(ValidationError):
-        c.foo = 'string'
-    assert c.foo == 10
-    assert type(c.get_node('foo')) == nodes.IntegerNode
 
 
 # list
@@ -121,7 +137,7 @@ def test_list_integer_rejects_string():
     assert type(c.get_node(0)) == nodes.IntegerNode
 
 
-# merge validation error
+# Test merge raises validation error
 @pytest.mark.parametrize('c1, c2', [
     (dict(a=nodes.IntegerNode(10)), dict(a='str')),
     (dict(a=nodes.IntegerNode(10)), dict(a=nodes.StringNode('str'))),
@@ -136,4 +152,3 @@ def test_merge_validation_error(c1, c2):
     # make sure that conf1 and conf2 were not modified
     assert conf1 == OmegaConf.create(c1)
     assert conf2 == OmegaConf.create(c2)
-
