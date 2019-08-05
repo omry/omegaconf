@@ -365,6 +365,8 @@ class Config(object):
         res.__dict__['parent'] = copy.deepcopy(self.__dict__['parent'], memodict)
         res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'], memodict)
 
+
+
     def merge_with(self, *others):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig

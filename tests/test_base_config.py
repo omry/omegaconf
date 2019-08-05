@@ -2,7 +2,41 @@ import copy
 
 import pytest
 
-from omegaconf import OmegaConf, ListConfig, DictConfig, ReadonlyConfigError
+from omegaconf import *
+
+
+@pytest.mark.parametrize('input_, key, value, expected', [
+    # dict
+    (dict(), 'foo', 10, dict(foo=10)),
+    (dict(), 'foo', IntegerNode(10), dict(foo=10)),
+    (dict(foo=5), 'foo', IntegerNode(10), dict(foo=10)),
+    # changing type of a node
+    (dict(foo=StringNode('str')), 'foo', IntegerNode(10), dict(foo=10)),
+    # list
+    ([0], 0, 10, [10]),
+    (['a', 'b', 'c'], 1, 10, ['a', 10, 'c']),
+    ([1, 2], 1, IntegerNode(10), [1, 10]),
+    ([1, IntegerNode(2)], 1, IntegerNode(10), [1, 10]),
+    # changing type of a node
+    ([1, StringNode('str')], 1, IntegerNode(10), [1, 10]),
+])
+def test_set_value(input_, key, value, expected):
+    c = OmegaConf.create(input_)
+    c[key] = value
+    assert c == expected
+
+
+@pytest.mark.parametrize('input_, key, value', [
+    # dict
+    (dict(foo=IntegerNode(10)), 'foo', 'str'),
+    # list
+    ([1, IntegerNode(10)], 1, 'str'),
+
+])
+def test_set_value_validation_fail(input_, key, value):
+    c = OmegaConf.create(input_)
+    with pytest.raises(ValidationError):
+        c[key] = value
 
 
 @pytest.mark.parametrize('input_', [

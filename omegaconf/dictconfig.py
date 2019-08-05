@@ -32,13 +32,23 @@ class DictConfig(Config):
         if key not in self.content and self._get_flag('struct') is True:
             raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
 
-        if key in self and isinstance(value, BaseNode):
-            self.__dict__['content'][key].set_value(value)
-        else:
-            if not isinstance(value, (BaseNode, Config)):
-                self.__dict__['content'][key] = UntypedNode(value)
-            else:
+        input_config_or_node = isinstance(value, (BaseNode, Config))
+        if key in self:
+            # BaseNode or Config, assign as is
+            if input_config_or_node:
                 self.__dict__['content'][key] = value
+            else:
+                # primitive input
+                if isinstance(self.__dict__['content'][key], Config):
+                    # primitive input replaces config nodes
+                    self.__dict__['content'][key] = value
+                else:
+                    self.__dict__['content'][key].set_value(value)
+        else:
+            if input_config_or_node:
+                self.__dict__['content'][key] = value
+            else:
+                self.__dict__['content'][key] = UntypedNode(value)
 
     # hide content while inspecting in debugger
     def __dir__(self):

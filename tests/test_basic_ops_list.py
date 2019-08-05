@@ -201,11 +201,6 @@ def test_getattr():
         getattr(c, "anything")
 
 
-def test_setitem():
-    c = OmegaConf.create(['a', 'b', 'c'])
-    c[1] = 10
-    assert c == ['a', 10, 'c']
-
 
 def test_insert():
     c = OmegaConf.create(['a', 'b', 'c'])

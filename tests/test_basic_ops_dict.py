@@ -4,16 +4,9 @@ import tempfile
 
 import pytest
 
-from omegaconf import OmegaConf, DictConfig, Config
-from omegaconf import nodes
+from omegaconf import *
 from omegaconf.errors import MissingMandatoryValue
 from . import IllegalType
-
-
-def test_setattr_value():
-    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
-    c.a = 9
-    assert c == dict(a=9)
 
 
 def test_setattr_deep_value():

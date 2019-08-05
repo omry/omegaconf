@@ -1,7 +1,14 @@
 import pytest
 
-from omegaconf import OmegaConf, nodes, DictConfig, ListConfig
+from omegaconf import *
 from omegaconf.errors import ValidationError
+
+
+def test_base_node():
+    b = BaseNode()
+    assert b.value() is None
+    with pytest.raises(NotImplementedError):
+        b.set_value(10)
 
 
 # testing valid conversions
@@ -44,6 +51,10 @@ from omegaconf.errors import ValidationError
 def test_valid_inputs(type_, input_, output_):
     node = type_(input_)
     assert node == output_
+    assert node == node
+    assert not (node != output_)
+    assert not (node != node)
+    assert str(node) == str(output_)
 
 
 # testing invalid conversions
@@ -67,8 +78,13 @@ def test_invalid_inputs(type_, input_):
 @pytest.mark.parametrize('input_, expected_type', [
     ({}, DictConfig),
     ([], ListConfig),
+    (5, UntypedNode),
+    (5.0, UntypedNode),
+    (True, UntypedNode),
+    (False, UntypedNode),
+    ('str', UntypedNode),
 ])
-def test_config_type_not_wrapped(input_, expected_type):
+def test_assigned_value_node_type(input_, expected_type):
     c = OmegaConf.create()
     c.foo = input_
     assert type(c.get_node('foo')) == expected_type
