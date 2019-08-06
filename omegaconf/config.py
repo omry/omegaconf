@@ -360,12 +360,33 @@ class Config(object):
 
         self.merge_with(*others)
 
-    def _deepcopy_impl(self, res, memodict={}):
-        res.__dict__['content'] = copy.deepcopy(self.__dict__['content'], memodict)
-        res.__dict__['parent'] = copy.deepcopy(self.__dict__['parent'], memodict)
-        res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'], memodict)
+    def _deepcopy_impl(self, res, _memodict={}):
+        # memodict is intentionally not used.
+        # Using it can cause python to return objects that were since modified, undoing their modifications!
+        res.__dict__['content'] = copy.deepcopy(self.__dict__['content'])
+        res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'])
+        # intentionally not deepcopying the parent. this can cause all sorts of mayhem and stack overflow.
+        # instead of just re-parent the result node. this will break interpolation in cases of deepcopying
+        # a node that is not the root node, but that is almost guaranteed to break anyway.
+        Config._re_parent(res)
 
+    @staticmethod
+    def _re_parent(node):
+        from .listconfig import ListConfig
+        from .dictconfig import DictConfig
 
+        # update parents of first level Config nodes to self
+        assert isinstance(node, (DictConfig, ListConfig))
+        if isinstance(node, DictConfig):
+            for _key, value in node.items(resolve=False):
+                if isinstance(value, Config):
+                    value._set_parent(node)
+                    Config._re_parent(value)
+        elif isinstance(node, ListConfig):
+            for item in node:
+                if isinstance(item, Config):
+                    item._set_parent(node)
+                    Config._re_parent(item)
 
     def merge_with(self, *others):
         from .listconfig import ListConfig
@@ -382,22 +403,8 @@ class Config(object):
             else:
                 raise TypeError("Merging DictConfig with ListConfig is not supported")
 
-        def re_parent(node):
-            # update parents of first level Config nodes to self
-            assert isinstance(node, (DictConfig, ListConfig))
-            if isinstance(node, DictConfig):
-                for _key, value in node.items(resolve=False):
-                    if isinstance(value, Config):
-                        value._set_parent(node)
-                        re_parent(value)
-            elif isinstance(node, ListConfig):
-                for item in node:
-                    if isinstance(item, Config):
-                        item._set_parent(node)
-                        re_parent(item)
-
         # recursively correct the parent hierarchy after the merge
-        re_parent(self)
+        Config._re_parent(self)
 
     @staticmethod
     def _resolve_value(root_node, inter_type, inter_key):

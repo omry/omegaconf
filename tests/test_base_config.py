@@ -176,3 +176,21 @@ def test_deepcopy_struct(src):
     elif isinstance(c2, DictConfig):
         with pytest.raises(KeyError):
             c2.foo = 'bar'
+
+
+def test_deepcopy_after_del():
+    # make sure that deepcopy does not resurrect deleted fields (as it once did, believe it or not).
+    c1 = OmegaConf.create(dict(foo=[1, 2, 3], bar=10))
+    c2 = copy.deepcopy(c1)
+    assert c1 == c2
+    del c1['foo']
+    c3 = copy.deepcopy(c1)
+    assert c1 == c3
+
+
+def test_deepcopy_with_interpolation():
+    # make sure that deepcopy does not resurrect deleted fields (as it once did, believe it or not).
+    c1 = OmegaConf.create(dict(a=dict(b='${c}'), c=10))
+    assert c1.a.b == 10
+    c2 = copy.deepcopy(c1)
+    assert c2.a.b == 10
