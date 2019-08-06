@@ -334,6 +334,7 @@ class Config(object):
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
+        src = copy.deepcopy(src)
 
         for key, value in src.items(resolve=False):
             if key in dest:

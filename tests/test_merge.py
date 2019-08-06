@@ -101,3 +101,12 @@ def test_merge_error(base, merge, exception):
     merge = None if merge is None else OmegaConf.create(merge)
     with pytest.raises(exception):
         OmegaConf.merge(base, merge)
+
+
+def test_parent_maintained():
+    c1 = OmegaConf.create(dict(a=dict(b=10)))
+    c2 = OmegaConf.create(dict(aa=dict(bb=100)))
+    c3 = OmegaConf.merge(c1, c2)
+    assert id(c1.a.parent) == id(c1)
+    assert id(c2.aa.parent) == id(c2)
+    assert id(c3.a.parent) == id(c3)
