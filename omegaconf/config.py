@@ -328,15 +328,13 @@ class Config(object):
         return yaml.dump(self.to_container(resolve=resolve), default_flow_style=False)
 
     @staticmethod
-    def map_merge(dest, src):
+    def _map_merge(dest, src):
         """merge src into dest and return a new copy, does not modified input"""
         from .dictconfig import DictConfig
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
 
-        dest = copy.deepcopy(dest)
-        src = copy.deepcopy(src)
         for key, value in src.items(resolve=False):
             if key in dest:
                 dest_node = dest.get_node(key)
@@ -352,7 +350,6 @@ class Config(object):
                         dest_node.set_value(value)
             else:
                 dest[key] = src.get_node(key)
-        return dest
 
     def merge_from(self, *others):
         warnings.warn("Use Config.merge_with() (since 1.1.10)", DeprecationWarning,
@@ -396,8 +393,7 @@ class Config(object):
             if other is None:
                 raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                combined = Config.map_merge(self, other)
-                self.__dict__['content'] = combined.content
+                Config._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 self.__dict__['content'] = copy.deepcopy(other.content)
             else:

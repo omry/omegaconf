@@ -194,3 +194,12 @@ def test_deepcopy_with_interpolation():
     assert c1.a.b == 10
     c2 = copy.deepcopy(c1)
     assert c2.a.b == 10
+
+
+# Yes, there was a bug that was a combination of an interaction between the three
+def test_deepcopy_and_merge_and_flags():
+    c1 = OmegaConf.create({'dataset': {'name': 'imagenet', 'path': '/datasets/imagenet'}, 'defaults': []})
+    OmegaConf.set_struct(c1, True)
+    c2 = copy.deepcopy(c1)
+    with pytest.raises(KeyError):
+        OmegaConf.merge(c2, OmegaConf.from_dotlist(['dataset.bad_key=yes']))
