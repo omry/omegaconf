@@ -4,9 +4,10 @@ import io
 import os
 import sys
 import warnings
-from collections import defaultdict
-from .config import Config
+
 import yaml
+
+from .config import Config
 
 
 def register_default_resolvers():
@@ -159,8 +160,21 @@ class OmegaConf:
     @staticmethod
     def clear_resolvers():
         Config._resolvers = {}
-        Config._resolvers_cache = defaultdict(lambda: defaultdict(dict))
         register_default_resolvers()
+
+    @staticmethod
+    def get_cache(conf):
+        # noinspection PyProtectedMember
+        return Config._resolvers_cache[id(conf)]
+
+    @staticmethod
+    def copy_cache(from_config, to_config):
+        OmegaConf.set_cache(to_config, OmegaConf.get_cache(from_config))
+
+    @staticmethod
+    def set_cache(conf, cache):
+        # noinspection PyProtectedMember
+        Config._resolvers_cache[id(conf)] = copy.deepcopy(cache)
 
     @staticmethod
     def set_readonly(conf, value):

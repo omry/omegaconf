@@ -222,6 +222,29 @@ def test_resolver_cache_2():
         OmegaConf.clear_resolvers()
 
 
+def test_copy_cache():
+    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    c1 = OmegaConf.create(dict(
+        k='${random:_}',
+    ))
+    assert c1.k == c1.k
+
+    c2 = OmegaConf.create(dict(
+        k='${random:_}',
+    ))
+    assert c2.k != c1.k
+    OmegaConf.set_cache(c2, OmegaConf.get_cache(c1))
+    assert c2.k == c1.k
+
+    c3 = OmegaConf.create(dict(
+        k='${random:_}',
+    ))
+
+    assert c3.k != c1.k
+    OmegaConf.copy_cache(c1, c3)
+    assert c3.k == c1.k
+
+
 def test_date_pattern():
     supported_chars = '%_-abc123.'
     c = OmegaConf.create(dict(
@@ -259,7 +282,7 @@ def test_interpolation_into_list():
     assert c.foo == 'bar'
 
 
-def test_unsuppoerted_interpolation_type():
+def test_unsupported_interpolation_type():
     c = OmegaConf.create(dict(
         foo='${wrong_type:ref}',
     ))
