@@ -5,10 +5,11 @@ import re
 import sys
 import warnings
 from abc import abstractmethod
+from collections import defaultdict
 
 import six
 import yaml
-from collections import defaultdict
+
 from .errors import MissingMandatoryValue, ReadonlyConfigError
 from .nodes import BaseNode
 
@@ -39,7 +40,6 @@ def get_yaml_loader():
 class Config(object):
     # static fields
     _resolvers = {}
-    _resolvers_cache = defaultdict(lambda: defaultdict(dict))
 
     def __init__(self):
         if type(self) == Config:
@@ -54,6 +54,7 @@ class Config(object):
             # Struct config throws a KeyError if a non existing field is accessed
             struct=None
         )
+        self.__dict__['_resolver_cache'] = defaultdict(dict)
 
     def save(self, f):
         data = self.pretty()
@@ -77,13 +78,6 @@ class Config(object):
         while root.__dict__['parent'] is not None:
             root = root.__dict__['parent']
         return root
-
-    def __del__(self):
-        if 'parent' not in self.__dict__ or self.__dict__['parent'] is None:
-            # root node, remove resolver cache
-            id_ = id(self)
-            if id_ in Config._resolvers_cache:
-                del Config._resolvers_cache[id_]
 
     def _set_flag(self, flag, value):
         assert value is None or isinstance(value, bool)

@@ -136,19 +136,19 @@ class OmegaConf:
         target.merge_with(*others[1:])
         return target
 
-    # noinspection PyProtectedMember
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
+        # noinspection PyProtectedMember
         assert name not in Config._resolvers, "resolved {} is already registered".format(name)
 
-        # noinspection PyProtectedMember
         def caching(config, key):
-            cache = Config._resolvers_cache[id(config)][name]
+            cache = OmegaConf.get_cache(config)[name]
             val = cache[key] if key in cache else resolver(key)
             cache[key] = val
             return val
 
+        # noinspection PyProtectedMember
         Config._resolvers[name] = caching
 
     # noinspection PyProtectedMember
@@ -164,17 +164,15 @@ class OmegaConf:
 
     @staticmethod
     def get_cache(conf):
-        # noinspection PyProtectedMember
-        return Config._resolvers_cache[id(conf)]
+        return conf.__dict__['_resolver_cache']
+
+    @staticmethod
+    def set_cache(conf, cache):
+        conf.__dict__['_resolver_cache'] = copy.deepcopy(cache)
 
     @staticmethod
     def copy_cache(from_config, to_config):
         OmegaConf.set_cache(to_config, OmegaConf.get_cache(from_config))
-
-    @staticmethod
-    def set_cache(conf, cache):
-        # noinspection PyProtectedMember
-        Config._resolvers_cache[id(conf)] = copy.deepcopy(cache)
 
     @staticmethod
     def set_readonly(conf, value):
