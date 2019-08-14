@@ -425,3 +425,9 @@ def test_hash():
     assert hash(c1) == hash(c2)
     c2.a = 20
     assert hash(c1) != hash(c2)
+
+
+def test_get_with_default_from_struct_not_throwing():
+    c = OmegaConf.create(dict(a=10, b=20))
+    OmegaConf.set_struct(c, True)
+    assert c.get('z', 'default') == 'default'

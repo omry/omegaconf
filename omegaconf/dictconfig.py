@@ -80,11 +80,13 @@ class DictConfig(Config):
         return self.__getattr__(key)
 
     def get(self, key, default_value=None):
-        return self._resolve_with_default(key=key, value=self.get_node(key), default_value=default_value)
+        return self._resolve_with_default(key=key, value=self.get_node(key, default_value), default_value=default_value)
 
-    def get_node(self, key):
+    def get_node(self, key, default_value=None):
         value = self.__dict__['content'].get(key)
         if key not in self.content and self._get_flag('struct'):
+            if default_value is not None:
+                return default_value
             raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
         return value
 
