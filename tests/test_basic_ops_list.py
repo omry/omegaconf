@@ -1,15 +1,9 @@
 import re
-from contextlib import contextmanager
 
 import pytest
 
 from omegaconf import *
-from . import IllegalType
-
-
-@contextmanager
-def does_not_raise(enter_result=None):
-    yield enter_result
+from . import IllegalType, does_not_raise
 
 
 def test_list_value():

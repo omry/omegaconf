@@ -3,6 +3,7 @@ import copy
 import pytest
 
 from omegaconf import *
+from . import does_not_raise
 
 
 @pytest.mark.parametrize('input_, key, value, expected', [
@@ -101,33 +102,41 @@ def test_str(input_):
     assert str(input_) == str(c)
 
 
-def test_flag_dict():
+@pytest.mark.parametrize('flag', [
+    'readonly',
+    'struct',
+])
+def test_flag_dict(flag):
     c = OmegaConf.create()
-    assert not c._get_flag('foo')
-    c._set_flag('foo', True)
-    assert c._get_flag('foo')
-    c._set_flag('foo', False)
-    assert not c._get_flag('foo')
-    c._set_flag('foo', None)
-    assert not c._get_flag('foo')
+    assert not c._get_flag(flag)
+    c._set_flag(flag, True)
+    assert c._get_flag(flag)
+    c._set_flag(flag, False)
+    assert not c._get_flag(flag)
+    c._set_flag(flag, None)
+    assert not c._get_flag(flag)
 
 
-def test_freeze_nested_dict():
+@pytest.mark.parametrize('flag', [
+    'readonly',
+    'struct',
+])
+def test_freeze_nested_dict(flag):
     c = OmegaConf.create(dict(a=dict(b=2)))
-    assert not c._get_flag('foo')
-    assert not c.a._get_flag('foo')
-    c._set_flag('foo', True)
-    assert c._get_flag('foo')
-    assert c.a._get_flag('foo')
-    c._set_flag('foo', False)
-    assert not c._get_flag('foo')
-    assert not c.a._get_flag('foo')
-    c._set_flag('foo', None)
-    assert not c._get_flag('foo')
-    assert not c.a._get_flag('foo')
-    c.a._set_flag('foo', True)
-    assert not c._get_flag('foo')
-    assert c.a._get_flag('foo')
+    assert not c._get_flag(flag)
+    assert not c.a._get_flag(flag)
+    c._set_flag(flag, True)
+    assert c._get_flag(flag)
+    assert c.a._get_flag(flag)
+    c._set_flag(flag, False)
+    assert not c._get_flag(flag)
+    assert not c.a._get_flag(flag)
+    c._set_flag(flag, None)
+    assert not c._get_flag(flag)
+    assert not c.a._get_flag(flag)
+    c.a._set_flag(flag, True)
+    assert not c._get_flag(flag)
+    assert c.a._get_flag(flag)
 
 
 copy_list = [
@@ -203,3 +212,49 @@ def test_deepcopy_and_merge_and_flags():
     c2 = copy.deepcopy(c1)
     with pytest.raises(KeyError):
         OmegaConf.merge(c2, OmegaConf.from_dotlist(['dataset.bad_key=yes']))
+
+
+@pytest.mark.parametrize('src, flag_name, flag_value, func, expectation', [
+    ({}, 'struct', False, lambda c: c.__setitem__('foo', 1), pytest.raises(KeyError)),
+    ({}, 'readonly', False, lambda c: c.__setitem__('foo', 1), pytest.raises(ReadonlyConfigError)),
+])
+def test_flag_override(src, flag_name, flag_value, func, expectation):
+    c = OmegaConf.create(src)
+    c._set_flag(flag_name, True)
+    with expectation:
+        func(c)
+
+    with does_not_raise():
+        with flag_override(c, flag_name, flag_value):
+            func(c)
+
+
+@pytest.mark.parametrize('src, func, expectation', [
+    ({}, lambda c: c.__setitem__('foo', 1), pytest.raises(ReadonlyConfigError)),
+    ([], lambda c: c.append(1), pytest.raises(ReadonlyConfigError)),
+])
+def test_read_write_override(src, func, expectation):
+    c = OmegaConf.create(src)
+    OmegaConf.set_readonly(c, True)
+
+    with expectation:
+        func(c)
+
+    with does_not_raise():
+        with read_write(c):
+            func(c)
+
+
+@pytest.mark.parametrize('src, func, expectation', [
+    ({}, lambda c: c.__setattr__('foo', 1), pytest.raises(KeyError)),
+])
+def test_struct_override(src, func, expectation):
+    c = OmegaConf.create(src)
+    OmegaConf.set_struct(c, True)
+
+    with expectation:
+        func(c)
+
+    with does_not_raise():
+        with open_dict(c):
+            func(c)

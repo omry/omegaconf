@@ -335,6 +335,17 @@ An attempt to modify it will result in omegaconf.ReadonlyConfigError exception
     ...
     omegaconf.ReadonlyConfigError: a.b
 
+You can temporarily remove the read only flag from a config object:
+
+.. doctest:: loaded
+
+    >>> import omegaconf
+    >>> conf = OmegaConf.create(dict(a=dict(b=10)))
+    >>> OmegaConf.set_readonly(conf, True)
+    >>> with omegaconf.read_write(conf):
+    ...   conf.a.b = 20
+    >>> conf.a.b
+    20
 
 Struct flag
 ^^^^^^^^^^^
@@ -351,3 +362,15 @@ It's sometime useful to change this behavior.
     Traceback (most recent call last):
     ...
     KeyError: 'Accessing unknown key in a struct : a.cc'
+
+You can temporarily remove the struct flag from a config object:
+
+.. doctest:: loaded
+
+    >>> import omegaconf
+    >>> conf = OmegaConf.create(dict(a=dict(aa=10, bb=20)))
+    >>> OmegaConf.set_struct(conf, True)
+    >>> with omegaconf.open_dict(conf):
+    ...   conf.a.cc = 30
+    >>> conf.a.cc
+    30

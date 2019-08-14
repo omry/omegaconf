@@ -4,6 +4,7 @@ import io
 import os
 import sys
 import warnings
+from contextlib import contextmanager
 
 import yaml
 
@@ -197,3 +198,35 @@ class OmegaConf:
 
 # register all default resolvers
 register_default_resolvers()
+
+
+# noinspection PyProtectedMember
+@contextmanager
+def flag_override(config, name, value):
+    prev_state = config._get_flag(name)
+    try:
+        config._set_flag(name, value)
+        yield config
+    finally:
+        config._set_flag(name, prev_state)
+
+
+# noinspection PyProtectedMember
+@contextmanager
+def read_write(config):
+    prev_state = OmegaConf.is_readonly(config)
+    try:
+        OmegaConf.set_readonly(config, False)
+        yield config
+    finally:
+        OmegaConf.set_readonly(config, prev_state)
+
+
+@contextmanager
+def open_dict(config):
+    prev_state = OmegaConf.is_struct(config)
+    try:
+        OmegaConf.set_struct(config, False)
+        yield config
+    finally:
+        OmegaConf.set_struct(config, prev_state)

@@ -1,14 +1,8 @@
 import re
-from contextlib import contextmanager
 
 import pytest
 
 from omegaconf import *
-
-
-@contextmanager
-def does_not_raise(enter_result=None):
-    yield enter_result
 
 
 @pytest.mark.parametrize('src, func, expectation', [

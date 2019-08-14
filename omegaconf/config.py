@@ -90,6 +90,7 @@ class Config(object):
         or one if it's parents is flag is set
         :return:
         """
+        assert flag in self.__dict__['flags']
         if flag in self.__dict__['flags'] and self.__dict__['flags'][flag] is not None:
             return self.__dict__['flags'][flag]
 
