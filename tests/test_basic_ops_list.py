@@ -1,12 +1,10 @@
-import copy
 import re
+from contextlib import contextmanager
 
 import pytest
 
 from omegaconf import *
 from . import IllegalType
-
-from contextlib import contextmanager
 
 
 @contextmanager

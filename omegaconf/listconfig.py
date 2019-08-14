@@ -53,7 +53,7 @@ class ListConfig(Config):
 
         value = self._prepare_value_to_add(index, value)
 
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(index))
 
         if not isinstance(value, BaseNode):
@@ -78,7 +78,7 @@ class ListConfig(Config):
             raise
 
     def insert(self, index, item):
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
@@ -136,12 +136,12 @@ class ListConfig(Config):
         return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
 
     def pop(self, index=-1):
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(index))
         return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
 
     def sort(self, key=None, reverse=False):
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError()
 
         if key is None:

@@ -1,59 +1,38 @@
-import pytest
 import re
+from contextlib import contextmanager
+
+import pytest
+
 from omegaconf import *
 
 
-def test_readonly_dict_add_field():
-    c = OmegaConf.create()
+@contextmanager
+def does_not_raise(enter_result=None):
+    yield enter_result
+
+
+@pytest.mark.parametrize('src, func, expectation', [
+    ({}, lambda c: c.__setitem__('a', 1), pytest.raises(ReadonlyConfigError, match='a')),
+    (dict(a=dict(b=dict(c=1))), lambda c: c.__getattr__('a').__getattr__('b').__setitem__('c', 1), pytest.raises(ReadonlyConfigError, match='a.b.c')),
+    ({}, lambda c: c.update("a.b", 10), pytest.raises(ReadonlyConfigError, match='a')),
+    (dict(a=10), lambda c: c.__setattr__('a', 1), pytest.raises(ReadonlyConfigError, match='a')),
+    (dict(a=10), lambda c: c.pop('a'), pytest.raises(ReadonlyConfigError, match='a')),
+    (dict(a=10), lambda c: c.__delitem__('a'), pytest.raises(ReadonlyConfigError, match='a')),
+])
+def test_readonly(src, func, expectation):
+    c = OmegaConf.create(src)
     OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a'):
-        c.a = 1
-    assert c == {}
+    with expectation:
+        func(c)
+    assert c == src
 
 
-def test_readonly_dict_add_field_deep():
-    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
-    OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a.b.c'):
-        c.a.b.c = 1
-    assert c == dict(a=dict(b=dict(c=1)))
-
-
-def test_readonly_dict_update():
-    c = OmegaConf.create()
-    OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a'):
-        c.update("a.b", 10)
-    assert c == {}
-
-
-def test_readonly_dict_change_leaf():
-    c = OmegaConf.create(dict(a=10))
-    OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a'):
-        c.a = 20
-    assert c == dict(a=10)
-
-
-def test_readonly_dict_pop():
-    c = OmegaConf.create(dict(a=10))
-    OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a'):
-        c.pop('a')
-    assert c == dict(a=10)
-
-
-def test_readonly_dict_del():
-    c = OmegaConf.create(dict(a=10))
-    OmegaConf.set_readonly(c, True)
-    with pytest.raises(ReadonlyConfigError, match='a'):
-        del c['a']
-    assert c == dict(a=10)
-
-
-# LIST #
-def test_freeze_list():
-    c = OmegaConf.create([])
+@pytest.mark.parametrize('src', [
+    {},
+    []
+])
+def test_readonly_flag(src):
+    c = OmegaConf.create(src)
     assert not OmegaConf.is_readonly(c)
     OmegaConf.set_readonly(c, True)
     assert OmegaConf.is_readonly(c)
@@ -63,7 +42,7 @@ def test_freeze_list():
     assert not OmegaConf.is_readonly(c)
 
 
-def test_freeze_nested_list():
+def test_readonly_nested_list():
     c = OmegaConf.create([[1]])
     assert not OmegaConf.is_readonly(c)
     assert not OmegaConf.is_readonly(c[0])

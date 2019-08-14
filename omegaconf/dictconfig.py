@@ -88,7 +88,7 @@ class DictConfig(Config):
     __marker = object()
 
     def pop(self, key, default=__marker):
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(key))
         val = self.content.pop(key, default)
         if val is self.__marker:

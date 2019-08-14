@@ -177,12 +177,12 @@ class OmegaConf:
     @staticmethod
     def set_readonly(conf, value):
         # noinspection PyProtectedMember
-        conf._set_flag('freeze', value)
+        conf._set_flag('readonly', value)
 
     @staticmethod
     def is_readonly(conf):
         # noinspection PyProtectedMember
-        return conf._get_flag('freeze')
+        return conf._get_flag('readonly')
 
     @staticmethod
     def set_struct(conf, value):

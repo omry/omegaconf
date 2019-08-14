@@ -49,8 +49,8 @@ class Config(object):
         #   set to true: flag is true
         #   set to false: flag is false
         self.__dict__['flags'] = dict(
-            # Frozen config cannot be modified
-            freeze=None,
+            # Read only config cannot be modified
+            readonly=None,
             # Struct config throws a KeyError if a non existing field is accessed
             struct=None
         )
@@ -192,7 +192,7 @@ class Config(object):
         self.__dict__.update(d)
 
     def __delitem__(self, key):
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(key))
         del self.content[key]
 
@@ -448,7 +448,7 @@ class Config(object):
             full_key = self.get_full_key(key)
             raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
 
-        if self._get_flag('freeze'):
+        if self._get_flag('readonly'):
             raise ReadonlyConfigError(self.get_full_key(key))
 
         return value
