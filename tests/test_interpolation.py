@@ -297,3 +297,11 @@ def test_resolve_none():
     ))
 
     assert c.foo is None
+
+
+def test_incremental_dict_with_interpolation():
+    conf = OmegaConf.create()
+    conf.a = 1
+    conf.b = OmegaConf.create()
+    conf.b.c = "${a}"
+    assert conf.b.c == conf.a

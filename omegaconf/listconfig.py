@@ -50,13 +50,8 @@ class ListConfig(Config):
             return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
 
     def _set_at_index(self, index, value):
-        if not isinstance(value, Config) and (isinstance(value, dict) or isinstance(value, list)):
-            from omegaconf import OmegaConf
-            value = OmegaConf.create(value, parent=self)
 
-        if not Config.is_primitive_type(value):
-            full_key = self.get_full_key(index)
-            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
+        value = self._prepare_value_to_add(index, value)
 
         if self._get_flag('freeze'):
             raise ReadonlyConfigError(self.get_full_key(index))

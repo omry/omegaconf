@@ -436,6 +436,23 @@ class Config(object):
             new += orig[last_index:]
             return new
 
+    def _prepare_value_to_add(self, key, value):
+        if isinstance(value, Config):
+            value = value.to_container()
+
+        if isinstance(value, dict) or isinstance(value, list):
+            from omegaconf import OmegaConf
+            value = OmegaConf.create(value, parent=self)
+
+        if not Config.is_primitive_type(value):
+            full_key = self.get_full_key(key)
+            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
+
+        if self._get_flag('freeze'):
+            raise ReadonlyConfigError(self.get_full_key(key))
+
+        return value
+
     @staticmethod
     def is_primitive_type(value):
         """
