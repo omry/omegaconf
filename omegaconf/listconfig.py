@@ -92,6 +92,38 @@ class ListConfig(Config):
             del self.__dict__['content'][index]
             raise
 
+    def extend(self, lst):
+        assert isinstance(lst, (tuple, list, ListConfig))
+        for x in lst:
+            self.append(x)
+
+    def remove(self, x):
+        del self[self.index(x)]
+
+    def clear(self):
+        del self[:]
+
+    def index(self, x):
+        found_idx = -1
+        for idx, item in enumerate(self):
+            if x == item:
+                found_idx = idx
+                break
+        if found_idx != -1:
+            return found_idx
+        else:
+            raise ValueError("Item not found in ListConfig")
+
+    def count(self, x):
+        c = 0
+        for item in self:
+            if item == x:
+                c = c + 1
+        return c
+
+    def copy(self):
+        return self[:]
+
     if six.PY2:
         def __getslice__(self, start, stop):
             result = []

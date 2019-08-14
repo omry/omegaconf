@@ -6,6 +6,13 @@ import pytest
 from omegaconf import *
 from . import IllegalType
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def does_not_raise(enter_result=None):
+    yield enter_result
+
 
 def test_list_value():
     c = OmegaConf.create('a: [1,2]')
@@ -201,11 +208,83 @@ def test_getattr():
         getattr(c, "anything")
 
 
-
 def test_insert():
     c = OmegaConf.create(['a', 'b', 'c'])
     c.insert(1, 100)
     assert c == ['a', 100, 'b', 'c']
+
+
+@pytest.mark.parametrize("src, append, result", [
+    ([], [], []),
+    ([1, 2], [3], [1, 2, 3]),
+    ([1, 2], ('a', 'b', 'c'), [1, 2, 'a', 'b', 'c']),
+])
+def test_extend(src, append, result):
+    src = OmegaConf.create(src)
+    src.extend(append)
+    assert src == result
+
+
+@pytest.mark.parametrize("src, remove, result, expectation", [
+    ([10], 10, [], does_not_raise()),
+    ([], 'oops', None, pytest.raises(ValueError)),
+    ([0, dict(a='blah'), 10], dict(a='blah'), [0, 10], does_not_raise()),
+    ([1, 2, 1, 2], 2, [1, 1, 2], does_not_raise()),
+])
+def test_remove(src, remove, result, expectation):
+    with expectation:
+        src = OmegaConf.create(src)
+        src.remove(remove)
+        assert src == result
+
+
+@pytest.mark.parametrize('src', [
+    [],
+    [1, 2, 3],
+    [None, dict(foo='bar')],
+])
+@pytest.mark.parametrize('num_clears', [
+    1, 2
+])
+def test_clear(src, num_clears):
+    src = OmegaConf.create(src)
+    for i in range(num_clears):
+        src.clear()
+    assert src == []
+
+
+@pytest.mark.parametrize('src, item, expected_index, expectation', [
+    ([], 20, -1, pytest.raises(ValueError)),
+    ([10, 20], 10, 0, does_not_raise()),
+    ([10, 20], 20, 1, does_not_raise()),
+])
+def test_index(src, item, expected_index, expectation):
+    with expectation:
+        src = OmegaConf.create(src)
+        assert src.index(item) == expected_index
+
+
+@pytest.mark.parametrize('src, item, count', [
+    ([], 10, 0),
+    ([10], 10, 1),
+    ([10, 2, 10], 10, 2),
+    ([10, 2, 10], None, 0),
+])
+def test_count(src, item, count):
+    src = OmegaConf.create(src)
+    assert src.count(item) == count
+
+
+@pytest.mark.parametrize('src', [
+    [],
+    [1, 2],
+    ['a', 'b', 'c'],
+])
+def test_copy(src):
+    src = OmegaConf.create(src)
+    cp = src.copy()
+    assert id(src) != id(cp)
+    assert src == cp
 
 
 def test_sort():

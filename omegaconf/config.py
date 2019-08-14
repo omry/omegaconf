@@ -194,7 +194,7 @@ class Config(object):
     def __delitem__(self, key):
         if self._get_flag('freeze'):
             raise ReadonlyConfigError(self.get_full_key(key))
-        self.content.__delitem__(key)
+        del self.content[key]
 
     def __len__(self):
         return self.content.__len__()
