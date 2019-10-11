@@ -156,6 +156,34 @@ def test_env_interpolation_not_found():
         c.path
 
 
+@pytest.mark.parametrize("value,expected", [
+   ("false", False),
+   ("off", False),
+   ("no", False),
+   ("true", True),
+   ("on", True),
+   ("yes", True),
+   ("10", 10),
+   ("-10", -10),
+   ("10.0", 10.0),
+   ("-10.0", -10.0),
+   ("foo: bar", {'foo': 'bar'}),
+   ("foo: \n - bar\n - baz", {'foo': ['bar', 'baz']}),
+])
+def test_values_from_env_come_parsed(value, expected):
+    try:
+        os.environ["my_key"] = value
+        c = OmegaConf.create(
+            dict(
+                my_key="${env:my_key}",
+            )
+        )
+        assert c.my_key == expected
+    finally:
+        del os.environ["my_key"]
+        OmegaConf.clear_resolvers()
+
+
 def test_register_resolver_twice_error():
     try:
         OmegaConf.register_resolver("foo", lambda: 10)

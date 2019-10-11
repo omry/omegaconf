@@ -14,7 +14,7 @@ from .config import Config
 def register_default_resolvers():
     def env(key):
         try:
-            return os.environ[key]
+            return yaml.safe_load(os.environ[key])
         except KeyError:
             raise KeyError("Environment variable '{}' not found".format(key))
 
