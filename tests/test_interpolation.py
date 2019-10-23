@@ -233,7 +233,7 @@ def test_resolver_cache_1():
 
 def test_resolver_cache_2():
     """
-    Tests that resolver cache is not shared between different OmegaConf objects 
+    Tests that resolver cache is not shared between different OmegaConf objects
     """
     try:
         OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
@@ -246,6 +246,21 @@ def test_resolver_cache_2():
         assert c1.k != c2.k
         assert c1.k == c1.k
         assert c2.k == c2.k
+    finally:
+        OmegaConf.clear_resolvers()
+
+
+@pytest.mark.parametrize('resolver,name,key,result', [
+    (lambda *args: args, 'arg_list', "${my_resolver:cat, dog}",("cat", "dog")),
+    (lambda *args: args, 'escape_comma',"${my_resolver:cat\, do g}",("cat, do g",)),
+    (lambda *args: args, 'escape_whitespace',"${my_resolver:cat\, do g}",("cat, do g",)),
+    (lambda: 'zero', 'zero_arg',"${my_resolver:}",("zero")),
+])
+def test_resolver_that_allows_a_list_of_arguments(resolver, name, key, result):
+    try:
+        OmegaConf.register_resolver('my_resolver', resolver)
+        c = OmegaConf.create({name: key})
+        assert c[name] == result
     finally:
         OmegaConf.clear_resolvers()
 

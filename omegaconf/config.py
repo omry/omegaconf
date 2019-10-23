@@ -416,7 +416,9 @@ class Config(object):
         return ret
 
     def _resolve_single(self, value):
-        match_list = list(re.finditer(r"\${(\w+:)?([\w\.%_-]+?)}", value))
+        key_prefix = r"\${(\w+:)?"
+        legal_characters = r"([\w\.%_ \\,-]*?)}"
+        match_list = list(re.finditer(key_prefix+legal_characters, value))
         if len(match_list) == 0:
             return value
 
