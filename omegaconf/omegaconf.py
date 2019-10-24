@@ -2,6 +2,7 @@
 import copy
 import io
 import os
+import re
 import sys
 import warnings
 from contextlib import contextmanager
@@ -137,6 +138,19 @@ class OmegaConf:
         target.merge_with(*others[1:])
         return target
 
+
+    @staticmethod
+    def _tokenize_args(string):
+        if string is None or string == '':
+            return []
+        def _unescape_word_boundary(match):
+            if match.start() == 0 or match.end() == len(match.string):
+                return ''
+            return match.group(0)
+        escaped = re.split(r'(?<!\\),', string)
+        escaped = [re.sub(r'(?<!\\) ', _unescape_word_boundary, x) for x in escaped]
+        return [re.sub(r'(\\([ ,]))', lambda x: x.group(2), x) for x in escaped]
+
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
@@ -145,7 +159,7 @@ class OmegaConf:
 
         def caching(config, key):
             cache = OmegaConf.get_cache(config)[name]
-            val = cache[key] if key in cache else resolver(key)
+            val = cache[key] if key in cache else resolver(*OmegaConf._tokenize_args(key))
             cache[key] = val
             return val
 

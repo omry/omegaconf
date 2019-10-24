@@ -255,6 +255,26 @@ This example creates a resolver that adds 10 the the given value.
     1000
 
 
+Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values (coming in OmegaConf 1.3.1).
+Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
+You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
+.. doctest::
+
+    >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
+    >>> c = OmegaConf.create({
+    ...     'key1': '${concat:Hello,World}',
+    ...     'key_trimmed': '${concat:Hello , World}',
+    ...     'escape_whitespace': '${concat:Hello,\ World}',
+    ... })
+    >>> c.key1
+    'HelloWorld'
+    >>> c.key_trimmed
+    'HelloWorld'
+    >>> c.escape_whitespace
+    'Hello World'
+
+
+
 Merging configurations
 ----------------------
 Merging configurations enables the creation of reusable configuration files for each logical component
