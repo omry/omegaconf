@@ -1,7 +1,6 @@
 from .config import Config
+from .errors import ReadonlyConfigError, MissingMandatoryValue
 from .nodes import BaseNode, UntypedNode
-from .errors import ReadonlyConfigError
-import copy
 
 
 class DictConfig(Config):
@@ -97,6 +96,22 @@ class DictConfig(Config):
 
     def keys(self):
         return self.content.keys()
+
+    def __contains__(self, key):
+        """
+        A key is contained in a DictConfig if there is an associated value and it is not a mandatory missing value ('???').
+        :param key:
+        :return:
+        """
+        node = self.get_node(key)
+        if node is None:
+            return False
+        else:
+            try:
+                self._resolve_with_default(key, node, None)
+                return True
+            except (MissingMandatoryValue, KeyError):
+                return False
 
     def __iter__(self):
         return iter(self.keys())

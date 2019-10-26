@@ -207,15 +207,19 @@ def test_dict_pop():
         c.pop('not_found')
 
 
-def test_in_dict():
-    c = OmegaConf.create(dict(
-        a=1,
-        b=2,
-        c={}))
-    assert 'a' in c
-    assert 'b' in c
-    assert 'c' in c
-    assert 'd' not in c
+@pytest.mark.parametrize("conf,key,expected", [
+    ({"a": 1, "b": {}}, "a", True),
+    ({"a": 1, "b": {}}, "b", True),
+    ({"a": 1, "b": {}}, "c", False),
+    ({"a": 1, "b": "${a}"}, "b", True),
+    ({"a": 1, "b": "???"}, "b", False),
+    ({"a": 1, "b": "???", "c": "${b}"}, "c", False),
+    ({"a": 1, "b": "${not_found}"}, "b", False),
+])
+def test_in_dict(conf, key, expected):
+    conf = OmegaConf.create(conf)
+    ret = key in conf
+    assert ret == expected
 
 
 def test_get_root():
