@@ -15,9 +15,13 @@ from .config import Config
 def register_default_resolvers():
     def env(key):
         try:
-            return yaml.safe_load(os.environ[key])
+            value = os.environ[key]
         except KeyError:
             raise KeyError("Environment variable '{}' not found".format(key))
+        try:
+            return yaml.safe_load(value)
+        except yaml.scanner.ScannerError:
+            return value
 
     OmegaConf.register_resolver('env', env)
 

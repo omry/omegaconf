@@ -147,6 +147,22 @@ def test_env_interpolation1():
         del os.environ['foobar']
         OmegaConf.clear_resolvers()
 
+@pytest.mark.parametrize('value', [
+    '>1234',
+    ':1234',
+    '/1234',
+])
+def test_env_string_val_but_invalid_yaml(value):
+    try:
+        os.environ['foobar'] = value
+        c = OmegaConf.create(dict(
+            path='${env:foobar}',
+        ))
+        assert c.path == value
+    finally:
+        del os.environ['foobar']
+        OmegaConf.clear_resolvers()
+
 
 def test_env_interpolation_not_found():
     c = OmegaConf.create(dict(
@@ -154,6 +170,7 @@ def test_env_interpolation_not_found():
     ))
     with pytest.raises(KeyError):
         c.path
+
 
 
 @pytest.mark.parametrize("value,expected", [
