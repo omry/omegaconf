@@ -288,7 +288,7 @@ def test_copy_cache():
     assert c3.k == c1.k
 
 
-def test_date_pattern():
+def test_supported_chars():
     supported_chars = '%_-abc123.'
     c = OmegaConf.create(dict(
         dir1='${copy:' + supported_chars + '}',
@@ -298,31 +298,12 @@ def test_date_pattern():
     assert c.dir1 == supported_chars
 
 
-def test_str_interpolation_list_1():
-    # interpolating a value in a list
-    c = OmegaConf.create(dict(
-        foo=['${ref}'],
-        ref='bar'
-    ))
-    assert c.foo[0] == 'bar'
-
-
 def test_interpolation_in_list_key_error():
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(['${10}'])
 
     with pytest.raises(KeyError):
         c[0]
-
-
-def test_interpolation_into_list():
-    # Test that a KeyError is thrown if an str_interpolation key is not available
-    c = OmegaConf.create(dict(
-        list=['bar'],
-        foo='${list.0}'
-    ))
-
-    assert c.foo == 'bar'
 
 
 def test_unsupported_interpolation_type():
@@ -334,17 +315,22 @@ def test_unsupported_interpolation_type():
         c.foo
 
 
-def test_resolve_none():
-    c = OmegaConf.create(dict(
-        foo=None
-    ))
-
-    assert c.foo is None
-
-
 def test_incremental_dict_with_interpolation():
     conf = OmegaConf.create()
     conf.a = 1
     conf.b = OmegaConf.create()
     conf.b.c = "${a}"
     assert conf.b.c == conf.a
+
+
+@pytest.mark.parametrize("cfg,key,expected",[
+    ({"a": 10, "b": "${a}"}, "b", 10),
+    ({"a": 10, "b": "${a}", "c": "${b}"}, "c", 10),
+    ({"bar": 10, "foo": ["${bar}"]}, "foo.0", 10),
+    ({"foo": None, "bar": "${foo}"}, "bar", None),
+    ({"list": ["bar"], "foo": "${list.0}"}, "foo", "bar"),
+    ({"list": ["${ref}"], "ref": "bar"}, "list.0", "bar"),
+])
+def test_interpolations(cfg, key, expected):
+    cfg = OmegaConf.create(cfg)
+    assert cfg.select(key) == expected
