@@ -1,5 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)
-[![Build Status](https://travis-ci.com/omry/omegaconf.svg?branch=master)](https://travis-ci.com/omry/omegaconf)
+[![Build Status](https://circleci.com/gh/omry/omegaconf.svg?style=svg)](https://circleci.com/gh/omry/omegaconf)
 [![Documentation Status](https://readthedocs.org/projects/omegaconf/badge/?version=latest)](https://omegaconf.readthedocs.io/en/latest/?badge=latest)
 [![downloads](https://img.shields.io/pypi/dm/omegaconf.svg)](https://pypistats.org/packages/omegaconf)
 [![Coverage Status](https://coveralls.io/repos/github/omry/omegaconf/badge.svg)](https://coveralls.io/github/omry/omegaconf)

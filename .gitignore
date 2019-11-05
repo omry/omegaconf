@@ -2,6 +2,7 @@
 *.pyc
 .pytest_cache
 .tox
+.nox
 build
 dist
 omegaconf.egg-info
