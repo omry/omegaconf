@@ -25,15 +25,19 @@ def isint(s):
 def get_yaml_loader():
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(
-        u'tag:yaml.org,2002:float',
-        re.compile(u'''^(?:
+        u"tag:yaml.org,2002:float",
+        re.compile(
+            u"""^(?:
          [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
         |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
         |\\.[0-9_]+(?:[eE][-+][0-9]+)?
         |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
         |[-+]?\\.(?:inf|Inf|INF)
-        |\\.(?:nan|NaN|NAN))$''', re.X),
-        list(u'-+0123456789.'))
+        |\\.(?:nan|NaN|NAN))$""",
+            re.X,
+        ),
+        list(u"-+0123456789."),
+    )
     return loader
 
 
@@ -48,20 +52,20 @@ class Config(object):
         #   unset : inherit from parent, defaults to false in top level config.
         #   set to true: flag is true
         #   set to false: flag is false
-        self.__dict__['flags'] = dict(
+        self.__dict__["flags"] = dict(
             # Read only config cannot be modified
             readonly=None,
             # Struct config throws a KeyError if a non existing field is accessed
-            struct=None
+            struct=None,
         )
-        self.__dict__['_resolver_cache'] = defaultdict(dict)
+        self.__dict__["_resolver_cache"] = defaultdict(dict)
 
     def save(self, f):
         data = self.pretty()
         if isinstance(f, str):
-            with io.open(os.path.abspath(f), 'w', encoding='utf-8') as f:
+            with io.open(os.path.abspath(f), "w", encoding="utf-8") as f:
                 f.write(six.u(data))
-        elif hasattr(f, 'write'):
+        elif hasattr(f, "write"):
             f.write(data)
             f.flush()
         else:
@@ -69,26 +73,26 @@ class Config(object):
 
     def _set_parent(self, parent):
         assert parent is None or isinstance(parent, Config)
-        self.__dict__['parent'] = parent
+        self.__dict__["parent"] = parent
 
     def _get_root(self):
-        root = self.__dict__['parent']
+        root = self.__dict__["parent"]
         if root is None:
             return self
-        while root.__dict__['parent'] is not None:
-            root = root.__dict__['parent']
+        while root.__dict__["parent"] is not None:
+            root = root.__dict__["parent"]
         return root
 
     def _set_flag(self, flag, value):
         assert value is None or isinstance(value, bool)
-        self.__dict__['flags'][flag] = value
+        self.__dict__["flags"][flag] = value
 
     def _get_node_flag(self, flag):
         """
         :param flag: flag to inspect
         :return: the state of the flag on this node.
         """
-        return self.__dict__['flags'][flag]
+        return self.__dict__["flags"][flag]
 
     def _get_flag(self, flag):
         """
@@ -97,16 +101,16 @@ class Config(object):
         or one if it's parents is flag is set
         :return:
         """
-        assert flag in self.__dict__['flags']
-        if flag in self.__dict__['flags'] and self.__dict__['flags'][flag] is not None:
-            return self.__dict__['flags'][flag]
+        assert flag in self.__dict__["flags"]
+        if flag in self.__dict__["flags"] and self.__dict__["flags"][flag] is not None:
+            return self.__dict__["flags"][flag]
 
         # root leaf, and frozen is not set.
-        if self.__dict__['parent'] is None:
+        if self.__dict__["parent"] is None:
             return False
         else:
             # noinspection PyProtectedMember
-            return self.__dict__['parent']._get_flag(flag)
+            return self.__dict__["parent"]._get_flag(flag)
 
     @abstractmethod
     def get(self, key, default_value=None):
@@ -125,7 +129,7 @@ class Config(object):
         """returns the value with the specified key, like obj.key and obj['key']"""
 
         def is_mandatory_missing(val):
-            return type(val) == str and val == '???'
+            return type(val) == str and val == "???"
 
         if isinstance(value, BaseNode):
             value = value.value()
@@ -141,7 +145,8 @@ class Config(object):
     def get_full_key(self, key):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
-        full_key = ''
+
+        full_key = ""
         child = None
         parent = self
         while parent is not None:
@@ -169,7 +174,7 @@ class Config(object):
                                 full_key = "[{}].{}".format(idx, full_key)
                             break
             child = parent
-            parent = child.__dict__['parent']
+            parent = child.__dict__["parent"]
 
         return full_key
 
@@ -200,7 +205,7 @@ class Config(object):
         self.__dict__.update(d)
 
     def __delitem__(self, key):
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
         del self.content[key]
 
@@ -218,6 +223,7 @@ class Config(object):
     def _select_one(c, key_):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         assert isinstance(c, (DictConfig, ListConfig))
         if isinstance(c, DictConfig):
             if key_ in c:
@@ -238,7 +244,7 @@ class Config(object):
 
     def merge_with_dotlist(self, dotlist):
         for arg in dotlist:
-            args = arg.split('=')
+            args = arg.split("=")
             key = args[0]
             value = None
             if len(args) > 1:
@@ -249,8 +255,9 @@ class Config(object):
     def update(self, key, value=None):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         """Updates a dot separated key sequence to a value"""
-        split = key.split('.')
+        split = key.split(".")
         root = self
         for i in range(len(split) - 1):
             k = split[i]
@@ -276,7 +283,7 @@ class Config(object):
         :return:
         """
 
-        split = key.split('.')
+        split = key.split(".")
         root = self
         for i in range(len(split) - 1):
             if root is None:
@@ -298,6 +305,7 @@ class Config(object):
     def _to_content(conf, resolve):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         assert isinstance(conf, Config)
         if isinstance(conf, DictConfig):
             ret = {}
@@ -355,16 +363,17 @@ class Config(object):
                 dest[key] = src.get_node(key)
 
     def merge_from(self, *others):
-        warnings.warn("Use Config.merge_with() (since 1.1.10)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "Use Config.merge_with() (since 1.1.10)", DeprecationWarning, stacklevel=2
+        )
 
         self.merge_with(*others)
 
     def _deepcopy_impl(self, res, _memodict={}):
         # memodict is intentionally not used.
         # Using it can cause python to return objects that were since modified, undoing their modifications!
-        res.__dict__['content'] = copy.deepcopy(self.__dict__['content'])
-        res.__dict__['flags'] = copy.deepcopy(self.__dict__['flags'])
+        res.__dict__["content"] = copy.deepcopy(self.__dict__["content"])
+        res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"])
         # intentionally not deepcopying the parent. this can cause all sorts of mayhem and stack overflow.
         # instead of just re-parent the result node. this will break interpolation in cases of deepcopying
         # a node that is not the root node, but that is almost guaranteed to break anyway.
@@ -391,6 +400,7 @@ class Config(object):
     def merge_with(self, *others):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             if other is None:
@@ -398,7 +408,7 @@ class Config(object):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 Config._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                self.__dict__['content'] = copy.deepcopy(other.content)
+                self.__dict__["content"] = copy.deepcopy(other.content)
             else:
                 raise TypeError("Merging DictConfig with ListConfig is not supported")
 
@@ -408,11 +418,14 @@ class Config(object):
     @staticmethod
     def _resolve_value(root_node, inter_type, inter_key):
         from omegaconf import OmegaConf
-        inter_type = ('str:' if inter_type is None else inter_type)[0:-1]
-        if inter_type == 'str':
+
+        inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
+        if inter_type == "str":
             ret = root_node.select(inter_key)
             if ret is None:
-                raise KeyError("{} interpolation key '{}' not found".format(inter_type, inter_key))
+                raise KeyError(
+                    "{} interpolation key '{}' not found".format(inter_type, inter_key)
+                )
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
@@ -425,7 +438,7 @@ class Config(object):
     def _resolve_single(self, value):
         key_prefix = r"\${(\w+:)?"
         legal_characters = r"([\w\.%_ \\,-]*?)}"
-        match_list = list(re.finditer(key_prefix+legal_characters, value))
+        match_list = list(re.finditer(key_prefix + legal_characters, value))
         if len(match_list) == 0:
             return value
 
@@ -436,11 +449,11 @@ class Config(object):
             return Config._resolve_value(root, match.group(1), match.group(2))
         else:
             orig = value
-            new = ''
+            new = ""
             last_index = 0
             for match in match_list:
                 new_val = Config._resolve_value(root, match.group(1), match.group(2))
-                new += orig[last_index:match.start(0)] + str(new_val)
+                new += orig[last_index : match.start(0)] + str(new_val)
                 last_index = match.end(0)
 
             new += orig[last_index:]
@@ -452,13 +465,18 @@ class Config(object):
 
         if isinstance(value, dict) or isinstance(value, list):
             from omegaconf import OmegaConf
+
             value = OmegaConf.create(value, parent=self)
 
         if not Config.is_primitive_type(value):
             full_key = self.get_full_key(key)
-            raise ValueError("key {}: {} is not a primitive type".format(full_key, type(value).__name__))
+            raise ValueError(
+                "key {}: {} is not a primitive type".format(
+                    full_key, type(value).__name__
+                )
+            )
 
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
 
         return value
@@ -473,12 +491,13 @@ class Config(object):
         """
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         # None is valid
         if value is None:
             return True
         valid = [bool, int, str, float, DictConfig, ListConfig, BaseNode]
         if six.PY2:
-            valid.append(unicode)
+            valid.append(unicode)  # noqa F821
 
         return isinstance(value, tuple(valid))
 
@@ -505,6 +524,7 @@ class Config(object):
     @staticmethod
     def _list_eq(l1, l2):
         from .listconfig import ListConfig
+
         assert isinstance(l1, ListConfig)
         assert isinstance(l2, ListConfig)
         if len(l1) != len(l2):
@@ -518,6 +538,7 @@ class Config(object):
     @staticmethod
     def _dict_conf_eq(d1, d2):
         from .dictconfig import DictConfig
+
         assert isinstance(d1, DictConfig)
         assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
@@ -536,6 +557,7 @@ class Config(object):
     def _config_eq(c1, c2):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
         assert isinstance(c1, Config)
         assert isinstance(c2, Config)
         if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):

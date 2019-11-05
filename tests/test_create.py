@@ -8,44 +8,50 @@ from omegaconf import OmegaConf
 from . import IllegalType
 
 
-@pytest.mark.parametrize('input_,expected', [
-    # simple value
-    ('hello', {'hello': None}),
-    # simple key:value"
-    ('hello: world', {'hello': 'world'}),
-    (dict(hello=dict(a=2)), {'hello': {'a': 2}}),
-    # empty input
-    ('', {}),
-    # list value
-    ([1, 2], [1, 2]),
-    # For simplicity, tuples are converted to lists.
-    ((1, 2), [1, 2]),
-    # dict 1
-    ({'a': 2, 'b': 10}, {'a': 2, 'b': 10}),
-    # dict 2
-    (dict(a=2, b=10), dict(a=2, b=10)),
-    # nested dict
-    ({'a': 2, 'b': {'c': {'f': 1}, 'd': {}}}, {'a': 2, 'b': {'c': {'f': 1}, 'd': {}}})
-])
+@pytest.mark.parametrize(
+    "input_,expected",
+    [
+        # simple value
+        ("hello", {"hello": None}),
+        # simple key:value"
+        ("hello: world", {"hello": "world"}),
+        (dict(hello=dict(a=2)), {"hello": {"a": 2}}),
+        # empty input
+        ("", {}),
+        # list value
+        ([1, 2], [1, 2]),
+        # For simplicity, tuples are converted to lists.
+        ((1, 2), [1, 2]),
+        # dict 1
+        ({"a": 2, "b": 10}, {"a": 2, "b": 10}),
+        # dict 2
+        (dict(a=2, b=10), dict(a=2, b=10)),
+        # nested dict
+        (
+            {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
+            {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
+        ),
+    ],
+)
 def test_create_value(input_, expected):
     assert expected == OmegaConf.create(input_)
 
 
 def test_create_from_cli():
-    sys.argv = ['program.py', 'a=1', 'b.c=2']
+    sys.argv = ["program.py", "a=1", "b.c=2"]
     c = OmegaConf.from_cli()
-    assert {'a': 1, 'b': {'c': 2}} == c
+    assert {"a": 1, "b": {"c": 2}} == c
 
 
 def test_cli_passing():
-    args_list = ['a=1', 'b.c=2']
+    args_list = ["a=1", "b.c=2"]
     c = OmegaConf.from_cli(args_list)
-    assert {'a': 1, 'b': {'c': 2}} == c
+    assert {"a": 1, "b": {"c": 2}} == c
 
 
-@pytest.mark.parametrize('input_, expected', [
-    (['a=1', 'b.c=2'], dict(a=1, b=dict(c=2))),
-])
+@pytest.mark.parametrize(
+    "input_, expected", [(["a=1", "b.c=2"], dict(a=1, b=dict(c=2)))]
+)
 def test_dotlist(input_, expected):
     c = OmegaConf.from_dotlist(input_)
     assert c == expected
@@ -78,9 +84,9 @@ def test_create_empty__deprecated():
 
 
 def test_create_from_string__deprecated():
-    s = 'hello: world'
+    s = "hello: world"
     c = OmegaConf.from_string(s)
-    assert {'hello': 'world'} == c
+    assert {"hello": "world"} == c
 
 
 def test_create_from_dict__deprecated():

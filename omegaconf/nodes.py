@@ -61,7 +61,9 @@ class IntegerNode(BaseNode):
         try:
             self.val = int(value) if value is not None else None
         except ValueError:
-            raise ValidationError("Value '{}' could not be converted to Integer".format(value))
+            raise ValidationError(
+                "Value '{}' could not be converted to Integer".format(value)
+            )
 
 
 class FloatNode(BaseNode):
@@ -73,7 +75,9 @@ class FloatNode(BaseNode):
         try:
             self.val = float(value) if value is not None else None
         except ValueError:
-            raise ValidationError("Value '{}' could not be converted to float".format(value))
+            raise ValidationError(
+                "Value '{}' could not be converted to float".format(value)
+            )
 
     def __eq__(self, other):
         if isinstance(other, BaseNode):
@@ -101,11 +105,15 @@ class BooleanNode(BaseNode):
                 self.set_value(int(value))
                 return
             except ValueError:
-                if value.lower() in ("yes", "y", "on", 'true'):
+                if value.lower() in ("yes", "y", "on", "true"):
                     self.val = True
-                elif value.lower() in ("no", "n", "off", 'false'):
+                elif value.lower() in ("no", "n", "off", "false"):
                     self.val = False
                 else:
-                    raise ValidationError("Value '{}' is not a valid bool".format(value))
+                    raise ValidationError(
+                        "Value '{}' is not a valid bool".format(value)
+                    )
         else:
-            raise ValidationError("Value '{}' has unsupported type {}".format(value, type(value).__name__))
+            raise ValidationError(
+                "Value '{}' has unsupported type {}".format(value, type(value).__name__)
+            )

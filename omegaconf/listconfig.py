@@ -11,12 +11,13 @@ from .nodes import BaseNode, UntypedNode
 class ListConfig(Config):
     def __init__(self, content, parent=None):
         super(ListConfig, self).__init__()
-        self.__dict__['content'] = []
-        self.__dict__['parent'] = parent
+        self.__dict__["content"] = []
+        self.__dict__["parent"] = parent
         assert isinstance(content, (list, tuple))
         for item in content:
             if isinstance(item, dict) or isinstance(item, (list, tuple)):
                 from omegaconf import OmegaConf
+
                 item = OmegaConf.create(item, parent=self)
             self.append(item)
 
@@ -42,28 +43,34 @@ class ListConfig(Config):
         assert isinstance(index, (int, slice))
         if isinstance(index, slice):
             result = []
-            for slice_idx in itertools.islice(range(0, len(self)), index.start, index.stop, index.step):
-                val = self._resolve_with_default(key=slice_idx, value=self.content[slice_idx], default_value=None)
+            for slice_idx in itertools.islice(
+                range(0, len(self)), index.start, index.stop, index.step
+            ):
+                val = self._resolve_with_default(
+                    key=slice_idx, value=self.content[slice_idx], default_value=None
+                )
                 result.append(val)
             return result
         else:
-            return self._resolve_with_default(key=index, value=self.content[index], default_value=None)
+            return self._resolve_with_default(
+                key=index, value=self.content[index], default_value=None
+            )
 
     def _set_at_index(self, index, value):
 
         value = self._prepare_value_to_add(index, value)
 
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(index))
 
         if not isinstance(value, BaseNode):
-            self.__dict__['content'][index].set_value(value)
+            self.__dict__["content"][index].set_value(value)
         else:
             if not isinstance(value, BaseNode):
                 value = UntypedNode(value)
             else:
                 value = copy.deepcopy(value)
-            self.__dict__['content'][index] = value
+            self.__dict__["content"][index] = value
 
     def __setitem__(self, index, value):
         assert isinstance(index, int)
@@ -71,20 +78,20 @@ class ListConfig(Config):
 
     def append(self, item):
         try:
-            self.__dict__['content'].append(UntypedNode(None))
+            self.__dict__["content"].append(UntypedNode(None))
             self._set_at_index(len(self) - 1, item)
         except Exception:
-            del self.__dict__['content'][len(self) - 1]
+            del self.__dict__["content"][len(self) - 1]
             raise
 
     def insert(self, index, item):
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(index))
         try:
             self.content.insert(index, UntypedNode(None))
             self._set_at_index(index, item)
         except Exception:
-            del self.__dict__['content'][index]
+            del self.__dict__["content"][index]
             raise
 
     def extend(self, lst):
@@ -120,12 +127,15 @@ class ListConfig(Config):
         return self[:]
 
     if six.PY2:
+
         def __getslice__(self, start, stop):
             result = []
             for slice_idx in itertools.islice(range(0, len(self)), start, stop, 1):
-                val = self._resolve_with_default(key=slice_idx, value=self.content[slice_idx], default_value=None)
+                val = self._resolve_with_default(
+                    key=slice_idx, value=self.content[slice_idx], default_value=None
+                )
                 result.append(val)
-            return ListConfig(content=result, parent=self.__dict__['parent'])
+            return ListConfig(content=result, parent=self.__dict__["parent"])
 
     def get_node(self, index):
         assert type(index) == int
@@ -133,23 +143,31 @@ class ListConfig(Config):
 
     def get(self, index, default_value=None):
         assert type(index) == int
-        return self._resolve_with_default(key=index, value=self.content[index], default_value=default_value)
+        return self._resolve_with_default(
+            key=index, value=self.content[index], default_value=default_value
+        )
 
     def pop(self, index=-1):
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(index))
-        return self._resolve_with_default(key=index, value=self.content.pop(index), default_value=None)
+        return self._resolve_with_default(
+            key=index, value=self.content.pop(index), default_value=None
+        )
 
     def sort(self, key=None, reverse=False):
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError()
 
         if key is None:
+
             def key1(x):
                 return x.value()
+
         else:
+
             def key1(x):
                 return key(x.value())
+
         self.content.sort(key=key1, reverse=reverse)
 
     def __eq__(self, other):
