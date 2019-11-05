@@ -1,6 +1,16 @@
 import pytest
 
-from omegaconf import *
+from omegaconf import (
+    StringNode,
+    IntegerNode,
+    FloatNode,
+    BooleanNode,
+    BaseNode,
+    ListConfig,
+    DictConfig,
+    UntypedNode,
+    OmegaConf,
+)
 from omegaconf.errors import ValidationError
 
 
@@ -12,42 +22,48 @@ def test_base_node():
 
 
 # testing valid conversions
-@pytest.mark.parametrize('type_,input_,output_', [
-    # string
-    (nodes.StringNode, "abc", "abc"),
-    (nodes.StringNode, 100, "100"),
-    # integer
-    (nodes.IntegerNode, 10, 10),
-    (nodes.IntegerNode, 10.1, 10),
-    (nodes.IntegerNode, '10', 10),
-    (nodes.IntegerNode, -100, -100),
-    (nodes.IntegerNode, "-100", -100),
-    # float
-    (nodes.FloatNode, float('inf'), float('inf')),
-    (nodes.FloatNode, float('nan'), float('nan')),  # Yes, we treat nan as equal to nan in OmegaConf
-    (nodes.FloatNode, 10, 10.0),
-    (nodes.FloatNode, 10.1, 10.1),
-    (nodes.FloatNode, "10.2", 10.2),
-    (nodes.FloatNode, "10e-3", 10e-3),
-    # bool true
-    (nodes.BooleanNode, True, True),
-    (nodes.BooleanNode, "Y", True),
-    (nodes.BooleanNode, "true", True),
-    (nodes.BooleanNode, "Yes", True),
-    (nodes.BooleanNode, "On", True),
-    (nodes.BooleanNode, "1", True),
-    (nodes.BooleanNode, 100, True),
-    # bool false
-    (nodes.BooleanNode, False, False),
-    (nodes.BooleanNode, "N", False),
-    (nodes.BooleanNode, "false", False),
-    (nodes.BooleanNode, "No", False),
-    (nodes.BooleanNode, "Off", False),
-    (nodes.BooleanNode, None, False),
-    (nodes.BooleanNode, "0", False),
-    (nodes.BooleanNode, 0, False),
-
-])
+@pytest.mark.parametrize(
+    "type_,input_,output_",
+    [
+        # string
+        (StringNode, "abc", "abc"),
+        (StringNode, 100, "100"),
+        # integer
+        (IntegerNode, 10, 10),
+        (IntegerNode, 10.1, 10),
+        (IntegerNode, "10", 10),
+        (IntegerNode, -100, -100),
+        (IntegerNode, "-100", -100),
+        # float
+        (FloatNode, float("inf"), float("inf")),
+        (
+            FloatNode,
+            float("nan"),
+            float("nan"),
+        ),  # Yes, we treat nan as equal to nan in OmegaConf
+        (FloatNode, 10, 10.0),
+        (FloatNode, 10.1, 10.1),
+        (FloatNode, "10.2", 10.2),
+        (FloatNode, "10e-3", 10e-3),
+        # bool true
+        (BooleanNode, True, True),
+        (BooleanNode, "Y", True),
+        (BooleanNode, "true", True),
+        (BooleanNode, "Yes", True),
+        (BooleanNode, "On", True),
+        (BooleanNode, "1", True),
+        (BooleanNode, 100, True),
+        # bool false
+        (BooleanNode, False, False),
+        (BooleanNode, "N", False),
+        (BooleanNode, "false", False),
+        (BooleanNode, "No", False),
+        (BooleanNode, "Off", False),
+        (BooleanNode, None, False),
+        (BooleanNode, "0", False),
+        (BooleanNode, 0, False),
+    ],
+)
 def test_valid_inputs(type_, input_, output_):
     node = type_(input_)
     assert node == output_
@@ -58,14 +74,17 @@ def test_valid_inputs(type_, input_, output_):
 
 
 # testing invalid conversions
-@pytest.mark.parametrize('type_,input_', [
-    (nodes.IntegerNode, 'abc'),
-    (nodes.IntegerNode, '-1132c'),
-    (nodes.FloatNode, 'abc'),
-    (nodes.IntegerNode, '-abc'),
-    (nodes.BooleanNode, "Nope"),
-    (nodes.BooleanNode, "Yup"),
-])
+@pytest.mark.parametrize(
+    "type_,input_",
+    [
+        (IntegerNode, "abc"),
+        (IntegerNode, "-1132c"),
+        (FloatNode, "abc"),
+        (IntegerNode, "-abc"),
+        (BooleanNode, "Nope"),
+        (BooleanNode, "Yup"),
+    ],
+)
 def test_invalid_inputs(type_, input_):
     empty_node = type_()
     with pytest.raises(ValidationError):
@@ -75,19 +94,22 @@ def test_invalid_inputs(type_, input_):
         type_(input_)
 
 
-@pytest.mark.parametrize('input_, expected_type', [
-    ({}, DictConfig),
-    ([], ListConfig),
-    (5, UntypedNode),
-    (5.0, UntypedNode),
-    (True, UntypedNode),
-    (False, UntypedNode),
-    ('str', UntypedNode),
-])
+@pytest.mark.parametrize(
+    "input_, expected_type",
+    [
+        ({}, DictConfig),
+        ([], ListConfig),
+        (5, UntypedNode),
+        (5.0, UntypedNode),
+        (True, UntypedNode),
+        (False, UntypedNode),
+        ("str", UntypedNode),
+    ],
+)
 def test_assigned_value_node_type(input_, expected_type):
     c = OmegaConf.create()
     c.foo = input_
-    assert type(c.get_node('foo')) == expected_type
+    assert type(c.get_node("foo")) == expected_type
 
 
 # dict
@@ -96,15 +118,15 @@ def test_dict_any():
     # default type is Any
     c.foo = 10
     assert c.foo == 10
-    assert type(c.get_node('foo')) == nodes.UntypedNode
-    c.foo = 'string'
-    assert c.foo == 'string'
+    assert type(c.get_node("foo")) == UntypedNode
+    c.foo = "string"
+    assert c.foo == "string"
 
 
 def test_dict_integer_1():
     c = OmegaConf.create()
-    c.foo = nodes.IntegerNode(10)
-    assert type(c.get_node('foo')) == nodes.IntegerNode
+    c.foo = IntegerNode(10)
+    assert type(c.get_node("foo")) == IntegerNode
     assert c.foo == 10
 
 
@@ -114,36 +136,39 @@ def test_list_any():
     # default type is Any
     c.append(10)
     assert c[0] == 10
-    assert type(c.get_node(0)) == nodes.UntypedNode
-    c[0] = 'string'
-    assert c[0] == 'string'
+    assert type(c.get_node(0)) == UntypedNode
+    c[0] = "string"
+    assert c[0] == "string"
 
 
 def test_list_integer():
     val = 10
     c = OmegaConf.create([])
-    c.append(nodes.IntegerNode(val))
-    assert type(c.get_node(0)) == nodes.IntegerNode
+    c.append(IntegerNode(val))
+    assert type(c.get_node(0)) == IntegerNode
     assert c.get(0) == val
 
 
 def test_list_integer_rejects_string():
     c = OmegaConf.create([])
-    c.append(nodes.IntegerNode(10))
+    c.append(IntegerNode(10))
     assert c.get(0) == 10
     with pytest.raises(ValidationError):
-        c[0] = 'string'
+        c[0] = "string"
     assert c[0] == 10
-    assert type(c.get_node(0)) == nodes.IntegerNode
+    assert type(c.get_node(0)) == IntegerNode
 
 
 # Test merge raises validation error
-@pytest.mark.parametrize('c1, c2', [
-    (dict(a=nodes.IntegerNode(10)), dict(a='str')),
-    (dict(a=nodes.IntegerNode(10)), dict(a=nodes.StringNode('str'))),
-    (dict(a=10, b=nodes.IntegerNode(10)), dict(a=20, b='str')),
-    (dict(foo=dict(bar=nodes.IntegerNode(10))), dict(foo=dict(bar='str')))
-])
+@pytest.mark.parametrize(
+    "c1, c2",
+    [
+        (dict(a=IntegerNode(10)), dict(a="str")),
+        (dict(a=IntegerNode(10)), dict(a=StringNode("str"))),
+        (dict(a=10, b=IntegerNode(10)), dict(a=20, b="str")),
+        (dict(foo=dict(bar=IntegerNode(10))), dict(foo=dict(bar="str"))),
+    ],
+)
 def test_merge_validation_error(c1, c2):
     conf1 = OmegaConf.create(c1)
     conf2 = OmegaConf.create(c2)

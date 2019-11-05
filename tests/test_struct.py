@@ -27,7 +27,7 @@ def test_struct_set_on_nested_dict():
         # noinspection PyStatementEffect
         c.foo
 
-    assert 'a' in c
+    assert "a" in c
     assert c.a.b == 10
     with pytest.raises(KeyError, match=re.escape("a.foo")):
         # noinspection PyStatementEffect
@@ -38,12 +38,10 @@ def test_merge_dotlist_into_struct():
     c = OmegaConf.create(dict(a=dict(b=10)))
     OmegaConf.set_struct(c, True)
     with pytest.raises(KeyError, match=re.escape("foo")):
-        c.merge_with_dotlist(['foo=1'])
+        c.merge_with_dotlist(["foo=1"])
 
 
-@pytest.mark.parametrize('base, merged', [
-    (dict(), dict(a=10))
-])
+@pytest.mark.parametrize("base, merged", [(dict(), dict(a=10))])
 def test_merge_config_with_struct(base, merged):
     base = OmegaConf.create(base)
     merged = OmegaConf.create(merged)

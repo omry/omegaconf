@@ -19,7 +19,7 @@ def register_default_resolvers():
         except KeyError:
             raise KeyError("Environment variable '{}' not found".format(key))
 
-    OmegaConf.register_resolver('env', env)
+    OmegaConf.register_resolver("env", env)
 
 
 class OmegaConf:
@@ -54,26 +54,29 @@ class OmegaConf:
 
     @staticmethod
     def empty():
-        warnings.warn("Use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "Use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
         """Creates an empty config"""
         return OmegaConf.create()
 
     @staticmethod
     def load(file_):
         from .config import get_yaml_loader
+
         if isinstance(file_, str):
-            with io.open(os.path.abspath(file_), 'r', encoding='utf-8') as f:
+            with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
                 return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
-        elif getattr(file_, 'read'):
+        elif getattr(file_, "read"):
             return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
         else:
             raise TypeError("Unexpected file type")
 
     @staticmethod
     def from_filename(filename):
-        warnings.warn("use OmegaConf.load() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "use OmegaConf.load() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
 
         """Creates config from the content of the specified filename"""
         assert isinstance(filename, str)
@@ -82,15 +85,18 @@ class OmegaConf:
     @staticmethod
     def from_file(file_):
         """Creates config from the content of the specified file object"""
-        warnings.warn("use OmegaConf.load() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "use OmegaConf.load() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
         return OmegaConf.load(file_)
 
     @staticmethod
     def from_string(content):
         from .config import get_yaml_loader
-        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+
+        warnings.warn(
+            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
         """Creates config from the content of string"""
         assert isinstance(content, str)
         yamlstr = yaml.load(content, Loader=get_yaml_loader())
@@ -99,16 +105,18 @@ class OmegaConf:
     @staticmethod
     def from_dict(dict_):
         """Creates config from a dictionary"""
-        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
         assert isinstance(dict_, dict)
         return OmegaConf.create(dict_)
 
     @staticmethod
     def from_list(list_):
         """Creates config from a list"""
-        warnings.warn("use OmegaConf.create() (since 1.1.5)", DeprecationWarning,
-                      stacklevel=2)
+        warnings.warn(
+            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
+        )
         assert isinstance(list_, list)
         return OmegaConf.create(list_)
 
@@ -138,28 +146,33 @@ class OmegaConf:
         target.merge_with(*others[1:])
         return target
 
-
     @staticmethod
     def _tokenize_args(string):
-        if string is None or string == '':
+        if string is None or string == "":
             return []
+
         def _unescape_word_boundary(match):
             if match.start() == 0 or match.end() == len(match.string):
-                return ''
+                return ""
             return match.group(0)
-        escaped = re.split(r'(?<!\\),', string)
-        escaped = [re.sub(r'(?<!\\) ', _unescape_word_boundary, x) for x in escaped]
-        return [re.sub(r'(\\([ ,]))', lambda x: x.group(2), x) for x in escaped]
+
+        escaped = re.split(r"(?<!\\),", string)
+        escaped = [re.sub(r"(?<!\\) ", _unescape_word_boundary, x) for x in escaped]
+        return [re.sub(r"(\\([ ,]))", lambda x: x.group(2), x) for x in escaped]
 
     @staticmethod
     def register_resolver(name, resolver):
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
-        assert name not in Config._resolvers, "resolved {} is already registered".format(name)
+        assert (
+            name not in Config._resolvers
+        ), "resolved {} is already registered".format(name)
 
         def caching(config, key):
             cache = OmegaConf.get_cache(config)[name]
-            val = cache[key] if key in cache else resolver(*OmegaConf._tokenize_args(key))
+            val = (
+                cache[key] if key in cache else resolver(*OmegaConf._tokenize_args(key))
+            )
             cache[key] = val
             return val
 
@@ -179,11 +192,11 @@ class OmegaConf:
 
     @staticmethod
     def get_cache(conf):
-        return conf.__dict__['_resolver_cache']
+        return conf.__dict__["_resolver_cache"]
 
     @staticmethod
     def set_cache(conf, cache):
-        conf.__dict__['_resolver_cache'] = copy.deepcopy(cache)
+        conf.__dict__["_resolver_cache"] = copy.deepcopy(cache)
 
     @staticmethod
     def copy_cache(from_config, to_config):
@@ -192,22 +205,22 @@ class OmegaConf:
     @staticmethod
     def set_readonly(conf, value):
         # noinspection PyProtectedMember
-        conf._set_flag('readonly', value)
+        conf._set_flag("readonly", value)
 
     @staticmethod
     def is_readonly(conf):
         # noinspection PyProtectedMember
-        return conf._get_flag('readonly')
+        return conf._get_flag("readonly")
 
     @staticmethod
     def set_struct(conf, value):
         # noinspection PyProtectedMember
-        conf._set_flag('struct', value)
+        conf._set_flag("struct", value)
 
     @staticmethod
     def is_struct(conf):
         # noinspection PyProtectedMember
-        return conf._get_flag('struct')
+        return conf._get_flag("struct")
 
 
 # register all default resolvers

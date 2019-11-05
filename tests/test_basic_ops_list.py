@@ -2,44 +2,37 @@ import re
 
 import pytest
 
-from omegaconf import *
+from omegaconf import OmegaConf, UntypedNode, ListConfig, DictConfig
 from . import IllegalType, does_not_raise
 
 
 def test_list_value():
-    c = OmegaConf.create('a: [1,2]')
-    assert {'a': [1, 2]} == c
+    c = OmegaConf.create("a: [1,2]")
+    assert {"a": [1, 2]} == c
 
 
 def test_list_of_dicts():
-    v = [
-        dict(key1='value1'),
-        dict(key2='value2')
-    ]
+    v = [dict(key1="value1"), dict(key2="value2")]
     c = OmegaConf.create(v)
-    assert c[0].key1 == 'value1'
-    assert c[1].key2 == 'value2'
+    assert c[0].key1 == "value1"
+    assert c[1].key2 == "value2"
 
 
 def test_pretty_list():
-    c = OmegaConf.create([
-        'item1',
-        'item2',
-        dict(key3='value3')
-    ])
-    expected = '''- item1
+    c = OmegaConf.create(["item1", "item2", dict(key3="value3")])
+    expected = """- item1
 - item2
 - key3: value3
-'''
+"""
     assert expected == c.pretty()
     assert OmegaConf.create(c.pretty()) == c
 
 
 def test_list_get_with_default():
     c = OmegaConf.create([None, "???", "found"])
-    assert c.get(0, 'default_value') == 'default_value'
-    assert c.get(1, 'default_value') == 'default_value'
-    assert c.get(2, 'default_value') == 'found'
+    assert c.get(0, "default_value") == "default_value"
+    assert c.get(1, "default_value") == "default_value"
+    assert c.get(2, "default_value") == "found"
 
 
 def test_iterate_list():
@@ -50,12 +43,9 @@ def test_iterate_list():
 
 
 def test_items_with_interpolation():
-    c = OmegaConf.create([
-        'foo',
-        '${0}'
-    ])
+    c = OmegaConf.create(["foo", "${0}"])
 
-    assert c == ['foo', 'foo']
+    assert c == ["foo", "foo"]
 
 
 def test_list_pop():
@@ -72,7 +62,7 @@ def test_in_list():
     assert 10 in c
     assert 11 in c
     assert dict(a=12) in c
-    assert 'blah' not in c
+    assert "blah" not in c
 
 
 def test_list_config_with_list():
@@ -92,7 +82,7 @@ def test_items_on_list():
 
 
 def test_list_enumerate():
-    src = ['a', 'b', 'c', 'd']
+    src = ["a", "b", "c", "d"]
     c = OmegaConf.create(src)
     for i, v in enumerate(c):
         assert src[i] == v
@@ -119,15 +109,15 @@ def test_list_len():
 
 def test_assign_list_in_list():
     c = OmegaConf.create([10, 11])
-    c[0] = ['a', 'b']
-    assert c == [['a', 'b'], 11]
+    c[0] = ["a", "b"]
+    assert c == [["a", "b"], 11]
     assert isinstance(c[0], ListConfig)
 
 
 def test_assign_dict_in_list():
     c = OmegaConf.create([None])
-    c[0] = dict(foo='bar')
-    assert c[0] == dict(foo='bar')
+    c[0] = dict(foo="bar")
+    assert c[0] == dict(foo="bar")
     assert isinstance(c[0], DictConfig)
 
 
@@ -139,8 +129,8 @@ def test_nested_list_assign_illegal_value():
 
 def test_assign_list_in_dict():
     c = OmegaConf.create(dict())
-    c.foo = ['a', 'b']
-    assert c == dict(foo=['a', 'b'])
+    c.foo = ["a", "b"]
+    assert c == dict(foo=["a", "b"])
     assert isinstance(c.foo, ListConfig)
 
 
@@ -156,7 +146,7 @@ def test_list_append():
 
 
 def test_pretty_without_resolve():
-    c = OmegaConf.create([100, '${0}'])
+    c = OmegaConf.create([100, "${0}"])
     # without resolve, references are preserved
     c2 = OmegaConf.create(c.pretty(resolve=False))
     c2[0] = 1000
@@ -164,7 +154,7 @@ def test_pretty_without_resolve():
 
 
 def test_pretty_with_resolve():
-    c = OmegaConf.create([100, '${0}'])
+    c = OmegaConf.create([100, "${0}"])
     # with resolve, references are not preserved.
     c2 = OmegaConf.create(c.pretty(resolve=True))
     c2[0] = 1000
@@ -192,37 +182,43 @@ def test_list_dir():
 
 
 def test_getattr():
-    c = OmegaConf.create(['a', 'b', 'c'])
-    assert getattr(c, "0") == 'a'
-    assert getattr(c, "1") == 'b'
-    assert getattr(c, "2") == 'c'
+    c = OmegaConf.create(["a", "b", "c"])
+    assert getattr(c, "0") == "a"
+    assert getattr(c, "1") == "b"
+    assert getattr(c, "2") == "c"
     with pytest.raises(AttributeError):
         getattr(c, "anything")
 
 
 def test_insert():
-    c = OmegaConf.create(['a', 'b', 'c'])
+    c = OmegaConf.create(["a", "b", "c"])
     c.insert(1, 100)
-    assert c == ['a', 100, 'b', 'c']
+    assert c == ["a", 100, "b", "c"]
 
 
-@pytest.mark.parametrize("src, append, result", [
-    ([], [], []),
-    ([1, 2], [3], [1, 2, 3]),
-    ([1, 2], ('a', 'b', 'c'), [1, 2, 'a', 'b', 'c']),
-])
+@pytest.mark.parametrize(
+    "src, append, result",
+    [
+        ([], [], []),
+        ([1, 2], [3], [1, 2, 3]),
+        ([1, 2], ("a", "b", "c"), [1, 2, "a", "b", "c"]),
+    ],
+)
 def test_extend(src, append, result):
     src = OmegaConf.create(src)
     src.extend(append)
     assert src == result
 
 
-@pytest.mark.parametrize("src, remove, result, expectation", [
-    ([10], 10, [], does_not_raise()),
-    ([], 'oops', None, pytest.raises(ValueError)),
-    ([0, dict(a='blah'), 10], dict(a='blah'), [0, 10], does_not_raise()),
-    ([1, 2, 1, 2], 2, [1, 1, 2], does_not_raise()),
-])
+@pytest.mark.parametrize(
+    "src, remove, result, expectation",
+    [
+        ([10], 10, [], does_not_raise()),
+        ([], "oops", None, pytest.raises(ValueError)),
+        ([0, dict(a="blah"), 10], dict(a="blah"), [0, 10], does_not_raise()),
+        ([1, 2, 1, 2], 2, [1, 1, 2], does_not_raise()),
+    ],
+)
 def test_remove(src, remove, result, expectation):
     with expectation:
         src = OmegaConf.create(src)
@@ -230,14 +226,8 @@ def test_remove(src, remove, result, expectation):
         assert src == result
 
 
-@pytest.mark.parametrize('src', [
-    [],
-    [1, 2, 3],
-    [None, dict(foo='bar')],
-])
-@pytest.mark.parametrize('num_clears', [
-    1, 2
-])
+@pytest.mark.parametrize("src", [[], [1, 2, 3], [None, dict(foo="bar")]])
+@pytest.mark.parametrize("num_clears", [1, 2])
 def test_clear(src, num_clears):
     src = OmegaConf.create(src)
     for i in range(num_clears):
@@ -245,33 +235,30 @@ def test_clear(src, num_clears):
     assert src == []
 
 
-@pytest.mark.parametrize('src, item, expected_index, expectation', [
-    ([], 20, -1, pytest.raises(ValueError)),
-    ([10, 20], 10, 0, does_not_raise()),
-    ([10, 20], 20, 1, does_not_raise()),
-])
+@pytest.mark.parametrize(
+    "src, item, expected_index, expectation",
+    [
+        ([], 20, -1, pytest.raises(ValueError)),
+        ([10, 20], 10, 0, does_not_raise()),
+        ([10, 20], 20, 1, does_not_raise()),
+    ],
+)
 def test_index(src, item, expected_index, expectation):
     with expectation:
         src = OmegaConf.create(src)
         assert src.index(item) == expected_index
 
 
-@pytest.mark.parametrize('src, item, count', [
-    ([], 10, 0),
-    ([10], 10, 1),
-    ([10, 2, 10], 10, 2),
-    ([10, 2, 10], None, 0),
-])
+@pytest.mark.parametrize(
+    "src, item, count",
+    [([], 10, 0), ([10], 10, 1), ([10, 2, 10], 10, 2), ([10, 2, 10], None, 0)],
+)
 def test_count(src, item, count):
     src = OmegaConf.create(src)
     assert src.count(item) == count
 
 
-@pytest.mark.parametrize('src', [
-    [],
-    [1, 2],
-    ['a', 'b', 'c'],
-])
+@pytest.mark.parametrize("src", [[], [1, 2], ["a", "b", "c"]])
 def test_copy(src):
     src = OmegaConf.create(src)
     cp = src.copy()
@@ -280,33 +267,36 @@ def test_copy(src):
 
 
 def test_sort():
-    c = OmegaConf.create(['bbb', 'aa', 'c'])
+    c = OmegaConf.create(["bbb", "aa", "c"])
     c.sort()
-    assert ['aa', 'bbb', 'c'] == c
+    assert ["aa", "bbb", "c"] == c
     c.sort(reverse=True)
-    assert ['c', 'bbb', 'aa'] == c
+    assert ["c", "bbb", "aa"] == c
     c.sort(key=len)
-    assert ['c', 'aa', 'bbb'] == c
+    assert ["c", "aa", "bbb"] == c
     c.sort(key=len, reverse=True)
-    assert ['bbb', 'aa', 'c'] == c
+    assert ["bbb", "aa", "c"] == c
 
 
-@pytest.mark.parametrize('l1,l2', [
-    # empty list
-    ([], []),
-    # simple list
-    (['a', 12, '15'], ['a', 12, '15']),
-    # raw vs any
-    ([1, 2, 12], [1, 2, nodes.UntypedNode(12)]),
-    # nested empty dict
-    ([12, dict()], [12, dict()]),
-    # nested dict
-    ([12, dict(c=10)], [12, dict(c=10)]),
-    # nested list
-    ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
-    # nested list with any
-    ([1, 2, 3, [1, 2, nodes.UntypedNode(3)]], [1, 2, 3, [1, 2, nodes.UntypedNode(3)]])
-])
+@pytest.mark.parametrize(
+    "l1,l2",
+    [
+        # empty list
+        ([], []),
+        # simple list
+        (["a", 12, "15"], ["a", 12, "15"]),
+        # raw vs any
+        ([1, 2, 12], [1, 2, UntypedNode(12)]),
+        # nested empty dict
+        ([12, dict()], [12, dict()]),
+        # nested dict
+        ([12, dict(c=10)], [12, dict(c=10)]),
+        # nested list
+        ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
+        # nested list with any
+        ([1, 2, 3, [1, 2, UntypedNode(3)]], [1, 2, 3, [1, 2, UntypedNode(3)]],),
+    ],
+)
 def test_list_eq(l1, l2):
     c1 = OmegaConf.create(l1)
     c2 = OmegaConf.create(l2)
@@ -322,9 +312,7 @@ def test_list_eq(l1, l2):
     eq(c2, l2)
 
 
-@pytest.mark.parametrize('l1,l2', [
-    ([10, '${0}'], [10, 10])
-])
+@pytest.mark.parametrize("l1,l2", [([10, "${0}"], [10, 10])])
 def test_list_eq_with_interpolation(l1, l2):
     c1 = OmegaConf.create(l1)
     c2 = OmegaConf.create(l2)
@@ -338,15 +326,18 @@ def test_list_eq_with_interpolation(l1, l2):
     eq(c1, c2)
 
 
-@pytest.mark.parametrize('input1, input2', [
-    ([], [10]),
-    ([10], [11]),
-    ([12], [nodes.UntypedNode(13)]),
-    ([12, dict()], [13, dict()]),
-    ([12, dict(c=10)], [13, dict(c=10)]),
-    ([12, [1, 2, 3]], [12, [10, 2, 3]]),
-    ([12, [1, 2, nodes.UntypedNode(3)]], [12, [1, 2, nodes.UntypedNode(30)]]),
-])
+@pytest.mark.parametrize(
+    "input1, input2",
+    [
+        ([], [10]),
+        ([10], [11]),
+        ([12], [UntypedNode(13)]),
+        ([12, dict()], [13, dict()]),
+        ([12, dict(c=10)], [13, dict(c=10)]),
+        ([12, [1, 2, 3]], [12, [10, 2, 3]]),
+        ([12, [1, 2, UntypedNode(3)]], [12, [1, 2, UntypedNode(30)]]),
+    ],
+)
 def test_list_not_eq(input1, input2):
     c1 = OmegaConf.create(input1)
     c2 = OmegaConf.create(input2)

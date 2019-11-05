@@ -10,7 +10,7 @@ def save_load_file(conf):
     try:
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
             conf.save(fp.file)
-        with io.open(os.path.abspath(fp.name), 'rt') as handle:
+        with io.open(os.path.abspath(fp.name), "rt") as handle:
             c2 = OmegaConf.load(handle)
         assert conf == c2
     finally:
@@ -32,7 +32,7 @@ def save_load__from_file(conf):
     try:
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
             conf.save(fp.file)
-        with io.open(os.path.abspath(fp.name), 'rt') as handle:
+        with io.open(os.path.abspath(fp.name), "rt") as handle:
             c2 = OmegaConf.from_file(handle)
         assert conf == c2
     finally:
@@ -69,7 +69,8 @@ def test_save_load__from_filename():
 def test_pickle_dict():
     with tempfile.TemporaryFile() as fp:
         import pickle
-        c = OmegaConf.create(dict(a='b'))
+
+        c = OmegaConf.create(dict(a="b"))
         pickle.dump(c, fp)
         fp.flush()
         fp.seek(0)
@@ -80,6 +81,7 @@ def test_pickle_dict():
 def test_pickle_list():
     with tempfile.TemporaryFile() as fp:
         import pickle
+
         c = OmegaConf.create([1, 2, 3])
         pickle.dump(c, fp)
         fp.flush()

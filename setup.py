@@ -22,8 +22,8 @@ with open("README.md", "r") as fh:
         setup_requires=["pytest-runner"],
         tests_require=["pytest"],
         url="https://github.com/omry/omegaconf",
-        keywords='yaml configuration config',
-        packages=['omegaconf'],
+        keywords="yaml configuration config",
+        packages=["omegaconf"],
         classifiers=[
             "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3.5",
@@ -32,7 +32,7 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=['six', 'PyYAML'],
+        install_requires=["six", "PyYAML"],
         # Install development dependencies with
         # pip install -e ".[dev]"
         extras_require={
@@ -45,12 +45,7 @@ with open("README.md", "r") as fh:
                 "black",
                 "flake8",
             ],
-            "coverage": [
-                "coveralls",
-            ],
-            "lint": [
-                "black",
-                "flake8",
-            ]
+            "coverage": ["coveralls"],
+            "lint": ["black", "flake8"],
         },
     )

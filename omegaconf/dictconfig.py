@@ -4,12 +4,11 @@ from .nodes import BaseNode, UntypedNode
 
 
 class DictConfig(Config):
-
     def __init__(self, content, parent=None):
         super(DictConfig, self).__init__()
         assert isinstance(content, dict)
-        self.__dict__['content'] = {}
-        self.__dict__['parent'] = parent
+        self.__dict__["content"] = {}
+        self.__dict__["parent"] = parent
         for k, v in content.items():
             self.__setitem__(k, v)
 
@@ -23,26 +22,28 @@ class DictConfig(Config):
 
         value = self._prepare_value_to_add(key, value)
 
-        if key not in self.content and self._get_flag('struct') is True:
-            raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
+        if key not in self.content and self._get_flag("struct") is True:
+            raise KeyError(
+                "Accessing unknown key in a struct : {}".format(self.get_full_key(key))
+            )
 
         input_config_or_node = isinstance(value, (BaseNode, Config))
         if key in self:
             # BaseNode or Config, assign as is
             if input_config_or_node:
-                self.__dict__['content'][key] = value
+                self.__dict__["content"][key] = value
             else:
                 # primitive input
-                if isinstance(self.__dict__['content'][key], Config):
+                if isinstance(self.__dict__["content"][key], Config):
                     # primitive input replaces config nodes
-                    self.__dict__['content'][key] = value
+                    self.__dict__["content"][key] = value
                 else:
-                    self.__dict__['content'][key].set_value(value)
+                    self.__dict__["content"][key].set_value(value)
         else:
             if input_config_or_node:
-                self.__dict__['content'][key] = value
+                self.__dict__["content"][key] = value
             else:
-                self.__dict__['content'][key] = UntypedNode(value)
+                self.__dict__["content"][key] = UntypedNode(value)
 
     # hide content while inspecting in debugger
     def __dir__(self):
@@ -74,20 +75,26 @@ class DictConfig(Config):
         return self.__getattr__(key)
 
     def get(self, key, default_value=None):
-        return self._resolve_with_default(key=key, value=self.get_node(key, default_value), default_value=default_value)
+        return self._resolve_with_default(
+            key=key,
+            value=self.get_node(key, default_value),
+            default_value=default_value,
+        )
 
     def get_node(self, key, default_value=None):
-        value = self.__dict__['content'].get(key)
-        if key not in self.content and self._get_flag('struct'):
+        value = self.__dict__["content"].get(key)
+        if key not in self.content and self._get_flag("struct"):
             if default_value is not None:
                 return default_value
-            raise KeyError("Accessing unknown key in a struct : {}".format(self.get_full_key(key)))
+            raise KeyError(
+                "Accessing unknown key in a struct : {}".format(self.get_full_key(key))
+            )
         return value
 
     __marker = object()
 
     def pop(self, key, default=__marker):
-        if self._get_flag('readonly'):
+        if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
         val = self.content.pop(key, default)
         if val is self.__marker:
@@ -99,7 +106,8 @@ class DictConfig(Config):
 
     def __contains__(self, key):
         """
-        A key is contained in a DictConfig if there is an associated value and it is not a mandatory missing value ('???').
+        A key is contained in a DictConfig if there is an associated value and
+        it is not a mandatory missing value ('???').
         :param key:
         :return:
         """
