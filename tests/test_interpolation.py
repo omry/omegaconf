@@ -229,16 +229,16 @@ def test_resolver_cache_2():
         (
             lambda *args: args,
             "escape_comma",
-            "${my_resolver:cat\, do g}",
+            "${my_resolver:cat\\, do g}",
             ("cat, do g",),
         ),
         (
             lambda *args: args,
             "escape_whitespace",
-            "${my_resolver:cat\, do g}",
+            "${my_resolver:cat\\, do g}",
             ("cat, do g",),
         ),
-        (lambda: "zero", "zero_arg", "${my_resolver:}", ("zero")),
+        (lambda: "zero", "zero_arg", "${my_resolver:}", "zero"),
     ],
 )
 def test_resolver_that_allows_a_list_of_arguments(resolver, name, key, result):
