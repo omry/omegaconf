@@ -275,3 +275,19 @@ def test_struct_override(src, func, expectation):
     with does_not_raise():
         with open_dict(c):
             func(c)
+
+
+@pytest.mark.parametrize("flag_name,ctx", [("struct", open_dict), ("readonly", read_write)])
+def test_open_dict_restore(flag_name, ctx):
+    """
+    Tests that internal flags are restored properly when applying context on a child node
+    """
+    cfg = OmegaConf.create({"foo": {"bar": 10}})
+    cfg._set_flag(flag_name, True)
+    assert cfg._get_node_flag(flag_name)
+    assert not cfg.foo._get_node_flag(flag_name)
+    with ctx(cfg.foo):
+        cfg.foo.bar = 20
+    assert cfg._get_node_flag(flag_name)
+    assert not cfg.foo._get_node_flag(flag_name)
+
