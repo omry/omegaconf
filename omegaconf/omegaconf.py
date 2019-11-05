@@ -228,7 +228,8 @@ def flag_override(config, name, value):
 # noinspection PyProtectedMember
 @contextmanager
 def read_write(config):
-    prev_state = OmegaConf.is_readonly(config)
+    # noinspection PyProtectedMember
+    prev_state = config._get_node_flag("readonly")
     try:
         OmegaConf.set_readonly(config, False)
         yield config
@@ -238,7 +239,8 @@ def read_write(config):
 
 @contextmanager
 def open_dict(config):
-    prev_state = OmegaConf.is_struct(config)
+    # noinspection PyProtectedMember
+    prev_state = config._get_node_flag("struct")
     try:
         OmegaConf.set_struct(config, False)
         yield config

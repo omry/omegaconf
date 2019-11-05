@@ -83,6 +83,13 @@ class Config(object):
         assert value is None or isinstance(value, bool)
         self.__dict__['flags'][flag] = value
 
+    def _get_node_flag(self, flag):
+        """
+        :param flag: flag to inspect
+        :return: the state of the flag on this node.
+        """
+        return self.__dict__['flags'][flag]
+
     def _get_flag(self, flag):
         """
         Returns True if this config node flag is set
