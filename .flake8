@@ -1,0 +1,6 @@
+[flake8]
+exclude = .git,.nox,.tox
+max-line-length = 119
+copyright-check = True
+select = E,F,W,C
+ignore=W503,E203

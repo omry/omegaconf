@@ -1,5 +1,8 @@
 [run]
-omit = *tests*,docs/*
+omit =
+    .nox/*
+    *tests*
+    docs/*
 
 [report]
 exclude_lines =
