@@ -496,12 +496,8 @@ class Config(object):
         if value is None:
             return True
         valid = [bool, int, str, float, DictConfig, ListConfig, BaseNode]
-        if six.PY3:
-            # flake8 workaround
-            unicode = str  # noqa: F841
-
         if six.PY2:
-            valid.append(unicode)
+            valid.append(unicode)  # noqa F821
 
         return isinstance(value, tuple(valid))
 

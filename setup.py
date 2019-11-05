@@ -36,6 +36,7 @@ with open("README.md", "r") as fh:
         # Install development dependencies with
         # pip install -e ".[dev]"
         extras_require={
+            # Python 3+ dependencies
             "dev": [
                 "nox",
                 "pre-commit",
@@ -45,6 +46,8 @@ with open("README.md", "r") as fh:
                 "black",
                 "flake8",
             ],
+            # Python 2.7 dependencies
+            "dev27": ["nox", "pre-commit", "pytest", "twine", "coveralls", "flake8"],
             "coverage": ["coveralls"],
             "lint": ["black", "flake8"],
         },

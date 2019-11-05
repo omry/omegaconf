@@ -41,7 +41,7 @@ def coverage(session):
     session.run("coveralls", success_codes=[0, 1])
 
 
-@nox.session
+@nox.session(python="3.6")
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", ".[lint]", silent=True)
