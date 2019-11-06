@@ -1,5 +1,9 @@
 from .config import Config
-from .errors import ReadonlyConfigError, MissingMandatoryValue
+from .errors import (
+    ReadonlyConfigError,
+    MissingMandatoryValue,
+    UnsupportedInterpolationType,
+)
 from .nodes import BaseNode, UntypedNode
 
 
@@ -121,6 +125,9 @@ class DictConfig(Config):
         else:
             try:
                 self._resolve_with_default(key, node, None)
+                return True
+            except UnsupportedInterpolationType:
+                # Value that has unsupported interpolation counts as existing.
                 return True
             except (MissingMandatoryValue, KeyError):
                 return False
