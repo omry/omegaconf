@@ -8,6 +8,15 @@ from omegaconf import OmegaConf
 from . import IllegalType
 
 
+class A:
+    a = 1
+
+
+class B:
+    a = A
+    b = 2
+
+
 @pytest.mark.parametrize(
     "input_,expected",
     [
@@ -31,6 +40,8 @@ from . import IllegalType
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
         ),
+        # from class
+        (A, {"a": 1}),
     ],
 )
 def test_create_value(input_, expected):

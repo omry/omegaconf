@@ -49,6 +49,13 @@ class OmegaConf:
                 return DictConfig(obj, parent)
             elif isinstance(obj, (list, tuple)):
                 return ListConfig(obj, parent)
+            elif isinstance(obj, type):
+                target = {
+                    k: v
+                    for k, v in vars(obj).items()
+                    if not callable(v) and not k.startswith("__")
+                }
+                return OmegaConf.create(target)
             else:
                 raise RuntimeError("Unsupported type {}".format(type(obj).__name__))
 
