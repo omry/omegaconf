@@ -48,3 +48,9 @@ def test_merge_config_with_struct(base, merged):
     OmegaConf.set_struct(base, True)
     with pytest.raises(KeyError):
         OmegaConf.merge(base, merged)
+
+
+def test_struct_contain_missing():
+    c = OmegaConf.create(dict())
+    OmegaConf.set_struct(c, True)
+    assert "foo" not in c
