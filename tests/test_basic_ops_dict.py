@@ -192,6 +192,7 @@ def test_dict_pop():
         ({"a": 1, "b": "???"}, "b", False),
         ({"a": 1, "b": "???", "c": "${b}"}, "c", False),
         ({"a": 1, "b": "${not_found}"}, "b", False),
+        ({"a": "${unknown_resolver:bar}"}, "a", True),
     ],
 )
 def test_in_dict(conf, key, expected):
