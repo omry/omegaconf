@@ -10,7 +10,11 @@ from collections import defaultdict
 import six
 import yaml
 
-from .errors import MissingMandatoryValue, ReadonlyConfigError
+from .errors import (
+    MissingMandatoryValue,
+    ReadonlyConfigError,
+    UnsupportedInterpolationType,
+)
 from .nodes import BaseNode
 
 
@@ -434,7 +438,9 @@ class Config(object):
             if resolver is not None:
                 ret = resolver(root_node, inter_key)
             else:
-                raise ValueError("Unsupported interpolation type {}".format(inter_type))
+                raise UnsupportedInterpolationType(
+                    "Unsupported interpolation type {}".format(inter_type)
+                )
 
         return ret
 
