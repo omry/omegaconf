@@ -111,7 +111,11 @@ class DictConfig(Config):
         :param key:
         :return:
         """
-        node = self.get_node(key)
+        try:
+            node = self.get_node(key)
+        except KeyError:
+            node = None
+
         if node is None:
             return False
         else:
