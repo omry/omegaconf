@@ -244,12 +244,15 @@ class Config(object):
 
     def merge_with_dotlist(self, dotlist):
         for arg in dotlist:
-            args = arg.split("=")
-            key = args[0]
-            value = None
-            if len(args) > 1:
-                # load with yaml to get correct automatic typing with the same rules as yaml parsing
-                value = yaml.load(args[1], Loader=get_yaml_loader())
+            idx = arg.find("=")
+            if idx == -1:
+                key = arg
+                value = None
+            else:
+                key = arg[0:idx]
+                value = arg[idx + 1 :]
+                value = yaml.load(value, Loader=get_yaml_loader())
+
             self.update(key, value)
 
     def update(self, key, value=None):

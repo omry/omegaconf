@@ -1,5 +1,6 @@
 import sys
 
+import pytest
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue
@@ -154,10 +155,18 @@ def test_update_list_make_dict():
     assert c[1].b.b == "bb"
 
 
-def test_merge_with_dotlist():
-    c = OmegaConf.create([1, 2, 3])
-    c.merge_with_dotlist(["0=bar", "2.a=100"])
-    assert c == ["bar", 2, dict(a=100)]
+@pytest.mark.parametrize(
+    "cfg,overrides,expected",
+    [
+        ([1, 2, 3], ["0=bar", "2.a=100"], ["bar", 2, dict(a=100)]),
+        ({}, ["foo=bar", "bar=100"], {"foo": "bar", "bar": 100}),
+        ({}, ["foo=bar=10"], {"foo": "bar=10"}),
+    ],
+)
+def test_merge_with_dotlist(cfg, overrides, expected):
+    c = OmegaConf.create(cfg)
+    c.merge_with_dotlist(overrides)
+    assert c == expected
 
 
 def test_merge_with_cli():
