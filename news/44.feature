@@ -1,0 +1,1 @@
+Improve built-in env resolver to return properly typed values ("1" -> int, "1.0" -> float etc)
