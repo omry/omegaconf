@@ -373,3 +373,27 @@ def test_hash():
     assert hash(c1) == hash(c2)
     c2[0] = 20
     assert hash(c1) != hash(c2)
+
+
+@pytest.mark.parametrize(
+    "list1, list2, expected",
+    [
+        ([], [], []),
+        ([1, 2], [3, 4], [1, 2, 3, 4]),
+        (["x", 2, "${0}"], [5, 6, 7], ["x", 2, "x", 5, 6, 7]),
+    ],
+)
+class TestListAdd:
+    def test_list_plus(self, list1, list2, expected):
+        list1 = OmegaConf.create(list1)
+        list2 = OmegaConf.create(list2)
+        expected = OmegaConf.create(expected)
+        ret = list1 + list2
+        assert ret == expected
+
+    def test_list_plus_eq(self, list1, list2, expected):
+        list1 = OmegaConf.create(list1)
+        list2 = OmegaConf.create(list2)
+        expected = OmegaConf.create(expected)
+        list1 += list2
+        assert list1 == expected
