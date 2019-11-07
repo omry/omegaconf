@@ -207,3 +207,10 @@ class ListConfig(Config):
                 return v
 
         return MyItems(self.content)
+
+    def __add__(self, o):
+        # res is sharing this list's parent to allow interpolation to work as expected
+        res = ListConfig(parent=self.__dict__["parent"], content=[])
+        res.extend(self)
+        res.extend(o)
+        return res
