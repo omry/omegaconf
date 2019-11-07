@@ -99,3 +99,10 @@ def test_create_from_list__deprecated():
     src = [1, 2, 3, 4]
     c = OmegaConf.from_list(src)
     assert c == src
+
+
+def test_create_from_oc():
+    c = OmegaConf.create(
+        {"a": OmegaConf.create([1, 2, 3]), "b": OmegaConf.create({"c": 10})}
+    )
+    assert c == {"a": [1, 2, 3], "b": {"c": 10}}
