@@ -12,7 +12,10 @@ from .nodes import (
     FloatNode,
 )
 
+__version__ = "1.4.0rc2"
+
 __all__ = [
+    "__version__",
     "MissingMandatoryValue",
     "ValidationError",
     "ReadonlyConfigError",

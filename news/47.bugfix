@@ -1,0 +1,1 @@
+Fixes a bug in open_dict causing improper restoration of struct flag in some cases

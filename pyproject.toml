@@ -1,0 +1,34 @@
+[tool.towncrier]
+    package = "omegaconf"
+    package_dir = ""
+    filename = "NEWS.rst"
+    directory = "news/"
+    title_format = "{version} ({project_date})"
+    template = "news/_template.rst"
+    issue_format = "`#{issue} <https://github.com/omry/omegaconf/issues/{issue}>`_"
+
+
+  [[tool.towncrier.type]]
+  directory = "feature"
+  name = "Features"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "bugfix"
+  name = "Bug Fixes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "removal"
+  name = "Deprecations and Removals"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "docs"
+  name = "Improved Documentation"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "misc"
+  name = "Miscellaneous changes"
+  showcontent = true
