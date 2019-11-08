@@ -1,12 +1,10 @@
 import copy
-import io
-import os
-import re
 import sys
 import warnings
 from abc import abstractmethod
 from collections import defaultdict
 
+import re
 import six
 import yaml
 
