@@ -26,7 +26,7 @@ def omegaconf(session):
 
 
 # code coverage runs with python 3.6
-@nox.session(python="3.6")
+@nox.session(python="3.7")
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
     session.install("coverage", "pytest")
@@ -41,7 +41,7 @@ def coverage(session):
     session.run("coveralls", success_codes=[0, 1])
 
 
-@nox.session(python="3.6")
+@nox.session(python="3.7")
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", ".[lint]", silent=True)

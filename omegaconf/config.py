@@ -1,12 +1,10 @@
 import copy
-import io
-import os
-import re
 import sys
 import warnings
 from abc import abstractmethod
 from collections import defaultdict
 
+import re
 import six
 import yaml
 
@@ -65,15 +63,15 @@ class Config(object):
         self.__dict__["_resolver_cache"] = defaultdict(dict)
 
     def save(self, f):
-        data = self.pretty()
-        if isinstance(f, str):
-            with io.open(os.path.abspath(f), "w", encoding="utf-8") as f:
-                f.write(six.u(data))
-        elif hasattr(f, "write"):
-            f.write(data)
-            f.flush()
-        else:
-            raise TypeError("Unexpected file type")
+        warnings.warn(
+            "Use OmegaConf.save(config, filename) (since 1.4.0)",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        from omegaconf import OmegaConf
+
+        OmegaConf.save(self, f)
 
     def _set_parent(self, parent):
         assert parent is None or isinstance(parent, Config)

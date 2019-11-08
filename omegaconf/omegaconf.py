@@ -1,12 +1,13 @@
 """OmegaConf module"""
 import copy
-import io
 import os
-import re
 import sys
 import warnings
 from contextlib import contextmanager
 
+import io
+import re
+import six
 import yaml
 
 from .config import Config
@@ -69,6 +70,23 @@ class OmegaConf:
                 return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
         elif getattr(file_, "read"):
             return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
+        else:
+            raise TypeError("Unexpected file type")
+
+    @staticmethod
+    def save(config, f):
+        """
+        Save as configuration object to a file
+        :param config: omegaconf.Config object (DictConfig or ListConfig).
+        :param f: filename or file object
+        """
+        data = config.pretty()
+        if isinstance(f, str):
+            with io.open(os.path.abspath(f), "w", encoding="utf-8") as f:
+                f.write(six.u(data))
+        elif hasattr(f, "write"):
+            f.write(data)
+            f.flush()
         else:
             raise TypeError("Unexpected file type")
 
