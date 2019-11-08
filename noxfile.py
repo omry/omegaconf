@@ -35,10 +35,10 @@ def coverage(session):
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
     # Increase the fail_under as coverage improves
     session.run("coverage", "report", "--fail-under=95")
-    session.run("coverage", "erase")
-
     # report to coveralls
     session.run("coveralls", success_codes=[0, 1])
+
+    session.run("coverage", "erase")
 
 
 @nox.session(python="3.7")
