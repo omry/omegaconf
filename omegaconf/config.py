@@ -166,7 +166,10 @@ class Config(object):
                             break
             elif isinstance(parent, ListConfig):
                 if child is None:
-                    full_key = "[{}]".format(key)
+                    if key == "":
+                        full_key = key
+                    else:
+                        full_key = "[{}]".format(key)
                 else:
                     for idx, v in enumerate(parent):
                         if id(v) == id(child):
@@ -415,6 +418,9 @@ class Config(object):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 Config._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                if self._get_flag("readonly"):
+                    raise ReadonlyConfigError(self.get_full_key(""))
+
                 self.__dict__["content"] = copy.deepcopy(other.content)
             else:
                 raise TypeError("Merging DictConfig with ListConfig is not supported")
