@@ -133,3 +133,11 @@ def test_readonly_list_sort():
     with pytest.raises(ReadonlyConfigError):
         c.sort()
     assert c == [3, 1, 2]
+
+
+def test_readonly_from_cli():
+    c = OmegaConf.create({"foo": {"bar": [1]}})
+    OmegaConf.set_readonly(c, True)
+    cli = OmegaConf.from_dotlist(["foo.bar=[2]"])
+    with pytest.raises(ReadonlyConfigError, match="foo.bar"):
+        OmegaConf.merge(c, cli)
