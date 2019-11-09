@@ -245,7 +245,16 @@ class Config(object):
         self.merge_with_dotlist(args_list)
 
     def merge_with_dotlist(self, dotlist):
+        def fail():
+            raise ValueError("Input list must be a list or a tuple of strings")
+
+        if not isinstance(dotlist, (list, tuple)):
+            fail()
+
         for arg in dotlist:
+            if not isinstance(arg, str):
+                fail()
+
             idx = arg.find("=")
             if idx == -1:
                 key = arg
