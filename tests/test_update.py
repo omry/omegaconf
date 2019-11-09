@@ -174,3 +174,9 @@ def test_merge_with_cli():
     sys.argv = ["app.py", "0=bar", "2.a=100"]
     c.merge_with_cli()
     assert c == ["bar", 2, dict(a=100)]
+
+
+def test_merge_with_dotlist_list_only():
+    c = OmegaConf.create({})
+    with pytest.raises(ValueError):
+        c.merge_with_dotlist("foo=10")

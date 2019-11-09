@@ -1,0 +1,1 @@
+Config.merge_with_dotlist() now throws if input is not a list or tuple of strings
