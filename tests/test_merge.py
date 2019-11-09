@@ -92,13 +92,6 @@ def test_merge_list_list():
     assert a == b
 
 
-def test_merge_list_list__deprecated():
-    a = OmegaConf.create([1, 2, 3])
-    b = OmegaConf.create([4, 5, 6])
-    a.merge_from(b)
-    assert a == b
-
-
 @pytest.mark.parametrize(
     "base, merge, exception",
     [

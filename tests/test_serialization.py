@@ -36,7 +36,7 @@ def save_load__from_file_deprecated(conf):
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
             conf.save(fp.file)
         with io.open(os.path.abspath(fp.name), "rt") as handle:
-            c2 = OmegaConf.from_file(handle)
+            c2 = OmegaConf.load(handle)
         assert conf == c2
     finally:
         os.unlink(fp.name)
@@ -47,7 +47,7 @@ def save_load__from_filename_deprecated(conf):
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
             conf.save(fp.name)
-            c2 = OmegaConf.from_filename(fp.name)
+            c2 = OmegaConf.load(fp.name)
             assert conf == c2
     finally:
         os.unlink(fp.name)
@@ -83,7 +83,7 @@ def save_load__from_file(conf):
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
             OmegaConf.save(conf, fp.file)
         with io.open(os.path.abspath(fp.name), "rt") as handle:
-            c2 = OmegaConf.from_file(handle)
+            c2 = OmegaConf.load(handle)
         assert conf == c2
     finally:
         os.unlink(fp.name)
@@ -94,7 +94,7 @@ def save_load__from_filename(conf):
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
             OmegaConf.save(conf, fp.name)
-            c2 = OmegaConf.from_filename(fp.name)
+            c2 = OmegaConf.load(fp.name)
             assert conf == c2
     finally:
         os.unlink(fp.name)
