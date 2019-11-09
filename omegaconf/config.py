@@ -478,7 +478,7 @@ class Config(object):
         if isinstance(value, Config):
             value = value.to_container()
 
-        if isinstance(value, dict) or isinstance(value, list):
+        if isinstance(value, (dict, list, tuple)):
             from omegaconf import OmegaConf
 
             value = OmegaConf.create(value, parent=self)
