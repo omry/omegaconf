@@ -391,3 +391,9 @@ def test_get_with_default_from_struct_not_throwing():
     c = OmegaConf.create(dict(a=10, b=20))
     OmegaConf.set_struct(c, True)
     assert c.get("z", "default") == "default"
+
+
+def test_members():
+    # Make sure accessing __members__ does not return None or throw.
+    c = OmegaConf.create({"foo": {}})
+    assert c.__members__ == {}

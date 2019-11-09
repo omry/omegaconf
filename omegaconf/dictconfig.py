@@ -68,6 +68,10 @@ class DictConfig(Config):
         :param key:
         :return:
         """
+        # PyCharm is sometimes inspecting __members__. returning None or throwing is
+        # confusing it and it prints an error when inspecting this object.
+        if key == "__members__":
+            return {}
         return self.get(key=key, default_value=None)
 
     def __getitem__(self, key):
