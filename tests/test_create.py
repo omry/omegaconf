@@ -79,28 +79,6 @@ def test_create_nested_dict_with_illegal_value():
         OmegaConf.create(dict(a=dict(b=IllegalType())))
 
 
-def test_create_empty__deprecated():
-    assert OmegaConf.empty() == {}
-
-
-def test_create_from_string__deprecated():
-    s = "hello: world"
-    c = OmegaConf.from_string(s)
-    assert {"hello": "world"} == c
-
-
-def test_create_from_dict__deprecated():
-    src = dict(a=1, b=2)
-    c = OmegaConf.from_dict(src)
-    assert c == src
-
-
-def test_create_from_list__deprecated():
-    src = [1, 2, 3, 4]
-    c = OmegaConf.from_list(src)
-    assert c == src
-
-
 def test_create_from_oc():
     c = OmegaConf.create(
         {"a": OmegaConf.create([1, 2, 3]), "b": OmegaConf.create({"c": 10})}

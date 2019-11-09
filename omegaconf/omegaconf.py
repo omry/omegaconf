@@ -2,7 +2,6 @@
 import copy
 import os
 import sys
-import warnings
 from contextlib import contextmanager
 
 import io
@@ -54,14 +53,6 @@ class OmegaConf:
                 raise RuntimeError("Unsupported type {}".format(type(obj).__name__))
 
     @staticmethod
-    def empty():
-        warnings.warn(
-            "Use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-        """Creates an empty config"""
-        return OmegaConf.create()
-
-    @staticmethod
     def load(file_):
         from .config import get_yaml_loader
 
@@ -89,54 +80,6 @@ class OmegaConf:
             f.flush()
         else:
             raise TypeError("Unexpected file type")
-
-    @staticmethod
-    def from_filename(filename):
-        warnings.warn(
-            "use OmegaConf.load() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-
-        """Creates config from the content of the specified filename"""
-        assert isinstance(filename, str)
-        return OmegaConf.load(filename)
-
-    @staticmethod
-    def from_file(file_):
-        """Creates config from the content of the specified file object"""
-        warnings.warn(
-            "use OmegaConf.load() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-        return OmegaConf.load(file_)
-
-    @staticmethod
-    def from_string(content):
-        from .config import get_yaml_loader
-
-        warnings.warn(
-            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-        """Creates config from the content of string"""
-        assert isinstance(content, str)
-        yamlstr = yaml.load(content, Loader=get_yaml_loader())
-        return OmegaConf.create(yamlstr)
-
-    @staticmethod
-    def from_dict(dict_):
-        """Creates config from a dictionary"""
-        warnings.warn(
-            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-        assert isinstance(dict_, dict)
-        return OmegaConf.create(dict_)
-
-    @staticmethod
-    def from_list(list_):
-        """Creates config from a list"""
-        warnings.warn(
-            "use OmegaConf.create() (since 1.1.5)", DeprecationWarning, stacklevel=2
-        )
-        assert isinstance(list_, list)
-        return OmegaConf.create(list_)
 
     @staticmethod
     def from_cli(args_list=None):

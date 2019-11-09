@@ -367,13 +367,6 @@ class Config(object):
             else:
                 dest[key] = src.get_node(key)
 
-    def merge_from(self, *others):
-        warnings.warn(
-            "Use Config.merge_with() (since 1.1.10)", DeprecationWarning, stacklevel=2
-        )
-
-        self.merge_with(*others)
-
     def _deepcopy_impl(self, res, _memodict={}):
         # memodict is intentionally not used.
         # Using it can cause python to return objects that were since modified, undoing their modifications!
