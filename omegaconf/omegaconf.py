@@ -65,13 +65,14 @@ class OmegaConf:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    def save(config, f):
+    def save(config, f, resolve=False):
         """
         Save as configuration object to a file
         :param config: omegaconf.Config object (DictConfig or ListConfig).
         :param f: filename or file object
+        :param resolve: True to save a resolved config (defaults to False)
         """
-        data = config.pretty()
+        data = config.pretty(resolve=resolve)
         if isinstance(f, str):
             with io.open(os.path.abspath(f), "w", encoding="utf-8") as f:
                 f.write(six.u(data))
