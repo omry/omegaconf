@@ -139,18 +139,6 @@ class DictConfig(Config):
     def __iter__(self):
         return iter(self.keys())
 
-    def mask(self, keys):
-        """
-        Create a view of of this dictionary that contains a subset of the keys
-        :param keys:
-        :return:
-        """
-        if isinstance(keys, str):
-            keys = [keys]
-        content = {key: value for key, value in self.items(resolve=False, keys=keys)}
-        ret = DictConfig(content=content, parent=self.__dict__["parent"])
-        return ret
-
     def items(self, resolve=True, keys=None):
         class MyItems(object):
             def __init__(self, m):

@@ -407,10 +407,18 @@ def test_members():
         ({"a": 1}, ["b"], {}),
         ({"a": 1, "b": 2}, "b", {"b": 2}),
         ({"a": 1, "b": 2}, ["a", "b"], {"a": 1, "b": 2}),
-        ({"a": 1, "b": "${a}"}, ["b"], {"b": 1}),
     ],
 )
-def test_mask(cfg, mask_keys, expected):
+def test_masked_copy(cfg, mask_keys, expected):
     cfg = OmegaConf.create(cfg)
-    masked = cfg.mask(keys=mask_keys)
+    masked = OmegaConf.masked_copy(cfg, keys=mask_keys)
     assert masked == expected
+
+
+def test_masked_copy_is_deep():
+    cfg = OmegaConf.create({"a": {"b": 1, "c": 2}})
+    expected = {"a": {"b": 1, "c": 2}}
+    masked = OmegaConf.masked_copy(cfg, keys=["a"])
+    assert masked == expected
+    cfg.a.b = 2
+    assert cfg != expected

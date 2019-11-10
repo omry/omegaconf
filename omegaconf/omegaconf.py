@@ -184,6 +184,24 @@ class OmegaConf:
         # noinspection PyProtectedMember
         return conf._get_flag("struct")
 
+    @staticmethod
+    def masked_copy(conf, keys):
+        """
+        Create a masked copy of of this config that contains a subset of the keys
+        :param conf: DictConfig object
+        :param keys: keys to preserve in the copy
+        :return:
+        """
+        from .dictconfig import DictConfig
+
+        if not isinstance(conf, DictConfig):
+            raise ValueError("masked_copy is only supported for DictConfig")
+
+        if isinstance(keys, str):
+            keys = [keys]
+        content = {key: value for key, value in conf.items(resolve=False, keys=keys)}
+        return DictConfig(content=content)
+
 
 # register all default resolvers
 register_default_resolvers()
