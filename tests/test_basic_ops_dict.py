@@ -257,10 +257,17 @@ def test_assign_dict_in_dict():
     assert isinstance(c.foo, DictConfig)
 
 
-def test_to_container():
-    src = dict(a=1, b=2, c=dict(aa=10))
+@pytest.mark.parametrize(
+    "src",
+    [
+        dict(a=1, b=2, c=dict(aa=10)),
+        [1, 2, 3],
+        {"a": 1, "b": 2, "c": {"aa": 10, "lst": [1, 2, 3]}},
+    ],
+)
+def test_to_container(src):
     c = OmegaConf.create(src)
-    result = c.to_container()
+    result = OmegaConf.to_container(c)
     assert type(result) == type(src)
     assert result == src
 

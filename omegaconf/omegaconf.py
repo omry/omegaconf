@@ -202,6 +202,18 @@ class OmegaConf:
         content = {key: value for key, value in conf.items(resolve=False, keys=keys)}
         return DictConfig(content=content)
 
+    @staticmethod
+    def to_container(cfg, resolve=False):
+        """
+        Resursively converts an OmegaConf config to a primitive container (dict or list).
+        :param cfg: the config to convert
+        :param resolve: True to resolve all values
+        :return: A dict or a list representing this config as a primitive container.
+        """
+        assert isinstance(cfg, Config)
+        # noinspection PyProtectedMember
+        return Config._to_content(cfg, resolve)
+
 
 # register all default resolvers
 register_default_resolvers()
