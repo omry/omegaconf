@@ -78,7 +78,7 @@ def test_to_container_returns_primitives(input_):
             assert isinstance(container, (int, str, bool))
 
     c = OmegaConf.create(input_)
-    res = c.to_container(resolve=True)
+    res = OmegaConf.to_container(c, resolve=True)
     assert_container_with_primitives(res)
 
 

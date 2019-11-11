@@ -343,16 +343,26 @@ class Config(object):
             return ret
 
     def to_container(self, resolve=False):
+        warnings.warn(
+            "Use OmegaConf.to_container(config, resolve) (since 1.4.0)",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         return Config._to_content(self, resolve)
 
     def pretty(self, resolve=False):
+        from omegaconf import OmegaConf
+
         """
         returns a yaml dump of this config object.
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
         interpolations are preserved
         :return: A string containing the yaml representation.
         """
-        return yaml.dump(self.to_container(resolve=resolve), default_flow_style=False)
+        return yaml.dump(
+            OmegaConf.to_container(self, resolve=resolve), default_flow_style=False
+        )
 
     @staticmethod
     def _map_merge(dest, src):
@@ -475,11 +485,12 @@ class Config(object):
             return new
 
     def _prepare_value_to_add(self, key, value):
+        from omegaconf import OmegaConf
+
         if isinstance(value, Config):
-            value = value.to_container()
+            value = OmegaConf.to_container(value)
 
         if isinstance(value, (dict, list, tuple)):
-            from omegaconf import OmegaConf
 
             value = OmegaConf.create(value, parent=self)
 

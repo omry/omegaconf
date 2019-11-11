@@ -124,7 +124,6 @@ To parse the content of sys.arg:
       port: 82
     <BLANKLINE>
 
-
 Access and manipulation
 -----------------------
 
@@ -398,6 +397,28 @@ You can temporarily remove the struct flag from a config object:
 Utility functions
 -----------------
 
+OmegaConf.to_container
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OmegaConf config objects looks very similar to python dict and lists, but in fact are not.
+Use OmegaConf.to_container(cfg, resolve) to convert to a primitive container.
+If resolve is set to True the values will be resolved during conversion.
+
+.. doctest::
+
+    >>> # Simulating command line arguments
+    >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
+    >>> print(type(conf).__name__)
+    DictConfig
+    >>> primitive = OmegaConf.to_container(conf)
+    >>> print(type(primitive).__name__)
+    dict
+    >>> print(primitive)
+    {'foo': 'bar', 'foo2': '${foo}'}
+    >>> resolved = OmegaConf.to_container(conf, resolve=True)
+    >>> print(resolved)
+    {'foo': 'bar', 'foo2': 'bar'}
+
+
 OmegaConf.masked_copy
 ^^^^^^^^^^^^^^^^^^^^^
 Creates a copy of a DictConfig that contains only specific keys.
@@ -414,3 +435,4 @@ Creates a copy of a DictConfig that contains only specific keys.
     a:
       b: 10
     <BLANKLINE>
+
