@@ -394,3 +394,23 @@ You can temporarily remove the struct flag from a config object:
     ...   conf.a.cc = 30
     >>> conf.a.cc
     30
+
+Utility functions
+-----------------
+
+OmegaConf.masked_copy
+^^^^^^^^^^^^^^^^^^^^^
+Creates a copy of a DictConfig that contains only specific keys.
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create(dict(a=dict(b=10), c=20))
+    >>> print(conf.pretty())
+    a:
+      b: 10
+    c: 20
+    <BLANKLINE>
+    >>> c = OmegaConf.masked_copy(conf, ["a"])
+    >>> print(c.pretty())
+    a:
+      b: 10
+    <BLANKLINE>

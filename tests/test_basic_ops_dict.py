@@ -397,3 +397,28 @@ def test_members():
     # Make sure accessing __members__ does not return None or throw.
     c = OmegaConf.create({"foo": {}})
     assert c.__members__ == {}
+
+
+@pytest.mark.parametrize(
+    "cfg, mask_keys, expected",
+    [
+        ({}, [], {}),
+        ({"a": 1}, "a", {"a": 1}),
+        ({"a": 1}, ["b"], {}),
+        ({"a": 1, "b": 2}, "b", {"b": 2}),
+        ({"a": 1, "b": 2}, ["a", "b"], {"a": 1, "b": 2}),
+    ],
+)
+def test_masked_copy(cfg, mask_keys, expected):
+    cfg = OmegaConf.create(cfg)
+    masked = OmegaConf.masked_copy(cfg, keys=mask_keys)
+    assert masked == expected
+
+
+def test_masked_copy_is_deep():
+    cfg = OmegaConf.create({"a": {"b": 1, "c": 2}})
+    expected = {"a": {"b": 1, "c": 2}}
+    masked = OmegaConf.masked_copy(cfg, keys=["a"])
+    assert masked == expected
+    cfg.a.b = 2
+    assert cfg != expected

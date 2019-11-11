@@ -139,7 +139,7 @@ class DictConfig(Config):
     def __iter__(self):
         return iter(self.keys())
 
-    def items(self, resolve=True):
+    def items(self, resolve=True, keys=None):
         class MyItems(object):
             def __init__(self, m):
                 self.map = m
@@ -148,11 +148,20 @@ class DictConfig(Config):
             def __iter__(self):
                 return self
 
-            # Python 3 compatibility
             def __next__(self):
-                return self.next()
+                k, v = self._next_pair()
+                if keys is not None:
+                    while True:
+                        if k not in keys:
+                            k, v = self._next_pair()
+                        else:
+                            break
+                return k, v
 
             def next(self):
+                return self.__next__()
+
+            def _next_pair(self):
                 k = next(self.iterator)
                 if resolve:
                     v = self.map.get(k)

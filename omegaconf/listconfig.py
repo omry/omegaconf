@@ -60,9 +60,6 @@ class ListConfig(Config):
 
         value = self._prepare_value_to_add(index, value)
 
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(index))
-
         if not isinstance(value, BaseNode):
             self.__dict__["content"][index].set_value(value)
         else:
@@ -149,7 +146,7 @@ class ListConfig(Config):
 
     def pop(self, index=-1):
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(index))
+            raise ReadonlyConfigError(self.get_full_key(index if index != -1 else ""))
         return self._resolve_with_default(
             key=index, value=self.content.pop(index), default_value=None
         )
