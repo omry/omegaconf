@@ -140,21 +140,29 @@ def test_env_interpolation_not_found():
 @pytest.mark.parametrize(
     "value,expected",
     [
+        # bool
         ("false", False),
-        ("off", False),
-        ("no", False),
         ("true", True),
-        ("on", True),
-        ("yes", True),
+        # int
         ("10", 10),
         ("-10", -10),
+        # float
         ("10.0", 10.0),
         ("-10.0", -10.0),
-        ("foo: bar", {"foo": "bar"}),
-        ("foo: \n - bar\n - baz", {"foo": ["bar", "baz"]}),
+        # strings
+        ("off", "off"),
+        ("no", "no"),
+        ("on", "on"),
+        ("yes", "yes"),
+        (">1234", ">1234"),
+        (":1234", ":1234"),
+        ("/1234", "/1234"),
+        # yaml strings are not getting parsed by the env resolver
+        ("foo: bar", "foo: bar"),
+        ("foo: \n - bar\n - baz", "foo: \n - bar\n - baz"),
     ],
 )
-def test_values_from_env_come_parsed(value, expected):
+def test_env_values_are_typed(value, expected):
     try:
         os.environ["my_key"] = value
         c = OmegaConf.create(dict(my_key="${env:my_key}",))

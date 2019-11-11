@@ -15,7 +15,7 @@ from .config import Config
 def register_default_resolvers():
     def env(key):
         try:
-            return yaml.safe_load(os.environ[key])
+            return decode_primitive(os.environ[key])
         except KeyError:
             raise KeyError("Environment variable '{}' not found".format(key))
 
@@ -251,3 +251,34 @@ def open_dict(config):
         yield config
     finally:
         OmegaConf.set_struct(config, prev_state)
+
+
+def decode_primitive(s):
+    def is_bool(st):
+        st = str.lower(st)
+        return st == "true" or st == "false"
+
+    def is_float(st):
+        try:
+            float(st)
+            return True
+        except ValueError:
+            return False
+
+    def is_int(s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+
+    if is_bool(s):
+        return str.lower(s) == "true"
+
+    if is_int(s):
+        return int(s)
+
+    if is_float(s):
+        return float(s)
+
+    return s
