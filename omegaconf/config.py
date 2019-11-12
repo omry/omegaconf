@@ -43,9 +43,6 @@ def get_yaml_loader():
     return loader
 
 
-MISSING_KEY_SENTINEL = object()
-
-
 class Config(object):
     # static fields
     _resolvers = {}
@@ -237,13 +234,13 @@ class Config(object):
             if key_ in c:
                 return c[key_], key_
             else:
-                return MISSING_KEY_SENTINEL, key_
+                return None, key_
         elif isinstance(c, ListConfig):
             if not isint(key_):
                 raise TypeError("Index {} is not an int".format(key_))
             idx = int(key_)
             if idx < 0 or idx + 1 > len(c):
-                return MISSING_KEY_SENTINEL, idx
+                return None, idx
             return c[idx], idx
 
     def merge_with_cli(self):
@@ -296,7 +293,29 @@ class Config(object):
             idx = int(last)
             root[idx] = value
 
-    def select(self, key, return_sentinel=False):
+    def exists(self, key):
+        from .listconfig import ListConfig
+        from .dictconfig import DictConfig
+
+        split = key.split(".")
+        root = self
+        for i in range(len(split) - 1):
+            if root is None:
+                break
+            k = split[i]
+            root, _ = Config._select_one(root, k)
+        if root is None:
+            return False
+
+        assert isinstance(root, (ListConfig, DictConfig))
+        if isinstance(root, DictConfig):
+            return split[-1] in root
+        elif isinstance(root, ListConfig):
+            if 0 <= int(split[-1]) < len(root):
+                return True
+            return False
+
+    def select(self, key):
         """
         Select a value using dot separated key sequence
         :param key:
@@ -306,18 +325,15 @@ class Config(object):
         split = key.split(".")
         root = self
         for i in range(len(split) - 1):
-            if root in (None, MISSING_KEY_SENTINEL):
+            if root is None:
                 break
             k = split[i]
             root, _ = Config._select_one(root, k)
 
-        if root in (None, MISSING_KEY_SENTINEL):
-            return root if return_sentinel else None
+        if root is None:
+            return None
 
         value, _ = Config._select_one(root, split[-1])
-
-        if value is MISSING_KEY_SENTINEL:
-            return MISSING_KEY_SENTINEL if return_sentinel else None
         return value
 
     def is_empty(self):
@@ -450,8 +466,8 @@ class Config(object):
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            ret = root_node.select(inter_key, return_sentinel=True)
-            if ret is MISSING_KEY_SENTINEL:
+            ret = root_node.select(inter_key)
+            if ret is None and not root_node.exists(inter_key):
                 raise KeyError(
                     "{} interpolation key '{}' not found".format(inter_type, inter_key)
                 )
