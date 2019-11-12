@@ -142,9 +142,9 @@ def test_dict_keys():
 def test_pickle_get_root():
     # Test that get_root() is reconstructed correctly for pickle loaded files.
     with tempfile.TemporaryFile() as fp:
-        c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2,),))
+        c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
 
-        c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4,),),))
+        c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
         c3 = OmegaConf.merge(c1, c2)
 
         import pickle
@@ -193,6 +193,8 @@ def test_dict_pop():
         ({"a": 1, "b": "???", "c": "${b}"}, "c", False),
         ({"a": 1, "b": "${not_found}"}, "b", False),
         ({"a": "${unknown_resolver:bar}"}, "a", True),
+        ({"a": None, "b": "${a}"}, "b", True),
+        ({"a": "cat", "b": "${a}"}, "b", True),
     ],
 )
 def test_in_dict(conf, key, expected):
@@ -202,15 +204,15 @@ def test_in_dict(conf, key, expected):
 
 
 def test_get_root():
-    c = OmegaConf.create(dict(a=123, b=dict(bb=456, cc=7,),))
+    c = OmegaConf.create(dict(a=123, b=dict(bb=456, cc=7)))
     assert c._get_root() == c
     assert c.b._get_root() == c
 
 
 def test_get_root_of_merged():
-    c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2,),))
+    c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
 
-    c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4,),),))
+    c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
     c3 = OmegaConf.merge(c1, c2)
 
     assert c3._get_root() == c3
@@ -273,7 +275,7 @@ def test_to_container(src):
 
 
 def test_pretty_without_resolve():
-    c = OmegaConf.create(dict(a1="${ref}", ref="bar",))
+    c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     # without resolve, references are preserved
     c2 = OmegaConf.create(c.pretty(resolve=False))
     assert c2.a1 == "bar"
@@ -282,7 +284,7 @@ def test_pretty_without_resolve():
 
 
 def test_pretty_with_resolve():
-    c = OmegaConf.create(dict(a1="${ref}", ref="bar",))
+    c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     c2 = OmegaConf.create(c.pretty(resolve=True))
     assert c2.a1 == "bar"
     c2.ref = "changed"
@@ -315,7 +317,7 @@ def test_dir():
         # nested list
         (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
         # nested list with any
-        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(3)]),),
+        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(3)])),
         # In python 3.6 insert order changes iteration order. this ensures that equality is preserved.
         (dict(a=1, b=2, c=3, d=4, e=5), dict(e=5, b=2, c=3, d=4, a=1)),
     ],
@@ -360,7 +362,7 @@ def test_dict_eq_with_interpolation(input1, input2):
         (dict(a=12, b=dict()), dict(a=13, b=dict())),
         (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
         (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
-        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(30)]),),
+        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(30)])),
     ],
 )
 def test_dict_not_eq(input1, input2):
