@@ -5,6 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/omry/omegaconf/badge.svg)](https://coveralls.io/github/omry/omegaconf)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/omegaconf.svg)
+[![](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://hydra-framework.zulipchat.com)
 # OmegaConf
 
 OmegaConf is a YAML based hierarchical configuration system, with support for merging configurations from multiple sources (multiple config files, CLI arguments)
