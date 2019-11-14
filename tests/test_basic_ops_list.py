@@ -252,14 +252,6 @@ def test_count(src, item, count):
     assert src.count(item) == count
 
 
-@pytest.mark.parametrize("src", [[], [1, 2], ["a", "b", "c"]])
-def test_copy(src):
-    src = OmegaConf.create(src)
-    cp = src.copy()
-    assert id(src) != id(cp)
-    assert src == cp
-
-
 def test_sort():
     c = OmegaConf.create(["bbb", "aa", "c"])
     c.sort()

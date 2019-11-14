@@ -1,4 +1,5 @@
 from .config import Config
+import copy
 from .errors import (
     ReadonlyConfigError,
     MissingMandatoryValue,
@@ -20,6 +21,15 @@ class DictConfig(Config):
         res = DictConfig({})
         self._deepcopy_impl(res)
         return res
+
+    def __copy__(self):
+        res = DictConfig({})
+        res.__dict__["content"] = copy.copy(self.__dict__["content"])
+        res.__dict__["parent"] = self.__dict__["parent"]
+        return res
+
+    def copy(self):
+        return copy.copy(self)
 
     def __setitem__(self, key, value):
         assert isinstance(key, str)

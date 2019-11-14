@@ -121,7 +121,7 @@ class ListConfig(Config):
         return c
 
     def copy(self):
-        return self[:]
+        return copy.copy(self)
 
     if six.PY2:
 
