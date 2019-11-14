@@ -348,7 +348,8 @@ class TestCopy:
         assert src == cp
 
     @pytest.mark.parametrize(
-        "src,interpolating_key,interpolated_key", [([1, 2, "${0}"], 2, 0)]
+        "src,interpolating_key,interpolated_key",
+        [([1, 2, "${0}"], 2, 0), ({"a": 10, "b": "${a}"}, "b", "a")],
     )
     def test_copy_with_interpolation(
         self, copy_method, src, interpolating_key, interpolated_key
@@ -361,10 +362,11 @@ class TestCopy:
         assert cfg[interpolated_key] == cp[interpolating_key]
 
         # Interpolation is preserved in original
-        cfg[0] = "a"
+        cfg[interpolated_key] = "XXX"
         assert cfg[interpolated_key] == cfg[interpolating_key]
+
         # Test interpolation is preserved in copy
-        cp[0] = "a"
+        cp[interpolated_key] = "XXX"
         assert cp[interpolated_key] == cp[interpolating_key]
 
     def test_list_copy_is_shallow(self, copy_method):
