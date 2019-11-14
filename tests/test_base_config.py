@@ -332,3 +332,43 @@ def test_open_dict_restore(flag_name, ctx):
         cfg.foo.bar = 20
     assert cfg._get_node_flag(flag_name)
     assert not cfg.foo._get_node_flag(flag_name)
+
+
+@pytest.mark.parametrize(
+    "copy_method", [lambda x: copy.copy(x), lambda x: x.copy()],
+)
+class TestCopy:
+    @pytest.mark.parametrize(
+        "src", [[], [1, 2], ["a", "b", "c"], {}, {"a": "b"}, {"a": {"b": []}}],
+    )
+    def test_copy(self, copy_method, src):
+        src = OmegaConf.create(src)
+        cp = copy_method(src)
+        assert id(src) != id(cp)
+        assert src == cp
+
+    @pytest.mark.parametrize(
+        "src,interpolating_key,interpolated_key", [([1, 2, "${0}"], 2, 0)]
+    )
+    def test_copy_with_interpolation(
+        self, copy_method, src, interpolating_key, interpolated_key
+    ):
+        cfg = OmegaConf.create(src)
+        assert cfg[interpolated_key] == cfg[interpolating_key]
+        cp = copy_method(cfg)
+        assert id(cfg) != id(cp)
+        assert cp[interpolated_key] == cp[interpolating_key]
+        assert cfg[interpolated_key] == cp[interpolating_key]
+
+        # Interpolation is preserved in original
+        cfg[0] = "a"
+        assert cfg[interpolated_key] == cfg[interpolating_key]
+        # Test interpolation is preserved in copy
+        cp[0] = "a"
+        assert cp[interpolated_key] == cp[interpolating_key]
+
+    def test_list_copy_is_shallow(self, copy_method):
+        cfg = OmegaConf.create([[10, 20]])
+        cp = copy_method(cfg)
+        assert id(cfg) != id(cp)
+        assert id(cfg[0]) == id(cp[0])
