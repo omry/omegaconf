@@ -293,27 +293,43 @@ class Config(object):
             idx = int(last)
             root[idx] = value
 
-    def exists(self, key):
+    @staticmethod
+    def _deref_one(c, key_):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
+        assert isinstance(c, (DictConfig, ListConfig))
+        if isinstance(c, DictConfig):
+            if key_ in c.content:
+                return c[key_], key_
+            else:
+                return None, None
+        elif isinstance(c, ListConfig):
+            if not isint(key_):
+                raise TypeError("Index {} is not an int".format(key_))
+            idx = int(key_)
+            if idx < 0 or idx + 1 > len(c):
+                return None, None
+            return c[idx], key_
+
+    def _dereference_key(self, key):
+        """
+        Verify that a key resolves to a key in tree
+        :param key:
+        :return:
+        """
+        if key is None:
+            return None
         split = key.split(".")
         root = self
-        for i in range(len(split) - 1):
-            if root is None:
-                break
-            k = split[i]
-            root, _ = Config._select_one(root, k)
-        if root is None:
-            return False
+        dereferenced_key = []
+        for k in split:
+            root, deref_key = Config._deref_one(root, k)
+            if deref_key is None:
+                return None
+            dereferenced_key.append(str(deref_key))
 
-        assert isinstance(root, (ListConfig, DictConfig))
-        if isinstance(root, DictConfig):
-            return split[-1] in root
-        elif isinstance(root, ListConfig):
-            if 0 <= int(split[-1]) < len(root):
-                return True
-            return False
+        return ".".join(dereferenced_key) or None
 
     def select(self, key):
         """
@@ -321,7 +337,9 @@ class Config(object):
         :param key:
         :return:
         """
-
+        key = self._dereference_key(key)
+        if not key:
+            return None
         split = key.split(".")
         root = self
         for i in range(len(split) - 1):
@@ -466,11 +484,12 @@ class Config(object):
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            ret = root_node.select(inter_key)
-            if ret is None and not root_node.exists(inter_key):
+            key = root_node._dereference_key(inter_key)
+            if not key:
                 raise KeyError(
                     "{} interpolation key '{}' not found".format(inter_type, inter_key)
                 )
+            ret = root_node.select(key)
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:

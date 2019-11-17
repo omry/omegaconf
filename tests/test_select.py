@@ -2,6 +2,19 @@ from omegaconf import OmegaConf
 from pytest import raises
 
 
+def test_dereference_key():
+    c = OmegaConf.create(
+        {"foo": 10, "bar": "${nested.value}", "nested": {"value": 5}, "list": [1]}
+    )
+    assert c._dereference_key("nested.value") == "nested.value"
+    assert c._dereference_key("foo") == "foo"
+    assert c._dereference_key("bar") == "bar"
+    assert c._dereference_key("list.0") == "list.0"
+    assert c._dereference_key("list.1") is None
+    assert c._dereference_key("not.there") is None
+    assert c._dereference_key("nested.there") is None
+
+
 def test_select_key_from_empty():
     c = OmegaConf.create()
     assert c.select("not_there") is None
@@ -14,7 +27,7 @@ def test_select_dotkey_from_empty():
 
 
 def test_select_from_dict():
-    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1),))
+    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
 
     assert c.select("a") == {"v": 1}
     assert c.select("a.v") == 1
