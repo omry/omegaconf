@@ -294,6 +294,10 @@ class Config(object):
             root[idx] = value
 
     def select(self, key):
+        _root, _last_key, value = self._select_impl(key)
+        return value
+
+    def _select_impl(self, key):
         """
         Select a value using dot separated key sequence
         :param key:
@@ -309,10 +313,11 @@ class Config(object):
             root, _ = Config._select_one(root, k)
 
         if root is None:
-            return None
+            return None, None, None
 
-        value, _ = Config._select_one(root, split[-1])
-        return value
+        last_key = split[-1]
+        value, _ = Config._select_one(root, last_key)
+        return root, last_key, value
 
     def is_empty(self):
         """return true if config is empty"""
@@ -444,21 +449,21 @@ class Config(object):
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            ret = root_node.select(inter_key)
-            if ret is None:
+            parent, last_key, value = root_node._select_impl(inter_key)
+            if parent is None or (value is None and last_key not in parent):
                 raise KeyError(
                     "{} interpolation key '{}' not found".format(inter_type, inter_key)
                 )
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
-                ret = resolver(root_node, inter_key)
+                value = resolver(root_node, inter_key)
             else:
                 raise UnsupportedInterpolationType(
                     "Unsupported interpolation type {}".format(inter_type)
                 )
 
-        return ret
+        return value
 
     def _resolve_single(self, value):
         key_prefix = r"\${(\w+:)?"

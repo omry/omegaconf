@@ -144,7 +144,7 @@ def test_pickle_get_root():
     with tempfile.TemporaryFile() as fp:
         c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2,),))
 
-        c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4,),),))
+        c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
         c3 = OmegaConf.merge(c1, c2)
 
         import pickle
@@ -193,6 +193,8 @@ def test_dict_pop():
         ({"a": 1, "b": "???", "c": "${b}"}, "c", False),
         ({"a": 1, "b": "${not_found}"}, "b", False),
         ({"a": "${unknown_resolver:bar}"}, "a", True),
+        ({"a": None, "b": "${a}"}, "b", True),
+        ({"a": "cat", "b": "${a}"}, "b", True),
     ],
 )
 def test_in_dict(conf, key, expected):
