@@ -1,1 +1,0 @@
-Deprecated Config.to_container() in favor of OmegaConf.to_container()

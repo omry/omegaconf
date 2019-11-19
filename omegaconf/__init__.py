@@ -12,7 +12,7 @@ from .nodes import (
     FloatNode,
 )
 
-__version__ = "1.4.0rc4"
+__version__ = "1.4.0"
 
 __all__ = [
     "__version__",
