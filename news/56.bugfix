@@ -1,1 +1,0 @@
-Fixes a bug preventing dotlist values from containing '=' (foo=bar=10 -> key: foo, value: bar=10)

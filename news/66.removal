@@ -1,1 +1,0 @@
-Deprecated config.save(file) in favor of OmegaConf.save(config, file)

@@ -1,1 +1,0 @@
-Resolvers can now accept a list of zero or more arguments, for example: "${foo:a,b,..,n}"
