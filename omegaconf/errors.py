@@ -3,6 +3,18 @@ class MissingMandatoryValue(Exception):
     indicate that the value was not set"""
 
 
+class UnsupportedValueType(ValueError):
+    """
+    Thrown when an input value is not of supported type
+    """
+
+
+class UnsupportedKeyType(ValueError):
+    """
+    Thrown when an input key type is incorrect
+    """
+
+
 class ValidationError(Exception):
     """
     Thrown when a value fails validation

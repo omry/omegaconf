@@ -176,7 +176,18 @@ def test_merge_with_cli():
     assert c == ["bar", 2, dict(a=100)]
 
 
-def test_merge_with_dotlist_list_only():
-    c = OmegaConf.create({})
+@pytest.mark.parametrize(
+    "dotlist, expected",
+    [([], {}), (["foo=1"], {"foo": 1}), (["foo=1", "bar"], {"foo": 1, "bar": None})],
+)
+def test_merge_empty_with_dotlist(dotlist, expected):
+    c = OmegaConf.create()
+    c.merge_with_dotlist(dotlist)
+    assert c == expected
+
+
+@pytest.mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])
+def test_merge_with_dotlist_errors(dotlist):
+    c = OmegaConf.create()
     with pytest.raises(ValueError):
-        c.merge_with_dotlist("foo=10")
+        c.merge_with_dotlist(dotlist)

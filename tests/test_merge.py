@@ -1,6 +1,19 @@
 import pytest
+from dataclasses import dataclass, field
+from typing import Dict
 
-from omegaconf import OmegaConf, nodes
+from omegaconf import OmegaConf, nodes, MISSING
+
+
+@dataclass
+class User:
+    name: str = MISSING
+    age: int = MISSING
+
+
+@dataclass
+class Users:
+    name2user: Dict[str, User] = field(default_factory=lambda: {})
 
 
 @pytest.mark.parametrize(
@@ -33,11 +46,38 @@ from omegaconf import OmegaConf, nodes
             (dict(missing=123), dict(missing="${data}"), dict(missing=456)),
             dict(missing=456),
         ),
+        # Structured configs
+        (({"user": User}, {}), {"user": User(name=MISSING, age=MISSING)}),
+        (({"user": User}, {"user": {}}), {"user": User(name=MISSING, age=MISSING)}),
+        (
+            ({"user": User}, {"user": {"name": "Joe"}}),
+            {"user": User(name="Joe", age=MISSING)},
+        ),
+        (
+            ({"user": User}, {"user": {"name": "Joe", "age": 10}}),
+            {"user": User(name="Joe", age=10)},
+        ),
+        ([{"users": Users}], {"users": {"name2user": {}}}),
+        ((Users,), {"name2user": {}}),
+        ((Users, {"name2user": {}}), {"name2user": {}}),
+        (
+            (Users, {"name2user": {"joe": User}}),
+            {"name2user": {"joe": {"name": MISSING, "age": MISSING}}},
+        ),
+        (
+            (Users, {"name2user": {"joe": User(name="joe")}}),
+            {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
+        ),
+        (
+            (Users, {"name2user": {"joe": {"name": "joe"}}}),
+            {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
+        ),
     ],
 )
 def test_merge(inputs, expected):
     configs = [OmegaConf.create(c) for c in inputs]
-    assert OmegaConf.merge(*configs) == expected
+    merged = OmegaConf.merge(*configs)
+    assert merged == expected
     # test input configs are not changed.
     # Note that converting to container without resolving to avoid resolution errors while comparing
     for i in range(len(inputs)):

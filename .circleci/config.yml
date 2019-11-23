@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   py36_linux:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.6
     steps:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.6' >> $BASH_ENV
@@ -12,7 +12,7 @@ jobs:
 
   py37_linux:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.7
     steps:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.7' >> $BASH_ENV

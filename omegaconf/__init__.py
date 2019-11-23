@@ -1,23 +1,32 @@
-from .version import __version__
-from .omegaconf import OmegaConf, flag_override, read_write, open_dict
 from .config import Config
 from .dictconfig import DictConfig
-from .errors import MissingMandatoryValue, ValidationError, ReadonlyConfigError
+from .errors import (
+    MissingMandatoryValue,
+    ValidationError,
+    ReadonlyConfigError,
+    UnsupportedKeyType,
+    UnsupportedValueType,
+)
 from .listconfig import ListConfig
 from .nodes import (
-    BaseNode,
-    UntypedNode,
+    ValueNode,
+    BooleanNode,
+    EnumNode,
+    FloatNode,
     IntegerNode,
     StringNode,
-    BooleanNode,
-    FloatNode,
+    AnyNode,
 )
+from .omegaconf import OmegaConf, flag_override, read_write, open_dict, II, SI, MISSING
+from .version import __version__
 
 __all__ = [
     "__version__",
     "MissingMandatoryValue",
     "ValidationError",
     "ReadonlyConfigError",
+    "UnsupportedValueType",
+    "UnsupportedKeyType",
     "Config",
     "ListConfig",
     "DictConfig",
@@ -25,10 +34,15 @@ __all__ = [
     "flag_override",
     "read_write",
     "open_dict",
-    "BaseNode",
-    "UntypedNode",
+    "ValueNode",
+    "AnyNode",
     "IntegerNode",
     "StringNode",
     "BooleanNode",
+    "EnumNode",
     "FloatNode",
+    "MISSING",
+    "SI",
+    "II",
+    "Config",
 ]

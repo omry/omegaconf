@@ -1,9 +1,13 @@
-from omegaconf import OmegaConf
+import pytest
 from pytest import raises
 
+from omegaconf import OmegaConf
 
-def test_select_key_from_empty():
+
+@pytest.mark.parametrize("struct", [True, False, None])
+def test_select_key_from_empty(struct):
     c = OmegaConf.create()
+    OmegaConf.set_struct(c, struct)
     assert c.select("not_there") is None
 
 
@@ -14,7 +18,7 @@ def test_select_dotkey_from_empty():
 
 
 def test_select_from_dict():
-    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1),))
+    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
 
     assert c.select("a") == {"v": 1}
     assert c.select("a.v") == 1

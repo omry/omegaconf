@@ -10,6 +10,7 @@ providing a consistent API regardless of how the configuration was created.
    :maxdepth: 2
 
    usage
+   structured_config
 
 
 Indices and tables

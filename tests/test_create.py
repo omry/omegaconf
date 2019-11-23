@@ -1,10 +1,11 @@
 """Testing for OmegaConf"""
-import re
 import sys
 
 import pytest
+import re
 
 from omegaconf import OmegaConf
+from omegaconf.errors import UnsupportedValueType
 from . import IllegalType
 
 
@@ -31,6 +32,10 @@ from . import IllegalType
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
         ),
+        (OmegaConf.create({}), {}),
+        (OmegaConf.create([]), []),
+        (OmegaConf.create({"foo": OmegaConf.create([])}), {"foo": []}),
+        (OmegaConf.create([OmegaConf.create({})]), [{}]),
     ],
 )
 def test_create_value(input_, expected):
@@ -66,24 +71,24 @@ def test_dotlist(input_, expected):
 
 
 def test_create_list_with_illegal_value_idx0():
-    with pytest.raises(ValueError, match=re.escape("key [0]")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key [0]")):
         OmegaConf.create([IllegalType()])
 
 
 def test_create_list_with_illegal_value_idx1():
-    with pytest.raises(ValueError, match=re.escape("key [1]")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key [1]")):
         OmegaConf.create([1, IllegalType(), 3])
 
 
 def test_create_dict_with_illegal_value():
-    with pytest.raises(ValueError, match=re.escape("key a")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key a")):
         OmegaConf.create(dict(a=IllegalType()))
 
 
 # TODO: improve exception message to contain full key a.b
 # https://github.com/omry/omegaconf/issues/14
 def test_create_nested_dict_with_illegal_value():
-    with pytest.raises(ValueError, match=re.escape("key b")):
+    with pytest.raises(ValueError):
         OmegaConf.create(dict(a=dict(b=IllegalType())))
 
 

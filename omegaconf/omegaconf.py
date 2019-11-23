@@ -7,8 +7,32 @@ from contextlib import contextmanager
 import io
 import re
 import yaml
+from typing import Any
 
+from ._utils import is_structured_config, decode_primitive
 from .config import Config
+from .errors import ValidationError, MissingMandatoryValue
+
+MISSING: Any = "???"
+
+
+def II(interpolation: str) -> Any:
+    """
+    Equivalent to ${interpolation}
+    :param interpolation:
+    :return: input ${node} with type Any
+    """
+    return "${" + interpolation + "}"
+
+
+def SI(interpolation: str) -> Any:
+    """
+    Use this for String interpolation, for example "http://${host}:${port}"
+    :param interpolation: interpolation string
+    :return: input interpolation with type Any
+    """
+    assert interpolation.find("${") != -1
+    return interpolation
 
 
 def register_default_resolvers():
@@ -31,7 +55,7 @@ class OmegaConf:
     def create(obj=None, parent=None):
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from .config import get_yaml_loader
+        from ._utils import get_yaml_loader
 
         if isinstance(obj, str):
             new_obj = yaml.load(obj, Loader=get_yaml_loader())
@@ -43,22 +67,24 @@ class OmegaConf:
         else:
             if obj is None:
                 obj = {}
+            if isinstance(obj, Config):
+                obj = OmegaConf.to_container(obj)
 
-            if isinstance(obj, dict):
+            if isinstance(obj, dict) or is_structured_config(obj):
                 return DictConfig(obj, parent)
             elif isinstance(obj, (list, tuple)):
                 return ListConfig(obj, parent)
             else:
-                raise RuntimeError("Unsupported type {}".format(type(obj).__name__))
+                raise ValidationError("Unsupported type {}".format(type(obj).__name__))
 
     @staticmethod
     def load(file_):
-        from .config import get_yaml_loader
+        from ._utils import get_yaml_loader
 
         if isinstance(file_, str):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
                 return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
-        elif getattr(file_, "read"):
+        elif getattr(file_, "read", None):
             return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
         else:
             raise TypeError("Unexpected file type")
@@ -202,16 +228,25 @@ class OmegaConf:
         return DictConfig(content=content)
 
     @staticmethod
-    def to_container(cfg, resolve=False):
+    def to_container(cfg, resolve=False, enum_to_str=False):
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
         :param resolve: True to resolve all values
+        :param enum_to_str: True to convert Enum values to strings
         :return: A dict or a list representing this config as a primitive container.
         """
         assert isinstance(cfg, Config)
         # noinspection PyProtectedMember
-        return Config._to_content(cfg, resolve)
+        return Config._to_content(cfg, resolve=resolve, enum_to_str=enum_to_str)
+
+    @staticmethod
+    def is_missing(cfg, key):
+        try:
+            cfg.get(key)
+            return False
+        except MissingMandatoryValue:
+            return True
 
 
 # register all default resolvers
@@ -250,34 +285,3 @@ def open_dict(config):
         yield config
     finally:
         OmegaConf.set_struct(config, prev_state)
-
-
-def decode_primitive(s):
-    def is_bool(st):
-        st = str.lower(st)
-        return st == "true" or st == "false"
-
-    def is_float(st):
-        try:
-            float(st)
-            return True
-        except ValueError:
-            return False
-
-    def is_int(s):
-        try:
-            int(s)
-            return True
-        except ValueError:
-            return False
-
-    if is_bool(s):
-        return str.lower(s) == "true"
-
-    if is_int(s):
-        return int(s)
-
-    if is_float(s):
-        return float(s)
-
-    return s

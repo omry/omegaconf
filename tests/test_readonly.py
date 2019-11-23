@@ -1,36 +1,36 @@
-import re
-
 import pytest
+import re
 from pytest import raises
+
 from omegaconf import ReadonlyConfigError, OmegaConf
 
 
 @pytest.mark.parametrize(
     "src, func, expectation",
     [
-        ({}, lambda c: c.__setitem__("a", 1), raises(ReadonlyConfigError, match="a"),),
+        ({}, lambda c: c.__setitem__("a", 1), raises(ReadonlyConfigError, match="a")),
         (
             dict(a=dict(b=dict(c=1))),
             lambda c: c.__getattr__("a").__getattr__("b").__setitem__("c", 1),
             raises(ReadonlyConfigError, match="a.b.c"),
         ),
-        ({}, lambda c: c.update("a.b", 10), raises(ReadonlyConfigError, match="a"),),
+        ({}, lambda c: c.update("a.b", 10), raises(ReadonlyConfigError, match="a")),
         (
             dict(a=10),
             lambda c: c.__setattr__("a", 1),
             raises(ReadonlyConfigError, match="a"),
         ),
-        (dict(a=10), lambda c: c.pop("a"), raises(ReadonlyConfigError, match="a"),),
+        (dict(a=10), lambda c: c.pop("a"), raises(ReadonlyConfigError, match="a")),
         (
             dict(a=10),
             lambda c: c.__delitem__("a"),
             raises(ReadonlyConfigError, match="a"),
         ),
         # list
-        ([], lambda c: c.__setitem__(0, 1), raises(ReadonlyConfigError, match="0"),),
-        ([], lambda c: c.update("0.b", 10), raises(ReadonlyConfigError, match="[0]"),),
+        ([], lambda c: c.__setitem__(0, 1), raises(ReadonlyConfigError, match="0")),
+        ([], lambda c: c.update("0.b", 10), raises(ReadonlyConfigError, match="[0]")),
         ([10], lambda c: c.pop(), raises(ReadonlyConfigError)),
-        ([0], lambda c: c.__delitem__(0), raises(ReadonlyConfigError, match="[0]"),),
+        ([0], lambda c: c.__delitem__(0), raises(ReadonlyConfigError, match="[0]")),
     ],
 )
 def test_readonly(src, func, expectation):

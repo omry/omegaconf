@@ -14,3 +14,5 @@ TODO
 .coveralls.yml
 .coverage
 .eggs
+.mypy_cache
+/pip-wheel-metadata
