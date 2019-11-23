@@ -7,6 +7,7 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
+
 import codecs
 import os
 
@@ -51,7 +52,11 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=["PyYAML"],
+        install_requires=[
+            "PyYAML",
+            # Use dataclasses backport for Python 3.6.
+            "dataclasses;python_version=='3.6'",
+        ],
         # Install development dependencies with
         # pip install -e ".[dev]"
         extras_require={
@@ -61,9 +66,11 @@ with open("README.md", "r") as fh:
                 "flake8",
                 "pre-commit",
                 "pytest",
+                "pytest-mock",
                 "nox",
                 "towncrier",
                 "twine",
+                "sphinx",
             ],
             "coverage": ["coveralls"],
             "lint": ["black", "flake8"],

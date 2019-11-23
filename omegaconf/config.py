@@ -3,71 +3,40 @@ import sys
 import warnings
 from abc import abstractmethod
 from collections import defaultdict
+from enum import Enum
 
-import re
 import yaml
+from typing import Any
 
+from ._utils import (
+    get_value_kind,
+    ValueKind,
+    _maybe_wrap,
+    _select_one,
+    get_yaml_loader,
+    _re_parent,
+    is_structured_config,
+)
 from .errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
 )
-from .nodes import BaseNode
+from .node import Node
+from .nodes import ValueNode
 
 
-def isint(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
-def get_yaml_loader():
-    loader = yaml.SafeLoader
-    loader.add_implicit_resolver(
-        u"tag:yaml.org,2002:float",
-        re.compile(
-            u"""^(?:
-         [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
-        |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
-        |\\.[0-9_]+(?:[eE][-+][0-9]+)?
-        |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
-        |[-+]?\\.(?:inf|Inf|INF)
-        |\\.(?:nan|NaN|NAN))$""",
-            re.X,
-        ),
-        list(u"-+0123456789."),
-    )
-    loader.yaml_implicit_resolvers = {
-        key: [
-            (tag, regexp)
-            for tag, regexp in resolvers
-            if tag != u"tag:yaml.org,2002:timestamp"
-        ]
-        for key, resolvers in loader.yaml_implicit_resolvers.items()
-    }
-    return loader
-
-
-class Config(object):
+class Config(Node):
     # static fields
     _resolvers = {}
 
-    def __init__(self):
+    def __init__(self, element_type, parent: Node):
+        super().__init__(parent=parent)
         if type(self) == Config:
             raise NotImplementedError
-        # Flags have 3 modes:
-        #   unset : inherit from parent, defaults to false in top level config.
-        #   set to true: flag is true
-        #   set to false: flag is false
-        self.__dict__["flags"] = dict(
-            # Read only config cannot be modified
-            readonly=None,
-            # Struct config throws a KeyError if a non existing field is accessed
-            struct=None,
-        )
+        self.__dict__["content"] = None
         self.__dict__["_resolver_cache"] = defaultdict(dict)
+        self.__dict__["_element_type"] = element_type
 
     def save(self, f):
         warnings.warn(
@@ -79,47 +48,6 @@ class Config(object):
         from omegaconf import OmegaConf
 
         OmegaConf.save(self, f)
-
-    def _set_parent(self, parent):
-        assert parent is None or isinstance(parent, Config)
-        self.__dict__["parent"] = parent
-
-    def _get_root(self):
-        root = self.__dict__["parent"]
-        if root is None:
-            return self
-        while root.__dict__["parent"] is not None:
-            root = root.__dict__["parent"]
-        return root
-
-    def _set_flag(self, flag, value):
-        assert value is None or isinstance(value, bool)
-        self.__dict__["flags"][flag] = value
-
-    def _get_node_flag(self, flag):
-        """
-        :param flag: flag to inspect
-        :return: the state of the flag on this node.
-        """
-        return self.__dict__["flags"][flag]
-
-    def _get_flag(self, flag):
-        """
-        Returns True if this config node flag is set
-        A flag is set if node.set_flag(True) was called
-        or one if it's parents is flag is set
-        :return:
-        """
-        assert flag in self.__dict__["flags"]
-        if flag in self.__dict__["flags"] and self.__dict__["flags"][flag] is not None:
-            return self.__dict__["flags"][flag]
-
-        # root leaf, and frozen is not set.
-        if self.__dict__["parent"] is None:
-            return False
-        else:
-            # noinspection PyProtectedMember
-            return self.__dict__["parent"]._get_flag(flag)
 
     @abstractmethod
     def get(self, key, default_value=None):
@@ -140,16 +68,17 @@ class Config(object):
         def is_mandatory_missing(val):
             return type(val) == str and val == "???"
 
-        if isinstance(value, BaseNode):
+        if isinstance(value, ValueNode):
             value = value.value()
 
         if default_value is not None and (value is None or is_mandatory_missing(value)):
             value = default_value
 
+        value = self._resolve_single(value) if isinstance(value, str) else value
         if is_mandatory_missing(value):
             raise MissingMandatoryValue(self.get_full_key(key))
 
-        return self._resolve_single(value) if isinstance(value, str) else value
+        return value
 
     def get_full_key(self, key):
         from .listconfig import ListConfig
@@ -164,8 +93,9 @@ class Config(object):
                 if child is None:
                     full_key = "{}".format(key)
                 else:
-                    for parent_key, v in parent.items():
-                        if id(v) == id(child):
+                    # find which the key for child in the parent
+                    for parent_key in parent.keys():
+                        if id(parent.get_node(parent_key)) == id(child):
                             if isinstance(child, ListConfig):
                                 full_key = "{}{}".format(parent_key, full_key)
                             else:
@@ -186,7 +116,7 @@ class Config(object):
                                 full_key = "[{}].{}".format(idx, full_key)
                             break
             child = parent
-            parent = child.__dict__["parent"]
+            parent = child._get_parent()
 
         return full_key
 
@@ -228,28 +158,6 @@ class Config(object):
     def __iter__(self):
         raise NotImplementedError()
 
-    def __contains__(self, item):
-        return self.content.__contains__(item)
-
-    @staticmethod
-    def _select_one(c, key_):
-        from .listconfig import ListConfig
-        from .dictconfig import DictConfig
-
-        assert isinstance(c, (DictConfig, ListConfig))
-        if isinstance(c, DictConfig):
-            if key_ in c:
-                return c[key_], key_
-            else:
-                return None, key_
-        elif isinstance(c, ListConfig):
-            if not isint(key_):
-                raise TypeError("Index {} is not an int".format(key_))
-            idx = int(key_)
-            if idx < 0 or idx + 1 > len(c):
-                return None, idx
-            return c[idx], idx
-
     def merge_with_cli(self):
         args_list = sys.argv[1:]
         self.merge_with_dotlist(args_list)
@@ -286,14 +194,17 @@ class Config(object):
         for i in range(len(split) - 1):
             k = split[i]
             # if next_root is a primitive (string, int etc) replace it with an empty map
-            next_root, key_ = Config._select_one(root, k)
+            next_root, key_ = _select_one(root, k)
             if not isinstance(next_root, Config):
-                root[key_] = {}
+                root[key_] = DictConfig(content={}, parent=self)
             root = root[key_]
 
         last = split[-1]
 
-        assert isinstance(root, (DictConfig, ListConfig))
+        assert isinstance(
+            root, (DictConfig, ListConfig)
+        ), f"Unexpected type for root : {type(root).__name__}"
+
         if isinstance(root, DictConfig):
             root[last] = value
         elif isinstance(root, ListConfig):
@@ -317,13 +228,13 @@ class Config(object):
             if root is None:
                 break
             k = split[i]
-            root, _ = Config._select_one(root, k)
+            root, _ = _select_one(root, k)
 
         if root is None:
             return None, None, None
 
         last_key = split[-1]
-        value, _ = Config._select_one(root, last_key)
+        value, _ = _select_one(root, last_key)
         return root, last_key, value
 
     def is_empty(self):
@@ -331,26 +242,38 @@ class Config(object):
         return len(self.content) == 0
 
     @staticmethod
-    def _to_content(conf, resolve):
+    def _to_content(conf, resolve, enum_to_str=False):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+
+        def convert(val):
+            if enum_to_str:
+                if isinstance(val, Enum):
+                    val = "{}.{}".format(type(val).__name__, val.name)
+
+            return val
 
         assert isinstance(conf, Config)
         if isinstance(conf, DictConfig):
             ret = {}
             for key, value in conf.items(resolve=resolve):
                 if isinstance(value, Config):
-                    ret[key] = Config._to_content(value, resolve)
+                    ret[key] = Config._to_content(
+                        value, resolve=resolve, enum_to_str=enum_to_str
+                    )
                 else:
-                    ret[key] = value
+                    ret[key] = convert(value)
             return ret
         elif isinstance(conf, ListConfig):
             ret = []
             for index, item in enumerate(conf):
                 if resolve:
                     item = conf[index]
+                item = convert(item)
                 if isinstance(item, Config):
-                    item = Config._to_content(item, resolve)
+                    item = Config._to_content(
+                        item, resolve=resolve, enum_to_str=enum_to_str
+                    )
                 ret.append(item)
             return ret
 
@@ -372,9 +295,8 @@ class Config(object):
         interpolations are preserved
         :return: A string containing the yaml representation.
         """
-        return yaml.dump(
-            OmegaConf.to_container(self, resolve=resolve), default_flow_style=False
-        )
+        container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
+        return yaml.dump(container, default_flow_style=False)
 
     @staticmethod
     def _map_merge(dest, src):
@@ -386,8 +308,14 @@ class Config(object):
         src = copy.deepcopy(src)
 
         for key, value in src.items(resolve=False):
-            if key in dest:
+            dest_type = dest.__dict__["_element_type"]
+            typed = dest_type not in (None, Any)
+            if (dest.get_node(key) is not None) or typed:
                 dest_node = dest.get_node(key)
+                if dest_node is None and typed:
+                    dest[key] = DictConfig(content=dest_type, parent=dest)
+                    dest_node = dest.get_node(key)
+
                 if isinstance(dest_node, Config):
                     if isinstance(value, Config):
                         dest_node.merge_with(value)
@@ -401,40 +329,16 @@ class Config(object):
             else:
                 dest[key] = src.get_node(key)
 
-    def _deepcopy_impl(self, res, _memodict={}):
-        # memodict is intentionally not used.
-        # Using it can cause python to return objects that were since modified, undoing their modifications!
-        res.__dict__["content"] = copy.deepcopy(self.__dict__["content"])
-        res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"])
-        # intentionally not deepcopying the parent. this can cause all sorts of mayhem and stack overflow.
-        # instead of just re-parent the result node. this will break interpolation in cases of deepcopying
-        # a node that is not the root node, but that is almost guaranteed to break anyway.
-        Config._re_parent(res)
-
-    @staticmethod
-    def _re_parent(node):
-        from .listconfig import ListConfig
-        from .dictconfig import DictConfig
-
-        # update parents of first level Config nodes to self
-        assert isinstance(node, (DictConfig, ListConfig))
-        if isinstance(node, DictConfig):
-            for _key, value in node.items(resolve=False):
-                if isinstance(value, Config):
-                    value._set_parent(node)
-                    Config._re_parent(value)
-        elif isinstance(node, ListConfig):
-            for item in node:
-                if isinstance(item, Config):
-                    item._set_parent(node)
-                    Config._re_parent(item)
-
     def merge_with(self, *others):
+        from .omegaconf import OmegaConf
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
+            if isinstance(other, (dict, list, tuple)) or is_structured_config(other):
+                other = OmegaConf.create(other, parent=None)
+
             if other is None:
                 raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
@@ -442,13 +346,14 @@ class Config(object):
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 if self._get_flag("readonly"):
                     raise ReadonlyConfigError(self.get_full_key(""))
-
-                self.__dict__["content"] = copy.deepcopy(other.content)
+                self.__dict__["content"].clear()
+                for item in other:
+                    self.append(item)
             else:
                 raise TypeError("Merging DictConfig with ListConfig is not supported")
 
         # recursively correct the parent hierarchy after the merge
-        Config._re_parent(self)
+        _re_parent(self)
 
     @staticmethod
     def _resolve_value(root_node, inter_type, inter_key):
@@ -473,18 +378,25 @@ class Config(object):
         return value
 
     def _resolve_single(self, value):
-        key_prefix = r"\${(\w+:)?"
-        legal_characters = r"([\w\.%_ \\,-]*?)}"
-        match_list = list(re.finditer(key_prefix + legal_characters, value))
-        if len(match_list) == 0:
+        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
+
+        assert value_kind in [
+            ValueKind.VALUE,
+            ValueKind.MANDATORY_MISSING,
+            ValueKind.INTERPOLATION,
+            ValueKind.STR_INTERPOLATION,
+        ]
+
+        if value_kind in (ValueKind.VALUE, ValueKind.MANDATORY_MISSING):
             return value
 
         root = self._get_root()
-        if len(match_list) == 1 and value == match_list[0].group(0):
+        if value_kind == ValueKind.INTERPOLATION:
             # simple interpolation, inherit type
             match = match_list[0]
             return Config._resolve_value(root, match.group(1), match.group(2))
-        else:
+        elif value_kind == ValueKind.STR_INTERPOLATION:
+            # Concatenated interpolation, always a string
             orig = value
             new = ""
             last_index = 0
@@ -496,57 +408,65 @@ class Config(object):
             new += orig[last_index:]
             return new
 
-    def _prepare_value_to_add(self, key, value):
-        from omegaconf import OmegaConf
-
-        if isinstance(value, Config):
-            value = OmegaConf.to_container(value)
-
-        if isinstance(value, (dict, list, tuple)):
-
-            value = OmegaConf.create(value, parent=self)
-
-        if not Config.is_primitive_type(value):
-            full_key = self.get_full_key(key)
-            raise ValueError(
-                "key {}: {} is not a primitive type".format(
-                    full_key, type(value).__name__
-                )
+    # noinspection PyProtectedMember
+    def _set_item_impl(self, key, value):
+        must_wrap = isinstance(value, (dict, list))
+        input_config = isinstance(value, Config)
+        input_node = isinstance(value, ValueNode)
+        if isinstance(self.__dict__["content"], dict):
+            target_node = key in self.__dict__["content"] and isinstance(
+                self.__dict__["content"][key], ValueNode
             )
 
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(key))
+        elif isinstance(self.__dict__["content"], list):
+            target_node = self.__dict__["content"] and isinstance(
+                self.__dict__["content"][key], ValueNode
+            )
 
-        return value
+        def wrap(val):
+            return _maybe_wrap(
+                annotated_type=self.__dict__["_element_type"],
+                value=val,
+                is_optional=True,
+                parent=self,
+            )
 
-    @staticmethod
-    def is_primitive_type(value):
-        """
-        Ensures this value type is of a valid type
-        Throws ValueError otherwise
-        :param value:
-        :return:
-        """
-        from .listconfig import ListConfig
-        from .dictconfig import DictConfig
-
-        # None is valid
-        if value is None:
-            return True
-        valid = [bool, int, str, float, DictConfig, ListConfig, BaseNode]
-
-        return isinstance(value, tuple(valid))
+        if must_wrap:
+            self.__dict__["content"][key] = wrap(value)
+        elif input_node and target_node:
+            # both nodes, replace existing node with new one
+            value._set_parent(self)
+            self.__dict__["content"][key] = value
+        elif not input_node and target_node:
+            # input is not node, can be primitive or config
+            if input_config:
+                value._set_parent(self)
+                self.__dict__["content"][key] = value
+            else:
+                self.__dict__["content"][key].set_value(value)
+        elif input_node and not target_node:
+            # target must be config, replace target with input node
+            value._set_parent(self)
+            self.__dict__["content"][key] = value
+        elif not input_node and not target_node:
+            # target must be config.
+            # input can be primitive or config
+            if input_config:
+                value._set_parent(self)
+                self.__dict__["content"][key] = value
+            else:
+                self.__dict__["content"][key] = wrap(value)
 
     @staticmethod
     def _item_eq(c1, k1, c2, k2):
         v1 = c1.content[k1]
         v2 = c2.content[k2]
-        if isinstance(v1, BaseNode):
+        if isinstance(v1, ValueNode):
             v1 = v1.value()
             if isinstance(v1, str):
                 # noinspection PyProtectedMember
                 v1 = c1._resolve_single(v1)
-        if isinstance(v2, BaseNode):
+        if isinstance(v2, ValueNode):
             v2 = v2.value()
             if isinstance(v2, str):
                 # noinspection PyProtectedMember

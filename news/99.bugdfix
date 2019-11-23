@@ -1,0 +1,1 @@
+Correctly throw MissingMandatoryValue on indirect access of missing value

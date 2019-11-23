@@ -6,12 +6,16 @@ omit =
     omegaconf/version.py
 
 [report]
+# Don't complain if tests don't hit defensive assertion code:
 exclude_lines =
     pragma: no cover
-    # Don't complain if tests don't hit defensive assertion code:
     raise AssertionError
     raise NotImplementedError
+    return NotImplemented
     raise TypeError
+    assert False
+    @abstractmethod
+
 
 [html]
 directory = docs/build/coverage

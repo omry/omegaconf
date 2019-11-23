@@ -8,14 +8,14 @@ from omegaconf import OmegaConf
 
 def test_str_interpolation_dict_1():
     # Simplest str_interpolation
-    c = OmegaConf.create(dict(a="${referenced}", referenced="bar",))
+    c = OmegaConf.create(dict(a="${referenced}", referenced="bar"))
     assert c.referenced == "bar"
     assert c.a == "bar"
 
 
 def test_str_interpolation_key_error_1():
     # Test that a KeyError is thrown if an str_interpolation key is not available
-    c = OmegaConf.create(dict(a="${not_found}",))
+    c = OmegaConf.create(dict(a="${not_found}"))
 
     with pytest.raises(KeyError):
         _ = c.a
@@ -23,7 +23,7 @@ def test_str_interpolation_key_error_1():
 
 def test_str_interpolation_key_error_2():
     # Test that a KeyError is thrown if an str_interpolation key is not available
-    c = OmegaConf.create(dict(a="${not.found}",))
+    c = OmegaConf.create(dict(a="${not.found}"))
 
     with pytest.raises(KeyError):
         c.a
@@ -31,7 +31,7 @@ def test_str_interpolation_key_error_2():
 
 def test_str_interpolation_3():
     # Test that str_interpolation works with complex strings
-    c = OmegaConf.create(dict(a="the year ${year}", year="of the cat",))
+    c = OmegaConf.create(dict(a="the year ${year}", year="of the cat"))
 
     assert c.a == "the year of the cat"
 
@@ -39,7 +39,7 @@ def test_str_interpolation_3():
 def test_str_interpolation_4():
     # Test that a string with multiple str_interpolations works
     c = OmegaConf.create(
-        dict(a="${ha} ${ha} ${ha}, said Pennywise, ${ha} ${ha}... ${ha}!", ha="HA",)
+        dict(a="${ha} ${ha} ${ha}, said Pennywise, ${ha} ${ha}... ${ha}!", ha="HA")
     )
 
     assert c.a == "HA HA HA, said Pennywise, HA HA... HA!"
@@ -62,7 +62,7 @@ def test_deep_str_interpolation_2():
     c = OmegaConf.create(
         dict(
             out=42,
-            deep=dict(inside="the answer to the universe and everything is ${out}",),
+            deep=dict(inside="the answer to the universe and everything is ${out}"),
         )
     )
 
@@ -91,7 +91,7 @@ def test_simple_str_interpolation_inherit_type():
 
 
 def test_complex_str_interpolation_is_always_str_1():
-    c = OmegaConf.create(dict(two=2, four=4, inter1="${four}${two}", inter2="4${two}",))
+    c = OmegaConf.create(dict(two=2, four=4, inter1="${four}${two}", inter2="4${two}"))
 
     assert type(c.inter1) == str
     assert c.inter1 == "42"
@@ -116,7 +116,7 @@ def test_interpolation(input_, key, expected):
 
 
 def test_2_step_interpolation():
-    c = OmegaConf.create(dict(src="bar", copy_src="${src}", copy_copy="${copy_src}",))
+    c = OmegaConf.create(dict(src="bar", copy_src="${src}", copy_copy="${copy_src}"))
     assert c.copy_src == "bar"
     assert c.copy_copy == "bar"
 
@@ -124,7 +124,7 @@ def test_2_step_interpolation():
 def test_env_interpolation1():
     try:
         os.environ["foobar"] = "1234"
-        c = OmegaConf.create(dict(path="/test/${env:foobar}",))
+        c = OmegaConf.create(dict(path="/test/${env:foobar}"))
         assert c.path == "/test/1234"
     finally:
         del os.environ["foobar"]
@@ -132,7 +132,7 @@ def test_env_interpolation1():
 
 
 def test_env_interpolation_not_found():
-    c = OmegaConf.create(dict(path="/test/${env:foobar}",))
+    c = OmegaConf.create(dict(path="/test/${env:foobar}"))
     with pytest.raises(KeyError):
         c.path
 
@@ -165,7 +165,7 @@ def test_env_interpolation_not_found():
 def test_env_values_are_typed(value, expected):
     try:
         os.environ["my_key"] = value
-        c = OmegaConf.create(dict(my_key="${env:my_key}",))
+        c = OmegaConf.create(dict(my_key="${env:my_key}"))
         assert c.my_key == expected
     finally:
         del os.environ["my_key"]
@@ -194,7 +194,7 @@ def test_clear_resolvers():
 def test_register_resolver_1():
     try:
         OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
-        c = OmegaConf.create(dict(k="${plus_10:990}",))
+        c = OmegaConf.create(dict(k="${plus_10:990}"))
 
         assert type(c.k) == int
         assert c.k == 1000
@@ -209,7 +209,7 @@ def test_resolver_cache_1():
     # the program execution.
     try:
         OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-        c = OmegaConf.create(dict(k="${random:_}",))
+        c = OmegaConf.create(dict(k="${random:_}"))
         assert c.k == c.k
     finally:
         OmegaConf.clear_resolvers()
@@ -221,8 +221,8 @@ def test_resolver_cache_2():
     """
     try:
         OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-        c1 = OmegaConf.create(dict(k="${random:_}",))
-        c2 = OmegaConf.create(dict(k="${random:_}",))
+        c1 = OmegaConf.create(dict(k="${random:_}"))
+        c2 = OmegaConf.create(dict(k="${random:_}"))
         assert c1.k != c2.k
         assert c1.k == c1.k
         assert c2.k == c2.k
@@ -260,15 +260,15 @@ def test_resolver_that_allows_a_list_of_arguments(resolver, name, key, result):
 
 def test_copy_cache():
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    c1 = OmegaConf.create(dict(k="${random:_}",))
+    c1 = OmegaConf.create(dict(k="${random:_}"))
     assert c1.k == c1.k
 
-    c2 = OmegaConf.create(dict(k="${random:_}",))
+    c2 = OmegaConf.create(dict(k="${random:_}"))
     assert c2.k != c1.k
     OmegaConf.set_cache(c2, OmegaConf.get_cache(c1))
     assert c2.k == c1.k
 
-    c3 = OmegaConf.create(dict(k="${random:_}",))
+    c3 = OmegaConf.create(dict(k="${random:_}"))
 
     assert c3.k != c1.k
     OmegaConf.copy_cache(c1, c3)
@@ -277,7 +277,7 @@ def test_copy_cache():
 
 def test_supported_chars():
     supported_chars = "%_-abc123."
-    c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}",))
+    c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
 
     OmegaConf.register_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
@@ -292,7 +292,7 @@ def test_interpolation_in_list_key_error():
 
 
 def test_unsupported_interpolation_type():
-    c = OmegaConf.create(dict(foo="${wrong_type:ref}",))
+    c = OmegaConf.create(dict(foo="${wrong_type:ref}"))
 
     with pytest.raises(ValueError):
         c.foo

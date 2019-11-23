@@ -38,11 +38,7 @@ release = "1.0"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.doctest",
-    "sphinx.ext.coverage",
-]
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.doctest", "sphinx.ext.coverage"]
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -129,7 +125,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "OmegaConf.tex", "OmegaConf Documentation", "Omry Yadan", "manual"),
+    (master_doc, "OmegaConf.tex", "OmegaConf Documentation", "Omry Yadan", "manual")
 ]
 
 
@@ -154,7 +150,7 @@ texinfo_documents = [
         "OmegaConf",
         "Flexible python configuration system.",
         "Miscellaneous",
-    ),
+    )
 ]
 
 

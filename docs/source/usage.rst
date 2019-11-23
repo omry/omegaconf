@@ -17,8 +17,12 @@ Just pip install::
 
     pip install omegaconf
 
+OmegaConf requires Python 3.6 and newer. If you need Python 2.7 support please use OmegaConf 1.4.x.
+
 Creating
 --------
+You can create OmegaConf objects from multiple sources.
+
 Empty
 ^^^^^
 
@@ -79,9 +83,18 @@ From a yaml file
 From a yaml string
 ^^^^^^^^^^^^^^^^^^
 
+
+
 .. doctest::
 
-    >>> conf = OmegaConf.create("a: b\nb: c\nlist:\n- item1\n- item2\n")
+    >>> s = """
+    ... a: b
+    ... b: c
+    ... list:
+    ... - item1
+    ... - item2
+    ... """
+    >>> conf = OmegaConf.create(s)
     >>> print(conf.pretty())
     a: b
     b: c
@@ -124,6 +137,55 @@ To parse the content of sys.arg:
       port: 82
     <BLANKLINE>
 
+From structured config
+^^^^^^^^^^^^^^^^^^^^^^
+*New in OmegaConf 2.0, API Considered experimental and may change.*
+
+You can create OmegaConf objects from structured config classes or objects. This provides static and runtime type safety.
+See :doc:`structured_config` for more details, or keep reading for a minimal example.
+
+.. doctest::
+
+    >>> from dataclasses import dataclass
+    >>> @dataclass
+    ... class MyConfig:
+    ...     port: int = 80
+    ...     host: str = "localhost"
+    >>> conf = OmegaConf.create(MyConfig)
+    >>> print(conf.pretty())
+    host: localhost
+    port: 80
+    <BLANKLINE>
+
+You can use an object to initialize the config as well:
+
+.. doctest::
+
+    >>> conf = OmegaConf.create(MyConfig(port=443))
+    >>> print(conf.pretty())
+    host: localhost
+    port: 443
+    <BLANKLINE>
+
+OmegaConf objects constructed from Structured classes offer runtime type safety:
+
+.. doctest::
+
+    >>> conf.port = 42      # Ok, type matches
+    >>> conf.port = "1080"  # Ok! "1080" can be converted to an int
+    >>> conf.port = "oops"  # "oops" cannot be converted to an int
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.ValidationError: Value 'oops' could not be converted to Integer
+
+In addition, the config class can be used as type annotation for static type checkers or IDEs:
+
+.. doctest::
+
+    >>> def foo(conf: MyConfig):
+    ...     print(conf.port) # passes static type checker
+    ...     print(conf.pork) # fails static type checker
+
 Access and manipulation
 -----------------------
 
@@ -151,7 +213,7 @@ Access
 
 Default values
 ^^^^^^^^^^^^^^
-You can provided default values directly in the accessing code:
+You can provide default values directly in the accessing code:
 
 .. doctest:: loaded
 
@@ -186,6 +248,8 @@ Manipulation
 
     >>> # Adding a new dictionary
     >>> conf.database = {'hostname': 'database01', 'port': 3306}
+
+.. _interpolation:
 
 
 Variable interpolation
@@ -340,6 +404,8 @@ Configuration flags can be set on any configuration node (Sequence or Mapping). 
 it inherits the value from the parent of the node.
 The default value inherited from the root node is always false.
 
+.. _read-only-flag:
+
 Read-only flag
 ^^^^^^^^^^^^^^
 A read-only configuration cannot be modified.
@@ -365,6 +431,8 @@ You can temporarily remove the read only flag from a config object:
     ...   conf.a.b = 20
     >>> conf.a.b
     20
+
+.. _struct-flag:
 
 Struct flag
 ^^^^^^^^^^^

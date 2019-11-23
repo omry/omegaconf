@@ -1,9 +1,18 @@
-import re
 import tempfile
 
 import pytest
+import re
+from typing import Any
 
-from omegaconf import OmegaConf, MissingMandatoryValue, DictConfig, UntypedNode, Config
+from omegaconf import (
+    OmegaConf,
+    MissingMandatoryValue,
+    UnsupportedValueType,
+    UnsupportedKeyType,
+    DictConfig,
+    AnyNode,
+    Config,
+)
 from . import IllegalType
 
 
@@ -115,6 +124,12 @@ def test_items():
     c = OmegaConf.create(dict(a=2, b=10))
     assert sorted([("a", 2), ("b", 10)]) == sorted(list(c.items()))
 
+    ii = c.items()
+    next(ii) == ("a", 2)
+    next(ii) == ("b", 10)
+    with pytest.raises(StopIteration):
+        next(ii)
+
 
 def test_items2():
     c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
@@ -142,7 +157,7 @@ def test_dict_keys():
 def test_pickle_get_root():
     # Test that get_root() is reconstructed correctly for pickle loaded files.
     with tempfile.TemporaryFile() as fp:
-        c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2,),))
+        c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
 
         c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
         c3 = OmegaConf.merge(c1, c2)
@@ -204,15 +219,15 @@ def test_in_dict(conf, key, expected):
 
 
 def test_get_root():
-    c = OmegaConf.create(dict(a=123, b=dict(bb=456, cc=7,),))
+    c = OmegaConf.create(dict(a=123, b=dict(bb=456, cc=7)))
     assert c._get_root() == c
     assert c.b._get_root() == c
 
 
 def test_get_root_of_merged():
-    c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2,),))
+    c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
 
-    c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4,),),))
+    c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
     c3 = OmegaConf.merge(c1, c2)
 
     assert c3._get_root() == c3
@@ -241,14 +256,14 @@ def test_dict_len():
 
 
 def test_dict_assign_illegal_value():
-    with pytest.raises(ValueError, match=re.escape("key a")):
-        c = OmegaConf.create(dict())
+    c = OmegaConf.create(dict())
+    with pytest.raises(UnsupportedValueType, match=re.escape("key a")):
         c.a = IllegalType()
 
 
 def test_dict_assign_illegal_value_nested():
-    with pytest.raises(ValueError, match=re.escape("key a.b")):
-        c = OmegaConf.create(dict(a=dict()))
+    c = OmegaConf.create(dict(a=dict()))
+    with pytest.raises(UnsupportedValueType, match=re.escape("key a.b")):
         c.a.b = IllegalType()
 
 
@@ -275,7 +290,7 @@ def test_to_container(src):
 
 
 def test_pretty_without_resolve():
-    c = OmegaConf.create(dict(a1="${ref}", ref="bar",))
+    c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     # without resolve, references are preserved
     c2 = OmegaConf.create(c.pretty(resolve=False))
     assert c2.a1 == "bar"
@@ -284,7 +299,7 @@ def test_pretty_without_resolve():
 
 
 def test_pretty_with_resolve():
-    c = OmegaConf.create(dict(a1="${ref}", ref="bar",))
+    c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     c2 = OmegaConf.create(c.pretty(resolve=True))
     assert c2.a1 == "bar"
     c2.ref = "changed"
@@ -293,7 +308,7 @@ def test_pretty_with_resolve():
 
 def test_instantiate_config_fails():
     with pytest.raises(NotImplementedError):
-        Config()
+        Config(element_type=Any, parent=None)
 
 
 def test_dir():
@@ -309,7 +324,7 @@ def test_dir():
         # simple
         (dict(a=12), dict(a=12)),
         # any vs raw
-        (dict(a=12), dict(a=UntypedNode(12))),
+        (dict(a=12), dict(a=AnyNode(12))),
         # nested dict empty
         (dict(a=12, b=dict()), dict(a=12, b=dict())),
         # nested dict
@@ -317,7 +332,7 @@ def test_dir():
         # nested list
         (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[1, 2, 3])),
         # nested list with any
-        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(3)]),),
+        (dict(a=12, b=[1, 2, AnyNode(3)]), dict(a=12, b=[1, 2, AnyNode(3)])),
         # In python 3.6 insert order changes iteration order. this ensures that equality is preserved.
         (dict(a=1, b=2, c=3, d=4, e=5), dict(e=5, b=2, c=3, d=4, a=1)),
     ],
@@ -358,11 +373,11 @@ def test_dict_eq_with_interpolation(input1, input2):
         ({}, []),
         (dict(a=12), dict(a=13)),
         (dict(a=0), dict(b=0)),
-        (dict(a=12), dict(a=UntypedNode(13))),
+        (dict(a=12), dict(a=AnyNode(13))),
         (dict(a=12, b=dict()), dict(a=13, b=dict())),
         (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
         (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
-        (dict(a=12, b=[1, 2, UntypedNode(3)]), dict(a=12, b=[1, 2, UntypedNode(30)]),),
+        (dict(a=12, b=[1, 2, AnyNode(3)]), dict(a=12, b=[1, 2, AnyNode(30)])),
     ],
 )
 def test_dict_not_eq(input1, input2):
@@ -431,3 +446,23 @@ def test_masked_copy_is_deep():
     assert masked == expected
     cfg.a.b = 2
     assert cfg != expected
+
+    with pytest.raises(ValueError):
+        OmegaConf.masked_copy("fail", [])
+
+
+def test_creation_with_invalid_key():
+    with pytest.raises(UnsupportedKeyType):
+        OmegaConf.create({1: "a"})
+
+
+def test_set_with_invalid_key():
+    cfg = OmegaConf.create()
+    with pytest.raises(UnsupportedKeyType):
+        cfg[1] = "a"
+
+
+def test_get_with_invalid_key():
+    cfg = OmegaConf.create()
+    with pytest.raises(UnsupportedKeyType):
+        cfg[1]

@@ -1,63 +1,96 @@
-from .config import Config
 import copy
+from enum import Enum
+
+from typing import Any, Optional
+
+from ._utils import (
+    get_structured_config_data,
+    is_structured_config_frozen,
+    is_structured_config,
+    _re_parent,
+)
+from .config import Config
 from .errors import (
     ReadonlyConfigError,
     MissingMandatoryValue,
     UnsupportedInterpolationType,
+    UnsupportedValueType,
+    UnsupportedKeyType,
+    ValidationError,
 )
-from .nodes import BaseNode, UntypedNode
+from .node import Node
+from .nodes import ValueNode
 
 
 class DictConfig(Config):
-    def __init__(self, content, parent=None):
-        super(DictConfig, self).__init__()
-        assert isinstance(content, dict)
-        self.__dict__["content"] = {}
-        self.__dict__["parent"] = parent
-        for k, v in content.items():
-            self.__setitem__(k, v)
+    def __init__(self, content, parent: Optional[Node] = None, element_type=Any):
+        super().__init__(element_type=element_type, parent=parent)
 
-    def __deepcopy__(self, memodict={}):
+        self.__dict__["content"] = {}
+        self.__dict__["_type"] = None
+        if is_structured_config(content):
+            d = get_structured_config_data(content)
+            for k, v in d.items():
+                self.__setitem__(k, v)
+
+            if is_structured_config_frozen(content):
+                self._set_flag("readonly", True)
+
+            if isinstance(content, type):
+                self.__dict__["_type"] = content
+            else:
+                self.__dict__["_type"] = type(content)
+
+        else:
+            for k, v in content.items():
+                self.__setitem__(k, v)
+
+    def __deepcopy__(self, memo={}):
         res = DictConfig({})
-        self._deepcopy_impl(res)
+        res.__dict__["content"] = copy.deepcopy(self.__dict__["content"], memo=memo)
+        res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"], memo=memo)
+        res.__dict__["_element_type"] = copy.deepcopy(
+            self.__dict__["_element_type"], memo=memo
+        )
+
+        res.__dict__["_type"] = copy.deepcopy(self.__dict__["_type"], memo=memo)
+        _re_parent(res)
         return res
 
     def __copy__(self):
-        res = DictConfig({})
+        res = DictConfig(content={}, element_type=self.__dict__["_element_type"])
         res.__dict__["content"] = copy.copy(self.__dict__["content"])
-        res.__dict__["parent"] = self.__dict__["parent"]
+        res.__dict__["_type"] = self.__dict__["_type"]
+        res.__dict__["flags"] = copy.copy(self.__dict__["flags"])
+        _re_parent(res)
         return res
 
     def copy(self):
         return copy.copy(self)
 
     def __setitem__(self, key, value):
-        assert isinstance(key, str)
+        if isinstance(key, Enum):
+            key = key.name
 
-        value = self._prepare_value_to_add(key, value)
+        if not isinstance(key, str):
+            raise UnsupportedKeyType(f"Key type is not str ({type(key).__name__})")
 
-        if key not in self.content and self._get_flag("struct") is True:
-            raise KeyError(
-                "Accessing unknown key in a struct : {}".format(self.get_full_key(key))
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError(self.get_full_key(key))
+
+        self._validate_access(key)
+        self._validate_type(key, value)
+
+        if isinstance(value, Config):
+            value = copy.deepcopy(value)
+            value._set_parent(self)
+
+        try:
+            self._set_item_impl(key, value)
+        except UnsupportedValueType:
+            raise UnsupportedValueType(
+                f"key {self.get_full_key(key)}: {type(value).__name__} is not a supported type"
             )
-
-        input_config_or_node = isinstance(value, (BaseNode, Config))
-        if key in self:
-            # BaseNode or Config, assign as is
-            if input_config_or_node:
-                self.__dict__["content"][key] = value
-            else:
-                # primitive input
-                if isinstance(self.__dict__["content"][key], Config):
-                    # primitive input replaces config nodes
-                    self.__dict__["content"][key] = value
-                else:
-                    self.__dict__["content"][key].set_value(value)
-        else:
-            if input_config_or_node:
-                self.__dict__["content"][key] = value
-            else:
-                self.__dict__["content"][key] = UntypedNode(value)
 
     # hide content while inspecting in debugger
     def __dir__(self):
@@ -82,6 +115,11 @@ class DictConfig(Config):
         # confusing it and it prints an error when inspecting this object.
         if key == "__members__":
             return {}
+
+        # Sometimes we get queried for name.
+        if key == "__name__":
+            return None
+
         return self.get(key=key, default_value=None)
 
     def __getitem__(self, key):
@@ -93,20 +131,31 @@ class DictConfig(Config):
         return self.__getattr__(key)
 
     def get(self, key, default_value=None):
+        if isinstance(key, Enum):
+            key = key.name
+
+        if not isinstance(key, str):
+            raise UnsupportedKeyType(f"Key type is not str ({type(key).__name__})")
+
         return self._resolve_with_default(
             key=key,
             value=self.get_node(key, default_value),
             default_value=default_value,
         )
 
-    def get_node(self, key, default_value=None):
+    def get_node(self, key, default_value=None, validate_access=True):
         value = self.__dict__["content"].get(key)
-        if key not in self.content and self._get_flag("struct"):
+        if validate_access:
+            try:
+                self._validate_access(key)
+            except KeyError:
+                if default_value is not None:
+                    value = default_value
+                else:
+                    raise
+        else:
             if default_value is not None:
-                return default_value
-            raise KeyError(
-                "Accessing unknown key in a struct : {}".format(self.get_full_key(key))
-            )
+                value = default_value
         return value
 
     __marker = object()
@@ -161,15 +210,9 @@ class DictConfig(Config):
             def __next__(self):
                 k, v = self._next_pair()
                 if keys is not None:
-                    while True:
-                        if k not in keys:
-                            k, v = self._next_pair()
-                        else:
-                            break
+                    while k not in keys:
+                        k, v = self._next_pair()
                 return k, v
-
-            def next(self):
-                return self.__next__()
 
             def _next_pair(self):
                 k = next(self.iterator)
@@ -177,7 +220,7 @@ class DictConfig(Config):
                     v = self.map.get(k)
                 else:
                     v = self.map.content[k]
-                    if isinstance(v, BaseNode):
+                    if isinstance(v, ValueNode):
                         v = v.value()
                 kv = (k, v)
                 return kv
@@ -200,3 +243,31 @@ class DictConfig(Config):
     def __hash__(self):
         # TODO: should actually iterate
         return hash(str(self))
+
+    def _validate_access(self, key):
+        is_typed = self.__dict__["_type"] is not None
+        is_closed = self._get_flag("struct") is True
+        node_open = self._get_node_flag("struct") is False
+        if key not in self.content:
+            if is_typed and node_open:
+                return
+            if is_typed or is_closed:
+                raise KeyError(
+                    "Accessing unknown key in a struct : {}".format(
+                        self.get_full_key(key)
+                    )
+                )
+
+    def _validate_type(self, key, value):
+        if self.__dict__["_type"] is not None:
+            child = self.get_node(key)
+            if child is None:
+                return
+            type_ = child.__dict__["_type"] if isinstance(child, DictConfig) else None
+            is_typed = type_ is not None
+            mismatch_type = is_typed and type(value) != type_
+
+            if mismatch_type:
+                raise ValidationError(
+                    f"Invalid type assigned : {type_.__name__} != {type(value).__name__}"
+                )

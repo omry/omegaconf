@@ -1,14 +1,13 @@
-import re
-
 import pytest
+import re
 
 from omegaconf import OmegaConf
 
 
 def test_struct_default():
     c = OmegaConf.create()
-    assert OmegaConf.is_struct(c) is False
     assert c.not_found is None
+    assert OmegaConf.is_struct(c) is None
 
 
 def test_struct_set_on_dict():

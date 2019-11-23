@@ -1,8 +1,9 @@
+import pytest
 import re
 
-import pytest
-
-from omegaconf import OmegaConf, UntypedNode, ListConfig, DictConfig
+from omegaconf import OmegaConf, AnyNode, ListConfig, DictConfig
+from omegaconf.errors import UnsupportedValueType, UnsupportedKeyType
+from omegaconf.nodes import IntegerNode, StringNode
 from . import IllegalType, does_not_raise
 
 
@@ -123,8 +124,8 @@ def test_assign(parent, index, value, expected):
 
 
 def test_nested_list_assign_illegal_value():
-    with pytest.raises(ValueError, match=re.escape("key a[0]")):
-        c = OmegaConf.create(dict(a=[None]))
+    c = OmegaConf.create(dict(a=[None]))
+    with pytest.raises(UnsupportedValueType, match=re.escape("key a[0]")):
         c.a[0] = IllegalType()
 
 
@@ -184,10 +185,20 @@ def test_getattr():
         getattr(c, "anything")
 
 
-def test_insert():
-    c = OmegaConf.create(["a", "b", "c"])
-    c.insert(1, 100)
-    assert c == ["a", 100, "b", "c"]
+@pytest.mark.parametrize(
+    "input_, index, value, expected, expected_node_type",
+    [
+        (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode),
+        (["a", "b", "c"], 1, IntegerNode(100), ["a", 100, "b", "c"], IntegerNode),
+        (["a", "b", "c"], 1, "foo", ["a", "foo", "b", "c"], AnyNode),
+        (["a", "b", "c"], 1, StringNode("foo"), ["a", "foo", "b", "c"], StringNode),
+    ],
+)
+def test_insert(input_, index, value, expected, expected_node_type):
+    c = OmegaConf.create(input_)
+    c.insert(index, value)
+    assert c == expected
+    assert type(c.get_node(index)) == expected_node_type
 
 
 @pytest.mark.parametrize(
@@ -272,7 +283,7 @@ def test_sort():
         # simple list
         (["a", 12, "15"], ["a", 12, "15"]),
         # raw vs any
-        ([1, 2, 12], [1, 2, UntypedNode(12)]),
+        ([1, 2, 12], [1, 2, AnyNode(12)]),
         # nested empty dict
         ([12, dict()], [12, dict()]),
         # nested dict
@@ -280,7 +291,7 @@ def test_sort():
         # nested list
         ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
         # nested list with any
-        ([1, 2, 3, [1, 2, UntypedNode(3)]], [1, 2, 3, [1, 2, UntypedNode(3)]],),
+        ([1, 2, 3, [1, 2, AnyNode(3)]], [1, 2, 3, [1, 2, AnyNode(3)]]),
     ],
 )
 def test_list_eq(l1, l2):
@@ -317,11 +328,11 @@ def test_list_eq_with_interpolation(l1, l2):
     [
         ([], [10]),
         ([10], [11]),
-        ([12], [UntypedNode(13)]),
+        ([12], [AnyNode(13)]),
         ([12, dict()], [13, dict()]),
         ([12, dict(c=10)], [13, dict(c=10)]),
         ([12, [1, 2, 3]], [12, [10, 2, 3]]),
-        ([12, [1, 2, UntypedNode(3)]], [12, [1, 2, UntypedNode(30)]]),
+        ([12, [1, 2, AnyNode(3)]], [12, [1, 2, AnyNode(30)]]),
     ],
 )
 def test_list_not_eq(input1, input2):
@@ -383,3 +394,15 @@ class TestListAdd:
         expected = OmegaConf.create(expected)
         list1 += list2
         assert list1 == expected
+
+
+def test_deep_add():
+    cfg = OmegaConf.create({"foo": [1, 2, "${bar}"], "bar": "xx"})
+    lst = cfg.foo + [10, 20]
+    assert lst == [1, 2, "xx", 10, 20]
+
+
+def test_set_with_invalid_key():
+    cfg = OmegaConf.create([1, 2, 3])
+    with pytest.raises(UnsupportedKeyType):
+        cfg["foo"] = 4

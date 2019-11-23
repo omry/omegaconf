@@ -11,25 +11,25 @@ PYTHON_VERSIONS = os.environ.get(
 @nox.session(python=PYTHON_VERSIONS)
 def omegaconf(session):
     session.install("--upgrade", "setuptools", "pip")
+    session.install("pytest", "pytest-mock")
     session.install(".")
-    session.install("pytest")
+
     session.run("pytest")
 
 
-@nox.session(python="3.8")
+@nox.session(python="3.6")
 def docs(session):
-    session.install("sphinx")
+    session.install("sphinx", "pytest")
     session.install(".")
     session.chdir("docs")
     session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
 
 
-# code coverage runs with python 3.6
-@nox.session(python="3.8")
+@nox.session(python="3.6")
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
-    session.install("coverage", "pytest")
+    session.install("coverage", "pytest", "pytest-mock")
     session.run("pip", "install", ".[coverage]", silent=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
@@ -41,7 +41,7 @@ def coverage(session):
     session.run("coverage", "erase")
 
 
-@nox.session(python="3.8")
+@nox.session(python="3.6")
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", ".[lint]", silent=True)
@@ -50,3 +50,17 @@ def lint(session):
     session.install("black")
     # if this fails you need to format your code with black
     session.run("black", "--check", ".")
+
+
+@nox.session(python=PYTHON_VERSIONS)
+def test_jupyter_notebook(session):
+    if session.python not in DEFAULT_PYTHON_VERSIONS:
+        session.skip(
+            "Not testing Jupyter notebook on Python {}, supports [{}]".format(
+                session.python, ",".join(DEFAULT_PYTHON_VERSIONS)
+            )
+        )
+    session.install("--upgrade", "setuptools", "pip")
+    session.install("jupyter", "nbval")
+    session.install(".[dev]")
+    session.run("pytest", "--nbval", "docs/notebook/Tutorial.ipynb", silent=True)

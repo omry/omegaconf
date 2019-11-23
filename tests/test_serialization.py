@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import io
 import os
 import tempfile
+
+import io
 import pytest
+
 from omegaconf import OmegaConf
 
 
@@ -43,6 +45,11 @@ def save_load_from_filename(conf, resolve, expected):
             assert c2 == expected
     finally:
         os.unlink(fp.name)
+
+
+def test_load_from_invalid():
+    with pytest.raises(TypeError):
+        OmegaConf.load(3.1415)
 
 
 @pytest.mark.parametrize(
