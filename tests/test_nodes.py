@@ -177,3 +177,18 @@ def test_merge_validation_error(c1, c2):
     # make sure that conf1 and conf2 were not modified
     assert conf1 == OmegaConf.create(c1)
     assert conf2 == OmegaConf.create(c2)
+
+
+@pytest.mark.parametrize(
+    "type_,input_,target,expected",
+    [
+        (FloatNode, None, 1, False),
+        (FloatNode, "1", 1, True),
+        (FloatNode, float("nan"), float("nan"), True),
+        (FloatNode, None, float("nan"), False),
+    ],
+)
+def test_eq(type_, input_, target, expected):
+    node = type_(input_)
+    assert (node == target) == expected
+

@@ -85,7 +85,11 @@ class FloatNode(BaseNode):
         else:
             other_val = other
 
-        return self.val == other_val or (math.isnan(self.val) and math.isnan(other_val))
+        if self.val == other_val:
+            return True
+        if not hasattr(self.val, "__float__") or not hasattr(other_val, "__float__"):
+            return False
+        return math.isnan(self.val) and math.isnan(other_val)
 
 
 class BooleanNode(BaseNode):
