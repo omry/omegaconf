@@ -66,6 +66,10 @@ class IntegerNode(BaseNode):
             )
 
 
+def is_floatlike(x):
+    return hasattr(x, "__float__")
+
+
 class FloatNode(BaseNode):
     def __init__(self, value=None):
         self.val = None
@@ -87,7 +91,7 @@ class FloatNode(BaseNode):
 
         if self.val == other_val:
             return True
-        if not hasattr(self.val, "__float__") or not hasattr(other_val, "__float__"):
+        if not is_floatlike(self.val) or not is_floatlike(other_val):
             return False
         return math.isnan(self.val) and math.isnan(other_val)
 
