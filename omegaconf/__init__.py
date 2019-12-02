@@ -1,8 +1,9 @@
-from .errors import MissingMandatoryValue, ValidationError, ReadonlyConfigError
-from .config import Config
-from .listconfig import ListConfig
-from .dictconfig import DictConfig
+from .version import __version__
 from .omegaconf import OmegaConf, flag_override, read_write, open_dict
+from .config import Config
+from .dictconfig import DictConfig
+from .errors import MissingMandatoryValue, ValidationError, ReadonlyConfigError
+from .listconfig import ListConfig
 from .nodes import (
     BaseNode,
     UntypedNode,
@@ -11,8 +12,6 @@ from .nodes import (
     BooleanNode,
     FloatNode,
 )
-
-__version__ = "1.4.0"
 
 __all__ = [
     "__version__",

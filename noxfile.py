@@ -1,20 +1,11 @@
 import nox
 import os
 
-DEFAULT_PYTHON_VERSIONS = ["2.7", "3.5", "3.6", "3.7"]
+DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8"]
 
 PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
 ).split(",")
-
-
-@nox.session(python="3.7")
-def docs(session):
-    session.install("sphinx")
-    session.install(".")
-    session.chdir("docs")
-    session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
-    session.run("sphinx-build", "-W", "-b", "html", "source", "build")
 
 
 @nox.session(python=PYTHON_VERSIONS)
@@ -25,8 +16,17 @@ def omegaconf(session):
     session.run("pytest")
 
 
+@nox.session(python="3.8")
+def docs(session):
+    session.install("sphinx")
+    session.install(".")
+    session.chdir("docs")
+    session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
+    session.run("sphinx-build", "-W", "-b", "html", "source", "build")
+
+
 # code coverage runs with python 3.6
-@nox.session(python="3.7")
+@nox.session(python="3.8")
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
     session.install("coverage", "pytest")
@@ -41,7 +41,7 @@ def coverage(session):
     session.run("coverage", "erase")
 
 
-@nox.session(python="3.7")
+@nox.session(python="3.8")
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", ".[lint]", silent=True)

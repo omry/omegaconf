@@ -5,7 +5,6 @@ from abc import abstractmethod
 from collections import defaultdict
 
 import re
-import six
 import yaml
 
 from .errors import (
@@ -527,8 +526,6 @@ class Config(object):
         if value is None:
             return True
         valid = [bool, int, str, float, DictConfig, ListConfig, BaseNode]
-        if six.PY2:
-            valid.append(unicode)  # noqa F821
 
         return isinstance(value, tuple(valid))
 

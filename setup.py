@@ -32,7 +32,7 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setuptools.setup(
         name="omegaconf",
-        version=find_version("omegaconf", "__init__.py"),
+        version=find_version("omegaconf", "version.py"),
         author="Omry Yadan",
         author_email="omry@yadan.net",
         description="A flexible configuration library",
@@ -43,19 +43,18 @@ with open("README.md", "r") as fh:
         url="https://github.com/omry/omegaconf",
         keywords="yaml configuration config",
         packages=["omegaconf"],
+        python_requires=">=3.6",
         classifiers=[
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=["six", "PyYAML"],
+        install_requires=["PyYAML"],
         # Install development dependencies with
         # pip install -e ".[dev]"
         extras_require={
-            # Python 3+ dependencies
             "dev": [
                 "black",
                 "coveralls",
@@ -66,8 +65,6 @@ with open("README.md", "r") as fh:
                 "towncrier",
                 "twine",
             ],
-            # Python 2.7 dependencies
-            "dev27": ["nox", "pre-commit", "pytest", "twine", "coveralls", "flake8"],
             "coverage": ["coveralls"],
             "lint": ["black", "flake8"],
         },
