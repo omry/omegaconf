@@ -1,8 +1,6 @@
 import copy
 import itertools
 
-import six
-
 from .config import Config, isint
 from .errors import ReadonlyConfigError
 from .nodes import BaseNode, UntypedNode
@@ -122,17 +120,6 @@ class ListConfig(Config):
 
     def copy(self):
         return copy.copy(self)
-
-    if six.PY2:
-
-        def __getslice__(self, start, stop):
-            result = []
-            for slice_idx in itertools.islice(range(0, len(self)), start, stop, 1):
-                val = self._resolve_with_default(
-                    key=slice_idx, value=self.content[slice_idx], default_value=None
-                )
-                result.append(val)
-            return ListConfig(content=result, parent=self.__dict__["parent"])
 
     def get_node(self, index):
         assert type(index) == int

@@ -6,7 +6,6 @@ from contextlib import contextmanager
 
 import io
 import re
-import six
 import yaml
 
 from .config import Config
@@ -75,7 +74,7 @@ class OmegaConf:
         data = config.pretty(resolve=resolve)
         if isinstance(f, str):
             with io.open(os.path.abspath(f), "w", encoding="utf-8") as f:
-                f.write(six.u(data))
+                f.write(data)
         elif hasattr(f, "write"):
             f.write(data)
             f.flush()

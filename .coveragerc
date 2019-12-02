@@ -3,6 +3,7 @@ omit =
     .nox/*
     *tests*
     docs/*
+    omegaconf/version.py
 
 [report]
 exclude_lines =
