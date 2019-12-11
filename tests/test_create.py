@@ -50,7 +50,15 @@ def test_cli_passing():
 
 
 @pytest.mark.parametrize(
-    "input_, expected", [(["a=1", "b.c=2"], dict(a=1, b=dict(c=2)))]
+    "input_, expected",
+    [
+        # simple
+        (["a=1", "b.c=2"], dict(a=1, b=dict(c=2))),
+        # string
+        (["a=hello", "b=world"], dict(a="hello", b="world")),
+        # date-formatted string
+        (["my_date=2019-12-11"], dict(my_date="2019-12-11")),
+    ],
 )
 def test_dotlist(input_, expected):
     c = OmegaConf.from_dotlist(input_)
