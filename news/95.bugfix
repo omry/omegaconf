@@ -1,1 +1,1 @@
-Disable automatic conversion of date strings in `from_dotlist`
+Disable automatic conversion of date strings in yaml decoding
