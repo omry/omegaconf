@@ -39,6 +39,14 @@ def get_yaml_loader():
         ),
         list(u"-+0123456789."),
     )
+    loader.yaml_implicit_resolvers = {
+        key: [
+            (tag, regexp)
+            for tag, regexp in resolvers
+            if tag != u"tag:yaml.org,2002:timestamp"
+        ]
+        for key, resolvers in loader.yaml_implicit_resolvers.items()
+    }
     return loader
 
 
