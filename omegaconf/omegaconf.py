@@ -248,6 +248,24 @@ class OmegaConf:
         except MissingMandatoryValue:
             return True
 
+    @staticmethod
+    def is_list(cfg):
+        from . import ListConfig
+
+        return isinstance(cfg, ListConfig)
+
+    @staticmethod
+    def is_dict(cfg):
+        from . import DictConfig
+
+        return isinstance(cfg, DictConfig)
+
+    @staticmethod
+    def is_config(cfg):
+        from . import Config
+
+        return isinstance(cfg, Config)
+
 
 # register all default resolvers
 register_default_resolvers()

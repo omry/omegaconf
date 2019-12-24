@@ -76,7 +76,7 @@ def _valid_value_annotation_type(type_):
 def _valid_input_value_type(value):
     if isinstance(value, Enum) or (isinstance(value, type) and issubclass(value, Enum)):
         return True
-    return type(value) in (int, float, bool, str, dict, list, tuple, type(None))
+    return type(value) in (dict, list, tuple) or _is_primitive_type(value)
 
 
 def _node_wrap(type_, parent, is_optional, value):
