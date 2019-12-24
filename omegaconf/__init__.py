@@ -44,5 +44,4 @@ __all__ = [
     "MISSING",
     "SI",
     "II",
-    "Config",
 ]

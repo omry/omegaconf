@@ -465,8 +465,32 @@ You can temporarily remove the struct flag from a config object:
 Utility functions
 -----------------
 
+OmegaConf.is_missing
+^^^^^^^^^^^^^^^^^^^^
+
+Tests if a key is missing ('???')
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"foo" : 10, "bar": "???"})
+    >>> assert not OmegaConf.is_missing(cfg, "foo")
+    >>> assert OmegaConf.is_missing(cfg, "bar")
+
+OmegaConf.{is_config, is_dict, is_list}
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
+
+.. doctest::
+
+    >>> list_cfg = OmegaConf.create([1,2,3])
+    >>> dict_cfg = OmegaConf.create({"foo": "bar"})
+    >>> assert OmegaConf.is_config(list_cfg) and OmegaConf.is_config(dict_cfg)
+    >>> assert OmegaConf.is_dict(dict_cfg) and not OmegaConf.is_dict(list_cfg)
+    >>> assert OmegaConf.is_list(list_cfg) and not OmegaConf.is_list(dict_cfg)
+
 OmegaConf.to_container
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and lists, but in fact are not.
 Use OmegaConf.to_container(cfg, resolve) to convert to a primitive container.
 If resolve is set to True the values will be resolved during conversion.

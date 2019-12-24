@@ -446,3 +446,23 @@ def test_omegaconf_create():
 def test_is_missing(cfg, key, expected):
     cfg = OmegaConf.create(cfg)
     assert OmegaConf.is_missing(cfg, key) == expected
+
+
+@pytest.mark.parametrize(
+    "cfg, is_conf, is_list, is_dict",
+    [
+        (None, False, False, False),
+        ({}, False, False, False),
+        ("aa", False, False, False),
+        (10, False, False, False),
+        (True, False, False, False),
+        (bool, False, False, False),
+        (StringNode("foo"), False, False, False),
+        (OmegaConf.create({}), True, False, True),
+        (OmegaConf.create([]), True, True, False),
+    ],
+)
+def test_is_config(cfg, is_conf, is_list, is_dict):
+    assert OmegaConf.is_config(cfg) == is_conf
+    assert OmegaConf.is_list(cfg) == is_list
+    assert OmegaConf.is_dict(cfg) == is_dict
