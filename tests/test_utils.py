@@ -69,7 +69,9 @@ from .structured_conf.common import Color
 )
 def test_maybe_wrap(target_type, value, expectation):
     with expectation:
-        _utils._maybe_wrap(
+        from omegaconf.omegaconf import _maybe_wrap
+
+        _maybe_wrap(
             annotated_type=target_type, value=value, is_optional=False, parent=None
         )
 
@@ -129,7 +131,9 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_, expected):
-    assert _utils._valid_value_annotation_type(type_) == expected
+    from omegaconf.omegaconf import _valid_value_annotation_type
+
+    assert _valid_value_annotation_type(type_) == expected
 
 
 @pytest.mark.parametrize(

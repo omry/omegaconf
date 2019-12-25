@@ -6,13 +6,11 @@ from collections import defaultdict
 from enum import Enum
 
 import yaml
-from typing import Any
+from typing import Any, Optional, Dict, List, Iterator, Union, Tuple
 
 from ._utils import (
     get_value_kind,
     ValueKind,
-    _maybe_wrap,
-    _select_one,
     get_yaml_loader,
     _re_parent,
     is_structured_config,
@@ -22,23 +20,48 @@ from .errors import (
     ReadonlyConfigError,
     UnsupportedInterpolationType,
 )
-from .node import Node
-from .nodes import ValueNode
+from .base import Node, Container
 
 
-class Container(Node):
+class BaseContainer(Container):
     # static fields
-    _resolvers = {}
+    _resolvers: Dict[str, Any] = {}
 
-    def __init__(self, element_type, parent: Node):
+    def __init__(self, element_type: type, parent: Optional["Container"]):
         super().__init__(parent=parent)
-        if type(self) == Container:
-            raise NotImplementedError
         self.__dict__["content"] = None
         self.__dict__["_resolver_cache"] = defaultdict(dict)
         self.__dict__["_element_type"] = element_type
 
-    def save(self, f):
+    @abstractmethod
+    def __setitem__(self, key: Any, value: Any) -> None:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def get_node(self, key: Any) -> Node:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __ne__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[str]:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __getitem__(self, key_or_index: Any) -> Any:
+        ...  # pragma: no cover
+
+    def save(self, f: str) -> None:
         warnings.warn(
             "Use OmegaConf.save(config, filename) (since 1.4.0)",
             DeprecationWarning,
@@ -49,23 +72,13 @@ class Container(Node):
 
         OmegaConf.save(self, f)
 
-    @abstractmethod
-    def get(self, key, default_value=None):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_node(self, key):
-        """
-        returns raw node object for this key
-        :param key:
-        :return:
-        """
-        raise NotImplementedError
-
-    def _resolve_with_default(self, key, value, default_value=None):
+    def _resolve_with_default(
+        self, key: Union[str, int], value: Any, default_value: Any = None
+    ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
+        from .nodes import ValueNode
 
-        def is_mandatory_missing(val):
+        def is_mandatory_missing(val: Any) -> bool:
             return type(val) == str and val == "???"
 
         if isinstance(value, ValueNode):
@@ -76,17 +89,17 @@ class Container(Node):
 
         value = self._resolve_single(value) if isinstance(value, str) else value
         if is_mandatory_missing(value):
-            raise MissingMandatoryValue(self.get_full_key(key))
+            raise MissingMandatoryValue(self.get_full_key(str(key)))
 
         return value
 
-    def get_full_key(self, key):
+    def get_full_key(self, key: str) -> str:
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
-        full_key = ""
+        full_key: Union[str, int] = ""
         child = None
-        parent = self
+        parent: Container = self
         while parent is not None:
             assert isinstance(parent, (DictConfig, ListConfig))
             if isinstance(parent, DictConfig):
@@ -120,50 +133,34 @@ class Container(Node):
 
         return full_key
 
-    def __str__(self):
-        return self.content.__str__()
+    def __str__(self) -> str:
+        return self.content.__str__()  # type: ignore
 
-    def __repr__(self):
-        return self.content.__repr__()
-
-    @abstractmethod
-    def __eq__(self, other):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def __ne__(self, other):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def __hash__(self):
-        raise NotImplementedError()
+    def __repr__(self) -> str:
+        return self.content.__repr__()  # type: ignore
 
     # Support pickle
-    def __getstate__(self):
+    def __getstate__(self) -> Dict[str, Any]:
         return self.__dict__
 
     # Support pickle
-    def __setstate__(self, d):
+    def __setstate__(self, d: Dict[str, Any]) -> None:
         self.__dict__.update(d)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Union[str, int, slice]) -> None:
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(key))
-        del self.content[key]
+            raise ReadonlyConfigError(self.get_full_key(str(key)))
+        del self.__dict__["content"][key]
 
-    def __len__(self):
-        return self.content.__len__()
+    def __len__(self) -> int:
+        return self.__dict__["content"].__len__()  # type: ignore
 
-    @abstractmethod
-    def __iter__(self):
-        raise NotImplementedError()
-
-    def merge_with_cli(self):
+    def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]
         self.merge_with_dotlist(args_list)
 
-    def merge_with_dotlist(self, dotlist):
-        def fail():
+    def merge_with_dotlist(self, dotlist: List[str]) -> None:
+        def fail() -> None:
             raise ValueError("Input list must be a list or a tuple of strings")
 
         if not isinstance(dotlist, (list, tuple)):
@@ -184,9 +181,10 @@ class Container(Node):
 
             self.update(key, value)
 
-    def update(self, key, value=None):
+    def update(self, key: str, value: Any = None) -> None:
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
+        from .omegaconf import _select_one
 
         """Updates a dot separated key sequence to a value"""
         split = key.split(".")
@@ -211,16 +209,17 @@ class Container(Node):
             idx = int(last)
             root[idx] = value
 
-    def select(self, key):
+    def select(self, key: str) -> Any:
         _root, _last_key, value = self._select_impl(key)
         return value
 
-    def _select_impl(self, key):
+    def _select_impl(self, key: str) -> Any:
         """
         Select a value using dot separated key sequence
         :param key:
         :return:
         """
+        from .omegaconf import _select_one
 
         split = key.split(".")
         root = self
@@ -237,16 +236,18 @@ class Container(Node):
         value, _ = _select_one(root, last_key)
         return root, last_key, value
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """return true if config is empty"""
-        return len(self.content) == 0
+        return len(self.__dict__["content"]) == 0
 
     @staticmethod
-    def _to_content(conf, resolve, enum_to_str=False):
+    def _to_content(
+        conf: Container, resolve: bool, enum_to_str: bool = False
+    ) -> Union[Dict[str, Any], List[Any]]:
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
-        def convert(val):
+        def convert(val: Any) -> Any:
             if enum_to_str:
                 if isinstance(val, Enum):
                     val = "{}.{}".format(type(val).__name__, val.name)
@@ -255,38 +256,40 @@ class Container(Node):
 
         assert isinstance(conf, Container)
         if isinstance(conf, DictConfig):
-            ret = {}
+            retdict: Dict[str, Any] = {}
             for key, value in conf.items(resolve=resolve):
                 if isinstance(value, Container):
-                    ret[key] = Container._to_content(
+                    retdict[key] = BaseContainer._to_content(
                         value, resolve=resolve, enum_to_str=enum_to_str
                     )
                 else:
-                    ret[key] = convert(value)
-            return ret
+                    retdict[key] = convert(value)
+            return retdict
         elif isinstance(conf, ListConfig):
-            ret = []
+            retlist: List[Any] = []
             for index, item in enumerate(conf):
                 if resolve:
                     item = conf[index]
                 item = convert(item)
                 if isinstance(item, Container):
-                    item = Container._to_content(
+                    item = BaseContainer._to_content(
                         item, resolve=resolve, enum_to_str=enum_to_str
                     )
-                ret.append(item)
-            return ret
+                retlist.append(item)
+            return retlist
 
-    def to_container(self, resolve=False):
+        assert False  # pragma: no cover
+
+    def to_container(self, resolve: bool = False) -> Union[Dict[str, Any], List[Any]]:
         warnings.warn(
             "Use OmegaConf.to_container(config, resolve) (since 1.4.0)",
             DeprecationWarning,
             stacklevel=2,
         )
 
-        return Container._to_content(self, resolve)
+        return BaseContainer._to_content(self, resolve)
 
-    def pretty(self, resolve=False):
+    def pretty(self, resolve: bool = False) -> str:
         from omegaconf import OmegaConf
 
         """
@@ -296,12 +299,13 @@ class Container(Node):
         :return: A string containing the yaml representation.
         """
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
-        return yaml.dump(container, default_flow_style=False)
+        return yaml.dump(container, default_flow_style=False)  # type: ignore
 
     @staticmethod
-    def _map_merge(dest, src):
+    def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from .dictconfig import DictConfig
+        from .nodes import ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -316,20 +320,24 @@ class Container(Node):
                     dest[key] = DictConfig(content=dest_type, parent=dest)
                     dest_node = dest.get_node(key)
 
-                if isinstance(dest_node, Container):
-                    if isinstance(value, Container):
+                if isinstance(dest_node, BaseContainer):
+                    if isinstance(value, BaseContainer):
                         dest_node.merge_with(value)
                     else:
                         dest.__setitem__(key, value)
                 else:
-                    if isinstance(value, Container):
+                    if isinstance(value, BaseContainer):
                         dest.__setitem__(key, value)
                     else:
+                        assert isinstance(dest_node, ValueNode)
                         dest_node.set_value(value)
             else:
                 dest[key] = src.get_node(key)
 
-    def merge_with(self, *others):
+    def merge_with(
+        self,
+        *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
+    ) -> None:
         from .omegaconf import OmegaConf
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
@@ -337,12 +345,12 @@ class Container(Node):
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             if isinstance(other, (dict, list, tuple)) or is_structured_config(other):
-                other = OmegaConf.create(other, parent=None)
+                other = OmegaConf.create(other)
 
             if other is None:
                 raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                Container._map_merge(self, other)
+                BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 if self._get_flag("readonly"):
                     raise ReadonlyConfigError(self.get_full_key(""))
@@ -356,12 +364,12 @@ class Container(Node):
         _re_parent(self)
 
     @staticmethod
-    def _resolve_value(root_node, inter_type, inter_key):
+    def _resolve_value(root_node: Container, inter_type: str, inter_key: str) -> Any:
         from omegaconf import OmegaConf
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            parent, last_key, value = root_node._select_impl(inter_key)
+            parent, last_key, value = root_node._select_impl(inter_key)  # type: ignore
             if parent is None or (value is None and last_key not in parent):
                 raise KeyError(
                     "{} interpolation key '{}' not found".format(inter_type, inter_key)
@@ -377,7 +385,7 @@ class Container(Node):
 
         return value
 
-    def _resolve_single(self, value):
+    def _resolve_single(self, value: Any) -> Any:
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
 
         if value_kind in (ValueKind.VALUE, ValueKind.MANDATORY_MISSING):
@@ -387,14 +395,16 @@ class Container(Node):
         if value_kind == ValueKind.INTERPOLATION:
             # simple interpolation, inherit type
             match = match_list[0]
-            return Container._resolve_value(root, match.group(1), match.group(2))
+            return BaseContainer._resolve_value(root, match.group(1), match.group(2))
         elif value_kind == ValueKind.STR_INTERPOLATION:
             # Concatenated interpolation, always a string
             orig = value
             new = ""
             last_index = 0
             for match in match_list:
-                new_val = Container._resolve_value(root, match.group(1), match.group(2))
+                new_val = BaseContainer._resolve_value(
+                    root, match.group(1), match.group(2)
+                )
                 new += orig[last_index : match.start(0)] + str(new_val)
                 last_index = match.end(0)
 
@@ -402,21 +412,22 @@ class Container(Node):
             return new
 
     # noinspection PyProtectedMember
-    def _set_item_impl(self, key, value):
+    def _set_item_impl(self, key: Union[str, int], value: Any) -> None:
+        from omegaconf.omegaconf import _maybe_wrap
+        from .nodes import ValueNode
+
         must_wrap = isinstance(value, (dict, list))
         input_config = isinstance(value, Container)
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["content"], dict):
             target_node = key in self.__dict__["content"] and isinstance(
-                self.__dict__["content"][key], ValueNode
+                self.get_node(key), ValueNode
             )
 
         elif isinstance(self.__dict__["content"], list):
-            target_node = self.__dict__["content"] and isinstance(
-                self.__dict__["content"][key], ValueNode
-            )
+            target_node = isinstance(self.get_node(key), ValueNode)
 
-        def wrap(val):
+        def wrap(val: Any) -> Node:
             return _maybe_wrap(
                 annotated_type=self.__dict__["_element_type"],
                 value=val,
@@ -451,27 +462,32 @@ class Container(Node):
                 self.__dict__["content"][key] = wrap(value)
 
     @staticmethod
-    def _item_eq(c1, k1, c2, k2):
-        v1 = c1.content[k1]
-        v2 = c2.content[k2]
+    def _item_eq(
+        c1: "BaseContainer",
+        k1: Union[str, int],
+        c2: "BaseContainer",
+        k2: Union[str, int],
+    ) -> bool:
+        from .nodes import ValueNode
+
+        v1 = c1.get_node(k1)
+        v2 = c2.get_node(k2)
         if isinstance(v1, ValueNode):
             v1 = v1.value()
             if isinstance(v1, str):
-                # noinspection PyProtectedMember
                 v1 = c1._resolve_single(v1)
         if isinstance(v2, ValueNode):
             v2 = v2.value()
             if isinstance(v2, str):
-                # noinspection PyProtectedMember
                 v2 = c2._resolve_single(v2)
 
-        if isinstance(v1, Container) and isinstance(v2, Container):
-            if not Container._config_eq(v1, v2):
+        if isinstance(v1, BaseContainer) and isinstance(v2, BaseContainer):
+            if not BaseContainer._config_eq(v1, v2):
                 return False
         return v1 == v2
 
     @staticmethod
-    def _list_eq(l1, l2):
+    def _list_eq(l1: "BaseContainer", l2: "BaseContainer") -> bool:
         from .listconfig import ListConfig
 
         assert isinstance(l1, ListConfig)
@@ -479,13 +495,13 @@ class Container(Node):
         if len(l1) != len(l2):
             return False
         for i in range(len(l1)):
-            if not Container._item_eq(l1, i, l2, i):
+            if not BaseContainer._item_eq(l1, i, l2, i):
                 return False
 
         return True
 
     @staticmethod
-    def _dict_conf_eq(d1, d2):
+    def _dict_conf_eq(d1: "BaseContainer", d2: "BaseContainer") -> bool:
         from .dictconfig import DictConfig
 
         assert isinstance(d1, DictConfig)
@@ -497,13 +513,13 @@ class Container(Node):
         if k1 != k2:
             return False
         for k in k1:
-            if not Container._item_eq(d1, k, d2, k):
+            if not BaseContainer._item_eq(d1, k, d2, k):
                 return False
 
         return True
 
     @staticmethod
-    def _config_eq(c1, c2):
+    def _config_eq(c1: "BaseContainer", c2: "BaseContainer") -> bool:
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
@@ -512,6 +528,6 @@ class Container(Node):
         if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
             return DictConfig._dict_conf_eq(c1, c2)
         if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
-            return Container._list_eq(c1, c2)
+            return BaseContainer._list_eq(c1, c2)
         # if type does not match objects are different
         return False

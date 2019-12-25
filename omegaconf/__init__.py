@@ -1,4 +1,4 @@
-from .container import Container
+from .basecontainer import BaseContainer
 from .dictconfig import DictConfig
 from .errors import (
     MissingMandatoryValue,
@@ -8,6 +8,7 @@ from .errors import (
     UnsupportedValueType,
 )
 from .listconfig import ListConfig
+from .base import Node
 from .nodes import (
     ValueNode,
     BooleanNode,
@@ -27,13 +28,14 @@ __all__ = [
     "ReadonlyConfigError",
     "UnsupportedValueType",
     "UnsupportedKeyType",
-    "Container",
+    "BaseContainer",
     "ListConfig",
     "DictConfig",
     "OmegaConf",
     "flag_override",
     "read_write",
     "open_dict",
+    "Node",
     "ValueNode",
     "AnyNode",
     "IntegerNode",

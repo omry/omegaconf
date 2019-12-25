@@ -71,8 +71,9 @@ with open("README.md", "r") as fh:
                 "towncrier",
                 "twine",
                 "sphinx",
+                "mypy",
             ],
             "coverage": ["coveralls"],
-            "lint": ["black", "flake8"],
+            "lint": ["black", "flake8", "mypy"],
         },
     )

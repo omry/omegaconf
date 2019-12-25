@@ -1,4 +1,4 @@
-import pytest
+import pytest  # type: ignore
 from typing import List, Dict, Optional, Any
 
 from omegaconf import MISSING, II, SI
@@ -120,7 +120,7 @@ class ConfigWithList:
     list2: list = field(default_factory=lambda: [1, 2, 3])
     # tuples are converted to ListConfig
     list3: tuple = field(default_factory=lambda: (1, 2, 3))
-    list4: List[int] = field(default_factory=lambda: (1, 2, 3))
+    list4: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
 @dataclass
@@ -283,7 +283,11 @@ class DictExamples:
     strings: Dict[str, str] = field(default_factory=lambda: {"a": "foo", "b": "bar"})
     booleans: Dict[str, bool] = field(default_factory=lambda: {"a": True, "b": False})
     colors: Dict[str, Color] = field(
-        default_factory=lambda: {"red": Color.RED, "green": "GREEN", "blue": 3}
+        default_factory=lambda: {
+            "red": Color.RED,
+            "green": Color.GREEN,
+            "blue": Color.BLUE,
+        }
     )
 
 

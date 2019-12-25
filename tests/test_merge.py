@@ -87,6 +87,13 @@ def test_merge(inputs, expected):
         assert orig == merged
 
 
+def test_primitive_dicts():
+    c1 = {"a": 10}
+    c2 = {"b": 20}
+    merged = OmegaConf.merge(c1, c2)
+    assert merged == {"a": 10, "b": 20}
+
+
 # like above but don't verify merge does not change because even eq does not work no tuples because we convert
 # them to a list
 @pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])

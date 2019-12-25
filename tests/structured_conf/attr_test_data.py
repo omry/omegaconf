@@ -1,4 +1,4 @@
-import pytest
+import pytest  # type: ignore
 from typing import List, Dict, Any, Optional
 
 from omegaconf import MISSING, II, SI
@@ -281,7 +281,11 @@ class DictExamples:
     ints: Dict[str, int] = {"a": 10, "b": 20}
     strings: Dict[str, str] = {"a": "foo", "b": "bar"}
     booleans: Dict[str, bool] = {"a": True, "b": False}
-    colors: Dict[str, Color] = {"red": Color.RED, "green": "GREEN", "blue": 3}
+    colors: Dict[str, Color] = {
+        "red": Color.RED,
+        "green": Color.GREEN,
+        "blue": Color.BLUE,
+    }
 
 
 @attr.s(auto_attribs=True)
