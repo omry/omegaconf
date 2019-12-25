@@ -10,7 +10,7 @@ import yaml
 from typing import Any
 
 from ._utils import is_structured_config, decode_primitive
-from .config import Config
+from .container import Container
 from .errors import ValidationError, MissingMandatoryValue
 
 MISSING: Any = "???"
@@ -67,7 +67,7 @@ class OmegaConf:
         else:
             if obj is None:
                 obj = {}
-            if isinstance(obj, Config):
+            if isinstance(obj, Container):
                 obj = OmegaConf.to_container(obj)
 
             if isinstance(obj, dict) or is_structured_config(obj):
@@ -152,7 +152,7 @@ class OmegaConf:
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
         assert (
-            name not in Config._resolvers
+            name not in Container._resolvers
         ), "resolved {} is already registered".format(name)
 
         def caching(config, key):
@@ -164,17 +164,17 @@ class OmegaConf:
             return val
 
         # noinspection PyProtectedMember
-        Config._resolvers[name] = caching
+        Container._resolvers[name] = caching
 
     # noinspection PyProtectedMember
     @staticmethod
     def get_resolver(name):
-        return Config._resolvers[name] if name in Config._resolvers else None
+        return Container._resolvers[name] if name in Container._resolvers else None
 
     # noinspection PyProtectedMember
     @staticmethod
     def clear_resolvers():
-        Config._resolvers = {}
+        Container._resolvers = {}
         register_default_resolvers()
 
     @staticmethod
@@ -236,9 +236,9 @@ class OmegaConf:
         :param enum_to_str: True to convert Enum values to strings
         :return: A dict or a list representing this config as a primitive container.
         """
-        assert isinstance(cfg, Config)
+        assert isinstance(cfg, Container)
         # noinspection PyProtectedMember
-        return Config._to_content(cfg, resolve=resolve, enum_to_str=enum_to_str)
+        return Container._to_content(cfg, resolve=resolve, enum_to_str=enum_to_str)
 
     @staticmethod
     def is_missing(cfg, key):
@@ -262,9 +262,9 @@ class OmegaConf:
 
     @staticmethod
     def is_config(cfg):
-        from . import Config
+        from . import Container
 
-        return isinstance(cfg, Config)
+        return isinstance(cfg, Container)
 
 
 # register all default resolvers

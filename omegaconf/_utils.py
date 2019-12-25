@@ -112,9 +112,9 @@ def _maybe_wrap(annotated_type, value, is_optional, parent):
     if isinstance(value, ValueNode):
         return value
 
-    from omegaconf import Config, OmegaConf
+    from omegaconf import Container, OmegaConf
 
-    if isinstance(value, Config):
+    if isinstance(value, Container):
         value = OmegaConf.to_container(value)
 
     origin = getattr(annotated_type, "__origin__", None)

@@ -9,7 +9,7 @@ from ._utils import (
     is_structured_config,
     _re_parent,
 )
-from .config import Config
+from .container import Container
 from .errors import (
     ReadonlyConfigError,
     MissingMandatoryValue,
@@ -22,7 +22,7 @@ from .node import Node
 from .nodes import ValueNode
 
 
-class DictConfig(Config):
+class DictConfig(Container):
     def __init__(self, content, parent: Optional[Node] = None, element_type=Any):
         super().__init__(element_type=element_type, parent=parent)
 
@@ -81,7 +81,7 @@ class DictConfig(Config):
         self._validate_access(key)
         self._validate_type(key, value)
 
-        if isinstance(value, Config):
+        if isinstance(value, Container):
             value = copy.deepcopy(value)
             value._set_parent(self)
 
@@ -229,9 +229,9 @@ class DictConfig(Config):
 
     def __eq__(self, other):
         if isinstance(other, dict):
-            return Config._dict_conf_eq(self, DictConfig(other))
+            return Container._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
-            return Config._dict_conf_eq(self, other)
+            return Container._dict_conf_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other):

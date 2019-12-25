@@ -11,7 +11,7 @@ from omegaconf import (
     UnsupportedKeyType,
     DictConfig,
     AnyNode,
-    Config,
+    Container,
 )
 from . import IllegalType
 
@@ -308,7 +308,7 @@ def test_pretty_with_resolve():
 
 def test_instantiate_config_fails():
     with pytest.raises(NotImplementedError):
-        Config(element_type=Any, parent=None)
+        Container(element_type=Any, parent=None)
 
 
 def test_dir():
@@ -396,7 +396,7 @@ def test_dict_not_eq(input1, input2):
 def test_config_eq_mismatch_types():
     c1 = OmegaConf.create({})
     c2 = OmegaConf.create([])
-    assert not Config._config_eq(c1, c2)
+    assert not Container._config_eq(c1, c2)
 
 
 def test_dict_not_eq_with_another_class():
