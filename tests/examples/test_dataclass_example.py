@@ -1,6 +1,7 @@
 from enum import Enum
 
 import pytest
+
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 
@@ -132,7 +133,7 @@ class User:
 class Group:
     name: str = MISSING
     # data classes can be nested
-    admin: User = User
+    admin: User = User  # type: ignore
 
     # You can also specify different defaults for nested classes
     manager: User = User(name="manager", height=Height.TALL)

@@ -108,21 +108,6 @@ def test_list_len():
     assert len(c) == 2
 
 
-@pytest.mark.parametrize(
-    "parent, index, value, expected",
-    [
-        ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
-        ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
-        ({}, "foo", ["a", "b"], {"foo": ["a", "b"]}),
-        ({}, "foo", ("a", "b"), {"foo": ["a", "b"]}),
-    ],
-)
-def test_assign(parent, index, value, expected):
-    c = OmegaConf.create(parent)
-    c[index] = value
-    assert c == expected
-
-
 def test_nested_list_assign_illegal_value():
     c = OmegaConf.create(dict(a=[None]))
     with pytest.raises(UnsupportedValueType, match=re.escape("key a[0]")):

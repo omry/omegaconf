@@ -16,3 +16,5 @@ TODO
 .eggs
 .mypy_cache
 /pip-wheel-metadata
+/.pyre
+.dmypy.json

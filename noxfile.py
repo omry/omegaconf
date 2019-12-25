@@ -1,3 +1,4 @@
+# type: ignore
 import nox
 import os
 
@@ -50,6 +51,9 @@ def lint(session):
     session.install("black")
     # if this fails you need to format your code with black
     session.run("black", "--check", ".")
+
+    session.run("mypy", "tests")
+    session.run("mypy", "omegaconf", "--strict")
 
 
 @nox.session(python=PYTHON_VERSIONS)

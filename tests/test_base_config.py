@@ -8,7 +8,6 @@ from omegaconf import (
     IntegerNode,
     StringNode,
     ValidationError,
-    Container,
     ListConfig,
     DictConfig,
     ReadonlyConfigError,
@@ -396,27 +395,7 @@ class TestCopy:
         assert id(cfg[0]) == id(cp[0])
 
 
-def test_not_implemented(mocker):
-    mocker.patch("omegaconf.Container.__init__", lambda self: None)
-    obj = Container()
-    with pytest.raises(NotImplementedError):
-        obj == "foo"
-
-    with pytest.raises(NotImplementedError):
-        obj != "foo"
-
-    with pytest.raises(NotImplementedError):
-        iter(obj)
-
-    with pytest.raises(NotImplementedError):
-        hash(obj)
-
-    with pytest.raises(NotImplementedError):
-        obj.get_node("foo")
-
-    with pytest.raises(NotImplementedError):
-        obj.get("foo")
-
+def test_not_implemented():
     with pytest.raises(NotImplementedError):
         OmegaConf()
 
@@ -466,3 +445,20 @@ def test_is_config(cfg, is_conf, is_list, is_dict):
     assert OmegaConf.is_config(cfg) == is_conf
     assert OmegaConf.is_list(cfg) == is_list
     assert OmegaConf.is_dict(cfg) == is_dict
+
+
+@pytest.mark.parametrize(
+    "parent, index, value, expected",
+    [
+        ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
+        ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
+        ([None], 0, OmegaConf.create({"foo": "bar"}), [{"foo": "bar"}]),
+        ({}, "foo", ["a", "b"], {"foo": ["a", "b"]}),
+        ({}, "foo", ("a", "b"), {"foo": ["a", "b"]}),
+        ({}, "foo", OmegaConf.create({"foo": "bar"}), {"foo": {"foo": "bar"}}),
+    ],
+)
+def test_assign(parent, index, value, expected):
+    c = OmegaConf.create(parent)
+    c[index] = value
+    assert c == expected
