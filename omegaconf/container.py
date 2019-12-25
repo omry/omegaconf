@@ -26,13 +26,13 @@ from .node import Node
 from .nodes import ValueNode
 
 
-class Config(Node):
+class Container(Node):
     # static fields
     _resolvers = {}
 
     def __init__(self, element_type, parent: Node):
         super().__init__(parent=parent)
-        if type(self) == Config:
+        if type(self) == Container:
             raise NotImplementedError
         self.__dict__["content"] = None
         self.__dict__["_resolver_cache"] = defaultdict(dict)
@@ -195,14 +195,14 @@ class Config(Node):
             k = split[i]
             # if next_root is a primitive (string, int etc) replace it with an empty map
             next_root, key_ = _select_one(root, k)
-            if not isinstance(next_root, Config):
-                root[key_] = DictConfig(content={}, parent=self)
+            if not isinstance(next_root, Container):
+                root[key_] = {}
             root = root[key_]
 
         last = split[-1]
 
         assert isinstance(
-            root, (DictConfig, ListConfig)
+            root, Container
         ), f"Unexpected type for root : {type(root).__name__}"
 
         if isinstance(root, DictConfig):
@@ -253,12 +253,12 @@ class Config(Node):
 
             return val
 
-        assert isinstance(conf, Config)
+        assert isinstance(conf, Container)
         if isinstance(conf, DictConfig):
             ret = {}
             for key, value in conf.items(resolve=resolve):
-                if isinstance(value, Config):
-                    ret[key] = Config._to_content(
+                if isinstance(value, Container):
+                    ret[key] = Container._to_content(
                         value, resolve=resolve, enum_to_str=enum_to_str
                     )
                 else:
@@ -270,8 +270,8 @@ class Config(Node):
                 if resolve:
                     item = conf[index]
                 item = convert(item)
-                if isinstance(item, Config):
-                    item = Config._to_content(
+                if isinstance(item, Container):
+                    item = Container._to_content(
                         item, resolve=resolve, enum_to_str=enum_to_str
                     )
                 ret.append(item)
@@ -284,7 +284,7 @@ class Config(Node):
             stacklevel=2,
         )
 
-        return Config._to_content(self, resolve)
+        return Container._to_content(self, resolve)
 
     def pretty(self, resolve=False):
         from omegaconf import OmegaConf
@@ -316,13 +316,13 @@ class Config(Node):
                     dest[key] = DictConfig(content=dest_type, parent=dest)
                     dest_node = dest.get_node(key)
 
-                if isinstance(dest_node, Config):
-                    if isinstance(value, Config):
+                if isinstance(dest_node, Container):
+                    if isinstance(value, Container):
                         dest_node.merge_with(value)
                     else:
                         dest.__setitem__(key, value)
                 else:
-                    if isinstance(value, Config):
+                    if isinstance(value, Container):
                         dest.__setitem__(key, value)
                     else:
                         dest_node.set_value(value)
@@ -342,7 +342,7 @@ class Config(Node):
             if other is None:
                 raise ValueError("Cannot merge with a None config")
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                Config._map_merge(self, other)
+                Container._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 if self._get_flag("readonly"):
                     raise ReadonlyConfigError(self.get_full_key(""))
@@ -380,13 +380,6 @@ class Config(Node):
     def _resolve_single(self, value):
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
 
-        assert value_kind in [
-            ValueKind.VALUE,
-            ValueKind.MANDATORY_MISSING,
-            ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
-        ]
-
         if value_kind in (ValueKind.VALUE, ValueKind.MANDATORY_MISSING):
             return value
 
@@ -394,14 +387,14 @@ class Config(Node):
         if value_kind == ValueKind.INTERPOLATION:
             # simple interpolation, inherit type
             match = match_list[0]
-            return Config._resolve_value(root, match.group(1), match.group(2))
+            return Container._resolve_value(root, match.group(1), match.group(2))
         elif value_kind == ValueKind.STR_INTERPOLATION:
             # Concatenated interpolation, always a string
             orig = value
             new = ""
             last_index = 0
             for match in match_list:
-                new_val = Config._resolve_value(root, match.group(1), match.group(2))
+                new_val = Container._resolve_value(root, match.group(1), match.group(2))
                 new += orig[last_index : match.start(0)] + str(new_val)
                 last_index = match.end(0)
 
@@ -411,7 +404,7 @@ class Config(Node):
     # noinspection PyProtectedMember
     def _set_item_impl(self, key, value):
         must_wrap = isinstance(value, (dict, list))
-        input_config = isinstance(value, Config)
+        input_config = isinstance(value, Container)
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["content"], dict):
             target_node = key in self.__dict__["content"] and isinstance(
@@ -472,8 +465,8 @@ class Config(Node):
                 # noinspection PyProtectedMember
                 v2 = c2._resolve_single(v2)
 
-        if isinstance(v1, Config) and isinstance(v2, Config):
-            if not Config._config_eq(v1, v2):
+        if isinstance(v1, Container) and isinstance(v2, Container):
+            if not Container._config_eq(v1, v2):
                 return False
         return v1 == v2
 
@@ -486,7 +479,7 @@ class Config(Node):
         if len(l1) != len(l2):
             return False
         for i in range(len(l1)):
-            if not Config._item_eq(l1, i, l2, i):
+            if not Container._item_eq(l1, i, l2, i):
                 return False
 
         return True
@@ -504,7 +497,7 @@ class Config(Node):
         if k1 != k2:
             return False
         for k in k1:
-            if not Config._item_eq(d1, k, d2, k):
+            if not Container._item_eq(d1, k, d2, k):
                 return False
 
         return True
@@ -514,11 +507,11 @@ class Config(Node):
         from .listconfig import ListConfig
         from .dictconfig import DictConfig
 
-        assert isinstance(c1, Config)
-        assert isinstance(c2, Config)
+        assert isinstance(c1, Container)
+        assert isinstance(c2, Container)
         if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
             return DictConfig._dict_conf_eq(c1, c2)
         if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
-            return Config._list_eq(c1, c2)
+            return Container._list_eq(c1, c2)
         # if type does not match objects are different
         return False

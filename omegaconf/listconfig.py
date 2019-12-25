@@ -4,13 +4,13 @@ import itertools
 from typing import Any, Optional
 
 from ._utils import _maybe_wrap, isint, _re_parent
-from .config import Config
+from .container import Container
 from .errors import ReadonlyConfigError, UnsupportedValueType, UnsupportedKeyType
 from .node import Node
 from .nodes import ValueNode, AnyNode
 
 
-class ListConfig(Config):
+class ListConfig(Container):
     def __init__(self, content, parent: Optional[Node] = None, element_type=Any):
         super().__init__(parent=parent, element_type=element_type)
         self.__dict__["content"] = []
@@ -65,7 +65,7 @@ class ListConfig(Config):
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(index))
 
-        if isinstance(value, Config):
+        if isinstance(value, Container):
             value = copy.deepcopy(value)
             value._set_parent(self)
 
@@ -179,9 +179,9 @@ class ListConfig(Config):
 
     def __eq__(self, other):
         if isinstance(other, list):
-            return Config._list_eq(self, ListConfig(other))
+            return Container._list_eq(self, ListConfig(other))
         if isinstance(other, ListConfig):
-            return Config._list_eq(self, other)
+            return Container._list_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other):

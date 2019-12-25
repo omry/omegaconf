@@ -8,7 +8,7 @@ from omegaconf import (
     IntegerNode,
     StringNode,
     ValidationError,
-    Config,
+    Container,
     ListConfig,
     DictConfig,
     ReadonlyConfigError,
@@ -397,8 +397,8 @@ class TestCopy:
 
 
 def test_not_implemented(mocker):
-    mocker.patch("omegaconf.Config.__init__", lambda self: None)
-    obj = Config()
+    mocker.patch("omegaconf.Container.__init__", lambda self: None)
+    obj = Container()
     with pytest.raises(NotImplementedError):
         obj == "foo"
 

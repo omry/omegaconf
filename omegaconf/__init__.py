@@ -1,4 +1,4 @@
-from .config import Config
+from .container import Container
 from .dictconfig import DictConfig
 from .errors import (
     MissingMandatoryValue,
@@ -27,7 +27,7 @@ __all__ = [
     "ReadonlyConfigError",
     "UnsupportedValueType",
     "UnsupportedKeyType",
-    "Config",
+    "Container",
     "ListConfig",
     "DictConfig",
     "OmegaConf",
