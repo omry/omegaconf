@@ -1,21 +1,21 @@
 import copy
 from enum import Enum
-from typing import Any, Optional, Iterator, Union, Tuple, Dict, List, Iterable
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from ._utils import (
-    get_structured_config_data,
-    is_structured_config_frozen,
-    is_structured_config,
     _re_parent,
+    get_structured_config_data,
+    is_structured_config,
+    is_structured_config_frozen,
 )
-from .base import Node, Container
+from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
-    ReadonlyConfigError,
     MissingMandatoryValue,
+    ReadonlyConfigError,
     UnsupportedInterpolationType,
-    UnsupportedValueType,
     UnsupportedKeyType,
+    UnsupportedValueType,
     ValidationError,
 )
 from .nodes import ValueNode

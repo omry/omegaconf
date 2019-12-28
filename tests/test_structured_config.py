@@ -1,18 +1,18 @@
 import sys
 from importlib import import_module
-
-
-import pytest
 from typing import Any
 
+import pytest
+
 from omegaconf import (
-    OmegaConf,
     AnyNode,
-    ValidationError,
     MissingMandatoryValue,
+    OmegaConf,
     ReadonlyConfigError,
     UnsupportedKeyType,
+    ValidationError,
 )
+
 from .structured_conf.common import Color
 
 

@@ -1,13 +1,14 @@
-import pytest  # type: ignore
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from omegaconf import MISSING, II, SI
+import attr  # noqaE402
+import pytest  # type: ignore
+
+from omegaconf import II, MISSING, SI
+
 from .common import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
 pytest.importorskip("attr")
-
-import attr  # noqaE402
 
 
 @attr.s(auto_attribs=True)

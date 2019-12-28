@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Any, Tuple, Dict, List, Union, Optional, Match
+from typing import Any, Dict, List, Match, Optional, Tuple, Union
 
 import yaml
 

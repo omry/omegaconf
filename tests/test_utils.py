@@ -1,18 +1,17 @@
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List
 
 import attr
 import pytest
-from dataclasses import dataclass, field
-from typing import Any
-from typing import List, Dict
 
 # noinspection PyProtectedMember
-from omegaconf import _utils, OmegaConf
+from omegaconf import OmegaConf, _utils
 from omegaconf.errors import ValidationError
 from omegaconf.nodes import StringNode
+
 from . import does_not_raise
 from .structured_conf.common import Color
-
 
 # TODO: complete test coverage for utils
 

@@ -1,16 +1,15 @@
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Dict, List, Optional
 
 import pytest
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional
-
 from omegaconf import (
-    OmegaConf,
-    ValidationError,
-    MissingMandatoryValue,
-    ReadonlyConfigError,
     MISSING,
+    MissingMandatoryValue,
+    OmegaConf,
+    ReadonlyConfigError,
+    ValidationError,
 )
 
 

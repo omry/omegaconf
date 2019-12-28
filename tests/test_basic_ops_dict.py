@@ -1,19 +1,20 @@
-import tempfile
-
-import pytest  # type: ignore
 import re
+import tempfile
 from enum import Enum
 from typing import Any
 
+import pytest  # type: ignore
+
 from omegaconf import (
-    OmegaConf,
-    MissingMandatoryValue,
-    UnsupportedValueType,
-    UnsupportedKeyType,
-    DictConfig,
     AnyNode,
     BaseContainer,
+    DictConfig,
+    MissingMandatoryValue,
+    OmegaConf,
+    UnsupportedKeyType,
+    UnsupportedValueType,
 )
+
 from . import IllegalType
 
 

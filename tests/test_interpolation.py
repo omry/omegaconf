@@ -3,7 +3,6 @@ import random
 
 import pytest
 
-
 from omegaconf import OmegaConf
 
 

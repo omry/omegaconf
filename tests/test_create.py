@@ -1,11 +1,12 @@
 """Testing for OmegaConf"""
+import re
 import sys
 
 import pytest
-import re
 
 from omegaconf import OmegaConf
 from omegaconf.errors import UnsupportedValueType
+
 from . import IllegalType
 
 

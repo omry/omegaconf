@@ -3,8 +3,7 @@ import sys
 import pytest
 from pytest import raises
 
-from omegaconf import MissingMandatoryValue
-from omegaconf import OmegaConf
+from omegaconf import MissingMandatoryValue, OmegaConf
 
 
 def test_update_map_value():
