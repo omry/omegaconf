@@ -10,8 +10,8 @@ OmegaConf setup
 
 import codecs
 import os
-
 import re
+
 import setuptools
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -72,8 +72,9 @@ with open("README.md", "r") as fh:
                 "twine",
                 "sphinx",
                 "mypy",
+                "isort",
             ],
             "coverage": ["coveralls"],
-            "lint": ["black", "flake8", "mypy"],
+            "lint": ["pytest", "black", "flake8", "mypy", "isort"],
         },
     )

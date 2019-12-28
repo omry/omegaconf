@@ -1,24 +1,11 @@
 # -*- coding: utf-8 -*-
+import io
 import os
 import tempfile
 
-import io
 import pytest
 
 from omegaconf import OmegaConf
-
-
-def save_load_filename(conf, resolve, expected):
-    if expected is None:
-        expected = conf
-    # note that delete=False here is a work around windows incompetence.
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            OmegaConf.save(conf, fp.name, resolve=resolve)
-            c2 = OmegaConf.load(fp.name)
-            assert c2 == expected
-    finally:
-        os.unlink(fp.name)
 
 
 def save_load_from_file(conf, resolve, expected):
@@ -62,10 +49,6 @@ def test_load_from_invalid():
     ],
 )
 class TestSaveLoad:
-    def test_save_load_filename(self, cfg, resolve, expected):
-        cfg = OmegaConf.create(cfg)
-        save_load_filename(cfg, resolve, expected)
-
     def test_save_load__from_file(self, cfg, resolve, expected):
         cfg = OmegaConf.create(cfg)
         save_load_from_file(cfg, resolve, expected)

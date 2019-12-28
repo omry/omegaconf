@@ -3,18 +3,19 @@ import copy
 import pytest
 
 from omegaconf import (
-    OmegaConf,
     MISSING,
+    DictConfig,
     IntegerNode,
+    ListConfig,
+    OmegaConf,
+    ReadonlyConfigError,
     StringNode,
     ValidationError,
-    ListConfig,
-    DictConfig,
-    ReadonlyConfigError,
-    read_write,
-    open_dict,
     flag_override,
+    open_dict,
+    read_write,
 )
+
 from . import does_not_raise
 
 

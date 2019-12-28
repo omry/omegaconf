@@ -1,9 +1,11 @@
-import pytest
 import re
 
-from omegaconf import OmegaConf, AnyNode, ListConfig, DictConfig
-from omegaconf.errors import UnsupportedValueType, UnsupportedKeyType
+import pytest
+
+from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
+from omegaconf.errors import UnsupportedKeyType, UnsupportedValueType
 from omegaconf.nodes import IntegerNode, StringNode
+
 from . import IllegalType, does_not_raise
 
 

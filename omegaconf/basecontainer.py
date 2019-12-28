@@ -4,23 +4,23 @@ import warnings
 from abc import abstractmethod
 from collections import defaultdict
 from enum import Enum
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
-from typing import Any, Optional, Dict, List, Iterator, Union, Tuple
 
 from ._utils import (
-    get_value_kind,
     ValueKind,
-    get_yaml_loader,
     _re_parent,
+    get_value_kind,
+    get_yaml_loader,
     is_structured_config,
 )
+from .base import Container, Node
 from .errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
 )
-from .base import Node, Container
 
 
 class BaseContainer(Container):

@@ -1,12 +1,12 @@
 import copy
 import itertools
-from typing import Any, Optional, Iterator, List, Tuple, Union, Dict, Iterable, Callable
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from ._utils import isint, _re_parent
-from .base import Node, Container
+from ._utils import _re_parent, isint
+from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import ReadonlyConfigError, UnsupportedValueType, UnsupportedKeyType
-from .nodes import ValueNode, AnyNode
+from .errors import ReadonlyConfigError, UnsupportedKeyType, UnsupportedValueType
+from .nodes import AnyNode, ValueNode
 
 
 class ListConfig(BaseContainer):

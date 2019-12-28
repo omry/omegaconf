@@ -1,13 +1,12 @@
 import copy
+import math
 from abc import abstractmethod
 from enum import Enum
+from typing import Any, Dict, Optional, Type
 
-import math
-from typing import Optional, Dict, Type, Any
-
-from .errors import ValidationError, UnsupportedValueType
 from .base import Node
 from .basecontainer import BaseContainer
+from .errors import UnsupportedValueType, ValidationError
 
 
 class ValueNode(Node):

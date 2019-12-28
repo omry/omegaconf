@@ -1,8 +1,9 @@
-import pytest
 from dataclasses import dataclass, field
 from typing import Dict
 
-from omegaconf import OmegaConf, nodes, MISSING
+import pytest
+
+from omegaconf import MISSING, OmegaConf, nodes
 
 
 @dataclass

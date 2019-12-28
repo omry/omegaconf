@@ -6,23 +6,23 @@ import re
 import sys
 from contextlib import contextmanager
 from enum import Enum
-from typing import Any, Callable, Union, Optional, Dict, List, Tuple, Match, Generator
+from typing import Any, Callable, Dict, Generator, List, Match, Optional, Tuple, Union
 
 import yaml
 
-from . import ListConfig, DictConfig
-from ._utils import is_structured_config, decode_primitive, isint
-from .base import Node, Container
+from . import DictConfig, ListConfig
+from ._utils import decode_primitive, is_structured_config, isint
+from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import ValidationError, MissingMandatoryValue
+from .errors import MissingMandatoryValue, ValidationError
 from .nodes import (
-    ValueNode,
-    StringNode,
-    IntegerNode,
-    BooleanNode,
-    FloatNode,
     AnyNode,
+    BooleanNode,
     EnumNode,
+    FloatNode,
+    IntegerNode,
+    StringNode,
+    ValueNode,
 )
 
 MISSING: Any = "???"

@@ -5,18 +5,16 @@ from typing import Any
 import pytest
 
 from omegaconf import (
-    StringNode,
-    IntegerNode,
+    AnyNode,
+    BooleanNode,
+    DictConfig,
     EnumNode,
     FloatNode,
-    BooleanNode,
-    AnyNode,
+    IntegerNode,
     ListConfig,
-    DictConfig,
     OmegaConf,
+    StringNode,
 )
-
-# noinspection PyProtectedMember
 from omegaconf.errors import ValidationError
 
 

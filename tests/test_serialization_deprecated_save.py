@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import io
 import os
 import tempfile
 
-import io
 from pytest import raises
 
 from omegaconf import OmegaConf

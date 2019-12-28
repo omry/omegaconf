@@ -1,13 +1,14 @@
-import pytest  # type: ignore
-from typing import List, Dict, Optional, Any
+from dataclasses import dataclass, field  # noqaE402
+from typing import Any, Dict, List, Optional
 
-from omegaconf import MISSING, II, SI
+import pytest  # type: ignore
+
+from omegaconf import II, MISSING, SI
+
 from .common import Color
 
 # skip test if dataclasses are not available
 pytest.importorskip("dataclasses")
-
-from dataclasses import dataclass, field  # noqaE402
 
 
 @dataclass
