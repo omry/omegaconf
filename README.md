@@ -8,10 +8,14 @@
 [![](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://hydra-framework.zulipchat.com)
 # OmegaConf
 
-OmegaConf is a YAML based hierarchical configuration system, with support for merging configurations from multiple sources (multiple config files, CLI arguments)
+OmegaConf is a hierarchical configuration system, with support for merging configurations from multiple sources (YAML config files, dataclasses/objects and CLI arguments)
 providing a consistent API regardless of how the configuration was created.
 
-[Read the docs](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
+## Documentation
+[1.4 Documentation (stable)](https://omegaconf.readthedocs.io/en/1.4_branch/).
 
+[2.0 Documentation (pre-release)](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
+
+## Live tutorial
 Run the live tutorial : [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
 
