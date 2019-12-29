@@ -299,7 +299,8 @@ class BaseContainer(Container):
         :return: A string containing the yaml representation.
         """
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
-        return yaml.dump(container, default_flow_style=False)  # type: ignore
+        ret = yaml.dump(container, default_flow_style=False, allow_unicode=True)
+        return ret  # type: ignore
 
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:

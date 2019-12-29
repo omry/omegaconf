@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import tempfile
 from enum import Enum
@@ -91,6 +92,17 @@ def test_pretty_dict():
 list:
 - 1
 - 2
+"""
+    assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
+
+
+def test_pretty_dict_unicode():
+    c = OmegaConf.create(dict(你好="世界", list=[1, 2]))
+    expected = """list:
+- 1
+- 2
+你好: 世界
 """
     assert expected == c.pretty()
     assert OmegaConf.create(c.pretty()) == c

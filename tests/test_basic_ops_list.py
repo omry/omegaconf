@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 
 import pytest
@@ -26,6 +27,16 @@ def test_pretty_list():
     expected = """- item1
 - item2
 - key3: value3
+"""
+    assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
+
+
+def test_pretty_list_unicode():
+    c = OmegaConf.create(["item一", "item二", dict(key三="value三")])
+    expected = """- item一
+- item二
+- key三: value三
 """
     assert expected == c.pretty()
     assert OmegaConf.create(c.pretty()) == c
