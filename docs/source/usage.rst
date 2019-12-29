@@ -448,7 +448,7 @@ It's sometime useful to change this behavior.
     >>> conf.a.cc = 30
     Traceback (most recent call last):
     ...
-    KeyError: 'Accessing unknown key in a struct : a.cc'
+    AttributeError: 'Accessing unknown key in a struct : a.cc'
 
 You can temporarily remove the struct flag from a config object:
 

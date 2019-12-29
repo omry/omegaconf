@@ -485,3 +485,10 @@ def test_get_with_invalid_key():
     cfg = OmegaConf.create()
     with pytest.raises(UnsupportedKeyType):
         cfg[1]
+
+
+def test_hasattr():
+    cfg = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_struct(cfg, True)
+    assert hasattr(cfg, "foo")
+    assert not hasattr(cfg, "buz")
