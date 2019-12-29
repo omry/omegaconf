@@ -109,7 +109,7 @@ def test_assigned_value_node_type(input_, expected_type):
 def test_get_node_no_validate_access():
     c = OmegaConf.create({"foo": "bar"})
     OmegaConf.set_struct(c, True)
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         c.get_node("zoo", validate_access=True)
 
     assert c.get_node("zoo", validate_access=False) is None

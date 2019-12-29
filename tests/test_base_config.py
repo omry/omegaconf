@@ -210,7 +210,7 @@ class TestDeepCopy:
         if isinstance(c2, ListConfig):
             c2.append(1000)
         elif isinstance(c2, DictConfig):
-            with pytest.raises(KeyError):
+            with pytest.raises(AttributeError):
                 c2.foo = "bar"
 
 
@@ -238,7 +238,7 @@ def test_deepcopy_and_merge_and_flags():
     )
     OmegaConf.set_struct(c1, True)
     c2 = copy.deepcopy(c1)
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
@@ -262,7 +262,7 @@ def test_deepcopy_preserves_container_type(cfg):
             "struct",
             False,
             lambda c: c.__setitem__("foo", 1),
-            pytest.raises(KeyError),
+            pytest.raises(AttributeError),
         ),
         (
             {},
@@ -325,7 +325,7 @@ def test_tokenize_with_escapes(string, tokenized):
 
 @pytest.mark.parametrize(
     "src, func, expectation",
-    [({}, lambda c: c.__setattr__("foo", 1), pytest.raises(KeyError))],
+    [({}, lambda c: c.__setattr__("foo", 1), pytest.raises(AttributeError))],
 )
 def test_struct_override(src, func, expectation):
     c = OmegaConf.create(src)

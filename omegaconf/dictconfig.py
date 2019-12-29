@@ -160,7 +160,7 @@ class DictConfig(BaseContainer):
         if validate_access:
             try:
                 self._validate_access(key)
-            except KeyError:
+            except (KeyError, AttributeError):
                 if default_value is not None:
                     value = default_value
                 else:
@@ -201,7 +201,7 @@ class DictConfig(BaseContainer):
 
         try:
             node: Optional[Node] = self.get_node(str_key)
-        except KeyError:
+        except (KeyError, AttributeError):
             node = None
 
         if node is None:
@@ -274,11 +274,13 @@ class DictConfig(BaseContainer):
             if is_typed and node_open:
                 return
             if is_typed or is_closed:
-                raise KeyError(
-                    "Accessing unknown key in a struct : {}".format(
-                        self.get_full_key(key)
-                    )
+                msg = "Accessing unknown key in a struct : {}".format(
+                    self.get_full_key(key)
                 )
+                if is_closed:
+                    raise AttributeError(msg)
+                else:
+                    raise KeyError(msg)
 
     def _validate_type(self, key: str, value: Any) -> None:
         if self.__dict__["_type"] is not None:
