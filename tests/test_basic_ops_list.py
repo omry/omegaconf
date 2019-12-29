@@ -29,6 +29,16 @@ def test_pretty_list():
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_list_unicode():
+    c = OmegaConf.create(["item一", "item二", dict(key三="value三")])
+    expected = """- item一
+- item二
+- key三: value三
+"""
+    assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
+
+
 def test_list_get_with_default():
     c = OmegaConf.create([None, "???", "found"])
     assert c.get(0, "default_value") == "default_value"

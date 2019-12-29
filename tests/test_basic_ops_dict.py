@@ -89,6 +89,17 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_dict_unicode():
+    c = OmegaConf.create(dict(你好="世界", list=[1, 2]))
+    expected = """list:
+- 1
+- 2
+你好: 世界
+"""
+    assert expected == c.pretty()
+    assert OmegaConf.create(c.pretty()) == c
+
+
 def test_default_value():
     c = OmegaConf.create()
     assert c.missing_key or "a default value" == "a default value"
