@@ -1,0 +1,18 @@
+{
+  "source_directories": [
+    "."
+  ],
+  "search_path": [
+    ".stubs"
+  ],
+  "exclude": [
+    ".*\\.nox/.*",
+    ".*build/.*"
+  ],
+  "ignore_all_errors": [
+    "docs",
+    ".eggs",
+    "noxfile.py",
+    "setup.py"
+  ]
+}

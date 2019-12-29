@@ -1,16 +1,18 @@
 import sys
 from importlib import import_module
+from typing import Any
 
 import pytest
 
 from omegaconf import (
-    OmegaConf,
     AnyNode,
-    ValidationError,
     MissingMandatoryValue,
+    OmegaConf,
     ReadonlyConfigError,
     UnsupportedKeyType,
+    ValidationError,
 )
+
 from .structured_conf.common import Color
 
 
@@ -39,7 +41,7 @@ class IntegersConfigAssignments:
 
 class StringConfigAssignments:
     legal = ["10", "-10", "foo", "", (Color.BLUE, "Color.BLUE")]
-    illegal = []
+    illegal: Any = []
 
 
 class FloatConfigAssignments:
@@ -77,7 +79,7 @@ class BoolConfigAssignments:
 class AnyTypeConfigAssignments:
     legal = [True, False, 10, 10.0, "foobar", Color.BLUE]
 
-    illegal = []
+    illegal: Any = []
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")
@@ -553,7 +555,7 @@ def validate_frozen_impl(conf):
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")
-def test_attr_frozen():
+def test_attr_frozen() -> None:
     from tests.structured_conf.attr_test_data import FrozenClass
 
     validate_frozen_impl(OmegaConf.create(FrozenClass))
@@ -561,7 +563,7 @@ def test_attr_frozen():
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")
-def test_dataclass_frozen():
+def test_dataclass_frozen() -> None:
     from tests.structured_conf.dataclass_test_data import FrozenClass
 
     validate_frozen_impl(OmegaConf.create(FrozenClass))

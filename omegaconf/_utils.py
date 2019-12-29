@@ -1,33 +1,23 @@
-from enum import Enum
-
 import re
-import yaml
-from typing import Any, Dict, List
+from enum import Enum
+from typing import Any, Dict, List, Match, Optional, Tuple, Union
 
-from .errors import ValidationError
-from .node import Node
-from .nodes import (
-    ValueNode,
-    StringNode,
-    IntegerNode,
-    BooleanNode,
-    FloatNode,
-    AnyNode,
-    EnumNode,
-)
+import yaml
+
+from .base import Node
 
 try:
     import dataclasses
-except ImportError:
-    dataclasses = None
+except ImportError:  # pragma: no cover
+    dataclasses = None  # type: ignore # pragma: no cover
 
 try:
     import attr
-except ImportError:
-    attr = None
+except ImportError:  # pragma: no cover
+    attr = None  # type: ignore # pragma: no cover
 
 
-def isint(s):
+def isint(s: str) -> bool:
     try:
         int(s)
         return True
@@ -35,7 +25,7 @@ def isint(s):
         return False
 
 
-def get_yaml_loader():
+def get_yaml_loader() -> Any:
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(
         "tag:yaml.org,2002:float",
@@ -50,7 +40,7 @@ def get_yaml_loader():
             re.X,
         ),
         list("-+0123456789."),
-    )
+    )  # type : ignore
     loader.yaml_implicit_resolvers = {
         key: [
             (tag, regexp)
@@ -62,43 +52,7 @@ def get_yaml_loader():
     return loader
 
 
-def _is_primitive_type(type_):
-    if not isinstance(type_, type):
-        type_ = type(type_)
-
-    return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
-
-
-def _valid_value_annotation_type(type_):
-    return type_ is Any or _is_primitive_type(type_) or is_structured_config(type_)
-
-
-def _valid_input_value_type(value):
-    if isinstance(value, Enum) or (isinstance(value, type) and issubclass(value, Enum)):
-        return True
-    return type(value) in (dict, list, tuple) or _is_primitive_type(value)
-
-
-def _node_wrap(type_, parent, is_optional, value):
-    if type_ == Any:
-        node = AnyNode(value=value, parent=parent, is_optional=is_optional)
-    elif issubclass(type_, Enum):
-        node = EnumNode(enum_type=type_, parent=parent, is_optional=is_optional)
-        node.set_value(value)
-    elif type_ == int:
-        node = IntegerNode(value=value, parent=parent, is_optional=is_optional)
-    elif type_ == float:
-        node = FloatNode(value=value, parent=parent, is_optional=is_optional)
-    elif type_ == bool:
-        node = BooleanNode(value=value, parent=parent, is_optional=is_optional)
-    elif type_ == str:
-        node = StringNode(value=value, parent=parent, is_optional=is_optional)
-    else:
-        raise ValueError("Unexpected object type : {}".format(type_.__name__))
-    return node
-
-
-def _resolve_optional(type_):
+def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     from typing import Union
 
     if getattr(type_, "__origin__", None) is Union:
@@ -108,71 +62,9 @@ def _resolve_optional(type_):
     return False, type_
 
 
-def _maybe_wrap(annotated_type, value, is_optional, parent):
-    if isinstance(value, ValueNode):
-        return value
+def get_attr_data(obj: Any) -> Dict[str, Any]:
+    from omegaconf.omegaconf import _maybe_wrap
 
-    from omegaconf import Container, OmegaConf
-
-    if isinstance(value, Container):
-        value = OmegaConf.to_container(value)
-
-    origin = getattr(annotated_type, "__origin__", None)
-    args = getattr(annotated_type, "__args__", None)
-    is_dict = type(value) is dict or origin is dict
-    is_list = type(value) in (list, tuple) or origin in (list, tuple)
-
-    if is_dict or origin is dict:
-        from .dictconfig import DictConfig
-
-        if annotated_type is not Dict and args is not None:
-            element_type = args[1]
-        else:
-            element_type = Any
-
-        if not _valid_value_annotation_type(element_type) and not is_structured_config(
-            element_type
-        ):
-            raise ValidationError(f"Unsupported value type : {element_type}")
-
-        value = DictConfig(parent=None, content=value, element_type=element_type)
-        # noinspection PyProtectedMember
-        value._set_parent(parent=parent)
-    elif is_list:
-        from .listconfig import ListConfig
-
-        if annotated_type is not List and args is not None:
-            element_type = args[0]
-        else:
-            element_type = Any
-
-        if not (_valid_value_annotation_type(element_type)):
-            raise ValidationError(f"Unsupported value type : {element_type}")
-
-        value = ListConfig(parent=None, content=value, element_type=element_type)
-        # noinspection PyProtectedMember
-        value._set_parent(parent=parent)
-
-    elif (
-        is_dict and is_structured_config(annotated_type) and is_structured_config(value)
-    ) or is_structured_config(value):
-        from . import DictConfig
-
-        value = DictConfig(content=value, parent=parent)
-    else:
-        if is_structured_config(annotated_type) and not is_structured_config(value):
-            raise ValidationError(
-                f"Value type {type(value).__name__} does not match declared type {annotated_type}"
-            )
-
-        value = _node_wrap(
-            type_=annotated_type, parent=parent, is_optional=is_optional, value=value
-        )
-    assert isinstance(value, Node)
-    return value
-
-
-def get_attr_data(obj):
     d = {}
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
@@ -203,7 +95,9 @@ def get_attr_data(obj):
     return d
 
 
-def get_dataclass_data(obj):
+def get_dataclass_data(obj: Any) -> Dict[str, Any]:
+    from omegaconf.omegaconf import _maybe_wrap
+
     d = {}
     for field in dataclasses.fields(obj):
         name = field.name
@@ -212,8 +106,8 @@ def get_dataclass_data(obj):
         if hasattr(obj, name):
             value = getattr(obj, name)
         else:
-            if field.default_factory != dataclasses.MISSING:
-                value = field.default_factory()
+            if field.default_factory != dataclasses.MISSING:  # type: ignore
+                value = field.default_factory()  # type: ignore
             else:
                 if is_nested:
                     value = type_
@@ -234,38 +128,38 @@ def get_dataclass_data(obj):
     return d
 
 
-def is_dataclass(obj):
-    from omegaconf.node import Node
+def is_dataclass(obj: Any) -> bool:
+    from omegaconf.base import Node
 
     if dataclasses is None or isinstance(obj, Node):
         return False
     return dataclasses.is_dataclass(obj)
 
 
-def is_attr_class(obj):
-    from omegaconf.node import Node
+def is_attr_class(obj: Any) -> bool:
+    from omegaconf.base import Node
 
     if attr is None or isinstance(obj, Node):
         return False
     return attr.has(obj)
 
 
-def is_structured_config(obj):
+def is_structured_config(obj: Any) -> bool:
     return is_attr_class(obj) or is_dataclass(obj)
 
 
-def is_dataclass_frozen(type_):
-    return type_.__dataclass_params__.frozen
+def is_dataclass_frozen(type_: Any) -> bool:
+    return type_.__dataclass_params__.frozen  # type: ignore
 
 
-def is_attr_frozen(type_):
+def is_attr_frozen(type_: type) -> bool:
     # This is very hacky and probably fragile as well.
     # Unfortunately currently there isn't an official API in attr that can detect that.
     # noinspection PyProtectedMember
-    return type_.__setattr__ == attr._make._frozen_setattrs
+    return type_.__setattr__ == attr._make._frozen_setattrs  # type: ignore
 
 
-def is_structured_config_frozen(obj):
+def is_structured_config_frozen(obj: Any) -> bool:
     type_ = obj
     if not isinstance(type_, type):
         type_ = type(obj)
@@ -277,7 +171,7 @@ def is_structured_config_frozen(obj):
     raise ValueError("Unexpected object type")
 
 
-def get_structured_config_data(obj):
+def get_structured_config_data(obj: Any) -> Dict[str, Any]:
     if is_dataclass(obj):
         return get_dataclass_data(obj)
     if is_attr_class(obj):
@@ -292,7 +186,7 @@ class ValueKind(Enum):
     STR_INTERPOLATION = 3
 
 
-def get_value_kind(value, return_match_list=False):
+def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     """
     Determine the kind of a value
     Examples:
@@ -310,10 +204,13 @@ def get_value_kind(value, return_match_list=False):
 
     key_prefix = r"\${(\w+:)?"
     legal_characters = r"([\w\.%_ \\,-]*?)}"
-    match_list = None
+    match_list: Optional[List[Match[str]]] = None
 
-    def ret(value_kind):
+    def ret(
+        value_kind: ValueKind,
+    ) -> Union[ValueKind, Tuple[ValueKind, Optional[List[Match[str]]]]]:
         if return_match_list:
+
             return value_kind, match_list
         else:
             return value_kind
@@ -331,19 +228,19 @@ def get_value_kind(value, return_match_list=False):
         return ret(ValueKind.STR_INTERPOLATION)
 
 
-def decode_primitive(s):
-    def is_bool(st):
+def decode_primitive(s: str) -> Any:
+    def is_bool(st: str) -> bool:
         st = str.lower(st)
         return st == "true" or st == "false"
 
-    def is_float(st):
+    def is_float(st: str) -> bool:
         try:
             float(st)
             return True
         except ValueError:
             return False
 
-    def is_int(st):
+    def is_int(st: str) -> bool:
         try:
             int(st)
             return True
@@ -363,10 +260,9 @@ def decode_primitive(s):
 
 
 # noinspection PyProtectedMember
-def _re_parent(node):
+def _re_parent(node: Node) -> None:
     from .listconfig import ListConfig
     from .dictconfig import DictConfig
-    from .node import Node
 
     # update parents of first level Config nodes to self
     assert isinstance(node, Node)
@@ -378,26 +274,3 @@ def _re_parent(node):
         for item in node.__dict__["content"]:
             item._set_parent(node)
             _re_parent(item)
-
-
-def _select_one(c, key_):
-    from .listconfig import ListConfig
-    from .dictconfig import DictConfig
-
-    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
-
-    if isinstance(c, DictConfig):
-        if c.get_node(key_, validate_access=False) is not None:
-            val = c[key_]
-        else:
-            val = None
-    elif isinstance(c, ListConfig):
-        if not isint(key_):
-            raise TypeError("Index {} is not an int".format(key_))
-        key_ = int(key_)
-        if key_ < 0 or key_ + 1 > len(c):
-            val = None
-        else:
-            val = c[key_]
-
-    return val, key_

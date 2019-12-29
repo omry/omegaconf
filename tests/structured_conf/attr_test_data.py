@@ -1,13 +1,14 @@
-import pytest
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from omegaconf import MISSING, II, SI
+import attr  # noqaE402
+import pytest  # type: ignore
+
+from omegaconf import II, MISSING, SI
+
 from .common import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
 pytest.importorskip("attr")
-
-import attr  # noqaE402
 
 
 @attr.s(auto_attribs=True)
@@ -281,7 +282,11 @@ class DictExamples:
     ints: Dict[str, int] = {"a": 10, "b": 20}
     strings: Dict[str, str] = {"a": "foo", "b": "bar"}
     booleans: Dict[str, bool] = {"a": True, "b": False}
-    colors: Dict[str, Color] = {"red": Color.RED, "green": "GREEN", "blue": 3}
+    colors: Dict[str, Color] = {
+        "red": Color.RED,
+        "green": Color.GREEN,
+        "blue": Color.BLUE,
+    }
 
 
 @attr.s(auto_attribs=True)

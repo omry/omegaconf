@@ -1,18 +1,17 @@
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List
 
 import attr
 import pytest
-from dataclasses import dataclass, field
-from typing import Any
-from typing import List, Dict
 
 # noinspection PyProtectedMember
-from omegaconf import _utils, OmegaConf
+from omegaconf import OmegaConf, _utils
 from omegaconf.errors import ValidationError
 from omegaconf.nodes import StringNode
+
 from . import does_not_raise
 from .structured_conf.common import Color
-
 
 # TODO: complete test coverage for utils
 
@@ -69,7 +68,9 @@ from .structured_conf.common import Color
 )
 def test_maybe_wrap(target_type, value, expectation):
     with expectation:
-        _utils._maybe_wrap(
+        from omegaconf.omegaconf import _maybe_wrap
+
+        _maybe_wrap(
             annotated_type=target_type, value=value, is_optional=False, parent=None
         )
 
@@ -129,7 +130,9 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_, expected):
-    assert _utils._valid_value_annotation_type(type_) == expected
+    from omegaconf.omegaconf import _valid_value_annotation_type
+
+    assert _valid_value_annotation_type(type_) == expected
 
 
 @pytest.mark.parametrize(

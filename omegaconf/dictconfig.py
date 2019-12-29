@@ -1,29 +1,33 @@
 import copy
 from enum import Enum
-
-from typing import Any, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from ._utils import (
-    get_structured_config_data,
-    is_structured_config_frozen,
-    is_structured_config,
     _re_parent,
+    get_structured_config_data,
+    is_structured_config,
+    is_structured_config_frozen,
 )
-from .container import Container
+from .base import Container, Node
+from .basecontainer import BaseContainer
 from .errors import (
-    ReadonlyConfigError,
     MissingMandatoryValue,
+    ReadonlyConfigError,
     UnsupportedInterpolationType,
-    UnsupportedValueType,
     UnsupportedKeyType,
+    UnsupportedValueType,
     ValidationError,
 )
-from .node import Node
 from .nodes import ValueNode
 
 
-class DictConfig(Container):
-    def __init__(self, content, parent: Optional[Node] = None, element_type=Any):
+class DictConfig(BaseContainer):
+    def __init__(
+        self,
+        content: Union[Dict[str, Any], Any],
+        parent: Optional[Container] = None,
+        element_type: type = Any,  # type: ignore
+    ) -> None:
         super().__init__(element_type=element_type, parent=parent)
 
         self.__dict__["content"] = {}
@@ -45,7 +49,7 @@ class DictConfig(Container):
             for k, v in content.items():
                 self.__setitem__(k, v)
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
         res.__dict__["content"] = copy.deepcopy(self.__dict__["content"], memo=memo)
         res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"], memo=memo)
@@ -57,7 +61,7 @@ class DictConfig(Container):
         _re_parent(res)
         return res
 
-    def __copy__(self):
+    def __copy__(self) -> "DictConfig":
         res = DictConfig(content={}, element_type=self.__dict__["_element_type"])
         res.__dict__["content"] = copy.copy(self.__dict__["content"])
         res.__dict__["_type"] = self.__dict__["_type"]
@@ -65,10 +69,10 @@ class DictConfig(Container):
         _re_parent(res)
         return res
 
-    def copy(self):
+    def copy(self) -> "DictConfig":
         return copy.copy(self)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
         if isinstance(key, Enum):
             key = key.name
 
@@ -81,7 +85,7 @@ class DictConfig(Container):
         self._validate_access(key)
         self._validate_type(key, value)
 
-        if isinstance(value, Container):
+        if isinstance(value, BaseContainer):
             value = copy.deepcopy(value)
             value._set_parent(self)
 
@@ -93,10 +97,10 @@ class DictConfig(Container):
             )
 
     # hide content while inspecting in debugger
-    def __dir__(self):
-        return self.content.keys()
+    def __dir__(self) -> Iterable[str]:
+        return self.__dict__["content"].keys()  # type: ignore
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: Any) -> None:
         """
         Allow assigning attributes to DictConfig
         :param key:
@@ -105,7 +109,7 @@ class DictConfig(Container):
         """
         self.__setitem__(key, value)
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> Any:
         """
         Allow accessing dictionary values as attributes
         :param key:
@@ -122,15 +126,15 @@ class DictConfig(Container):
 
         return self.get(key=key, default_value=None)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[str, Enum]) -> Any:
         """
         Allow map style access
         :param key:
         :return:
         """
-        return self.__getattr__(key)
+        return self.get(key=key, default_value=None)
 
-    def get(self, key, default_value=None):
+    def get(self, key: Union[str, Enum], default_value: Any = None) -> Any:
         if isinstance(key, Enum):
             key = key.name
 
@@ -143,12 +147,20 @@ class DictConfig(Container):
             default_value=default_value,
         )
 
-    def get_node(self, key, default_value=None, validate_access=True):
-        value = self.__dict__["content"].get(key)
+    def get_node(
+        self,
+        key: Union[str, Enum],
+        default_value: Any = None,
+        validate_access: bool = True,
+    ) -> Node:
+        if isinstance(key, Enum):
+            key = key.name
+
+        value: Node = self.__dict__["content"].get(key)
         if validate_access:
             try:
                 self._validate_access(key)
-            except KeyError:
+            except (KeyError, AttributeError):
                 if default_value is not None:
                     value = default_value
                 else:
@@ -160,7 +172,9 @@ class DictConfig(Container):
 
     __marker = object()
 
-    def pop(self, key, default=__marker):
+    def pop(self, key: Union[str, Enum], default: Any = __marker) -> Any:
+        if isinstance(key, Enum):
+            key = key.name
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
         val = self.content.pop(key, default)
@@ -168,26 +182,33 @@ class DictConfig(Container):
             raise KeyError(key)
         return val
 
-    def keys(self):
+    def keys(self) -> Any:
         return self.content.keys()
 
-    def __contains__(self, key):
+    def __contains__(self, key: Union[str, Enum]) -> bool:
         """
         A key is contained in a DictConfig if there is an associated value and
         it is not a mandatory missing value ('???').
         :param key:
         :return:
         """
+
+        str_key: str
+        if isinstance(key, Enum):
+            str_key = key.name
+        else:
+            str_key = key
+
         try:
-            node = self.get_node(key)
-        except KeyError:
+            node: Optional[Node] = self.get_node(str_key)
+        except (KeyError, AttributeError):
             node = None
 
         if node is None:
             return False
         else:
             try:
-                self._resolve_with_default(key, node, None)
+                self._resolve_with_default(str_key, node, None)
                 return True
             except UnsupportedInterpolationType:
                 # Value that has unsupported interpolation counts as existing.
@@ -195,26 +216,28 @@ class DictConfig(Container):
             except (MissingMandatoryValue, KeyError):
                 return False
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.keys())
 
-    def items(self, resolve=True, keys=None):
-        class MyItems(object):
-            def __init__(self, m):
+    def items(
+        self, resolve: bool = True, keys: Optional[List[str]] = None
+    ) -> Iterator[Any]:
+        class MyItems(Iterator[Any]):
+            def __init__(self, m: DictConfig) -> None:
                 self.map = m
                 self.iterator = iter(m)
 
-            def __iter__(self):
+            def __iter__(self) -> Iterator[Any]:
                 return self
 
-            def __next__(self):
+            def __next__(self) -> Tuple[str, Any]:
                 k, v = self._next_pair()
                 if keys is not None:
                     while k not in keys:
                         k, v = self._next_pair()
                 return k, v
 
-            def _next_pair(self):
+            def _next_pair(self) -> Tuple[str, Any]:
                 k = next(self.iterator)
                 if resolve:
                     v = self.map.get(k)
@@ -227,24 +250,23 @@ class DictConfig(Container):
 
         return MyItems(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, dict):
-            return Container._dict_conf_eq(self, DictConfig(other))
+            return BaseContainer._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
-            return Container._dict_conf_eq(self, other)
+            return BaseContainer._dict_conf_eq(self, other)
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         x = self.__eq__(other)
         if x is not NotImplemented:
             return not x
         return NotImplemented
 
-    def __hash__(self):
-        # TODO: should actually iterate
+    def __hash__(self) -> int:
         return hash(str(self))
 
-    def _validate_access(self, key):
+    def _validate_access(self, key: str) -> None:
         is_typed = self.__dict__["_type"] is not None
         is_closed = self._get_flag("struct") is True
         node_open = self._get_node_flag("struct") is False
@@ -252,13 +274,15 @@ class DictConfig(Container):
             if is_typed and node_open:
                 return
             if is_typed or is_closed:
-                raise KeyError(
-                    "Accessing unknown key in a struct : {}".format(
-                        self.get_full_key(key)
-                    )
+                msg = "Accessing unknown key in a struct : {}".format(
+                    self.get_full_key(key)
                 )
+                if is_closed:
+                    raise AttributeError(msg)
+                else:
+                    raise KeyError(msg)
 
-    def _validate_type(self, key, value):
+    def _validate_type(self, key: str, value: Any) -> None:
         if self.__dict__["_type"] is not None:
             child = self.get_node(key)
             if child is None:

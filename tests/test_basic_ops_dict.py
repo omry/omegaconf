@@ -1,19 +1,26 @@
-import tempfile
-
-import pytest
 import re
+import tempfile
+from enum import Enum
 from typing import Any
 
+import pytest  # type: ignore
+
 from omegaconf import (
-    OmegaConf,
-    MissingMandatoryValue,
-    UnsupportedValueType,
-    UnsupportedKeyType,
-    DictConfig,
     AnyNode,
-    Container,
+    BaseContainer,
+    DictConfig,
+    MissingMandatoryValue,
+    OmegaConf,
+    UnsupportedKeyType,
+    UnsupportedValueType,
 )
+
 from . import IllegalType
+
+
+class Enum1(Enum):
+    FOO = 1
+    BAR = 2
 
 
 def test_setattr_deep_value():
@@ -208,6 +215,17 @@ def test_dict_pop():
         c.pop("not_found")
 
 
+def test_dict_enum_pop():
+
+    c = OmegaConf.create({Enum1.FOO: "bar"})
+    with pytest.raises(KeyError):
+        c.pop(Enum1.BAR)
+
+    assert c.pop(Enum1.FOO) == "bar"
+    with pytest.raises(KeyError):
+        c.pop(Enum1.FOO)
+
+
 @pytest.mark.parametrize(
     "conf,key,expected",
     [
@@ -221,6 +239,7 @@ def test_dict_pop():
         ({"a": "${unknown_resolver:bar}"}, "a", True),
         ({"a": None, "b": "${a}"}, "b", True),
         ({"a": "cat", "b": "${a}"}, "b", True),
+        ({Enum1.FOO: 1, "b": {}}, Enum1.FOO, True),
     ],
 )
 def test_in_dict(conf, key, expected):
@@ -318,8 +337,8 @@ def test_pretty_with_resolve():
 
 
 def test_instantiate_config_fails():
-    with pytest.raises(NotImplementedError):
-        Container(element_type=Any, parent=None)
+    with pytest.raises(TypeError):
+        BaseContainer(element_type=Any, parent=None)
 
 
 def test_dir():
@@ -407,7 +426,7 @@ def test_dict_not_eq(input1, input2):
 def test_config_eq_mismatch_types():
     c1 = OmegaConf.create({})
     c2 = OmegaConf.create([])
-    assert not Container._config_eq(c1, c2)
+    assert not BaseContainer._config_eq(c1, c2)
 
 
 def test_dict_not_eq_with_another_class():
@@ -477,3 +496,10 @@ def test_get_with_invalid_key():
     cfg = OmegaConf.create()
     with pytest.raises(UnsupportedKeyType):
         cfg[1]
+
+
+def test_hasattr():
+    cfg = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_struct(cfg, True)
+    assert hasattr(cfg, "foo")
+    assert not hasattr(cfg, "buz")

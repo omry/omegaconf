@@ -1,15 +1,15 @@
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Dict, List, Optional
 
 import pytest
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional
 
 from omegaconf import (
-    OmegaConf,
-    ValidationError,
-    MissingMandatoryValue,
-    ReadonlyConfigError,
     MISSING,
+    MissingMandatoryValue,
+    OmegaConf,
+    ReadonlyConfigError,
+    ValidationError,
 )
 
 
@@ -132,7 +132,7 @@ class User:
 class Group:
     name: str = MISSING
     # data classes can be nested
-    admin: User = User
+    admin: User = User  # type: ignore
 
     # You can also specify different defaults for nested classes
     manager: User = User(name="manager", height=Height.TALL)

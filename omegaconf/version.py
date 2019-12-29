@@ -1,4 +1,4 @@
-import sys
+import sys  # pragma: no cover
 
 __version__ = "2.0.0rc1"
 
@@ -10,4 +10,4 @@ You have the following options:
     You can pip install 'OmegaConf<1.5' to do that.
 """
 if sys.version_info < (3, 6):
-    raise ImportError(msg)
+    raise ImportError(msg)  # pragma: no cover

@@ -1,17 +1,20 @@
 """Testing for OmegaConf"""
+import re
 import sys
 
 import pytest
-import re
 
 from omegaconf import OmegaConf
 from omegaconf.errors import UnsupportedValueType
+
 from . import IllegalType
 
 
 @pytest.mark.parametrize(
     "input_,expected",
     [
+        # empty
+        (None, {}),
         # simple value
         ("hello", {"hello": None}),
         # simple key:value"
@@ -32,6 +35,7 @@ from . import IllegalType
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
         ),
+        (OmegaConf.create(), {}),
         (OmegaConf.create({}), {}),
         (OmegaConf.create([]), []),
         (OmegaConf.create({"foo": OmegaConf.create([])}), {"foo": []}),

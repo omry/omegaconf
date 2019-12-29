@@ -1,9 +1,11 @@
-import pytest
 import re
 
-from omegaconf import OmegaConf, AnyNode, ListConfig, DictConfig
-from omegaconf.errors import UnsupportedValueType, UnsupportedKeyType
+import pytest
+
+from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
+from omegaconf.errors import UnsupportedKeyType, UnsupportedValueType
 from omegaconf.nodes import IntegerNode, StringNode
+
 from . import IllegalType, does_not_raise
 
 
@@ -116,21 +118,6 @@ def test_list_delitem():
 def test_list_len():
     c = OmegaConf.create([1, 2])
     assert len(c) == 2
-
-
-@pytest.mark.parametrize(
-    "parent, index, value, expected",
-    [
-        ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
-        ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
-        ({}, "foo", ["a", "b"], {"foo": ["a", "b"]}),
-        ({}, "foo", ("a", "b"), {"foo": ["a", "b"]}),
-    ],
-)
-def test_assign(parent, index, value, expected):
-    c = OmegaConf.create(parent)
-    c[index] = value
-    assert c == expected
 
 
 def test_nested_list_assign_illegal_value():

@@ -4,15 +4,15 @@ omit =
     *tests*
     docs/*
     omegaconf/version.py
+    .stubs
 
 [report]
-# Don't complain if tests don't hit defensive assertion code:
 exclude_lines =
     pragma: no cover
     raise AssertionError
     raise NotImplementedError
-    return NotImplemented
     raise TypeError
+    return NotImplemented
     assert False
     @abstractmethod
 

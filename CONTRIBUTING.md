@@ -24,3 +24,5 @@ Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
 To run a specific session use `-s`, for example `nox -s lint` will run linting
 
 OmegaConf is formatted with black, to format your code automatically use `black .`
+
+Imports are sorted using isort, use `isort -y` to sort all imports prior to pushing.

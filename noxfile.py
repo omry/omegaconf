@@ -1,5 +1,7 @@
-import nox
+# type: ignore
 import os
+
+import nox
 
 DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8"]
 
@@ -41,7 +43,7 @@ def coverage(session):
     session.run("coverage", "erase")
 
 
-@nox.session(python="3.6")
+@nox.session(python=PYTHON_VERSIONS)
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", ".[lint]", silent=True)
@@ -50,6 +52,11 @@ def lint(session):
     session.install("black")
     # if this fails you need to format your code with black
     session.run("black", "--check", ".")
+
+    session.run("mypy", "tests")
+    session.run("mypy", "omegaconf", "--strict")
+
+    session.run("isort", "--check")
 
 
 @nox.session(python=PYTHON_VERSIONS)

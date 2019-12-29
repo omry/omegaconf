@@ -1,33 +1,21 @@
 import copy
 from enum import Enum
-
-import pytest
 from typing import Any
 
+import pytest
+
 from omegaconf import (
-    StringNode,
-    IntegerNode,
+    AnyNode,
+    BooleanNode,
+    DictConfig,
     EnumNode,
     FloatNode,
-    BooleanNode,
-    AnyNode,
-    ValueNode,
+    IntegerNode,
     ListConfig,
-    DictConfig,
     OmegaConf,
+    StringNode,
 )
-
-# noinspection PyProtectedMember
-from omegaconf._utils import _node_wrap
 from omegaconf.errors import ValidationError
-
-
-def test_base_node():
-    b = ValueNode(parent=None, is_optional=True)
-    assert b.value() is None
-    assert b._get_parent() is None
-    with pytest.raises(NotImplementedError):
-        b.set_value(10)
 
 
 # testing valid conversions
@@ -118,15 +106,32 @@ def test_assigned_value_node_type(input_, expected_type):
     assert type(c.get_node("foo")) == expected_type
 
 
+def test_get_node_no_validate_access():
+    c = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_struct(c, True)
+    with pytest.raises(AttributeError):
+        c.get_node("zoo", validate_access=True)
+
+    assert c.get_node("zoo", validate_access=False) is None
+
+    assert (
+        c.get_node("zoo", validate_access=False, default_value="default") == "default"
+    )
+
+
 # dict
 def test_dict_any():
     c = OmegaConf.create()
     # default type is Any
     c.foo = 10
+    c[Enum1.FOO] = "bar"
+
     assert c.foo == 10
     assert type(c.get_node("foo")) == AnyNode
     c.foo = "string"
     assert c.foo == "string"
+
+    assert type(c.get_node(Enum1.FOO)) == AnyNode
 
 
 def test_dict_integer_1():
@@ -364,6 +369,8 @@ class DummyEnum(Enum):
     ],
 )
 def test_node_wrap(type_, is_optional, value, expected_type):
+    from omegaconf.omegaconf import _node_wrap
+
     ret = _node_wrap(type_=type_, value=value, is_optional=is_optional, parent=None)
     assert type(ret) == expected_type
     assert ret == value
@@ -378,6 +385,8 @@ def test_node_wrap(type_, is_optional, value, expected_type):
 def test_node_wrap_illegal_type():
     class UserClass:
         pass
+
+    from omegaconf.omegaconf import _node_wrap
 
     with pytest.raises(ValueError):
         _node_wrap(type_=UserClass, value=UserClass(), is_optional=False, parent=None)

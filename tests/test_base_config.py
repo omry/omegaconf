@@ -3,19 +3,19 @@ import copy
 import pytest
 
 from omegaconf import (
-    OmegaConf,
     MISSING,
+    DictConfig,
     IntegerNode,
+    ListConfig,
+    OmegaConf,
+    ReadonlyConfigError,
     StringNode,
     ValidationError,
-    Container,
-    ListConfig,
-    DictConfig,
-    ReadonlyConfigError,
-    read_write,
-    open_dict,
     flag_override,
+    open_dict,
+    read_write,
 )
+
 from . import does_not_raise
 
 
@@ -210,7 +210,7 @@ class TestDeepCopy:
         if isinstance(c2, ListConfig):
             c2.append(1000)
         elif isinstance(c2, DictConfig):
-            with pytest.raises(KeyError):
+            with pytest.raises(AttributeError):
                 c2.foo = "bar"
 
 
@@ -238,7 +238,7 @@ def test_deepcopy_and_merge_and_flags():
     )
     OmegaConf.set_struct(c1, True)
     c2 = copy.deepcopy(c1)
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
@@ -262,7 +262,7 @@ def test_deepcopy_preserves_container_type(cfg):
             "struct",
             False,
             lambda c: c.__setitem__("foo", 1),
-            pytest.raises(KeyError),
+            pytest.raises(AttributeError),
         ),
         (
             {},
@@ -325,7 +325,7 @@ def test_tokenize_with_escapes(string, tokenized):
 
 @pytest.mark.parametrize(
     "src, func, expectation",
-    [({}, lambda c: c.__setattr__("foo", 1), pytest.raises(KeyError))],
+    [({}, lambda c: c.__setattr__("foo", 1), pytest.raises(AttributeError))],
 )
 def test_struct_override(src, func, expectation):
     c = OmegaConf.create(src)
@@ -396,27 +396,7 @@ class TestCopy:
         assert id(cfg[0]) == id(cp[0])
 
 
-def test_not_implemented(mocker):
-    mocker.patch("omegaconf.Container.__init__", lambda self: None)
-    obj = Container()
-    with pytest.raises(NotImplementedError):
-        obj == "foo"
-
-    with pytest.raises(NotImplementedError):
-        obj != "foo"
-
-    with pytest.raises(NotImplementedError):
-        iter(obj)
-
-    with pytest.raises(NotImplementedError):
-        hash(obj)
-
-    with pytest.raises(NotImplementedError):
-        obj.get_node("foo")
-
-    with pytest.raises(NotImplementedError):
-        obj.get("foo")
-
+def test_not_implemented():
     with pytest.raises(NotImplementedError):
         OmegaConf()
 
@@ -466,3 +446,20 @@ def test_is_config(cfg, is_conf, is_list, is_dict):
     assert OmegaConf.is_config(cfg) == is_conf
     assert OmegaConf.is_list(cfg) == is_list
     assert OmegaConf.is_dict(cfg) == is_dict
+
+
+@pytest.mark.parametrize(
+    "parent, index, value, expected",
+    [
+        ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
+        ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
+        ([None], 0, OmegaConf.create({"foo": "bar"}), [{"foo": "bar"}]),
+        ({}, "foo", ["a", "b"], {"foo": ["a", "b"]}),
+        ({}, "foo", ("a", "b"), {"foo": ["a", "b"]}),
+        ({}, "foo", OmegaConf.create({"foo": "bar"}), {"foo": {"foo": "bar"}}),
+    ],
+)
+def test_assign(parent, index, value, expected):
+    c = OmegaConf.create(parent)
+    c[index] = value
+    assert c == expected

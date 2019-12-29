@@ -1,8 +1,9 @@
-import pytest
 import re
+
+import pytest
 from pytest import raises
 
-from omegaconf import ReadonlyConfigError, OmegaConf
+from omegaconf import OmegaConf, ReadonlyConfigError
 
 
 @pytest.mark.parametrize(

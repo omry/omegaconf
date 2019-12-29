@@ -1,8 +1,9 @@
-import pytest
 from dataclasses import dataclass, field
 from typing import Dict
 
-from omegaconf import OmegaConf, nodes, MISSING
+import pytest
+
+from omegaconf import MISSING, OmegaConf, nodes
 
 
 @dataclass
@@ -85,6 +86,13 @@ def test_merge(inputs, expected):
         orig = OmegaConf.to_container(input_i, resolve=False)
         merged = OmegaConf.to_container(configs[i], resolve=False)
         assert orig == merged
+
+
+def test_primitive_dicts():
+    c1 = {"a": 10}
+    c2 = {"b": 20}
+    merged = OmegaConf.merge(c1, c2)
+    assert merged == {"a": 10, "b": 20}
 
 
 # like above but don't verify merge does not change because even eq does not work no tuples because we convert
