@@ -286,7 +286,7 @@ class Container(Node):
 
         return Container._to_content(self, resolve)
 
-    def pretty(self, resolve=False):
+    def pretty(self, resolve=False, allow_unicode=True):
         from omegaconf import OmegaConf
 
         """
@@ -296,7 +296,7 @@ class Container(Node):
         :return: A string containing the yaml representation.
         """
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
-        return yaml.dump(container, default_flow_style=False)
+        return yaml.dump(container, default_flow_style=False, allow_unicode=allow_unicode)
 
     @staticmethod
     def _map_merge(dest, src):
