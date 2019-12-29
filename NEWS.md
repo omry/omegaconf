@@ -1,3 +1,31 @@
+## 2.0.0rc1 (2019-12-29)
+
+OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal
+data model and renaming some classes. As such it may require changes to client code in rare cases.
+
+Features
+--------
+
+- Add support for initializing OmegaConf from a attr class or instance ([#87](https://github.com/omry/omegaconf/issues/87))
+- Supporting Enums as values and keys ([#87](https://github.com/omry/omegaconf/issues/87))
+- Add OmegaConf.{is_config, is_list, is_dict} to test if an Object is an OmegaConf object, and if it's a list or a dict ([#101](https://github.com/omry/omegaconf/issues/101))
+- Add OmegaConf.is_missing(cfg, key) to test if a key is missing ('???') in a config ([#102](https://github.com/omry/omegaconf/issues/102))
+- OmegaConf now passes strict mypy tests ([#105](https://github.com/omry/omegaconf/issues/105))
+- Add isort to ensure imports are kept sorted ([#107](https://github.com/omry/omegaconf/issues/107))
+
+Bug Fixes
+---------
+
+- In struct mode, accessing a missing key now raises AttributeError and not KeyError ([#94](https://github.com/omry/omegaconf/issues/94))
+- Disable automatic conversion of date strings in yaml decoding ([#95](https://github.com/omry/omegaconf/issues/95))
+
+Deprecations and Removals
+-------------------------
+
+- Renamed omegaconf.Config to omegaconf.Container ([#103](https://github.com/omry/omegaconf/issues/103))
+- Dropped support Python 2.7 and 3.5 ([#88](https://github.com/omry/omegaconf/issues/88))
+
+
 ## 1.4.0 (2019-11-19)
 
 
