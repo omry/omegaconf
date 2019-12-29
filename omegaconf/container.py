@@ -286,7 +286,7 @@ class Container(Node):
 
         return Container._to_content(self, resolve)
 
-    def pretty(self, resolve=False, allow_unicode=True):
+    def pretty(self, resolve=False):
         from omegaconf import OmegaConf
 
         """
