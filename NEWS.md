@@ -6,7 +6,7 @@ data model and renaming some classes. As such it may require changes to client c
 Features
 --------
 
-- Add support for initializing OmegaConf from a attr class or instance ([#87](https://github.com/omry/omegaconf/issues/87))
+- Add support for initializing OmegaConf from dataclass or instance ([#87](https://github.com/omry/omegaconf/issues/87))
 - Supporting Enums as values and keys ([#87](https://github.com/omry/omegaconf/issues/87))
 - Add OmegaConf.{is_config, is_list, is_dict} to test if an Object is an OmegaConf object, and if it's a list or a dict ([#101](https://github.com/omry/omegaconf/issues/101))
 - Add OmegaConf.is_missing(cfg, key) to test if a key is missing ('???') in a config ([#102](https://github.com/omry/omegaconf/issues/102))
