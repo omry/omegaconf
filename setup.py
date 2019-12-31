@@ -77,4 +77,5 @@ with open("README.md", "r") as fh:
             "coverage": ["coveralls"],
             "lint": ["pytest", "black", "flake8", "mypy", "isort"],
         },
+        package_data={"omegaconf": ["py.typed"]},
     )
