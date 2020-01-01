@@ -3,15 +3,14 @@ import io
 import os
 import tempfile
 
+from omegaconf import DictConfig, OmegaConf
 from pytest import raises
 
-from omegaconf import OmegaConf
 
-
-def save_load_file_deprecated(conf):
+def save_load_file_deprecated(conf: DictConfig) -> None:
     try:
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
-            conf.save(fp.file)
+            conf.save(fp.file)  # type: ignore
         with io.open(os.path.abspath(fp.name), "rt") as handle:
             c2 = OmegaConf.load(handle)
         assert conf == c2
@@ -19,7 +18,7 @@ def save_load_file_deprecated(conf):
         os.unlink(fp.name)
 
 
-def save_load_filename(conf):
+def save_load_filename(conf: DictConfig) -> None:
     # note that delete=False here is a work around windows incompetence.
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
@@ -31,12 +30,10 @@ def save_load_filename(conf):
 
 
 # Test deprecated config.save()
-
-
-def save_load__from_file_deprecated(conf):
+def save_load__from_file_deprecated(conf: DictConfig) -> None:
     try:
         with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fp:
-            conf.save(fp.file)
+            conf.save(fp.file)  # type: ignore
         with io.open(os.path.abspath(fp.name), "rt") as handle:
             c2 = OmegaConf.load(handle)
         assert conf == c2
@@ -44,7 +41,7 @@ def save_load__from_file_deprecated(conf):
         os.unlink(fp.name)
 
 
-def save_load__from_filename_deprecated(conf):
+def save_load__from_filename_deprecated(conf: DictConfig) -> None:
     # note that delete=False here is a work around windows incompetence.
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
@@ -55,30 +52,42 @@ def save_load__from_filename_deprecated(conf):
         os.unlink(fp.name)
 
 
-def test_save_load_file_deprecated():
-    save_load_file_deprecated(OmegaConf.create(dict(a=10)))
+def test_save_load_file_deprecated() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load_file_deprecated(cfg)
 
 
-def test_save_load_filename_deprecated():
-    save_load_filename(OmegaConf.create(dict(a=10)))
+def test_save_load_filename_deprecated() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load_filename(cfg)
 
 
-def test_save_load__from_file_deprecated():
-    save_load__from_file_deprecated(OmegaConf.create(dict(a=10)))
+def test_save_load__from_file_deprecated() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load__from_file_deprecated(cfg)
 
 
-def test_save_load__from_filename_deprecated():
-    save_load__from_filename_deprecated(OmegaConf.create(dict(a=10)))
+def test_save_load__from_filename_deprecated() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load__from_filename_deprecated(cfg)
 
 
-def test_save_illegal_type_deprecated():
+def test_save_illegal_type_deprecated() -> None:
     with raises(TypeError):
-        OmegaConf.create().save(1000)
+        OmegaConf.create().save(1000)  # type: ignore
 
 
-def test_save_load_file():
-    save_load_file_deprecated(OmegaConf.create(dict(a=10)))
+def test_save_load_file() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load_file_deprecated(cfg)
 
 
-def test_save_load_filename():
-    save_load_filename(OmegaConf.create(dict(a=10)))
+def test_save_load_filename() -> None:
+    cfg = OmegaConf.create(dict(a=10))
+    assert isinstance(cfg, DictConfig)
+    save_load_filename(cfg)

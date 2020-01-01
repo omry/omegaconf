@@ -151,7 +151,8 @@ See :doc:`structured_config` for more details, or keep reading for a minimal exa
     ... class MyConfig:
     ...     port: int = 80
     ...     host: str = "localhost"
-    >>> conf = OmegaConf.create(MyConfig)
+    >>> # For strict typing purposes, prefer OmegaConf.structured() when creating structured configs
+    >>> conf = OmegaConf.structured(MyConfig)
     >>> print(conf.pretty())
     host: localhost
     port: 80
@@ -161,7 +162,7 @@ You can use an object to initialize the config as well:
 
 .. doctest::
 
-    >>> conf = OmegaConf.create(MyConfig(port=443))
+    >>> conf = OmegaConf.structured(MyConfig(port=443))
     >>> print(conf.pretty())
     host: localhost
     port: 443

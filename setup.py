@@ -1,3 +1,4 @@
+# type: ignore
 """
 OmegaConf setup
     Instructions:
@@ -7,7 +8,6 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
-
 import codecs
 import os
 import re
@@ -56,6 +56,7 @@ with open("README.md", "r") as fh:
             "PyYAML",
             # Use dataclasses backport for Python 3.6.
             "dataclasses;python_version=='3.6'",
+            "typing-extensions",
         ],
         # Install development dependencies with
         # pip install -e ".[dev]"
@@ -64,6 +65,7 @@ with open("README.md", "r") as fh:
                 "black",
                 "coveralls",
                 "flake8",
+                "pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes",
                 "pre-commit",
                 "pytest",
                 "pytest-mock",
@@ -72,10 +74,17 @@ with open("README.md", "r") as fh:
                 "twine",
                 "sphinx",
                 "mypy",
-                "isort",
+                "isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort",
             ],
             "coverage": ["coveralls"],
-            "lint": ["pytest", "black", "flake8", "mypy", "isort"],
+            "lint": [
+                "pytest",
+                "black",
+                "flake8",
+                "pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes",
+                "mypy",
+                "isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort",
+            ],
         },
         package_data={"omegaconf": ["py.typed"]},
     )

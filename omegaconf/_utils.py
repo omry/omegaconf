@@ -8,11 +8,13 @@ from .base import Node
 
 try:
     import dataclasses
+
 except ImportError:  # pragma: no cover
     dataclasses = None  # type: ignore # pragma: no cover
 
 try:
     import attr
+
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
@@ -261,10 +263,11 @@ def decode_primitive(s: str) -> Any:
 
 # noinspection PyProtectedMember
 def _re_parent(node: Node) -> None:
-    from .listconfig import ListConfig
     from .dictconfig import DictConfig
+    from .listconfig import ListConfig
 
     # update parents of first level Config nodes to self
+
     assert isinstance(node, Node)
     if isinstance(node, DictConfig):
         for _key, value in node.__dict__["content"].items():
@@ -274,3 +277,19 @@ def _re_parent(node: Node) -> None:
         for item in node.__dict__["content"]:
             item._set_parent(node)
             _re_parent(item)
+
+
+def is_primitive_list(obj: Any) -> bool:
+    from .base import Container
+
+    return not isinstance(obj, Container) and isinstance(obj, (list, tuple))
+
+
+def is_primitive_dict(obj: Any) -> bool:
+    from .base import Container
+
+    return not isinstance(obj, Container) and isinstance(obj, (dict))
+
+
+def is_primitive_container(obj: Any) -> bool:
+    return is_primitive_list(obj) or is_primitive_dict(obj)

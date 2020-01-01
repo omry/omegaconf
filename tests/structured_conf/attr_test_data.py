@@ -1,8 +1,7 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import attr  # noqaE402
-import pytest  # type: ignore
-
+import pytest
 from omegaconf import II, MISSING, SI
 
 from .common import Color
@@ -122,17 +121,13 @@ class EnumConfig:
 
 @attr.s(auto_attribs=True)
 class ConfigWithList:
-    list1: List = [1, 2, 3]
-    list2: list = [1, 2, 3]
-    # tuples are converted to ListConfig
-    list3: tuple = (1, 2, 3)
-    list4: List[int] = [1, 2, 3]
+    list1: List[int] = [1, 2, 3]
+    list2: Tuple[int, int, int] = (1, 2, 3)
 
 
 @attr.s(auto_attribs=True)
 class ConfigWithDict:
-    dict1: Dict = {"foo": "bar"}
-    dict2: dict = {"foo": "bar"}
+    dict1: Dict[str, Any] = {"foo": "bar"}
 
 
 @attr.s(auto_attribs=True)
@@ -230,7 +225,7 @@ class EnumOptional:
 class FrozenClass:
     user: User = User(name="Bart", age=10)
     x: int = 10
-    list: List = [1, 2, 3]
+    list: List[int] = [1, 2, 3]
 
 
 @attr.s(auto_attribs=True)
@@ -267,8 +262,7 @@ class ErrorListUnsupportedValue:
 
 @attr.s(auto_attribs=True)
 class ListExamples:
-    any1: List = [1, "foo"]
-    any2: List[Any] = [1, "foo"]
+    any: List[Any] = [1, "foo"]
     ints: List[int] = [1, 2]
     strings: List[str] = ["foo", "bar"]
     booleans: List[bool] = [True, False]
@@ -277,8 +271,7 @@ class ListExamples:
 
 @attr.s(auto_attribs=True)
 class DictExamples:
-    any1: Dict = {"a": 1, "b": "foo"}
-    any2: Dict[str, Any] = {"a": 1, "b": "foo"}
+    any: Dict[str, Any] = {"a": 1, "b": "foo"}
     ints: Dict[str, int] = {"a": 10, "b": 20}
     strings: Dict[str, str] = {"a": "foo", "b": "bar"}
     booleans: Dict[str, bool] = {"a": True, "b": False}

@@ -49,7 +49,6 @@ class ValueNode(Node):
         return repr(self.val) if hasattr(self, "val") else "__INVALID__"
 
     def __eq__(self, other: Any) -> bool:
-        # TODO: this type ignore makes no sense.
         return self.val == other  # type: ignore
 
     def __ne__(self, other: Any) -> bool:
@@ -135,9 +134,7 @@ class IntegerNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(
-                "Value '{}' could not be converted to Integer".format(value)
-            )
+            raise ValidationError(f"Value '{value}' could not be converted to Integer")
         return val
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "IntegerNode":
@@ -166,9 +163,7 @@ class FloatNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(
-                "Value '{}' could not be converted to float".format(value)
-            )
+            raise ValidationError(f"Value '{value}' could not be converted to float")
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
@@ -223,9 +218,7 @@ class BooleanNode(ValueNode):
                     )
         else:
             raise ValidationError(
-                "Value '{}' is not a valid bool (type {})".format(
-                    value, type(value).__name__
-                )
+                f"Value '{value}' is not a valid bool (type {type(value).__name__})"
             )
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "BooleanNode":
@@ -251,7 +244,7 @@ class EnumNode(ValueNode):
         super().__init__(parent=parent, is_optional=is_optional)
         if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
             raise ValidationError(
-                "EnumNode can only operate on Enum subclasses ({})".format(enum_type)
+                f"EnumNode can only operate on Enum subclasses ({enum_type})"
             )
         self.fields: Dict[str, str] = {}
         self.val = None
@@ -266,9 +259,7 @@ class EnumNode(ValueNode):
         type_ = type(value)
         if not issubclass(type_, self.enum_type) and type_ not in (str, int):
             raise ValidationError(
-                "Value {} ({}) is not a valid input for {}".format(
-                    value, type_, self.enum_type
-                )
+                f"Value {value} ({type_}) is not a valid input for {self.enum_type}"
             )
 
         if isinstance(value, self.enum_type):

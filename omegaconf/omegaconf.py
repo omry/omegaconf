@@ -6,12 +6,32 @@ import re
 import sys
 from contextlib import contextmanager
 from enum import Enum
-from typing import Any, Callable, Dict, Generator, List, Match, Optional, Tuple, Union
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Match,
+    Optional,
+    Tuple,
+    Union,
+    overload,
+)
 
 import yaml
+from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
-from ._utils import decode_primitive, is_structured_config, isint
+from ._utils import (
+    decode_primitive,
+    is_primitive_container,
+    is_primitive_dict,
+    is_primitive_list,
+    is_structured_config,
+    isint,
+)
 from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import MissingMandatoryValue, ValidationError
@@ -43,8 +63,30 @@ def SI(interpolation: str) -> Any:
     :param interpolation: interpolation string
     :return: input interpolation with type Any
     """
-    assert interpolation.find("${") != -1
     return interpolation
+
+
+class Resolver0(Protocol):
+    def __call__(self) -> Any:
+        ...  # pragma: no cover
+
+
+class Resolver1(Protocol):
+    def __call__(self, __x1: str) -> Any:
+        ...  # pragma: no cover
+
+
+class Resolver2(Protocol):
+    def __call__(self, __x1: str, __x2: str) -> Any:
+        ...  # pragma: no cover
+
+
+class Resolver3(Protocol):
+    def __call__(self, __x1: str, __x2: str, __x3: str) -> Any:
+        ...  # pragma: no cover
+
+
+Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
@@ -64,47 +106,85 @@ class OmegaConf:
         raise NotImplementedError("Use one of the static construction functions")
 
     @staticmethod
-    def create(
+    def structured(obj: Any, parent: Optional[BaseContainer] = None) -> DictConfig:
+        assert is_structured_config(obj)
+        ret = OmegaConf.create(obj, parent)
+        assert isinstance(ret, DictConfig)
+        return ret
+
+    @staticmethod
+    @overload
+    def create(  # noqa F811
+        obj: Union[List[Any], Tuple[Any, ...]], parent: Optional[BaseContainer] = None
+    ) -> ListConfig:
+        ...  # pragma: no cover
+
+    @staticmethod
+    @overload
+    def create(  # noqa F811
+        obj: Union[BaseContainer, str], parent: Optional[BaseContainer] = None,
+    ) -> Union[DictConfig, ListConfig]:
+        ...  # pragma: no cover
+
+    @staticmethod
+    @overload
+    def create(  # noqa F811
+        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None,
+    ) -> DictConfig:
+        ...  # pragma: no cover
+
+    @staticmethod
+    def create(  # noqa F811
         obj: Any = None, parent: Optional[BaseContainer] = None
     ) -> Union[DictConfig, ListConfig]:
+        from ._utils import get_yaml_loader
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from ._utils import get_yaml_loader
 
         if isinstance(obj, str):
-            new_obj = yaml.load(obj, Loader=get_yaml_loader())
-            if new_obj is None:
-                new_obj = {}
-            elif isinstance(new_obj, str):
-                new_obj = {obj: None}
-            return OmegaConf.create(new_obj)
+            obj = yaml.load(obj, Loader=get_yaml_loader())
+            new_obj: Dict[str, Any]
+            if obj is None:
+                return OmegaConf.create({})
+            elif isinstance(obj, str):
+                return OmegaConf.create({obj: None})
+            else:
+                assert isinstance(obj, (list, dict))
+                return OmegaConf.create(obj)
+
         else:
             if obj is None:
                 obj = {}
-            if isinstance(obj, BaseContainer):
-                obj = OmegaConf.to_container(obj)
 
-            if isinstance(obj, dict) or is_structured_config(obj):
+            if (
+                is_primitive_dict(obj)
+                or OmegaConf.is_dict(obj)
+                or is_structured_config(obj)
+            ):
                 return DictConfig(obj, parent)
-            elif isinstance(obj, list) or isinstance(obj, tuple):
+            elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                 return ListConfig(obj, parent)
             else:
                 raise ValidationError("Unsupported type {}".format(type(obj).__name__))
 
     @staticmethod
-    def load(file_: str) -> Union[DictConfig, ListConfig]:
+    def load(file_: Union[str, IO[bytes]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
         if isinstance(file_, str):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
-                return OmegaConf.create(yaml.load(f, Loader=get_yaml_loader()))
+                obj = yaml.load(f, Loader=get_yaml_loader())
+                assert isinstance(obj, (list, dict))
+                return OmegaConf.create(obj)
         elif getattr(file_, "read", None):
-            return OmegaConf.create(yaml.load(file_, Loader=get_yaml_loader()))
+            obj = yaml.load(file_, Loader=get_yaml_loader())
+            assert isinstance(obj, (list, dict))
+            return OmegaConf.create(obj)
         else:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    def save(config: BaseContainer, f: str, resolve: bool = False) -> None:
+    def save(config: Container, f: Union[str, IO[str]], resolve: bool = False) -> None:
         """
         Save as configuration object to a file
         :param config: omegaconf.Config object (DictConfig or ListConfig).
@@ -137,17 +217,18 @@ class OmegaConf:
         """
         conf = OmegaConf.create()
         conf.merge_with_dotlist(dotlist)
-        return conf  # type: ignore
+        return conf
 
     @staticmethod
     def merge(
-        *others: Union[BaseContainer, Dict[str, Any], List[Any], Tuple[Any], Any]
-    ) -> BaseContainer:
+        *others: Union[BaseContainer, Dict[str, Any], List[Any], Tuple[Any, ...], Any]
+    ) -> Union[ListConfig, DictConfig]:
         """Merge a list of previously created configs into a single one"""
         assert len(others) > 0
         target = copy.deepcopy(others[0])
-        if isinstance(target, (dict, list, tuple)) or is_structured_config(target):
+        if is_primitive_container(target) or is_structured_config(target):
             target = OmegaConf.create(target)
+        assert isinstance(target, (DictConfig, ListConfig))
         target.merge_with(*others[1:])
         return target
 
@@ -166,7 +247,7 @@ class OmegaConf:
         return [re.sub(r"(\\([ ,]))", lambda x: x.group(2), x) for x in escaped]
 
     @staticmethod
-    def register_resolver(name: str, resolver: Callable[[Any], Any]) -> None:
+    def register_resolver(name: str, resolver: Resolver) -> None:
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
         assert (
@@ -184,6 +265,7 @@ class OmegaConf:
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = caching
 
+    # TODO : improve this API (return type seems wrong)
     # noinspection PyProtectedMember
     @staticmethod
     def get_resolver(name: str) -> Optional[Callable[[Container, Any], Any]]:
@@ -244,12 +326,12 @@ class OmegaConf:
 
         if isinstance(keys, str):
             keys = [keys]
-        content = {key: value for key, value in conf.items(resolve=False, keys=keys)}
+        content = {key: value for key, value in conf.items_ex(resolve=False, keys=keys)}
         return DictConfig(content=content)
 
     @staticmethod
     def to_container(
-        cfg: BaseContainer, resolve: bool = False, enum_to_str: bool = False
+        cfg: Container, resolve: bool = False, enum_to_str: bool = False
     ) -> Union[Dict[str, Any], List[Any]]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
@@ -258,7 +340,7 @@ class OmegaConf:
         :param enum_to_str: True to convert Enum values to strings
         :return: A dict or a list representing this config as a primitive container.
         """
-        assert isinstance(cfg, BaseContainer)
+        assert isinstance(cfg, Container)
         # noinspection PyProtectedMember
         return BaseContainer._to_content(cfg, resolve=resolve, enum_to_str=enum_to_str)
 
@@ -284,9 +366,9 @@ class OmegaConf:
 
     @staticmethod
     def is_config(obj: Any) -> bool:
-        from . import BaseContainer
+        from . import Container
 
-        return isinstance(obj, BaseContainer)
+        return isinstance(obj, Container)
 
 
 # register all default resolvers
@@ -432,8 +514,8 @@ def _maybe_wrap(
 
 
 def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
-    from .listconfig import ListConfig
     from .dictconfig import DictConfig
+    from .listconfig import ListConfig
 
     ret_key: Union[str, int] = key
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
@@ -452,5 +534,7 @@ def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
             val = None
         else:
             val = c[ret_key]
+    else:
+        assert False  # pragma: no cover
 
     return val, ret_key

@@ -1,5 +1,5 @@
-from abc import ABC
-from typing import Optional
+from abc import ABC, abstractmethod
+from typing import Any, Iterator, Optional, Union
 
 
 class Node(ABC):
@@ -12,7 +12,7 @@ class Node(ABC):
         #   set to false: flag is false
         self.__dict__["flags"] = {}
 
-    def _set_parent(self, parent: "Container") -> None:
+    def _set_parent(self, parent: Optional["Container"]) -> None:
         assert parent is None or isinstance(parent, Container)
         self.__dict__["parent"] = parent
 
@@ -60,4 +60,46 @@ class Container(Node):
     Container tagging interface
     """
 
-    pass
+    @abstractmethod
+    def pretty(self, resolve: bool = False) -> str:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def update_node(self, key: str, value: Any = None) -> None:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def select(self, key: str) -> Any:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __delitem__(self, key: Union[str, int, slice]) -> None:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __setitem__(self, key: Any, value: Any) -> None:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def get_node(self, key: Any) -> Node:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __ne__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[str]:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __getitem__(self, key_or_index: Any) -> Any:
+        ...  # pragma: no cover

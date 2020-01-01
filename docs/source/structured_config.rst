@@ -20,7 +20,7 @@ Two types of structures classes that are supported: dataclasses and attr classes
 
 This documentation will use dataclasses, but you can use the annotation `@attr.s(auto_attribs=True)` from attrs instead of `@dataclass`.
 
-Basic usage involves passing in a structured config class or instance to OmegaConf.create(), which will return an OmegaConf config that matches
+Basic usage involves passing in a structured config class or instance to OmegaConf.structured(), which will return an OmegaConf config that matches
 the values and types specified in the input. OmegaConf will validate modifications to the created config object at runtime against the schema specified
 in the input class.
 
@@ -58,8 +58,8 @@ fields during construction.
 
 .. doctest::
 
-    >>> conf1 = OmegaConf.create(SimpleTypes)
-    >>> conf2 = OmegaConf.create(SimpleTypes())
+    >>> conf1 = OmegaConf.structured(SimpleTypes)
+    >>> conf2 = OmegaConf.structured(SimpleTypes())
     >>> # The two configs are identical in this case
     >>> assert conf1 == conf2
     >>> # But the second form allow for easy customization of the values:
@@ -80,7 +80,7 @@ Configs in struct mode rejects attempts to access or set fields that are not alr
 
 .. doctest::
 
-    >>> conf = OmegaConf.create(SimpleTypes)
+    >>> conf = OmegaConf.structured(SimpleTypes)
     >>> with raises(KeyError):
     ...    conf.does_not_exist
 
@@ -91,7 +91,7 @@ Python type annotation can be used by static type checkers like Mypy/Pyre or by 
 
 .. doctest::
 
-    >>> conf: SimpleTypes = OmegaConf.create(SimpleTypes)
+    >>> conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
     >>> # passes static type checking
     >>> assert conf.description == "text"
     >>> with raises(ValidationError):
@@ -155,7 +155,7 @@ Structured configs can be nested.
     ...     # You can also specify different defaults for nested classes
     ...     manager: User = User(name="manager", height=Height.TALL)
 
-    >>> conf : Group = OmegaConf.create(Group)
+    >>> conf : Group = OmegaConf.structured(Group)
     >>> print(conf.pretty())
     admin:
       height: ???
@@ -200,7 +200,7 @@ OmegaConf verifies at runtime that your Lists contains only values of the correc
 
 .. doctest::
 
-    >>> conf : Lists = OmegaConf.create(Lists)
+    >>> conf : Lists = OmegaConf.structured(Lists)
 
     >>> # Okay, 10 is an int
     >>> conf.ints.append(10)
@@ -232,7 +232,7 @@ OmegaConf supports field modifiers such as MISSING and Optional.
     ...     optional_num: Optional[int] = 10
     ...     another_num: int = MISSING
 
-    >>> conf : Modifiers = OmegaConf.create(Modifiers)
+    >>> conf : Modifiers = OmegaConf.structured(Modifiers)
 
 Mandatory missing values
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -283,7 +283,7 @@ To work around it, use SI and II described below.
     ...     # wrapped with ${} automatically.
     ...     c: int = II("val")
 
-    >>> conf : Interpolation = OmegaConf.create(Interpolation)
+    >>> conf : Interpolation = OmegaConf.structured(Interpolation)
     >>> assert conf.a == 100
     >>> assert conf.b == 100
     >>> assert conf.c == 100
@@ -301,7 +301,7 @@ Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-
     ...     x: int = 10
     ...     list: List = field(default_factory=lambda: [1, 2, 3])
 
-    >>> conf = OmegaConf.create(FrozenClass)
+    >>> conf = OmegaConf.structured(FrozenClass)
     >>> with raises(ReadonlyConfigError):
     ...    conf.x = 20
 
@@ -349,7 +349,7 @@ This will cause a validation error when merging the config from the file with th
 
 .. doctest::
 
-    >>> schema = OmegaConf.create(MyConfig)
+    >>> schema = OmegaConf.structured(MyConfig)
     >>> conf = OmegaConf.load("source/example.yaml")
     >>> with raises(ValidationError):
     ...     OmegaConf.merge(schema, conf)

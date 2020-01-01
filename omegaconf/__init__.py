@@ -1,5 +1,4 @@
-from .base import Node
-from .basecontainer import BaseContainer
+from .base import Container, Node
 from .dictconfig import DictConfig
 from .errors import (
     MissingMandatoryValue,
@@ -18,7 +17,16 @@ from .nodes import (
     StringNode,
     ValueNode,
 )
-from .omegaconf import II, MISSING, SI, OmegaConf, flag_override, open_dict, read_write
+from .omegaconf import (
+    II,
+    MISSING,
+    SI,
+    OmegaConf,
+    Resolver,
+    flag_override,
+    open_dict,
+    read_write,
+)
 from .version import __version__
 
 __all__ = [
@@ -28,10 +36,11 @@ __all__ = [
     "ReadonlyConfigError",
     "UnsupportedValueType",
     "UnsupportedKeyType",
-    "BaseContainer",
+    "Container",
     "ListConfig",
     "DictConfig",
     "OmegaConf",
+    "Resolver",
     "flag_override",
     "read_write",
     "open_dict",

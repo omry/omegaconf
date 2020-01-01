@@ -1,10 +1,9 @@
 import copy
 import sys
 import warnings
-from abc import abstractmethod
 from collections import defaultdict
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -13,6 +12,7 @@ from ._utils import (
     _re_parent,
     get_value_kind,
     get_yaml_loader,
+    is_primitive_container,
     is_structured_config,
 )
 from .base import Container, Node
@@ -32,34 +32,6 @@ class BaseContainer(Container):
         self.__dict__["content"] = None
         self.__dict__["_resolver_cache"] = defaultdict(dict)
         self.__dict__["_element_type"] = element_type
-
-    @abstractmethod
-    def __setitem__(self, key: Any, value: Any) -> None:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def get_node(self, key: Any) -> Node:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __ne__(self, other: Any) -> bool:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __iter__(self) -> Iterator[str]:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __getitem__(self, key_or_index: Any) -> Any:
-        ...  # pragma: no cover
 
     def save(self, f: str) -> None:
         warnings.warn(
@@ -94,8 +66,8 @@ class BaseContainer(Container):
         return value
 
     def get_full_key(self, key: str) -> str:
-        from .listconfig import ListConfig
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
 
         full_key: Union[str, int] = ""
         child = None
@@ -179,11 +151,11 @@ class BaseContainer(Container):
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
 
-            self.update(key, value)
+            self.update_node(key, value)
 
-    def update(self, key: str, value: Any = None) -> None:
-        from .listconfig import ListConfig
+    def update_node(self, key: str, value: Any = None) -> None:
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
         from .omegaconf import _select_one
 
         """Updates a dot separated key sequence to a value"""
@@ -244,8 +216,8 @@ class BaseContainer(Container):
     def _to_content(
         conf: Container, resolve: bool, enum_to_str: bool = False
     ) -> Union[Dict[str, Any], List[Any]]:
-        from .listconfig import ListConfig
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
 
         def convert(val: Any) -> Any:
             if enum_to_str:
@@ -257,7 +229,7 @@ class BaseContainer(Container):
         assert isinstance(conf, Container)
         if isinstance(conf, DictConfig):
             retdict: Dict[str, Any] = {}
-            for key, value in conf.items(resolve=resolve):
+            for key, value in conf.items_ex(resolve=resolve):
                 if isinstance(value, Container):
                     retdict[key] = BaseContainer._to_content(
                         value, resolve=resolve, enum_to_str=enum_to_str
@@ -299,7 +271,9 @@ class BaseContainer(Container):
         :return: A string containing the yaml representation.
         """
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
-        return yaml.dump(container, default_flow_style=False, allow_unicode=True)  # type: ignore
+        return yaml.dump(  # type: ignore
+            container, default_flow_style=False, allow_unicode=True
+        )
 
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
@@ -311,7 +285,7 @@ class BaseContainer(Container):
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
 
-        for key, value in src.items(resolve=False):
+        for key, value in src.items_ex(resolve=False):
             dest_type = dest.__dict__["_element_type"]
             typed = dest_type not in (None, Any)
             if (dest.get_node(key) is not None) or typed:
@@ -338,13 +312,13 @@ class BaseContainer(Container):
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
     ) -> None:
-        from .omegaconf import OmegaConf
-        from .listconfig import ListConfig
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
+        from .omegaconf import OmegaConf
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
-            if isinstance(other, (dict, list, tuple)) or is_structured_config(other):
+            if is_primitive_container(other) or is_structured_config(other):
                 other = OmegaConf.create(other)
 
             if other is None:
@@ -414,9 +388,10 @@ class BaseContainer(Container):
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Union[str, int], value: Any) -> None:
         from omegaconf.omegaconf import _maybe_wrap
+
         from .nodes import ValueNode
 
-        must_wrap = isinstance(value, (dict, list))
+        must_wrap = is_primitive_container(value)
         input_config = isinstance(value, Container)
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["content"], dict):
@@ -520,8 +495,8 @@ class BaseContainer(Container):
 
     @staticmethod
     def _config_eq(c1: "BaseContainer", c2: "BaseContainer") -> bool:
-        from .listconfig import ListConfig
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
 
         assert isinstance(c1, Container)
         assert isinstance(c2, Container)

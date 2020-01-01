@@ -1,15 +1,26 @@
 import copy
 import itertools
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    MutableSequence,
+    Optional,
+    Tuple,
+    Union,
+)
 
-from ._utils import _re_parent, isint
+from ._utils import _re_parent, is_primitive_list, isint
 from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import ReadonlyConfigError, UnsupportedKeyType, UnsupportedValueType
 from .nodes import AnyNode, ValueNode
 
 
-class ListConfig(BaseContainer):
+class ListConfig(BaseContainer, MutableSequence[Any]):
     def __init__(
         self,
         content: Union[List[Any], Tuple[Any, ...]],
@@ -18,7 +29,7 @@ class ListConfig(BaseContainer):
     ) -> None:
         super().__init__(parent=parent, element_type=element_type)
         self.__dict__["content"] = []
-        assert isinstance(content, (list, tuple))
+        assert is_primitive_list(content) or isinstance(content, ListConfig)
         for item in content:
             self.append(item)
 
@@ -45,7 +56,7 @@ class ListConfig(BaseContainer):
     def __len__(self) -> int:
         return len(self.content)
 
-    def __getitem__(self, index: int) -> Any:
+    def __getitem__(self, index: Union[int, slice]) -> Any:
         assert isinstance(index, (int, slice))
         if isinstance(index, slice):
             result = []
@@ -62,7 +73,7 @@ class ListConfig(BaseContainer):
                 key=index, value=self.content[index], default_value=None
             )
 
-    def _set_at_index(self, index: int, value: Any) -> None:
+    def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
         if not isinstance(index, int):
             raise UnsupportedKeyType(f"Key type {type(index).__name__} is not an int")
 
@@ -84,7 +95,7 @@ class ListConfig(BaseContainer):
                 )
             )
 
-    def __setitem__(self, index: int, value: Any) -> None:
+    def __setitem__(self, index: Union[int, slice], value: Any) -> None:
         self._set_at_index(index, value)
 
     def append(self, item: Any) -> None:
@@ -118,7 +129,7 @@ class ListConfig(BaseContainer):
             del self.__dict__["content"][index]
             raise
 
-    def extend(self, lst: Union[List[Any], Tuple[Any, ...], "ListConfig"]) -> None:
+    def extend(self, lst: Iterable[Any]) -> None:
         assert isinstance(lst, (tuple, list, ListConfig))
         for x in lst:
             self.append(x)
@@ -129,9 +140,18 @@ class ListConfig(BaseContainer):
     def clear(self) -> None:
         del self[:]
 
-    def index(self, x: Any) -> int:
+    def index(
+        self, x: Any, start: Optional[int] = None, end: Optional[int] = None,
+    ) -> int:
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self)
+        assert start >= 0
+        assert end <= len(self)
         found_idx = -1
-        for idx, item in enumerate(self):
+        for idx in range(start, end):
+            item = self[idx]
             if x == item:
                 found_idx = idx
                 break
@@ -220,9 +240,19 @@ class ListConfig(BaseContainer):
 
         return MyItems(self.content)
 
-    def __add__(self, o: List[Any]) -> "ListConfig":
+    def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
         res = ListConfig(parent=self._get_parent(), content=[])
         res.extend(self)
-        res.extend(o)
+        res.extend(other)
         return res
+
+    def __iadd__(self, other: Iterable[Any]) -> "ListConfig":
+        self.extend(other)
+        return self
+
+    def __contains__(self, item: Any) -> bool:
+        for x in iter(self):
+            if x == item:
+                return True
+        return False

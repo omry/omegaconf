@@ -35,8 +35,7 @@ def coverage(session):
     session.run("pip", "install", ".[coverage]", silent=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
-    # Increase the fail_under as coverage improves
-    session.run("coverage", "report", "--fail-under=95")
+    session.run("coverage", "report", "--fail-under=100")
     # report to coveralls
     session.run("coveralls", success_codes=[0, 1])
 
@@ -53,10 +52,9 @@ def lint(session):
     # if this fails you need to format your code with black
     session.run("black", "--check", ".")
 
-    session.run("mypy", "tests")
-    session.run("mypy", "omegaconf", "--strict")
+    session.run("mypy", ".", "--strict")
 
-    session.run("isort", "--check")
+    session.run("isort", ".", "--check")
 
 
 @nox.session(python=PYTHON_VERSIONS)

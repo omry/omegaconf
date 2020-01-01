@@ -1,10 +1,21 @@
 import copy
 from enum import Enum
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from ._utils import (
     _re_parent,
     get_structured_config_data,
+    is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
 )
@@ -21,7 +32,7 @@ from .errors import (
 from .nodes import ValueNode
 
 
-class DictConfig(BaseContainer):
+class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def __init__(
         self,
         content: Union[Dict[str, Any], Any],
@@ -48,6 +59,10 @@ class DictConfig(BaseContainer):
         else:
             for k, v in content.items():
                 self.__setitem__(k, v)
+
+            if isinstance(content, BaseContainer):
+                for field in ["flags", "_element_type", "_resolver_cache"]:
+                    self.__dict__[field] = copy.deepcopy(content.__dict__[field])
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
@@ -185,7 +200,7 @@ class DictConfig(BaseContainer):
     def keys(self) -> Any:
         return self.content.keys()
 
-    def __contains__(self, key: Union[str, Enum]) -> bool:
+    def __contains__(self, key: object) -> bool:
         """
         A key is contained in a DictConfig if there is an associated value and
         it is not a mandatory missing value ('???').
@@ -197,6 +212,7 @@ class DictConfig(BaseContainer):
         if isinstance(key, Enum):
             str_key = key.name
         else:
+            assert isinstance(key, str)
             str_key = key
 
         try:
@@ -219,9 +235,13 @@ class DictConfig(BaseContainer):
     def __iter__(self) -> Iterator[str]:
         return iter(self.keys())
 
-    def items(
+    # TODO: figure out why this is incompatible with Mapping
+    def items(self) -> Iterator[Tuple[str, Any]]:  # type: ignore
+        return self.items_ex(resolve=True, keys=None)
+
+    def items_ex(
         self, resolve: bool = True, keys: Optional[List[str]] = None
-    ) -> Iterator[Any]:
+    ) -> Iterator[Tuple[str, Any]]:
         class MyItems(Iterator[Any]):
             def __init__(self, m: DictConfig) -> None:
                 self.map = m
@@ -251,7 +271,7 @@ class DictConfig(BaseContainer):
         return MyItems(self)
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, dict):
+        if is_primitive_dict(other):
             return BaseContainer._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
             return BaseContainer._dict_conf_eq(self, other)
@@ -274,9 +294,12 @@ class DictConfig(BaseContainer):
             if is_typed and node_open:
                 return
             if is_typed or is_closed:
-                msg = "Accessing unknown key in a struct : {}".format(
-                    self.get_full_key(key)
-                )
+                if is_typed:
+                    msg = f"Accessing unknown key in {self.__dict__['_type'].__name__} : {self.get_full_key(key)}"
+                else:
+                    msg = "Accessing unknown key in a struct : {}".format(
+                        self.get_full_key(key)
+                    )
                 if is_closed:
                     raise AttributeError(msg)
                 else:
