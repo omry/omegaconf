@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Tuple
 
-import pytest
-from omegaconf import II, MISSING, SI
-
 import attr  # noqaE402
+import pytest
+
+from omegaconf import II, MISSING, SI
 
 from .common import Color
 

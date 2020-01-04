@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Tuple, Type
 
 import pytest
+
 from omegaconf import (
     AnyNode,
     BooleanNode,

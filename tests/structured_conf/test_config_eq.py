@@ -1,6 +1,7 @@
 from typing import Any, List
 
 import pytest
+
 from omegaconf import AnyNode, OmegaConf
 from omegaconf.basecontainer import BaseContainer
 

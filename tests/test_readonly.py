@@ -2,8 +2,9 @@ import re
 from typing import Any, Callable, Dict, List, Union
 
 import pytest
-from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 from pytest import raises
+
+from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 
 
 @pytest.mark.parametrize(  # type: ignore

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field  # noqaE402
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
+
 from omegaconf import II, MISSING, SI
 
 from .common import Color

@@ -3,6 +3,7 @@ from importlib import import_module
 from typing import Any, Dict
 
 import pytest
+
 from omegaconf import (
     AnyNode,
     DictConfig,

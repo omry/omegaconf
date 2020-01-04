@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Any, Dict, List, Union
 
 import pytest
+
 from omegaconf import (
     DictConfig,
     MissingMandatoryValue,
@@ -369,7 +370,8 @@ def test_get_with_default_from_struct_not_throwing() -> None:
 def test_members() -> None:
     # Make sure accessing __members__ does not return None or throw.
     c = OmegaConf.create({"foo": {}})
-    assert c.__members__ == {}
+    with pytest.raises(AttributeError):
+        c.__members__
 
 
 @pytest.mark.parametrize(  # type: ignore

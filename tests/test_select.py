@@ -1,8 +1,9 @@
 from typing import Optional
 
 import pytest
-from omegaconf import OmegaConf
 from pytest import raises
+
+from omegaconf import OmegaConf
 
 
 @pytest.mark.parametrize("struct", [True, False, None])  # type: ignore

@@ -2,8 +2,9 @@ import sys
 from typing import Any, Dict, List, Union
 
 import pytest
-from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 from pytest import raises
+
+from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 
 
 def test_update_map_value() -> None:

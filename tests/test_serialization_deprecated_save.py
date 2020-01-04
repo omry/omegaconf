@@ -3,8 +3,9 @@ import io
 import os
 import tempfile
 
-from omegaconf import DictConfig, OmegaConf
 from pytest import raises
+
+from omegaconf import DictConfig, OmegaConf
 
 
 def save_load_file_deprecated(conf: DictConfig) -> None:

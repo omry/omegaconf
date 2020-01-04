@@ -4,6 +4,7 @@ import sys
 from typing import Any, Dict, List
 
 import pytest
+
 from omegaconf import OmegaConf
 from omegaconf.errors import UnsupportedValueType
 

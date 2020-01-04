@@ -130,14 +130,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param key:
         :return:
         """
-        # PyCharm is sometimes inspecting __members__. returning None or throwing is
-        # confusing it and it prints an error when inspecting this object.
+        # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
         if key == "__members__":
-            return {}
-
-        # Sometimes we get queried for name.
-        if key == "__name__":
-            return None
+            raise AttributeError()
 
         return self.get(key=key, default_value=None)
 

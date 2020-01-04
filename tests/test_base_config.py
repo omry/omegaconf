@@ -2,6 +2,7 @@ import copy
 from typing import Any, Dict, List, Union
 
 import pytest
+
 from omegaconf import (
     MISSING,
     Container,
