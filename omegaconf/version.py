@@ -1,6 +1,6 @@
 import sys  # pragma: no cover
 
-__version__ = "2.0.0rc2"
+__version__ = "2.0.0rc3"
 
 msg = """OmegaConf 2.0 and above is compatible with Python 3.6 and newer.
 You have the following options:

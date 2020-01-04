@@ -11,7 +11,8 @@ repos:
         language: system
         entry: flake8
         types: [python]
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: ''  # Use the revision sha / tag you want to point at
+  # isort to ensure imports remains sorted
+  - repo: https://github.com/timothycrosley/isort
+    rev: 'c54b3dd'
     hooks:
-    - id: isort
+      - id: isort

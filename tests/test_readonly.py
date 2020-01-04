@@ -1,12 +1,12 @@
 import re
+from typing import Any, Callable, Dict, List, Union
 
 import pytest
+from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 from pytest import raises
 
-from omegaconf import OmegaConf, ReadonlyConfigError
 
-
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "src, func, expectation",
     [
         ({}, lambda c: c.__setitem__("a", 1), raises(ReadonlyConfigError, match="a")),
@@ -15,7 +15,11 @@ from omegaconf import OmegaConf, ReadonlyConfigError
             lambda c: c.__getattr__("a").__getattr__("b").__setitem__("c", 1),
             raises(ReadonlyConfigError, match="a.b.c"),
         ),
-        ({}, lambda c: c.update("a.b", 10), raises(ReadonlyConfigError, match="a")),
+        (
+            {},
+            lambda c: c.update_node("a.b", 10),
+            raises(ReadonlyConfigError, match="a"),
+        ),
         (
             dict(a=10),
             lambda c: c.__setattr__("a", 1),
@@ -29,12 +33,18 @@ from omegaconf import OmegaConf, ReadonlyConfigError
         ),
         # list
         ([], lambda c: c.__setitem__(0, 1), raises(ReadonlyConfigError, match="0")),
-        ([], lambda c: c.update("0.b", 10), raises(ReadonlyConfigError, match="[0]")),
+        (
+            [],
+            lambda c: c.update_node("0.b", 10),
+            raises(ReadonlyConfigError, match="[0]"),
+        ),
         ([10], lambda c: c.pop(), raises(ReadonlyConfigError)),
         ([0], lambda c: c.__delitem__(0), raises(ReadonlyConfigError, match="[0]")),
     ],
 )
-def test_readonly(src, func, expectation):
+def test_readonly(
+    src: Union[Dict[str, Any], List[Any]], func: Callable[[Any], Any], expectation: Any
+) -> None:
     c = OmegaConf.create(src)
     OmegaConf.set_readonly(c, True)
     with expectation:
@@ -42,8 +52,8 @@ def test_readonly(src, func, expectation):
     assert c == src
 
 
-@pytest.mark.parametrize("src", [{}, []])
-def test_readonly_flag(src):
+@pytest.mark.parametrize("src", [{}, []])  # type: ignore
+def test_readonly_flag(src: Union[Dict[str, Any], List[Any]]) -> None:
     c = OmegaConf.create(src)
     assert not OmegaConf.is_readonly(c)
     OmegaConf.set_readonly(c, True)
@@ -54,8 +64,9 @@ def test_readonly_flag(src):
     assert not OmegaConf.is_readonly(c)
 
 
-def test_readonly_nested_list():
+def test_readonly_nested_list() -> None:
     c = OmegaConf.create([[1]])
+    assert isinstance(c, ListConfig)
     assert not OmegaConf.is_readonly(c)
     assert not OmegaConf.is_readonly(c[0])
     OmegaConf.set_readonly(c, True)
@@ -72,7 +83,7 @@ def test_readonly_nested_list():
     assert OmegaConf.is_readonly(c[0])
 
 
-def test_readonly_list_insert():
+def test_readonly_list_insert() -> None:
     c = OmegaConf.create([])
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match="[0]"):
@@ -80,16 +91,17 @@ def test_readonly_list_insert():
     assert c == []
 
 
-def test_readonly_list_insert_deep():
-    src = [dict(a=[dict(b=[])])]
+def test_readonly_list_insert_deep() -> None:
+    src: List[Dict[str, Any]] = [dict(a=[dict(b=[])])]
     c = OmegaConf.create(src)
+    assert isinstance(c, ListConfig)
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match=re.escape("[0].a[0].b[0]")):
         c[0].a[0].b.insert(0, 10)
     assert c == src
 
 
-def test_readonly_list_append():
+def test_readonly_list_append() -> None:
     c = OmegaConf.create([])
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match="[0]"):
@@ -97,40 +109,45 @@ def test_readonly_list_append():
     assert c == []
 
 
-def test_readonly_list_change_item():
+def test_readonly_list_change_item() -> None:
     c = OmegaConf.create([1, 2, 3])
+    assert isinstance(c, ListConfig)
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match="[1]"):
         c[1] = 10
     assert c == [1, 2, 3]
 
 
-def test_readonly_list_pop():
+def test_readonly_list_pop() -> None:
     c = OmegaConf.create([1, 2, 3])
+    assert isinstance(c, ListConfig)
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match="[1]"):
         c.pop(1)
     assert c == [1, 2, 3]
 
 
-def test_readonly_list_del():
+def test_readonly_list_del() -> None:
     c = OmegaConf.create([1, 2, 3])
+    assert isinstance(c, ListConfig)
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError, match="[1]"):
         del c[1]
     assert c == [1, 2, 3]
 
 
-def test_readonly_list_sort():
+def test_readonly_list_sort() -> None:
     c = OmegaConf.create([3, 1, 2])
+    assert isinstance(c, ListConfig)
     OmegaConf.set_readonly(c, True)
     with raises(ReadonlyConfigError):
         c.sort()
     assert c == [3, 1, 2]
 
 
-def test_readonly_from_cli():
+def test_readonly_from_cli() -> None:
     c = OmegaConf.create({"foo": {"bar": [1]}})
+    assert isinstance(c, DictConfig)
     OmegaConf.set_readonly(c, True)
     cli = OmegaConf.from_dotlist(["foo.bar=[2]"])
     with raises(ReadonlyConfigError, match="foo.bar"):

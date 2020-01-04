@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 import pytest
-
 from omegaconf import (
     MISSING,
     MissingMandatoryValue,

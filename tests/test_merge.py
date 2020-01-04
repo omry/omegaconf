@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Any, Dict, Tuple
 
 import pytest
-
-from omegaconf import MISSING, OmegaConf, nodes
+from omegaconf import MISSING, DictConfig, OmegaConf, nodes
 
 
 @dataclass
@@ -17,7 +16,7 @@ class Users:
     name2user: Dict[str, User] = field(default_factory=lambda: {})
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
         # dictionaries
@@ -75,7 +74,7 @@ class Users:
         ),
     ],
 )
-def test_merge(inputs, expected):
+def test_merge(inputs: Any, expected: Any) -> None:
     configs = [OmegaConf.create(c) for c in inputs]
     merged = OmegaConf.merge(*configs)
     assert merged == expected
@@ -84,21 +83,21 @@ def test_merge(inputs, expected):
     for i in range(len(inputs)):
         input_i = OmegaConf.create(inputs[i])
         orig = OmegaConf.to_container(input_i, resolve=False)
-        merged = OmegaConf.to_container(configs[i], resolve=False)
-        assert orig == merged
+        merged2 = OmegaConf.to_container(configs[i], resolve=False)
+        assert orig == merged2
 
 
-def test_primitive_dicts():
+def test_primitive_dicts() -> None:
     c1 = {"a": 10}
     c2 = {"b": 20}
     merged = OmegaConf.merge(c1, c2)
     assert merged == {"a": 10, "b": 20}
 
 
-# like above but don't verify merge does not change because even eq does not work no tuples because we convert
-# them to a list
-@pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
-def test_merge_no_eq_verify(a_, b_, expected):
+@pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])  # type: ignore
+def test_merge_no_eq_verify(
+    a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
+) -> None:
     a = OmegaConf.create(a_)
     b = OmegaConf.create(b_)
     c = OmegaConf.merge(a, b)
@@ -106,15 +105,16 @@ def test_merge_no_eq_verify(a_, b_, expected):
     assert expected == c
 
 
-def test_merge_with_1():
+def test_merge_with_1() -> None:
     a = OmegaConf.create()
     b = OmegaConf.create(dict(a=1, b=2))
     a.merge_with(b)
     assert a == b
 
 
-def test_merge_with_2():
+def test_merge_with_2() -> None:
     a = OmegaConf.create()
+    assert isinstance(a, DictConfig)
     a.inner = {}
     b = OmegaConf.create(
         """
@@ -122,11 +122,11 @@ def test_merge_with_2():
     b : 2
     """
     )
-    a.inner.merge_with(b)
+    a.inner.merge_with(b)  # type: ignore
     assert a.inner == b
 
 
-def test_3way_dict_merge():
+def test_3way_dict_merge() -> None:
     c1 = OmegaConf.create("{a: 1, b: 2}")
     c2 = OmegaConf.create("{b: 3}")
     c3 = OmegaConf.create("{a: 2, c: 3}")
@@ -134,14 +134,14 @@ def test_3way_dict_merge():
     assert {"a": 2, "b": 3, "c": 3} == c4
 
 
-def test_merge_list_list():
+def test_merge_list_list() -> None:
     a = OmegaConf.create([1, 2, 3])
     b = OmegaConf.create([4, 5, 6])
     a.merge_with(b)
     assert a == b
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "base, merge, exception",
     [
         ({}, [], TypeError),
@@ -150,17 +150,20 @@ def test_merge_list_list():
         (dict(a=10), None, ValueError),
     ],
 )
-def test_merge_error(base, merge, exception):
+def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
     base = OmegaConf.create(base)
     merge = None if merge is None else OmegaConf.create(merge)
     with pytest.raises(exception):
         OmegaConf.merge(base, merge)
 
 
-def test_parent_maintained():
+def test_parent_maintained() -> None:
     c1 = OmegaConf.create(dict(a=dict(b=10)))
     c2 = OmegaConf.create(dict(aa=dict(bb=100)))
     c3 = OmegaConf.merge(c1, c2)
+    assert isinstance(c1, DictConfig)
+    assert isinstance(c2, DictConfig)
+    assert isinstance(c3, DictConfig)
     assert id(c1.a.parent) == id(c1)
     assert id(c2.aa.parent) == id(c2)
     assert id(c3.a.parent) == id(c3)

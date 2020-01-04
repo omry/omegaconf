@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field  # noqaE402
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-import pytest  # type: ignore
-
+import pytest
 from omegaconf import II, MISSING, SI
 
 from .common import Color
@@ -117,17 +116,13 @@ class EnumConfig:
 
 @dataclass
 class ConfigWithList:
-    list1: List = field(default_factory=lambda: [1, 2, 3])
-    list2: list = field(default_factory=lambda: [1, 2, 3])
-    # tuples are converted to ListConfig
-    list3: tuple = field(default_factory=lambda: (1, 2, 3))
-    list4: List[int] = field(default_factory=lambda: [1, 2, 3])
+    list1: List[int] = field(default_factory=lambda: [1, 2, 3])
+    list2: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
 
 
 @dataclass
 class ConfigWithDict:
-    dict1: Dict = field(default_factory=lambda: {"foo": "bar"})
-    dict2: dict = field(default_factory=lambda: {"foo": "bar"})
+    dict1: Dict[str, Any] = field(default_factory=lambda: {"foo": "bar"})
 
 
 @dataclass
@@ -225,7 +220,7 @@ class EnumOptional:
 class FrozenClass:
     user: User = User(name="Bart", age=10)
     x: int = 10
-    list: List = field(default_factory=lambda: [1, 2, 3])
+    list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
 @dataclass
@@ -268,8 +263,7 @@ class ErrorListUnsupportedStructuredConfig:
 
 @dataclass
 class ListExamples:
-    any1: List = field(default_factory=lambda: [1, "foo"])
-    any2: List[Any] = field(default_factory=lambda: [1, "foo"])
+    any: List[Any] = field(default_factory=lambda: [1, "foo"])
     ints: List[int] = field(default_factory=lambda: [1, 2])
     strings: List[str] = field(default_factory=lambda: ["foo", "bar"])
     booleans: List[bool] = field(default_factory=lambda: [True, False])
@@ -278,8 +272,7 @@ class ListExamples:
 
 @dataclass
 class DictExamples:
-    any1: Dict = field(default_factory=lambda: {"a": 1, "b": "foo"})
-    any2: Dict[str, Any] = field(default_factory=lambda: {"a": 1, "b": "foo"})
+    any: Dict[str, Any] = field(default_factory=lambda: {"a": 1, "b": "foo"})
     ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20})
     strings: Dict[str, str] = field(default_factory=lambda: {"a": "foo", "b": "bar"})
     booleans: Dict[str, bool] = field(default_factory=lambda: {"a": True, "b": False})
