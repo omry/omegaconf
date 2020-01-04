@@ -73,7 +73,7 @@ class Container(Node):
         ...  # pragma: no cover
 
     def get_node(self, key: Any) -> Node:
-        ...
+        ...  # pragma: no cover
 
     @abstractmethod
     def __delitem__(self, key: Union[str, int, slice]) -> None:
