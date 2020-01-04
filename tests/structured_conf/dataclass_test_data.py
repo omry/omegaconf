@@ -2,6 +2,7 @@ from dataclasses import dataclass, field  # noqaE402
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
+
 from omegaconf import II, MISSING, SI
 
 from .common import Color
@@ -178,7 +179,6 @@ class Interpolation:
 
 @dataclass
 class BoolOptional:
-    no_default: Optional[bool]
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
     not_optional: bool = True
@@ -186,7 +186,6 @@ class BoolOptional:
 
 @dataclass
 class IntegerOptional:
-    no_default: Optional[int]
     with_default: Optional[int] = 1
     as_none: Optional[int] = None
     not_optional: int = 1
@@ -194,7 +193,6 @@ class IntegerOptional:
 
 @dataclass
 class FloatOptional:
-    no_default: Optional[float]
     with_default: Optional[float] = 1.0
     as_none: Optional[float] = None
     not_optional: float = 1
@@ -202,7 +200,6 @@ class FloatOptional:
 
 @dataclass
 class StringOptional:
-    no_default: Optional[str]
     with_default: Optional[str] = "foo"
     as_none: Optional[str] = None
     not_optional: str = "foo"
@@ -210,7 +207,6 @@ class StringOptional:
 
 @dataclass
 class EnumOptional:
-    no_default: Optional[Color]
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
     not_optional: Color = Color.BLUE

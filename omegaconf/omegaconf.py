@@ -143,7 +143,6 @@ class OmegaConf:
 
         if isinstance(obj, str):
             obj = yaml.load(obj, Loader=get_yaml_loader())
-            new_obj: Dict[str, Any]
             if obj is None:
                 return OmegaConf.create({})
             elif isinstance(obj, str):
@@ -521,7 +520,7 @@ def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
-        if c.get_node(ret_key, validate_access=False) is not None:
+        if c.get_node_ex(ret_key, validate_access=False) is not None:
             val = c[ret_key]
         else:
             val = None

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Tuple
 
 import pytest
+
 from omegaconf import MISSING, DictConfig, OmegaConf, nodes
 
 

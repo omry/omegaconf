@@ -5,6 +5,7 @@ import tempfile
 from typing import Any, Dict
 
 import pytest
+
 from omegaconf import Container, OmegaConf
 
 

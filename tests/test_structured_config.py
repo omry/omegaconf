@@ -3,6 +3,7 @@ from importlib import import_module
 from typing import Any, Dict
 
 import pytest
+
 from omegaconf import (
     AnyNode,
     DictConfig,
@@ -130,10 +131,7 @@ class TestConfigs:
         module: Any = import_module("tests.structured_conf." + class_type)
 
         def validate(cfg: DictConfig) -> None:
-            assert cfg == {
-                "list1": [1, 2, 3],
-                "list2": [1, 2, 3],
-            }
+            assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3]}
             with pytest.raises(ValidationError):
                 cfg.list1[1] = "foo"
 
@@ -344,9 +342,8 @@ class TestConfigs:
     def test_optional(self, class_type: str, tested_type: str) -> None:
         module: Any = import_module("tests.structured_conf." + class_type)
         input_ = getattr(module, tested_type)
-        obj = input_(no_default=None)
+        obj = input_()
         conf = OmegaConf.structured(input_)
-        assert conf.no_default is None
         assert conf.as_none is None
         assert conf.with_default == obj.with_default
         # assign None to an optional field
@@ -558,7 +555,9 @@ def validate_frozen_impl(conf: DictConfig) -> None:
         conf.user.age = 20
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")  # type: ignore
+@pytest.mark.skipif(  # type: ignore
+    sys.version_info < (3, 6), reason="requires python3.6 or higher"
+)
 def test_attr_frozen() -> None:
     from tests.structured_conf.attr_test_data import FrozenClass
 
@@ -566,7 +565,9 @@ def test_attr_frozen() -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")  # type: ignore
+@pytest.mark.skipif(  # type: ignore
+    sys.version_info < (3, 6), reason="requires python3.6 or higher"
+)
 def test_dataclass_frozen() -> None:
     from tests.structured_conf.dataclass_test_data import FrozenClass
 

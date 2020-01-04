@@ -3,6 +3,7 @@ import re
 from typing import Any, List, Optional
 
 import pytest
+
 from omegaconf import AnyNode, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedKeyType, UnsupportedValueType
 from omegaconf.nodes import IntegerNode, StringNode

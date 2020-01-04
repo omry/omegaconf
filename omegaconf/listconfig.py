@@ -141,7 +141,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         del self[:]
 
     def index(
-        self, x: Any, start: Optional[int] = None, end: Optional[int] = None,
+        self, x: Any, start: Optional[int] = None, end: Optional[int] = None
     ) -> int:
         if start is None:
             start = 0

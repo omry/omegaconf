@@ -19,7 +19,7 @@ def omegaconf(session):
     session.run("pytest")
 
 
-@nox.session(python="3.6")
+@nox.session
 def docs(session):
     session.install("sphinx", "pytest")
     session.install(".")
@@ -28,7 +28,7 @@ def docs(session):
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
 
 
-@nox.session(python="3.6")
+@nox.session
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
     session.install("coverage", "pytest", "pytest-mock")

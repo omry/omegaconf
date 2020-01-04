@@ -3,6 +3,7 @@ import random
 from typing import Any, Dict
 
 import pytest
+
 from omegaconf import DictConfig, ListConfig, OmegaConf, Resolver
 
 
