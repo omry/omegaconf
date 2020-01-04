@@ -459,6 +459,9 @@ def test_deepcopy(obj: Any) -> None:
             AnyNode(value=1, is_optional=False),
             False,
         ),
+        (EnumNode(Enum1), EnumNode(Enum1), True),
+        (EnumNode(Enum1), EnumNode(Enum2), False),
+        (EnumNode(Enum1), "nope", False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
