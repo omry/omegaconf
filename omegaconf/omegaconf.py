@@ -114,22 +114,22 @@ class OmegaConf:
 
     @staticmethod
     @overload
-    def create(  # noqa F811
+    def create(
         obj: Union[List[Any], Tuple[Any, ...]], parent: Optional[BaseContainer] = None
     ) -> ListConfig:
         ...  # pragma: no cover
 
     @staticmethod
     @overload
-    def create(  # noqa F811
-        obj: Union[BaseContainer, str], parent: Optional[BaseContainer] = None,
+    def create(
+        obj: Union[BaseContainer, str], parent: Optional[BaseContainer] = None
     ) -> Union[DictConfig, ListConfig]:
         ...  # pragma: no cover
 
     @staticmethod
     @overload
-    def create(  # noqa F811
-        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None,
+    def create(
+        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None
     ) -> DictConfig:
         ...  # pragma: no cover
 
