@@ -298,3 +298,12 @@ class EnumNode(ValueNode):
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res
+
+    def __eq__(self, other: Any) -> bool:
+        sr = super().__eq__(other)
+        if sr is False:
+            return False
+        if isinstance(other, EnumNode):
+            return self.enum_type == other.enum_type and self.fields == other.fields
+        else:
+            return self.val == other  # type: ignore
