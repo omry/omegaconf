@@ -11,6 +11,7 @@ from .errors import UnsupportedValueType, ValidationError
 
 class ValueNode(Node):
     val = Any
+    is_optional: bool
 
     def __init__(self, parent: Optional[BaseContainer], is_optional: bool):
         super().__init__(parent=parent)
@@ -76,7 +77,6 @@ class AnyNode(ValueNode):
         is_optional: bool = True,
     ):
         super().__init__(parent=parent, is_optional=is_optional)
-        self.is_optional = True
         self.set_value(value)
 
     def validate_and_convert(self, value: Any) -> Any:
@@ -92,6 +92,12 @@ class AnyNode(ValueNode):
         res = AnyNode()
         self._deepcopy_impl(res, memo)
         return res
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, AnyNode):
+            return self.val == other.val and self.is_optional == other.is_optional
+        else:
+            return self.val == other  # type: ignore
 
 
 class StringNode(ValueNode):

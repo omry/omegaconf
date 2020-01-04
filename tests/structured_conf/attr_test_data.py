@@ -1,8 +1,9 @@
 from typing import Any, Dict, List, Optional, Tuple
 
-import attr  # noqaE402
 import pytest
 from omegaconf import II, MISSING, SI
+
+import attr  # noqaE402
 
 from .common import Color
 
@@ -183,7 +184,6 @@ class Interpolation:
 
 @attr.s(auto_attribs=True)
 class BoolOptional:
-    no_default: Optional[bool]
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
     not_optional: bool = True
@@ -191,7 +191,6 @@ class BoolOptional:
 
 @attr.s(auto_attribs=True)
 class IntegerOptional:
-    no_default: Optional[int]
     with_default: Optional[int] = 1
     as_none: Optional[int] = None
     not_optional: int = 1
@@ -199,7 +198,6 @@ class IntegerOptional:
 
 @attr.s(auto_attribs=True)
 class FloatOptional:
-    no_default: Optional[float]
     with_default: Optional[float] = 1.0
     as_none: Optional[float] = None
     not_optional: float = 1
@@ -207,7 +205,6 @@ class FloatOptional:
 
 @attr.s(auto_attribs=True)
 class StringOptional:
-    no_default: Optional[str]
     with_default: Optional[str] = "foo"
     as_none: Optional[str] = None
     not_optional: str = "foo"
@@ -215,7 +212,6 @@ class StringOptional:
 
 @attr.s(auto_attribs=True)
 class EnumOptional:
-    no_default: Optional[Color]
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
     not_optional: Color = Color.BLUE

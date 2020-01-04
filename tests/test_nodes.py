@@ -112,13 +112,12 @@ def test_get_node_no_validate_access() -> None:
     assert isinstance(c, DictConfig)
     OmegaConf.set_struct(c, True)
     with pytest.raises(AttributeError):
-        c.get_node("zoo", validate_access=True)
+        c.get_node_ex("zoo", validate_access=True)
 
-    assert c.get_node("zoo", validate_access=False) is None
+    assert c.get_node_ex("zoo", validate_access=False) is None
 
-    assert (
-        c.get_node("zoo", validate_access=False, default_value="default") == "default"  # type: ignore
-    )
+    val = c.get_node_ex("zoo", validate_access=False, default_value="default")
+    assert val == "default"  # type: ignore
 
 
 # dict
@@ -453,6 +452,12 @@ def test_deepcopy(obj: Any) -> None:
         (BooleanNode(True), None, False),
         (BooleanNode(True), False, False),
         (BooleanNode(False), False, True),
+        (AnyNode(value=1, is_optional=True), AnyNode(value=1, is_optional=True), True),
+        (
+            AnyNode(value=1, is_optional=True),
+            AnyNode(value=1, is_optional=False),
+            False,
+        ),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:

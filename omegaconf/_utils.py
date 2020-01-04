@@ -61,6 +61,9 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
         args = type_.__args__
         if len(args) == 2 and args[1] == type(None):  # noqa E721
             return True, args[0]
+    if type_ is Any:
+        return True, Any
+
     return False, type_
 
 
@@ -81,13 +84,10 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                 if is_nested:
                     value = type_
                 else:
-                    if is_optional:
-                        value = None
-                    else:
-                        raise ValueError(
-                            "Missing default value for {}, to indicate "
-                            "default must be populated later use '???'".format(name)
-                        )
+                    raise ValueError(
+                        "Missing default value for {}, to indicate "
+                        "default must be populated later use '???'".format(name)
+                    )
         if is_nested and value in (None, "???"):
             raise ValueError("Nested value {} must not be None or ???".format(name))
 
@@ -114,13 +114,10 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                 if is_nested:
                     value = type_
                 else:
-                    if is_optional:
-                        value = None
-                    else:
-                        raise ValueError(
-                            "Missing default value for {}, to indicate "
-                            "default must be populated later use '???'".format(name)
-                        )
+                    raise ValueError(
+                        "Missing default value for {}, to indicate "
+                        "default must be populated later use '???'".format(name)
+                    )
         if is_nested and value in (None, "???"):
             raise ValueError("Nested value {} must not be None or ???".format(name))
 

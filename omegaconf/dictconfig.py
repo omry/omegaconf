@@ -158,11 +158,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         return self._resolve_with_default(
             key=key,
-            value=self.get_node(key, default_value),
+            value=self.get_node_ex(key=key, default_value=default_value),
             default_value=default_value,
         )
 
-    def get_node(
+    def get_node(self, key: Union[str, Enum]) -> Node:
+        return self.get_node_ex(key)
+
+    def get_node_ex(
         self,
         key: Union[str, Enum],
         default_value: Any = None,
