@@ -13,6 +13,7 @@ providing a consistent API regardless of how the configuration was created.
 
 ## Documentation
 [1.4 Documentation (stable)](https://omegaconf.readthedocs.io/en/1.4_branch/).
+
 Install with `pip install omegaconf`
 
 [2.0 Documentation (pre-release)](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
