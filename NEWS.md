@@ -1,4 +1,5 @@
-## 2.0.0rc1 (2019-12-29)
+
+## 2.0.0rc3 (2020-01-04)
 
 OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal
 data model and renaming some classes. As such it may require changes to client code in rare cases.
@@ -12,12 +13,14 @@ Features
 - Add OmegaConf.is_missing(cfg, key) to test if a key is missing ('???') in a config ([#102](https://github.com/omry/omegaconf/issues/102))
 - OmegaConf now passes strict mypy tests ([#105](https://github.com/omry/omegaconf/issues/105))
 - Add isort to ensure imports are kept sorted ([#107](https://github.com/omry/omegaconf/issues/107))
+- DictConfig and ListConfig now implements typing.MutableMapping and typing.MutableSequence. ([#114](https://github.com/omry/omegaconf/issues/114))
 
 Bug Fixes
 ---------
 
 - In struct mode, accessing a missing key now raises AttributeError and not KeyError ([#94](https://github.com/omry/omegaconf/issues/94))
 - Disable automatic conversion of date strings in yaml decoding ([#95](https://github.com/omry/omegaconf/issues/95))
+- Fixed pretty to handle strings with unicode characters correctly ([#111](https://github.com/omry/omegaconf/issues/111))
 
 Deprecations and Removals
 -------------------------
