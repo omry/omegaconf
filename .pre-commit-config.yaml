@@ -1,18 +1,17 @@
 repos:
   - repo: local
     hooks:
-      - id: black
-        name: black
-        language: system
-        entry: black
-        types: [python]
       - id: flake8
         name: flake8
         language: system
         entry: flake8
         types: [python]
-  # isort to ensure imports remains sorted
   - repo: https://github.com/timothycrosley/isort
     rev: 'c54b3dd'
     hooks:
       - id: isort
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3.6
