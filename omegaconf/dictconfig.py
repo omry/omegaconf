@@ -1,6 +1,7 @@
 import copy
 from enum import Enum
 from typing import (
+    AbstractSet,
     Any,
     Dict,
     Iterable,
@@ -233,40 +234,25 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def __iter__(self) -> Iterator[str]:
         return iter(self.keys())
 
-    # TODO: figure out why this is incompatible with Mapping
-    def items(self) -> Iterator[Tuple[str, Any]]:  # type: ignore
+    def items(self) -> AbstractSet[Tuple[str, Any]]:
         return self.items_ex(resolve=True, keys=None)
 
     def items_ex(
         self, resolve: bool = True, keys: Optional[List[str]] = None
-    ) -> Iterator[Tuple[str, Any]]:
-        class MyItems(Iterator[Any]):
-            def __init__(self, m: DictConfig) -> None:
-                self.map = m
-                self.iterator = iter(m)
+    ) -> AbstractSet[Tuple[str, Any]]:
+        # Using a dictionary because the keys are ordered
+        items: Dict[Tuple[str, Any], None] = {}
+        for key in self.keys():
+            if resolve:
+                value = self.get(key)
+            else:
+                value = self.__dict__["content"][key]
+                if isinstance(value, ValueNode):
+                    value = value.value()
+            if keys is None or key in keys:
+                items[(key, value)] = None
 
-            def __iter__(self) -> Iterator[Any]:
-                return self
-
-            def __next__(self) -> Tuple[str, Any]:
-                k, v = self._next_pair()
-                if keys is not None:
-                    while k not in keys:
-                        k, v = self._next_pair()
-                return k, v
-
-            def _next_pair(self) -> Tuple[str, Any]:
-                k = next(self.iterator)
-                if resolve:
-                    v = self.map.get(k)
-                else:
-                    v = self.map.content[k]
-                    if isinstance(v, ValueNode):
-                        v = v.value()
-                kv = (k, v)
-                return kv
-
-        return MyItems(self)
+        return items.keys()
 
     def __eq__(self, other: Any) -> bool:
         if is_primitive_dict(other):
