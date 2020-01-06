@@ -1,11 +1,4 @@
 repos:
-  - repo: local
-    hooks:
-      - id: flake8
-        name: flake8
-        language: system
-        entry: flake8
-        types: [python]
   - repo: https://github.com/timothycrosley/isort
     rev: 'c54b3dd'
     hooks:
@@ -15,3 +8,8 @@ repos:
     hooks:
       - id: black
         language_version: python3.6
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.9
+    hooks:
+      - id: flake8
+        additional_dependencies: [-e, git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes]
