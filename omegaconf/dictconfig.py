@@ -9,7 +9,6 @@ from typing import (
     List,
     MutableMapping,
     Optional,
-    Set,
     Tuple,
     Union,
 )
@@ -241,7 +240,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def items_ex(
         self, resolve: bool = True, keys: Optional[List[str]] = None
     ) -> AbstractSet[Tuple[str, Any]]:
-        items: Set[Tuple[str, Any]] = set()
+        # Using a dictionary because the keys are ordered
+        items: Dict[Tuple[str, Any], None] = {}
         for key in self.keys():
             if resolve:
                 value = self.get(key)
@@ -250,9 +250,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 if isinstance(value, ValueNode):
                     value = value.value()
             if keys is None or key in keys:
-                items.add((key, value))
+                items[(key, value)] = None
 
-        return items
+        return items.keys()
 
     def __eq__(self, other: Any) -> bool:
         if is_primitive_dict(other):
