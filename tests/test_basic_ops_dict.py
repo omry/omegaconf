@@ -149,6 +149,12 @@ def test_items() -> None:
     for x in [("a", 2), ("b", 10)]:
         assert x in items
 
+    items2 = iter(c.items())
+    assert next(items2) == ("a", 2)
+    assert next(items2) == ("b", 10)
+    with pytest.raises(StopIteration):
+        next(items2)
+
 
 def test_items2() -> None:
     c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
