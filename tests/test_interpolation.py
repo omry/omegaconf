@@ -314,7 +314,7 @@ def test_incremental_dict_with_interpolation() -> None:
     conf.b = OmegaConf.create()
     assert isinstance(conf.b, DictConfig)
     conf.b.c = "${a}"
-    assert conf.b.c == conf.a  # type: ignore
+    assert conf.b.c == conf.a
 
 
 @pytest.mark.parametrize(  # type: ignore

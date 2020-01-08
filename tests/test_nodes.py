@@ -118,7 +118,7 @@ def test_get_node_no_validate_access() -> None:
     assert c.get_node_ex("zoo", validate_access=False) is None
 
     val = c.get_node_ex("zoo", validate_access=False, default_value="default")
-    assert val == "default"  # type: ignore
+    assert val == "default"
 
 
 # dict
