@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -27,9 +27,9 @@ class SimpleTypes:
     description: str = "text"
 
 
-def test_simple_types_class():
+def test_simple_types_class() -> None:
     # Instantiate from a class
-    conf = OmegaConf.create(SimpleTypes)
+    conf = OmegaConf.structured(SimpleTypes)
     assert conf.num == 10
     assert conf.pi == 3.1415
     assert conf.is_awesome is True
@@ -37,19 +37,19 @@ def test_simple_types_class():
     assert conf.description == "text"
 
 
-def test_static_typing():
-    conf: SimpleTypes = OmegaConf.create(SimpleTypes)
+def test_static_typing() -> None:
+    conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
     assert conf.description == "text"  # passes static type checking
     with pytest.raises(KeyError):
         # This will fail both the static type checking and at runtime
         # noinspection PyStatementEffect
-        conf.no_such_attribute
+        conf.no_such_attribute  # type: ignore
 
 
-def test_simple_types_obj():
+def test_simple_types_obj() -> None:
     # Instantiate from an Object, any value can be overridden
     # at construction
-    conf = OmegaConf.create(SimpleTypes(num=20, pi=3))
+    conf = OmegaConf.structured(SimpleTypes(num=20, pi=3))
     assert conf.num == 20
     assert conf.pi == 3
     # Everything not overridden at construction takes the default value
@@ -58,8 +58,8 @@ def test_simple_types_obj():
     assert conf.description == "text"
 
 
-def test_conversions():
-    conf = OmegaConf.create(SimpleTypes)
+def test_conversions() -> None:
+    conf = OmegaConf.structured(SimpleTypes)
 
     # OmegaConf can convert types at runtime
     conf.num = 20  # ok, type matches
@@ -78,13 +78,13 @@ def test_conversions():
             assert conf.is_awesome == expected
 
     # Enums too
-    for expected, values in {
+    for expected1, values1 in {
         Height.SHORT: [Height.SHORT, "Height.SHORT", "SHORT", 0],
         Height.TALL: [Height.TALL, "Height.TALL", "TALL", 1],
     }.items():
-        for b in values:
+        for b in values1:
             conf.height = b
-            assert conf.height == expected
+            assert conf.height == expected1
 
 
 @dataclass
@@ -100,11 +100,11 @@ class Modifiers:
     another_num: int = MISSING
 
 
-def test_modifiers():
-    conf: Modifiers = OmegaConf.create(Modifiers)
+def test_modifiers() -> None:
+    conf: Modifiers = OmegaConf.structured(Modifiers)
     # regular fields cannot take None
     with pytest.raises(ValidationError):
-        conf.num = None
+        conf.num = None  # type: ignore
 
     # but Optional fields can
     conf.optional_num = None
@@ -138,8 +138,8 @@ class Group:
     manager: User = User(name="manager", height=Height.TALL)
 
 
-def test_nesting():
-    conf = OmegaConf.create(Group)
+def test_nesting() -> None:
+    conf = OmegaConf.structured(Group)
     assert conf == {
         "name": "???",
         "admin": {"name": MISSING, "height": MISSING},
@@ -171,16 +171,16 @@ name: ???
 
 @dataclass
 class Lists:
-    # List without a specified type. can take any primitive type OmegaConf supports:
+    # List with Any as type can take any primitive type OmegaConf supports:
     # int, float, bool, str and Enums as well as Any (which is the same as not having a specified type).
-    untyped_list: List = field(default_factory=lambda: [1, "foo", True])
+    untyped_list: List[Any] = field(default_factory=lambda: [1, "foo", True])
 
     # typed lists can hold int, bool, str, float or enums.
     int_list: List[int] = field(default_factory=lambda: [10, 20, 30])
 
 
-def test_typed_list_runtime_validation():
-    conf = OmegaConf.create(Lists)
+def test_typed_list_runtime_validation() -> None:
+    conf = OmegaConf.structured(Lists)
 
     conf.untyped_list[0] = True  # okay, list can hold any primitive type
 
@@ -197,10 +197,11 @@ def test_typed_list_runtime_validation():
 # Dicts
 @dataclass
 class Dicts:
-    # Dict without specified types.
-    # Key must be a string, value can be any primitive type OmegaConf supports:
+    # Key must be a string or Enum, value can be any primitive type OmegaConf supports:
     # int, float, bool, str and Enums as well as Any (which is the same as not having a specified type).
-    untyped_dict: Dict = field(default_factory=lambda: {"foo": True, "bar": 100})
+    untyped_dict: Dict[str, Any] = field(
+        default_factory=lambda: {"foo": True, "bar": 100}
+    )
 
     # maps string to height Enum
     str_to_height: Dict[str, Height] = field(
@@ -208,8 +209,8 @@ class Dicts:
     )
 
 
-def test_typed_dict_runtime_validation():
-    conf = OmegaConf.create(Dicts)
+def test_typed_dict_runtime_validation() -> None:
+    conf = OmegaConf.structured(Dicts)
     conf.untyped_dict["foo"] = "buzz"  # okay, list can hold any primitive type
     conf.str_to_height["Shorty"] = Height.SHORT  # Okay
     with pytest.raises(ValidationError):
@@ -221,13 +222,13 @@ def test_typed_dict_runtime_validation():
 @dataclass(frozen=True)
 class FrozenClass:
     x: int = 10
-    list: List = field(default_factory=lambda: [1, 2, 3])
+    list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
-def test_frozen():
+def test_frozen() -> None:
     # frozen classes are read only, attempts to modify them at runtime
     # will result in a ReadonlyConfigError
-    conf = OmegaConf.create(FrozenClass)
+    conf = OmegaConf.structured(FrozenClass)
     with pytest.raises(ReadonlyConfigError):
         conf.x = 20
 
@@ -261,8 +262,8 @@ class WebServer:
 
 
 # Test that Enum can be used a dictionary key
-def test_enum_key():
-    conf = OmegaConf.create(WebServer)
+def test_enum_key() -> None:
+    conf = OmegaConf.structured(WebServer)
     # When an Enum is a dictionary key the name of the Enum is actually used
     # as the key
     assert conf.protocol_ports.HTTP == 80
@@ -270,11 +271,11 @@ def test_enum_key():
     assert conf.protocol_ports[Protocol.HTTP] == 80
 
 
-def test_dict_of_objects():
-    conf: WebServer = OmegaConf.create(WebServer)
+def test_dict_of_objects() -> None:
+    conf: WebServer = OmegaConf.structured(WebServer)
     conf.domains["blog"] = Domain(name="blog.example.com", path="/www/blog.example.com")
     with pytest.raises(ValidationError):
-        conf.domains.foo = 10
+        conf.domains.foo = 10  # type: ignore
 
     assert conf.domains["blog"].name == "blog.example.com"
     assert conf.domains["blog"].path == "/www/blog.example.com"
@@ -291,13 +292,13 @@ def test_dict_of_objects():
     }
 
 
-def test_list_of_objects():
-    conf: WebServer = OmegaConf.create(WebServer)
+def test_list_of_objects() -> None:
+    conf: WebServer = OmegaConf.structured(WebServer)
     conf.domains_list.append(
         Domain(name="blog.example.com", path="/www/blog.example.com")
     )
     with pytest.raises(ValidationError):
-        conf.domains_list.append(10)
+        conf.domains_list.append(10)  # type: ignore
 
     assert conf.domains_list[0].name == "blog.example.com"
     assert conf.domains_list[0].path == "/www/blog.example.com"
@@ -314,7 +315,7 @@ def test_list_of_objects():
     }
 
 
-def test_merge():
+def test_merge() -> None:
     @dataclass
     class Config:
         num: int = 10
@@ -331,7 +332,7 @@ domains:
           - HTTPS
 """
 
-    schema: Config = OmegaConf.create(Config)
+    schema: Config = OmegaConf.structured(Config)
     cfg = OmegaConf.create(yaml)
     merged = OmegaConf.merge(schema, cfg)
     assert merged == {
@@ -348,7 +349,7 @@ domains:
     assert OmegaConf.is_missing(merged.domains.blog_website, "path")
 
 
-def test_merge_example():
+def test_merge_example() -> None:
     @dataclass
     class Server:
         port: int = MISSING
@@ -365,7 +366,7 @@ def test_merge_example():
         users: List[str] = field(default_factory=lambda: [])
         numbers: List[int] = field(default_factory=lambda: [])
 
-    schema = OmegaConf.create(MyConfig)
+    schema = OmegaConf.structured(MyConfig)
     with pytest.raises(ValidationError):
         OmegaConf.merge(schema, OmegaConf.create({"log": {"rotation": "foo"}}))
 
