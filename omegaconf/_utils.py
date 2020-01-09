@@ -198,8 +198,10 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     :param return_match_list: True to return the match list as well
     :return: ValueKind
     """
-    if not isinstance(value, str):
-        return ValueKind.VALUE
+    from .nodes import ValueNode
+
+    if isinstance(value, ValueNode):
+        value = value.value()
 
     key_prefix = r"\${(\w+:)?"
     legal_characters = r"([\w\.%_ \\,-]*?)}"
@@ -216,6 +218,9 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
 
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
+
+    if not isinstance(value, str):
+        return ValueKind.VALUE
 
     match_list = list(re.finditer(key_prefix + legal_characters, value))
     if len(match_list) == 0:

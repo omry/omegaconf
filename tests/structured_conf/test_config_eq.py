@@ -44,6 +44,9 @@ from omegaconf.basecontainer import BaseContainer
         # With interpolations
         ([10, "${0}"], [10, 10]),
         (dict(a=12, b="${a}"), dict(a=12, b=12)),
+        # With missing interpolation
+        ([10, "${0}"], [10, 10]),
+        (dict(a="${missing}"), dict(a="${missing}")),
     ],
 )
 def test_list_eq(l1: List[Any], l2: List[Any]) -> None:

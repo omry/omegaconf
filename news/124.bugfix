@@ -1,0 +1,1 @@
+Fix eq fails if object contains unresolveable values

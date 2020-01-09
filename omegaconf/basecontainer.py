@@ -447,14 +447,26 @@ class BaseContainer(Container):
 
         v1 = c1.get_node(k1)
         v2 = c2.get_node(k2)
+        v1_kind = get_value_kind(v1)
+        v2_kind = get_value_kind(v2)
+
         if isinstance(v1, ValueNode):
             v1 = v1.value()
-            if isinstance(v1, str):
-                v1 = c1._resolve_single(v1)
         if isinstance(v2, ValueNode):
             v2 = v2.value()
-            if isinstance(v2, str):
-                v2 = c2._resolve_single(v2)
+
+        # special case for two interpolations. just compare them literally.
+        # This is helping in cases where the two interpolations are not resolvable
+        # but the objects are still considered equal.
+        if v1_kind in (
+            ValueKind.STR_INTERPOLATION,
+            ValueKind.INTERPOLATION,
+        ) and v2_kind in (ValueKind.STR_INTERPOLATION, ValueKind.INTERPOLATION):
+            return True
+        if isinstance(v1, str):
+            v1 = c1._resolve_single(v1)
+        if isinstance(v2, str):
+            v2 = c2._resolve_single(v2)
 
         if isinstance(v1, BaseContainer) and isinstance(v2, BaseContainer):
             if not BaseContainer._config_eq(v1, v2):
