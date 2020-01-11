@@ -1,5 +1,4 @@
-
-## 2.0.0rc3 (2020-01-04)
+## 2.0.0rc4 (2020-01-10)
 
 OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal data model and renaming some classes. As such it may require changes to client code in rare cases.
 
@@ -20,6 +19,9 @@ Bug Fixes
 - In struct mode, accessing a missing key now raises AttributeError and not KeyError ([#94](https://github.com/omry/omegaconf/issues/94))
 - Disable automatic conversion of date strings in yaml decoding ([#95](https://github.com/omry/omegaconf/issues/95))
 - Fixed pretty to handle strings with unicode characters correctly ([#111](https://github.com/omry/omegaconf/issues/111))
+- Fix eq fails if object contains unresolveable values ([#124](https://github.com/omry/omegaconf/issues/124))
+- Correctly throw MissingMandatoryValue on indirect access of missing value ([#99](https://github.com/omry/omegaconf/issues/99))
+
 
 Deprecations and Removals
 -------------------------
