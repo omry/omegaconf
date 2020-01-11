@@ -1,6 +1,5 @@
 ## 2.0.0rc4 (2020-01-10)
 
-
 OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal data model and renaming some classes. As such it may require changes to client code in rare cases.
 
 Features
