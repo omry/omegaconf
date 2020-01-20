@@ -191,10 +191,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             key = key.name
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
-        val = self.content.pop(key, default)
-        if val is self.__marker:
+        value = self._resolve_with_default(
+            key=key, value=self.content.pop(key, default), default_value=default
+        )
+        if value is self.__marker:
             raise KeyError(key)
-        return val
+        return value
 
     def keys(self) -> Any:
         return self.content.keys()
