@@ -1,1 +1,0 @@
-DictConfig pop now returns underlying value and not ValueNode

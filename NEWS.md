@@ -1,4 +1,4 @@
-## 2.0.0rc4 (2020-01-10)
+## 2.0.0rc5 (2020-01-20)
 
 OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal data model and renaming some classes. As such it may require changes to client code in rare cases.
 
@@ -21,6 +21,7 @@ Bug Fixes
 - Fixed pretty to handle strings with unicode characters correctly ([#111](https://github.com/omry/omegaconf/issues/111))
 - Fix eq fails if object contains unresolveable values ([#124](https://github.com/omry/omegaconf/issues/124))
 - Correctly throw MissingMandatoryValue on indirect access of missing value ([#99](https://github.com/omry/omegaconf/issues/99))
+- DictConfig pop now returns underlying value and not ValueNode ([#127](https://github.com/omry/omegaconf/issues/127))
 
 
 Deprecations and Removals
