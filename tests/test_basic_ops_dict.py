@@ -15,7 +15,7 @@ from omegaconf import (
 )
 from omegaconf.basecontainer import BaseContainer
 
-from . import IllegalType
+from . import IllegalType, does_not_raise
 
 
 class Enum1(Enum):
@@ -214,25 +214,40 @@ def test_iterate_dictionary() -> None:
     assert m2 == c
 
 
-def test_dict_pop() -> None:
-    c = OmegaConf.create(dict(a=1, b=2))
-    assert c.pop("a") == 1
-    assert c.pop("not_found", "default") == "default"
-    assert c == {"b": 2}
-    with pytest.raises(KeyError):
-        c.pop("not_found")
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key, default_, expected, expectation",
+    [
+        (dict(a=1, b=2), "a", None, 1, does_not_raise()),
+        (dict(a=1, b=2), "not_found", "default", "default", does_not_raise()),
+        (dict(a=1, b=2), "not_found", None, None, pytest.raises(KeyError)),
+        # Interpolations
+        (dict(a="${b}", b=2), "a", None, 2, does_not_raise()),
+        (dict(a="???", b=2), "a", None, None, pytest.raises(KeyError)),
+        (
+            dict(a="${b}", b="???"),
+            "a",
+            None,
+            None,
+            pytest.raises(MissingMandatoryValue),
+        ),
+        # enum key
+        ({Enum1.FOO: "bar"}, Enum1.FOO, None, "bar", does_not_raise()),
+        ({Enum1.FOO: "bar"}, Enum1.BAR, "default", "default", does_not_raise()),
+        ({Enum1.FOO: "bar"}, Enum1.BAR, None, None, pytest.raises(KeyError)),
+    ],
+)
+def test_dict_pop(
+    cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any, expectation: Any
+) -> None:
+    c = OmegaConf.create(cfg)
+    with expectation:
+        if default_ is not None:
+            val = c.pop(key, default_)
+        else:
+            val = c.pop(key)
 
-
-def test_dict_enum_pop() -> None:
-
-    # TODO: fix this type: ignore
-    c = OmegaConf.create({Enum1.FOO: "bar"})  # type: ignore
-    with pytest.raises(KeyError):
-        c.pop(Enum1.BAR)
-
-    assert c.pop(Enum1.FOO) == "bar"
-    with pytest.raises(KeyError):
-        c.pop(Enum1.FOO)
+        assert val == expected
+        assert type(val) == type(expected)
 
 
 @pytest.mark.parametrize(  # type: ignore
