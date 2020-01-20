@@ -107,10 +107,7 @@ class OmegaConf:
 
     @staticmethod
     def structured(obj: Any, parent: Optional[BaseContainer] = None) -> Any:
-        assert is_structured_config(obj)
-        ret = OmegaConf.create(obj, parent)
-        assert isinstance(ret, DictConfig)
-        return ret
+        return OmegaConf.create(obj, parent)
 
     @staticmethod
     @overload
