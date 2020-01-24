@@ -20,6 +20,7 @@ from .errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
+    ValidationError,
 )
 
 
@@ -410,31 +411,37 @@ class BaseContainer(Container):
                 parent=self,
             )
 
-        if must_wrap:
-            self.__dict__["content"][key] = wrap(value)
-        elif input_node and target_node:
-            # both nodes, replace existing node with new one
-            value._set_parent(self)
-            self.__dict__["content"][key] = value
-        elif not input_node and target_node:
-            # input is not node, can be primitive or config
-            if input_config:
-                value._set_parent(self)
-                self.__dict__["content"][key] = value
-            else:
-                self.__dict__["content"][key].set_value(value)
-        elif input_node and not target_node:
-            # target must be config, replace target with input node
-            value._set_parent(self)
-            self.__dict__["content"][key] = value
-        elif not input_node and not target_node:
-            # target must be config.
-            # input can be primitive or config
-            if input_config:
-                value._set_parent(self)
-                self.__dict__["content"][key] = value
-            else:
+        try:
+
+            if must_wrap:
                 self.__dict__["content"][key] = wrap(value)
+            elif input_node and target_node:
+                # both nodes, replace existing node with new one
+                value._set_parent(self)
+                self.__dict__["content"][key] = value
+            elif not input_node and target_node:
+                # input is not node, can be primitive or config
+                if input_config:
+                    value._set_parent(self)
+                    self.__dict__["content"][key] = value
+                else:
+                    self.__dict__["content"][key].set_value(value)
+            elif input_node and not target_node:
+                # target must be config, replace target with input node
+                value._set_parent(self)
+                self.__dict__["content"][key] = value
+            elif not input_node and not target_node:
+                # target must be config.
+                # input can be primitive or config
+                if input_config:
+                    value._set_parent(self)
+                    self.__dict__["content"][key] = value
+                else:
+                    self.__dict__["content"][key] = wrap(value)
+        except ValidationError as ve:
+            raise ValidationError(
+                f"Error setting '{self.get_full_key(str(key))} = {value}' : {ve}"
+            )
 
     @staticmethod
     def _item_eq(
