@@ -194,6 +194,9 @@ class BaseContainer(Container):
         """
         from .omegaconf import _select_one
 
+        if key == "":
+            return self, "", self
+
         split = key.split(".")
         root = self
         for i in range(len(split) - 1):

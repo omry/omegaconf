@@ -1,0 +1,1 @@
+Container.select(key) now returns the root node when key is ""

@@ -54,3 +54,8 @@ def test_list_select_non_int_key() -> None:
     c = OmegaConf.create([1, 2, 3])
     with raises(TypeError):
         c.select("a")
+
+
+def test_select_empty_string_returns_root() -> None:
+    c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}})
+    assert c.select("") == c
