@@ -1,6 +1,7 @@
 import copy
 import sys
 import warnings
+from abc import ABC
 from collections import defaultdict
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -9,7 +10,6 @@ import yaml
 
 from ._utils import (
     ValueKind,
-    _re_parent,
     get_value_kind,
     get_yaml_loader,
     is_primitive_container,
@@ -24,7 +24,7 @@ from .errors import (
 )
 
 
-class BaseContainer(Container):
+class BaseContainer(Container, ABC):
     # static fields
     _resolvers: Dict[str, Any] = {}
 
@@ -46,7 +46,7 @@ class BaseContainer(Container):
         OmegaConf.save(self, f)
 
     def _resolve_with_default(
-        self, key: Union[str, int], value: Any, default_value: Any = None
+        self, key: Union[str, int, Enum], value: Any, default_value: Any = None
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
         from .nodes import ValueNode
@@ -66,11 +66,11 @@ class BaseContainer(Container):
 
         return value
 
-    def get_full_key(self, key: str) -> str:
+    def get_full_key(self, key: Union[str, Enum, int]) -> str:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
-        full_key: Union[str, int] = ""
+        full_key = ""
         child = None
         parent: Container = self
         while parent is not None:
@@ -90,9 +90,9 @@ class BaseContainer(Container):
             elif isinstance(parent, ListConfig):
                 if child is None:
                     if key == "":
-                        full_key = key
+                        full_key = f"{key}"
                     else:
-                        full_key = "[{}]".format(key)
+                        full_key = f"[{key}]"
                 else:
                     for idx, v in enumerate(parent):
                         if id(v) == id(child):
@@ -339,7 +339,7 @@ class BaseContainer(Container):
                 raise TypeError("Merging DictConfig with ListConfig is not supported")
 
         # recursively correct the parent hierarchy after the merge
-        _re_parent(self)
+        self._re_parent()
 
     @staticmethod
     def _resolve_value(root_node: Container, inter_type: str, inter_key: str) -> Any:
@@ -390,7 +390,7 @@ class BaseContainer(Container):
             return new
 
     # noinspection PyProtectedMember
-    def _set_item_impl(self, key: Union[str, int], value: Any) -> None:
+    def _set_item_impl(self, key: Union[str, Enum, int], value: Any) -> None:
         from omegaconf.omegaconf import _maybe_wrap
 
         from .nodes import ValueNode
@@ -442,6 +442,7 @@ class BaseContainer(Container):
                 else:
                     self.__dict__["content"][key] = wrap(value)
         except ValidationError as ve:
+
             raise ValidationError(
                 f"Error setting '{self.get_full_key(str(key))} = {value}' : {ve}"
             )
@@ -505,12 +506,14 @@ class BaseContainer(Container):
         assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
             return False
-        k1 = sorted(d1.keys())
-        k2 = sorted(d2.keys())
-        if k1 != k2:
-            return False
-        for k in k1:
-            if not BaseContainer._item_eq(d1, k, d2, k):
+        d1keys = sorted(d1.keys(), key=str)
+        d2keys = sorted(d2.keys(), key=str)
+        assert len(d1keys) == len(d2keys)
+        for index, k1 in enumerate(d1keys):
+            k2 = d2keys[index]
+            if k1 != k2:
+                return False
+            if not BaseContainer._item_eq(d1, k1, d2, k2):
                 return False
 
         return True
@@ -528,3 +531,18 @@ class BaseContainer(Container):
             return BaseContainer._list_eq(c1, c2)
         # if type does not match objects are different
         return False
+
+    def _re_parent(self) -> None:
+        from .dictconfig import DictConfig
+        from .listconfig import ListConfig
+
+        # update parents of first level Config nodes to self
+
+        if isinstance(self, DictConfig):
+            for _key, value in self.__dict__["content"].items():
+                value._set_parent(self)
+                BaseContainer._re_parent(value)
+        elif isinstance(self, ListConfig):
+            for item in self.__dict__["content"]:
+                item._set_parent(self)
+                BaseContainer._re_parent(item)

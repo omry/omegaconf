@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Match, Optional, Tuple, Union
 
 import yaml
 
-from .base import Node
+from .errors import KeyValidationError, ValidationError
 
 try:
     import dataclasses
@@ -263,24 +263,6 @@ def decode_primitive(s: str) -> Any:
     return s
 
 
-# noinspection PyProtectedMember
-def _re_parent(node: Node) -> None:
-    from .dictconfig import DictConfig
-    from .listconfig import ListConfig
-
-    # update parents of first level Config nodes to self
-
-    assert isinstance(node, Node)
-    if isinstance(node, DictConfig):
-        for _key, value in node.__dict__["content"].items():
-            value._set_parent(node)
-            _re_parent(value)
-    elif isinstance(node, ListConfig):
-        for item in node.__dict__["content"]:
-            item._set_parent(node)
-            _re_parent(item)
-
-
 def is_primitive_list(obj: Any) -> bool:
     from .base import Container
 
@@ -295,3 +277,49 @@ def is_primitive_dict(obj: Any) -> bool:
 
 def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
+
+
+def _get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
+
+    args = getattr(annotated_type, "__args__", None)
+    if args is None:
+        bases = getattr(annotated_type, "__orig_bases__", None)
+        if bases is not None and len(bases) > 0:
+            args = getattr(bases[0], "__args__", None)
+
+    key_type: Any
+    element_type: Any
+    if annotated_type is Any:
+        key_type = Any
+        element_type = Any
+    else:
+        if args is not None:
+            key_type = args[0]
+            element_type = args[1]
+        else:
+            key_type = Any
+            element_type = Any
+
+    if not _valid_value_annotation_type(element_type) and not is_structured_config(
+        element_type
+    ):
+        raise ValidationError(f"Unsupported value type : {element_type}")
+
+    if not _valid_key_annotation_type(key_type):
+        raise KeyValidationError(f"Unsupported key type {key_type}")
+    return key_type, element_type
+
+
+def _valid_value_annotation_type(type_: Any) -> bool:
+    return type_ is Any or _is_primitive_type(type_) or is_structured_config(type_)
+
+
+def _valid_key_annotation_type(type_: Any) -> bool:
+    return type_ is Any or issubclass(type_, str) or issubclass(type_, Enum)
+
+
+def _is_primitive_type(type_: Any) -> bool:
+    if not isinstance(type_, type):
+        type_ = type(type_)
+
+    return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))

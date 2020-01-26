@@ -5,7 +5,7 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 
-from .common import Color
+from .. import Color
 
 # skip test if dataclasses are not available
 pytest.importorskip("dataclasses")
@@ -298,3 +298,34 @@ class DictOfObjects:
 @dataclass
 class ListOfObjects:
     users: List[User] = field(default_factory=lambda: [User(name="Joe", age=18)])
+
+
+class DictSubclass:
+    @dataclass
+    class Str2Str(Dict[str, str]):
+        pass
+
+    @dataclass
+    class Color2Str(Dict[Color, str]):
+        pass
+
+    @dataclass
+    class Color2Color(Dict[Color, Color]):
+        pass
+
+    @dataclass
+    class Str2User(Dict[str, User]):
+        pass
+
+    @dataclass
+    class Str2StrWithField(Dict[str, str]):
+        foo: str = "bar"
+
+    @dataclass
+    class Str2IntWithStrField(Dict[str, int]):
+        foo: str = "bar"
+
+    class Error:
+        @dataclass
+        class User2Str(Dict[User, str]):
+            pass

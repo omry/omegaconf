@@ -8,9 +8,9 @@ import pytest
 
 from omegaconf import (
     DictConfig,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConf,
-    UnsupportedKeyType,
     UnsupportedValueType,
 )
 from omegaconf.basecontainer import BaseContainer
@@ -424,19 +424,19 @@ def test_masked_copy_is_deep() -> None:
 
 
 def test_creation_with_invalid_key() -> None:
-    with pytest.raises(UnsupportedKeyType):
+    with pytest.raises(KeyValidationError):
         OmegaConf.create({1: "a"})  # type: ignore
 
 
 def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create()
-    with pytest.raises(UnsupportedKeyType):
+    with pytest.raises(KeyValidationError):
         cfg[1] = "a"  # type: ignore
 
 
 def test_get_with_invalid_key() -> None:
     cfg = OmegaConf.create()
-    with pytest.raises(UnsupportedKeyType):
+    with pytest.raises(KeyValidationError):
         cfg[1]  # type: ignore
 
 

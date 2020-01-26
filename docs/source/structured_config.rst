@@ -81,7 +81,7 @@ Configs in struct mode rejects attempts to access or set fields that are not alr
 .. doctest::
 
     >>> conf = OmegaConf.structured(SimpleTypes)
-    >>> with raises(KeyError):
+    >>> with raises(AttributeError):
     ...    conf.does_not_exist
 
 

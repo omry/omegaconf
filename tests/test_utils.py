@@ -5,13 +5,11 @@ from typing import Any, Dict, List
 import attr
 import pytest
 
-# noinspection PyProtectedMember
 from omegaconf import DictConfig, OmegaConf, _utils
 from omegaconf.errors import ValidationError
 from omegaconf.nodes import StringNode
 
-from . import does_not_raise
-from .structured_conf.common import Color
+from . import Color, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -120,7 +118,7 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
-    from omegaconf.omegaconf import _valid_value_annotation_type
+    from omegaconf._utils import _valid_value_annotation_type
 
     assert _valid_value_annotation_type(type_) == expected
 
@@ -219,6 +217,6 @@ def test_re_parent() -> None:
     cfg.get_node("str")._set_parent(None)
     cfg.get_node("list")._set_parent(None)
     cfg.list.get_node(0)._set_parent(None)  # type: ignore
-
-    _utils._re_parent(cfg)
+    # noinspection PyProtectedMember
+    cfg._re_parent()
     validate(cfg)

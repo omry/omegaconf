@@ -80,7 +80,7 @@ class AnyNode(ValueNode):
         self.set_value(value)
 
     def validate_and_convert(self, value: Any) -> Any:
-        from .omegaconf import _is_primitive_type
+        from ._utils import _is_primitive_type
 
         if not _is_primitive_type(value):
             raise UnsupportedValueType(
@@ -259,40 +259,42 @@ class EnumNode(ValueNode):
             self.fields[name] = constant.value
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
+        return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
+
+    @staticmethod
+    def validate_and_convert_to_enum(
+        enum_type: Type[Enum], value: Any
+    ) -> Optional[Enum]:
         if value is None:
             return None
 
-        type_ = type(value)
-        if not issubclass(type_, self.enum_type) and type_ not in (str, int):
+        if not isinstance(value, (str, int)) and not isinstance(value, enum_type):
+            # if type(value) not in (str, int) and not isinstance(value, enum_type):
             raise ValidationError(
-                f"Value {value} ({type_}) is not a valid input for {self.enum_type}"
+                f"Value {value} ({type(value).__name__}) is not a valid input for {enum_type}"
             )
 
-        if isinstance(value, self.enum_type):
-            key = value.name
-        else:
-            try:
-                assert type_ in (str, int)
-                if type_ == str:
-                    prefix = "{}.".format(self.enum_type.__name__)
-                    if value.startswith(prefix):
-                        value = value[len(prefix) :]
-                    value = self.enum_type[value]
-                elif type_ == int:
-                    value = self.enum_type(value)
+        if isinstance(value, enum_type):
+            return value
 
-                key = value.name
-            except (ValueError, KeyError):
-                raise ValidationError(
-                    "Invalid value '{}', expected one of:\n{}".format(
-                        value, "\n".join([f"\t{x}" for x in self.fields])
-                    )
-                )
+        try:
+            if isinstance(value, (float, bool)):
+                raise ValueError
 
-        assert key in self.fields.keys()
-        if key in self.fields.keys():
-            return self.enum_type[key]
-        assert False  # pragma: no cover
+            if isinstance(value, int):
+                return enum_type(value)
+
+            if isinstance(value, str):
+                prefix = "{}.".format(enum_type.__name__)
+                if value.startswith(prefix):
+                    value = value[len(prefix) :]
+                return enum_type[value]
+
+            assert False  # pragma: no cover
+
+        except (ValueError, KeyError):
+            valid = "\n".join([f"\t{x}" for x in enum_type.__members__.keys()])
+            raise ValidationError(f"Invalid value '{value}', expected one of:\n{valid}")
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)
