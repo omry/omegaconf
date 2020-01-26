@@ -13,10 +13,10 @@ from typing import (
     Union,
 )
 
-from ._utils import _re_parent, is_primitive_list, isint
+from ._utils import is_primitive_list, isint
 from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import ReadonlyConfigError, UnsupportedKeyType, UnsupportedValueType
+from .errors import KeyValidationError, ReadonlyConfigError, UnsupportedValueType
 from .nodes import AnyNode, ValueNode
 
 
@@ -25,7 +25,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self,
         content: Union[List[Any], Tuple[Any, ...]],
         parent: Optional[Container] = None,
-        element_type: type = Any,  # type: ignore
+        element_type: Any = Any,
     ) -> None:
         super().__init__(parent=parent, element_type=element_type)
         self.__dict__["content"] = []
@@ -40,7 +40,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         res.__dict__["_element_type"] = copy.deepcopy(
             self.__dict__["_element_type"], memo=memo
         )
-        _re_parent(res)
+        res._re_parent()
         return res
 
     def __getattr__(self, key: str) -> Any:
@@ -75,7 +75,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
         if not isinstance(index, int):
-            raise UnsupportedKeyType(f"Key type {type(index).__name__} is not an int")
+            raise KeyValidationError(f"Key type {type(index).__name__} is not an int")
 
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(str(index)))

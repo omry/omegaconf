@@ -1,0 +1,1 @@
+Structured configs can now inherit from Dict, making them open to arbitrary fields

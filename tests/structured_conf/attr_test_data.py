@@ -5,7 +5,7 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 
-from .common import Color
+from .. import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
 pytest.importorskip("attr")
@@ -291,3 +291,34 @@ class DictOfObjects:
 @attr.s(auto_attribs=True)
 class ListOfObjects:
     users: List[User] = [User(name="Joe", age=18)]
+
+
+class DictSubclass:
+    @attr.s(auto_attribs=True)
+    class Str2Str(Dict[str, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Color2Str(Dict[Color, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Color2Color(Dict[Color, Color]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Str2User(Dict[str, User]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Str2StrWithField(Dict[str, str]):
+        foo: str = "bar"
+
+    @attr.s(auto_attribs=True)
+    class Str2IntWithStrField(Dict[str, int]):
+        foo: str = "bar"
+
+    class Error:
+        @attr.s(auto_attribs=True)
+        class User2Str(Dict[User, str]):
+            pass

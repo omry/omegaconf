@@ -98,6 +98,7 @@ def test_not_eq(input1: Any, input2: Any) -> None:
         assert not b == a
 
     neq(c1, c2)
+    neq(c2, c1)
 
 
 # ---

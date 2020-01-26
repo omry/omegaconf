@@ -9,13 +9,13 @@ class UnsupportedValueType(ValueError):
     """
 
 
-class UnsupportedKeyType(ValueError):
+class KeyValidationError(ValueError):
     """
-    Thrown when an input key type is incorrect
+    Thrown when an a key of invalid type is used
     """
 
 
-class ValidationError(Exception):
+class ValidationError(ValueError):
     """
     Thrown when a value fails validation
     """

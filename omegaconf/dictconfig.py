@@ -14,7 +14,6 @@ from typing import (
 )
 
 from ._utils import (
-    _re_parent,
     get_structured_config_data,
     is_primitive_dict,
     is_structured_config,
@@ -23,14 +22,14 @@ from ._utils import (
 from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
+    KeyValidationError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
-    UnsupportedKeyType,
     UnsupportedValueType,
     ValidationError,
 )
-from .nodes import ValueNode
+from .nodes import EnumNode, ValueNode
 
 
 class DictConfig(BaseContainer, MutableMapping[str, Any]):
@@ -38,12 +37,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self,
         content: Union[Dict[str, Any], Any],
         parent: Optional[Container] = None,
-        element_type: type = Any,  # type: ignore
+        key_type: Any = Any,
+        element_type: Any = Any,
     ) -> None:
         super().__init__(element_type=element_type, parent=parent)
 
         self.__dict__["content"] = {}
         self.__dict__["_type"] = None
+        self.__dict__["_key_type"] = key_type
         if is_structured_config(content):
             d = get_structured_config_data(content)
             for k, v in d.items():
@@ -67,39 +68,59 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
-        res.__dict__["content"] = copy.deepcopy(self.__dict__["content"], memo=memo)
-        res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"], memo=memo)
-        res.__dict__["_element_type"] = copy.deepcopy(
-            self.__dict__["_element_type"], memo=memo
-        )
-
-        res.__dict__["_type"] = copy.deepcopy(self.__dict__["_type"], memo=memo)
-        _re_parent(res)
+        for k in ["content", "flags", "_element_type", "_key_type", "_type"]:
+            res.__dict__[k] = copy.deepcopy(self.__dict__[k], memo=memo)
+        res._re_parent()
         return res
 
     def __copy__(self) -> "DictConfig":
         res = DictConfig(content={}, element_type=self.__dict__["_element_type"])
-        res.__dict__["content"] = copy.copy(self.__dict__["content"])
-        res.__dict__["_type"] = self.__dict__["_type"]
-        res.__dict__["flags"] = copy.copy(self.__dict__["flags"])
-        _re_parent(res)
+        for k in ["content", "flags", "_element_type", "_key_type", "_type"]:
+            res.__dict__[k] = copy.copy(self.__dict__[k])
+        res._re_parent()
         return res
 
     def copy(self) -> "DictConfig":
         return copy.copy(self)
 
-    def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
-        if isinstance(key, Enum):
-            key = key.name
+    def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
+        return self._s_validate_and_normalize_key(self.__dict__["_key_type"], key)
 
-        if not isinstance(key, str):
-            raise UnsupportedKeyType(f"Key type is not str ({type(key).__name__})")
+    @staticmethod
+    def _s_validate_and_normalize_key(key_type: Any, key: Any) -> Union[str, Enum]:
+        if key_type is Any:
+            for t in (str, Enum):
+                try:
+                    return DictConfig._s_validate_and_normalize_key(key_type=t, key=key)
+                except KeyValidationError:
+                    pass
+            raise KeyValidationError(
+                f"Key {key} (type {type(key).__name__}) is incompatible with {key_type}"
+            )
+
+        if key_type == str:
+            if not isinstance(key, str):
+                raise KeyValidationError(
+                    f"Key {key} is incompatible with {key_type.__name__}"
+                )
+            return key
+
+        try:
+            ret = EnumNode.validate_and_convert_to_enum(key_type, key)
+            assert ret is not None
+            return ret
+        except ValidationError as e:
+            raise KeyValidationError(
+                f"Key {key} is incompatible with {key_type.__name__} : {e}"
+            )
+
+    def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
+        key = self._validate_and_normalize_key(key)
+        self._validate_access(key)
+        self._validate_type(key, value)
 
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
-
-        self._validate_access(key)
-        self._validate_type(key, value)
 
         if isinstance(value, BaseContainer):
             value = copy.deepcopy(value)
@@ -146,12 +167,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return self.get(key=key, default_value=None)
 
     def get(self, key: Union[str, Enum], default_value: Any = None) -> Any:
-        if isinstance(key, Enum):
-            key = key.name
-
-        if not isinstance(key, str):
-            raise UnsupportedKeyType(f"Key type is not str ({type(key).__name__})")
-
+        key = self._validate_and_normalize_key(key)
         return self._resolve_with_default(
             key=key,
             value=self.get_node_ex(key=key, default_value=default_value),
@@ -167,9 +183,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         default_value: Any = None,
         validate_access: bool = True,
     ) -> Node:
-        if isinstance(key, Enum):
-            key = key.name
-
         value: Node = self.__dict__["content"].get(key)
         if validate_access:
             try:
@@ -187,8 +200,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     __marker = object()
 
     def pop(self, key: Union[str, Enum], default: Any = __marker) -> Any:
-        if isinstance(key, Enum):
-            key = key.name
+        key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self.get_full_key(key))
         value = self._resolve_with_default(
@@ -209,15 +221,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :return:
         """
 
-        str_key: str
-        if isinstance(key, Enum):
-            str_key = key.name
-        else:
-            assert isinstance(key, str)
-            str_key = key
-
+        key = self._validate_and_normalize_key(key)
         try:
-            node: Optional[Node] = self.get_node(str_key)
+            node: Optional[Node] = self.get_node(key)
         except (KeyError, AttributeError):
             node = None
 
@@ -225,7 +231,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return False
         else:
             try:
-                self._resolve_with_default(str_key, node, None)
+                self._resolve_with_default(key, node, None)
                 return True
             except UnsupportedInterpolationType:
                 # Value that has unsupported interpolation counts as existing.
@@ -272,26 +278,27 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def _validate_access(self, key: str) -> None:
+    def _validate_access(self, key: Union[str, Enum]) -> None:
         is_typed = self.__dict__["_type"] is not None
-        is_closed = self._get_flag("struct") is True
-        node_open = self._get_node_flag("struct") is False
+        is_struct = self._get_flag("struct") is True
         if key not in self.content:
-            if is_typed and node_open:
-                return
-            if is_typed or is_closed:
+            if is_typed:
+                # do not raise an exception if struct is explicitly set to False
+                if self._get_node_flag("struct") is False:
+                    return
+                # Or if type is a subclass if dict
+                if issubclass(self.__dict__["_type"], dict):
+                    return
+            if is_typed or is_struct:
                 if is_typed:
                     msg = f"Accessing unknown key in {self.__dict__['_type'].__name__} : {self.get_full_key(key)}"
                 else:
                     msg = "Accessing unknown key in a struct : {}".format(
                         self.get_full_key(key)
                     )
-                if is_closed:
-                    raise AttributeError(msg)
-                else:
-                    raise KeyError(msg)
+                raise AttributeError(msg)
 
-    def _validate_type(self, key: str, value: Any) -> None:
+    def _validate_type(self, key: Union[str, Enum], value: Any) -> None:
         if self.__dict__["_type"] is not None:
             child = self.get_node(key)
             if child is None:

@@ -25,6 +25,8 @@ from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
 from ._utils import (
+    _get_key_value_types,
+    _valid_value_annotation_type,
     decode_primitive,
     is_primitive_container,
     is_primitive_dict,
@@ -157,7 +159,13 @@ class OmegaConf:
                 or OmegaConf.is_dict(obj)
                 or is_structured_config(obj)
             ):
-                return DictConfig(obj, parent)
+                key_type, element_type = _get_key_value_types(obj)
+                return DictConfig(
+                    content=obj,
+                    parent=parent,
+                    key_type=key_type,
+                    element_type=element_type,
+                )
             elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                 return ListConfig(obj, parent)
             else:
@@ -410,17 +418,6 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 # === private === #
 
 
-def _is_primitive_type(type_: Any) -> bool:
-    if not isinstance(type_, type):
-        type_ = type(type_)
-
-    return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
-
-
-def _valid_value_annotation_type(type_: Any) -> bool:
-    return type_ is Any or _is_primitive_type(type_) or is_structured_config(type_)
-
-
 def _node_wrap(
     type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any
 ) -> ValueNode:
@@ -455,29 +452,22 @@ def _maybe_wrap(
         value = OmegaConf.to_container(value)
 
     origin = getattr(annotated_type, "__origin__", None)
-    args = getattr(annotated_type, "__args__", None)
     is_dict = type(value) is dict or origin is dict
     is_list = type(value) in (list, tuple) or origin in (list, tuple)
 
     if is_dict or origin is dict:
         from .dictconfig import DictConfig
 
-        if annotated_type is not Dict and args is not None:
-            element_type = args[1]
-        else:
-            element_type = Any
-
-        if not _valid_value_annotation_type(element_type) and not is_structured_config(
-            element_type
-        ):
-            raise ValidationError(f"Unsupported value type : {element_type}")
-
-        value = DictConfig(parent=None, content=value, element_type=element_type)
+        key_type, element_type = _get_key_value_types(annotated_type)
+        value = DictConfig(
+            parent=None, content=value, key_type=key_type, element_type=element_type
+        )
         # noinspection PyProtectedMember
         value._set_parent(parent=parent)
     elif is_list:
         from .listconfig import ListConfig
 
+        args = getattr(annotated_type, "__args__", None)
         if annotated_type is not List and args is not None:
             element_type = args[0]
         else:

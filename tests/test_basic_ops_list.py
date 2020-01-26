@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 import pytest
 
 from omegaconf import AnyNode, ListConfig, OmegaConf
-from omegaconf.errors import UnsupportedKeyType, UnsupportedValueType
+from omegaconf.errors import KeyValidationError, UnsupportedValueType
 from omegaconf.nodes import IntegerNode, StringNode
 
 from . import IllegalType, does_not_raise
@@ -343,5 +343,5 @@ def test_deep_add() -> None:
 
 def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create([1, 2, 3])
-    with pytest.raises(UnsupportedKeyType):
+    with pytest.raises(KeyValidationError):
         cfg["foo"] = 4  # type: ignore

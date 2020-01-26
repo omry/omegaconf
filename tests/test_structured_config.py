@@ -1,4 +1,3 @@
-import sys
 from importlib import import_module
 from typing import Any, Dict
 
@@ -7,14 +6,14 @@ import pytest
 from omegaconf import (
     AnyNode,
     DictConfig,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConf,
     ReadonlyConfigError,
-    UnsupportedKeyType,
     ValidationError,
 )
 
-from .structured_conf.common import Color
+from . import Color
 
 
 class EnumConfigAssignments:
@@ -83,7 +82,6 @@ class AnyTypeConfigAssignments:
     illegal: Any = []
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python3.6 or higher")
 @pytest.mark.parametrize("class_type", ["dataclass_test_data", "attr_test_data"])
 class TestConfigs:
     def test_nested_config_errors_on_missing(self, class_type: str) -> None:
@@ -167,7 +165,7 @@ class TestConfigs:
 
         def validate(cfg: DictConfig) -> None:
             assert not OmegaConf.is_struct(cfg)
-            with pytest.raises(KeyError):
+            with pytest.raises(AttributeError):
                 # noinspection PyStatementEffect
                 cfg.foo
 
@@ -381,7 +379,7 @@ class TestConfigs:
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module("tests.structured_conf." + class_type)
         input_ = module.ErrorDictIntKey
-        with pytest.raises(UnsupportedKeyType):
+        with pytest.raises(KeyValidationError):
             OmegaConf.structured(input_)
 
     def test_typed_dict_value_error(self, class_type: str) -> None:
@@ -517,6 +515,11 @@ class TestConfigs:
         assert conf.enum_key["GREEN"] == "green"
         assert conf.enum_key[Color.GREEN] == "green"
 
+        conf.enum_key["BLUE"] = "Blue too"
+        assert conf.enum_key[Color.BLUE] == "Blue too"
+        with pytest.raises(KeyValidationError):
+            conf.enum_key["error"] = "error"
+
     def test_dict_of_objects(self, class_type: str) -> None:
         module: Any = import_module("tests.structured_conf." + class_type)
         conf = OmegaConf.structured(module.DictOfObjects)
@@ -555,9 +558,6 @@ def validate_frozen_impl(conf: DictConfig) -> None:
         conf.user.age = 20
 
 
-@pytest.mark.skipif(  # type: ignore
-    sys.version_info < (3, 6), reason="requires python3.6 or higher"
-)
 def test_attr_frozen() -> None:
     from tests.structured_conf.attr_test_data import FrozenClass
 
@@ -565,11 +565,92 @@ def test_attr_frozen() -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-@pytest.mark.skipif(  # type: ignore
-    sys.version_info < (3, 6), reason="requires python3.6 or higher"
-)
 def test_dataclass_frozen() -> None:
     from tests.structured_conf.dataclass_test_data import FrozenClass
 
     validate_frozen_impl(OmegaConf.structured(FrozenClass))
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
+
+
+@pytest.mark.parametrize("class_type", ["dataclass_test_data", "attr_test_data"])
+class TestDictSubclass:
+    def test_str2str(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Str2Str())
+        cfg.hello = "world"
+        assert cfg.hello == "world"
+
+        with pytest.raises(KeyValidationError):
+            cfg[Color.RED] = "fail"
+
+    def test_color2str(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
+        cfg[Color.RED] = "red"
+
+        with pytest.raises(KeyValidationError):
+            cfg.greeen = "nope"
+
+    def test_color2color(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
+        cfg[Color.RED] = "RED"
+        assert cfg[Color.RED] == Color.RED
+
+        cfg[Color.BLUE] = Color.BLUE
+        assert cfg[Color.BLUE] == Color.BLUE
+
+        cfg.RED = Color.RED
+        assert cfg.RED == Color.RED
+
+        with pytest.raises(ValidationError):
+            # bad value
+            cfg[Color.GREEN] = 10
+
+        with pytest.raises(KeyValidationError):
+            # bad key
+            cfg.greeen = "nope"
+
+    def test_str2user(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+
+        cfg.bond = module.User(name="James Bond", age=7)
+        assert cfg.bond.name == "James Bond"
+        assert cfg.bond.age == 7
+
+        with pytest.raises(ValidationError):
+            # bad value
+            cfg.hello = "world"
+
+        with pytest.raises(KeyValidationError):
+            # bad key
+            cfg[Color.BLUE] = "nope"
+
+    def test_str2str_with_field(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+        assert cfg.foo == "bar"
+        cfg.hello = "world"
+        assert cfg.hello == "world"
+
+        with pytest.raises(KeyValidationError):
+            cfg[Color.RED] = "fail"
+
+    def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
+        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
+        assert cfg.foo == "bar"
+
+        cfg.one = 1
+        assert cfg.one == 1
+
+        with pytest.raises(ValidationError):
+            # bad
+            cfg.hello = "world"
+
+    class TestErrors:
+        def test_usr2str(self, class_type: str) -> None:
+            module: Any = import_module(f"tests.structured_conf.{class_type}")
+            with pytest.raises(KeyValidationError):
+                OmegaConf.structured(module.DictSubclass.Error.User2Str())

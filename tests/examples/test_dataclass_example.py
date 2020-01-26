@@ -40,7 +40,7 @@ def test_simple_types_class() -> None:
 def test_static_typing() -> None:
     conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
     assert conf.description == "text"  # passes static type checking
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         # This will fail both the static type checking and at runtime
         # noinspection PyStatementEffect
         conf.no_such_attribute  # type: ignore
@@ -280,7 +280,7 @@ def test_dict_of_objects() -> None:
     assert conf.domains["blog"].name == "blog.example.com"
     assert conf.domains["blog"].path == "/www/blog.example.com"
     assert conf == {
-        "protocol_ports": {"HTTP": 80, "HTTPS": 443},
+        "protocol_ports": {Protocol.HTTP: 80, Protocol.HTTPS: 443},
         "domains": {
             "blog": {
                 "name": "blog.example.com",
@@ -303,7 +303,7 @@ def test_list_of_objects() -> None:
     assert conf.domains_list[0].name == "blog.example.com"
     assert conf.domains_list[0].path == "/www/blog.example.com"
     assert conf == {
-        "protocol_ports": {"HTTP": 80, "HTTPS": 443},
+        "protocol_ports": {Protocol.HTTP: 80, Protocol.HTTPS: 443},
         "domains": {},
         "domains_list": [
             {
