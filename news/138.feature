@@ -1,0 +1,1 @@
+Make exception raised in struct mode consistent with Python dicts and real objects depending on the access API

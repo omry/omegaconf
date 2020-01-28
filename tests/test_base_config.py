@@ -268,6 +268,13 @@ def test_deepcopy_preserves_container_type(cfg: Container) -> None:
             "struct",
             False,
             lambda c: c.__setitem__("foo", 1),
+            pytest.raises(KeyError),
+        ),
+        (
+            {},
+            "struct",
+            False,
+            lambda c: c.__setattr__("foo", 1),
             pytest.raises(AttributeError),
         ),
         (

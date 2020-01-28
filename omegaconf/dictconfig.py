@@ -115,8 +115,15 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             )
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
+        try:
+            self.__set_impl(key, value)
+        except AttributeError as e:
+            raise KeyError(str(e))
+
+    def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
         self._validate_access(key)
+
         self._validate_type(key, value)
 
         if self._get_flag("readonly"):
@@ -144,7 +151,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param value:
         :return:
         """
-        self.__setitem__(key, value)
+        self.__set_impl(key, value)
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -164,7 +171,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param key:
         :return:
         """
-        return self.get(key=key, default_value=None)
+        try:
+            return self.get(key=key, default_value=None)
+        except AttributeError as e:
+            raise KeyError(str(e))
 
     def get(self, key: Union[str, Enum], default_value: Any = None) -> Any:
         key = self._validate_and_normalize_key(key)
