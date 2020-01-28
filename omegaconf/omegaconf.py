@@ -169,7 +169,15 @@ class OmegaConf:
             elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                 return ListConfig(obj, parent)
             else:
-                raise ValidationError("Unsupported type {}".format(type(obj).__name__))
+                if isinstance(obj, type):
+                    raise ValidationError(
+                        f"Input class '{obj.__name__}' is not a structured config. "
+                        "did you forget to decorate it as a dataclass?"
+                    )
+                else:
+                    raise ValidationError(
+                        "Unsupported type {}".format(type(obj).__name__)
+                    )
 
     @staticmethod
     def load(file_: Union[str, IO[bytes]]) -> Union[DictConfig, ListConfig]:
@@ -436,6 +444,7 @@ def _node_wrap(
     elif type_ == str:
         node = StringNode(value=value, parent=parent, is_optional=is_optional)
     else:
+
         raise ValueError("Unexpected object type : {}".format(type_.__name__))
     return node
 
@@ -492,8 +501,14 @@ def _maybe_wrap(
                 f"Value type {type(value).__name__} does not match declared type {annotated_type}"
             )
 
+        if not _valid_value_annotation_type(annotated_type):
+            raise ValidationError(
+                f"Annotated class '{annotated_type.__name__}' is not a structured config. "
+                "did you forget to decorate it as a dataclass?"
+            )
+
         value = _node_wrap(
-            type_=annotated_type, parent=parent, is_optional=is_optional, value=value
+            type_=annotated_type, parent=parent, is_optional=is_optional, value=value,
         )
     assert isinstance(value, Node)
     return value
