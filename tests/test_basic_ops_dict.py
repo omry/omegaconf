@@ -445,3 +445,17 @@ def test_hasattr() -> None:
     OmegaConf.set_struct(cfg, True)
     assert hasattr(cfg, "foo")
     assert not hasattr(cfg, "buz")
+
+
+def test_struct_mode_missing_key_getitem() -> None:
+    cfg = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_struct(cfg, True)
+    with pytest.raises(KeyError):
+        cfg.__getitem__("zoo")
+
+
+def test_struct_mode_missing_key_setitem() -> None:
+    cfg = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_struct(cfg, True)
+    with pytest.raises(KeyError):
+        cfg.__setitem__("zoo", 10)
