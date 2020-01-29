@@ -23,14 +23,16 @@ from omegaconf import version as v
 
 sys.path.insert(0, os.path.abspath("../../"))
 
+year = datetime.datetime.now().year
+parsed_ver = parse(v.__version__)
+
 # -- Project information -----------------------------------------------------
 
 project = "OmegaConf"
-copyright = f"{datetime.datetime.now().year}, Omry Yadan"
+copyright = str(year) + " Omry Yadan"
 author = "Omry Yadan"
 
 
-parsed_ver = parse(v.__version__)
 # The short X.Y version
 version = parsed_ver.base_version
 # The full version, including alpha/beta/rc tags
