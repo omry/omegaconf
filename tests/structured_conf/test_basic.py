@@ -9,8 +9,8 @@ from omegaconf import OmegaConf, ValidationError
 @pytest.mark.parametrize(
     "class_type",
     [
-        "tests.structured_conf.data.dataclass_test_data",
-        "tests.structured_conf.data.attr_test_data",
+        "tests.structured_conf.data.dataclasses",
+        "tests.structured_conf.data.attr_classes",
     ],
 )
 class TestBasic:
