@@ -13,21 +13,28 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
+import datetime
 import os
 import sys
+
+from packaging.version import parse
+
+from omegaconf import version as v
 
 sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 
 project = "OmegaConf"
-copyright = "2018, Omry Yadan"
+copyright = f"{datetime.datetime.now().year}, Omry Yadan"
 author = "Omry Yadan"
 
+
+parsed_ver = parse(v.__version__)
 # The short X.Y version
-version = ""
+version = parsed_ver.base_version
 # The full version, including alpha/beta/rc tags
-release = "1.0"
+release = str(parsed_ver)
 
 
 # -- General configuration ---------------------------------------------------
