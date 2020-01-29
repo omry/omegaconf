@@ -83,8 +83,8 @@ class _TestDataclass:
     b: bool = True
     f: float = 3.14
     e: _TestEnum = _TestEnum.A
-    list1: List[int] = field(default_factory=lambda: [])
-    dict1: Dict[str, int] = field(default_factory=lambda: {})
+    list1: List[int] = field(default_factory=list)
+    dict1: Dict[str, int] = field(default_factory=dict)
 
 
 @attr.s(auto_attribs=True)

@@ -255,10 +255,10 @@ class WebServer:
         default_factory=lambda: {Protocol.HTTP: 80, Protocol.HTTPS: 443}
     )
     # Dict of name to domain
-    domains: Dict[str, Domain] = field(default_factory=lambda: {})
+    domains: Dict[str, Domain] = field(default_factory=dict)
 
     # List of all domains
-    domains_list: List[Domain] = field(default_factory=lambda: [])
+    domains_list: List[Domain] = field(default_factory=list)
 
 
 # Test that Enum can be used a dictionary key
@@ -320,7 +320,7 @@ def test_merge() -> None:
     class Config:
         num: int = 10
         user: User = User(name=MISSING, height=MISSING)
-        domains: Dict[str, Domain] = field(default_factory=lambda: {})
+        domains: Dict[str, Domain] = field(default_factory=dict)
 
     yaml = """
 user:
@@ -363,8 +363,8 @@ def test_merge_example() -> None:
     class MyConfig:
         server: Server = Server()
         log: Log = Log()
-        users: List[str] = field(default_factory=lambda: [])
-        numbers: List[int] = field(default_factory=lambda: [])
+        users: List[str] = field(default_factory=list)
+        numbers: List[int] = field(default_factory=list)
 
     schema = OmegaConf.structured(MyConfig)
     with pytest.raises(ValidationError):

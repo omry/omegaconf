@@ -341,7 +341,7 @@ A Schema for the above config can be defined like this.
     ... class MyConfig:
     ...     server : Server = Server()
     ...     log : Log = Log()
-    ...     users : List[int] = field(default_factory=lambda: [])
+    ...     users : List[int] = field(default_factory=list)
 
 
 I intentionally made an error in the type of the users list (List[int] should be List[str]).

@@ -253,19 +253,19 @@ class RegularClass:
 @dataclass
 class ErrorDictUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: Dict[str, RegularClass] = field(default_factory=lambda: {})
+    dict: Dict[str, RegularClass] = field(default_factory=dict)
 
 
 @dataclass
 class ErrorListUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: List[RegularClass] = field(default_factory=lambda: [])
+    dict: List[RegularClass] = field(default_factory=list)
 
 
 @dataclass
 class ErrorListUnsupportedStructuredConfig:
     # Nesting of structured configs in Dict and List is not currently supported
-    list: List[User] = field(default_factory=lambda: [])
+    list: List[User] = field(default_factory=list)
 
 
 @dataclass
