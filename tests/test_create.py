@@ -1,13 +1,12 @@
 """Testing for OmegaConf"""
 import re
 import sys
-from dataclasses import dataclass
 from typing import Any, Dict, List
 
 import pytest
 
 from omegaconf import OmegaConf
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import UnsupportedValueType
 
 from . import IllegalType
 
@@ -111,25 +110,3 @@ def test_create_from_oc_with_flags() -> None:
     c2 = OmegaConf.create(c1)
     assert c1 == c2
     assert c1.flags == c2.flags
-
-
-def test_error_on_non_structured_config_class() -> None:
-    class Foo:
-        name: str = "Bond"
-        age: int = 7
-
-    with pytest.raises(ValidationError, match="structured config"):
-        OmegaConf.structured(Foo)
-
-
-def test_error_on_non_structured_nested_config_class() -> None:
-    class Bar:
-        name: str = "Bond"
-        age: int = 7
-
-    @dataclass
-    class Foo:
-        bar: Bar = Bar()
-
-    with pytest.raises(ValidationError, match="structured config"):
-        OmegaConf.structured(Foo)

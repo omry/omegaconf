@@ -1,23 +1,32 @@
+from dataclasses import dataclass, field  # noqaE402
 from typing import Any, Dict, List, Optional, Tuple
 
-import attr  # noqaE402
 import pytest
 
 from omegaconf import II, MISSING, SI
+from tests import Color
 
-from .. import Color
-
-# attr is a dependency of pytest which means it's always available when testing with pytest.
-pytest.importorskip("attr")
+# skip test if dataclasses are not available
+pytest.importorskip("dataclasses")
 
 
-@attr.s(auto_attribs=True)
+class NotStructuredConfig:
+    name: str = "Bond"
+    age: int = 7
+
+
+@dataclass
+class StructuredWithInvalidField:
+    bar: NotStructuredConfig = NotStructuredConfig()
+
+
+@dataclass
 class User:
     name: str
     age: int
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None
@@ -40,9 +49,8 @@ class AnyTypeConfig:
     typed_int_default: int = 10
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class BoolConfig:
-
     # with default value
     with_default: bool = True
 
@@ -56,9 +64,8 @@ class BoolConfig:
     interpolation: bool = II("with_default")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class IntegersConfig:
-
     # with default value
     with_default: int = 10
 
@@ -72,9 +79,8 @@ class IntegersConfig:
     interpolation: int = II("with_default")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class StringConfig:
-
     # with default value
     with_default: str = "foo"
 
@@ -88,9 +94,8 @@ class StringConfig:
     interpolation: str = II("with_default")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class FloatConfig:
-
     # with default value
     with_default: float = 0.10
 
@@ -104,9 +109,8 @@ class FloatConfig:
     interpolation: float = II("with_default")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class EnumConfig:
-
     # with default value
     with_default: Color = Color.BLUE
 
@@ -120,18 +124,18 @@ class EnumConfig:
     interpolation: Color = II("with_default")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ConfigWithList:
-    list1: List[int] = [1, 2, 3]
-    list2: Tuple[int, int, int] = (1, 2, 3)
+    list1: List[int] = field(default_factory=lambda: [1, 2, 3])
+    list2: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ConfigWithDict:
-    dict1: Dict[str, Any] = {"foo": "bar"}
+    dict1: Dict[str, Any] = field(default_factory=lambda: {"foo": "bar"})
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class Nested:
     # with default value
     with_default: int = 10
@@ -147,7 +151,7 @@ class Nested:
     interpolation: int = II("value_at_root")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class NestedConfig:
     default_value: Nested
 
@@ -157,22 +161,22 @@ class NestedConfig:
     value_at_root: int = 1000
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class NoDefaultErrors:
     no_default: Any
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ErrorOnNoneNestedConfig:
     will_error: Optional[FloatConfig] = None
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ErrorOnMissingNestedConfig:
     will_error: FloatConfig = MISSING
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -182,143 +186,155 @@ class Interpolation:
     z2: str = SI("${x}_${y}")
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class BoolOptional:
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
     not_optional: bool = True
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class IntegerOptional:
     with_default: Optional[int] = 1
     as_none: Optional[int] = None
     not_optional: int = 1
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class FloatOptional:
     with_default: Optional[float] = 1.0
     as_none: Optional[float] = None
     not_optional: float = 1
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class StringOptional:
     with_default: Optional[str] = "foo"
     as_none: Optional[str] = None
     not_optional: str = "foo"
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
     not_optional: Color = Color.BLUE
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@dataclass(frozen=True)
 class FrozenClass:
     user: User = User(name="Bart", age=10)
     x: int = 10
-    list: List[int] = [1, 2, 3]
+    list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class WithTypedList:
-    list: List[int] = [1, 2, 3]
+    list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class WithTypedDict:
-    dict: Dict[str, int] = {"foo": 10, "bar": 20}
+    dict: Dict[str, int] = field(default_factory=lambda: {"foo": 10, "bar": 20})
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ErrorDictIntKey:
     # invalid dict key, must be str
-    dict: Dict[int, str] = {10: "foo", 20: "bar"}
+    dict: Dict[int, str] = field(default_factory=lambda: {10: "foo", 20: "bar"})
 
 
 class RegularClass:
     pass
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ErrorDictUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: Dict[str, RegularClass] = {}
+    dict: Dict[str, RegularClass] = field(default_factory=lambda: {})
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ErrorListUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: List[RegularClass] = []
+    dict: List[RegularClass] = field(default_factory=lambda: [])
 
 
-@attr.s(auto_attribs=True)
+@dataclass
+class ErrorListUnsupportedStructuredConfig:
+    # Nesting of structured configs in Dict and List is not currently supported
+    list: List[User] = field(default_factory=lambda: [])
+
+
+@dataclass
 class ListExamples:
-    any: List[Any] = [1, "foo"]
-    ints: List[int] = [1, 2]
-    strings: List[str] = ["foo", "bar"]
-    booleans: List[bool] = [True, False]
-    colors: List[Color] = [Color.RED, Color.GREEN]
+    any: List[Any] = field(default_factory=lambda: [1, "foo"])
+    ints: List[int] = field(default_factory=lambda: [1, 2])
+    strings: List[str] = field(default_factory=lambda: ["foo", "bar"])
+    booleans: List[bool] = field(default_factory=lambda: [True, False])
+    colors: List[Color] = field(default_factory=lambda: [Color.RED, Color.GREEN])
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class DictExamples:
-    any: Dict[str, Any] = {"a": 1, "b": "foo"}
-    ints: Dict[str, int] = {"a": 10, "b": 20}
-    strings: Dict[str, str] = {"a": "foo", "b": "bar"}
-    booleans: Dict[str, bool] = {"a": True, "b": False}
-    colors: Dict[str, Color] = {
-        "red": Color.RED,
-        "green": Color.GREEN,
-        "blue": Color.BLUE,
-    }
+    any: Dict[str, Any] = field(default_factory=lambda: {"a": 1, "b": "foo"})
+    ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20})
+    strings: Dict[str, str] = field(default_factory=lambda: {"a": "foo", "b": "bar"})
+    booleans: Dict[str, bool] = field(default_factory=lambda: {"a": True, "b": False})
+    colors: Dict[str, Color] = field(
+        default_factory=lambda: {
+            "red": Color.RED,
+            "green": Color.GREEN,
+            "blue": Color.BLUE,
+        }
+    )
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class DictWithEnumKeys:
-    enum_key: Dict[Color, str] = {Color.RED: "red", Color.GREEN: "green"}
+    enum_key: Dict[Color, str] = field(
+        default_factory=lambda: {Color.RED: "red", Color.GREEN: "green"}
+    )
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class DictOfObjects:
-    users: Dict[str, User] = {"joe": User(name="Joe", age=18)}
+    users: Dict[str, User] = field(
+        default_factory=lambda: {"joe": User(name="Joe", age=18)}
+    )
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ListOfObjects:
-    users: List[User] = [User(name="Joe", age=18)]
+    users: List[User] = field(default_factory=lambda: [User(name="Joe", age=18)])
 
 
 class DictSubclass:
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Str2Str(Dict[str, str]):
         pass
 
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Color2Str(Dict[Color, str]):
         pass
 
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Color2Color(Dict[Color, Color]):
         pass
 
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Str2User(Dict[str, User]):
         pass
 
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Str2StrWithField(Dict[str, str]):
         foo: str = "bar"
 
-    @attr.s(auto_attribs=True)
+    @dataclass
     class Str2IntWithStrField(Dict[str, int]):
         foo: str = "bar"
 
     class Error:
-        @attr.s(auto_attribs=True)
+        @dataclass
         class User2Str(Dict[User, str]):
             pass
