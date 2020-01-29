@@ -14,7 +14,9 @@ from typing import (
 )
 
 from ._utils import (
+    ValueKind,
     get_structured_config_data,
+    get_value_kind,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -42,29 +44,35 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     ) -> None:
         super().__init__(element_type=element_type, parent=parent)
 
-        self.__dict__["content"] = {}
         self.__dict__["_type"] = None
         self.__dict__["_key_type"] = key_type
-        if is_structured_config(content):
-            d = get_structured_config_data(content)
-            for k, v in d.items():
-                self.__setitem__(k, v)
 
-            if is_structured_config_frozen(content):
-                self._set_flag("readonly", True)
-
-            if isinstance(content, type):
-                self.__dict__["_type"] = content
-            else:
-                self.__dict__["_type"] = type(content)
-
+        if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
+            self.__dict__["_missing"] = True
+            self.__dict__["content"] = None
         else:
-            for k, v in content.items():
-                self.__setitem__(k, v)
+            self.__dict__["_missing"] = False
+            self.__dict__["content"] = {}
+            if is_structured_config(content):
+                d = get_structured_config_data(content)
+                for k, v in d.items():
+                    self.__setitem__(k, v)
 
-            if isinstance(content, BaseContainer):
-                for field in ["flags", "_element_type", "_resolver_cache"]:
-                    self.__dict__[field] = copy.deepcopy(content.__dict__[field])
+                if is_structured_config_frozen(content):
+                    self._set_flag("readonly", True)
+
+                if isinstance(content, type):
+                    self.__dict__["_type"] = content
+                else:
+                    self.__dict__["_type"] = type(content)
+
+            else:
+                for k, v in content.items():
+                    self.__setitem__(k, v)
+
+                if isinstance(content, BaseContainer):
+                    for field in ["flags", "_element_type", "_resolver_cache"]:
+                        self.__dict__[field] = copy.deepcopy(content.__dict__[field])
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
@@ -130,7 +138,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             raise ReadonlyConfigError(self.get_full_key(key))
 
         if isinstance(value, BaseContainer):
-            value = copy.deepcopy(value)
             value._set_parent(self)
 
         try:

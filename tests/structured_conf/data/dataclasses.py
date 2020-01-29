@@ -128,11 +128,13 @@ class EnumConfig:
 class ConfigWithList:
     list1: List[int] = field(default_factory=lambda: [1, 2, 3])
     list2: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
+    missing: List[int] = MISSING
 
 
 @dataclass
 class ConfigWithDict:
     dict1: Dict[str, Any] = field(default_factory=lambda: {"foo": "bar"})
+    missing: Dict[str, Any] = MISSING
 
 
 @dataclass

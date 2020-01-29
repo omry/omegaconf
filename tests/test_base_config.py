@@ -1,5 +1,6 @@
 import copy
-from typing import Any, Dict, List, Union
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 
 import pytest
 
@@ -19,6 +20,16 @@ from omegaconf import (
 )
 
 from . import does_not_raise
+
+
+@dataclass
+class StructuredWithMissing:
+    num: int = MISSING
+    opt_num: Optional[int] = MISSING
+    dict: Dict[str, str] = MISSING
+    opt_dict: Optional[Dict[str, str]] = MISSING
+    list: List[str] = MISSING
+    opt_list: Optional[List[str]] = MISSING
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -118,38 +129,28 @@ def test_empty(input_: Any, is_empty: bool) -> None:
     assert c.is_empty() == is_empty
 
 
+@pytest.mark.parametrize("func", [str, repr])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
-    "input_",
+    "input_, expected",
     [
-        [],
-        {},
-        [1, 2, 3],
-        [1, 2, dict(a=3)],
-        [1, 2, [10, 20]],
-        dict(b=dict(b=10)),
-        dict(b=[1, 2, 3]),
+        ([], "[]"),
+        ({}, "{}"),
+        ([1, 2, 3], "[1, 2, 3]"),
+        ([1, 2, dict(a=3)], "[1, 2, {'a': 3}]"),
+        ([1, 2, [10, 20]], "[1, 2, [10, 20]]"),
+        (dict(b=dict(b=10)), "{'b': {'b': 10}}"),
+        (dict(b=[1, 2, 3]), "{'b': [1, 2, 3]}"),
+        (
+            StructuredWithMissing,
+            (
+                "{'num': '???', 'opt_num': '???', 'dict': ???, 'opt_dict': ???, 'list': ???, 'opt_list': ???}"
+            ),
+        ),
     ],
 )
-def test_repr(input_: Any) -> None:
+def test_str(func: Any, input_: Any, expected: str) -> None:
     c = OmegaConf.create(input_)
-    assert repr(input_) == repr(c)
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "input_",
-    [
-        [],
-        {},
-        [1, 2, 3],
-        [1, 2, dict(a=3)],
-        [1, 2, [10, 20]],
-        dict(b=dict(b=10)),
-        dict(b=[1, 2, 3]),
-    ],
-)
-def test_str(input_: Any) -> None:
-    c = OmegaConf.create(input_)
-    assert str(input_) == str(c)
+    assert func(c) == expected
 
 
 @pytest.mark.parametrize("flag", ["readonly", "struct"])  # type: ignore
@@ -436,6 +437,12 @@ def test_omegaconf_create() -> None:
         ({"foo": True}, "foo", False),
         ({"foo": MISSING}, "foo", True),
         ({"foo": "${bar}", "bar": MISSING}, "foo", True),
+        (StructuredWithMissing, "num", True),
+        (StructuredWithMissing, "opt_num", True),
+        (StructuredWithMissing, "dict", True),
+        (StructuredWithMissing, "opt_dict", True),
+        (StructuredWithMissing, "list", True),
+        (StructuredWithMissing, "opt_list", True),
     ],
 )
 def test_is_missing(cfg: Any, key: str, expected: Any) -> None:

@@ -4,6 +4,7 @@ from typing import Any, Dict
 import pytest
 
 from omegaconf import (
+    MISSING,
     AnyNode,
     DictConfig,
     KeyValidationError,
@@ -134,9 +135,11 @@ class TestConfigs:
         module: Any = import_module(class_type)
 
         def validate(cfg: DictConfig) -> None:
-            assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3]}
+            assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3], "missing": MISSING}
             with pytest.raises(ValidationError):
                 cfg.list1[1] = "foo"
+
+            assert OmegaConf.is_missing(cfg, "missing")
 
         conf1 = OmegaConf.structured(module.ConfigWithList)
         validate(conf1)
@@ -156,11 +159,10 @@ class TestConfigs:
         module: Any = import_module(class_type)
 
         def validate(cfg: DictConfig) -> None:
-            assert cfg == {"dict1": {"foo": "bar"}}
+            assert cfg == {"dict1": {"foo": "bar"}, "missing": MISSING}
+            assert OmegaConf.is_missing(cfg, "missing")
 
         conf1 = OmegaConf.structured(module.ConfigWithDict)
-        validate(conf1)
-        conf1 = OmegaConf.structured(module.ConfigWithDict())
         validate(conf1)
         conf1 = OmegaConf.structured(module.ConfigWithDict())
         validate(conf1)
