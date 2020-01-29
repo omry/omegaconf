@@ -12,8 +12,7 @@ from omegaconf import (
     ReadonlyConfigError,
     ValidationError,
 )
-
-from . import Color
+from tests import Color
 
 
 class EnumConfigAssignments:
@@ -82,15 +81,21 @@ class AnyTypeConfigAssignments:
     illegal: Any = []
 
 
-@pytest.mark.parametrize("class_type", ["dataclass_test_data", "attr_test_data"])
+@pytest.mark.parametrize(
+    "class_type",
+    [
+        "tests.structured_conf.data.dataclasses",
+        "tests.structured_conf.data.attr_classes",
+    ],
+)
 class TestConfigs:
     def test_nested_config_errors_on_missing(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         with pytest.raises(ValueError):
             OmegaConf.structured(module.ErrorOnMissingNestedConfig)
 
     def test_nested_config_errors_on_none(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         with pytest.raises(ValueError):
             OmegaConf.structured(module.ErrorOnNoneNestedConfig)
 
@@ -112,7 +117,7 @@ class TestConfigs:
                 "value_at_root": 1000,
             }
 
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
 
         conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
@@ -120,13 +125,13 @@ class TestConfigs:
         validate(conf1)
 
     def test_no_default_errors(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
 
         with pytest.raises(ValueError):
             OmegaConf.structured(module.NoDefaultErrors)
 
     def test_config_with_list(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
 
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3]}
@@ -140,7 +145,7 @@ class TestConfigs:
         validate(conf1)
 
     def test_assignment_to_nested_structured_config(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.NestedConfig)
         with pytest.raises(ValidationError):
             conf.default_value = 10
@@ -148,7 +153,7 @@ class TestConfigs:
         conf.default_value = module.Nested()
 
     def test_config_with_dict(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
 
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"dict1": {"foo": "bar"}}
@@ -161,7 +166,7 @@ class TestConfigs:
         validate(conf1)
 
     def test_structured_config_struct_behavior(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
 
         def validate(cfg: DictConfig) -> None:
             assert not OmegaConf.is_struct(cfg)
@@ -208,7 +213,7 @@ class TestConfigs:
         init_dict: Dict[str, Any],
         assignment_data: Any,
     ) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_class = getattr(module, tested_type)
 
         def validate(input_: Any, expected: Any) -> None:
@@ -271,7 +276,7 @@ class TestConfigs:
     def test_untyped(
         self, class_type: str, input_init: Any, expected_init: Any
     ) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.AnyTypeConfig
         expected = input_(**expected_init)
         if input_init is not None:
@@ -316,7 +321,7 @@ class TestConfigs:
             assert conf.bool_default == val
 
     def test_interpolation(self, class_type: str) -> Any:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.Interpolation()
         conf = OmegaConf.structured(input_)
         assert conf.x == input_.x
@@ -338,7 +343,7 @@ class TestConfigs:
         ],
     )
     def test_optional(self, class_type: str, tested_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = getattr(module, tested_type)
         obj = input_()
         conf = OmegaConf.structured(input_)
@@ -353,7 +358,7 @@ class TestConfigs:
             conf.not_optional = None
 
     def test_typed_list(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.WithTypedList
         conf = OmegaConf.structured(input_)
         with pytest.raises(ValidationError):
@@ -367,7 +372,7 @@ class TestConfigs:
             OmegaConf.merge(conf, cfg2)
 
     def test_typed_dict(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.WithTypedDict
         conf = OmegaConf.structured(input_)
         with pytest.raises(ValidationError):
@@ -377,25 +382,25 @@ class TestConfigs:
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.ErrorDictIntKey
         with pytest.raises(KeyValidationError):
             OmegaConf.structured(input_)
 
     def test_typed_dict_value_error(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.ErrorDictUnsupportedValue
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
     def test_typed_list_value_error(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         input_ = module.ErrorListUnsupportedValue
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
     def test_list_examples(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.ListExamples)
 
         def test_any(name: str) -> None:
@@ -441,7 +446,7 @@ class TestConfigs:
         ]
 
     def test_dict_examples(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictExamples)
         # any: Dict = {"a": 1, "b": "foo"}
         # ints: Dict[str, int] = {"a": 10, "b": 20}
@@ -506,7 +511,7 @@ class TestConfigs:
         }
 
     def test_enum_key(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictWithEnumKeys)
 
         # When an Enum is a dictionary key the name of the Enum is actually used
@@ -521,7 +526,7 @@ class TestConfigs:
             conf.enum_key["error"] = "error"
 
     def test_dict_of_objects(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictOfObjects)
         assert conf.users.joe.age == 18
         assert conf.users.joe.name == "Joe"
@@ -534,7 +539,7 @@ class TestConfigs:
             conf.users.fail = "fail"
 
     def test_list_of_objects(self, class_type: str) -> None:
-        module: Any = import_module("tests.structured_conf." + class_type)
+        module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.ListOfObjects)
         assert conf.users[0].age == 18
         assert conf.users[0].name == "Joe"
@@ -559,23 +564,29 @@ def validate_frozen_impl(conf: DictConfig) -> None:
 
 
 def test_attr_frozen() -> None:
-    from tests.structured_conf.attr_test_data import FrozenClass
+    from tests.structured_conf.data.attr_classes import FrozenClass
 
     validate_frozen_impl(OmegaConf.structured(FrozenClass))
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
 def test_dataclass_frozen() -> None:
-    from tests.structured_conf.dataclass_test_data import FrozenClass
+    from tests.structured_conf.data.dataclasses import FrozenClass
 
     validate_frozen_impl(OmegaConf.structured(FrozenClass))
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-@pytest.mark.parametrize("class_type", ["dataclass_test_data", "attr_test_data"])
+@pytest.mark.parametrize(
+    "class_type",
+    [
+        "tests.structured_conf.data.dataclasses",
+        "tests.structured_conf.data.attr_classes",
+    ],
+)
 class TestDictSubclass:
     def test_str2str(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2Str())
         cfg.hello = "world"
         assert cfg.hello == "world"
@@ -584,7 +595,7 @@ class TestDictSubclass:
             cfg[Color.RED] = "fail"
 
     def test_color2str(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
         cfg[Color.RED] = "red"
 
@@ -592,7 +603,7 @@ class TestDictSubclass:
             cfg.greeen = "nope"
 
     def test_color2color(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
         cfg[Color.RED] = "RED"
         assert cfg[Color.RED] == Color.RED
@@ -612,7 +623,7 @@ class TestDictSubclass:
             cfg.greeen = "nope"
 
     def test_str2user(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())
 
         cfg.bond = module.User(name="James Bond", age=7)
@@ -628,7 +639,7 @@ class TestDictSubclass:
             cfg[Color.BLUE] = "nope"
 
     def test_str2str_with_field(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
         assert cfg.foo == "bar"
         cfg.hello = "world"
@@ -638,7 +649,7 @@ class TestDictSubclass:
             cfg[Color.RED] = "fail"
 
     def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
-        module: Any = import_module(f"tests.structured_conf.{class_type}")
+        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
         assert cfg.foo == "bar"
 
@@ -651,6 +662,6 @@ class TestDictSubclass:
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:
-            module: Any = import_module(f"tests.structured_conf.{class_type}")
+            module: Any = import_module(class_type)
             with pytest.raises(KeyValidationError):
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
