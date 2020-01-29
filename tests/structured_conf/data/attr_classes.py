@@ -133,11 +133,13 @@ class EnumConfig:
 class ConfigWithList:
     list1: List[int] = [1, 2, 3]
     list2: Tuple[int, int, int] = (1, 2, 3)
+    missing: List[int] = MISSING
 
 
 @attr.s(auto_attribs=True)
 class ConfigWithDict:
     dict1: Dict[str, Any] = {"foo": "bar"}
+    missing: Dict[str, Any] = MISSING
 
 
 @attr.s(auto_attribs=True)

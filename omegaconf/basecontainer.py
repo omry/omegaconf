@@ -52,7 +52,7 @@ class BaseContainer(Container, ABC):
         from .nodes import ValueNode
 
         def is_mandatory_missing(val: Any) -> bool:
-            return type(val) == str and val == "???"
+            return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
 
         if isinstance(value, ValueNode):
             value = value.value()
@@ -107,10 +107,13 @@ class BaseContainer(Container, ABC):
         return full_key
 
     def __str__(self) -> str:
-        return self.content.__str__()  # type: ignore
+        return self.__repr__()
 
     def __repr__(self) -> str:
-        return self.content.__repr__()  # type: ignore
+        if self.__dict__["_missing"]:
+            return "???"
+        else:
+            return self.__dict__["content"].__repr__()  # type: ignore
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
@@ -460,6 +463,9 @@ class BaseContainer(Container, ABC):
         v2 = c2.get_node(k2)
         v1_kind = get_value_kind(v1)
         v2_kind = get_value_kind(v2)
+
+        if v1_kind == v2_kind and v1_kind == ValueKind.MANDATORY_MISSING:
+            return True
 
         if isinstance(v1, ValueNode):
             v1 = v1.value()

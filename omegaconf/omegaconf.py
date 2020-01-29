@@ -464,7 +464,7 @@ def _maybe_wrap(
     is_dict = type(value) is dict or origin is dict
     is_list = type(value) in (list, tuple) or origin in (list, tuple)
 
-    if is_dict or origin is dict:
+    if is_dict or origin is Dict:
         from .dictconfig import DictConfig
 
         key_type, element_type = _get_key_value_types(annotated_type)
@@ -473,7 +473,7 @@ def _maybe_wrap(
         )
         # noinspection PyProtectedMember
         value._set_parent(parent=parent)
-    elif is_list:
+    elif is_list or origin is List:
         from .listconfig import ListConfig
 
         args = getattr(annotated_type, "__args__", None)
@@ -485,10 +485,7 @@ def _maybe_wrap(
         if not (_valid_value_annotation_type(element_type)):
             raise ValidationError(f"Unsupported value type : {element_type}")
 
-        value = ListConfig(parent=None, content=value, element_type=element_type)
-        # noinspection PyProtectedMember
-        value._set_parent(parent=parent)
-
+        value = ListConfig(parent=parent, content=value, element_type=element_type)
     elif (
         is_dict and is_structured_config(annotated_type) and is_structured_config(value)
     ) or is_structured_config(value):

@@ -198,10 +198,6 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     :param return_match_list: True to return the match list as well
     :return: ValueKind
     """
-    from .nodes import ValueNode
-
-    if isinstance(value, ValueNode):
-        value = value.value()
 
     key_prefix = r"\${(\w+:)?"
     legal_characters = r"([\w\.%_ \\,-]*?)}"
@@ -211,10 +207,19 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
         value_kind: ValueKind,
     ) -> Union[ValueKind, Tuple[ValueKind, Optional[List[Match[str]]]]]:
         if return_match_list:
-
             return value_kind, match_list
         else:
             return value_kind
+
+    from .base import Container
+    from .nodes import ValueNode
+
+    if isinstance(value, Container):
+        if value.__dict__["_missing"]:
+            return ret(ValueKind.MANDATORY_MISSING)
+
+    if isinstance(value, ValueNode):
+        value = value.value()
 
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)

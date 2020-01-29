@@ -13,7 +13,7 @@ from typing import (
     Union,
 )
 
-from ._utils import is_primitive_list, isint
+from ._utils import ValueKind, get_value_kind, is_primitive_list, isint
 from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import KeyValidationError, ReadonlyConfigError, UnsupportedValueType
@@ -28,18 +28,20 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         element_type: Any = Any,
     ) -> None:
         super().__init__(parent=parent, element_type=element_type)
-        self.__dict__["content"] = []
-        assert is_primitive_list(content) or isinstance(content, ListConfig)
-        for item in content:
-            self.append(item)
+        if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
+            self.__dict__["_missing"] = True
+            self.__dict__["content"] = None
+        else:
+            assert is_primitive_list(content) or isinstance(content, ListConfig)
+            self.__dict__["_missing"] = False
+            self.__dict__["content"] = []
+            for item in content:
+                self.append(item)
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "ListConfig":
         res = ListConfig(content=[])
-        res.__dict__["content"] = copy.deepcopy(self.__dict__["content"], memo=memo)
-        res.__dict__["flags"] = copy.deepcopy(self.__dict__["flags"], memo=memo)
-        res.__dict__["_element_type"] = copy.deepcopy(
-            self.__dict__["_element_type"], memo=memo
-        )
+        for key in ["content", "_missing", "flags", "_element_type"]:
+            res.__dict__[key] = copy.deepcopy(self.__dict__[key], memo=memo)
         res._re_parent()
         return res
 
