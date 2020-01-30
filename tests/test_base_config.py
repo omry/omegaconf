@@ -1,6 +1,5 @@
 import copy
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import pytest
 
@@ -19,17 +18,7 @@ from omegaconf import (
     read_write,
 )
 
-from . import does_not_raise
-
-
-@dataclass
-class StructuredWithMissing:
-    num: int = MISSING
-    opt_num: Optional[int] = MISSING
-    dict: Dict[str, str] = MISSING
-    opt_dict: Optional[Dict[str, str]] = MISSING
-    list: List[str] = MISSING
-    opt_list: Optional[List[str]] = MISSING
+from . import StructuredWithMissing, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -184,16 +173,25 @@ def test_freeze_nested_dict(flag: str) -> None:
     assert c.a._get_flag(flag)
 
 
-@pytest.mark.parametrize("src", [[], [1, 2, 3], dict(), dict(a=10)])
+@pytest.mark.parametrize(
+    "src", [[], [1, 2, 3], dict(), dict(a=10), StructuredWithMissing]
+)
 class TestDeepCopy:
     def test_deepcopy(self, src: Any) -> None:
         c1 = OmegaConf.create(src)
         c2 = copy.deepcopy(c1)
         assert c1 == c2
+
+        assert c1.__dict__.keys() == c2.__dict__.keys()
+        for k in c1.__dict__.keys():
+            assert c1.__dict__[k] == c2.__dict__[k]
+
+        assert id(c1) != id(c2)
+
         if isinstance(c2, ListConfig):
             c2.append(1000)
         elif isinstance(c2, DictConfig):
-            c2.foo = "bar"
+            c2.num = 42
         assert c1 != c2
 
     def test_deepcopy_readonly(self, src: Any) -> None:
@@ -206,7 +204,7 @@ class TestDeepCopy:
                 c2.append(1000)
         elif isinstance(c2, DictConfig):
             with pytest.raises(ReadonlyConfigError):
-                c2.foo = "bar"
+                c2.num = 42
         assert c1 == c2
 
     def test_deepcopy_struct(self, src: Any) -> None:
@@ -218,7 +216,7 @@ class TestDeepCopy:
             c2.append(1000)
         elif isinstance(c2, DictConfig):
             with pytest.raises(AttributeError):
-                c2.foo = "bar"
+                c2.foo = 42
 
 
 def test_deepcopy_after_del() -> None:
@@ -448,6 +446,17 @@ def test_omegaconf_create() -> None:
 def test_is_missing(cfg: Any, key: str, expected: Any) -> None:
     cfg = OmegaConf.create(cfg)
     assert OmegaConf.is_missing(cfg, key) == expected
+
+
+def test_is_missing_resets() -> None:
+    cfg = OmegaConf.structured(StructuredWithMissing)
+    assert OmegaConf.is_missing(cfg, "dict")
+    cfg.dict = {}
+    assert not OmegaConf.is_missing(cfg, "dict")
+
+    assert OmegaConf.is_missing(cfg, "list")
+    cfg.list = [1, 2, 3]
+    assert not OmegaConf.is_missing(cfg, "list")
 
 
 @pytest.mark.parametrize(  # type: ignore

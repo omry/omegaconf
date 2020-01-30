@@ -15,7 +15,7 @@ from omegaconf import (
 )
 from omegaconf.basecontainer import BaseContainer
 
-from . import IllegalType, does_not_raise
+from . import IllegalType, StructuredWithMissing, does_not_raise
 
 
 class Enum1(Enum):
@@ -368,8 +368,10 @@ def test_instantiate_config_fails() -> None:
 
 
 def test_dir() -> None:
-    c = OmegaConf.create(dict(a=1, b=2, c=3))
-    assert ["a", "b", "c"] == dir(c)
+    c1 = OmegaConf.create(dict(a=1, b=2, c=3))
+    assert dir(c1) == ["a", "b", "c"]
+    c2 = OmegaConf.structured(StructuredWithMissing)
+    assert dir(c2.get_node("dict")) == []
 
 
 def test_hash() -> None:

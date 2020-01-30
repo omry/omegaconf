@@ -430,6 +430,9 @@ def test_deepcopy(obj: Any) -> None:
     cp = copy.deepcopy(obj)
     assert cp == obj
     assert id(cp) != id(obj)
+    assert obj.__dict__.keys() == cp.__dict__.keys()
+    for k in obj.__dict__.keys():
+        assert obj.__dict__[k] == cp.__dict__[k]
 
 
 @pytest.mark.parametrize(  # type: ignore

@@ -40,7 +40,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "ListConfig":
         res = ListConfig(content=[])
-        for key in ["content", "_missing", "flags", "_element_type"]:
+        for key in ["content", "flags", "_element_type", "_missing"]:
             res.__dict__[key] = copy.deepcopy(self.__dict__[key], memo=memo)
         res._re_parent()
         return res
@@ -56,6 +56,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return [str(x) for x in range(0, len(self))]
 
     def __len__(self) -> int:
+        if self._is_missing():
+            return 0
         return len(self.content)
 
     def __getitem__(self, index: Union[int, slice]) -> Any:
@@ -240,7 +242,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     v = v.value()
                 return v
 
-        return MyItems(self.content)
+        return MyItems(self.content if not self._is_missing() else [])
 
     def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
