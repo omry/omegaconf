@@ -27,6 +27,7 @@ from .errors import (
 class BaseContainer(Container, ABC):
     # static fields
     _resolvers: Dict[str, Any] = {}
+    missing: bool
 
     def __init__(self, element_type: type, parent: Optional["Container"]):
         super().__init__(parent=parent)
@@ -110,7 +111,7 @@ class BaseContainer(Container, ABC):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        if self.__dict__["_missing"]:
+        if self._is_missing():
             return "???"
         else:
             return self.__dict__["content"].__repr__()  # type: ignore
@@ -129,6 +130,8 @@ class BaseContainer(Container, ABC):
         del self.__dict__["content"][key]
 
     def __len__(self) -> int:
+        if self._is_missing():
+            return 0
         return self.__dict__["content"].__len__()  # type: ignore
 
     def merge_with_cli(self) -> None:
@@ -544,11 +547,15 @@ class BaseContainer(Container, ABC):
 
         # update parents of first level Config nodes to self
 
-        if isinstance(self, DictConfig):
-            for _key, value in self.__dict__["content"].items():
-                value._set_parent(self)
-                BaseContainer._re_parent(value)
-        elif isinstance(self, ListConfig):
-            for item in self.__dict__["content"]:
-                item._set_parent(self)
-                BaseContainer._re_parent(item)
+        if isinstance(self, Container) and not self._is_missing():
+            if isinstance(self, DictConfig):
+                for _key, value in self.__dict__["content"].items():
+                    value._set_parent(self)
+                    BaseContainer._re_parent(value)
+            elif isinstance(self, ListConfig):
+                for item in self.__dict__["content"]:
+                    item._set_parent(self)
+                    BaseContainer._re_parent(item)
+
+    def _is_missing(self) -> bool:
+        return self.__dict__["_missing"] is True

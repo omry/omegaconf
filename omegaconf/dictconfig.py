@@ -46,7 +46,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         self.__dict__["_type"] = None
         self.__dict__["_key_type"] = key_type
-
         if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
             self.__dict__["_missing"] = True
             self.__dict__["content"] = None
@@ -76,7 +75,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
-        for k in ["content", "flags", "_element_type", "_key_type", "_type"]:
+        for k in [
+            "content",
+            "flags",
+            "_element_type",
+            "_key_type",
+            "_type",
+            "_missing",
+        ]:
             res.__dict__[k] = copy.deepcopy(self.__dict__[k], memo=memo)
         res._re_parent()
         return res
@@ -149,6 +155,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
+        if self._is_missing():
+            return []
         return self.__dict__["content"].keys()  # type: ignore
 
     def __setattr__(self, key: str, value: Any) -> None:
@@ -228,6 +236,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return value
 
     def keys(self) -> Any:
+        if self._is_missing():
+            return list()
         return self.content.keys()
 
     def __contains__(self, key: object) -> bool:
