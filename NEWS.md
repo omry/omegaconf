@@ -1,27 +1,35 @@
-## 2.0.0rc5 (2020-01-20)
-
-OmegaConf 2.0 is a major release introducing substrantial new features, dropping Python 2.7 support, changing the internal data model and renaming some classes. As such it may require changes to client code in rare cases.
+## 2.0.0rc6 (2020-01-29)
+OmegaConf 2.0 is a major release introducing substantial new features, dropping Python 2.7 support, changing the internal data model and renaming some classes. As such it may require changes to client code in rare cases.
+The biggest new feature here is structured configs.
+With structured configs you can create OmegaConf objects from standard dataclasses or attr classes, or objects of each.
+OmegaConf will retain the type information from the source object/class and will validate against it at runtime.
 
 Features
 --------
 
-- Add support for initializing OmegaConf from dataclass or instance ([#87](https://github.com/omry/omegaconf/issues/87))
-- Supporting Enums as values and keys ([#87](https://github.com/omry/omegaconf/issues/87))
+- Add support for initializing OmegaConf from typed objects and classes ([#87](https://github.com/omry/omegaconf/issues/87))
+- Enums can now be used as values and keys  ([#87](https://github.com/omry/omegaconf/issues/87)),([#137](https://github.com/omry/omegaconf/issues/137))
+- In struct mode, exceptions raised on invalid access are now consistent with Python ([#138](https://github.com/omry/omegaconf/issues/138)),([#94](https://github.com/omry/omegaconf/issues/94))
+    * KeyError is raised when using dictionary access style for a missing key: cfg["foo"]
+    * AttributeError is raised when using attribute access style for a missing attribute: cfg.foo
+- DictConfig and ListConfig now implements typing.MutableMapping and typing.MutableSequence. ([#114](https://github.com/omry/omegaconf/issues/114))
+- Structured configs can now inherit from Dict, making them open to arbitrary fields ([#134](https://github.com/omry/omegaconf/issues/134))
 - Add OmegaConf.{is_config, is_list, is_dict} to test if an Object is an OmegaConf object, and if it's a list or a dict ([#101](https://github.com/omry/omegaconf/issues/101))
 - Add OmegaConf.is_missing(cfg, key) to test if a key is missing ('???') in a config ([#102](https://github.com/omry/omegaconf/issues/102))
+- fields with Dict and List types in structured configs can now be MISSING ([#139](https://github.com/omry/omegaconf/issues/139))
 - OmegaConf now passes strict mypy tests ([#105](https://github.com/omry/omegaconf/issues/105))
 - Add isort to ensure imports are kept sorted ([#107](https://github.com/omry/omegaconf/issues/107))
-- DictConfig and ListConfig now implements typing.MutableMapping and typing.MutableSequence. ([#114](https://github.com/omry/omegaconf/issues/114))
+
 
 Bug Fixes
 ---------
 
-- In struct mode, accessing a missing key now raises AttributeError and not KeyError ([#94](https://github.com/omry/omegaconf/issues/94))
 - Disable automatic conversion of date strings in yaml decoding ([#95](https://github.com/omry/omegaconf/issues/95))
 - Fixed pretty to handle strings with unicode characters correctly ([#111](https://github.com/omry/omegaconf/issues/111))
 - Fix eq fails if object contains unresolveable values ([#124](https://github.com/omry/omegaconf/issues/124))
 - Correctly throw MissingMandatoryValue on indirect access of missing value ([#99](https://github.com/omry/omegaconf/issues/99))
 - DictConfig pop now returns underlying value and not ValueNode ([#127](https://github.com/omry/omegaconf/issues/127))
+- Container.select(key) now returns the root node when key is "" ([#135](https://github.com/omry/omegaconf/issues/135))
 
 
 Deprecations and Removals
