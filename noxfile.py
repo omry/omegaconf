@@ -32,7 +32,7 @@ def docs(session):
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
     session.install("coverage", "pytest", "pytest-mock")
-    session.run("pip", "install", ".[coverage]", silent=True)
+    session.run("pip", "install", "-r", "requirements/coverage.txt", silent=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
     session.run("coverage", "report", "--fail-under=100")
@@ -45,7 +45,7 @@ def coverage(session):
 @nox.session(python=PYTHON_VERSIONS)
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
-    session.run("pip", "install", ".[lint]", silent=True)
+    session.run("pip", "install", "-r", "requirements/lint.txt", silent=True)
     session.run("flake8")
 
     session.install("black")
@@ -67,5 +67,5 @@ def test_jupyter_notebook(session):
         )
     session.install("--upgrade", "setuptools", "pip")
     session.install("jupyter", "nbval")
-    session.install(".[dev]")
+    session.run("pip", "install", ".", silent=True)
     session.run("pytest", "--nbval", "docs/notebook/Tutorial.ipynb", silent=True)

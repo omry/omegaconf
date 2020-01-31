@@ -10,14 +10,22 @@ OmegaConf setup
 """
 import codecs
 import os
+import pathlib
 import re
 
+import pkg_resources
 import setuptools
 
-here = os.path.abspath(os.path.dirname(__file__))
+with pathlib.Path("requirements/base.txt").open() as requirements_txt:
+    install_requires = [
+        str(requirement)
+        for requirement in pkg_resources.parse_requirements(requirements_txt)
+    ]
 
 
 def find_version(*file_paths):
+    here = os.path.abspath(os.path.dirname(__file__))
+
     def read(*parts):
         with codecs.open(os.path.join(here, *parts), "r") as fp:
             return fp.read()
@@ -52,39 +60,6 @@ with open("README.md", "r") as fh:
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],
-        install_requires=[
-            "PyYAML",
-            # Use dataclasses backport for Python 3.6.
-            "dataclasses;python_version=='3.6'",
-            "typing-extensions",
-        ],
-        # Install development dependencies with
-        # pip install -e ".[dev]"
-        extras_require={
-            "dev": [
-                "black",
-                "coveralls",
-                "flake8",
-                "pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes",
-                "pre-commit",
-                "pytest",
-                "pytest-mock",
-                "nox",
-                "towncrier",
-                "twine",
-                "sphinx",
-                "mypy",
-                "isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort",
-            ],
-            "coverage": ["coveralls"],
-            "lint": [
-                "pytest",
-                "black",
-                "flake8",
-                "pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes",
-                "mypy",
-                "isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort",
-            ],
-        },
+        install_requires=install_requires,
         package_data={"omegaconf": ["py.typed"]},
     )

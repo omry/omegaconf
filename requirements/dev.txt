@@ -1,0 +1,14 @@
+-r base.txt
+black
+coveralls
+flake8
+isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort
+mypy
+nox
+pre-commit
+pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes
+pytest
+pytest-mock
+sphinx
+towncrier
+twine
