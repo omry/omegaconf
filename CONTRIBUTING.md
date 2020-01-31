@@ -1,7 +1,7 @@
 It is recommended that you develop OmegaConf is a virtualenv or similar (pyenv, conda).
 To set up for development:
 
-`pip install -e ".[dev]"`
+`pip install -r requirements/dev.txt -e .`
 
 Install commit hooks:
 

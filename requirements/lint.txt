@@ -1,0 +1,6 @@
+black
+flake8
+isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort
+mypy
+pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes
+pytest
