@@ -361,7 +361,7 @@ class OmegaConf:
         try:
             cfg.__getitem__(key)
             return False
-        except MissingMandatoryValue:
+        except (MissingMandatoryValue, KeyError, AttributeError):
             return True
 
     @staticmethod

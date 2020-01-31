@@ -17,6 +17,11 @@ class Users:
     name2user: Dict[str, User] = field(default_factory=lambda: {})
 
 
+@dataclass
+class ConfWithMissingDict:
+    dict: Dict[str, Any] = MISSING
+
+
 @pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
@@ -73,6 +78,7 @@ class Users:
             [Users, {"name2user": {"joe": {"name": "joe"}}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
         ),
+        ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:

@@ -288,6 +288,8 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
+        from omegaconf import OmegaConf
+
         from .dictconfig import DictConfig
         from .nodes import ValueNode
 
@@ -298,6 +300,10 @@ class BaseContainer(Container, ABC):
         for key, value in src.items_ex(resolve=False):
             dest_type = dest.__dict__["_element_type"]
             typed = dest_type not in (None, Any)
+            if OmegaConf.is_missing(dest, key):
+                if isinstance(value, DictConfig):
+                    dest[key] = {}
+
             if (dest.get_node(key) is not None) or typed:
                 dest_node = dest.get_node(key)
                 if dest_node is None and typed:
