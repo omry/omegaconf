@@ -140,7 +140,9 @@ class IntegerNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(f"Value '{value}' could not be converted to Integer")
+            raise ValidationError(
+                f"Value '{value}' could not be converted to Integer"
+            ) from None
         return val
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "IntegerNode":
@@ -169,7 +171,9 @@ class FloatNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(f"Value '{value}' could not be converted to float")
+            raise ValidationError(
+                f"Value '{value}' could not be converted to float"
+            ) from None
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
@@ -221,7 +225,7 @@ class BooleanNode(ValueNode):
                 else:
                     raise ValidationError(
                         "Value '{}' is not a valid bool".format(value)
-                    )
+                    ) from None
         else:
             raise ValidationError(
                 f"Value '{value}' is not a valid bool (type {type(value).__name__})"
@@ -294,7 +298,9 @@ class EnumNode(ValueNode):
 
         except (ValueError, KeyError):
             valid = "\n".join([f"\t{x}" for x in enum_type.__members__.keys()])
-            raise ValidationError(f"Invalid value '{value}', expected one of:\n{valid}")
+            raise ValidationError(
+                f"Invalid value '{value}', expected one of:\n{valid}"
+            ) from None
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)
