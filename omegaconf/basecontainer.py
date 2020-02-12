@@ -427,7 +427,6 @@ class BaseContainer(Container, ABC):
             )
 
         try:
-
             if must_wrap:
                 self.__dict__["content"][key] = wrap(value)
             elif input_node and target_node:
@@ -454,10 +453,11 @@ class BaseContainer(Container, ABC):
                 else:
                     self.__dict__["content"][key] = wrap(value)
         except ValidationError as ve:
+            import sys
 
-            raise ValidationError(
+            raise type(ve)(
                 f"Error setting '{self.get_full_key(str(key))} = {value}' : {ve}"
-            )
+            ).with_traceback(sys.exc_info()[2]) from None
 
     @staticmethod
     def _item_eq(

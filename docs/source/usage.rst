@@ -168,7 +168,7 @@ You can use an object to initialize the config as well:
     port: 443
     <BLANKLINE>
 
-OmegaConf objects constructed from Structured classes offer runtime type safety:
+OmegaConf objects constructed from Structured classes offers runtime type safety:
 
 .. doctest::
 
