@@ -36,7 +36,7 @@ from ._utils import (
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import MissingMandatoryValue, ValidationError
+from .errors import MissingMandatoryValue, UnsupportedInterpolationType, ValidationError
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -361,6 +361,8 @@ class OmegaConf:
         try:
             cfg.__getitem__(key)
             return False
+        except UnsupportedInterpolationType:
+            return False
         except (MissingMandatoryValue, KeyError, AttributeError):
             return True
 
@@ -505,7 +507,7 @@ def _maybe_wrap(
             )
 
         value = _node_wrap(
-            type_=annotated_type, parent=parent, is_optional=is_optional, value=value,
+            type_=annotated_type, parent=parent, is_optional=is_optional, value=value
         )
     assert isinstance(value, Node)
     return value
