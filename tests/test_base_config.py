@@ -415,7 +415,9 @@ def test_not_implemented() -> None:
         OmegaConf()
 
 
-@pytest.mark.parametrize("query, result", [("a", "a"), ("${foo}", 10), ("${bar}", 10)])  # type: ignore
+@pytest.mark.parametrize(  # type: ignore
+    "query, result", [("a", "a"), ("${foo}", 10), ("${bar}", 10)]
+)
 def test_resolve_single(query: str, result: Any) -> None:
     cfg = OmegaConf.create({"foo": 10, "bar": "${foo}"})
     assert cfg._resolve_single(value=query) == result
@@ -435,6 +437,7 @@ def test_omegaconf_create() -> None:
         ({"foo": True}, "foo", False),
         ({"foo": MISSING}, "foo", True),
         ({"foo": "${bar}", "bar": MISSING}, "foo", True),
+        ({"foo": "${unknown_resolver:foo}"}, "foo", False),
         (StructuredWithMissing, "num", True),
         (StructuredWithMissing, "opt_num", True),
         (StructuredWithMissing, "dict", True),
