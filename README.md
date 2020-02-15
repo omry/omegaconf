@@ -11,11 +11,15 @@ OmegaConf is a hierarchical configuration system, with support for merging confi
 providing a consistent API regardless of how the configuration was created.
 
 ## Documentation
-[1.4 Documentation (stable)](https://omegaconf.readthedocs.io/en/1.4_branch/).
+### Stable (1.4)
+[1.4 Documentation](https://omegaconf.readthedocs.io/en/1.4_branch/).
 
 Install with `pip install omegaconf`
 
-[2.0 Documentation (pre-release)](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
+### Pre release (2.0)
+[What's new in OmegaConf 2.0](https://github.com/omry/omegaconf/releases/tag/2.0.0rc6).
+
+[Documentation (pre-release)](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
 
 Install with `pip install --upgrade --pre omegaconf`
 
