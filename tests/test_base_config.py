@@ -132,7 +132,7 @@ def test_empty(input_: Any, is_empty: bool) -> None:
         (
             StructuredWithMissing,
             (
-                "{'num': '???', 'opt_num': '???', 'dict': ???, 'opt_dict': ???, 'list': ???, 'opt_list': ???}"
+                "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': '???', 'opt_list': '???'}"
             ),
         ),
     ],
