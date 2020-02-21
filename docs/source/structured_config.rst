@@ -5,7 +5,7 @@
     from omegaconf import *
     import os
     from pytest import raises
-    from typing import Dict
+    from typing import Dict, Any
     import sys
     os.environ['USER'] = 'omry'
 
