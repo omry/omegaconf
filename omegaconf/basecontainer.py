@@ -296,6 +296,15 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
+        BaseContainer._validate_container_type(dest=dest, src=src)
+        if (
+            src.__dict__["_type"] is not None
+            and src.__dict__["_type"] is not dest.__dict__["_type"]
+        ):
+            prototype = DictConfig(content=src.__dict__["_type"])
+            dest.__dict__["_type"] = src.__dict__["_type"]
+            prototype.merge_with(dest)
+            dest = prototype
 
         for key, value in src.items_ex(resolve=False):
             dest_type = dest.__dict__["_element_type"]
@@ -565,3 +574,32 @@ class BaseContainer(Container, ABC):
 
     def _is_missing(self) -> bool:
         return self.__dict__["_missing"] is True
+
+    @staticmethod
+    def _validate_node_type(node: Node, value: Any) -> None:
+        from .dictconfig import DictConfig
+
+        type_ = node.__dict__["_type"] if isinstance(node, DictConfig) else None
+        is_typed = type_ is not None
+        mismatch_type = is_typed and not issubclass(type(value), type_)
+
+        if mismatch_type:
+            raise ValidationError(
+                f"Invalid type assigned : {type_.__name__} is not a subclass of {type(value).__name__}"
+            )
+
+    @staticmethod
+    def _validate_container_type(dest: Container, src: Container) -> None:
+        from .dictconfig import DictConfig
+
+        dest_type = dest.__dict__["_type"]
+        src_type = src.__dict__["_type"]
+        if dest_type is None:
+            return
+
+        if dest_type is not DictConfig and (
+            src_type is not None and not issubclass(src_type, dest_type)
+        ):
+            raise ValidationError(
+                f"Invalid type assigned : {src_type.__name__} is not a subclass of {dest_type.__name__}"
+            )
