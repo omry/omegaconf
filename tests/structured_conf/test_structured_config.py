@@ -101,6 +101,8 @@ class TestConfigs:
             OmegaConf.structured(module.ErrorOnNoneNestedConfig)
 
     def test_nested_config(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+
         def validate(cfg: DictConfig) -> None:
             assert cfg == {
                 "default_value": {
@@ -118,15 +120,25 @@ class TestConfigs:
                 "value_at_root": 1000,
             }
 
-        module: Any = import_module(class_type)
+            with pytest.raises(ValidationError):
+                cfg.default_value = 10
+
+            conf1.default_value = module.NestedSubclass()
+            conf1.default_value == {
+                "additional": 20,
+                "with_default": 10,
+                "null_default": None,
+                "mandatory_missing": "???",
+                "interpolation": "${value_at_root}",
+            }
+
+            with pytest.raises(ValidationError):
+                cfg.default_value = module.Nested()
 
         conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
         conf1 = OmegaConf.structured(module.NestedConfig(default_value=module.Nested()))
         validate(conf1)
-
-    def test_no_default_errors(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
 
         with pytest.raises(ValueError):
             OmegaConf.structured(module.NoDefaultErrors)
@@ -154,6 +166,12 @@ class TestConfigs:
             conf.default_value = 10
 
         conf.default_value = module.Nested()
+
+    def test_assignment_to_structured_inside_dict_config(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        conf = OmegaConf.create({"val": module.Nested})
+        with pytest.raises(ValidationError):
+            conf.val = 10
 
     def test_config_with_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)

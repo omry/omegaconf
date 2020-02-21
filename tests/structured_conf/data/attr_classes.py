@@ -159,6 +159,11 @@ class Nested:
 
 
 @attr.s(auto_attribs=True)
+class NestedSubclass(Nested):
+    additional: int = 20
+
+
+@attr.s(auto_attribs=True)
 class NestedConfig:
     default_value: Nested
 

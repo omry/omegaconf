@@ -154,6 +154,11 @@ class Nested:
 
 
 @dataclass
+class NestedSubclass(Nested):
+    additional: int = 20
+
+
+@dataclass
 class NestedConfig:
     default_value: Nested
 
