@@ -103,3 +103,9 @@ class ConfigValueError(OmegaConfBaseException, ValueError):
     """
     Thrown from a config object when a regular access would have caused a ValueError.
     """
+
+
+class CompactKeyError(ValueError):
+    """
+    Thrown when a compact key usage triggers an error
+    """

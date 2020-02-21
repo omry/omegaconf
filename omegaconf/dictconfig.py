@@ -29,6 +29,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
+    CompactKeyError,
     ConfigAttributeError,
     ConfigKeyError,
     KeyValidationError,
@@ -256,6 +257,31 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self._format_and_raise(key=key, value=value, cause=e)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
+        if isinstance(key, str):
+            sub_keys = key.split(".")
+            cur = self
+            for idx, k in enumerate(sub_keys):
+                if k == "":
+                    raise CompactKeyError(f"Invalid key '{key}'")
+                if idx == len(sub_keys) - 1:
+                    # last key
+                    if isinstance(cur, DictConfig):
+                        cur.__set_single_key_val_impl(key=k, value=value)
+                    else:
+                        raise CompactKeyError(
+                            f"Conflict detected inserting compact key '{key}'  "
+                        )
+                else:
+                    if k.endswith("\\"):
+                        sub_keys[idx + 1] = f"{k[0:-1]}.{sub_keys[idx+1]}"
+                        continue
+                    if k not in cur:
+                        cur.__set_single_key_val_impl(key=k, value={})
+                    cur = cur[k]
+        else:
+            self.__set_single_key_val_impl(key=key, value=value)
+
+    def __set_single_key_val_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
         self._set_item_impl(key, value)
 

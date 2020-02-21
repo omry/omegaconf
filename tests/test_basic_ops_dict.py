@@ -14,7 +14,8 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf.basecontainer import BaseContainer
-from omegaconf.errors import KeyValidationError
+
+from omegaconf.errors import CompactKeyError, KeyValidationError
 
 from . import (
     ConcretePlugin,
@@ -25,6 +26,9 @@ from . import (
     User,
     does_not_raise,
 )
+
+
+from . import IllegalType, StructuredWithMissing, does_not_raise, Enum1
 
 
 def test_setattr_deep_value() -> None:
@@ -637,3 +641,28 @@ def test_assign_to_reftype_plugin(
                 cfg2 = OmegaConf.merge(cfg, {"foo": assign})
                 assert isinstance(cfg2, DictConfig)
                 assert cfg2.foo == assign
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "inp,expected",
+    [
+        ({"a.aa": 10}, {"a": {"aa": 10}}),
+        ({"a.aa.aaa": 10, "a.aa.bbb": 20}, {"a": {"aa": {"aaa": 10, "bbb": 20}}}),
+        ({"a.aa": {"aaa": 10, "bbb": 20}}, {"a": {"aa": {"aaa": 10, "bbb": 20}}}),
+        ({"a.aa": {"aaa": 10, "bbb": 20}}, {"a": {"aa": {"aaa": 10, "bbb": 20}}}),
+        ({"a.aa": 10, "a.aa.b": 10}, pytest.raises(CompactKeyError)),
+        ({"a": {"aa.aaa": 10, "aa.bbb": 20}}, {"a": {"aa": {"aaa": 10, "bbb": 20}}}),
+        ({"a..aa": 10}, pytest.raises(CompactKeyError)),
+    ],
+)
+def test_compact_keys(inp: Any, expected: Any) -> None:
+    if isinstance(expected, dict):
+        assert OmegaConf.create(inp) == OmegaConf.create(expected)
+    else:
+        with expected:
+            OmegaConf.create(inp)
+
+
+def test_escaped_compact_key() -> None:
+    cfg = OmegaConf.create({"a\\.aa": 10})
+    assert cfg["a.aa"] == 10
