@@ -5,6 +5,7 @@
     from omegaconf import *
     import os
     from pytest import raises
+    from typing import Dict, Any
     import sys
     os.environ['USER'] = 'omry'
 
@@ -84,6 +85,21 @@ Configs in struct mode rejects attempts to access or set fields that are not alr
     >>> with raises(AttributeError):
     ...    conf.does_not_exist
 
+You can create a config with specified fields that can also accept arbitrary values by extending Dict:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class DictWithFields(Dict[str, Any]):
+    ...     num : int = 10
+    >>>
+    >>> conf = OmegaConf.structured(DictWithFields)
+    >>> assert conf.num == 10
+    >>>
+    >>> conf.foo = "bar"
+    >>> assert conf.foo == "bar"
+
+
 
 Static type checker support
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -92,10 +108,10 @@ Python type annotation can be used by static type checkers like Mypy/Pyre or by 
 .. doctest::
 
     >>> conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
-    >>> # passes static type checking
-    >>> assert conf.description == "text"
+    >>> # Passes static type checking
+    >>> conf.description = "text"
+    >>> # Fails static type checking (but will also raise a Validation error)
     >>> with raises(ValidationError):
-    ...     # fails both static and runtime type checking
     ...     conf.num = "foo"
 
 Runtime type validation and conversion
@@ -144,8 +160,12 @@ Structured configs can be nested.
     ...     # A simple user class with two missing fields
     ...     name: str = MISSING
     ...     height: Height = MISSING
+    >>>
+    >>> @dataclass
+    ... class DuperUser(User):
+    ...     duper: bool = True
     ...
-    ... # Group class contains two instances of User.
+    >>> # Group class contains two instances of User.
     >>> @dataclass
     ... class Group:
     ...     name: str = MISSING
@@ -172,6 +192,14 @@ OmegaConf will validate that assignment of nested objects is of the correct type
 
     >>> with raises(ValidationError):
     ...     conf.manager = 10
+
+You can assign subclasses:
+
+.. doctest::
+
+    >>> conf.manager = DuperUser()
+    >>> assert conf.manager.duper == True
+
 
 Containers
 ----------

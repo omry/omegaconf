@@ -326,15 +326,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 raise AttributeError(msg)
 
     def _validate_type(self, key: Union[str, Enum], value: Any) -> None:
-        if self.__dict__["_type"] is not None:
-            child = self.get_node(key)
-            if child is None:
-                return
-            type_ = child.__dict__["_type"] if isinstance(child, DictConfig) else None
-            is_typed = type_ is not None
-            mismatch_type = is_typed and type(value) != type_
+        child = self.get_node(key)
+        if child is None:
+            return
+        type_ = child.__dict__["_type"] if isinstance(child, DictConfig) else None
+        is_typed = type_ is not None
+        mismatch_type = is_typed and not issubclass(type(value), type_)
 
-            if mismatch_type:
-                raise ValidationError(
-                    f"Invalid type assigned : {type_.__name__} != {type(value).__name__}"
-                )
+        if mismatch_type:
+            raise ValidationError(
+                f"Invalid type assigned : {type_.__name__} is not a subclass of {type(value).__name__}"
+            )
