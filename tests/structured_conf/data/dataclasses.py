@@ -345,3 +345,20 @@ class DictSubclass:
         @dataclass
         class User2Str(Dict[User, str]):
             pass
+
+
+@dataclass
+class Plugin:
+    name: str = MISSING
+    params: Dict[str, Any] = MISSING
+
+
+@dataclass
+class ConcretePlugin:
+    name: str = "foobar_plugin"
+
+    @dataclass
+    class FoobarParams:
+        foo: int = 10
+
+    params: FoobarParams = FoobarParams()

@@ -124,7 +124,7 @@ class TestConfigs:
                 cfg.default_value = 10
 
             conf1.default_value = module.NestedSubclass()
-            conf1.default_value == {
+            assert conf1.default_value == {
                 "additional": 20,
                 "with_default": 10,
                 "null_default": None,
@@ -425,15 +425,6 @@ class TestConfigs:
             OmegaConf.structured(module.NestedSubclass),
         )
         assert res.__dict__["_type"] == module.NestedSubclass
-
-    def test_merged_with_non_subclass(self, class_type: str) -> None:
-        # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
-        with pytest.raises(ValidationError):
-            OmegaConf.merge(
-                OmegaConf.structured(module.NestedSubclass),
-                OmegaConf.structured(module.Nested),
-            )
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
