@@ -401,6 +401,40 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
+    def test_merged_type1(self, class_type: str) -> None:
+        # Test that the merged type is that of the last merged config
+        module: Any = import_module(class_type)
+        input_ = module.WithTypedDict
+        conf = OmegaConf.structured(input_)
+        res = OmegaConf.merge(OmegaConf.create(), conf)
+        assert res.__dict__["_type"] == input_
+
+    def test_merged_type2(self, class_type: str) -> None:
+        # Test that the merged type is that of the last merged config
+        module: Any = import_module(class_type)
+        input_ = module.WithTypedDict
+        conf = OmegaConf.structured(input_)
+        res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
+        assert res.__dict__["_type"] == input_
+
+    def test_merged_with_subclass(self, class_type: str) -> None:
+        # Test that the merged type is that of the last merged config
+        module: Any = import_module(class_type)
+        res = OmegaConf.merge(
+            OmegaConf.structured(module.Nested),
+            OmegaConf.structured(module.NestedSubclass),
+        )
+        assert res.__dict__["_type"] == module.NestedSubclass
+
+    def test_merged_with_non_subclass(self, class_type: str) -> None:
+        # Test that the merged type is that of the last merged config
+        module: Any = import_module(class_type)
+        with pytest.raises(ValidationError):
+            OmegaConf.merge(
+                OmegaConf.structured(module.NestedSubclass),
+                OmegaConf.structured(module.Nested),
+            )
+
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictIntKey
@@ -570,6 +604,38 @@ class TestConfigs:
 
         with pytest.raises(ValidationError):
             conf.users.append("fail")
+
+    def test_cast_api(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        conf = OmegaConf.create(module.AnyTypeConfig)
+        conf.cast(None)
+        assert conf == OmegaConf.create(module.AnyTypeConfig)
+        with pytest.raises(ValueError):
+            conf.cast(42)
+        assert conf == OmegaConf.create(module.AnyTypeConfig)
+
+    def test_cast_to_class(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+
+        conf = OmegaConf.create(module.AnyTypeConfig)
+        assert conf._type == module.AnyTypeConfig
+
+        conf.cast(module.BoolConfig)
+
+        assert conf._type == module.BoolConfig
+        assert conf.with_default is True
+        assert conf.null_default is None
+        assert OmegaConf.is_missing(conf, "mandatory_missing")
+
+    def test_cast_to_object(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+
+        conf = OmegaConf.create(module.AnyTypeConfig)
+        assert conf._type == module.AnyTypeConfig
+
+        conf.cast(module.BoolConfig(with_default=False))
+        assert conf._type == module.BoolConfig
+        assert conf.with_default is False
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:

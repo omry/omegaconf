@@ -296,13 +296,30 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
+        BaseContainer._validate_container_type(dest=dest, src=src)
+        result_type = None
+        if (
+            src.__dict__["_type"] is not None
+            and src.__dict__["_type"] is not dest.__dict__["_type"]
+        ):
+            prototype = DictConfig(content={})
+            result_type = src.__dict__["_type"]
+            src.__dict__["_type"] = None
+            prototype.merge_with(src)
+            prototype.merge_with(dest)
+
+            for k in {"content", "_resolver_cache", "_key_type", "_missing"}:
+                dest.__dict__[k] = prototype.__dict__[k]
 
         for key, value in src.items_ex(resolve=False):
             dest_type = dest.__dict__["_element_type"]
             typed = dest_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(value, DictConfig):
-                    dest[key] = {}
+                    if OmegaConf.is_missing(src, key):
+                        dest[key] = DictConfig(content="???")
+                    else:
+                        dest[key] = {}
 
             if (dest.get_node(key) is not None) or typed:
                 dest_node = dest.get_node(key)
@@ -323,6 +340,9 @@ class BaseContainer(Container, ABC):
                         dest_node.set_value(value)
             else:
                 dest[key] = src.get_node(key)
+
+            if result_type is not None:
+                dest.__dict__["_type"] = result_type
 
     def merge_with(
         self,
@@ -565,3 +585,32 @@ class BaseContainer(Container, ABC):
 
     def _is_missing(self) -> bool:
         return self.__dict__["_missing"] is True
+
+    @staticmethod
+    def _validate_node_type(node: Node, value: Any) -> None:
+        from .dictconfig import DictConfig
+
+        type_ = node.__dict__["_type"] if isinstance(node, DictConfig) else None
+        is_typed = type_ is not None
+        mismatch_type = is_typed and not issubclass(type(value), type_)
+
+        if mismatch_type:
+            raise ValidationError(
+                f"Invalid type assigned : {type_.__name__} is not a subclass of {type(value).__name__}"
+            )
+
+    @staticmethod
+    def _validate_container_type(dest: Container, src: Container) -> None:
+        from .dictconfig import DictConfig
+
+        dest_type = dest.__dict__["_type"]
+        src_type = src.__dict__["_type"]
+        if dest_type is None:
+            return
+
+        if dest_type is not DictConfig and (
+            src_type is not None and not issubclass(src_type, dest_type)
+        ):
+            raise ValidationError(
+                f"Invalid type assigned : {src_type.__name__} is not a subclass of {dest_type.__name__}"
+            )

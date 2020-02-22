@@ -10,6 +10,7 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    Type,
     Union,
 )
 
@@ -329,11 +330,26 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         child = self.get_node(key)
         if child is None:
             return
-        type_ = child.__dict__["_type"] if isinstance(child, DictConfig) else None
-        is_typed = type_ is not None
-        mismatch_type = is_typed and not issubclass(type(value), type_)
+        self._validate_node_type(child, value)
 
-        if mismatch_type:
-            raise ValidationError(
-                f"Invalid type assigned : {type_.__name__} is not a subclass of {type(value).__name__}"
-            )
+    def cast(self, type_or_prototype: Type[Any]) -> None:
+        """
+        Retypes a node.
+        This should only be used in rare circumstances, where you want to dynamically change
+        the runtime structured-type of a DictConfig.
+        It will change the type and add the additional fields based on the input class or object
+        """
+        if type_or_prototype is None:
+            return
+        if not is_structured_config(type_or_prototype):
+            raise ValueError("Expected structured config class")
+
+        from omegaconf import OmegaConf
+
+        proto = OmegaConf.structured(type_or_prototype)
+        type_ = proto.__dict__["_type"]
+        # remove the type to prevent assignment validation from rejecting the cast.
+        proto.__dict__["_type"] = None
+        self.merge_with(proto)
+        # restore the type.
+        self.__dict__["_type"] = type_
