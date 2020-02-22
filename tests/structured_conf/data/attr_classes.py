@@ -338,3 +338,20 @@ class DictSubclass:
         @attr.s(auto_attribs=True)
         class User2Str(Dict[User, str]):
             pass
+
+
+@attr.s(auto_attribs=True)
+class Plugin:
+    name: str = MISSING
+    params: Dict[str, Any] = MISSING
+
+
+@attr.s(auto_attribs=True)
+class ConcretePlugin:
+    name: str = "foobar_plugin"
+
+    @attr.s(auto_attribs=True)
+    class FoobarParams:
+        foo: int = 10
+
+    params: FoobarParams = FoobarParams()
