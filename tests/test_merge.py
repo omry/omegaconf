@@ -79,6 +79,7 @@ class ConfWithMissingDict:
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
         ),
         ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
+        ([{}, ConfWithMissingDict], {"dict": "???"}),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
