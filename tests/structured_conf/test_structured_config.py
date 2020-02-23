@@ -596,35 +596,35 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             conf.users.append("fail")
 
-    def test_cast_api(self, class_type: str) -> None:
+    def test_promote_api(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.create(module.AnyTypeConfig)
-        conf.cast(None)
+        conf._promote(None)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
         with pytest.raises(ValueError):
-            conf.cast(42)
+            conf._promote(42)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
 
-    def test_cast_to_class(self, class_type: str) -> None:
+    def test_promote_to_class(self, class_type: str) -> None:
         module: Any = import_module(class_type)
 
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert conf._type == module.AnyTypeConfig
 
-        conf.cast(module.BoolConfig)
+        conf._promote(module.BoolConfig)
 
         assert conf._type == module.BoolConfig
         assert conf.with_default is True
         assert conf.null_default is None
         assert OmegaConf.is_missing(conf, "mandatory_missing")
 
-    def test_cast_to_object(self, class_type: str) -> None:
+    def test_promote_to_object(self, class_type: str) -> None:
         module: Any = import_module(class_type)
 
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert conf._type == module.AnyTypeConfig
 
-        conf.cast(module.BoolConfig(with_default=False))
+        conf._promote(module.BoolConfig(with_default=False))
         assert conf._type == module.BoolConfig
         assert conf.with_default is False
 

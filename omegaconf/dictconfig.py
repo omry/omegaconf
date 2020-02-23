@@ -332,7 +332,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return
         self._validate_node_type(child, value)
 
-    def cast(self, type_or_prototype: Type[Any]) -> None:
+    def _promote(self, type_or_prototype: Type[Any]) -> None:
         """
         Retypes a node.
         This should only be used in rare circumstances, where you want to dynamically change
@@ -348,7 +348,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         proto = OmegaConf.structured(type_or_prototype)
         type_ = proto.__dict__["_type"]
-        # remove the type to prevent assignment validation from rejecting the cast.
+        # remove the type to prevent assignment validation from rejecting the promotion.
         proto.__dict__["_type"] = None
         self.merge_with(proto)
         # restore the type.
