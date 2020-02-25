@@ -257,6 +257,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self._format_and_raise(key=key, value=value, cause=e)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
+        from omegaconf import ListConfig
+
         if isinstance(key, str):
             sub_keys = key.split(".")
             cur = self
@@ -267,6 +269,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     # last key
                     if isinstance(cur, DictConfig):
                         cur.__set_single_key_val_impl(key=k, value=value)
+                    elif isinstance(cur, ListConfig):
+                        raise CompactKeyError(
+                            "Compact keys does not support ListConfig"
+                        )
                     else:
                         raise CompactKeyError(
                             f"Conflict detected inserting compact key '{key}'  "
