@@ -38,7 +38,7 @@ def test_struct_set_on_nested_dict() -> None:
 def test_merge_dotlist_into_struct() -> None:
     c = OmegaConf.create(dict(a=dict(b=10)))
     OmegaConf.set_struct(c, True)
-    with pytest.raises(KeyError, match=re.escape("foo")):
+    with pytest.raises(AttributeError, match=re.escape("foo")):
         c.merge_with_dotlist(["foo=1"])
 
 

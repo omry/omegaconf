@@ -183,7 +183,7 @@ class BaseContainer(Container, ABC):
         ), f"Unexpected type for root : {type(root).__name__}"
 
         if isinstance(root, DictConfig):
-            root[last] = value
+            setattr(root, last, value)
         elif isinstance(root, ListConfig):
             idx = int(last)
             root[idx] = value
