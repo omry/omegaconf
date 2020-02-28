@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import io
 import os
+import pathlib
 import tempfile
 from typing import Any, Dict
 
@@ -37,6 +38,20 @@ def save_load_from_filename(conf: Container, resolve: bool, expected: Any) -> No
         os.unlink(fp.name)
 
 
+def save_load_from_pathlib_path(conf: Container, resolve: bool, expected: Any) -> None:
+    if expected is None:
+        expected = conf
+    # note that delete=False here is a work around windows incompetence.
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            filepath = pathlib.Path(fp.name)
+            OmegaConf.save(conf, filepath, resolve=resolve)
+            c2 = OmegaConf.load(filepath)
+            assert c2 == expected
+    finally:
+        os.unlink(fp.name)
+
+
 def test_load_from_invalid() -> None:
     with pytest.raises(TypeError):
         OmegaConf.load(3.1415)  # type: ignore
@@ -63,6 +78,12 @@ class TestSaveLoad:
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_filename(cfg, resolve, expected)
+
+    def test_save_load__from_pathlib_path(
+        self, input_: Dict[str, Any], resolve: bool, expected: Any
+    ) -> None:
+        cfg = OmegaConf.create(input_)
+        save_load_from_pathlib_path(cfg, resolve, expected)
 
 
 def test_save_illegal_type() -> None:

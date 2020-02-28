@@ -2,6 +2,7 @@
 import copy
 import io
 import os
+import pathlib
 import re
 import sys
 from contextlib import contextmanager
@@ -183,7 +184,7 @@ class OmegaConf:
     def load(file_: Union[str, IO[bytes]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
-        if isinstance(file_, str):
+        if isinstance(file_, (str, pathlib.Path)):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
                 obj = yaml.load(f, Loader=get_yaml_loader())
                 assert isinstance(obj, (list, dict, str))
@@ -204,7 +205,7 @@ class OmegaConf:
         :param resolve: True to save a resolved config (defaults to False)
         """
         data = config.pretty(resolve=resolve)
-        if isinstance(f, str):
+        if isinstance(f, (str, pathlib.Path)):
             with io.open(os.path.abspath(f), "w", encoding="utf-8") as file:
                 file.write(data)
         elif hasattr(f, "write"):
