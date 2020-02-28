@@ -3,7 +3,7 @@ import io
 import os
 import pathlib
 import tempfile
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 import pytest
 
@@ -25,26 +25,13 @@ def save_load_from_file(conf: Container, resolve: bool, expected: Any) -> None:
         os.unlink(fp.name)
 
 
-def save_load_from_filename(conf: Container, resolve: bool, expected: Any) -> None:
+def save_load_from_filename(conf: Container, resolve: bool, expected: Any, file_class: Type) -> None:
     if expected is None:
         expected = conf
     # note that delete=False here is a work around windows incompetence.
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            OmegaConf.save(conf, fp.name, resolve=resolve)
-            c2 = OmegaConf.load(fp.name)
-            assert c2 == expected
-    finally:
-        os.unlink(fp.name)
-
-
-def save_load_from_pathlib_path(conf: Container, resolve: bool, expected: Any) -> None:
-    if expected is None:
-        expected = conf
-    # note that delete=False here is a work around windows incompetence.
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            filepath = pathlib.Path(fp.name)
+            filepath = file_class(fp.name)
             OmegaConf.save(conf, filepath, resolve=resolve)
             c2 = OmegaConf.load(filepath)
             assert c2 == expected
@@ -58,32 +45,27 @@ def test_load_from_invalid() -> None:
 
 
 @pytest.mark.parametrize(
-    "input_,resolve,expected",
+    "input_,resolve,expected,file_class",
     [
-        (dict(a=10), False, None),
-        ({"foo": 10, "bar": "${foo}"}, False, None),
-        ({"foo": 10, "bar": "${foo}"}, False, {"foo": 10, "bar": 10}),
-        ([u"שלום"], False, None),
+        (dict(a=10), False, None, str),
+        ({"foo": 10, "bar": "${foo}"}, False, None, str),
+        ({"foo": 10, "bar": "${foo}"}, False, None, pathlib.Path),
+        ({"foo": 10, "bar": "${foo}"}, False, {"foo": 10, "bar": 10}, str),
+        ([u"שלום"], False, None, str),
     ],
 )
 class TestSaveLoad:
     def test_save_load__from_file(
-        self, input_: Dict[str, Any], resolve: bool, expected: Any
+        self, input_: Dict[str, Any], resolve: bool, expected: Any, file_class: Type
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_file(cfg, resolve, expected)
 
     def test_save_load__from_filename(
-        self, input_: Dict[str, Any], resolve: bool, expected: Any
+        self, input_: Dict[str, Any], resolve: bool, expected: Any, file_class: Type
     ) -> None:
         cfg = OmegaConf.create(input_)
-        save_load_from_filename(cfg, resolve, expected)
-
-    def test_save_load__from_pathlib_path(
-        self, input_: Dict[str, Any], resolve: bool, expected: Any
-    ) -> None:
-        cfg = OmegaConf.create(input_)
-        save_load_from_pathlib_path(cfg, resolve, expected)
+        save_load_from_filename(cfg, resolve, expected, file_class)
 
 
 def test_save_illegal_type() -> None:
