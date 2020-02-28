@@ -25,7 +25,9 @@ def save_load_from_file(conf: Container, resolve: bool, expected: Any) -> None:
         os.unlink(fp.name)
 
 
-def save_load_from_filename(conf: Container, resolve: bool, expected: Any, file_class: Type) -> None:
+def save_load_from_filename(
+    conf: Container, resolve: bool, expected: Any, file_class: Type[Any]
+) -> None:
     if expected is None:
         expected = conf
     # note that delete=False here is a work around windows incompetence.
@@ -56,13 +58,21 @@ def test_load_from_invalid() -> None:
 )
 class TestSaveLoad:
     def test_save_load__from_file(
-        self, input_: Dict[str, Any], resolve: bool, expected: Any, file_class: Type
+        self,
+        input_: Dict[str, Any],
+        resolve: bool,
+        expected: Any,
+        file_class: Type[Any],
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_file(cfg, resolve, expected)
 
     def test_save_load__from_filename(
-        self, input_: Dict[str, Any], resolve: bool, expected: Any, file_class: Type
+        self,
+        input_: Dict[str, Any],
+        resolve: bool,
+        expected: Any,
+        file_class: Type[Any],
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_filename(cfg, resolve, expected, file_class)
