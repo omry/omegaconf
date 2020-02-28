@@ -181,7 +181,7 @@ class OmegaConf:
                     )
 
     @staticmethod
-    def load(file_: Union[str, IO[bytes]]) -> Union[DictConfig, ListConfig]:
+    def load(file_: Union[str, pathlib.Path, IO[bytes]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
         if isinstance(file_, (str, pathlib.Path)):
@@ -197,7 +197,7 @@ class OmegaConf:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    def save(config: Container, f: Union[str, IO[str]], resolve: bool = False) -> None:
+    def save(config: Container, f: Union[str, pathlib.Path, IO[str]], resolve: bool = False) -> None:
         """
         Save as configuration object to a file
         :param config: omegaconf.Config object (DictConfig or ListConfig).
