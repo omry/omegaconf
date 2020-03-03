@@ -1,9 +1,16 @@
+from dataclasses import dataclass
 from typing import Any, List
 
 import pytest
 
-from omegaconf import AnyNode, OmegaConf
+from omegaconf import MISSING, AnyNode, OmegaConf
 from omegaconf.basecontainer import BaseContainer
+
+
+@dataclass
+class User:
+    name: str = MISSING
+    age: int = MISSING
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -47,9 +54,11 @@ from omegaconf.basecontainer import BaseContainer
         # With missing interpolation
         ([10, "${0}"], [10, 10]),
         (dict(a="${missing}"), dict(a="${missing}")),
+        (User, User),
+        ({"name": "poo", "age": 7}, User(name="poo", age=7)),
     ],
 )
-def test_list_eq(l1: List[Any], l2: List[Any]) -> None:
+def test_eq(l1: List[Any], l2: List[Any]) -> None:
     c1 = OmegaConf.create(l1)
     c2 = OmegaConf.create(l2)
 

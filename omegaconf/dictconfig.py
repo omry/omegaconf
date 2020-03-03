@@ -291,7 +291,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return items.keys()
 
     def __eq__(self, other: Any) -> bool:
-        if is_primitive_dict(other):
+        if is_primitive_dict(other) or is_structured_config(other):
             return BaseContainer._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
             return BaseContainer._dict_conf_eq(self, other)
