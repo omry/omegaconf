@@ -609,7 +609,7 @@ class BaseContainer(Container, ABC):
                 src_type = get_type_of(src)
             if dest_type is not None and not issubclass(src_type, dest_type):
                 raise ValidationError(
-                    f"Invalid type assigned : {dest_type.__name__} is not a subclass of {src_type.__name__}"
+                    f"Invalid type assigned : {src_type.__name__} is not a subclass of {dest_type.__name__}"
                 )
         else:
             if not isinstance(src, DictConfig) and not is_structured_config(src):

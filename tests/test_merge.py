@@ -111,7 +111,7 @@ def test_merge(inputs: Any, expected: Any) -> None:
 
     if isinstance(expected, (dict, list)) or _utils.is_structured_config(expected):
         merged = OmegaConf.merge(*configs)
-        assert merged == OmegaConf.create(expected)
+        assert merged == expected
         # test input configs are not changed.
         # Note that converting to container without resolving to avoid resolution errors while comparing
         for i in range(len(inputs)):
