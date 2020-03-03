@@ -10,6 +10,7 @@ import yaml
 
 from ._utils import (
     ValueKind,
+    get_type_of,
     get_value_kind,
     get_yaml_loader,
     is_primitive_container,
@@ -311,23 +312,26 @@ class BaseContainer(Container, ABC):
                 dest.__dict__[k] = prototype.__dict__[k]
 
         for key, value in src.items_ex(resolve=False):
-            dest_type = dest.__dict__["_element_type"]
-            typed = dest_type not in (None, Any)
+
+            dest_element_type = dest.__dict__["_element_type"]
+            typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(value, DictConfig):
                     if OmegaConf.is_missing(src, key):
                         dest[key] = DictConfig(content="???")
                     else:
                         dest[key] = {}
-
             if (dest.get_node(key) is not None) or typed:
                 dest_node = dest.get_node(key)
                 if dest_node is None and typed:
-                    dest[key] = DictConfig(content=dest_type, parent=dest)
+                    dest[key] = DictConfig(content=dest_element_type, parent=dest)
                     dest_node = dest.get_node(key)
 
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(value, BaseContainer):
+                        if isinstance(value, DictConfig):
+                            if value.__dict__["_type"] is not None:
+                                BaseContainer._validate_node_type(dest_node, value)
                         dest_node.merge_with(value)
                     else:
                         dest.__setitem__(key, value)
@@ -586,14 +590,31 @@ class BaseContainer(Container, ABC):
         return self.__dict__["_missing"] is True
 
     @staticmethod
-    def _validate_node_type(node: Node, value: Any) -> None:
+    def _validate_node_type(dest: Node, src: Any) -> None:
         from .dictconfig import DictConfig
 
-        type_ = node.__dict__["_type"] if isinstance(node, DictConfig) else None
-        is_typed = type_ is not None
-        mismatch_type = is_typed and not issubclass(type(value), type_)
+        if not isinstance(dest, DictConfig):
+            return
 
-        if mismatch_type and not get_value_kind(value) == ValueKind.MANDATORY_MISSING:
-            raise ValidationError(
-                f"Invalid type assigned : {type_.__name__} is not a subclass of {type(value).__name__}"
-            )
+        if get_value_kind(src) == ValueKind.MANDATORY_MISSING:
+            return
+
+        if isinstance(src, DictConfig) or is_structured_config(src):
+            dest_type = dest.__dict__["_type"]
+
+            if isinstance(src, DictConfig):
+                src_type = src.__dict__["_type"]
+            else:
+                # structured config
+                src_type = get_type_of(src)
+            if dest_type is not None and not issubclass(src_type, dest_type):
+                raise ValidationError(
+                    f"Invalid type assigned : {dest_type.__name__} is not a subclass of {src_type.__name__}"
+                )
+        else:
+            if not isinstance(src, DictConfig) and not is_structured_config(src):
+                src_type = type(src)
+                if dest.__dict__["_type"] is not None:
+                    raise ValidationError(
+                        f"Invalid type assigned : {src_type.__name__}={dest}"
+                    )

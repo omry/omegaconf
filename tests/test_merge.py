@@ -3,7 +3,7 @@ from typing import Any, Dict, Tuple
 
 import pytest
 
-from omegaconf import MISSING, DictConfig, OmegaConf, nodes
+from omegaconf import MISSING, DictConfig, OmegaConf, ValidationError, _utils, nodes
 
 
 @dataclass
@@ -22,14 +22,36 @@ class ConfWithMissingDict:
     dict: Dict[str, Any] = MISSING
 
 
+@dataclass
+class Group:
+    name: str = MISSING
+
+
+@dataclass
+class Plugin:
+    name: str = MISSING
+    params: Any = MISSING
+
+
+@dataclass
+class ConcretePlugin(Plugin):
+    name: str = "foobar_plugin"
+
+    @dataclass
+    class FoobarParams:
+        foo: int = 10
+
+    params: FoobarParams = FoobarParams()
+
+
 @pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
         # dictionaries
-        # ([{}, {"a": 1}], {"a": 1}),
-        # ([{"a": None}, {"b": None}], {"a": None, "b": None}),
-        # ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
-        # ([{"a": {"a1": 1, "a2": 2}}, {"a": {"a1": 2}}], {"a": {"a1": 2, "a2": 2}}),
+        ([{}, {"a": 1}], {"a": 1}),
+        ([{"a": None}, {"b": None}], {"a": None, "b": None}),
+        ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
+        ([{"a": {"a1": 1, "a2": 2}}, {"a": {"a1": 2}}], {"a": {"a1": 2, "a2": 2}}),
         ([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}),
         ((dict(a=1, b=2), dict(b=dict(c=3))), dict(a=1, b=dict(c=3))),
         ((dict(b=dict(c=1)), dict(b=1)), dict(b=1)),
@@ -80,19 +102,26 @@ class ConfWithMissingDict:
         ),
         ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
         ([{}, ConfWithMissingDict], {"dict": "???"}),
+        ([{"user": User}, {"user": Group}], pytest.raises(ValidationError)),
+        ([Plugin, ConcretePlugin], ConcretePlugin),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
     configs = [OmegaConf.create(c) for c in inputs]
-    merged = OmegaConf.merge(*configs)
-    assert merged == expected
-    # test input configs are not changed.
-    # Note that converting to container without resolving to avoid resolution errors while comparing
-    for i in range(len(inputs)):
-        input_i = OmegaConf.create(inputs[i])
-        orig = OmegaConf.to_container(input_i, resolve=False)
-        merged2 = OmegaConf.to_container(configs[i], resolve=False)
-        assert orig == merged2
+
+    if isinstance(expected, (dict, list)) or _utils.is_structured_config(expected):
+        merged = OmegaConf.merge(*configs)
+        assert merged == OmegaConf.create(expected)
+        # test input configs are not changed.
+        # Note that converting to container without resolving to avoid resolution errors while comparing
+        for i in range(len(inputs)):
+            input_i = OmegaConf.create(inputs[i])
+            orig = OmegaConf.to_container(input_i, resolve=False)
+            merged2 = OmegaConf.to_container(configs[i], resolve=False)
+            assert orig == merged2
+    else:
+        with expected:
+            OmegaConf.merge(*configs)
 
 
 def test_primitive_dicts() -> None:
@@ -102,7 +131,9 @@ def test_primitive_dicts() -> None:
     assert merged == {"a": 10, "b": 20}
 
 
-@pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])  # type: ignore
+@pytest.mark.parametrize(  # type: ignore
+    "a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])]
+)
 def test_merge_no_eq_verify(
     a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
 ) -> None:

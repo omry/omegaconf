@@ -158,10 +158,15 @@ def is_attr_frozen(type_: type) -> bool:
     return type_.__setattr__ == attr._make._frozen_setattrs  # type: ignore
 
 
-def is_structured_config_frozen(obj: Any) -> bool:
-    type_ = obj
+def get_type_of(class_or_object: Any) -> Any:
+    type_ = class_or_object
     if not isinstance(type_, type):
-        type_ = type(obj)
+        type_ = type(class_or_object)
+    return type_
+
+
+def is_structured_config_frozen(obj: Any) -> bool:
+    type_ = get_type_of(obj)
 
     if is_dataclass(type_):
         return is_dataclass_frozen(type_)
@@ -324,7 +329,5 @@ def _valid_key_annotation_type(type_: Any) -> bool:
 
 
 def _is_primitive_type(type_: Any) -> bool:
-    if not isinstance(type_, type):
-        type_ = type(type_)
-
+    type_ = get_type_of(type_)
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
