@@ -350,11 +350,11 @@ class DictSubclass:
 @dataclass
 class Plugin:
     name: str = MISSING
-    params: Dict[str, Any] = MISSING
+    params: Any = MISSING
 
 
 @dataclass
-class ConcretePlugin:
+class ConcretePlugin(Plugin):
     name: str = "foobar_plugin"
 
     @dataclass

@@ -343,11 +343,11 @@ class DictSubclass:
 @attr.s(auto_attribs=True)
 class Plugin:
     name: str = MISSING
-    params: Dict[str, Any] = MISSING
+    params: Any = MISSING
 
 
 @attr.s(auto_attribs=True)
-class ConcretePlugin:
+class ConcretePlugin(Plugin):
     name: str = "foobar_plugin"
 
     @attr.s(auto_attribs=True)
