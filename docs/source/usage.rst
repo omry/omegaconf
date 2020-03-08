@@ -69,11 +69,11 @@ From a yaml file
     >>> conf = OmegaConf.load('source/example.yaml')
     >>> # Output is identical to the yaml file
     >>> print(conf.pretty())
+    server:
+      port: 80
     log:
       file: ???
       rotation: 3600
-    server:
-      port: 80
     users:
     - user1
     - user2
@@ -131,10 +131,10 @@ To parse the content of sys.arg:
     >>> sys.argv = ['your-program.py', 'server.port=82', 'log.file=log2.txt']
     >>> conf = OmegaConf.from_cli()
     >>> print(conf.pretty())
-    log:
-      file: log2.txt
     server:
       port: 82
+    log:
+      file: log2.txt
     <BLANKLINE>
 
 From structured config
@@ -154,8 +154,8 @@ See :doc:`structured_config` for more details, or keep reading for a minimal exa
     >>> # For strict typing purposes, prefer OmegaConf.structured() when creating structured configs
     >>> conf = OmegaConf.structured(MyConfig)
     >>> print(conf.pretty())
-    host: localhost
     port: 80
+    host: localhost
     <BLANKLINE>
 
 You can use an object to initialize the config as well:
@@ -164,8 +164,8 @@ You can use an object to initialize the config as well:
 
     >>> conf = OmegaConf.structured(MyConfig(port=443))
     >>> print(conf.pretty())
-    host: localhost
     port: 443
+    host: localhost
     <BLANKLINE>
 
 OmegaConf objects constructed from Structured classes offers runtime type safety:
@@ -385,13 +385,13 @@ Note how the port changes to 82, and how the users lists are combined.
     >>> # Merge with cli arguments
     >>> conf.merge_with_cli()
     >>> print(conf.pretty())
-    log:
-      file: log.txt
     server:
       port: 82
     users:
     - user1
     - user2
+    log:
+      file: log.txt
     <BLANKLINE>
 
 Configuration flags

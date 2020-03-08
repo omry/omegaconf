@@ -67,11 +67,11 @@ fields during construction.
     >>> conf3 = OmegaConf.create(SimpleTypes(num=20,
     ...                                      height=Height.TALL))
     >>> print(conf3.pretty())
-    description: text
-    height: Height.TALL
-    is_awesome: true
     num: 20
     pi: 3.1415
+    is_awesome: true
+    height: Height.TALL
+    description: text
     <BLANKLINE>
 
 The resulting object is a regular OmegaConf object, except it will utilize the type information in the input class/object
@@ -177,13 +177,13 @@ Structured configs can be nested.
 
     >>> conf : Group = OmegaConf.structured(Group)
     >>> print(conf.pretty())
-    admin:
-      height: ???
-      name: ???
-    manager:
-      height: Height.TALL
-      name: manager
     name: ???
+    admin:
+      name: ???
+      height: ???
+    manager:
+      name: manager
+      height: Height.TALL
     <BLANKLINE>
 
 OmegaConf will validate that assignment of nested objects is of the correct type:
