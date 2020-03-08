@@ -146,17 +146,15 @@ def test_nesting() -> None:
         "manager": {"name": "manager", "height": Height.TALL},
     }
 
-    assert (
-        conf.pretty()
-        == """admin:
-  height: ???
+    expected = """name: ???
+admin:
   name: ???
+  height: ???
 manager:
-  height: Height.TALL
   name: manager
-name: ???
+  height: Height.TALL
 """
-    )
+    assert conf.pretty() == expected
 
     # you can assign a different object of the same type
     conf.admin = User(name="omry", height=Height.TALL)

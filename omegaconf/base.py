@@ -61,7 +61,7 @@ class Container(Node):
     """
 
     @abstractmethod
-    def pretty(self, resolve: bool = False) -> str:
+    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
         ...  # pragma: no cover
 
     @abstractmethod
