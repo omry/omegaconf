@@ -97,12 +97,20 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_sort_keys() -> None:
+    c = OmegaConf.create({"b": 2, "a": 1})
+    # keys are not sorted by default
+    assert c.pretty() == "b: 2\na: 1\n"
+    c = OmegaConf.create({"b": 2, "a": 1})
+    assert c.pretty(sort_keys=True) == "a: 1\nb: 2\n"
+
+
 def test_pretty_dict_unicode() -> None:
     c = OmegaConf.create(dict(你好="世界", list=[1, 2]))
-    expected = """list:
+    expected = """你好: 世界
+list:
 - 1
 - 2
-你好: 世界
 """
     assert expected == c.pretty()
     assert OmegaConf.create(c.pretty()) == c

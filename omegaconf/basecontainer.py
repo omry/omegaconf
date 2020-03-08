@@ -272,18 +272,19 @@ class BaseContainer(Container, ABC):
 
         return BaseContainer._to_content(self, resolve)
 
-    def pretty(self, resolve: bool = False) -> str:
+    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
         from omegaconf import OmegaConf
 
         """
         returns a yaml dump of this config object.
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
         interpolations are preserved
+        :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
-            container, default_flow_style=False, allow_unicode=True
+            container, default_flow_style=False, allow_unicode=True, sort_keys=sort_keys
         )
 
     @staticmethod
