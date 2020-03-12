@@ -54,6 +54,14 @@ class Node(ABC):
             # noinspection PyProtectedMember
             return self._get_parent()._get_flag(flag)
 
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def __ne__(self, other: Any) -> bool:
+        ...  # pragma: no cover
+
 
 class Container(Node):
     """
@@ -81,14 +89,6 @@ class Container(Node):
 
     @abstractmethod
     def __setitem__(self, key: Any, value: Any) -> None:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __ne__(self, other: Any) -> bool:
         ...  # pragma: no cover
 
     @abstractmethod

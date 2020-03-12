@@ -6,6 +6,7 @@ import pytest
 
 from omegaconf import (
     MISSING,
+    DictConfig,
     MissingMandatoryValue,
     OmegaConf,
     ReadonlyConfigError,
@@ -248,7 +249,7 @@ class Domain:
 
 
 @dataclass
-class WebServer:
+class WebServer(DictConfig):
     protocol_ports: Dict[Protocol, int] = field(
         default_factory=lambda: {Protocol.HTTP: 80, Protocol.HTTPS: 443}
     )
