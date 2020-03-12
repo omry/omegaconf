@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import re
 import tempfile
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Union
 
 import pytest
 
 from omegaconf import (
+    MISSING,
     DictConfig,
     KeyValidationError,
     MissingMandatoryValue,
@@ -16,6 +18,12 @@ from omegaconf import (
 from omegaconf.basecontainer import BaseContainer
 
 from . import IllegalType, StructuredWithMissing, does_not_raise
+
+
+@dataclass
+class User:
+    name: str = MISSING
+    age: int = MISSING
 
 
 class Enum1(Enum):
@@ -469,3 +477,15 @@ def test_struct_mode_missing_key_setitem() -> None:
     OmegaConf.set_struct(cfg, True)
     with pytest.raises(KeyError):
         cfg.__setitem__("zoo", 10)
+
+
+def test_get_type():
+
+    cfg = OmegaConf.create(User)
+    assert OmegaConf.get_type(cfg) == User
+
+    cfg = OmegaConf.create(User(name="bond"))
+    assert OmegaConf.get_type(cfg) == User
+
+    cfg = OmegaConf.create({"user": User})
+    assert OmegaConf.get_type(cfg.user) == User

@@ -18,6 +18,7 @@ from typing import (
     Match,
     Optional,
     Tuple,
+    Type,
     Union,
     overload,
 )
@@ -27,9 +28,12 @@ from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
 from ._utils import (
+    ValueKind,
     _get_key_value_types,
     _valid_value_annotation_type,
     decode_primitive,
+    get_type_of,
+    get_value_kind,
     is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
@@ -168,6 +172,7 @@ class OmegaConf:
                 return DictConfig(
                     content=obj,
                     parent=parent,
+                    annotated_type=OmegaConf.get_type(obj),
                     key_type=key_type,
                     element_type=element_type,
                 )
@@ -397,6 +402,17 @@ class OmegaConf:
 
         return isinstance(obj, Container)
 
+    @staticmethod
+    def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+        if is_structured_config(obj):
+            return get_type_of(obj)
+        if key is not None:
+            return obj.get_node(key).__dict__["_type"]
+        else:
+            if isinstance(obj, DictConfig):
+                return obj.__dict__["_type"]
+        return None
+
 
 # register all default resolvers
 register_default_resolvers()
@@ -445,7 +461,7 @@ def _node_wrap(
     type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any
 ) -> ValueNode:
     node: ValueNode
-    if type_ == Any:
+    if type_ == Any or type_ is None:
         node = AnyNode(value=value, parent=parent, is_optional=is_optional)
     elif issubclass(type_, Enum):
         node = EnumNode(enum_type=type_, parent=parent, is_optional=is_optional)
@@ -459,11 +475,11 @@ def _node_wrap(
     elif type_ == str:
         node = StringNode(value=value, parent=parent, is_optional=is_optional)
     else:
-
         raise ValueError("Unexpected object type : {}".format(type_.__name__))
     return node
 
 
+# TODO: clean up annotated_type here, should it be element_type?
 def _maybe_wrap(
     annotated_type: Any, value: Any, is_optional: bool, parent: Optional[BaseContainer]
 ) -> Node:
@@ -478,7 +494,7 @@ def _maybe_wrap(
     origin = getattr(annotated_type, "__origin__", None)
     is_dict = type(value) is dict or origin is dict
     is_list = type(value) in (list, tuple) or origin in (list, tuple)
-
+    value_kind = get_value_kind(value)
     if is_dict or origin is Dict:
         from .dictconfig import DictConfig
 
@@ -502,12 +518,14 @@ def _maybe_wrap(
 
         value = ListConfig(parent=parent, content=value, element_type=element_type)
     elif (
-        is_dict and is_structured_config(annotated_type) and is_structured_config(value)
+        is_structured_config(annotated_type)
+        and (is_structured_config(value) or value_kind == ValueKind.MANDATORY_MISSING)
     ) or is_structured_config(value):
         from . import DictConfig
 
-        value = DictConfig(content=value, parent=parent)
+        value = DictConfig(annotated_type=annotated_type, content=value, parent=parent)
     else:
+
         if is_structured_config(annotated_type) and not is_structured_config(value):
             raise ValidationError(
                 f"Value type {type(value).__name__} does not match declared type {annotated_type}"

@@ -301,7 +301,7 @@ class BaseContainer(Container, ABC):
         dest_type = dest.__dict__["_type"]
 
         if src_type is not None and src_type is not dest_type:
-            prototype = DictConfig(content=src_type)
+            prototype = DictConfig(annotated_type=src_type, content=src_type)
             for k in {"content", "_resolver_cache", "_key_type", "_missing", "_type"}:
                 dest.__dict__[k] = prototype.__dict__[k]
 
@@ -417,7 +417,7 @@ class BaseContainer(Container, ABC):
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Union[str, Enum, int], value: Any) -> None:
-        from omegaconf.omegaconf import _maybe_wrap
+        from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
         from .nodes import ValueNode
 
@@ -433,11 +433,12 @@ class BaseContainer(Container, ABC):
             target_node = isinstance(self.get_node(key), ValueNode)
 
         def wrap(val: Any) -> Node:
+            if is_structured_config(val):
+                type_ = OmegaConf.get_type(val)
+            else:
+                type_ = self.__dict__["_element_type"]
             return _maybe_wrap(
-                annotated_type=self.__dict__["_element_type"],
-                value=val,
-                is_optional=True,
-                parent=self,
+                annotated_type=type_, value=val, is_optional=True, parent=self,
             )
 
         try:

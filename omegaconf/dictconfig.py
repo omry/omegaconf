@@ -40,39 +40,45 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self,
         content: Union[Dict[str, Any], Any],
         parent: Optional[Container] = None,
+        annotated_type: Optional[Type[Any]] = None,
         key_type: Any = Any,
         element_type: Any = Any,
     ) -> None:
         super().__init__(element_type=element_type, parent=parent)
+        is_missing = get_value_kind(content) == ValueKind.MANDATORY_MISSING
+
+        def set_data(data: Optional[MutableMapping[str, Any]]) -> None:
+            if data is None:
+                self.__dict__["content"] = None
+            else:
+                for k, v in data.items():
+                    self.__setitem__(k, v)
 
         self.__dict__["_type"] = None
         self.__dict__["_key_type"] = key_type
-        if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
-            self.__dict__["_missing"] = True
-            self.__dict__["content"] = None
-        else:
-            self.__dict__["_missing"] = False
-            self.__dict__["content"] = {}
-            if is_structured_config(content):
-                d = get_structured_config_data(content)
-                for k, v in d.items():
-                    self.__setitem__(k, v)
+        self.__dict__["_missing"] = is_missing
+        self.__dict__["content"] = {}
 
+        if is_structured_config(content) or (
+            is_structured_config(annotated_type) and is_missing
+        ):
+            if not is_missing:
+                set_data(get_structured_config_data(content))
                 if is_structured_config_frozen(content):
                     self._set_flag("readonly", True)
-
-                if isinstance(content, type):
-                    self.__dict__["_type"] = content
-                else:
-                    self.__dict__["_type"] = type(content)
-
             else:
-                for k, v in content.items():
-                    self.__setitem__(k, v)
+                set_data(None)
 
-                if isinstance(content, BaseContainer):
-                    for field in ["flags", "_element_type", "_resolver_cache"]:
-                        self.__dict__[field] = copy.deepcopy(content.__dict__[field])
+            self.__dict__["_type"] = annotated_type
+
+        else:
+            if not is_missing:
+                set_data(content)
+            else:
+                set_data(None)
+            if isinstance(content, BaseContainer):
+                for field in ["flags", "_element_type", "_resolver_cache"]:
+                    self.__dict__[field] = copy.deepcopy(content.__dict__[field])
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
