@@ -332,3 +332,8 @@ def test_incremental_dict_with_interpolation() -> None:
 def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
     c = OmegaConf.create(cfg)
     assert c.select(key) == expected
+
+
+def test_interpolation_with_missing() -> None:
+    cfg = OmegaConf.create({"out_file": "${x.name}.txt", "x": {"name": "???"}})
+    assert OmegaConf.is_missing(cfg, "out_file")
