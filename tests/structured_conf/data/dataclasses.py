@@ -179,11 +179,6 @@ class ErrorOnNoneNestedConfig:
 
 
 @dataclass
-class ErrorOnMissingNestedConfig:
-    will_error: FloatConfig = MISSING
-
-
-@dataclass
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -368,3 +363,16 @@ class ConcretePlugin(Plugin):
 @dataclass
 class FaultyPlugin:
     name: str = "faulty_plugin"
+
+
+# Missing
+@dataclass
+class LinkedList:
+    next: Optional["LinkedList"] = MISSING  # TODO: should be None but unsupported
+    value: Any = MISSING
+
+
+class MissingTest:
+    @dataclass
+    class Missing1:
+        root: LinkedList = MISSING

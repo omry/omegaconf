@@ -90,11 +90,6 @@ class AnyTypeConfigAssignments:
     ],
 )
 class TestConfigs:
-    def test_nested_config_errors_on_missing(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        with pytest.raises(ValueError):
-            OmegaConf.structured(module.ErrorOnMissingNestedConfig)
-
     def test_nested_config_errors_on_none(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         with pytest.raises(ValueError):

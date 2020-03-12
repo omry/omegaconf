@@ -57,19 +57,47 @@ class TestStructured:
             with pytest.raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
 
-        @pytest.mark.parametrize("rhs", [1, "foo", None])
-        class TestFailedCases:
-            def test_assignment_of_non_subclass_2(
-                self, class_type: str, rhs: Any
-            ) -> None:
-                module: Any = import_module(class_type)
-                cfg = OmegaConf.create({"plugin": module.Plugin})
-                with pytest.raises(ValidationError):
-                    cfg.plugin = rhs
+    @pytest.mark.parametrize("rhs", [1, "foo", None])
+    class TestFailedAssignmentOrMerges:
+        def test_assignment_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.create({"plugin": module.Plugin})
+            with pytest.raises(ValidationError):
+                cfg.plugin = rhs
 
-            def test_merge_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
-                module: Any = import_module(class_type)
-                cfg1 = OmegaConf.create({"plugin": module.Plugin})
-                cfg2 = OmegaConf.create({"plugin": rhs})
-                with pytest.raises(ValidationError):
-                    OmegaConf.merge(cfg1, cfg2)
+        def test_merge_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
+            module: Any = import_module(class_type)
+            cfg1 = OmegaConf.create({"plugin": module.Plugin})
+            cfg2 = OmegaConf.create({"plugin": rhs})
+            with pytest.raises(ValidationError):
+                OmegaConf.merge(cfg1, cfg2)
+
+    def test_get_type(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        linked_list = module.LinkedList
+        cfg1 = OmegaConf.create(linked_list)
+        assert OmegaConf.get_type(cfg1) == linked_list
+
+        cfg2 = OmegaConf.create(module.MissingTest.Missing1)
+        assert OmegaConf.is_missing(cfg2, "head")
+        assert OmegaConf.get_type(cfg2, "head") == module.LinkedList
+
+    class TestMissing:
+        def test_basic(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.create(module.MissingTest.Missing1)
+            assert OmegaConf.is_missing(cfg, "head")
+
+            assert OmegaConf.get_type(cfg, "head") == module.LinkedList
+
+            with pytest.raises(ValidationError):
+                cfg.head = 10
+
+        def test_missing2(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.create(module.MissingTest.Missing2)
+            assert cfg == {"head": {"next": "???", "value": 1}}
+            assert OmegaConf.is_missing(cfg.head, "next")
+
+            cfg.head.next = module.LinkedList(value=2)
+            assert cfg == {"head": {"next": {"next": "???", "value": 2}, "value": 1}}

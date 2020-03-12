@@ -184,11 +184,6 @@ class ErrorOnNoneNestedConfig:
 
 
 @attr.s(auto_attribs=True)
-class ErrorOnMissingNestedConfig:
-    will_error: FloatConfig = MISSING
-
-
-@attr.s(auto_attribs=True)
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -361,3 +356,16 @@ class ConcretePlugin(Plugin):
 @attr.s(auto_attribs=True)
 class FaultyPlugin:
     name: str = "faulty_plugin"
+
+
+# Missing
+@attr.s(auto_attribs=True)
+class LinkedList:
+    next: Optional["LinkedList"] = MISSING  # TODO: should be None but unsupported
+    value: Any = MISSING
+
+
+class MissingTest:
+    @attr.s(auto_attribs=True)
+    class Missing1:
+        root: LinkedList = MISSING
