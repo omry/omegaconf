@@ -6,6 +6,7 @@ import pytest
 
 from omegaconf import (
     MISSING,
+    DictConfig,
     MissingMandatoryValue,
     OmegaConf,
     ReadonlyConfigError,
@@ -64,7 +65,8 @@ def test_conversions() -> None:
     # OmegaConf can convert types at runtime
     conf.num = 20  # ok, type matches
     conf.num = "20"  # ok, the String "20" is converted to the int 20
-    assert conf.num == 20
+    # mypy does not understand ValueNode type conversion
+    assert conf.num == 20  # type: ignore
     with pytest.raises(ValidationError):
         conf.num = "one"  # ValidationError: "one" cannot be converted to an integer
 
@@ -248,7 +250,7 @@ class Domain:
 
 
 @dataclass
-class WebServer:
+class WebServer(DictConfig):
     protocol_ports: Dict[Protocol, int] = field(
         default_factory=lambda: {Protocol.HTTP: 80, Protocol.HTTPS: 443}
     )
