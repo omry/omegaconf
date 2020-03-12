@@ -362,3 +362,9 @@ class ConcretePlugin(Plugin):
         foo: int = 10
 
     params: FoobarParams = FoobarParams()
+
+
+# Does not extend Plugin, cannot be assigned or merged
+@dataclass
+class FaultyPlugin:
+    name: str = "faulty_plugin"

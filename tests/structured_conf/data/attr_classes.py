@@ -355,3 +355,9 @@ class ConcretePlugin(Plugin):
         foo: int = 10
 
     params: FoobarParams = FoobarParams()
+
+
+# Does not extend Plugin, cannot be assigned or merged
+@attr.s(auto_attribs=True)
+class FaultyPlugin:
+    name: str = "faulty_plugin"
