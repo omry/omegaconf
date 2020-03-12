@@ -47,32 +47,32 @@ class ConcretePlugin(Plugin):
 @pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
-        # dictionaries
+        # # dictionaries
         ([{}, {"a": 1}], {"a": 1}),
         ([{"a": None}, {"b": None}], {"a": None, "b": None}),
         ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
         ([{"a": {"a1": 1, "a2": 2}}, {"a": {"a1": 2}}], {"a": {"a1": 2, "a2": 2}}),
         ([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}),
-        ((dict(a=1, b=2), dict(b=dict(c=3))), dict(a=1, b=dict(c=3))),
-        ((dict(b=dict(c=1)), dict(b=1)), dict(b=1)),
-        ((dict(list=[1, 2, 3]), dict(list=[4, 5, 6])), dict(list=[4, 5, 6])),
-        ((dict(a=1), dict(a=nodes.IntegerNode(10))), dict(a=10)),
-        ((dict(a=1), dict(a=nodes.IntegerNode(10))), dict(a=nodes.IntegerNode(10))),
-        ((dict(a=nodes.IntegerNode(10)), dict(a=1)), dict(a=1)),
-        ((dict(a=nodes.IntegerNode(10)), dict(a=1)), dict(a=nodes.IntegerNode(1))),
+        (({"a": 1, "b": 2}, {"b": {"c": 3}}), {"a": 1, "b": {"c": 3}}),
+        (({"b": {"c": 1}}, {"b": 1}), {"b": 1}),
+        (({"list": [1, 2, 3]}, {"list": [4, 5, 6]}), {"list": [4, 5, 6]}),
+        (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": 10}),
+        (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": nodes.IntegerNode(10)}),
+        (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": 1}),
+        (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": nodes.IntegerNode(1)}),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
-        (([1, 2, dict(a=10)], [4, 5, dict(b=20)]), [4, 5, dict(b=20)]),
+        (([1, 2, {"a": 10}], [4, 5, {"b": 20}]), [4, 5, {"b": 20}]),
         # Interpolations
         (
-            (dict(data=123, reference="${data}"), dict(data=456)),
-            dict(data=456, reference=456),
+            ({"data": 123, "reference": "${data}"}, {"data": 456}),
+            {"data": 456, "reference": 456},
         ),
-        ((dict(missing="${data}"), dict(missing=123)), dict(missing=123)),
+        (({"missing": "${data}"}, {"missing": 123}), {"missing": 123}),
         (
-            (dict(missing=123), dict(missing="${data}"), dict(missing=456)),
-            dict(missing=456),
+            ({"missing": 123}, {"missing": "${data}"}, {"missing": 456}),
+            {"missing": 456},
         ),
         # Structured configs
         (({"user": User}, {}), {"user": User(name=MISSING, age=MISSING)}),

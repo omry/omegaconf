@@ -4,13 +4,12 @@ import warnings
 from abc import ABC
 from collections import defaultdict
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
 from ._utils import (
     ValueKind,
-    get_type_of,
     get_value_kind,
     get_yaml_loader,
     is_primitive_container,
@@ -298,18 +297,12 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
-        result_type = None
-        if (
-            src.__dict__["_type"] is not None
-            and src.__dict__["_type"] is not dest.__dict__["_type"]
-        ):
-            prototype = DictConfig(content={})
-            result_type = src.__dict__["_type"]
-            src.__dict__["_type"] = None
-            prototype.merge_with(src)
-            prototype.merge_with(dest)
+        src_type = src.__dict__["_type"]
+        dest_type = dest.__dict__["_type"]
 
-            for k in {"content", "_resolver_cache", "_key_type", "_missing"}:
+        if src_type is not None and src_type is not dest_type:
+            prototype = DictConfig(content=src_type)
+            for k in {"content", "_resolver_cache", "_key_type", "_missing", "_type"}:
                 dest.__dict__[k] = prototype.__dict__[k]
 
         for key, value in src.items_ex(resolve=False):
@@ -344,9 +337,6 @@ class BaseContainer(Container, ABC):
                         dest_node.set_value(value)
             else:
                 dest[key] = src.get_node(key)
-
-            if result_type is not None:
-                dest.__dict__["_type"] = result_type
 
     def merge_with(
         self,
@@ -591,31 +581,28 @@ class BaseContainer(Container, ABC):
         return self.__dict__["_missing"] is True
 
     @staticmethod
-    def _validate_node_type(dest: Node, src: Any) -> None:
+    def _validate_node_type(target: Node, value: Any) -> None:
         from .dictconfig import DictConfig
 
-        if not isinstance(dest, DictConfig):
-            return
+        def is_typed(c: Any) -> bool:
+            return isinstance(c, DictConfig) and c.__dict__["_type"] is not None
 
-        if get_value_kind(src) == ValueKind.MANDATORY_MISSING:
-            return
-
-        if isinstance(src, DictConfig) or is_structured_config(src):
-            dest_type = dest.__dict__["_type"]
-
-            if isinstance(src, DictConfig):
-                src_type = src.__dict__["_type"]
+        def get_type(c: Any) -> Type[Any]:
+            if isinstance(c, DictConfig):
+                t = c.__dict__["_type"]
+                assert isinstance(t, type)
+                return t
             else:
-                # structured config
-                src_type = get_type_of(src)
-            if dest_type is not None and not issubclass(src_type, dest_type):
-                raise ValidationError(
-                    f"Invalid type assigned : {src_type.__name__} is not a subclass of {dest_type.__name__}"
-                )
-        else:
-            if not isinstance(src, DictConfig) and not is_structured_config(src):
-                src_type = type(src)
-                if dest.__dict__["_type"] is not None:
-                    raise ValidationError(
-                        f"Invalid type assigned : {src_type.__name__}={dest}"
-                    )
+                return type(c)
+
+        if not is_typed(target):
+            return
+
+        target_type = get_type(target)
+        value_type = get_type(value)
+
+        if value_type is None or not issubclass(value_type, target_type):
+            raise ValidationError(
+                f"Invalid type assigned : {value_type.__name__} "
+                f"is not a subclass of {target_type.__name__}. value: {value}"
+            )
