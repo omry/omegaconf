@@ -62,6 +62,10 @@ class Node(ABC):
     def __ne__(self, other: Any) -> bool:
         ...  # pragma: no cover
 
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...  # pragma: no cover
+
 
 class Container(Node):
     """
@@ -89,10 +93,6 @@ class Container(Node):
 
     @abstractmethod
     def __setitem__(self, key: Any, value: Any) -> None:
-        ...  # pragma: no cover
-
-    @abstractmethod
-    def __hash__(self) -> int:
         ...  # pragma: no cover
 
     @abstractmethod

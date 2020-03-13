@@ -50,12 +50,18 @@ class ValueNode(Node):
         return repr(self.val) if hasattr(self, "val") else "__INVALID__"
 
     def __eq__(self, other: Any) -> bool:
-        return self.val == other  # type: ignore
+        if isinstance(other, AnyNode):
+            return self.val == other.val
+        else:
+            return self.val == other  # type: ignore
 
     def __ne__(self, other: Any) -> bool:
         x = self.__eq__(other)
         assert x is not NotImplemented
         return not x
+
+    def __hash__(self):
+        return hash(self.val)
 
     def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]] = {}) -> None:
         res.__dict__["val"] = copy.deepcopy(x=self.__dict__["val"], memo=memo)
@@ -64,8 +70,7 @@ class ValueNode(Node):
             x=self.__dict__["is_optional"], memo=memo
         )
         # parent is not deep copied.
-        # typically this is called by a container (DictConfig, ListConfig) which will
-        # reparent the whole tree
+        # typically this is called by a container (DictConfig, ListConfig) which will re-parent the whole tree
         res.__dict__["parent"] = None
 
 
@@ -92,12 +97,6 @@ class AnyNode(ValueNode):
         res = AnyNode()
         self._deepcopy_impl(res, memo)
         return res
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, AnyNode):
-            return self.val == other.val and self.is_optional == other.is_optional
-        else:
-            return self.val == other  # type: ignore
 
 
 class StringNode(ValueNode):
@@ -190,6 +189,9 @@ class FloatNode(ValueNode):
         nan2 = math.isnan(other_val) if isinstance(other_val, float) else False
         return self.val == other_val or (nan1 and nan2)
 
+    def __hash__(self):
+        return hash(self.val)
+
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "FloatNode":
         res = FloatNode()
         self._deepcopy_impl(res, memo)
@@ -248,6 +250,7 @@ class EnumNode(ValueNode):
     def __init__(
         self,
         enum_type: Type[Enum],
+        value: Optional[Enum] = None,
         parent: Optional[BaseContainer] = None,
         is_optional: bool = True,
     ):
@@ -257,10 +260,10 @@ class EnumNode(ValueNode):
                 f"EnumNode can only operate on Enum subclasses ({enum_type})"
             )
         self.fields: Dict[str, str] = {}
-        self.val = None
         self.enum_type: Type[Enum] = enum_type
         for name, constant in enum_type.__members__.items():
             self.fields[name] = constant.value
+        self.set_value(value)
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
@@ -306,12 +309,3 @@ class EnumNode(ValueNode):
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res
-
-    def __eq__(self, other: Any) -> bool:
-        sr = super().__eq__(other)
-        if sr is False:
-            return False
-        if isinstance(other, EnumNode):
-            return self.enum_type == other.enum_type and self.fields == other.fields
-        else:
-            return self.val == other  # type: ignore

@@ -407,10 +407,14 @@ class OmegaConf:
         if is_structured_config(obj):
             return get_type_of(obj)
         if key is not None:
-            return obj.get_node(key).__dict__["_type"]
+            t = obj.get_node(key).__dict__["_type"]
+            assert t is None or isinstance(t, type)
+            return t
         else:
             if isinstance(obj, DictConfig):
-                return obj.__dict__["_type"]
+                t = obj.__dict__["_type"]
+                assert t is None or isinstance(t, type)
+                return t
         return None
 
 
@@ -464,8 +468,9 @@ def _node_wrap(
     if type_ == Any or type_ is None:
         node = AnyNode(value=value, parent=parent, is_optional=is_optional)
     elif issubclass(type_, Enum):
-        node = EnumNode(enum_type=type_, parent=parent, is_optional=is_optional)
-        node.set_value(value)
+        node = EnumNode(
+            enum_type=type_, value=value, parent=parent, is_optional=is_optional
+        )
     elif type_ == int:
         node = IntegerNode(value=value, parent=parent, is_optional=is_optional)
     elif type_ == float:
