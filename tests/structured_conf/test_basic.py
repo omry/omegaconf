@@ -83,7 +83,7 @@ class TestStructured:
         assert OmegaConf.get_type(cfg2, "head") == module.LinkedList
 
     class TestMissing:
-        def test_basic(self, class_type: str) -> None:
+        def test_missing1(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.create(module.MissingTest.Missing1)
             assert OmegaConf.is_missing(cfg, "head")

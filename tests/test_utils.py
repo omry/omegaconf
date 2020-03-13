@@ -220,3 +220,16 @@ def test_re_parent() -> None:
     # noinspection PyProtectedMember
     cfg._re_parent()
     validate(cfg)
+
+
+def test_get_class() -> None:
+    name = "tests.examples.test_dataclass_example.SimpleTypes"
+    assert _utils._get_class(name).__name__ == "SimpleTypes"
+    with pytest.raises(ValueError):
+        _utils._get_class("not_found")
+
+    with pytest.raises(ModuleNotFoundError):
+        _utils._get_class("foo.not_found")
+
+    with pytest.raises(ImportError):
+        _utils._get_class("tests.examples.test_dataclass_example.not_found")

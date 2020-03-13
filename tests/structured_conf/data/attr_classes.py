@@ -368,4 +368,8 @@ class LinkedList:
 class MissingTest:
     @attr.s(auto_attribs=True)
     class Missing1:
-        root: LinkedList = MISSING
+        head: LinkedList = MISSING
+
+    @attr.s(auto_attribs=True)
+    class Missing2:
+        head: LinkedList = LinkedList(next=MISSING, value=1)

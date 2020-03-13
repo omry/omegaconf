@@ -375,4 +375,8 @@ class LinkedList:
 class MissingTest:
     @dataclass
     class Missing1:
-        root: LinkedList = MISSING
+        head: LinkedList = MISSING
+
+    @dataclass
+    class Missing2:
+        head: LinkedList = LinkedList(next=MISSING, value=1)
