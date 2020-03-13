@@ -460,11 +460,17 @@ def test_deepcopy(obj: Any) -> None:
         (
             AnyNode(value=1, is_optional=True),
             AnyNode(value=1, is_optional=False),
-            False,
+            True,
         ),
-        (EnumNode(Enum1), EnumNode(Enum1), True),
-        (EnumNode(Enum1), EnumNode(Enum2), False),
-        (EnumNode(Enum1), "nope", False),
+        (EnumNode(enum_type=Enum1), Enum1.BAR, False),
+        (EnumNode(enum_type=Enum1), EnumNode(Enum1), True),
+        (EnumNode(enum_type=Enum1), "nope", False),
+        (
+            EnumNode(enum_type=Enum1, value=Enum1.BAR),
+            EnumNode(enum_type=Enum1, value=Enum1.BAR),
+            True,
+        ),
+        (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
@@ -472,3 +478,4 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (node != value) != expected
     assert (value == node) == expected
     assert (value != node) != expected
+    assert (node.__hash__() == value.__hash__()) == expected
