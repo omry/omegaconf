@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Any, Dict, List, Match, Optional, Tuple, Union
+from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
 import yaml
 
@@ -54,6 +54,20 @@ def get_yaml_loader() -> Any:
     return loader
 
 
+def _get_class(path: str) -> type:
+    from importlib import import_module
+
+    module_path, _, class_name = path.rpartition(".")
+    mod = import_module(module_path)
+    try:
+        klass: type = getattr(mod, class_name)
+    except AttributeError:
+        raise ImportError(
+            "Class {} is not in module {}".format(class_name, module_path)
+        )
+    return klass
+
+
 def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     from typing import Union
 
@@ -67,6 +81,16 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     return False, type_
 
 
+def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
+    import typing
+
+    forward = typing.ForwardRef if hasattr(typing, "ForwardRef") else typing._ForwardRef  # type: ignore
+    if type(type_) is forward:
+        return _get_class(f"{module}.{type_.__forward_arg__}")
+    else:
+        return type_
+
+
 def get_attr_data(obj: Any) -> Dict[str, Any]:
     from omegaconf.omegaconf import _maybe_wrap
 
@@ -75,6 +99,7 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
     obj_type = obj if is_type else type(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
+        type_ = _resolve_forward(type_, obj.__module__)
         is_nested = is_attr_class(type_)
         if not is_type:
             value = getattr(obj, name)
@@ -104,6 +129,7 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(field.type)
+        type_ = _resolve_forward(type_, obj.__module__)
         is_nested = is_structured_config(type_)
         if hasattr(obj, name):
             value = getattr(obj, name)

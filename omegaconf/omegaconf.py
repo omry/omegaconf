@@ -530,7 +530,6 @@ def _maybe_wrap(
             raise ValidationError(
                 f"Value type {type(value).__name__} does not match declared type {annotated_type}"
             )
-
         if not _valid_value_annotation_type(annotated_type):
             raise ValidationError(
                 f"Annotated class '{annotated_type.__name__}' is not a structured config. "
