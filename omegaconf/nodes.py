@@ -239,7 +239,7 @@ class BooleanNode(ValueNode):
         return res
 
 
-class EnumNode(ValueNode):
+class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
     """
     NOTE: EnumNode is serialized to yaml as a string ("Color.BLUE"), not as a fully qualified yaml type.
     this means serialization to YAML of a typed config (with EnumNode) will not retain the type of the Enum

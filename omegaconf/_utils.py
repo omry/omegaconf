@@ -82,7 +82,7 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
 
 
 def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
-    import typing
+    import typing  # lgtm [py/import-and-import-from]
 
     forward = typing.ForwardRef if hasattr(typing, "ForwardRef") else typing._ForwardRef  # type: ignore
     if type(type_) is forward:
