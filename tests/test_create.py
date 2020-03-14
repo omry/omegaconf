@@ -14,8 +14,10 @@ from . import IllegalType
 @pytest.mark.parametrize(  # type: ignore
     "input_,expected",
     [
+        # No content
+        (None, None),
         # empty
-        (None, {}),
+        ({}, {}),
         # simple value
         ("hello", {"hello": None}),
         # simple key:value"
@@ -40,7 +42,7 @@ from . import IllegalType
         (OmegaConf.create({}), {}),
         (OmegaConf.create([]), []),
         (OmegaConf.create({"foo": OmegaConf.create([])}), {"foo": []}),
-        (OmegaConf.create([OmegaConf.create({})]), [{}]),
+        (OmegaConf.create([OmegaConf.create({})]), [{}]),  # type: ignore
     ],
 )
 def test_create_value(input_: Any, expected: Any) -> None:

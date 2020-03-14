@@ -113,9 +113,6 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                         "Missing default value for {}, to indicate "
                         "default must be populated later use '???'".format(name)
                     )
-        if is_nested and value is None:  # TODO: can remove None as well?
-            raise ValueError("Nested value {} must not be None".format(name))
-
         d[name] = _maybe_wrap(
             annotated_type=type_, is_optional=is_optional, value=value, parent=None
         )
@@ -144,8 +141,6 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                         "Missing default value for {}, to indicate "
                         "default must be populated later use '???'".format(name)
                     )
-        if is_nested and value is None:
-            raise ValueError("Nested value {} must not be None".format(name))
 
         d[name] = _maybe_wrap(
             annotated_type=type_, is_optional=is_optional, value=value, parent=None
@@ -184,10 +179,11 @@ def is_attr_frozen(type_: type) -> bool:
     return type_.__setattr__ == attr._make._frozen_setattrs  # type: ignore
 
 
-def get_type_of(class_or_object: Any) -> Any:
+def get_type_of(class_or_object: Any) -> Type[Any]:
     type_ = class_or_object
     if not isinstance(type_, type):
         type_ = type(class_or_object)
+    assert isinstance(type_, type)
     return type_
 
 

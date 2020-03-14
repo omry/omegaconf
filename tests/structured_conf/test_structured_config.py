@@ -90,10 +90,11 @@ class AnyTypeConfigAssignments:
     ],
 )
 class TestConfigs:
-    def test_nested_config_errors_on_none(self, class_type: str) -> None:
+    def test_nested_config_is_none(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        with pytest.raises(ValueError):
-            OmegaConf.structured(module.ErrorOnNoneNestedConfig)
+        cfg = OmegaConf.structured(module.NestedWithNone)
+        assert cfg == {"plugin": None}
+        assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
 
     def test_nested_config(self, class_type: str) -> None:
         module: Any = import_module(class_type)

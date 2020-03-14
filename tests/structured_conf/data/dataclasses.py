@@ -174,11 +174,6 @@ class NoDefaultErrors:
 
 
 @dataclass
-class ErrorOnNoneNestedConfig:
-    will_error: Optional[FloatConfig] = None
-
-
-@dataclass
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -368,7 +363,7 @@ class FaultyPlugin:
 # Missing
 @dataclass
 class LinkedList:
-    next: Optional["LinkedList"] = MISSING  # TODO: should be None but unsupported
+    next: Optional["LinkedList"] = None
     value: Any = MISSING
 
 
@@ -380,3 +375,8 @@ class MissingTest:
     @dataclass
     class Missing2:
         head: LinkedList = LinkedList(next=MISSING, value=1)
+
+
+@dataclass
+class NestedWithNone:
+    plugin: Optional[Plugin] = None

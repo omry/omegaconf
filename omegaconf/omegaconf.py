@@ -55,6 +55,10 @@ from .nodes import (
 
 MISSING: Any = "???"
 
+# A marker used in OmegaConf.create() to differentiate between creating an empty {} DictConfig
+# and creating a DictConfig with None content.
+_EMPTY_MARKER_ = object()
+
 
 def II(interpolation: str) -> Any:
     """
@@ -143,12 +147,14 @@ class OmegaConf:
 
     @staticmethod
     def create(  # noqa F811
-        obj: Any = None, parent: Optional[BaseContainer] = None
+        obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
     ) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
+        if obj is _EMPTY_MARKER_:
+            obj = {}
         if isinstance(obj, str):
             obj = yaml.load(obj, Loader=get_yaml_loader())
             if obj is None:
@@ -160,13 +166,11 @@ class OmegaConf:
                 return OmegaConf.create(obj)
 
         else:
-            if obj is None:
-                obj = {}
-
             if (
                 is_primitive_dict(obj)
                 or OmegaConf.is_dict(obj)
                 or is_structured_config(obj)
+                or obj is None
             ):
                 key_type, element_type = _get_key_value_types(obj)
                 return DictConfig(
@@ -291,10 +295,9 @@ class OmegaConf:
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = caching
 
-    # TODO : improve this API (return type seems wrong)
-    # noinspection PyProtectedMember
     @staticmethod
     def get_resolver(name: str) -> Optional[Callable[[Container, Any], Any]]:
+        # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
         )
@@ -524,7 +527,11 @@ def _maybe_wrap(
         value = ListConfig(parent=parent, content=value, element_type=element_type)
     elif (
         is_structured_config(annotated_type)
-        and (is_structured_config(value) or value_kind == ValueKind.MANDATORY_MISSING)
+        and (
+            is_structured_config(value)
+            or value_kind == ValueKind.MANDATORY_MISSING
+            or value is None
+        )
     ) or is_structured_config(value):
         from . import DictConfig
 

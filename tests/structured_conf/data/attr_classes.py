@@ -179,11 +179,6 @@ class NoDefaultErrors:
 
 
 @attr.s(auto_attribs=True)
-class ErrorOnNoneNestedConfig:
-    will_error: Optional[FloatConfig] = None
-
-
-@attr.s(auto_attribs=True)
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -361,7 +356,7 @@ class FaultyPlugin:
 # Missing
 @attr.s(auto_attribs=True)
 class LinkedList:
-    next: Optional["LinkedList"] = MISSING  # TODO: should be None but unsupported
+    next: Optional["LinkedList"] = None
     value: Any = MISSING
 
 
@@ -373,3 +368,8 @@ class MissingTest:
     @attr.s(auto_attribs=True)
     class Missing2:
         head: LinkedList = LinkedList(next=MISSING, value=1)
+
+
+@attr.s(auto_attribs=True)
+class NestedWithNone:
+    plugin: Optional[Plugin] = None

@@ -130,8 +130,6 @@ class BaseContainer(Container, ABC):
         del self.__dict__["content"][key]
 
     def __len__(self) -> int:
-        if self._is_missing():
-            return 0
         return self.__dict__["content"].__len__()  # type: ignore
 
     def merge_with_cli(self) -> None:
@@ -532,11 +530,18 @@ class BaseContainer(Container, ABC):
     def _dict_conf_eq(d1: "BaseContainer", d2: "BaseContainer") -> bool:
         from .dictconfig import DictConfig
 
+        d1_none = d1.__dict__["content"] is None
+        d2_none = d2.__dict__["content"] is None
+        if d1_none and d2_none:
+            return True
+        if d1_none != d2_none:
+            return False
+
         assert isinstance(d1, DictConfig)
         assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
             return False
-        d1keys = sorted(d1.keys(), key=str)
+        d1keys = sorted(d1.keys(), key=str)  # TODO: test removing sorted here.
         d2keys = sorted(d2.keys(), key=str)
         assert len(d1keys) == len(d2keys)
         for index, k1 in enumerate(d1keys):
