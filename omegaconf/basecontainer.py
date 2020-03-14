@@ -541,14 +541,10 @@ class BaseContainer(Container, ABC):
         assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
             return False
-        d1keys = sorted(d1.keys(), key=str)  # TODO: test removing sorted here.
-        d2keys = sorted(d2.keys(), key=str)
-        assert len(d1keys) == len(d2keys)
-        for index, k1 in enumerate(d1keys):
-            k2 = d2keys[index]
-            if k1 != k2:
+        for k, v in d1.items_ex(resolve=False):
+            if k not in d2.__dict__["content"]:
                 return False
-            if not BaseContainer._item_eq(d1, k1, d2, k2):
+            if not BaseContainer._item_eq(d1, k, d2, k):
                 return False
 
         return True

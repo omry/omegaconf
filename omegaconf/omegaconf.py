@@ -487,7 +487,6 @@ def _node_wrap(
     return node
 
 
-# TODO: clean up annotated_type here, should it be element_type?
 def _maybe_wrap(
     annotated_type: Any, value: Any, is_optional: bool, parent: Optional[BaseContainer]
 ) -> Node:
