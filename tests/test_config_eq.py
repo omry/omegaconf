@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Optional
 
 import pytest
 
@@ -11,6 +11,12 @@ from omegaconf.basecontainer import BaseContainer
 class User:
     name: str = MISSING
     age: int = MISSING
+
+
+# Testing nesting a None value for a structured config
+@dataclass
+class Group:
+    admin: Optional[User] = None
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -56,6 +62,8 @@ class User:
         (dict(a="${missing}"), dict(a="${missing}")),
         (User, User),
         ({"name": "poo", "age": 7}, User(name="poo", age=7)),
+        (Group, Group),
+        ({"group": {"admin": None}}, {"group": Group}),
     ],
 )
 def test_eq(l1: List[Any], l2: List[Any]) -> None:
@@ -77,8 +85,9 @@ def test_eq(l1: List[Any], l2: List[Any]) -> None:
     "input1, input2",
     [
         # Dicts
-        (dict(), dict(a=10)),
+        ({}, {"a": 10}),
         ({}, []),
+        ({}, None),
         (dict(a=12), dict(a=13)),
         (dict(a=0), dict(b=0)),
         (dict(a=12), dict(a=AnyNode(13))),

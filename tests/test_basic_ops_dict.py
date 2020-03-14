@@ -320,9 +320,12 @@ def test_dict_delitem() -> None:
         del c["not_found"]
 
 
-def test_dict_len() -> None:
-    c = OmegaConf.create(dict(a=10, b=11))
-    assert len(c) == 2
+@pytest.mark.parametrize(  # type: ignore
+    "d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)],
+)
+def test_dict_len(d: Any, expected: Any) -> None:
+    c = OmegaConf.create(d)
+    assert len(c) == expected
 
 
 def test_dict_assign_illegal_value() -> None:
@@ -479,12 +482,12 @@ def test_struct_mode_missing_key_setitem() -> None:
         cfg.__setitem__("zoo", 10)
 
 
-def test_get_type():
+def test_get_type() -> None:
 
-    cfg = OmegaConf.create(User)
+    cfg = OmegaConf.structured(User)
     assert OmegaConf.get_type(cfg) == User
 
-    cfg = OmegaConf.create(User(name="bond"))
+    cfg = OmegaConf.structured(User(name="bond"))
     assert OmegaConf.get_type(cfg) == User
 
     cfg = OmegaConf.create({"user": User})

@@ -60,7 +60,7 @@ class ValueNode(Node):
         assert x is not NotImplemented
         return not x
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.val)
 
     def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]] = {}) -> None:
@@ -189,7 +189,7 @@ class FloatNode(ValueNode):
         nan2 = math.isnan(other_val) if isinstance(other_val, float) else False
         return self.val == other_val or (nan1 and nan2)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.val)
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "FloatNode":

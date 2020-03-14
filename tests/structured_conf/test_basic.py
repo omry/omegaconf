@@ -44,8 +44,7 @@ class TestStructured:
             module: Any = import_module(class_type)
             cfg1 = OmegaConf.create({"plugin": module.Plugin})
             cfg2 = OmegaConf.create({"plugin": module.ConcretePlugin})
-            # TODO: fix __eq__ to support comparing to Structured Configs directly
-            assert cfg2.plugin == OmegaConf.create(module.ConcretePlugin)
+            assert cfg2.plugin == module.ConcretePlugin
             res = OmegaConf.merge(cfg1, cfg2)
             assert res.plugin._type == module.ConcretePlugin
             assert res.plugin.params._type == module.ConcretePlugin.FoobarParams
@@ -100,4 +99,4 @@ class TestStructured:
             assert OmegaConf.is_missing(cfg.head, "next")
 
             cfg.head.next = module.LinkedList(value=2)
-            assert cfg == {"head": {"next": {"next": "???", "value": 2}, "value": 1}}
+            assert cfg == {"head": {"next": {"next": None, "value": 2}, "value": 1}}

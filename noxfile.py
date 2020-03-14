@@ -46,15 +46,10 @@ def coverage(session):
 def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", "-r", "requirements/lint.txt", "-e", ".", silent=True)
-    session.run("flake8")
-
-    session.install("black")
-    # if this fails you need to format your code with black
-    session.run("black", "--check", ".")
 
     session.run("mypy", ".", "--strict")
-
     session.run("isort", ".", "--check")
+    session.run("black", "--check", ".")
 
 
 @nox.session(python=PYTHON_VERSIONS)

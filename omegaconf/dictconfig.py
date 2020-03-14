@@ -60,9 +60,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self.__dict__["content"] = {}
 
         if is_structured_config(content) or (
-            is_structured_config(annotated_type) and is_missing
+            is_structured_config(annotated_type) and (is_missing or content is None)
         ):
-            if not is_missing:
+            if not is_missing and content is not None:
                 set_data(get_structured_config_data(content))
                 if is_structured_config_frozen(content):
                     self._set_flag("readonly", True)
@@ -297,6 +297,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return items.keys()
 
     def __eq__(self, other: Any) -> bool:
+        if other is None:
+            return self.__dict__["content"] is None
         if is_primitive_dict(other) or is_structured_config(other):
             return BaseContainer._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
