@@ -1,22 +1,11 @@
-from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any, List
 
 import pytest
 
-from omegaconf import MISSING, AnyNode, OmegaConf
+from omegaconf import AnyNode, OmegaConf
 from omegaconf.basecontainer import BaseContainer
 
-
-@dataclass
-class User:
-    name: str = MISSING
-    age: int = MISSING
-
-
-# Testing nesting a None value for a structured config
-@dataclass
-class Group:
-    admin: Optional[User] = None
+from . import Group, User
 
 
 @pytest.mark.parametrize(  # type: ignore

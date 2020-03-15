@@ -1,3 +1,4 @@
+import re
 from importlib import import_module
 from typing import Any
 
@@ -31,8 +32,11 @@ class TestStructured:
             module: Any = import_module(class_type)
             cfg = OmegaConf.create({"plugin": module.Plugin})
             cfg.plugin = OmegaConf.structured(module.ConcretePlugin)
-            assert cfg.plugin._type == module.ConcretePlugin
-            assert cfg.plugin.params._type == module.ConcretePlugin.FoobarParams
+            assert OmegaConf.get_type(cfg.plugin) == module.ConcretePlugin
+            assert (
+                OmegaConf.get_type(cfg.plugin.params)
+                == module.ConcretePlugin.FoobarParams
+            )
 
         def test_assignment_of_non_subclass_1(self, class_type: str) -> None:
             module: Any = import_module(class_type)
@@ -46,8 +50,11 @@ class TestStructured:
             cfg2 = OmegaConf.create({"plugin": module.ConcretePlugin})
             assert cfg2.plugin == module.ConcretePlugin
             res = OmegaConf.merge(cfg1, cfg2)
-            assert res.plugin._type == module.ConcretePlugin
-            assert res.plugin.params._type == module.ConcretePlugin.FoobarParams
+            assert OmegaConf.get_type(res.plugin) == module.ConcretePlugin
+            assert (
+                OmegaConf.get_type(res.plugin.params)
+                == module.ConcretePlugin.FoobarParams
+            )
 
         def test_merge_of_non_subclass_1(self, class_type: str) -> None:
             module: Any = import_module(class_type)
@@ -55,6 +62,13 @@ class TestStructured:
             cfg2 = OmegaConf.create({"plugin": module.FaultyPlugin})
             with pytest.raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
+
+        def test_error_message(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.structured(module.StructuredOptional)
+            msg = re.escape("Cannot assign Nested=None (field is not Optional)")
+            with pytest.raises(ValidationError, match=msg):
+                cfg.not_optional = None
 
     def test_none_assignment(self, class_type: str) -> None:
         module: Any = import_module(class_type)

@@ -20,11 +20,12 @@ def test_select_dotkey_from_empty() -> None:
 
 
 def test_select_from_dict() -> None:
-    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
+    c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}, "c": 1})
 
     assert c.select("a") == {"v": 1}
     assert c.select("a.v") == 1
     assert c.select("b.v") == 1
+    assert c.select("c") == 1
     assert c.select("nope") is None
 
 

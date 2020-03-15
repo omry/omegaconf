@@ -14,37 +14,54 @@ from typing import (
 )
 
 from ._utils import ValueKind, get_value_kind, is_primitive_list, isint
-from .base import Container, Node
+from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
-from .errors import KeyValidationError, ReadonlyConfigError, UnsupportedValueType
+from .errors import (
+    KeyValidationError,
+    ReadonlyConfigError,
+    UnsupportedValueType,
+    ValidationError,
+)
 from .nodes import AnyNode, ValueNode
 
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
     def __init__(
         self,
-        content: Union[List[Any], Tuple[Any, ...]],
+        content: Union[List[Any], Tuple[Any, ...], str, None],
+        key: Any = None,
         parent: Optional[Container] = None,
+        is_optional: bool = True,
         element_type: Any = Any,
     ) -> None:
-        super().__init__(parent=parent, element_type=element_type)
+        super().__init__(
+            parent=parent,
+            metadata=ContainerMetadata(
+                key=key, optional=is_optional, element_type=element_type
+            ),
+        )
+        self._set_value(value=content)
 
-        self.__dict__["_is_optional"] = True  # TODO: externalize and test
+    def _validate_get(self, index: Any) -> None:
+        if not isinstance(index, (int, slice)):
+            raise KeyValidationError(f"Key type {type(index).__name__} is invalid")
 
-        if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
-            self.__dict__["_missing"] = True
-            self.__dict__["content"] = None
-        else:
-            assert is_primitive_list(content) or isinstance(content, ListConfig)
-            self.__dict__["_missing"] = False
-            self.__dict__["content"] = []
-            for item in content:
-                self.append(item)
+    def _validate_set(self, index: Any, value: Any) -> None:
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError(self._get_full_key(f"{index}"))
+
+        if 0 <= index < self.__len__():
+            target = self.get_node(index)
+            if isinstance(target, Container):
+                if value is None and not target._is_optional():
+                    raise ValidationError(
+                        "Non optional ListConfig node cannot be assigned None"
+                    )
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "ListConfig":
         res = ListConfig(content=[])
-        for key in ["content", "flags", "_element_type", "_missing"]:
-            res.__dict__[key] = copy.deepcopy(self.__dict__[key], memo=memo)
+        for k, v in self.__dict__.items():
+            res.__dict__[k] = copy.deepcopy(v, memo=memo)
         res._re_parent()
         return res
 
@@ -61,79 +78,70 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def __len__(self) -> int:
         if self._is_missing():
             return 0
-        return len(self.content)
+        return len(self._content)
 
     def __getitem__(self, index: Union[int, slice]) -> Any:
         assert isinstance(index, (int, slice))
+        self._validate_get(index)
+
         if isinstance(index, slice):
             result = []
             for slice_idx in itertools.islice(
                 range(0, len(self)), index.start, index.stop, index.step
             ):
                 val = self._resolve_with_default(
-                    key=slice_idx, value=self.content[slice_idx], default_value=None
+                    key=slice_idx, value=self._content[slice_idx], default_value=None
                 )
                 result.append(val)
             return result
         else:
             return self._resolve_with_default(
-                key=index, value=self.content[index], default_value=None
+                key=index, value=self._content[index], default_value=None
             )
 
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
-        if not isinstance(index, int):
-            raise KeyValidationError(f"Key type {type(index).__name__} is not an int")
-
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(str(index)))
-
-        if isinstance(value, BaseContainer):
-            value = copy.deepcopy(value)
-            value._set_parent(self)
-
         try:
-
             self._set_item_impl(index, value)
-
         except UnsupportedValueType:
+            full_key = self._get_full_key(str(index))
+
             raise UnsupportedValueType(
-                "key {}: {} is not a supported type".format(
-                    self.get_full_key(str(index)), type(value).__name__
-                )
+                f"{type(value).__name__} is not a supported type (key: {full_key})"
             )
 
     def __setitem__(self, index: Union[int, slice], value: Any) -> None:
         self._set_at_index(index, value)
 
     def append(self, item: Any) -> None:
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(f"{len(self)}"))
+        index = len(self)
+        self._validate_set(index=index, value=item)
 
         try:
-            from omegaconf.omegaconf import _maybe_wrap
+            from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
-            self.__dict__["content"].append(
+            self.__dict__["_content"].append(
                 _maybe_wrap(
-                    annotated_type=self.__dict__["_element_type"],
+                    annotated_type=self._metadata.element_type,
+                    key=index,
                     value=item,
-                    is_optional=True,
+                    is_optional=OmegaConf.is_optional(item),
                     parent=self,
                 )
             )
         except UnsupportedValueType:
-            full_key = self.get_full_key(f"{len(self)}")
+            full_key = self._get_full_key(f"{len(self)}")
             raise UnsupportedValueType(
-                f"key {full_key}: {type(item).__name__} is not a supported type"
+                f"{type(item).__name__} is not a supported type (key: {full_key})"
             )
 
     def insert(self, index: int, item: Any) -> None:
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(str(index)))
+            raise ReadonlyConfigError(self._get_full_key(str(index)))
         try:
-            self.content.insert(index, AnyNode(None))
+            self._content.insert(index, AnyNode(None))
             self._set_at_index(index, item)
         except Exception:
-            del self.__dict__["content"][index]
+            del self.__dict__["_content"][index]
             raise
 
     def extend(self, lst: Iterable[Any]) -> None:
@@ -179,21 +187,21 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def get_node(self, index: int) -> Node:
         assert type(index) == int
-        return self.__dict__["content"][index]  # type: ignore
+        return self.__dict__["_content"][index]  # type: ignore
 
     def get(self, index: int, default_value: Any = None) -> Any:
         assert type(index) == int
         return self._resolve_with_default(
-            key=index, value=self.content[index], default_value=default_value
+            key=index, value=self._content[index], default_value=default_value
         )
 
     def pop(self, index: int = -1) -> Any:
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(
-                self.get_full_key(str(index if index != -1 else ""))
+                self._get_full_key(str(index if index != -1 else ""))
             )
         return self._resolve_with_default(
-            key=index, value=self.content.pop(index), default_value=None
+            key=index, value=self._content.pop(index), default_value=None
         )
 
     def sort(
@@ -205,20 +213,20 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if key is None:
 
             def key1(x: Any) -> Any:
-                return x.value()
+                return x._value()
 
         else:
 
             def key1(x: Any) -> Any:
-                return key(x.value())  # type: ignore
+                return key(x._value())  # type: ignore
 
-        self.content.sort(key=key1, reverse=reverse)
+        self._content.sort(key=key1, reverse=reverse)
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, list):
-            return BaseContainer._list_eq(self, ListConfig(other))
-        if isinstance(other, ListConfig):
-            return BaseContainer._list_eq(self, other)
+        if isinstance(other, (list, tuple)) or other is None:
+            return ListConfig._list_eq(self, ListConfig(other))
+        if other is None or isinstance(other, ListConfig):
+            return ListConfig._list_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
@@ -242,10 +250,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             def next(self) -> Any:
                 v = next(self.iterator)
                 if isinstance(v, ValueNode):
-                    v = v.value()
+                    v = v._value()
                 return v
 
-        return MyItems(self.content if not self._is_missing() else [])
+        if self._is_missing() or self._is_interpolation() or self._is_none():
+            data = []
+        else:
+            data = self._content
+        return MyItems(data)
 
     def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
@@ -263,3 +275,45 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if x == item:
                 return True
         return False
+
+    def _set_value(self, value: Any) -> None:
+        from omegaconf import OmegaConf
+
+        if OmegaConf.is_none(value):
+            if not self._is_optional():
+                raise ValidationError(
+                    "Non optional ListConfig cannot be constructed from None"
+                )
+            self.__dict__["_content"] = None
+        elif get_value_kind(value) == ValueKind.MANDATORY_MISSING:
+            self.__dict__["_content"] = "???"
+        elif get_value_kind(value) in (
+            ValueKind.INTERPOLATION,
+            ValueKind.STR_INTERPOLATION,
+        ):
+            self.__dict__["_content"] = value
+        else:
+            assert is_primitive_list(value) or isinstance(value, ListConfig)
+            self.__dict__["_content"] = []
+            for item in value:
+                self.append(item)
+
+    @staticmethod
+    def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:
+
+        l1_none = l1.__dict__["_content"] is None
+        l2_none = l2.__dict__["_content"] is None
+        if l1_none and l2_none:
+            return True
+        if l1_none != l2_none:
+            return False
+
+        assert isinstance(l1, ListConfig)
+        assert isinstance(l2, ListConfig)
+        if len(l1) != len(l2):
+            return False
+        for i in range(len(l1)):
+            if not BaseContainer._item_eq(l1, i, l2, i):
+                return False
+
+        return True

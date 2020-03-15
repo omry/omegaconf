@@ -123,7 +123,7 @@ def test_list_len() -> None:
 
 def test_nested_list_assign_illegal_value() -> None:
     c = OmegaConf.create(dict(a=[None]))
-    with pytest.raises(UnsupportedValueType, match=re.escape("key a[0]")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: a[0]")):
         c.a[0] = IllegalType()
 
 

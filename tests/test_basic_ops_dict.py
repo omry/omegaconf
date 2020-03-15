@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import tempfile
-from dataclasses import dataclass
-from enum import Enum
 from typing import Any, Dict, List, Union
 
 import pytest
 
 from omegaconf import (
-    MISSING,
     DictConfig,
     KeyValidationError,
     MissingMandatoryValue,
@@ -17,22 +14,11 @@ from omegaconf import (
 )
 from omegaconf.basecontainer import BaseContainer
 
-from . import IllegalType, StructuredWithMissing, does_not_raise
-
-
-@dataclass
-class User:
-    name: str = MISSING
-    age: int = MISSING
-
-
-class Enum1(Enum):
-    FOO = 1
-    BAR = 2
+from . import Enum1, IllegalType, StructuredWithMissing, User, does_not_raise
 
 
 def test_setattr_deep_value() -> None:
-    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
+    c = OmegaConf.create({"a": {"b": {"c": 1}}})
     c.a.b = 9
     assert {"a": {"b": 9}} == c
 
@@ -330,13 +316,13 @@ def test_dict_len(d: Any, expected: Any) -> None:
 
 def test_dict_assign_illegal_value() -> None:
     c = OmegaConf.create(dict())
-    with pytest.raises(UnsupportedValueType, match=re.escape("key a")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
         c.a = IllegalType()
 
 
 def test_dict_assign_illegal_value_nested() -> None:
     c = OmegaConf.create(dict(a=dict()))
-    with pytest.raises(UnsupportedValueType, match=re.escape("key a.b")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: a.b")):
         c.a.b = IllegalType()
 
 

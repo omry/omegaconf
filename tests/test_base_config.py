@@ -2,9 +2,9 @@ import copy
 from typing import Any, Dict, List, Union
 
 import pytest
+from pytest import raises
 
 from omegaconf import (
-    MISSING,
     Container,
     DictConfig,
     IntegerNode,
@@ -58,7 +58,7 @@ def test_set_value(
 )
 def test_set_value_validation_fail(input_: Any, key: Any, value: Any) -> None:
     c = OmegaConf.create(input_)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         c[key] = value
 
 
@@ -77,7 +77,7 @@ def test_replace_value_node_type_with_another(
     c = OmegaConf.create(input_)
     c[key] = value
     assert c[key] == value
-    assert c[key] == value.value()
+    assert c[key] == value._value()
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -132,7 +132,9 @@ def test_empty(input_: Any, is_empty: bool) -> None:
         (
             StructuredWithMissing,
             (
-                "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': '???', 'opt_list': '???'}"
+                "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': "
+                "'???', 'opt_list': '???', 'user': '???', 'opt_user': '???', 'inter_num': "
+                "'${num}', 'inter_user': '${user}', 'inter_opt_user': '${opt_user}'}"
             ),
         ),
     ],
@@ -200,10 +202,10 @@ class TestDeepCopy:
         c2 = copy.deepcopy(c1)
         assert c1 == c2
         if isinstance(c2, ListConfig):
-            with pytest.raises(ReadonlyConfigError):
+            with raises(ReadonlyConfigError):
                 c2.append(1000)
         elif isinstance(c2, DictConfig):
-            with pytest.raises(ReadonlyConfigError):
+            with raises(ReadonlyConfigError):
                 c2.num = 42
         assert c1 == c2
 
@@ -215,7 +217,7 @@ class TestDeepCopy:
         if isinstance(c2, ListConfig):
             c2.append(1000)
         elif isinstance(c2, DictConfig):
-            with pytest.raises(AttributeError):
+            with raises(AttributeError):
                 c2.foo = 42
 
 
@@ -254,7 +256,7 @@ def test_deepcopy_and_merge_and_flags() -> None:
     )
     OmegaConf.set_struct(c1, True)
     c2 = copy.deepcopy(c1)
-    with pytest.raises(AttributeError):
+    with raises(AttributeError):
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
@@ -266,33 +268,27 @@ def test_deepcopy_and_merge_and_flags() -> None:
     ],
 )
 def test_deepcopy_preserves_container_type(cfg: Container) -> None:
-    cp = copy.deepcopy(cfg)
-    assert cp.__dict__["_element_type"] == cfg.__dict__["_element_type"]
+    cp: Container = copy.deepcopy(cfg)
+    assert cp._metadata.element_type == cfg._metadata.element_type
 
 
 @pytest.mark.parametrize(  # type: ignore
     "src, flag_name, flag_value, func, expectation",
     [
-        (
-            {},
-            "struct",
-            False,
-            lambda c: c.__setitem__("foo", 1),
-            pytest.raises(KeyError),
-        ),
+        ({}, "struct", False, lambda c: c.__setitem__("foo", 1), raises(KeyError),),
         (
             {},
             "struct",
             False,
             lambda c: c.__setattr__("foo", 1),
-            pytest.raises(AttributeError),
+            raises(AttributeError),
         ),
         (
             {},
             "readonly",
             False,
             lambda c: c.__setitem__("foo", 1),
-            pytest.raises(ReadonlyConfigError),
+            raises(ReadonlyConfigError),
         ),
     ],
 )
@@ -312,8 +308,8 @@ def test_flag_override(
 @pytest.mark.parametrize(  # type: ignore
     "src, func, expectation",
     [
-        ({}, lambda c: c.__setitem__("foo", 1), pytest.raises(ReadonlyConfigError)),
-        ([], lambda c: c.append(1), pytest.raises(ReadonlyConfigError)),
+        ({}, lambda c: c.__setitem__("foo", 1), raises(ReadonlyConfigError)),
+        ([], lambda c: c.append(1), raises(ReadonlyConfigError)),
     ],
 )
 def test_read_write_override(src: Any, func: Any, expectation: Any) -> None:
@@ -350,7 +346,7 @@ def test_tokenize_with_escapes(string: str, tokenized: List[str]) -> None:
 
 @pytest.mark.parametrize(  # type: ignore
     "src, func, expectation",
-    [({}, lambda c: c.__setattr__("foo", 1), pytest.raises(AttributeError))],
+    [({}, lambda c: c.__setattr__("foo", 1), raises(AttributeError))],
 )
 def test_struct_override(src: Any, func: Any, expectation: Any) -> None:
     c = OmegaConf.create(src)
@@ -422,75 +418,35 @@ class TestCopy:
 
 
 def test_not_implemented() -> None:
-    with pytest.raises(NotImplementedError):
+    with raises(NotImplementedError):
         OmegaConf()
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "query, result", [("a", "a"), ("${foo}", 10), ("${bar}", 10)]
+    "query, result",
+    [
+        ("a", "a"),
+        ("${foo}", 10),
+        ("${bar}", 10),
+        ("foo_${foo}", "foo_10"),
+        ("foo_${bar}", "foo_10"),
+    ],
 )
-def test_resolve_single(query: str, result: Any) -> None:
+def test_resolve_str_interpolation(query: str, result: Any) -> None:
     cfg = OmegaConf.create({"foo": 10, "bar": "${foo}"})
-    assert cfg._resolve_single(value=query) == result
+    assert (
+        cfg._resolve_str_interpolation(
+            key=None, value=StringNode(value=query), throw_on_missing=False
+        )
+        == result
+    )
 
 
 def test_omegaconf_create() -> None:
     assert OmegaConf.create([]) == []
     assert OmegaConf.create({}) == {}
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         assert OmegaConf.create(10)  # type: ignore
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "cfg, key, expected",
-    [
-        ({}, "foo", False),
-        ({"foo": True}, "foo", False),
-        ({"foo": MISSING}, "foo", True),
-        ({"foo": "${bar}", "bar": MISSING}, "foo", True),
-        ({"foo": "${unknown_resolver:foo}"}, "foo", False),
-        (StructuredWithMissing, "num", True),
-        (StructuredWithMissing, "opt_num", True),
-        (StructuredWithMissing, "dict", True),
-        (StructuredWithMissing, "opt_dict", True),
-        (StructuredWithMissing, "list", True),
-        (StructuredWithMissing, "opt_list", True),
-    ],
-)
-def test_is_missing(cfg: Any, key: str, expected: Any) -> None:
-    cfg = OmegaConf.create(cfg)
-    assert OmegaConf.is_missing(cfg, key) == expected
-
-
-def test_is_missing_resets() -> None:
-    cfg = OmegaConf.structured(StructuredWithMissing)
-    assert OmegaConf.is_missing(cfg, "dict")
-    cfg.dict = {}
-    assert not OmegaConf.is_missing(cfg, "dict")
-
-    assert OmegaConf.is_missing(cfg, "list")
-    cfg.list = [1, 2, 3]
-    assert not OmegaConf.is_missing(cfg, "list")
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "cfg, is_conf, is_list, is_dict",
-    [
-        (None, False, False, False),
-        ({}, False, False, False),
-        ("aa", False, False, False),
-        (10, False, False, False),
-        (True, False, False, False),
-        (bool, False, False, False),
-        (StringNode("foo"), False, False, False),
-        (OmegaConf.create({}), True, False, True),
-        (OmegaConf.create([]), True, True, False),
-    ],
-)
-def test_is_config(cfg: Any, is_conf: bool, is_list: bool, is_dict: bool) -> None:
-    assert OmegaConf.is_config(cfg) == is_conf
-    assert OmegaConf.is_list(cfg) == is_list
-    assert OmegaConf.is_dict(cfg) == is_dict
 
 
 @pytest.mark.parametrize(  # type: ignore

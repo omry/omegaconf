@@ -374,8 +374,6 @@ class TestConfigs:
         # assign None to an optional field
         conf.with_default = None
         assert conf.with_default is None
-        # TODO: test missing + optional combo
-        # TODO test merge with optional
 
     def test_typed_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -407,7 +405,7 @@ class TestConfigs:
         input_ = module.WithTypedDict
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(OmegaConf.create(), conf)
-        assert res.__dict__["_type"] == input_
+        assert OmegaConf.get_type(res) == input_
 
     def test_merged_type2(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
@@ -415,7 +413,7 @@ class TestConfigs:
         input_ = module.WithTypedDict
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
-        assert res.__dict__["_type"] == input_
+        assert OmegaConf.get_type(res) == input_
 
     def test_merged_with_subclass(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
@@ -424,7 +422,7 @@ class TestConfigs:
             OmegaConf.structured(module.Nested),
             OmegaConf.structured(module.NestedSubclass),
         )
-        assert res.__dict__["_type"] == module.NestedSubclass
+        assert OmegaConf.get_type(res) == module.NestedSubclass
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -609,11 +607,11 @@ class TestConfigs:
         module: Any = import_module(class_type)
 
         conf = OmegaConf.create(module.AnyTypeConfig)
-        assert conf._type == module.AnyTypeConfig
+        assert OmegaConf.get_type(conf) == module.AnyTypeConfig
 
         conf._promote(module.BoolConfig)
 
-        assert conf._type == module.BoolConfig
+        assert OmegaConf.get_type(conf) == module.BoolConfig
         assert conf.with_default is True
         assert conf.null_default is None
         assert OmegaConf.is_missing(conf, "mandatory_missing")
@@ -622,10 +620,10 @@ class TestConfigs:
         module: Any = import_module(class_type)
 
         conf = OmegaConf.create(module.AnyTypeConfig)
-        assert conf._type == module.AnyTypeConfig
+        assert OmegaConf.get_type(conf) == module.AnyTypeConfig
 
         conf._promote(module.BoolConfig(with_default=False))
-        assert conf._type == module.BoolConfig
+        assert OmegaConf.get_type(conf) == module.BoolConfig
         assert conf.with_default is False
 
 

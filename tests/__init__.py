@@ -1,9 +1,9 @@
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional
 
-from omegaconf import MISSING
+from omegaconf import II, MISSING
 
 
 class IllegalType:
@@ -23,6 +23,49 @@ class Color(Enum):
 
 
 @dataclass
+class User:
+    name: str = MISSING
+    age: int = MISSING
+
+
+@dataclass
+class Group:
+    admin: Optional[User] = None
+
+
+class Enum1(Enum):
+    FOO = 1
+    BAR = 2
+
+
+@dataclass
+class Users:
+    name2user: Dict[str, User] = field(default_factory=dict)
+
+
+@dataclass
+class ConfWithMissingDict:
+    dict: Dict[str, Any] = MISSING
+
+
+@dataclass
+class Plugin:
+    name: str = MISSING
+    params: Any = MISSING
+
+
+@dataclass
+class ConcretePlugin(Plugin):
+    name: str = "foobar_plugin"
+
+    @dataclass
+    class FoobarParams:
+        foo: int = 10
+
+    params: FoobarParams = FoobarParams()
+
+
+@dataclass
 class StructuredWithMissing:
     num: int = MISSING
     opt_num: Optional[int] = MISSING
@@ -30,3 +73,8 @@ class StructuredWithMissing:
     opt_dict: Optional[Dict[str, str]] = MISSING
     list: List[str] = MISSING
     opt_list: Optional[List[str]] = MISSING
+    user: User = MISSING
+    opt_user: Optional[User] = MISSING
+    inter_num: int = II("num")
+    inter_user: User = II("user")
+    inter_opt_user: Optional[User] = II("opt_user")

@@ -4,7 +4,14 @@ from typing import Any, Dict
 
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, Resolver
+from omegaconf import (
+    DictConfig,
+    IntegerNode,
+    ListConfig,
+    OmegaConf,
+    Resolver,
+    ValidationError,
+)
 
 
 def test_str_interpolation_dict_1() -> None:
@@ -129,7 +136,6 @@ def test_env_interpolation1() -> None:
         assert c.path == "/test/1234"
     finally:
         del os.environ["foobar"]
-        OmegaConf.clear_resolvers()
 
 
 def test_env_interpolation_not_found() -> None:
@@ -180,69 +186,53 @@ def test_env_values_are_typed(value: Any, expected: Any) -> None:
         assert c.my_key == expected
     finally:
         del os.environ["my_key"]
-        OmegaConf.clear_resolvers()
 
 
-def test_register_resolver_twice_error() -> None:
-    try:
+def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
+    def foo() -> int:
+        return 10
 
-        def foo() -> int:
-            return 10
-
-        OmegaConf.register_resolver("foo", foo)
-        with pytest.raises(AssertionError):
-            OmegaConf.register_resolver("foo", lambda: 10)
-    finally:
-        OmegaConf.clear_resolvers()
+    OmegaConf.register_resolver("foo", foo)
+    with pytest.raises(AssertionError):
+        OmegaConf.register_resolver("foo", lambda: 10)
 
 
-def test_clear_resolvers() -> None:
+def test_clear_resolvers(restore_resolvers: Any) -> None:
     assert OmegaConf.get_resolver("foo") is None
-    try:
-        OmegaConf.register_resolver("foo", lambda x: int(x) + 10)
-        assert OmegaConf.get_resolver("foo") is not None
-    finally:
-        OmegaConf.clear_resolvers()
-        assert OmegaConf.get_resolver("foo") is None
+    OmegaConf.register_resolver("foo", lambda x: int(x) + 10)
+    assert OmegaConf.get_resolver("foo") is not None
+    OmegaConf.clear_resolvers()
+    assert OmegaConf.get_resolver("foo") is None
 
 
-def test_register_resolver_1() -> None:
-    try:
-        OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
-        c = OmegaConf.create(dict(k="${plus_10:990}"))
+def test_register_resolver_1(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    c = OmegaConf.create(dict(k="${plus_10:990}"))
 
-        assert type(c.k) == int
-        assert c.k == 1000
-    finally:
-        OmegaConf.clear_resolvers()
+    assert type(c.k) == int
+    assert c.k == 1000
 
 
-def test_resolver_cache_1() -> None:
+def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # resolvers are always converted to stateless idempotent functions
     # subsequent calls to the same function with the same argument will always return the same value.
     # this is important to allow embedding of functions like time() without having the value change during
     # the program execution.
-    try:
-        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-        c = OmegaConf.create(dict(k="${random:_}"))
-        assert c.k == c.k
-    finally:
-        OmegaConf.clear_resolvers()
+    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    c = OmegaConf.create(dict(k="${random:_}"))
+    assert c.k == c.k
 
 
-def test_resolver_cache_2() -> None:
+def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    try:
-        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-        c1 = OmegaConf.create(dict(k="${random:_}"))
-        c2 = OmegaConf.create(dict(k="${random:_}"))
-        assert c1.k != c2.k
-        assert c1.k == c1.k
-        assert c2.k == c2.k
-    finally:
-        OmegaConf.clear_resolvers()
+    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    c1 = OmegaConf.create(dict(k="${random:_}"))
+    c2 = OmegaConf.create(dict(k="${random:_}"))
+    assert c1.k != c2.k
+    assert c1.k == c1.k
+    assert c2.k == c2.k
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -265,28 +255,26 @@ def test_resolver_cache_2() -> None:
     ],
 )
 def test_resolver_that_allows_a_list_of_arguments(
-    resolver: Resolver, name: str, key: str, result: Any
+    restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
 ) -> None:
-    try:
-        OmegaConf.register_resolver("my_resolver", resolver)
-        c = OmegaConf.create({name: key})
-        assert isinstance(c, DictConfig)
-        assert c[name] == result
-    finally:
-        OmegaConf.clear_resolvers()
+    OmegaConf.register_resolver("my_resolver", resolver)
+    c = OmegaConf.create({name: key})
+    assert isinstance(c, DictConfig)
+    assert c[name] == result
 
 
 def test_copy_cache() -> None:
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    c1 = OmegaConf.create(dict(k="${random:_}"))
+    d = {"k": "${random:_}"}
+    c1 = OmegaConf.create(d)
     assert c1.k == c1.k
 
-    c2 = OmegaConf.create(dict(k="${random:_}"))
+    c2 = OmegaConf.create(d)
     assert c2.k != c1.k
     OmegaConf.set_cache(c2, OmegaConf.get_cache(c1))
     assert c2.k == c1.k
 
-    c3 = OmegaConf.create(dict(k="${random:_}"))
+    c3 = OmegaConf.create(d)
 
     assert c3.k != c1.k
     OmegaConf.copy_cache(c1, c3)
@@ -358,3 +346,40 @@ def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
 def test_interpolation_with_missing() -> None:
     cfg = OmegaConf.create({"out_file": "${x.name}.txt", "x": {"name": "???"}})
     assert OmegaConf.is_missing(cfg, "out_file")
+
+
+def test_assign_to_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {"foo": 10, "bar": "${foo}", "typed_bar": IntegerNode("${foo}")}
+    )
+    assert OmegaConf.is_interpolation(cfg, "bar")
+    assert cfg.bar == 10
+    assert cfg.typed_bar == 10
+
+    # assign regular field
+    cfg.bar = 20
+    assert not OmegaConf.is_interpolation(cfg, "bar")
+
+    with pytest.raises(ValidationError):
+        cfg.typed_bar = "nope"
+    cfg.typed_bar = 30
+
+    assert cfg.foo == 10
+    assert cfg.bar == 20
+    assert cfg.typed_bar == 30
+
+
+def test_merge_with_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {"foo": 10, "bar": "${foo}", "typed_bar": IntegerNode("${foo}")}
+    )
+
+    assert OmegaConf.merge(cfg, {"bar": 20}) == {"foo": 10, "bar": 20, "typed_bar": 10}
+    assert OmegaConf.merge(cfg, {"typed_bar": 30}) == {
+        "foo": 10,
+        "bar": 10,
+        "typed_bar": 30,
+    }
+
+    with pytest.raises(ValidationError):
+        OmegaConf.merge(cfg, {"typed_bar": "nope"})

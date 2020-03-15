@@ -42,7 +42,7 @@ from ._utils import (
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import MissingMandatoryValue, UnsupportedInterpolationType, ValidationError
+from .errors import UnsupportedInterpolationType, ValidationError
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -173,10 +173,11 @@ class OmegaConf:
                 or obj is None
             ):
                 key_type, element_type = _get_key_value_types(obj)
+                annotated_type = OmegaConf.get_type(obj)
                 return DictConfig(
                     content=obj,
                     parent=parent,
-                    annotated_type=OmegaConf.get_type(obj),
+                    annotated_type=annotated_type,
                     key_type=key_type,
                     element_type=element_type,
                 )
@@ -310,11 +311,11 @@ class OmegaConf:
 
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:
-        return conf.__dict__["_resolver_cache"]  # type: ignore
+        return conf._metadata.resolver_cache
 
     @staticmethod
     def set_cache(conf: BaseContainer, cache: Dict[str, Any]) -> None:
-        conf.__dict__["_resolver_cache"] = copy.deepcopy(cache)
+        conf._metadata.resolver_cache = copy.deepcopy(cache)
 
     @staticmethod
     def clear_cache(conf: BaseContainer) -> None:
@@ -380,16 +381,41 @@ class OmegaConf:
     @staticmethod
     def is_missing(cfg: BaseContainer, key: Union[int, str]) -> bool:
         try:
-            # TODO: try to simplify. add test for missing container through interpolation
-            c = cfg.get_node(key)
-            if isinstance(c, Container):
-                return c._is_missing()
-            cfg.__getitem__(key)
+            node = cfg.get_node(key)
+            return node._is_missing()
+        except (UnsupportedInterpolationType, KeyError, AttributeError):
             return False
-        except UnsupportedInterpolationType:
-            return False
-        except (MissingMandatoryValue, KeyError, AttributeError):
+
+    @staticmethod
+    def is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+        if key is not None:
+            assert isinstance(obj, Container)
+            obj = obj.get_node(key)
+        if isinstance(obj, Node):
+            return obj._is_optional()
+        else:
             return True
+
+    @staticmethod
+    def is_none(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+        if key is not None:
+            assert isinstance(obj, Container)
+            obj = obj.get_node(key)
+        if isinstance(obj, Node):
+            return obj._is_none()
+        else:
+            return obj is None
+
+    @staticmethod
+    def is_interpolation(node: Node, key: Optional[Union[int, str]] = None) -> bool:
+        if key is not None:
+            assert isinstance(node, Container)
+            target = node.get_node(key)
+        else:
+            target = node
+        if target is not None:
+            return target._is_interpolation()
+        return False
 
     @staticmethod
     def is_list(obj: Any) -> bool:
@@ -411,18 +437,21 @@ class OmegaConf:
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+
         if is_structured_config(obj):
             return get_type_of(obj)
+
         if key is not None:
-            t = obj.get_node(key).__dict__["_type"]
+            c = obj.get_node(key)
+        else:
+            c = obj
+
+        if isinstance(c, DictConfig):
+            t = c._metadata.object_type
             assert t is None or isinstance(t, type)
             return t
         else:
-            if isinstance(obj, DictConfig):
-                t = obj.__dict__["_type"]
-                assert t is None or isinstance(t, type)
-                return t
-        return None
+            return None
 
 
 # register all default resolvers
@@ -469,55 +498,74 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any
+    type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any, key: Any
 ) -> ValueNode:
+    if not _valid_value_annotation_type(type_):
+        raise ValidationError(
+            f"Annotated class '{type_.__name__}' is not a structured config. "
+            "did you forget to decorate it as a dataclass?"
+        )
     node: ValueNode
     if type_ == Any or type_ is None:
-        node = AnyNode(value=value, parent=parent, is_optional=is_optional)
+        node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif issubclass(type_, Enum):
         node = EnumNode(
-            enum_type=type_, value=value, parent=parent, is_optional=is_optional
+            enum_type=type_,
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
         )
     elif type_ == int:
-        node = IntegerNode(value=value, parent=parent, is_optional=is_optional)
+        node = IntegerNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif type_ == float:
-        node = FloatNode(value=value, parent=parent, is_optional=is_optional)
+        node = FloatNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif type_ == bool:
-        node = BooleanNode(value=value, parent=parent, is_optional=is_optional)
+        node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif type_ == str:
-        node = StringNode(value=value, parent=parent, is_optional=is_optional)
+        node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
-        raise ValueError("Unexpected object type : {}".format(type_.__name__))
+        raise ValidationError(f"Unexpected object type : {type_.__name__}")
     return node
 
 
 def _maybe_wrap(
-    annotated_type: Any, value: Any, is_optional: bool, parent: Optional[BaseContainer]
+    annotated_type: Any,
+    key: Any,
+    value: Any,
+    is_optional: bool,
+    parent: Optional[BaseContainer],
 ) -> Node:
+    from . import DictConfig, ListConfig
+
     if isinstance(value, ValueNode):
         return value
-
-    from omegaconf import OmegaConf
-
-    if isinstance(value, BaseContainer):
-        value = OmegaConf.to_container(value)
-
-    origin = getattr(annotated_type, "__origin__", None)
-    is_dict = type(value) is dict or origin is dict
-    is_list = type(value) in (list, tuple) or origin in (list, tuple)
+    ret: Node
+    origin_ = getattr(annotated_type, "__origin__", None)
+    is_dict = (
+        type(value) in (dict, DictConfig)
+        or origin_ in (dict, DictConfig)
+        or origin_ is Dict
+    )
+    is_list = (
+        type(value) in (list, tuple, ListConfig)
+        or origin_ in (list, tuple, ListConfig)
+        or origin_ is List
+    )
     value_kind = get_value_kind(value)
-    if is_dict or origin is Dict:
-        from .dictconfig import DictConfig
 
+    if is_dict:
         key_type, element_type = _get_key_value_types(annotated_type)
-        value = DictConfig(
-            parent=None, content=value, key_type=key_type, element_type=element_type
+        ret = DictConfig(
+            content=value,
+            key=key,
+            parent=parent,
+            annotated_type=None,
+            is_optional=is_optional,
+            key_type=key_type,
+            element_type=element_type,
         )
-        # noinspection PyProtectedMember
-        value._set_parent(parent=parent)
-    elif is_list or origin is List:
-        from .listconfig import ListConfig
-
+    elif is_list:
         args = getattr(annotated_type, "__args__", None)
         if annotated_type is not List and args is not None:
             element_type = args[0]
@@ -527,43 +575,45 @@ def _maybe_wrap(
         if not (_valid_value_annotation_type(element_type)):
             raise ValidationError(f"Unsupported value type : {element_type}")
 
-        value = ListConfig(parent=parent, content=value, element_type=element_type)
+        ret = ListConfig(
+            content=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            element_type=element_type,
+        )
+
     elif (
         is_structured_config(annotated_type)
         and (
             is_structured_config(value)
             or value_kind == ValueKind.MANDATORY_MISSING
+            or value_kind == ValueKind.INTERPOLATION
             or value is None
         )
     ) or is_structured_config(value):
         from . import DictConfig
 
-        value = DictConfig(
+        ret = DictConfig(
             annotated_type=annotated_type,
             is_optional=is_optional,
             content=value,
+            key=key,
             parent=parent,
         )
     else:
-
-        if is_structured_config(annotated_type) and not is_structured_config(value):
-            raise ValidationError(
-                f"Value type {type(value).__name__} does not match declared type {annotated_type}"
-            )
-        if not _valid_value_annotation_type(annotated_type):
-            raise ValidationError(
-                f"Annotated class '{annotated_type.__name__}' is not a structured config. "
-                "did you forget to decorate it as a dataclass?"
-            )
-
-        value = _node_wrap(
-            type_=annotated_type, parent=parent, is_optional=is_optional, value=value
+        ret = _node_wrap(
+            type_=annotated_type,
+            parent=parent,
+            is_optional=is_optional,
+            value=value,
+            key=key,
         )
-    assert isinstance(value, Node)
-    return value
+    assert isinstance(ret, Node)
+    return ret
 
 
-def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
+def _select_one(c: Container, key: str) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
 
@@ -571,8 +621,9 @@ def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
+        val: Optional[Node]
         if c.get_node_ex(ret_key, validate_access=False) is not None:
-            val = c[ret_key]
+            val = c.get_node(ret_key)
         else:
             val = None
     elif isinstance(c, ListConfig):
@@ -583,7 +634,7 @@ def _select_one(c: BaseContainer, key: str) -> Tuple[Any, Union[str, int]]:
         if ret_key < 0 or ret_key + 1 > len(c):
             val = None
         else:
-            val = c[ret_key]
+            val = c.get_node(ret_key)
     else:
         assert False  # pragma: no cover
 

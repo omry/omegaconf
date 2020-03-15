@@ -47,9 +47,9 @@ def lint(session):
     session.install("--upgrade", "setuptools", "pip")
     session.run("pip", "install", "-r", "requirements/lint.txt", "-e", ".", silent=True)
 
-    session.run("mypy", ".", "--strict")
-    session.run("isort", ".", "--check")
-    session.run("black", "--check", ".")
+    session.run("mypy", ".", "--strict", silent=True)
+    session.run("isort", ".", "--check", silent=True)
+    session.run("black", "--check", ".", silent=True)
 
 
 @nox.session(python=PYTHON_VERSIONS)

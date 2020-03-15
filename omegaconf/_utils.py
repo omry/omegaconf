@@ -114,7 +114,11 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                         "default must be populated later use '???'".format(name)
                     )
         d[name] = _maybe_wrap(
-            annotated_type=type_, is_optional=is_optional, value=value, parent=None
+            annotated_type=type_,
+            is_optional=is_optional,
+            key=name,
+            value=value,
+            parent=None,
         )
     return d
 
@@ -143,7 +147,11 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                     )
 
         d[name] = _maybe_wrap(
-            annotated_type=type_, is_optional=is_optional, value=value, parent=None
+            annotated_type=type_,
+            is_optional=is_optional,
+            key=name,
+            value=value,
+            parent=None,
         )
     return d
 
@@ -194,7 +202,7 @@ def is_structured_config_frozen(obj: Any) -> bool:
         return is_dataclass_frozen(type_)
     if is_attr_class(type_):
         return is_attr_frozen(type_)
-    raise ValueError("Unexpected object type")
+    return False
 
 
 def get_structured_config_data(obj: Any) -> Dict[str, Any]:
@@ -239,20 +247,19 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
             return value_kind
 
     from .base import Container
-    from .nodes import ValueNode
 
     if isinstance(value, Container):
-        if value.__dict__["_missing"]:
+        if value._is_interpolation():
             return ret(ValueKind.MANDATORY_MISSING)
-
-    if isinstance(value, ValueNode):
-        value = value.value()
+        if value._is_missing():
+            return ret(ValueKind.MANDATORY_MISSING)
+    value = _get_value(value)
 
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
 
     if not isinstance(value, str):
-        return ValueKind.VALUE
+        return ret(ValueKind.VALUE)
 
     match_list = list(re.finditer(key_prefix + legal_characters, value))
     if len(match_list) == 0:
@@ -353,3 +360,22 @@ def _valid_key_annotation_type(type_: Any) -> bool:
 def _is_primitive_type(type_: Any) -> bool:
     type_ = get_type_of(type_)
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
+
+
+def _is_interpolation(v: Any) -> bool:
+    if isinstance(v, str):
+        ret = get_value_kind(v) in (
+            ValueKind.INTERPOLATION,
+            ValueKind.STR_INTERPOLATION,
+        )
+        assert isinstance(ret, bool)
+        return ret
+    return False
+
+
+def _get_value(value: Any) -> Any:
+    from .base import Node
+
+    if isinstance(value, Node):
+        value = value._value()
+    return value

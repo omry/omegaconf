@@ -1,59 +1,65 @@
 import copy
 import math
-from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, Union
 
-from .base import Node
-from .basecontainer import BaseContainer
-from .errors import UnsupportedValueType, ValidationError
+from omegaconf._utils import _is_interpolation
+from omegaconf.base import Container, Metadata, Node
+from omegaconf.errors import (
+    MissingMandatoryValue,
+    UnsupportedValueType,
+    ValidationError,
+)
 
 
 class ValueNode(Node):
-    val = Any
-    is_optional: bool
+    _val: Any
 
-    def __init__(self, parent: Optional[BaseContainer], is_optional: bool):
-        super().__init__(parent=parent)
-        assert isinstance(is_optional, bool)
-        self.is_optional = is_optional
-        self.val = None
+    def __init__(
+        self, parent: Optional[Container], value: Any, key: Any, is_optional: bool
+    ):
+        super().__init__(
+            parent=parent, metadata=Metadata(key=key, optional=is_optional)
+        )
+        self._set_value(value)
 
-    def value(self) -> Any:
-        return self.val
+    def _value(self) -> Any:
+        return self._val
 
-    def set_value(self, value: Any) -> None:
+    def _set_value(self, value: Any) -> None:
         from ._utils import ValueKind, get_value_kind
 
         if isinstance(value, str) and get_value_kind(value) in (
             ValueKind.INTERPOLATION,
+            ValueKind.STR_INTERPOLATION,
             ValueKind.MANDATORY_MISSING,
         ):
-            self.val = value
+            self._val = value
         else:
-            if not self.is_optional and value is None:
-                raise ValidationError("Non optional field cannot be assigned None")
-            self.val = self.validate_and_convert(value)
 
-    @abstractmethod
+            if not self._metadata.optional and value is None:
+                raise ValidationError("Non optional field cannot be assigned None")
+            self._val = self.validate_and_convert(value)
+
     def validate_and_convert(self, value: Any) -> Any:
         """
         Validates input and converts to canonical form
         :param value: input value
         :return:  converted value ("100" may be converted to 100 for example)
         """
+        return value
 
     def __str__(self) -> str:
-        return str(self.val)
+        return str(self._val)
 
     def __repr__(self) -> str:
-        return repr(self.val) if hasattr(self, "val") else "__INVALID__"
+        return repr(self._val) if hasattr(self, "_val") else "__INVALID__"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, AnyNode):
-            return self.val == other.val
+            return self._val == other._val  # type: ignore
         else:
-            return self.val == other  # type: ignore
+            return self._val == other  # type: ignore
 
     def __ne__(self, other: Any) -> bool:
         x = self.__eq__(other)
@@ -61,28 +67,44 @@ class ValueNode(Node):
         return not x
 
     def __hash__(self) -> int:
-        return hash(self.val)
+        return hash(self._val)
 
     def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]] = {}) -> None:
-        res.__dict__["val"] = copy.deepcopy(x=self.__dict__["val"], memo=memo)
-        res.__dict__["flags"] = copy.deepcopy(x=self.__dict__["flags"], memo=memo)
-        res.__dict__["is_optional"] = copy.deepcopy(
-            x=self.__dict__["is_optional"], memo=memo
-        )
-        # parent is not deep copied.
-        # typically this is called by a container (DictConfig, ListConfig) which will re-parent the whole tree
-        res.__dict__["parent"] = None
+        res.__dict__ = copy.deepcopy(self.__dict__, memo=memo)
+
+    def _is_none(self) -> bool:
+        node = self._dereference_node()
+        return node._value() is None
+
+    def _is_optional(self) -> bool:
+        node = self._dereference_node()
+        return node._metadata.optional
+
+    def _is_missing(self) -> bool:
+        try:
+            node = self._dereference_node(throw_on_missing=True)
+            if isinstance(node, Container):
+                ret = node._is_missing()
+            else:
+                ret = node._value() == "???"
+        except MissingMandatoryValue:
+            ret = True
+        assert isinstance(ret, bool)
+        return ret
+
+    def _is_interpolation(self) -> bool:
+        return _is_interpolation(self._value())
 
 
 class AnyNode(ValueNode):
     def __init__(
         self,
         value: Any = None,
-        parent: Optional[BaseContainer] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Any:
         from ._utils import _is_primitive_type
@@ -103,12 +125,11 @@ class StringNode(ValueNode):
     def __init__(
         self,
         value: Any = None,
-        parent: Optional[BaseContainer] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
-        self.val = None
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Optional[str]:
         return str(value) if value is not None else None
@@ -123,12 +144,11 @@ class IntegerNode(ValueNode):
     def __init__(
         self,
         value: Any = None,
-        parent: Optional[BaseContainer] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
-        self.val = None
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Optional[int]:
         try:
@@ -154,12 +174,11 @@ class FloatNode(ValueNode):
     def __init__(
         self,
         value: Any = None,
-        parent: Optional[BaseContainer] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
-        self.val = None
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Optional[float]:
         if value is None:
@@ -176,21 +195,21 @@ class FloatNode(ValueNode):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
-            other_val = other.val
+            other_val = other._val
         else:
             other_val = other
-        if self.val is None and other is None:
+        if self._val is None and other is None:
             return True
-        if self.val is None and other is not None:
+        if self._val is None and other is not None:
             return False
-        if self.val is not None and other is None:
+        if self._val is not None and other is None:
             return False
-        nan1 = math.isnan(self.val) if isinstance(self.val, float) else False
+        nan1 = math.isnan(self._val) if isinstance(self._val, float) else False
         nan2 = math.isnan(other_val) if isinstance(other_val, float) else False
-        return self.val == other_val or (nan1 and nan2)
+        return self._val == other_val or (nan1 and nan2)
 
     def __hash__(self) -> int:
-        return hash(self.val)
+        return hash(self._val)
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "FloatNode":
         res = FloatNode()
@@ -202,12 +221,11 @@ class BooleanNode(ValueNode):
     def __init__(
         self,
         value: Any = None,
-        parent: Optional[BaseContainer] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
-        self.val = None
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Optional[bool]:
         if isinstance(value, bool):
@@ -250,11 +268,11 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
     def __init__(
         self,
         enum_type: Type[Enum],
-        value: Optional[Enum] = None,
-        parent: Optional[BaseContainer] = None,
+        value: Optional[Union[Enum, str]] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional)
         if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
             raise ValidationError(
                 f"EnumNode can only operate on Enum subclasses ({enum_type})"
@@ -263,7 +281,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         self.enum_type: Type[Enum] = enum_type
         for name, constant in enum_type.__members__.items():
             self.fields[name] = constant.value
-        self.set_value(value)
+        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)

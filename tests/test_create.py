@@ -78,17 +78,17 @@ def test_dotlist(input_: List[str], expected: Dict[str, Any]) -> None:
 
 
 def test_create_list_with_illegal_value_idx0() -> None:
-    with pytest.raises(UnsupportedValueType, match=re.escape("key [0]")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: [0]")):
         OmegaConf.create([IllegalType()])
 
 
 def test_create_list_with_illegal_value_idx1() -> None:
-    with pytest.raises(UnsupportedValueType, match=re.escape("key [1]")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: [1]")):
         OmegaConf.create([1, IllegalType(), 3])
 
 
 def test_create_dict_with_illegal_value() -> None:
-    with pytest.raises(UnsupportedValueType, match=re.escape("key a")):
+    with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
         OmegaConf.create(dict(a=IllegalType()))
 
 
@@ -111,4 +111,4 @@ def test_create_from_oc_with_flags() -> None:
     OmegaConf.set_struct(c1, True)
     c2 = OmegaConf.create(c1)
     assert c1 == c2
-    assert c1.flags == c2.flags
+    assert c1._metadata.flags == c2._metadata.flags

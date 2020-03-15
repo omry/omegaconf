@@ -18,6 +18,8 @@ from omegaconf import (
 )
 from omegaconf.errors import ValidationError
 
+from . import Color
+
 
 # testing valid conversions
 @pytest.mark.parametrize(  # type: ignore
@@ -56,6 +58,11 @@ from omegaconf.errors import ValidationError
         (BooleanNode, None, None),
         (BooleanNode, "0", False),
         (BooleanNode, 0, False),
+        # Enum node
+        (lambda v: EnumNode(enum_type=Color, value=v), Color.RED, Color.RED),
+        (lambda v: EnumNode(enum_type=Color, value=v), "Color.RED", Color.RED),
+        (lambda v: EnumNode(enum_type=Color, value=v), "RED", Color.RED),
+        (lambda v: EnumNode(enum_type=Color, value=v), 1, Color.RED),
     ],
 )
 def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
@@ -83,7 +90,7 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
 def test_invalid_inputs(type_: type, input_: Any) -> None:
     empty_node = type_()
     with pytest.raises(ValidationError):
-        empty_node.set_value(input_)
+        empty_node._set_value(input_)
 
     with pytest.raises(ValidationError):
         type_(input_)
@@ -211,8 +218,8 @@ def test_accepts_mandatory_missing(
     type_: type, valid_value: Any, invalid_value: Any
 ) -> None:
     node = type_()
-    node.set_value("???")
-    assert node.value() == "???"
+    node._set_value("???")
+    assert node._value() == "???"
 
     conf = OmegaConf.create({"foo": node})
     assert isinstance(conf, DictConfig)
@@ -305,7 +312,7 @@ def test_legal_assignment(
             if callable(expected):
                 expected = expected(value)
             node = type_(value)
-            assert node.value() == expected
+            assert node._value() == expected
         else:
             with pytest.raises(ValidationError):
                 type_(value)
@@ -322,7 +329,7 @@ def test_legal_assignment(
 )
 def test_illegal_assignment(node: ValueNode, value: Any) -> None:
     with pytest.raises(ValidationError):
-        node.set_value(value)
+        node._set_value(value)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -352,8 +359,8 @@ def test_legal_assignment_enum(
             if callable(expected):
                 expected = expected(value)
             node = node_type(enum_type)
-            node.set_value(value)
-            assert node.value() == expected
+            node._set_value(value)
+            assert node._value() == expected
         else:
             with pytest.raises(ValidationError):
                 node_type(enum_type)
@@ -391,12 +398,16 @@ def test_node_wrap(
 ) -> None:
     from omegaconf.omegaconf import _node_wrap
 
-    ret = _node_wrap(type_=type_, value=value, is_optional=is_optional, parent=None)
+    ret = _node_wrap(
+        type_=type_, value=value, is_optional=is_optional, parent=None, key=None
+    )
     assert type(ret) == expected_type
     assert ret == value
 
     if is_optional:
-        ret = _node_wrap(type_=type_, value=None, is_optional=is_optional, parent=None)
+        ret = _node_wrap(
+            type_=type_, value=None, is_optional=is_optional, parent=None, key=None
+        )
         assert type(ret) == expected_type
         # noinspection PyComparisonWithNone
         assert ret == None  # noqa E711
@@ -409,7 +420,9 @@ def test_node_wrap_illegal_type() -> None:
     from omegaconf.omegaconf import _node_wrap
 
     with pytest.raises(ValueError):
-        _node_wrap(type_=UserClass, value=UserClass(), is_optional=False, parent=None)
+        _node_wrap(
+            type_=UserClass, value=UserClass(), is_optional=False, parent=None, key=None
+        )
 
 
 @pytest.mark.parametrize(  # type: ignore
