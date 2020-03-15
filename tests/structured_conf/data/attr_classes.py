@@ -223,6 +223,13 @@ class EnumOptional:
     not_optional: Color = Color.BLUE
 
 
+@attr.s(auto_attribs=True)
+class StructuredOptional:
+    with_default: Optional[Nested] = Nested()
+    as_none: Optional[Nested] = None
+    not_optional: Nested = Nested()
+
+
 @attr.s(auto_attribs=True, frozen=True)
 class FrozenClass:
     user: User = User(name="Bart", age=10)

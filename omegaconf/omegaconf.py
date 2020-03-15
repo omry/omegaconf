@@ -380,6 +380,10 @@ class OmegaConf:
     @staticmethod
     def is_missing(cfg: BaseContainer, key: Union[int, str]) -> bool:
         try:
+            # TODO: try to simplify. add test for missing container through interpolation
+            c = cfg.get_node(key)
+            if isinstance(c, Container):
+                return c._is_missing()
             cfg.__getitem__(key)
             return False
         except UnsupportedInterpolationType:
@@ -534,7 +538,12 @@ def _maybe_wrap(
     ) or is_structured_config(value):
         from . import DictConfig
 
-        value = DictConfig(annotated_type=annotated_type, content=value, parent=parent)
+        value = DictConfig(
+            annotated_type=annotated_type,
+            is_optional=is_optional,
+            content=value,
+            parent=parent,
+        )
     else:
 
         if is_structured_config(annotated_type) and not is_structured_config(value):

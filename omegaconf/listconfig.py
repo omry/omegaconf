@@ -28,6 +28,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         element_type: Any = Any,
     ) -> None:
         super().__init__(parent=parent, element_type=element_type)
+
+        self.__dict__["_is_optional"] = True  # TODO: externalize and test
+
         if get_value_kind(content) == ValueKind.MANDATORY_MISSING:
             self.__dict__["_missing"] = True
             self.__dict__["content"] = None
