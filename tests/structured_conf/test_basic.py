@@ -56,7 +56,18 @@ class TestStructured:
             with pytest.raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
 
-    @pytest.mark.parametrize("rhs", [1, "foo", None])
+    def test_none_assignment(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.create({"plugin": module.Plugin})
+        # can assign None to params (type Any):
+        cfg.plugin.params = None
+        assert cfg.plugin.params is None
+
+        cfg2 = OmegaConf.create({"plugin": module.ConcretePlugin})
+        with pytest.raises(ValidationError):
+            cfg2.plugin.params = None
+
+    @pytest.mark.parametrize("rhs", [1, "foo"])
     class TestFailedAssignmentOrMerges:
         def test_assignment_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
             module: Any = import_module(class_type)
@@ -76,6 +87,8 @@ class TestStructured:
         linked_list = module.LinkedList
         cfg1 = OmegaConf.create(linked_list)
         assert OmegaConf.get_type(cfg1) == linked_list
+        assert cfg1.next is None
+        assert OmegaConf.is_missing(cfg1, "value")
 
         cfg2 = OmegaConf.create(module.MissingTest.Missing1)
         assert OmegaConf.is_missing(cfg2, "head")

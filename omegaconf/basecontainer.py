@@ -50,10 +50,14 @@ class BaseContainer(Container, ABC):
         self, key: Union[str, int, Enum], value: Any, default_value: Any = None
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
+        from .dictconfig import DictConfig
         from .nodes import ValueNode
 
         def is_mandatory_missing(val: Any) -> bool:
             return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
+
+        if isinstance(value, DictConfig) and value.__dict__["content"] is None:
+            value = None
 
         if isinstance(value, ValueNode):
             value = value.value()
@@ -582,9 +586,21 @@ class BaseContainer(Container, ABC):
     def _is_missing(self) -> bool:
         return self.__dict__["_missing"] is True
 
+    def _is_optional(self) -> bool:
+        return self.__dict__["_optional"] is True
+
     @staticmethod
     def _validate_node_type(target: Node, value: Any) -> None:
         from .dictconfig import DictConfig
+
+        if target is None:
+            return
+
+        if value is None and isinstance(target, Container):
+            if not target._is_optional():
+                raise ValidationError(
+                    "Non optional DictConfig node cannot be assigned None"
+                )
 
         def is_typed(c: Any) -> bool:
             return isinstance(c, DictConfig) and c.__dict__["_type"] is not None
@@ -600,10 +616,14 @@ class BaseContainer(Container, ABC):
         if not is_typed(target):
             return
 
+        # target must be optional by now. no need to check the type of value if None.
+        if value is None:
+            return
+
         target_type = get_type(target)
         value_type = get_type(value)
 
-        if value_type is None or not issubclass(value_type, target_type):
+        if not issubclass(value_type, target_type):
             raise ValidationError(
                 f"Invalid type assigned : {value_type.__name__} "
                 f"is not a subclass of {target_type.__name__}. value: {value}"

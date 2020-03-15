@@ -41,6 +41,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         content: Union[Dict[str, Any], Any],
         parent: Optional[Container] = None,
         annotated_type: Optional[Type[Any]] = None,
+        is_optional: bool = True,
         key_type: Any = Any,
         element_type: Any = Any,
     ) -> None:
@@ -57,13 +58,15 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self.__dict__["_type"] = None
         self.__dict__["_key_type"] = key_type
         self.__dict__["_missing"] = is_missing
+        self.__dict__["_optional"] = is_optional
         self.__dict__["content"] = {}
 
         if is_structured_config(content) or (
             is_structured_config(annotated_type) and (is_missing or content is None)
         ):
             if not is_missing and content is not None:
-                set_data(get_structured_config_data(content))
+                d = get_structured_config_data(content)
+                set_data(d)
                 if is_structured_config_frozen(content):
                     self._set_flag("readonly", True)
             else:
@@ -89,6 +92,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             "_key_type",
             "_type",
             "_missing",
+            "_optional",
         ]:
             res.__dict__[k] = copy.deepcopy(self.__dict__[k], memo=memo)
         res._re_parent()
@@ -96,7 +100,15 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __copy__(self) -> "DictConfig":
         res = DictConfig(content={}, element_type=self.__dict__["_element_type"])
-        for k in ["content", "flags", "_element_type", "_key_type", "_type"]:
+        for k in [
+            "content",
+            "flags",
+            "_element_type",
+            "_key_type",
+            "_type",
+            "_missing",
+            "_optional",
+        ]:
             res.__dict__[k] = copy.copy(self.__dict__[k])
         res._re_parent()
         return res
@@ -335,10 +347,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 raise AttributeError(msg)
 
     def _validate_type(self, key: Union[str, Enum], value: Any) -> None:
-        child = self.get_node(key)
-        if child is None:
-            return
-        self._validate_node_type(child, value)
+        target = self.get_node(key)
+        self._validate_node_type(target, value)
 
     def _promote(self, type_or_prototype: Type[Any]) -> None:
         """

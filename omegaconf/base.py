@@ -102,3 +102,11 @@ class Container(Node):
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any:
         ...  # pragma: no cover
+
+    @abstractmethod
+    def _is_missing(self) -> bool:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def _is_optional(self) -> bool:
+        ...  # pragma: no cover

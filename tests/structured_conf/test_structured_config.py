@@ -356,6 +356,7 @@ class TestConfigs:
             "FloatOptional",
             "StringOptional",
             "EnumOptional",
+            "StructuredOptional",
         ],
     )
     def test_optional(self, class_type: str, tested_type: str) -> None:
@@ -363,15 +364,18 @@ class TestConfigs:
         input_ = getattr(module, tested_type)
         obj = input_()
         conf = OmegaConf.structured(input_)
+
+        # verify non-optional fields are rejecting None
+        with pytest.raises(ValidationError):
+            conf.not_optional = None
+
         assert conf.as_none is None
         assert conf.with_default == obj.with_default
         # assign None to an optional field
         conf.with_default = None
         assert conf.with_default is None
-
-        # verify non-optional fields are rejecting None
-        with pytest.raises(ValidationError):
-            conf.not_optional = None
+        # TODO: test missing + optional combo
+        # TODO test merge with optional
 
     def test_typed_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
