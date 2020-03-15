@@ -1,47 +1,10 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple
 
 import pytest
 
 from omegaconf import MISSING, DictConfig, OmegaConf, ValidationError, _utils, nodes
 
-
-@dataclass
-class User:
-    name: str = MISSING
-    age: int = MISSING
-
-
-@dataclass
-class Users:
-    name2user: Dict[str, User] = field(default_factory=lambda: {})
-
-
-@dataclass
-class ConfWithMissingDict:
-    dict: Dict[str, Any] = MISSING
-
-
-@dataclass
-class Group:
-    name: str = MISSING
-
-
-@dataclass
-class Plugin:
-    name: str = MISSING
-    params: Any = MISSING
-
-
-@dataclass
-class ConcretePlugin(Plugin):
-    name: str = "foobar_plugin"
-
-    @dataclass
-    class FoobarParams:
-        foo: int = 10
-
-    params: FoobarParams = FoobarParams()
+from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -203,6 +166,6 @@ def test_parent_maintained() -> None:
     assert isinstance(c1, DictConfig)
     assert isinstance(c2, DictConfig)
     assert isinstance(c3, DictConfig)
-    assert id(c1.a.parent) == id(c1)
-    assert id(c2.aa.parent) == id(c2)
-    assert id(c3.a.parent) == id(c3)
+    assert id(c1.a._get_parent()) == id(c1)
+    assert id(c2.aa._get_parent()) == id(c2)
+    assert id(c3.a._get_parent()) == id(c3)

@@ -1,4 +1,5 @@
 import copy
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     AbstractSet,
@@ -15,14 +16,14 @@ from typing import (
 )
 
 from ._utils import (
-    ValueKind,
+    _is_interpolation,
     get_structured_config_data,
-    get_value_kind,
+    get_type_of,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
 )
-from .base import Container, Node
+from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
 from .errors import (
     KeyValidationError,
@@ -35,89 +36,147 @@ from .errors import (
 from .nodes import EnumNode, ValueNode
 
 
+@dataclass
+class DictConfigMetadata(ContainerMetadata):
+    object_type: Optional[Type[Any]] = None
+    annotated_type: Optional[Type[Any]] = None
+    key_type: Any = Any
+
+
 class DictConfig(BaseContainer, MutableMapping[str, Any]):
+
+    _metadata: DictConfigMetadata
+
     def __init__(
         self,
         content: Union[Dict[str, Any], Any],
+        key: Any = None,
         parent: Optional[Container] = None,
         annotated_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
         key_type: Any = Any,
         element_type: Any = Any,
     ) -> None:
-        super().__init__(element_type=element_type, parent=parent)
-        is_missing = get_value_kind(content) == ValueKind.MANDATORY_MISSING
+        super().__init__(
+            parent=parent,
+            metadata=DictConfigMetadata(
+                key=key,
+                optional=is_optional,
+                element_type=element_type,
+                object_type=None,
+                key_type=key_type,
+            ),
+        )
 
-        def set_data(data: Optional[MutableMapping[str, Any]]) -> None:
-            if data is None:
-                self.__dict__["content"] = None
-            else:
-                for k, v in data.items():
-                    self.__setitem__(k, v)
-
-        self.__dict__["_type"] = None
-        self.__dict__["_key_type"] = key_type
-        self.__dict__["_missing"] = is_missing
-        self.__dict__["_optional"] = is_optional
-        self.__dict__["content"] = {}
-
-        if is_structured_config(content) or (
-            is_structured_config(annotated_type) and (is_missing or content is None)
-        ):
-            if not is_missing and content is not None:
-                d = get_structured_config_data(content)
-                set_data(d)
-                if is_structured_config_frozen(content):
-                    self._set_flag("readonly", True)
-            else:
-                set_data(None)
-
-            self.__dict__["_type"] = annotated_type
+        if is_structured_config(annotated_type):
+            self._metadata.annotated_type = annotated_type
+        if is_structured_config(content) or is_structured_config(annotated_type):
+            self._set_value(content)
+            if is_structured_config_frozen(content) or is_structured_config_frozen(
+                annotated_type
+            ):
+                self._set_flag("readonly", True)
 
         else:
-            if not is_missing:
-                set_data(content)
-            else:
-                set_data(None)
-            if isinstance(content, BaseContainer):
-                for field in ["flags", "_element_type", "_resolver_cache"]:
-                    self.__dict__[field] = copy.deepcopy(content.__dict__[field])
+            self._set_value(content)
+            if isinstance(content, DictConfig):
+                metadata = copy.deepcopy(content._metadata)
+                metadata.key = key
+                metadata.optional = is_optional
+                metadata.element_type = element_type
+                metadata.object_type = None
+                metadata.key_type = key_type
+                self.__dict__["_metadata"] = metadata
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
-        for k in [
-            "content",
-            "flags",
-            "_element_type",
-            "_key_type",
-            "_type",
-            "_missing",
-            "_optional",
-        ]:
-            res.__dict__[k] = copy.deepcopy(self.__dict__[k], memo=memo)
+        for k, v in self.__dict__.items():
+            res.__dict__[k] = copy.deepcopy(v, memo=memo)
         res._re_parent()
         return res
 
     def __copy__(self) -> "DictConfig":
-        res = DictConfig(content={}, element_type=self.__dict__["_element_type"])
-        for k in [
-            "content",
-            "flags",
-            "_element_type",
-            "_key_type",
-            "_type",
-            "_missing",
-            "_optional",
-        ]:
-            res.__dict__[k] = copy.copy(self.__dict__[k])
+        res = DictConfig(content={}, element_type=self._metadata.element_type)
+        for k, v in self.__dict__.items():
+            res.__dict__[k] = copy.copy(v)
         res._re_parent()
         return res
 
     def copy(self) -> "DictConfig":
         return copy.copy(self)
 
+    def _validate_get(self, key: Union[int, str, Enum]) -> None:
+        is_typed = self._metadata.object_type is not None
+        is_struct = self._get_flag("struct") is True
+        if key not in self.__dict__["_content"]:
+            if is_typed:
+                # do not raise an exception if struct is explicitly set to False
+                if self._get_node_flag("struct") is False:
+                    return
+                # Or if type is a subclass if dict
+                assert self._metadata.object_type is not None
+                if issubclass(self._metadata.object_type, dict):
+                    return
+            if is_typed or is_struct:
+                if is_typed:
+                    assert self._metadata.object_type is not None
+                    msg = f"Accessing unknown key in {self._metadata.object_type.__name__} : {self._get_full_key(key)}"
+                else:
+                    msg = "Accessing unknown key in a struct : {}".format(
+                        self._get_full_key(key)
+                    )
+                raise AttributeError(msg)
+
+    def _validate_set(self, key: Any, value: Any) -> None:
+        target = self.get_node(key)
+
+        if value == "???":
+            return
+
+        if target is not None:
+            if target._get_flag("readonly"):
+                raise ReadonlyConfigError(self._get_full_key(key))
+        else:
+            if self._get_flag("readonly"):
+                raise ReadonlyConfigError(self._get_full_key(key))
+
+        if target is None:
+            return
+
+        def is_typed(c: Any) -> bool:
+            return isinstance(c, DictConfig) and c._metadata.object_type is not None
+
+        def get_type(c: Any) -> Optional[Type[Any]]:
+            if is_structured_config(c):
+                return get_type_of(c)
+            if isinstance(c, DictConfig):
+                t = c._metadata.object_type
+                assert t is None or isinstance(t, type)
+                return t
+            else:
+                return type(c)
+
+        if not is_typed(target):
+            return
+        target_type = get_type(target)
+        value_type = get_type(value)
+
+        # target must be optional by now. no need to check the type of value if None.
+        if value is None:
+            return
+
+        if (
+            target_type is not None
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        ):
+            raise ValidationError(
+                f"Invalid type assigned : {value_type.__name__} "
+                f"is not a subclass of {target_type.__name__}. value: {value}"
+            )
+
     def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
-        return self._s_validate_and_normalize_key(self.__dict__["_key_type"], key)
+        return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
     @staticmethod
     def _s_validate_and_normalize_key(key_type: Any, key: Any) -> Union[str, Enum]:
@@ -155,28 +214,19 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
-        self._validate_access(key)
-
-        self._validate_type(key, value)
-
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(key))
-
-        if isinstance(value, BaseContainer):
-            value._set_parent(self)
 
         try:
             self._set_item_impl(key, value)
-        except UnsupportedValueType:
+        except UnsupportedValueType as ex:
             raise UnsupportedValueType(
-                f"key {self.get_full_key(key)}: {type(value).__name__} is not a supported type"
+                f"'{type(value).__name__}' is not a supported type (key: {self._get_full_key(key)}) : {ex}"
             )
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
-        if self._is_missing():
+        if self._is_missing() or self._is_none():
             return []
-        return self.__dict__["content"].keys()  # type: ignore
+        return self.__dict__["_content"].keys()  # type: ignore
 
     def __setattr__(self, key: str, value: Any) -> None:
         """
@@ -212,10 +262,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def get(self, key: Union[str, Enum], default_value: Any = None) -> Any:
         key = self._validate_and_normalize_key(key)
+        node = self.get_node_ex(key=key, default_value=default_value)
         return self._resolve_with_default(
-            key=key,
-            value=self.get_node_ex(key=key, default_value=default_value),
-            default_value=default_value,
+            key=key, value=node, default_value=default_value,
         )
 
     def get_node(self, key: Union[str, Enum]) -> Node:
@@ -227,10 +276,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         default_value: Any = None,
         validate_access: bool = True,
     ) -> Node:
-        value: Node = self.__dict__["content"].get(key)
+        value: Node = self.__dict__["_content"].get(key)
         if validate_access:
             try:
-                self._validate_access(key)
+                self._validate_get(key)
             except (KeyError, AttributeError):
                 if default_value is not None:
                     value = default_value
@@ -246,18 +295,20 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def pop(self, key: Union[str, Enum], default: Any = __marker) -> Any:
         key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(key))
+            raise ReadonlyConfigError(self._get_full_key(key))
         value = self._resolve_with_default(
-            key=key, value=self.content.pop(key, default), default_value=default
+            key=key,
+            value=self.__dict__["_content"].pop(key, default),
+            default_value=default,
         )
         if value is self.__marker:
             raise KeyError(key)
         return value
 
     def keys(self) -> Any:
-        if self._is_missing():
+        if self._is_missing() or self._is_interpolation() or self._is_none():
             return list()
-        return self.content.keys()
+        return self.__dict__["_content"].keys()
 
     def __contains__(self, key: object) -> bool:
         """
@@ -300,9 +351,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             if resolve:
                 value = self.get(key)
             else:
-                value = self.__dict__["content"][key]
+                value = self.__dict__["_content"][key]
                 if isinstance(value, ValueNode):
-                    value = value.value()
+                    value = value._value()
             if keys is None or key in keys:
                 items[(key, value)] = None
 
@@ -310,11 +361,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __eq__(self, other: Any) -> bool:
         if other is None:
-            return self.__dict__["content"] is None
+            return self.__dict__["_content"] is None
         if is_primitive_dict(other) or is_structured_config(other):
-            return BaseContainer._dict_conf_eq(self, DictConfig(other))
+            return DictConfig._dict_conf_eq(self, DictConfig(other))
         if isinstance(other, DictConfig):
-            return BaseContainer._dict_conf_eq(self, other)
+            return DictConfig._dict_conf_eq(self, other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
@@ -325,30 +376,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def __hash__(self) -> int:
         return hash(str(self))
-
-    def _validate_access(self, key: Union[str, Enum]) -> None:
-        is_typed = self.__dict__["_type"] is not None
-        is_struct = self._get_flag("struct") is True
-        if key not in self.content:
-            if is_typed:
-                # do not raise an exception if struct is explicitly set to False
-                if self._get_node_flag("struct") is False:
-                    return
-                # Or if type is a subclass if dict
-                if issubclass(self.__dict__["_type"], dict):
-                    return
-            if is_typed or is_struct:
-                if is_typed:
-                    msg = f"Accessing unknown key in {self.__dict__['_type'].__name__} : {self.get_full_key(key)}"
-                else:
-                    msg = "Accessing unknown key in a struct : {}".format(
-                        self.get_full_key(key)
-                    )
-                raise AttributeError(msg)
-
-    def _validate_type(self, key: Union[str, Enum], value: Any) -> None:
-        target = self.get_node(key)
-        self._validate_node_type(target, value)
 
     def _promote(self, type_or_prototype: Type[Any]) -> None:
         """
@@ -364,10 +391,67 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         from omegaconf import OmegaConf
 
-        proto = OmegaConf.structured(type_or_prototype)
-        type_ = proto.__dict__["_type"]
+        proto: DictConfig = OmegaConf.structured(type_or_prototype)
+        type_ = proto._metadata.object_type
         # remove the type to prevent assignment validation from rejecting the promotion.
-        proto.__dict__["_type"] = None
+        proto._metadata.object_type = None
         self.merge_with(proto)
         # restore the type.
-        self.__dict__["_type"] = type_
+        self._metadata.object_type = type_
+
+    def _set_value(self, value: Any) -> None:
+        from omegaconf import OmegaConf
+
+        self._metadata.object_type = self._metadata.annotated_type
+        type_ = (
+            self._metadata.object_type
+            if self._metadata.object_type is not None
+            else DictConfig
+        )
+        if OmegaConf.is_none(value):
+            if not self._is_optional():
+                assert isinstance(type_, type)
+                raise ValidationError(
+                    f"Cannot assign {type_.__name__}=None (field is not Optional)"
+                )
+            self.__dict__["_content"] = None
+        elif _is_interpolation(value):
+            self.__dict__["_content"] = value
+        elif value == "???":  # missing
+            self.__dict__["_content"] = "???"
+        else:
+            is_structured = is_structured_config(value)
+            if is_structured:
+                _type = get_type_of(value)
+                value = get_structured_config_data(value)
+
+            self._metadata.object_type = None
+            self.__dict__["_content"] = {}
+
+            for k, v in value.items():
+                self.__setitem__(k, v)
+
+            if is_structured:
+                self._metadata.object_type = _type
+
+    @staticmethod
+    def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
+
+        d1_none = d1.__dict__["_content"] is None
+        d2_none = d2.__dict__["_content"] is None
+        if d1_none and d2_none:
+            return True
+        if d1_none != d2_none:
+            return False
+
+        assert isinstance(d1, DictConfig)
+        assert isinstance(d2, DictConfig)
+        if len(d1) != len(d2):
+            return False
+        for k, v in d1.items_ex(resolve=False):
+            if k not in d2.__dict__["_content"]:
+                return False
+            if not BaseContainer._item_eq(d1, k, d2, k):
+                return False
+
+        return True

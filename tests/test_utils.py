@@ -67,7 +67,11 @@ def test_maybe_wrap(target_type: type, value: Any, expectation: Any) -> None:
         from omegaconf.omegaconf import _maybe_wrap
 
         _maybe_wrap(
-            annotated_type=target_type, value=value, is_optional=False, parent=None
+            annotated_type=target_type,
+            key=None,
+            value=value,
+            is_optional=False,
+            parent=None,
         )
 
 
@@ -172,8 +176,7 @@ def test_is_attr_class(mocker: Any) -> None:
 
 
 def test_is_structured_config_frozen_with_invalid_obj() -> None:
-    with pytest.raises(ValueError):
-        _utils.is_structured_config_frozen(10)
+    assert not _utils.is_structured_config_frozen(10)
 
 
 @dataclass

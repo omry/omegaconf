@@ -1,39 +1,34 @@
 import copy
 import sys
 import warnings
-from abc import ABC
-from collections import defaultdict
+from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
 from ._utils import (
     ValueKind,
+    _get_value,
+    _is_interpolation,
     get_value_kind,
     get_yaml_loader,
     is_primitive_container,
     is_structured_config,
 )
-from .base import Container, Node
-from .errors import (
-    MissingMandatoryValue,
-    ReadonlyConfigError,
-    UnsupportedInterpolationType,
-    ValidationError,
-)
+from .base import Container, ContainerMetadata, Node
+from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 
 class BaseContainer(Container, ABC):
-    # static fields
+    # static
     _resolvers: Dict[str, Any] = {}
-    missing: bool
 
-    def __init__(self, element_type: type, parent: Optional["Container"]):
-        super().__init__(parent=parent)
-        self.__dict__["content"] = None
-        self.__dict__["_resolver_cache"] = defaultdict(dict)
-        self.__dict__["_element_type"] = element_type
+    def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
+        super().__init__(
+            parent=parent, metadata=metadata,
+        )
+        self.__dict__["_content"] = None
 
     def save(self, f: str) -> None:
         warnings.warn(
@@ -50,75 +45,36 @@ class BaseContainer(Container, ABC):
         self, key: Union[str, int, Enum], value: Any, default_value: Any = None
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
-        from .dictconfig import DictConfig
-        from .nodes import ValueNode
 
         def is_mandatory_missing(val: Any) -> bool:
             return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
 
-        if isinstance(value, DictConfig) and value.__dict__["content"] is None:
-            value = None
-
-        if isinstance(value, ValueNode):
-            value = value.value()
+        value = _get_value(value)
 
         if default_value is not None and (value is None or is_mandatory_missing(value)):
             value = default_value
 
-        value = self._resolve_single(value) if isinstance(value, str) else value
+        value = self._resolve_str_interpolation(
+            key=key, value=value, throw_on_missing=True
+        )
         if is_mandatory_missing(value):
-            raise MissingMandatoryValue(self.get_full_key(str(key)))
+            raise MissingMandatoryValue(self._get_full_key(str(key)))
+
+        value = _get_value(value)
 
         return value
-
-    def get_full_key(self, key: Union[str, Enum, int]) -> str:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-
-        full_key = ""
-        child = None
-        parent: Container = self
-        while parent is not None:
-            assert isinstance(parent, (DictConfig, ListConfig))
-            if isinstance(parent, DictConfig):
-                if child is None:
-                    full_key = "{}".format(key)
-                else:
-                    # find which the key for child in the parent
-                    for parent_key in parent.keys():
-                        if id(parent.get_node(parent_key)) == id(child):
-                            if isinstance(child, ListConfig):
-                                full_key = "{}{}".format(parent_key, full_key)
-                            else:
-                                full_key = "{}.{}".format(parent_key, full_key)
-                            break
-            elif isinstance(parent, ListConfig):
-                if child is None:
-                    if key == "":
-                        full_key = f"{key}"
-                    else:
-                        full_key = f"[{key}]"
-                else:
-                    for idx, v in enumerate(parent):
-                        if id(v) == id(child):
-                            if isinstance(child, ListConfig):
-                                full_key = "[{}]{}".format(idx, full_key)
-                            else:
-                                full_key = "[{}].{}".format(idx, full_key)
-                            break
-            child = parent
-            parent = child._get_parent()
-
-        return full_key
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        if self._is_missing():
-            return "'???'"
+        if self.__dict__["_content"] is None:
+            return "None"
+        elif self._is_interpolation() or self._is_missing():
+            v = self.__dict__["_content"]
+            return f"'{v}'"
         else:
-            return self.__dict__["content"].__repr__()  # type: ignore
+            return self.__dict__["_content"].__repr__()  # type: ignore
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
@@ -130,11 +86,11 @@ class BaseContainer(Container, ABC):
 
     def __delitem__(self, key: Union[str, int, slice]) -> None:
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self.get_full_key(str(key)))
-        del self.__dict__["content"][key]
+            raise ReadonlyConfigError(self._get_full_key(str(key)))
+        del self.__dict__["_content"][key]
 
     def __len__(self) -> int:
-        return self.__dict__["content"].__len__()  # type: ignore
+        return self.__dict__["_content"].__len__()  # type: ignore
 
     def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]
@@ -192,9 +148,11 @@ class BaseContainer(Container, ABC):
 
     def select(self, key: str) -> Any:
         _root, _last_key, value = self._select_impl(key)
-        return value
+        return _get_value(value)
 
-    def _select_impl(self, key: str) -> Any:
+    def _select_impl(
+        self, key: str
+    ) -> Tuple[Optional[Container], Optional[str], Optional[Node]]:
         """
         Select a value using dot separated key sequence
         :param key:
@@ -206,23 +164,30 @@ class BaseContainer(Container, ABC):
             return self, "", self
 
         split = key.split(".")
-        root = self
+        root: Optional[Container] = self
         for i in range(len(split) - 1):
             if root is None:
                 break
             k = split[i]
-            root, _ = _select_one(root, k)
+            ret, _ = _select_one(root, k)
+            assert ret is None or isinstance(ret, Container)
+            root = ret
 
         if root is None:
             return None, None, None
 
         last_key = split[-1]
         value, _ = _select_one(root, last_key)
+        if value is None:
+            return root, last_key, value
+        value = self._resolve_str_interpolation(
+            key=last_key, value=value, throw_on_missing=False
+        )
         return root, last_key, value
 
     def is_empty(self) -> bool:
         """return true if config is empty"""
-        return len(self.__dict__["content"]) == 0
+        return len(self.__dict__["_content"]) == 0
 
     @staticmethod
     def _to_content(
@@ -299,17 +264,18 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
-        src_type = src.__dict__["_type"]
-        dest_type = dest.__dict__["_type"]
+        src_type = src._metadata.object_type
+        dest_type = dest._metadata.object_type
 
         if src_type is not None and src_type is not dest_type:
-            prototype = DictConfig(annotated_type=src_type, content=src_type)
-            for k in {"content", "_resolver_cache", "_key_type", "_missing", "_type"}:
-                dest.__dict__[k] = prototype.__dict__[k]
+            prototype = DictConfig(annotated_type=src_type, content=src_type,)
+
+            dest.__dict__["_content"] = copy.deepcopy(prototype.__dict__["_content"])
+            dest.__dict__["_metadata"] = copy.deepcopy(prototype._metadata)
 
         for key, value in src.items_ex(resolve=False):
 
-            dest_element_type = dest.__dict__["_element_type"]
+            dest_element_type = dest._metadata.element_type
             typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(value, DictConfig):
@@ -325,9 +291,7 @@ class BaseContainer(Container, ABC):
 
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(value, BaseContainer):
-                        if isinstance(value, DictConfig):
-                            if value.__dict__["_type"] is not None:
-                                BaseContainer._validate_node_type(dest_node, value)
+                        dest._validate_set(key=key, value=value)
                         dest_node.merge_with(value)
                     else:
                         dest.__setitem__(key, value)
@@ -336,7 +300,7 @@ class BaseContainer(Container, ABC):
                         dest.__setitem__(key, value)
                     else:
                         assert isinstance(dest_node, ValueNode)
-                        dest_node.set_value(value)
+                        dest_node._set_value(value)
             else:
                 dest[key] = src.get_node(key)
 
@@ -359,8 +323,8 @@ class BaseContainer(Container, ABC):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 if self._get_flag("readonly"):
-                    raise ReadonlyConfigError(self.get_full_key(""))
-                self.__dict__["content"].clear()
+                    raise ReadonlyConfigError(self._get_full_key(""))
+                self.__dict__["_content"].clear()
                 for item in other:
                     self.append(item)
             else:
@@ -369,111 +333,75 @@ class BaseContainer(Container, ABC):
         # recursively correct the parent hierarchy after the merge
         self._re_parent()
 
-    @staticmethod
-    def _resolve_value(root_node: Container, inter_type: str, inter_key: str) -> Any:
-        from omegaconf import OmegaConf
-
-        inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
-        if inter_type == "str":
-            parent, last_key, value = root_node._select_impl(inter_key)  # type: ignore
-            if parent is None or (value is None and last_key not in parent):
-                raise KeyError(
-                    "{} interpolation key '{}' not found".format(inter_type, inter_key)
-                )
-        else:
-            resolver = OmegaConf.get_resolver(inter_type)
-            if resolver is not None:
-                value = resolver(root_node, inter_key)
-            else:
-                raise UnsupportedInterpolationType(
-                    "Unsupported interpolation type {}".format(inter_type)
-                )
-
-        return value
-
-    def _resolve_single(self, value: Any) -> Any:
-        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
-
-        if value_kind in (ValueKind.VALUE, ValueKind.MANDATORY_MISSING):
-            return value
-
-        root = self._get_root()
-        if value_kind == ValueKind.INTERPOLATION:
-            # simple interpolation, inherit type
-            match = match_list[0]
-            return BaseContainer._resolve_value(root, match.group(1), match.group(2))
-        elif value_kind == ValueKind.STR_INTERPOLATION:
-            # Concatenated interpolation, always a string
-            orig = value
-            new = ""
-            last_index = 0
-            for match in match_list:
-                new_val = BaseContainer._resolve_value(
-                    root, match.group(1), match.group(2)
-                )
-                new += orig[last_index : match.start(0)] + str(new_val)
-                last_index = match.end(0)
-
-            new += orig[last_index:]
-            return new
-
     # noinspection PyProtectedMember
-    def _set_item_impl(self, key: Union[str, Enum, int], value: Any) -> None:
+    def _set_item_impl(self, key: Any, value: Any) -> None:
         from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
         from .nodes import ValueNode
 
+        self._validate_get(key)
+        self._validate_set(key, value)
+
         must_wrap = is_primitive_container(value)
         input_config = isinstance(value, Container)
+        target_node_ref = self.get_node(key)
+        special_value = value is None or value == "???"
+        should_set_value = (
+            target_node_ref is not None
+            and isinstance(target_node_ref, Container)
+            and special_value
+        )
+
         input_node = isinstance(value, ValueNode)
-        if isinstance(self.__dict__["content"], dict):
-            target_node = key in self.__dict__["content"] and isinstance(
-                self.get_node(key), ValueNode
+        if isinstance(self.__dict__["_content"], dict):
+            target_node = key in self.__dict__["_content"] and isinstance(
+                target_node_ref, ValueNode
             )
 
-        elif isinstance(self.__dict__["content"], list):
-            target_node = isinstance(self.get_node(key), ValueNode)
+        elif isinstance(self.__dict__["_content"], list):
+            target_node = isinstance(target_node_ref, ValueNode)
 
-        def wrap(val: Any) -> Node:
+        def wrap(key: Any, val: Any) -> Node:
             if is_structured_config(val):
                 type_ = OmegaConf.get_type(val)
             else:
-                type_ = self.__dict__["_element_type"]
+                type_ = self._metadata.element_type
             return _maybe_wrap(
-                annotated_type=type_, value=val, is_optional=True, parent=self,
+                annotated_type=type_, key=key, value=val, is_optional=True, parent=self,
             )
+
+        def assign(value_key: Any, value_to_assign: Any) -> None:
+            value_to_assign._set_parent(self)
+            value_to_assign._set_key(value_key)
+            self.__dict__["_content"][value_key] = value_to_assign
 
         try:
             if must_wrap:
-                self.__dict__["content"][key] = wrap(value)
+                self.__dict__["_content"][key] = wrap(key, value)
             elif input_node and target_node:
                 # both nodes, replace existing node with new one
-                value._set_parent(self)
-                self.__dict__["content"][key] = value
+                assign(key, value)
             elif not input_node and target_node:
                 # input is not node, can be primitive or config
                 if input_config:
-                    value._set_parent(self)
-                    self.__dict__["content"][key] = value
+                    assign(key, value)
                 else:
-                    self.__dict__["content"][key].set_value(value)
+                    self.__dict__["_content"][key]._set_value(value)
             elif input_node and not target_node:
                 # target must be config, replace target with input node
-                value._set_parent(self)
-                self.__dict__["content"][key] = value
+                assign(key, value)
             elif not input_node and not target_node:
-                # target must be config.
-                # input can be primitive or config
-                if input_config:
-                    value._set_parent(self)
-                    self.__dict__["content"][key] = value
+                if should_set_value:
+                    self.__dict__["_content"][key]._set_value(value)
+                elif input_config:
+                    assign(key, value)
                 else:
-                    self.__dict__["content"][key] = wrap(value)
+                    self.__dict__["_content"][key] = wrap(key, value)
         except ValidationError as ve:
             import sys
 
             raise type(ve)(
-                f"Error setting '{self.get_full_key(str(key))} = {value}' : {ve}"
+                f"Error setting '{self._get_full_key(str(key))} = {value}' : {ve}"
             ).with_traceback(sys.exc_info()[2]) from None
 
     @staticmethod
@@ -483,8 +411,6 @@ class BaseContainer(Container, ABC):
         c2: "BaseContainer",
         k2: Union[str, int],
     ) -> bool:
-        from .nodes import ValueNode
-
         v1 = c1.get_node(k1)
         v2 = c2.get_node(k2)
         v1_kind = get_value_kind(v1)
@@ -493,10 +419,8 @@ class BaseContainer(Container, ABC):
         if v1_kind == v2_kind and v1_kind == ValueKind.MANDATORY_MISSING:
             return True
 
-        if isinstance(v1, ValueNode):
-            v1 = v1.value()
-        if isinstance(v2, ValueNode):
-            v2 = v2.value()
+        v1 = _get_value(v1)
+        v2 = _get_value(v2)
 
         # special case for two interpolations. just compare them literally.
         # This is helping in cases where the two interpolations are not resolvable
@@ -507,51 +431,14 @@ class BaseContainer(Container, ABC):
         ) and v2_kind in (ValueKind.STR_INTERPOLATION, ValueKind.INTERPOLATION):
             return True
         if isinstance(v1, str):
-            v1 = c1._resolve_single(v1)
+            v1 = c1._resolve_str_interpolation(key=k1, value=v1, throw_on_missing=False)
         if isinstance(v2, str):
-            v2 = c2._resolve_single(v2)
+            v2 = c2._resolve_str_interpolation(key=k2, value=v2, throw_on_missing=False)
 
         if isinstance(v1, BaseContainer) and isinstance(v2, BaseContainer):
             if not BaseContainer._config_eq(v1, v2):
                 return False
         return v1 == v2
-
-    @staticmethod
-    def _list_eq(l1: "BaseContainer", l2: "BaseContainer") -> bool:
-        from .listconfig import ListConfig
-
-        assert isinstance(l1, ListConfig)
-        assert isinstance(l2, ListConfig)
-        if len(l1) != len(l2):
-            return False
-        for i in range(len(l1)):
-            if not BaseContainer._item_eq(l1, i, l2, i):
-                return False
-
-        return True
-
-    @staticmethod
-    def _dict_conf_eq(d1: "BaseContainer", d2: "BaseContainer") -> bool:
-        from .dictconfig import DictConfig
-
-        d1_none = d1.__dict__["content"] is None
-        d2_none = d2.__dict__["content"] is None
-        if d1_none and d2_none:
-            return True
-        if d1_none != d2_none:
-            return False
-
-        assert isinstance(d1, DictConfig)
-        assert isinstance(d2, DictConfig)
-        if len(d1) != len(d2):
-            return False
-        for k, v in d1.items_ex(resolve=False):
-            if k not in d2.__dict__["content"]:
-                return False
-            if not BaseContainer._item_eq(d1, k, d2, k):
-                return False
-
-        return True
 
     @staticmethod
     def _config_eq(c1: "BaseContainer", c2: "BaseContainer") -> bool:
@@ -563,7 +450,7 @@ class BaseContainer(Container, ABC):
         if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
             return DictConfig._dict_conf_eq(c1, c2)
         if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
-            return BaseContainer._list_eq(c1, c2)
+            return ListConfig._list_eq(c1, c2)
         # if type does not match objects are different
         return False
 
@@ -575,56 +462,49 @@ class BaseContainer(Container, ABC):
 
         if isinstance(self, Container) and not self._is_missing():
             if isinstance(self, DictConfig):
-                for _key, value in self.__dict__["content"].items():
-                    value._set_parent(self)
-                    BaseContainer._re_parent(value)
+                if (
+                    self.__dict__["_content"] is not None
+                    and not self._is_interpolation()
+                ):
+                    for _key, value in self.__dict__["_content"].items():
+                        value._set_parent(self)
+                        BaseContainer._re_parent(value)
             elif isinstance(self, ListConfig):
-                for item in self.__dict__["content"]:
+                for item in self.__dict__["_content"]:
                     item._set_parent(self)
                     BaseContainer._re_parent(item)
 
+    def _is_none(self) -> bool:
+        return self.__dict__["_content"] is None
+
     def _is_missing(self) -> bool:
-        return self.__dict__["_missing"] is True
+        try:
+            node = self._dereference_node()
+            if isinstance(node, Container):
+                ret = self.__dict__["_content"] == "???"
+            else:
+                ret = node._value() == "???"
+        except MissingMandatoryValue:
+            ret = True
+
+        assert isinstance(ret, bool)
+        return ret
 
     def _is_optional(self) -> bool:
-        return self.__dict__["_optional"] is True
+        return self.__dict__["_metadata"].optional is True
 
-    @staticmethod
-    def _validate_node_type(target: Node, value: Any) -> None:
-        from .dictconfig import DictConfig
+    def _is_interpolation(self) -> bool:
+        return _is_interpolation(self.__dict__["_content"])
 
-        if target is None:
-            return
+    @abstractmethod
+    def _validate_get(self, key: Any) -> None:
+        ...
 
-        if value is None and isinstance(target, Container):
-            if not target._is_optional():
-                raise ValidationError(
-                    "Non optional DictConfig node cannot be assigned None"
-                )
+    @abstractmethod
+    def _validate_set(self, key: Any, value: Any) -> None:
+        ...
 
-        def is_typed(c: Any) -> bool:
-            return isinstance(c, DictConfig) and c.__dict__["_type"] is not None
-
-        def get_type(c: Any) -> Type[Any]:
-            if isinstance(c, DictConfig):
-                t = c.__dict__["_type"]
-                assert isinstance(t, type)
-                return t
-            else:
-                return type(c)
-
-        if not is_typed(target):
-            return
-
-        # target must be optional by now. no need to check the type of value if None.
-        if value is None:
-            return
-
-        target_type = get_type(target)
-        value_type = get_type(value)
-
-        if not issubclass(value_type, target_type):
-            raise ValidationError(
-                f"Invalid type assigned : {value_type.__name__} "
-                f"is not a subclass of {target_type.__name__}. value: {value}"
-            )
+    def _value(self) -> Any:
+        if self._is_none():
+            return None
+        return self
