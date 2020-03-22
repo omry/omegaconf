@@ -93,11 +93,14 @@ Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
-    def env(key: str) -> Any:
+    def env(key: str, default: str = None) -> Any:
         try:
             return decode_primitive(os.environ[key])
         except KeyError:
-            raise KeyError("Environment variable '{}' not found".format(key))
+            if default:
+                return decode_primitive(default)
+            else:
+                raise KeyError("Environment variable '{}' not found".format(key))
 
     OmegaConf.register_resolver("env", env)
 
