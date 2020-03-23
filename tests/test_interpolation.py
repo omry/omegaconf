@@ -292,6 +292,19 @@ def test_copy_cache() -> None:
     OmegaConf.copy_cache(c1, c3)
     assert c3.k == c1.k
 
+def test_clear_cache() -> None:
+    if os.getenv('DB_PASSWORD') is not None:
+          del os.environ['DB_PASSWORD']
+    cfg = OmegaConf.create({
+          'database': {'password': '${env:DB_PASSWORD,12345}'}
+    })
+    fresh = cfg.__dict__
+    assert cfg.database.password == 12345
+    OmegaConf.clear_cache(cfg)
+    assert cfg.__dict__ == fresh
+    os.environ['DB_PASSWORD'] = 'abcdef'
+    assert cfg.database.password == 'abcdef'
+    del os.environ['DB_PASSWORD']
 
 def test_supported_chars() -> None:
     supported_chars = "%_-abc123."
