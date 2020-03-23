@@ -306,11 +306,20 @@ Input yaml file:
     /home/omry
 
 It is possible to set a default value if the environment variable is missing. 
-In the following example, we set 'omry' as the default value if the environment
- variable USER is not defined.
+In the following example, we set '1234' as the default value if the environment
+variable 'DB_PASSWORD' is not defined.
 
-.. include:: env_default_interpolation.yaml
-   :code: yaml
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...       'database': {'password': '${env:DB_PASSWORD,12345}'}
+    ... })
+    >>> print(cfg.database.password)
+    12345
+    >>> cfg = cfg.copy()  # clear resolver catch
+    >>> os.environ["DB_PASSWORD"] = 'secret'
+    >>> print(cfg.database.password)
+    'secret'
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
