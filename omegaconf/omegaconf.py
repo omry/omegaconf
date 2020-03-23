@@ -97,7 +97,7 @@ def register_default_resolvers() -> None:
         try:
             return decode_primitive(os.environ[key])
         except KeyError:
-            if default:
+            if default is not None:
                 return decode_primitive(default)
             else:
                 raise KeyError("Environment variable '{}' not found".format(key))
