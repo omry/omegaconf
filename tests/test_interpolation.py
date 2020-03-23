@@ -137,6 +137,16 @@ def test_env_interpolation_not_found() -> None:
     with pytest.raises(KeyError):
         c.path
 
+def test_env_default_interpolation_missing_env() -> None:
+    if os.getenv("foobar") is not None:
+        del os.environ["foobar"]
+    c = OmegaConf.create(dict(path="/test/${env:foobar,abc}"))
+    assert c.path == "/test/abc"
+
+def test_env_default_interpolation_env_exist() -> None:
+    os.environ["foobar"] = "1234"
+    c = OmegaConf.create(dict(path="/test/${env:foobar,abc}"))
+    assert c.path == "/test/1234"
 
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
