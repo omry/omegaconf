@@ -305,6 +305,12 @@ Input yaml file:
     >>> print(conf.user.home)
     /home/omry
 
+It is possible to set a default value if the environment variable is missing. 
+In the following example, we set 'omry' as the default value if the environment
+ variable USER is not defined.
+
+.. include:: env_default_interpolation.yaml
+   :code: yaml
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
