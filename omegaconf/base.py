@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, Optional, Type, Union
+from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
 from ._utils import ValueKind, _get_value, get_value_kind
 from .errors import MissingMandatoryValue, UnsupportedInterpolationType
@@ -157,11 +157,7 @@ class Node(ABC):
         else:
             # not interpolation, compare directly
             if throw_on_missing:
-
-                if isinstance(self, Container):
-                    value = self.__dict__["_content"]  # TODO normalize
-                else:
-                    value = self._value()
+                value = self._value()
                 if value == "???":
                     raise MissingMandatoryValue(self._get_full_key(""))
             return self
@@ -225,7 +221,7 @@ class Container(Node):
         ...  # pragma: no cover
 
     @abstractmethod
-    def select(self, key: str) -> Any:
+    def select(self, key: str, throw_on_missing: bool = False) -> Any:
         ...  # pragma: no cover
 
     def get_node(self, key: Any) -> Node:
@@ -257,6 +253,41 @@ class Container(Node):
             assert root is not None and isinstance(root, Container)
         return root
 
+    def _select_impl(
+        self, key: str, throw_on_missing: bool
+    ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
+        """
+        Select a value using dot separated key sequence
+        :param key:
+        :return:
+        """
+        from .omegaconf import _select_one
+
+        if key == "":
+            return self, "", self
+
+        split = key.split(".")
+        root: Optional[Container] = self
+        for i in range(len(split) - 1):
+            if root is None:
+                break
+            k = split[i]
+            ret, _ = _select_one(c=root, key=k, throw_on_missing=throw_on_missing)
+            assert ret is None or isinstance(ret, Container)
+            root = ret
+
+        if root is None:
+            return None, None, None
+
+        last_key = split[-1]
+        value, _ = _select_one(c=root, key=last_key, throw_on_missing=throw_on_missing)
+        if value is None:
+            return root, last_key, value
+        value = root._resolve_str_interpolation(
+            key=last_key, value=value, throw_on_missing=False
+        )
+        return root, last_key, value
+
     def _resolve_interpolation(
         self, key: Any, inter_type: str, inter_key: str, throw_on_missing: bool,
     ) -> "Node":
@@ -268,20 +299,21 @@ class Container(Node):
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            parent, last_key, value = root_node._select_impl(inter_key)  # type: ignore
-            if parent is None or (value is None and last_key not in parent):
+            parent, last_key, value = root_node._select_impl(
+                inter_key, throw_on_missing=throw_on_missing
+            )
+
+            if parent is None or (value is None and last_key not in parent):  # type: ignore
                 raise KeyError(
                     "{} interpolation key '{}' not found".format(inter_type, inter_key)
                 )
-            if throw_on_missing and isinstance(value, Node) and value._is_missing():
-                raise MissingMandatoryValue(parent._get_full_key(str(key)))
             assert isinstance(value, Node)
             return value
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
                 value = resolver(root_node, inter_key)
-                assert isinstance(self, Container)
+
                 node = self.get_node(key)
                 return ValueNode(
                     value=value,

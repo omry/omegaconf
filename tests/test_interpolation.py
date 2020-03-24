@@ -325,7 +325,6 @@ def test_incremental_dict_with_interpolation() -> None:
     conf.b = OmegaConf.create()
     assert isinstance(conf.b, DictConfig)
     conf.b.c = "${a}"
-    # mypy does not understand that interpolation can change the type.
     assert conf.b.c == conf.a  # type: ignore
 
 

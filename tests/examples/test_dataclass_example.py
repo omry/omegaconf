@@ -60,15 +60,18 @@ def test_simple_types_obj() -> None:
 
 
 def test_conversions() -> None:
-    conf = OmegaConf.structured(SimpleTypes)
+    conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
 
     # OmegaConf can convert types at runtime
     conf.num = 20  # ok, type matches
-    conf.num = "20"  # ok, the String "20" is converted to the int 20
-    # mypy does not understand ValueNode type conversion
-    assert conf.num == 20  # type: ignore
+
+    # ok, the String "20" is converted to the int 20
+    conf.num = "20"  # type: ignore
+
+    assert conf.num == 20
     with pytest.raises(ValidationError):
-        conf.num = "one"  # ValidationError: "one" cannot be converted to an integer
+        # ValidationError: "one" cannot be converted to an integer
+        conf.num = "one"  # type: ignore
 
     # booleans can take many forms
     for expected, values in {
@@ -76,7 +79,7 @@ def test_conversions() -> None:
         False: ["off", "no", "false", False, "0"],
     }.items():
         for b in values:
-            conf.is_awesome = b
+            conf.is_awesome = b  # type: ignore
             assert conf.is_awesome == expected
 
     # Enums too
@@ -85,7 +88,7 @@ def test_conversions() -> None:
         Height.TALL: [Height.TALL, "Height.TALL", "TALL", 1],
     }.items():
         for b in values1:
-            conf.height = b
+            conf.height = b  # type: ignore
             assert conf.height == expected1
 
 

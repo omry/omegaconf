@@ -38,6 +38,8 @@ from . import IllegalType
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
         ),
+        ({"foo": "${missing}"}, {"foo": "${missing}"}),
+        (OmegaConf.create({"foo": "${missing}"}), {"foo": "${missing}"}),
         (OmegaConf.create(), {}),
         (OmegaConf.create({}), {}),
         (OmegaConf.create([]), []),
@@ -46,7 +48,7 @@ from . import IllegalType
     ],
 )
 def test_create_value(input_: Any, expected: Any) -> None:
-    assert expected == OmegaConf.create(input_)
+    assert OmegaConf.create(input_) == expected
 
 
 def test_create_from_cli() -> None:

@@ -42,7 +42,7 @@ from ._utils import (
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import UnsupportedInterpolationType, ValidationError
+from .errors import MissingMandatoryValue, UnsupportedInterpolationType, ValidationError
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -613,7 +613,9 @@ def _maybe_wrap(
     return ret
 
 
-def _select_one(c: Container, key: str) -> Tuple[Optional[Node], Union[str, int]]:
+def _select_one(
+    c: Container, key: str, throw_on_missing: bool
+) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
 
@@ -624,6 +626,11 @@ def _select_one(c: Container, key: str) -> Tuple[Optional[Node], Union[str, int]
         val: Optional[Node]
         if c.get_node_ex(ret_key, validate_access=False) is not None:
             val = c.get_node(ret_key)
+            if val._is_missing():
+                if throw_on_missing:
+                    raise MissingMandatoryValue(c._get_full_key(ret_key))
+                else:
+                    return val, ret_key
         else:
             val = None
     elif isinstance(c, ListConfig):

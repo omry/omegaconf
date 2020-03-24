@@ -377,7 +377,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def _promote(self, type_or_prototype: Type[Any]) -> None:
+    def _promote(self, type_or_prototype: Optional[Type[Any]]) -> None:
         """
         Retypes a node.
         This should only be used in rare circumstances, where you want to dynamically change
@@ -427,9 +427,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
             self._metadata.object_type = None
             self.__dict__["_content"] = {}
-
-            for k, v in value.items():
-                self.__setitem__(k, v)
+            if isinstance(value, DictConfig):
+                for k, v in value.items_ex(resolve=False):
+                    self.__setitem__(k, v)
+            else:
+                for k, v in value.items():
+                    self.__setitem__(k, v)
 
             if is_structured:
                 self._metadata.object_type = _type

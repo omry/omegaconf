@@ -129,7 +129,7 @@ class BaseContainer(Container, ABC):
         for i in range(len(split) - 1):
             k = split[i]
             # if next_root is a primitive (string, int etc) replace it with an empty map
-            next_root, key_ = _select_one(root, k)
+            next_root, key_ = _select_one(root, k, throw_on_missing=False)
             if not isinstance(next_root, Container):
                 root[key_] = {}
             root = root[key_]
@@ -146,44 +146,15 @@ class BaseContainer(Container, ABC):
             idx = int(last)
             root[idx] = value
 
-    def select(self, key: str) -> Any:
-        _root, _last_key, value = self._select_impl(key)
+    def select(self, key: str, throw_on_missing: bool = False) -> Any:
+        _root, _last_key, value = self._select_impl(key, throw_on_missing=False)
+        if value is not None and value._is_missing():
+            if throw_on_missing:
+                raise MissingMandatoryValue(value._get_full_key(""))
+            else:
+                return None
+
         return _get_value(value)
-
-    def _select_impl(
-        self, key: str
-    ) -> Tuple[Optional[Container], Optional[str], Optional[Node]]:
-        """
-        Select a value using dot separated key sequence
-        :param key:
-        :return:
-        """
-        from .omegaconf import _select_one
-
-        if key == "":
-            return self, "", self
-
-        split = key.split(".")
-        root: Optional[Container] = self
-        for i in range(len(split) - 1):
-            if root is None:
-                break
-            k = split[i]
-            ret, _ = _select_one(root, k)
-            assert ret is None or isinstance(ret, Container)
-            root = ret
-
-        if root is None:
-            return None, None, None
-
-        last_key = split[-1]
-        value, _ = _select_one(root, last_key)
-        if value is None:
-            return root, last_key, value
-        value = self._resolve_str_interpolation(
-            key=last_key, value=value, throw_on_missing=False
-        )
-        return root, last_key, value
 
     def is_empty(self) -> bool:
         """return true if config is empty"""
