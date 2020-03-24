@@ -136,7 +136,7 @@ class Node(ABC):
             match = match_list[0]
             parent = self._get_parent()
             assert parent is not None
-            key = self.key()
+            key = self._key()
             if value_kind == ValueKind.INTERPOLATION:
                 v = parent._resolve_interpolation(
                     key=key,
@@ -195,7 +195,7 @@ class Node(ABC):
     def _is_interpolation(self) -> bool:
         ...  # pragma: no cover
 
-    def key(self) -> Any:
+    def _key(self) -> Any:
         return self._metadata.key
 
     def _set_key(self, key: Any) -> None:
@@ -306,7 +306,7 @@ class Container(Node):
             ):
                 parent = value._get_parent()
                 assert isinstance(parent, Container)
-                ret = parent.__getitem__(value.key())
+                ret = parent.__getitem__(value._key())
                 assert isinstance(ret, Node)
                 return ret
             else:

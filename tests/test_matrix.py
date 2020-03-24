@@ -31,7 +31,7 @@ def verify(
     exp: Any = SKIP,
 ) -> None:
     target_node = cfg.get_node(key)
-    assert target_node.key() == key
+    assert target_node._key() == key
     assert target_node._is_none() == none
     assert target_node._is_optional() == opt
     assert target_node._is_missing() == missing
