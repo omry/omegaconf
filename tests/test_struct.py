@@ -13,7 +13,7 @@ def test_struct_default() -> None:
 
 
 def test_struct_set_on_dict() -> None:
-    c = OmegaConf.create(dict(a=dict()))
+    c = OmegaConf.create({"a": {}})
     OmegaConf.set_struct(c, True)
     # Throwing when it hits foo, so exception key is a.foo and not a.foo.bar
     with pytest.raises(AttributeError, match=re.escape("a.foo")):

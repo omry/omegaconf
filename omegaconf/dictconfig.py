@@ -24,7 +24,7 @@ from ._utils import (
     is_structured_config_frozen,
 )
 from .base import Container, ContainerMetadata, Node
-from .basecontainer import BaseContainer
+from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
     KeyValidationError,
     MissingMandatoryValue,
@@ -247,7 +247,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if key == "__members__":
             raise AttributeError()
 
-        return self.get(key=key, default_value=None)
+        return self.get(key=key)
 
     def __getitem__(self, key: Union[str, Enum]) -> Any:
         """
@@ -256,11 +256,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :return:
         """
         try:
-            return self.get(key=key, default_value=None)
+            return self.get(key=key)
         except AttributeError as e:
             raise KeyError(str(e))
 
-    def get(self, key: Union[str, Enum], default_value: Any = None) -> Any:
+    def get(
+        self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER,
+    ) -> Any:
         key = self._validate_and_normalize_key(key)
         node = self.get_node_ex(key=key, default_value=default_value)
         return self._resolve_with_default(
@@ -268,12 +270,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
 
     def get_node(self, key: Union[str, Enum]) -> Node:
-        return self.get_node_ex(key)
+        return self.get_node_ex(key, default_value=DEFAULT_VALUE_MARKER)
 
     def get_node_ex(
         self,
         key: Union[str, Enum],
-        default_value: Any = None,
+        default_value: Any = DEFAULT_VALUE_MARKER,
         validate_access: bool = True,
     ) -> Node:
         value: Node = self.__dict__["_content"].get(key)
@@ -281,18 +283,18 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             try:
                 self._validate_get(key)
             except (KeyError, AttributeError):
-                if default_value is not None:
+                if default_value != DEFAULT_VALUE_MARKER:
                     value = default_value
                 else:
                     raise
         else:
-            if default_value is not None:
+            if default_value is not DEFAULT_VALUE_MARKER:
                 value = default_value
         return value
 
-    __marker = object()
+    __pop_marker = object()
 
-    def pop(self, key: Union[str, Enum], default: Any = __marker) -> Any:
+    def pop(self, key: Union[str, Enum], default: Any = __pop_marker) -> Any:
         key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
             raise ReadonlyConfigError(self._get_full_key(key))
@@ -301,7 +303,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             value=self.__dict__["_content"].pop(key, default),
             default_value=default,
         )
-        if value is self.__marker:
+        if value is self.__pop_marker:
             raise KeyError(key)
         return value
 
@@ -328,7 +330,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return False
         else:
             try:
-                self._resolve_with_default(key, node, None)
+                self._resolve_with_default(key=key, value=node)
                 return True
             except UnsupportedInterpolationType:
                 # Value that has unsupported interpolation counts as existing.

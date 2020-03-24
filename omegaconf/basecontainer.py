@@ -19,6 +19,8 @@ from ._utils import (
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
+DEFAULT_VALUE_MARKER: Any = object()
+
 
 class BaseContainer(Container, ABC):
     # static
@@ -42,7 +44,10 @@ class BaseContainer(Container, ABC):
         OmegaConf.save(self, f)
 
     def _resolve_with_default(
-        self, key: Union[str, int, Enum], value: Any, default_value: Any = None
+        self,
+        key: Union[str, int, Enum],
+        value: Any,
+        default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
 
@@ -51,7 +56,9 @@ class BaseContainer(Container, ABC):
 
         value = _get_value(value)
 
-        if default_value is not None and (value is None or is_mandatory_missing(value)):
+        if default_value is not DEFAULT_VALUE_MARKER and (
+            value is None or is_mandatory_missing(value)
+        ):
             value = default_value
 
         value = self._resolve_str_interpolation(

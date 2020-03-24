@@ -52,7 +52,7 @@ def test_getattr_dict() -> None:
 
 
 def test_mandatory_value() -> None:
-    c = OmegaConf.create(dict(a="???"))
+    c = OmegaConf.create({"a": "???"})
     with pytest.raises(MissingMandatoryValue, match="a"):
         c.a
 
@@ -270,8 +270,7 @@ def test_dict_pop(
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:
     conf = OmegaConf.create(conf)
-    ret = key in conf
-    assert ret == expected
+    assert (key in conf) == expected
 
 
 def test_get_root() -> None:
@@ -387,10 +386,11 @@ def test_hash() -> None:
     assert hash(c1) != hash(c2)
 
 
-def test_get_with_default_from_struct_not_throwing() -> None:
-    c = OmegaConf.create(dict(a=10, b=20))
+@pytest.mark.parametrize("default", ["default", 0, None])  # type: ignore
+def test_get_with_default_from_struct_not_throwing(default: Any) -> None:
+    c = OmegaConf.create({"a": 10, "b": 20})
     OmegaConf.set_struct(c, True)
-    assert c.get("z", "default") == "default"
+    assert c.get("z", default) == default
 
 
 def test_members() -> None:
