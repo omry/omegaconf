@@ -1,0 +1,1 @@
+Fix a bug that caused Attribute error when accessing a config in struct mode with get() providing a None default
