@@ -316,7 +316,7 @@ variable 'DB_PASSWORD' is not defined.
     ... })
     >>> print(cfg.database.password)
     12345
-    >>> cfg = cfg.copy()  # clear resolver catch
+    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
     >>> os.environ["DB_PASSWORD"] = 'secret'
     >>> print(cfg.database.password)
     'secret'
