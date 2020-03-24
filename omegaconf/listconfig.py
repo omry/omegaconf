@@ -46,12 +46,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if not isinstance(index, (int, slice)):
             raise KeyValidationError(f"Key type {type(index).__name__} is invalid")
 
-    def _validate_set(self, index: Any, value: Any) -> None:
+    def _validate_set(self, key: Any, value: Any) -> None:
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self._get_full_key(f"{index}"))
+            raise ReadonlyConfigError(self._get_full_key(f"{key}"))
 
-        if 0 <= index < self.__len__():
-            target = self.get_node(index)
+        if 0 <= key < self.__len__():
+            target = self.get_node(key)
             if isinstance(target, Container):
                 if value is None and not target._is_optional():
                     raise ValidationError(
@@ -114,7 +114,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def append(self, item: Any) -> None:
         index = len(self)
-        self._validate_set(index=index, value=item)
+        self._validate_set(key=index, value=item)
 
         try:
             from omegaconf.omegaconf import OmegaConf, _maybe_wrap
