@@ -288,9 +288,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create(dict(k="${random:_}"))
     old = c.k
-    fresh = c.__dict__
     OmegaConf.clear_cache(c)
-    assert c.__dict__ == fresh
     assert old != c.k
 
 
