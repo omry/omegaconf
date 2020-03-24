@@ -305,9 +305,8 @@ Input yaml file:
     >>> print(conf.user.home)
     /home/omry
 
-It is possible to set a default value if the environment variable is missing. 
-In the following example, we set '1234' as the default value if the environment
-variable 'DB_PASSWORD' is not defined.
+You can specify a default value to use in case the environment variable is not defined.
+The following example sets `12345` as the the default value for the `DB_PASSWORD` environment variable.
 
 .. doctest::
 
@@ -543,4 +542,3 @@ Creates a copy of a DictConfig that contains only specific keys.
     a:
       b: 10
     <BLANKLINE>
-
