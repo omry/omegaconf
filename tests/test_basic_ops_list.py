@@ -50,11 +50,32 @@ def test_list_get_with_default() -> None:
     assert c.get(2, "default_value") == "found"
 
 
-def test_iterate_list() -> None:
-    c = OmegaConf.create([1, 2])
-    items = [x for x in c]
-    assert items[0] == 1
-    assert items[1] == 2
+@pytest.mark.parametrize(  # type: ignore
+    "input_, list_key",
+    [
+        ([1, 2], None),
+        (["${1}", 2], None),
+        (
+            {
+                "defaults": [
+                    {"optimizer": "adam"},
+                    {"dataset": "imagenet"},
+                    {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"},
+                ]
+            },
+            "defaults",
+        ),
+        ([1, 2, "${missing}"], None),
+    ],
+)
+def test_iterate_list(input_: Any, list_key: str) -> None:
+    c = OmegaConf.create(input_)
+    if list_key is not None:
+        lst = c.get(list_key)
+    else:
+        lst = c
+    items = [x for x in lst]
+    assert items == lst
 
 
 def test_iterate_interpolated_list() -> None:

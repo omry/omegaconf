@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Any, Optional
 
 import pytest
 from pytest import raises
 
-from omegaconf import OmegaConf
+from omegaconf import MissingMandatoryValue, OmegaConf
+
+from . import does_not_raise
 
 
 @pytest.mark.parametrize("struct", [True, False, None])  # type: ignore
@@ -13,50 +15,64 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
     assert c.select("not_there") is None
 
 
-def test_select_dotkey_from_empty() -> None:
-    c = OmegaConf.create()
-    assert c.select("not.there") is None
-    assert c.select("still.not.there") is None
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, keys, expected, expectation",
+    [
+        ({}, "nope", None, does_not_raise()),
+        ({}, "not.there", None, does_not_raise()),
+        ({}, "still.not.there", None, does_not_raise()),
+        ({"c": 1}, "c", 1, does_not_raise()),
+        ({"a": {"v": 1}}, "a", {"v": 1}, does_not_raise()),
+        ({"a": {"v": 1}}, "a.v", 1, does_not_raise()),
+        ({"missing": "???"}, "missing", None, does_not_raise()),
+        ([], "0", None, does_not_raise()),
+        ([1, "2"], ("0", "1"), (1, "2"), does_not_raise()),
+        (
+            [1, {"a": 10, "c": ["foo", "bar"]}],
+            ("0", "1.a", "1.b", "1.c.0", "1.c.1"),
+            (1, 10, None, "foo", "bar"),
+            does_not_raise(),
+        ),
+        ([1, 2, 3], "a", None, raises(TypeError)),
+        (
+            {"a": {"v": 1}, "b": {"v": 1}},
+            "",
+            {"a": {"v": 1}, "b": {"v": 1}},
+            does_not_raise(),
+        ),
+        (
+            {"dict": {"one": 1}, "foo": "one=${dict.one}"},
+            "foo",
+            "one=1",
+            does_not_raise(),
+        ),
+        (
+            {"dict": {"foo": "one=${one}"}, "one": 1},
+            "dict.foo",
+            "one=1",
+            does_not_raise(),
+        ),
+        ({"dict": {"foo": "one=${foo:1}"}}, "dict.foo", "one=_1_", does_not_raise()),
+    ],
+)
+def test_select(
+    restore_resolvers: Any, cfg: Any, keys: Any, expected: Any, expectation: Any
+) -> None:
+    if not isinstance(keys, (tuple, list)):
+        keys = [keys]
+    if not isinstance(expected, (tuple, list)):
+        expected = [expected]
+    OmegaConf.register_resolver("foo", lambda x: f"_{x}_")
+
+    c = OmegaConf.create(cfg)
+    with expectation:
+        for idx, key in enumerate(keys):
+            assert c.select(key) == expected[idx]
 
 
 def test_select_from_dict() -> None:
-    c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}, "c": 1})
-
-    assert c.select("a") == {"v": 1}
-    assert c.select("a.v") == 1
-    assert c.select("b.v") == 1
-    assert c.select("c") == 1
-    assert c.select("nope") is None
-
-
-def test_select_from_empty_list() -> None:
-    c = OmegaConf.create([])
-    assert c.select("0") is None
-
-
-def test_select_from_primitive_list() -> None:
-    c = OmegaConf.create([1, 2, 3, "4"])
-    assert c.select("0") == 1
-    assert c.select("1") == 2
-    assert c.select("2") == 3
-    assert c.select("3") == "4"
-
-
-def test_select_from_dict_in_list() -> None:
-    c = OmegaConf.create([1, dict(a=10, c=["foo", "bar"])])
-    assert c.select("0") == 1
-    assert c.select("1.a") == 10
-    assert c.select("1.b") is None
-    assert c.select("1.c.0") == "foo"
-    assert c.select("1.c.1") == "bar"
-
-
-def test_list_select_non_int_key() -> None:
-    c = OmegaConf.create([1, 2, 3])
-    with raises(TypeError):
-        c.select("a")
-
-
-def test_select_empty_string_returns_root() -> None:
-    c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}})
-    assert c.select("") == c
+    c = OmegaConf.create({"missing": "???"})
+    with pytest.raises(MissingMandatoryValue):
+        c.select("missing", throw_on_missing=True)
+    assert c.select("missing", throw_on_missing=False) is None
+    assert c.select("missing") is None
