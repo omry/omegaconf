@@ -137,6 +137,16 @@ def test_env_interpolation_not_found() -> None:
     with pytest.raises(KeyError):
         c.path
 
+def test_env_default_interpolation_missing_env() -> None:
+    if os.getenv("foobar") is not None:
+        del os.environ["foobar"]
+    c = OmegaConf.create({path="/test/${env:foobar,abc}"})
+    assert c.path == "/test/abc"
+
+def test_env_default_interpolation_env_exist() -> None:
+    os.environ["foobar"] = "1234"
+    c = OmegaConf.create({path="/test/${env:foobar,abc}"})
+    assert c.path == "/test/1234"
 
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
@@ -282,6 +292,17 @@ def test_copy_cache() -> None:
     OmegaConf.copy_cache(c1, c3)
     assert c3.k == c1.k
 
+def test_clear_cache() -> None:
+    try:
+        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+        c = OmegaConf.create(dict(k="${random:_}"))
+        old = c.k
+        fresh = c.__dict__
+        OmegaConf.clear_cache(c)
+        assert c.__dict__ == fresh
+        assert old != c.k
+    finally:
+        OmegaConf.clear_resolvers()
 
 def test_supported_chars() -> None:
     supported_chars = "%_-abc123."

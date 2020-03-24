@@ -305,6 +305,20 @@ Input yaml file:
     >>> print(conf.user.home)
     /home/omry
 
+You can specify a default value to use in case the environment variable is not defined.
+The following example sets `12345` as the the default value for the `DB_PASSWORD` environment variable.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...       'database': {'password': '${env:DB_PASSWORD,12345}'}
+    ... })
+    >>> print(cfg.database.password)
+    12345
+    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
+    >>> os.environ["DB_PASSWORD"] = 'secret'
+    >>> print(cfg.database.password)
+    'secret'
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
@@ -528,4 +542,3 @@ Creates a copy of a DictConfig that contains only specific keys.
     a:
       b: 10
     <BLANKLINE>
-

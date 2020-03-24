@@ -7,6 +7,7 @@ import re
 import sys
 from contextlib import contextmanager
 from enum import Enum
+from collections import defaultdict
 from typing import (
     IO,
     Any,
@@ -93,11 +94,14 @@ Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
-    def env(key: str) -> Any:
+    def env(key: str, default: str = None) -> Any:
         try:
             return decode_primitive(os.environ[key])
         except KeyError:
-            raise KeyError("Environment variable '{}' not found".format(key))
+            if default is not None:
+                return decode_primitive(default)
+            else:
+                raise KeyError("Environment variable '{}' not found".format(key))
 
     OmegaConf.register_resolver("env", env)
 
@@ -303,6 +307,10 @@ class OmegaConf:
     @staticmethod
     def set_cache(conf: BaseContainer, cache: Dict[str, Any]) -> None:
         conf.__dict__["_resolver_cache"] = copy.deepcopy(cache)
+
+    @staticmethod
+    def clear_cache(conf: BaseContainer) -> None:
+        OmegaConf.set_cache(conf, defaultdict(dict, {}))
 
     @staticmethod
     def copy_cache(from_config: BaseContainer, to_config: BaseContainer) -> None:
