@@ -8,10 +8,20 @@ class TestGetFullKey:
         assert isinstance(c, DictConfig)
         assert c._get_full_key("a") == "a"
 
+    def test_dict_empty_key(self) -> None:
+        c = OmegaConf.create(dict(a=1))
+        assert isinstance(c, DictConfig)
+        assert c._get_full_key("") == ""
+
     def test_list(self) -> None:
         c = OmegaConf.create([1, 2, 3])
         assert isinstance(c, ListConfig)
         assert c._get_full_key("2") == "[2]"
+
+    def test_list_empty_key(self) -> None:
+        c = OmegaConf.create([1, 2, 3])
+        assert isinstance(c, ListConfig)
+        assert c._get_full_key("") == ""
 
     # 2
     def test_dd(self) -> None:
@@ -33,6 +43,11 @@ class TestGetFullKey:
         c = OmegaConf.create([1, 2, dict(a=1)])
         assert isinstance(c, ListConfig)
         assert c[2]._get_full_key("a") == "[2].a"
+
+    def test_dd_empty_key(self) -> None:
+        c = OmegaConf.create(dict(a=1, b=dict(c=1)))
+        assert isinstance(c, DictConfig)
+        assert c.b._get_full_key(key="") == "b"
 
     # 3
     def test_ddd(self) -> None:

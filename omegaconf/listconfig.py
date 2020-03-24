@@ -253,11 +253,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     v = v._value()
                 return v
 
-        if self._is_missing() or self._is_interpolation() or self._is_none():
-            data = []
-        else:
-            data = self._content
-        return MyItems(data)
+        return MyItems(self._content)
 
     def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected

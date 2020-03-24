@@ -478,3 +478,20 @@ def test_get_type() -> None:
 
     cfg = OmegaConf.create({"user": User})
     assert OmegaConf.get_type(cfg.user) == User
+
+
+def test_is_missing() -> None:
+    cfg = OmegaConf.create(
+        {
+            "missing_node": DictConfig(content="???"),
+            "foo": "???",
+            "inter": "${foo}",
+            "str_inter": "zoo_${foo}",
+            "missing_node_inter": "${missing_node}",
+        }
+    )
+    assert cfg.get_node("foo")._is_missing()
+    assert cfg.get_node("inter")._is_missing()
+    assert cfg.get_node("str_inter")._is_missing()
+    assert cfg.get_node("missing_node")._is_missing()
+    assert cfg.get_node("missing_node_inter")._is_missing()
