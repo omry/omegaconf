@@ -131,8 +131,6 @@ class Node(ABC):
             value_kind, match_list = get_value_kind(
                 value=self._value(), return_match_list=True
             )
-            if value_kind == ValueKind.MANDATORY_MISSING:
-                raise MissingMandatoryValue()
             match = match_list[0]
             parent = self._get_parent()
             assert parent is not None
@@ -155,8 +153,17 @@ class Node(ABC):
                     parent=parent,
                     is_optional=self._metadata.optional,
                 )
-            assert False
+            assert False  # pragma: no cover
         else:
+            # not interpolation, compare directly
+            if throw_on_missing:
+
+                if isinstance(self, Container):
+                    value = self.__dict__["_content"]  # TODO normalize
+                else:
+                    value = self._value()
+                if value == "???":
+                    raise MissingMandatoryValue(self._get_full_key(""))
             return self
 
     @abstractmethod
@@ -173,11 +180,11 @@ class Node(ABC):
 
     @abstractmethod
     def _value(self) -> Any:
-        ...
+        ...  # pragma: no cover
 
     @abstractmethod
     def _set_value(self, value: Any) -> None:
-        ...
+        ...  # pragma: no cover
 
     @abstractmethod
     def _is_none(self) -> bool:
@@ -290,40 +297,11 @@ class Container(Node):
     def _resolve_str_interpolation(
         self, key: Any, value: "Node", throw_on_missing: bool
     ) -> Any:
-        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
-        if value_kind in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
-            value = self._resolve_str_inter(
-                key=key,
-                value=value,
-                value_kind=value_kind,
-                match_list=match_list,
-                throw_on_missing=throw_on_missing,
-            )
-
-            if get_value_kind(value=value) in (
-                ValueKind.INTERPOLATION,
-                ValueKind.STR_INTERPOLATION,
-            ):
-                parent = value._get_parent()
-                assert isinstance(parent, Container)
-                ret = parent.__getitem__(value._key())
-                assert isinstance(ret, Node)
-                return ret
-            else:
-                return value
-        else:
-            return value
-
-    def _resolve_str_inter(
-        self,
-        key: Any,
-        value: Any,
-        value_kind: ValueKind,
-        match_list: Any,
-        throw_on_missing: bool,
-    ) -> Any:
-        assert value_kind in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION)
         from .nodes import StringNode
+
+        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
+        if value_kind not in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
+            return value
 
         if value_kind == ValueKind.INTERPOLATION:
             # simple interpolation, inherit type
@@ -352,3 +330,5 @@ class Container(Node):
 
             new += orig[last_index:]
             return StringNode(value=new, key=key)
+        else:
+            assert False  # pragma: no cover

@@ -132,27 +132,30 @@ def test_2_step_interpolation() -> None:
 def test_env_interpolation1() -> None:
     try:
         os.environ["foobar"] = "1234"
-        c = OmegaConf.create(dict(path="/test/${env:foobar}"))
+        c = OmegaConf.create({"path": "/test/${env:foobar}"})
         assert c.path == "/test/1234"
     finally:
         del os.environ["foobar"]
 
 
 def test_env_interpolation_not_found() -> None:
-    c = OmegaConf.create(dict(path="/test/${env:foobar}"))
+    c = OmegaConf.create({"path": "/test/${env:foobar}"})
     with pytest.raises(KeyError):
         c.path
+
 
 def test_env_default_interpolation_missing_env() -> None:
     if os.getenv("foobar") is not None:
         del os.environ["foobar"]
-    c = OmegaConf.create({path="/test/${env:foobar,abc}"})
+    c = OmegaConf.create({"path": "/test/${env:foobar,abc}"})
     assert c.path == "/test/abc"
+
 
 def test_env_default_interpolation_env_exist() -> None:
     os.environ["foobar"] = "1234"
-    c = OmegaConf.create({path="/test/${env:foobar,abc}"})
+    c = OmegaConf.create({"path": "/test/${env:foobar,abc}"})
     assert c.path == "/test/1234"
+
 
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
@@ -263,7 +266,7 @@ def test_resolver_that_allows_a_list_of_arguments(
     assert c[name] == result
 
 
-def test_copy_cache() -> None:
+def test_copy_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
     d = {"k": "${random:_}"}
     c1 = OmegaConf.create(d)
@@ -280,17 +283,16 @@ def test_copy_cache() -> None:
     OmegaConf.copy_cache(c1, c3)
     assert c3.k == c1.k
 
-def test_clear_cache() -> None:
-    try:
-        OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-        c = OmegaConf.create(dict(k="${random:_}"))
-        old = c.k
-        fresh = c.__dict__
-        OmegaConf.clear_cache(c)
-        assert c.__dict__ == fresh
-        assert old != c.k
-    finally:
-        OmegaConf.clear_resolvers()
+
+def test_clear_cache(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    c = OmegaConf.create(dict(k="${random:_}"))
+    old = c.k
+    fresh = c.__dict__
+    OmegaConf.clear_cache(c)
+    assert c.__dict__ == fresh
+    assert old != c.k
+
 
 def test_supported_chars() -> None:
     supported_chars = "%_-abc123."

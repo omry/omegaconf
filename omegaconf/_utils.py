@@ -374,8 +374,11 @@ def _is_interpolation(v: Any) -> bool:
 
 
 def _get_value(value: Any) -> Any:
-    from .base import Node
+    from .base import Container
+    from .nodes import ValueNode
 
-    if isinstance(value, Node):
+    if isinstance(value, Container) and value._is_none():
+        return None
+    if isinstance(value, ValueNode):
         value = value._value()
     return value

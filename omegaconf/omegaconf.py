@@ -5,9 +5,9 @@ import os
 import pathlib
 import re
 import sys
+from collections import defaultdict
 from contextlib import contextmanager
 from enum import Enum
-from collections import defaultdict
 from typing import (
     IO,
     Any,
@@ -102,7 +102,7 @@ Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
-    def env(key: str, default: str = None) -> Any:
+    def env(key: str, default: Optional[str] = None) -> Any:
         try:
             return decode_primitive(os.environ[key])
         except KeyError:

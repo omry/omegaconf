@@ -2,7 +2,7 @@ from typing import Any, List
 
 import pytest
 
-from omegaconf import AnyNode, OmegaConf
+from omegaconf import AnyNode, DictConfig, OmegaConf
 from omegaconf.basecontainer import BaseContainer
 
 from . import Group, User
@@ -43,6 +43,7 @@ from . import Group, User
         (dict(a=12, b=[1, 2, AnyNode(3)]), dict(a=12, b=[1, 2, AnyNode(3)])),
         # In python 3.6+ insert order changes iteration order. this ensures that equality is preserved.
         (dict(a=1, b=2, c=3, d=4, e=5), dict(e=5, b=2, c=3, d=4, a=1)),
+        (DictConfig(content=None), DictConfig(content=None)),
         # With interpolations
         ([10, "${0}"], [10, 10]),
         (dict(a=12, b="${a}"), dict(a=12, b=12)),

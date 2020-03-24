@@ -3,6 +3,7 @@ from typing import Any, Tuple
 import pytest
 
 from omegaconf import MISSING, DictConfig, OmegaConf, ValidationError, _utils, nodes
+from omegaconf.errors import ReadonlyConfigError
 
 from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
 
@@ -157,6 +158,20 @@ def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
     merge = None if merge is None else OmegaConf.create(merge)
     with pytest.raises(exception):
         OmegaConf.merge(base, merge)
+
+
+def test_into_readonly_dict() -> None:
+    cfg = OmegaConf.create({"foo": "bar"})
+    OmegaConf.set_readonly(cfg, True)
+    with pytest.raises(ReadonlyConfigError):
+        OmegaConf.merge(cfg, {"zoo": "foo"})
+
+
+def test_into_readonly_list() -> None:
+    cfg = OmegaConf.create([1, 2, 3])
+    OmegaConf.set_readonly(cfg, True)
+    with pytest.raises(ReadonlyConfigError):
+        OmegaConf.merge(cfg, [4, 5, 6])
 
 
 def test_parent_maintained() -> None:

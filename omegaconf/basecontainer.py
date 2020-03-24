@@ -479,11 +479,8 @@ class BaseContainer(Container, ABC):
 
     def _is_missing(self) -> bool:
         try:
-            node = self._dereference_node()
-            if isinstance(node, Container):
-                ret = self.__dict__["_content"] == "???"
-            else:
-                ret = node._value() == "???"
+            self._dereference_node(throw_on_missing=True)
+            return False
         except MissingMandatoryValue:
             ret = True
 
@@ -498,13 +495,11 @@ class BaseContainer(Container, ABC):
 
     @abstractmethod
     def _validate_get(self, key: Any) -> None:
-        ...
+        ...  # pragma: no cover
 
     @abstractmethod
     def _validate_set(self, key: Any, value: Any) -> None:
-        ...
+        ...  # pragma: no cover
 
     def _value(self) -> Any:
-        if self._is_none():
-            return None
-        return self
+        return self.__dict__["_content"]

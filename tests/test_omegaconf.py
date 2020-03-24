@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type
+from typing import Any, Type
 
 import pytest
 from pytest import raises
@@ -37,6 +37,13 @@ from . import Color, ConcretePlugin, StructuredWithMissing, does_not_raise
             "foo",
             False,
             raises(UnsupportedInterpolationType),
+        ),
+        ({"foo": StringNode(value="???")}, "foo", True, raises(MissingMandatoryValue)),
+        (
+            {"foo": StringNode(value="???"), "inter": "${foo}"},
+            "inter",
+            True,
+            raises(MissingMandatoryValue),
         ),
         (StructuredWithMissing, "num", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_num", True, raises(MissingMandatoryValue)),
@@ -268,6 +275,8 @@ def test_is_interpolation(fac):
     assert not OmegaConf.is_interpolation(obj)
     cfg = OmegaConf.create({"node": obj})
     assert not OmegaConf.is_interpolation(cfg, "node")
+
+    assert not OmegaConf.is_interpolation(cfg, "missing")
 
     for inter in ["${foo}", "http://${url}", "${resolver:value}"]:
         obj = fac(inter=inter)

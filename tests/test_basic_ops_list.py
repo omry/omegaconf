@@ -57,6 +57,12 @@ def test_iterate_list() -> None:
     assert items[1] == 2
 
 
+def test_iterate_interpolated_list() -> None:
+    cfg = OmegaConf.create({"inter": "${list}", "list": [1, 2, 3]})
+    items = [x for x in cfg.inter]
+    assert items == [1, 2, 3]
+
+
 def test_items_with_interpolation() -> None:
     c = OmegaConf.create(["foo", "${0}"])
     assert c == ["foo", "foo"]
