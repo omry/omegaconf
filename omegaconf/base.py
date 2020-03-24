@@ -79,48 +79,56 @@ class Node(ABC):
             # noinspection PyProtectedMember
             return parent._get_flag(flag)
 
-    # TODO: simplify now that each node has it's own key
     def _get_full_key(self, key: Union[str, Enum, int]) -> str:
-        from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .omegaconf import _select_one
 
-        full_key = ""
-        child = None
-        cur: Optional[Node] = self
-        while cur is not None:
-            if isinstance(cur, DictConfig):
-                if child is None:
-                    full_key = "{}".format(key)
-                else:
-                    # find which the key for child in the parent
-                    for parent_key in cur.keys():
-                        if id(cur.get_node(parent_key)) == id(child):
-                            if isinstance(child, ListConfig):
-                                full_key = "{}{}".format(parent_key, full_key)
-                            else:
-                                if full_key == "":
-                                    full_key = parent_key
-                                else:
-                                    full_key = "{}.{}".format(parent_key, full_key)
-                            break
-            elif isinstance(cur, ListConfig):
-                if child is None:
-                    if key == "":
-                        full_key = f"{key}"
+        def prepand(full_key: str, parent_type: Any, cur_type: Any, key: Any) -> str:
+            if issubclass(parent_type, ListConfig):
+                if full_key != "":
+                    if issubclass(cur_type, ListConfig):
+                        full_key = f"[{key}]{full_key}"
                     else:
-                        full_key = f"[{key}]"
+                        full_key = f"[{key}].{full_key}"
                 else:
-                    for idx, v in enumerate(cur):
-                        if id(v) == id(child):
-                            if isinstance(child, ListConfig):
-                                full_key = "[{}]{}".format(idx, full_key)
-                            else:
-                                full_key = "[{}].{}".format(idx, full_key)
-                            break
-            child = cur
-            parent = child._get_parent()
-            assert parent is None or isinstance(parent, Container)
-            cur = parent
+                    full_key = f"[{key}]"
+            else:
+                if full_key == "":
+                    full_key = key
+                else:
+                    if issubclass(cur_type, ListConfig):
+                        full_key = f"{key}{full_key}"
+                    else:
+                        full_key = f"{key}.{full_key}"
+            return full_key
+
+        if key is not None and key != "":
+            assert isinstance(self, Container)
+            cur, _ = _select_one(c=self, key=str(key), throw_on_missing=False)
+            if cur is None:
+                cur = self
+                full_key = prepand("", type(cur), None, key)
+                if cur._key() is not None:
+                    full_key = prepand(
+                        full_key, type(cur._get_parent()), type(cur), cur._key()
+                    )
+            else:
+                full_key = prepand("", type(cur._get_parent()), type(cur), cur._key())
+        else:
+            cur = self
+            if cur._key() is None:
+                return ""
+            full_key = self._key()
+
+        assert cur is not None
+        while cur._get_parent() is not None:
+            cur = cur._get_parent()
+            assert cur is not None
+            key = cur._key()
+            if key is not None:
+                full_key = prepand(
+                    full_key, type(cur._get_parent()), type(cur), cur._key()
+                )
 
         return full_key
 
