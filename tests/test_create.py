@@ -91,14 +91,12 @@ def test_create_list_with_illegal_value_idx1() -> None:
 
 def test_create_dict_with_illegal_value() -> None:
     with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
-        OmegaConf.create(dict(a=IllegalType()))
+        OmegaConf.create({"a": IllegalType()})
 
 
-# TODO: improve exception message to contain full key a.b
-# https://github.com/omry/omegaconf/issues/14
 def test_create_nested_dict_with_illegal_value() -> None:
-    with pytest.raises(ValueError):
-        OmegaConf.create(dict(a=dict(b=IllegalType())))
+    with pytest.raises(ValueError, match=re.escape("key: a.b")):
+        OmegaConf.create({"a": {"b": IllegalType()}})
 
 
 def test_create_from_oc() -> None:

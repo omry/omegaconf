@@ -1,99 +1,76 @@
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from typing import Any
+
+import pytest
+
+from omegaconf import OmegaConf
 
 
-class TestGetFullKey:
-    # 1
-    def test_dict(self) -> None:
-        c = OmegaConf.create(dict(a=1))
-        assert isinstance(c, DictConfig)
-        assert c._get_full_key("a") == "a"
-
-    def test_dict_empty_key(self) -> None:
-        c = OmegaConf.create(dict(a=1))
-        assert isinstance(c, DictConfig)
-        assert c._get_full_key("") == ""
-
-    def test_list(self) -> None:
-        c = OmegaConf.create([1, 2, 3])
-        assert isinstance(c, ListConfig)
-        assert c._get_full_key("2") == "[2]"
-
-    def test_list_empty_key(self) -> None:
-        c = OmegaConf.create([1, 2, 3])
-        assert isinstance(c, ListConfig)
-        assert c._get_full_key("") == ""
-
-    # 2
-    def test_dd(self) -> None:
-        c = OmegaConf.create(dict(a=1, b=dict(c=1)))
-        assert isinstance(c, DictConfig)
-        assert c.b._get_full_key("c") == "b.c"
-
-    def test_dl(self) -> None:
-        c = OmegaConf.create(dict(a=[1, 2, 3]))
-        assert isinstance(c, DictConfig)
-        assert c.a._get_full_key(1) == "a[1]"
-
-    def test_ll(self) -> None:
-        c = OmegaConf.create([[1, 2, 3]])
-        assert isinstance(c, ListConfig)
-        assert c[0]._get_full_key("2") == "[0][2]"
-
-    def test_ld(self) -> None:
-        c = OmegaConf.create([1, 2, dict(a=1)])
-        assert isinstance(c, ListConfig)
-        assert c[2]._get_full_key("a") == "[2].a"
-
-    def test_dd_empty_key(self) -> None:
-        c = OmegaConf.create(dict(a=1, b=dict(c=1)))
-        assert isinstance(c, DictConfig)
-        assert c.b._get_full_key(key="") == "b"
-
-    # 3
-    def test_ddd(self) -> None:
-        c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
-        assert isinstance(c, DictConfig)
-        assert c.a.b._get_full_key("c") == "a.b.c"
-
-    def test_ddl(self) -> None:
-        c = OmegaConf.create(dict(a=dict(b=[0, 1])))
-        assert c.a.b._get_full_key(0) == "a.b[0]"
-
-    def test_dll(self) -> None:
-        c = OmegaConf.create(dict(a=[1, [2]]))
-        assert c.a[1]._get_full_key(0) == "a[1][0]"
-
-    def test_dld(self) -> None:
-        c = OmegaConf.create(dict(a=[dict(b=2)]))
-        assert c.a[0]._get_full_key("b") == "a[0].b"
-
-    def test_ldd(self) -> None:
-        c = OmegaConf.create([dict(a=dict(b=1))])
-        assert isinstance(c, ListConfig)
-        assert c[0].a._get_full_key("b") == "[0].a.b"
-
-    def test_ldl(self) -> None:
-        c = OmegaConf.create([dict(a=[0])])
-        assert isinstance(c, ListConfig)
-        assert c[0].a._get_full_key(0) == "[0].a[0]"
-
-    def test_lll(self) -> None:
-        c = OmegaConf.create([[[0]]])
-        assert isinstance(c, ListConfig)
-        assert c[0][0]._get_full_key(0) == "[0][0][0]"
-
-    def test_lld(self) -> None:
-        c = OmegaConf.create([[dict(a=1)]])
-        assert isinstance(c, ListConfig)
-        assert c[0][0]._get_full_key("a") == "[0][0].a"
-
-    def test_lldddl(self) -> None:
-        c = OmegaConf.create([[dict(a=dict(a=[0]))]])
-        assert isinstance(c, ListConfig)
-        assert c[0][0].a.a._get_full_key(0) == "[0][0].a.a[0]"
-
-    # special cases
-    def test_parent_with_missing_item(self) -> None:
-        c = OmegaConf.create(dict(x="???", a=1, b=dict(c=1)))
-        assert isinstance(c, DictConfig)
-        assert c.b._get_full_key("c") == "b.c"
+@pytest.mark.parametrize(
+    "cfg, select, key, expected",
+    [
+        ({}, "", "a", "a"),
+        # 1
+        # dict
+        ({"a": 1}, "", "a", "a"),
+        ({"a": 1}, "", "bad", "bad"),
+        # dict empty key
+        ({"a": 1}, "", "", ""),
+        ({"a": 1}, "", "bad", "bad"),
+        # list
+        ([1, 2, 3], "", "2", "[2]"),
+        ([1, 2, 3], "", "999", "[999]"),
+        # list empty key
+        ([1, 2, 3], "", "", ""),
+        ([1, 2, 3], "", "999", "[999]"),
+        # 2
+        # dd
+        ({"a": 1, "b": {"c": 1}}, "b", "c", "b.c"),
+        ({"a": 1, "b": {"c": 1}}, "b", "bad", "b.bad"),
+        # dl
+        ({"a": [1, 2, 3]}, "a", 1, "a[1]"),
+        ({"a": [1, 2, 3]}, "a", 999, "a[999]"),
+        # ll
+        ([[1, 2, 3]], "0", "2", "[0][2]"),
+        ([[1, 2, 3]], "0", "999", "[0][999]"),
+        # ld
+        ([1, 2, {"a": 1}], "2", "a", "[2].a"),
+        ([1, 2, {"a": 1}], "2", "bad", "[2].bad"),
+        # dd empty key
+        ({"a": 1, "b": {"c": 1}}, "b", "", "b"),
+        ({"a": 1, "b": {"c": 1}}, "b", "bad", "b.bad"),
+        # 3
+        # ddd
+        ({"a": {"b": {"c": 1}}}, "a.b", "c", "a.b.c"),
+        ({"a": {"b": {"c": 1}}}, "a.b", "bad", "a.b.bad"),
+        # ddl
+        ({"a": {"b": [0, 1]}}, "a.b", 0, "a.b[0]"),
+        ({"a": {"b": [0, 1]}}, "a.b", 999, "a.b[999]"),
+        # dll
+        ({"a": [1, [2]]}, "a.1", 0, "a[1][0]"),
+        ({"a": [1, [2]]}, "a.1", 999, "a[1][999]"),
+        # dld
+        ({"a": [{"b": 2}]}, "a.0", "b", "a[0].b"),
+        ({"a": [{"b": 2}]}, "a.0", "bad", "a[0].bad"),
+        # ldd
+        ([{"a": {"b": 1}}], "0.a", "b", "[0].a.b"),
+        ([{"a": {"b": 1}}], "0.a", "bad", "[0].a.bad"),
+        # ldl
+        ([{"a": [0]}], "0.a", 0, "[0].a[0]"),
+        ([{"a": [0]}], "0.a", 999, "[0].a[999]"),
+        # lld
+        ([[{"a": 1}]], "0.0", "a", "[0][0].a"),
+        ([[{"a": 1}]], "0.0", "bad", "[0][0].bad"),
+        # lll
+        ([[[0]]], "0.0", 0, "[0][0][0]"),
+        # lldddl
+        ([[{"a": {"a": [0]}}]], "0.0.a.a", 0, "[0][0].a.a[0]"),
+        # special cases
+        # parent_with_missing_item
+        ({"x": "???", "a": 1, "b": {"c": 1}}, "b", "c", "b.c"),
+    ],
+)
+class TestGetFullKeyMatrix:
+    def test(self, cfg: Any, select: str, key: Any, expected: Any) -> None:
+        c = OmegaConf.create(cfg)
+        node = c.select(select)
+        assert node._get_full_key(key) == expected

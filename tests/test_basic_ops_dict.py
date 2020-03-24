@@ -315,13 +315,13 @@ def test_dict_len(d: Any, expected: Any) -> None:
 
 
 def test_dict_assign_illegal_value() -> None:
-    c = OmegaConf.create(dict())
+    c = OmegaConf.create()
     with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
         c.a = IllegalType()
 
 
 def test_dict_assign_illegal_value_nested() -> None:
-    c = OmegaConf.create(dict(a=dict()))
+    c = OmegaConf.create({"a": {}})
     with pytest.raises(UnsupportedValueType, match=re.escape("key: a.b")):
         c.a.b = IllegalType()
 
