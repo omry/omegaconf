@@ -260,8 +260,7 @@ class Container(Node):
     def _resolve_interpolation(
         self, key: Any, inter_type: str, inter_key: str, throw_on_missing: bool,
     ) -> "Node":
-        from omegaconf import OmegaConf
-
+        from omegaconf import OmegaConf  # isort:skip
         from .nodes import ValueNode
 
         root_node = self._get_root()
