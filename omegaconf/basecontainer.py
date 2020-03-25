@@ -256,7 +256,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import OmegaConf  # isort:skip
+        from omegaconf import OmegaConf
 
         from .dictconfig import DictConfig
         from .nodes import ValueNode
@@ -335,7 +335,7 @@ class BaseContainer(Container, ABC):
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:
-        from omegaconf.omegaconf import OmegaConf, _maybe_wrap  # isort:skip
+        from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
         from .nodes import ValueNode
 
@@ -442,7 +442,7 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _config_eq(c1: "BaseContainer", c2: "BaseContainer") -> bool:
-        from .dictconfig import DictConfig  # isort:skip
+        from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
         assert isinstance(c1, Container)
@@ -455,8 +455,8 @@ class BaseContainer(Container, ABC):
         return False
 
     def _re_parent(self) -> None:
-        from .dictconfig import DictConfig  # isort:skip
-        from .listconfig import ListConfig  # isort:skip
+        from .dictconfig import DictConfig
+        from .listconfig import ListConfig
 
         # update parents of first level Config nodes to self
 
