@@ -10,6 +10,7 @@ from typing import (
     MutableSequence,
     Optional,
     Tuple,
+    Type,
     Union,
 )
 
@@ -32,12 +33,17 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
-        element_type: Any = Any,
+        element_type: Optional[Type[Any]] = None,
     ) -> None:
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
-                key=key, optional=is_optional, element_type=element_type
+                ref_type=list,
+                object_type=list,
+                key=key,
+                optional=is_optional,
+                element_type=element_type,
+                key_type=int,
             ),
         )
         self._set_value(value=content)
@@ -121,7 +127,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
             self.__dict__["_content"].append(
                 _maybe_wrap(
-                    annotated_type=self._metadata.element_type,
+                    ref_type=self._metadata.element_type,
                     key=index,
                     value=item,
                     is_optional=OmegaConf.is_optional(item),

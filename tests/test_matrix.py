@@ -84,7 +84,7 @@ def verify(
         # dataclass
         (
             lambda value, is_optional, key=None: DictConfig(
-                annotated_type=Group, is_optional=is_optional, content=value, key=key
+                ref_type=Group, is_optional=is_optional, content=value, key=key
             ),
             [Group, Group()],
         ),

@@ -94,7 +94,8 @@ class TestConfigs:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.NestedWithNone)
         assert cfg == {"plugin": None}
-        assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
+        assert OmegaConf.get_type(cfg, "plugin") is None
+        assert OmegaConf.get_ref_type(cfg, "plugin") == module.Plugin
 
     def test_nested_config(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -415,13 +416,18 @@ class TestConfigs:
         res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
         assert OmegaConf.get_type(res) == input_
 
+    # TODO:
+    # define and test behavior for merging and overriding considering both the ref type and the object type.
+    # consider also the case for no object type (None or MISSING)
+    # ensure object type is inherited on node value interpolation
+    # define behavior when interpolation would cause an incompatibility between ref type and object type.
+
     def test_merged_with_subclass(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
         module: Any = import_module(class_type)
-        res = OmegaConf.merge(
-            OmegaConf.structured(module.Nested),
-            OmegaConf.structured(module.NestedSubclass),
-        )
+        c1 = OmegaConf.structured(module.Nested)
+        c2 = OmegaConf.structured(module.NestedSubclass)
+        res = OmegaConf.merge(c1, c2)
         assert OmegaConf.get_type(res) == module.NestedSubclass
 
     def test_typed_dict_key_error(self, class_type: str) -> None:

@@ -13,7 +13,9 @@ from ._utils import (
     _is_interpolation,
     get_value_kind,
     get_yaml_loader,
+    is_dict_annotation,
     is_primitive_container,
+    is_primitive_dict,
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
@@ -243,44 +245,44 @@ class BaseContainer(Container, ABC):
         assert isinstance(src, DictConfig)
         src = copy.deepcopy(src)
         src_type = src._metadata.object_type
-        dest_type = dest._metadata.object_type
 
-        if src_type is not None and src_type is not dest_type:
-            prototype = DictConfig(annotated_type=src_type, content=src_type,)
+        # disable object time during the merge
+        type_backup = dest._metadata.object_type
+        dest._metadata.object_type = None
 
-            dest.__dict__["_content"] = copy.deepcopy(prototype.__dict__["_content"])
-            dest.__dict__["_metadata"] = copy.deepcopy(prototype._metadata)
-
-        for key, value in src.items_ex(resolve=False):
+        for key, src_value in src.items_ex(resolve=False):
 
             dest_element_type = dest._metadata.element_type
-            typed = dest_element_type not in (None, Any)
+            element_typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
-                if isinstance(value, DictConfig):
-                    if OmegaConf.is_missing(src, key):
-                        dest[key] = DictConfig(content="???")
-                    else:
-                        dest[key] = {}
-            if (dest.get_node(key) is not None) or typed:
+                if isinstance(src_value, DictConfig):
+                    if key not in dest:
+                        dest[key] = src_value
+            if (dest.get_node(key) is not None) or element_typed:
                 dest_node = dest.get_node(key)
-                if dest_node is None and typed:
+                if dest_node is None and element_typed:
                     dest[key] = DictConfig(content=dest_element_type, parent=dest)
                     dest_node = dest.get_node(key)
 
                 if isinstance(dest_node, BaseContainer):
-                    if isinstance(value, BaseContainer):
-                        dest._validate_set(key=key, value=value)
-                        dest_node.merge_with(value)
+                    if isinstance(src_value, BaseContainer):
+                        dest._validate_merge(key=key, value=src_value)
+                        dest_node.merge_with(src_value)
                     else:
-                        dest.__setitem__(key, value)
+                        dest.__setitem__(key, src_value)
                 else:
-                    if isinstance(value, BaseContainer):
-                        dest.__setitem__(key, value)
+                    if isinstance(src_value, BaseContainer):
+                        dest.__setitem__(key, src_value)
                     else:
                         assert isinstance(dest_node, ValueNode)
-                        dest_node._set_value(value)
+                        dest_node._set_value(src_value)
             else:
                 dest[key] = src.get_node(key)
+
+        if src_type is not Any and not is_primitive_dict(src_type):
+            dest._metadata.object_type = src_type
+        else:
+            dest._metadata.object_type = type_backup
 
     def merge_with(
         self,
@@ -341,11 +343,15 @@ class BaseContainer(Container, ABC):
 
         def wrap(key: Any, val: Any) -> Node:
             if is_structured_config(val):
-                type_ = OmegaConf.get_type(val)
+                annotated_type = OmegaConf.get_type(val)
             else:
-                type_ = self._metadata.element_type
+                annotated_type = self._metadata.element_type
             return _maybe_wrap(
-                annotated_type=type_, key=key, value=val, is_optional=True, parent=self,
+                ref_type=annotated_type,
+                key=key,
+                value=val,
+                is_optional=True,
+                parent=self,
             )
 
         def assign(value_key: Any, value_to_assign: Any) -> None:

@@ -1,4 +1,4 @@
-from typing import Any, Type
+from typing import Any
 
 import pytest
 from pytest import raises
@@ -86,28 +86,72 @@ def test_is_missing_resets() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "cfg, is_conf, is_list, is_dict, type_",
+    "cfg, expected",
     [
-        (None, False, False, False, None),
-        ({}, False, False, False, None),
-        ("aa", False, False, False, None),
-        (10, False, False, False, None),
-        (True, False, False, False, None),
-        (bool, False, False, False, None),
-        (StringNode("foo"), False, False, False, None),
-        (OmegaConf.create({}), True, False, True, None),
-        (OmegaConf.create([]), True, True, False, None),
-        (OmegaConf.structured(ConcretePlugin), True, False, True, ConcretePlugin),
-        (OmegaConf.structured(ConcretePlugin()), True, False, True, ConcretePlugin),
+        (None, False),
+        ({}, False),
+        ([], False),
+        ("aa", False),
+        (10, False),
+        (True, False),
+        (bool, False),
+        (StringNode("foo"), False),
+        (ConcretePlugin, False),
+        (ConcretePlugin(), False),
+        (OmegaConf.create({}), True),
+        (OmegaConf.create([]), True),
+        (OmegaConf.structured(ConcretePlugin), True),
+        (OmegaConf.structured(ConcretePlugin()), True),
     ],
 )
-def test_is_config(
-    cfg: Any, is_conf: bool, is_list: bool, is_dict: bool, type_: Type[Any]
-) -> None:
-    assert OmegaConf.is_config(cfg) == is_conf
-    assert OmegaConf.is_list(cfg) == is_list
-    assert OmegaConf.is_dict(cfg) == is_dict
-    assert OmegaConf.get_type(cfg) == type_
+def test_is_config(cfg: Any, expected: bool) -> None:
+    assert OmegaConf.is_config(cfg) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, expected",
+    [
+        (None, False),
+        ({}, False),
+        ([], False),
+        ("aa", False),
+        (10, False),
+        (True, False),
+        (bool, False),
+        (StringNode("foo"), False),
+        (ConcretePlugin, False),
+        (ConcretePlugin(), False),
+        (OmegaConf.create({}), False),
+        (OmegaConf.create([]), True),
+        (OmegaConf.structured(ConcretePlugin), False),
+        (OmegaConf.structured(ConcretePlugin()), False),
+    ],
+)
+def test_is_list(cfg: Any, expected: bool) -> None:
+    assert OmegaConf.is_list(cfg) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, expected",
+    [
+        (None, False),
+        ({}, False),
+        ([], False),
+        ("aa", False),
+        (10, False),
+        (True, False),
+        (bool, False),
+        (StringNode("foo"), False),
+        (ConcretePlugin, False),
+        (ConcretePlugin(), False),
+        (OmegaConf.create({}), True),
+        (OmegaConf.create([]), False),
+        (OmegaConf.structured(ConcretePlugin), True),
+        (OmegaConf.structured(ConcretePlugin()), True),
+    ],
+)
+def test_is_dict(cfg: Any, expected: bool) -> None:
+    assert OmegaConf.is_dict(cfg) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -156,7 +200,7 @@ def test_is_config(
         ),
         (
             lambda is_optional, missing: DictConfig(
-                annotated_type=ConcretePlugin,
+                ref_type=ConcretePlugin,
                 content=ConcretePlugin() if not missing else "???",
                 is_optional=is_optional,
             )
@@ -206,7 +250,7 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
         ),
         (
             lambda none: DictConfig(
-                annotated_type=ConcretePlugin,
+                ref_type=ConcretePlugin,
                 content=ConcretePlugin() if not none else None,
                 is_optional=True,
             )
@@ -263,7 +307,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
         ),
         (
             lambda inter: DictConfig(
-                annotated_type=ConcretePlugin,
+                ref_type=ConcretePlugin,
                 content=ConcretePlugin() if inter is None else inter,
                 is_optional=True,
             )
@@ -283,3 +327,24 @@ def test_is_interpolation(fac):
         assert OmegaConf.is_interpolation(obj)
         cfg = OmegaConf.create({"node": obj})
         assert OmegaConf.is_interpolation(cfg, "node")
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, type_",
+    [
+        ({"foo": 10}, int),
+        ({"foo": 10.0}, float),
+        ({"foo": True}, bool),
+        ({"foo": "bar"}, str),
+        ({"foo": None}, type(None)),
+        ({"foo": ConcretePlugin()}, ConcretePlugin),
+        ({"foo": ConcretePlugin}, ConcretePlugin),
+        ({"foo": {}}, dict),
+        ({"foo": OmegaConf.create()}, dict),
+        ({"foo": []}, list),
+        ({"foo": OmegaConf.create([])}, list),
+    ],
+)
+def test_get_type(cfg: Any, type_: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    assert OmegaConf.get_type(cfg, "foo") == type_

@@ -66,7 +66,9 @@ class TestStructured:
         def test_error_message(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.structured(module.StructuredOptional)
-            msg = re.escape("Cannot assign Nested=None (field is not Optional)")
+            msg = re.escape(
+                "Error setting 'not_optional = None' : field is not Optional"
+            )
             with pytest.raises(ValidationError, match=msg):
                 cfg.not_optional = None
 
@@ -98,15 +100,18 @@ class TestStructured:
 
     def test_get_type(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        linked_list = module.LinkedList
-        cfg1 = OmegaConf.create(linked_list)
-        assert OmegaConf.get_type(cfg1) == linked_list
+        cfg1 = OmegaConf.create(module.LinkedList)
+        assert OmegaConf.get_type(cfg1) == module.LinkedList
+        assert OmegaConf.get_ref_type(cfg1, "next") == module.LinkedList
+        assert OmegaConf.get_type(cfg1, "next") is None
+
         assert cfg1.next is None
         assert OmegaConf.is_missing(cfg1, "value")
 
         cfg2 = OmegaConf.create(module.MissingTest.Missing1)
         assert OmegaConf.is_missing(cfg2, "head")
-        assert OmegaConf.get_type(cfg2, "head") == module.LinkedList
+        assert OmegaConf.get_ref_type(cfg2, "head") == module.LinkedList
+        assert OmegaConf.get_type(cfg2, "head") is None
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:
@@ -114,7 +119,7 @@ class TestStructured:
             cfg = OmegaConf.create(module.MissingTest.Missing1)
             assert OmegaConf.is_missing(cfg, "head")
 
-            assert OmegaConf.get_type(cfg, "head") == module.LinkedList
+            assert OmegaConf.get_type(cfg, "head") is None
 
             with pytest.raises(ValidationError):
                 cfg.head = 10

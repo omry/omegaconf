@@ -11,21 +11,26 @@ from .errors import MissingMandatoryValue, UnsupportedInterpolationType
 @dataclass
 class Metadata:
 
-    optional: bool = True
+    ref_type: Optional[Type[Any]]
 
-    key: Any = None
+    object_type: Optional[Type[Any]]
+
+    optional: bool
+
+    key: Any
 
     # Flags have 3 modes:
     #   unset : inherit from parent (None if no parent specifies)
     #   set to true: flag is true
     #   set to false: flag is false
     flags: Dict[str, bool] = field(default_factory=dict)
+    resolver_cache: Dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
 
 
 @dataclass
 class ContainerMetadata(Metadata):
-    element_type: Type[Any] = None  # type:ignore
-    resolver_cache: Dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
+    key_type: Any = None
+    element_type: Any = None
 
 
 class Node(ABC):
@@ -326,8 +331,12 @@ class Container(Node):
                 return ValueNode(
                     value=value,
                     parent=self,
-                    key=key,
-                    is_optional=node._metadata.optional,
+                    metadata=Metadata(
+                        ref_type=None,
+                        object_type=None,
+                        key=key,
+                        optional=node._metadata.optional,
+                    ),
                 )
             else:
                 raise UnsupportedInterpolationType(
