@@ -22,7 +22,7 @@ from . import IllegalType
         ("hello", {"hello": None}),
         # simple key:value"
         ("hello: world", {"hello": "world"}),
-        (dict(hello=dict(a=2)), {"hello": {"a": 2}}),
+        ({"hello": {"a": 2}}, {"hello": {"a": 2}}),
         # empty input
         ("", {}),
         # list value
@@ -38,6 +38,7 @@ from . import IllegalType
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
             {"a": 2, "b": {"c": {"f": 1}, "d": {}}},
         ),
+        ({"a": None}, {"a": None}),
         ({"foo": "${missing}"}, {"foo": "${missing}"}),
         (OmegaConf.create({"foo": "${missing}"}), {"foo": "${missing}"}),
         (OmegaConf.create(), {}),

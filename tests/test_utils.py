@@ -67,11 +67,7 @@ def test_maybe_wrap(target_type: type, value: Any, expectation: Any) -> None:
         from omegaconf.omegaconf import _maybe_wrap
 
         _maybe_wrap(
-            annotated_type=target_type,
-            key=None,
-            value=value,
-            is_optional=False,
-            parent=None,
+            ref_type=target_type, key=None, value=value, is_optional=False, parent=None,
         )
 
 

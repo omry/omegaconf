@@ -1,5 +1,4 @@
 import copy
-from dataclasses import dataclass
 from enum import Enum
 from typing import (
     AbstractSet,
@@ -19,6 +18,8 @@ from ._utils import (
     _is_interpolation,
     get_structured_config_data,
     get_type_of,
+    is_dict,
+    is_dict_annotation,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -36,44 +37,37 @@ from .errors import (
 from .nodes import EnumNode, ValueNode
 
 
-@dataclass
-class DictConfigMetadata(ContainerMetadata):
-    object_type: Optional[Type[Any]] = None
-    annotated_type: Optional[Type[Any]] = None
-    key_type: Any = Any
-
-
 class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
-    _metadata: DictConfigMetadata
+    _metadata: ContainerMetadata
 
     def __init__(
         self,
         content: Union[Dict[str, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
-        annotated_type: Optional[Type[Any]] = None,
+        ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
-        key_type: Any = Any,
-        element_type: Any = Any,
+        key_type: Any = None,
+        element_type: Any = None,
     ) -> None:
+
         super().__init__(
             parent=parent,
-            metadata=DictConfigMetadata(
+            metadata=ContainerMetadata(
                 key=key,
                 optional=is_optional,
                 element_type=element_type,
-                object_type=None,
                 key_type=key_type,
+                ref_type=ref_type,
+                object_type=None,
             ),
         )
 
-        if is_structured_config(annotated_type):
-            self._metadata.annotated_type = annotated_type
-        if is_structured_config(content) or is_structured_config(annotated_type):
+        if is_structured_config(content) or is_structured_config(ref_type):
             self._set_value(content)
             if is_structured_config_frozen(content) or is_structured_config_frozen(
-                annotated_type
+                ref_type
             ):
                 self._set_flag("readonly", True)
 
@@ -84,7 +78,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 metadata.key = key
                 metadata.optional = is_optional
                 metadata.element_type = element_type
-                metadata.object_type = None
                 metadata.key_type = key_type
                 self.__dict__["_metadata"] = metadata
 
@@ -106,16 +99,16 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return copy.copy(self)
 
     def _validate_get(self, key: Union[int, str, Enum]) -> None:
-        is_typed = self._metadata.object_type is not None
+        is_typed = self._metadata.object_type not in (Any, None,) and not (
+            # TODO: consider folding two checks into one is_dict call.
+            is_dict_annotation(self._metadata.object_type)
+            or is_primitive_dict(self._metadata.object_type)
+        )
         is_struct = self._get_flag("struct") is True
         if key not in self.__dict__["_content"]:
             if is_typed:
                 # do not raise an exception if struct is explicitly set to False
                 if self._get_node_flag("struct") is False:
-                    return
-                # Or if type is a subclass if dict
-                assert self._metadata.object_type is not None
-                if issubclass(self._metadata.object_type, dict):
                     return
             if is_typed or is_struct:
                 if is_typed:
@@ -127,8 +120,20 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     )
                 raise AttributeError(msg)
 
+    def _validate_merge(self, key: Any, value: Any) -> None:
+        self._validate_set_merge_impl(key, value, is_assign=False)
+
     def _validate_set(self, key: Any, value: Any) -> None:
-        target = self.get_node(key)
+        self._validate_set_merge_impl(key, value, is_assign=True)
+
+    def _validate_set_merge_impl(self, key: Any, value: Any, is_assign: bool) -> None:
+        from omegaconf import OmegaConf
+
+        target: Node
+        if key is None:
+            target = self
+        else:
+            target = self.get_node(key)
 
         if value == "???":
             return
@@ -144,32 +149,39 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return
 
         def is_typed(c: Any) -> bool:
-            return isinstance(c, DictConfig) and c._metadata.object_type is not None
-
-        def get_type(c: Any) -> Optional[Type[Any]]:
-            if is_structured_config(c):
-                return get_type_of(c)
-            if isinstance(c, DictConfig):
-                t = c._metadata.object_type
-                assert t is None or isinstance(t, type)
-                return t
-            else:
-                return type(c)
+            return isinstance(c, DictConfig) and c._metadata.ref_type not in (Any, dict)
 
         if not is_typed(target):
             return
-        target_type = get_type(target)
-        value_type = get_type(value)
 
         # target must be optional by now. no need to check the type of value if None.
         if value is None:
             return
 
-        if (
-            target_type is not None
-            and value_type is not None
-            and not issubclass(value_type, target_type)
-        ):
+        target_type = OmegaConf.get_ref_type(target)
+        value_type = OmegaConf.get_type(value)
+
+        if is_dict(value_type) and is_dict(target_type):
+            return
+
+        if is_assign:
+            # assign
+            validation_error = (
+                target_type is not None
+                and value_type is not None
+                and not issubclass(value_type, target_type)
+            )
+        else:
+            # merge
+            validation_error = not is_dict(value_type) and (
+                target_type is not None
+                and value_type is not None
+                and not issubclass(value_type, target_type)
+            )
+
+        if validation_error:
+            assert isinstance(value_type, type)
+            assert isinstance(target_type, type)
             raise ValidationError(
                 f"Invalid type assigned : {value_type.__name__} "
                 f"is not a subclass of {target_type.__name__}. value: {value}"
@@ -180,7 +192,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     @staticmethod
     def _s_validate_and_normalize_key(key_type: Any, key: Any) -> Union[str, Enum]:
-        if key_type is Any:
+        if key_type is None:
             for t in (str, Enum):
                 try:
                     return DictConfig._s_validate_and_normalize_key(key_type=t, key=key)
@@ -394,50 +406,46 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         from omegaconf import OmegaConf
 
         proto: DictConfig = OmegaConf.structured(type_or_prototype)
-        type_ = proto._metadata.object_type
+        object_type = proto._metadata.object_type
         # remove the type to prevent assignment validation from rejecting the promotion.
         proto._metadata.object_type = None
         self.merge_with(proto)
         # restore the type.
-        self._metadata.object_type = type_
+        self._metadata.object_type = object_type
 
     def _set_value(self, value: Any) -> None:
         from omegaconf import OmegaConf
 
-        self._metadata.object_type = self._metadata.annotated_type
-        type_ = (
-            self._metadata.object_type
-            if self._metadata.object_type is not None
-            else DictConfig
-        )
         if OmegaConf.is_none(value):
             if not self._is_optional():
-                assert isinstance(type_, type)
-                raise ValidationError(
-                    f"Cannot assign {type_.__name__}=None (field is not Optional)"
-                )
+                # TODO: should this happen in validate_set?
+                raise ValidationError("field is not Optional")
             self.__dict__["_content"] = None
+            self._metadata.object_type = None
         elif _is_interpolation(value):
             self.__dict__["_content"] = value
-        elif value == "???":  # missing
-            self.__dict__["_content"] = "???"
-        else:
-            is_structured = is_structured_config(value)
-            if is_structured:
-                _type = get_type_of(value)
-                value = get_structured_config_data(value)
-
             self._metadata.object_type = None
+        elif value == "???":
+            self.__dict__["_content"] = "???"
+            self._metadata.object_type = None
+        else:
             self.__dict__["_content"] = {}
-            if isinstance(value, DictConfig):
+            if is_structured_config(value):
+                self._metadata.object_type = None
+                data = get_structured_config_data(value)
+                for k, v in data.items():
+                    self.__setitem__(k, v)
+                self._metadata.object_type = get_type_of(value)
+            elif isinstance(value, DictConfig):
+                self._metadata.object_type = dict
                 for k, v in value.items_ex(resolve=False):
                     self.__setitem__(k, v)
-            else:
+            elif isinstance(value, dict):
+                self._metadata.object_type = self._metadata.ref_type
                 for k, v in value.items():
                     self.__setitem__(k, v)
-
-            if is_structured:
-                self._metadata.object_type = _type
+            else:
+                assert False, f"Unsupported value type : {value}"
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:

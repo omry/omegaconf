@@ -15,12 +15,8 @@ from omegaconf.errors import (
 class ValueNode(Node):
     _val: Any
 
-    def __init__(
-        self, parent: Optional[Container], value: Any, key: Any, is_optional: bool
-    ):
-        super().__init__(
-            parent=parent, metadata=Metadata(key=key, optional=is_optional)
-        )
+    def __init__(self, parent: Optional[Container], value: Any, metadata: Metadata):
+        super().__init__(parent=parent, metadata=metadata)
         self._set_value(value)
 
     def _value(self) -> Any:
@@ -104,7 +100,13 @@ class AnyNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                ref_type=None, object_type=None, key=key, optional=is_optional
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Any:
         from ._utils import _is_primitive_type
@@ -129,7 +131,13 @@ class StringNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key, optional=is_optional, ref_type=str, object_type=str
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Optional[str]:
         return str(value) if value is not None else None
@@ -148,7 +156,13 @@ class IntegerNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key, optional=is_optional, ref_type=int, object_type=int
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Optional[int]:
         try:
@@ -178,7 +192,13 @@ class FloatNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key, optional=is_optional, ref_type=float, object_type=float
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Optional[float]:
         if value is None:
@@ -225,7 +245,13 @@ class BooleanNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
     ):
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key, optional=is_optional, ref_type=bool, object_type=bool
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Optional[bool]:
         if isinstance(value, bool):
@@ -281,7 +307,13 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         self.enum_type: Type[Enum] = enum_type
         for name, constant in enum_type.__members__.items():
             self.fields[name] = constant.value
-        super().__init__(parent=parent, is_optional=is_optional, value=value, key=key)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key, optional=is_optional, ref_type=enum_type, object_type=enum_type
+            ),
+        )
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)

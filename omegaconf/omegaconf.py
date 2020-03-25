@@ -30,6 +30,7 @@ from . import DictConfig, ListConfig
 from ._utils import (
     ValueKind,
     _get_key_value_types,
+    _is_primitive_type,
     _valid_value_annotation_type,
     decode_primitive,
     get_type_of,
@@ -172,12 +173,13 @@ class OmegaConf:
                 or is_structured_config(obj)
                 or obj is None
             ):
+                # TODO: push get_key_type into DictConfig based on ref_type
                 key_type, element_type = _get_key_value_types(obj)
-                annotated_type = OmegaConf.get_type(obj)
+                ref_type = OmegaConf.get_type(obj)
                 return DictConfig(
                     content=obj,
                     parent=parent,
-                    annotated_type=annotated_type,
+                    ref_type=ref_type,
                     key_type=key_type,
                     element_type=element_type,
                 )
@@ -437,9 +439,11 @@ class OmegaConf:
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
-
         if is_structured_config(obj):
             return get_type_of(obj)
+        else:
+            if _is_primitive_type(obj):
+                return get_type_of(obj)
 
         if key is not None:
             c = obj.get_node(key)
@@ -447,9 +451,36 @@ class OmegaConf:
             c = obj
 
         if isinstance(c, DictConfig):
-            t = c._metadata.object_type
-            assert t is None or isinstance(t, type)
-            return t
+            if c._is_none():
+                return None
+            elif c._is_missing():
+                return None
+            else:
+                if is_structured_config(c._metadata.object_type):
+                    return c._metadata.object_type
+                else:
+                    return dict
+        elif isinstance(c, ListConfig):
+            return list
+        elif isinstance(c, ValueNode):
+            return type(c._value())
+        elif isinstance(c, dict):
+            return dict
+        elif isinstance(c, (list, tuple)):
+            return list
+        else:
+            assert False
+
+    # TODO: test properl
+    @staticmethod
+    def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+        if key is not None:
+            c = obj.get_node(key)
+        else:
+            c = obj
+
+        if isinstance(c, DictConfig):
+            return c._metadata.ref_type
         else:
             return None
 
@@ -530,7 +561,7 @@ def _node_wrap(
 
 
 def _maybe_wrap(
-    annotated_type: Any,
+    ref_type: Any,
     key: Any,
     value: Any,
     is_optional: bool,
@@ -541,7 +572,7 @@ def _maybe_wrap(
     if isinstance(value, ValueNode):
         return value
     ret: Node
-    origin_ = getattr(annotated_type, "__origin__", None)
+    origin_ = getattr(ref_type, "__origin__", None)
     is_dict = (
         type(value) in (dict, DictConfig)
         or origin_ in (dict, DictConfig)
@@ -555,22 +586,22 @@ def _maybe_wrap(
     value_kind = get_value_kind(value)
 
     if is_dict:
-        key_type, element_type = _get_key_value_types(annotated_type)
+        key_type, element_type = _get_key_value_types(ref_type)
         ret = DictConfig(
             content=value,
             key=key,
             parent=parent,
-            annotated_type=None,
+            ref_type=ref_type,
             is_optional=is_optional,
             key_type=key_type,
             element_type=element_type,
         )
     elif is_list:
-        args = getattr(annotated_type, "__args__", None)
-        if annotated_type is not List and args is not None:
+        args = getattr(ref_type, "__args__", None)
+        if ref_type is not List and args is not None:
             element_type = args[0]
         else:
-            element_type = Any
+            element_type = None
 
         if not (_valid_value_annotation_type(element_type)):
             raise ValidationError(f"Unsupported value type : {element_type}")
@@ -584,7 +615,7 @@ def _maybe_wrap(
         )
 
     elif (
-        is_structured_config(annotated_type)
+        is_structured_config(ref_type)
         and (
             is_structured_config(value)
             or value_kind == ValueKind.MANDATORY_MISSING
@@ -595,7 +626,7 @@ def _maybe_wrap(
         from . import DictConfig
 
         ret = DictConfig(
-            annotated_type=annotated_type,
+            ref_type=ref_type,
             is_optional=is_optional,
             content=value,
             key=key,
@@ -603,7 +634,7 @@ def _maybe_wrap(
         )
     else:
         ret = _node_wrap(
-            type_=annotated_type,
+            type_=ref_type,
             parent=parent,
             is_optional=is_optional,
             value=value,

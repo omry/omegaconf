@@ -114,11 +114,7 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                         "default must be populated later use '???'".format(name)
                     )
         d[name] = _maybe_wrap(
-            annotated_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=None,
+            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None,
         )
     return d
 
@@ -147,11 +143,7 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                     )
 
         d[name] = _maybe_wrap(
-            annotated_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=None,
+            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None,
         )
     return d
 
@@ -311,7 +303,19 @@ def is_primitive_list(obj: Any) -> bool:
 def is_primitive_dict(obj: Any) -> bool:
     from .base import Container
 
-    return not isinstance(obj, Container) and isinstance(obj, (dict))
+    t = get_type_of(obj)
+
+    return not issubclass(t, Container) and issubclass(t, dict)
+
+
+def is_dict_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    return origin is Dict or origin is dict
+
+
+def is_dict(obj: Any) -> bool:
+    # TODO: detect OmegaConf dict config as well
+    return is_primitive_dict(obj) or is_dict_annotation(obj)
 
 
 def is_primitive_container(obj: Any) -> bool:
@@ -328,16 +332,21 @@ def _get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
 
     key_type: Any
     element_type: Any
-    if annotated_type is Any:
-        key_type = Any
-        element_type = Any
+    if annotated_type is None:
+        key_type = None
+        element_type = None
     else:
         if args is not None:
             key_type = args[0]
             element_type = args[1]
+            # None is the sentry for any type
+            if key_type is Any:
+                key_type = None
+            if element_type is Any:
+                element_type = None
         else:
-            key_type = Any
-            element_type = Any
+            key_type = None
+            element_type = None
 
     if not _valid_value_annotation_type(element_type) and not is_structured_config(
         element_type
@@ -354,7 +363,7 @@ def _valid_value_annotation_type(type_: Any) -> bool:
 
 
 def _valid_key_annotation_type(type_: Any) -> bool:
-    return type_ is Any or issubclass(type_, str) or issubclass(type_, Enum)
+    return type_ is None or issubclass(type_, str) or issubclass(type_, Enum)
 
 
 def _is_primitive_type(type_: Any) -> bool:
