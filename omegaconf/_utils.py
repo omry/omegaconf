@@ -241,12 +241,10 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     from .base import Container
 
     if isinstance(value, Container):
-        if value._is_interpolation():
-            return ret(ValueKind.MANDATORY_MISSING)
-        if value._is_missing():
-            return ret(ValueKind.MANDATORY_MISSING)
-    value = _get_value(value)
+        if value._is_interpolation() or value._is_missing():
+            value = value._value()
 
+    value = _get_value(value)
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
 
@@ -301,11 +299,8 @@ def is_primitive_list(obj: Any) -> bool:
 
 
 def is_primitive_dict(obj: Any) -> bool:
-    from .base import Container
-
     t = get_type_of(obj)
-
-    return not issubclass(t, Container) and issubclass(t, dict)
+    return t is dict
 
 
 def is_dict_annotation(type_: Any) -> bool:
@@ -313,16 +308,19 @@ def is_dict_annotation(type_: Any) -> bool:
     return origin is Dict or origin is dict
 
 
+def is_dict_subclass(type_: Any) -> bool:
+    return type_ is not None and isinstance(type_, type) and issubclass(type_, Dict)
+
+
 def is_dict(obj: Any) -> bool:
-    # TODO: detect OmegaConf dict config as well
-    return is_primitive_dict(obj) or is_dict_annotation(obj)
+    return is_primitive_dict(obj) or is_dict_annotation(obj) or is_dict_subclass(obj)
 
 
 def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def _get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
+def get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
 
     args = getattr(annotated_type, "__args__", None)
     if args is None:
@@ -348,7 +346,7 @@ def _get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
             key_type = None
             element_type = None
 
-    if not _valid_value_annotation_type(element_type) and not is_structured_config(
+    if not valid_value_annotation_type(element_type) and not is_structured_config(
         element_type
     ):
         raise ValidationError(f"Unsupported value type : {element_type}")
@@ -358,15 +356,15 @@ def _get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
     return key_type, element_type
 
 
-def _valid_value_annotation_type(type_: Any) -> bool:
-    return type_ is Any or _is_primitive_type(type_) or is_structured_config(type_)
+def valid_value_annotation_type(type_: Any) -> bool:
+    return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
 
 
 def _valid_key_annotation_type(type_: Any) -> bool:
     return type_ is None or issubclass(type_, str) or issubclass(type_, Enum)
 
 
-def _is_primitive_type(type_: Any) -> bool:
+def is_primitive_type(type_: Any) -> bool:
     type_ = get_type_of(type_)
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
 

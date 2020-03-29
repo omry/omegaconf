@@ -29,17 +29,16 @@ from typing_extensions import Protocol
 from . import DictConfig, ListConfig
 from ._utils import (
     ValueKind,
-    _get_key_value_types,
-    _is_primitive_type,
-    _valid_value_annotation_type,
     decode_primitive,
     get_type_of,
     get_value_kind,
     is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
+    is_primitive_type,
     is_structured_config,
     isint,
+    valid_value_annotation_type,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -173,18 +172,11 @@ class OmegaConf:
                 or is_structured_config(obj)
                 or obj is None
             ):
-                # TODO: push get_key_type into DictConfig based on ref_type
-                key_type, element_type = _get_key_value_types(obj)
                 ref_type = OmegaConf.get_type(obj)
-                return DictConfig(
-                    content=obj,
-                    parent=parent,
-                    ref_type=ref_type,
-                    key_type=key_type,
-                    element_type=element_type,
-                )
+                return DictConfig(content=obj, parent=parent, ref_type=ref_type)
             elif is_primitive_list(obj) or OmegaConf.is_list(obj):
-                return ListConfig(obj, parent)
+                ref_type = OmegaConf.get_type(obj)
+                return ListConfig(content=obj, parent=parent, ref_type=ref_type)
             else:
                 if isinstance(obj, type):
                     raise ValidationError(
@@ -442,7 +434,9 @@ class OmegaConf:
         if is_structured_config(obj):
             return get_type_of(obj)
         else:
-            if _is_primitive_type(obj):
+            if obj is None:
+                return None
+            if is_primitive_type(obj):
                 return get_type_of(obj)
 
         if key is not None:
@@ -469,9 +463,8 @@ class OmegaConf:
         elif isinstance(c, (list, tuple)):
             return list
         else:
-            assert False
+            assert False  # pragma: no cover
 
-    # TODO: test properl
     @staticmethod
     def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
         if key is not None:
@@ -479,7 +472,7 @@ class OmegaConf:
         else:
             c = obj
 
-        if isinstance(c, DictConfig):
+        if isinstance(c, Node):
             return c._metadata.ref_type
         else:
             return None
@@ -531,7 +524,7 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 def _node_wrap(
     type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any, key: Any
 ) -> ValueNode:
-    if not _valid_value_annotation_type(type_):
+    if not valid_value_annotation_type(type_):
         raise ValidationError(
             f"Annotated class '{type_.__name__}' is not a structured config. "
             "did you forget to decorate it as a dataclass?"
@@ -571,7 +564,7 @@ def _maybe_wrap(
 
     if isinstance(value, ValueNode):
         return value
-    ret: Node
+    ret: Node  # pragma: no cover
     origin_ = getattr(ref_type, "__origin__", None)
     is_dict = (
         type(value) in (dict, DictConfig)
@@ -586,15 +579,12 @@ def _maybe_wrap(
     value_kind = get_value_kind(value)
 
     if is_dict:
-        key_type, element_type = _get_key_value_types(ref_type)
         ret = DictConfig(
             content=value,
             key=key,
             parent=parent,
             ref_type=ref_type,
             is_optional=is_optional,
-            key_type=key_type,
-            element_type=element_type,
         )
     elif is_list:
         args = getattr(ref_type, "__args__", None)
@@ -603,7 +593,7 @@ def _maybe_wrap(
         else:
             element_type = None
 
-        if not (_valid_value_annotation_type(element_type)):
+        if not (valid_value_annotation_type(element_type)):
             raise ValidationError(f"Unsupported value type : {element_type}")
 
         ret = ListConfig(

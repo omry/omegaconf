@@ -17,7 +17,7 @@ from omegaconf import (
 )
 from omegaconf.errors import UnsupportedInterpolationType
 
-from . import Color, ConcretePlugin, StructuredWithMissing, does_not_raise
+from . import Color, ConcretePlugin, Plugin, StructuredWithMissing, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -313,6 +313,16 @@ def test_is_none(fac: Any, is_none: bool) -> None:
             )
         ),
     ],
+    ids=[
+        "StringNode",
+        "IntegerNode",
+        "FloatNode",
+        "BooleanNode",
+        "EnumNode",
+        "ListConfig",
+        "DictConfig",
+        "ConcretePlugin",
+    ],
 )
 def test_is_interpolation(fac):
     obj = fac(inter=None)
@@ -336,15 +346,43 @@ def test_is_interpolation(fac):
         ({"foo": 10.0}, float),
         ({"foo": True}, bool),
         ({"foo": "bar"}, str),
-        ({"foo": None}, type(None)),
+        ({"foo": None}, type(None)),  # TODO: can this be None instead?
         ({"foo": ConcretePlugin()}, ConcretePlugin),
         ({"foo": ConcretePlugin}, ConcretePlugin),
-        ({"foo": {}}, dict),
+        # ({"foo": {}}, dict),
         ({"foo": OmegaConf.create()}, dict),
-        ({"foo": []}, list),
+        # ({"foo": []}, list),
         ({"foo": OmegaConf.create([])}, list),
     ],
 )
 def test_get_type(cfg: Any, type_: Any) -> None:
     cfg = OmegaConf.create(cfg)
     assert OmegaConf.get_type(cfg, "foo") == type_
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, type_",
+    [
+        ({}, None),  # missing foo key
+        ({"foo": 10}, None),
+        ({"foo": 10.0}, None),
+        ({"foo": True}, None),
+        ({"foo": "bar"}, None),
+        ({"foo": None}, None),
+        ({"foo": IntegerNode(10)}, int),
+        ({"foo": FloatNode(10.0)}, float),
+        ({"foo": BooleanNode(True)}, bool),
+        ({"foo": StringNode("bar")}, str),
+        ({"foo": EnumNode(enum_type=Color, value=Color.RED)}, Color),
+        ({"foo": ConcretePlugin()}, ConcretePlugin),
+        ({"foo": ConcretePlugin}, ConcretePlugin),
+        ({"foo": DictConfig(ref_type=Plugin, content=ConcretePlugin)}, Plugin),
+        ({"foo": {}}, None),
+        ({"foo": OmegaConf.create()}, dict),
+        ({"foo": []}, None),
+        ({"foo": OmegaConf.create([])}, list),
+    ],
+)
+def test_get_ref_type(cfg: Any, type_: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    assert OmegaConf.get_ref_type(cfg, "foo") == type_

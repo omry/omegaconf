@@ -109,9 +109,9 @@ class AnyNode(ValueNode):
         )
 
     def validate_and_convert(self, value: Any) -> Any:
-        from ._utils import _is_primitive_type
+        from ._utils import is_primitive_type
 
-        if not _is_primitive_type(value):
+        if not is_primitive_type(value):
             raise UnsupportedValueType(
                 f"Unsupported value type, type={type(value)}, value={value}"
             )

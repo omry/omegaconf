@@ -84,7 +84,7 @@ class Node(ABC):
             # noinspection PyProtectedMember
             return parent._get_flag(flag)
 
-    def _get_full_key(self, key: Union[str, Enum, int]) -> str:
+    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
@@ -326,16 +326,11 @@ class Container(Node):
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
                 value = resolver(root_node, inter_key)
-
-                node = self.get_node(key)
                 return ValueNode(
                     value=value,
                     parent=self,
                     metadata=Metadata(
-                        ref_type=None,
-                        object_type=None,
-                        key=key,
-                        optional=node._metadata.optional,
+                        ref_type=None, object_type=None, key=key, optional=True
                     ),
                 )
             else:

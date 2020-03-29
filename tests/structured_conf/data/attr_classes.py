@@ -360,7 +360,14 @@ class FaultyPlugin:
     name: str = "faulty_plugin"
 
 
-# Missing
+@attr.s(auto_attribs=True)
+class PluginHolder:
+    none: Optional[Plugin] = None
+    missing: Plugin = MISSING
+    plugin: Plugin = Plugin()
+    plugin2: Plugin = ConcretePlugin()
+
+
 @attr.s(auto_attribs=True)
 class LinkedList:
     next: Optional["LinkedList"] = None

@@ -89,6 +89,16 @@ def verify(
             [Group, Group()],
         ),
     ],
+    ids=(
+        "BooleanNode",
+        "FloatNode",
+        "IntegerNode",
+        "StringNode",
+        "EnumNode",
+        "DictConfig",
+        "ListConfig",
+        "dataclass",
+    ),
 )
 class TestNodeTypesMatrix:
     def test_none_assignment_and_merging_in_dict(
@@ -96,7 +106,8 @@ class TestNodeTypesMatrix:
     ) -> None:
         values = copy.deepcopy(values)
         for value in values:
-            data = {"node": node_type(value=value, is_optional=False)}
+            node = node_type(value=value, is_optional=False)
+            data = {"node": node}
             cfg = OmegaConf.create(obj=data)
             verify(cfg, "node", none=False, opt=False, missing=False, inter=False)
             with pytest.raises(ValidationError):
@@ -220,7 +231,8 @@ class TestNodeTypesMatrix:
                 cfg,
                 "resolver",
                 none=False,
-                opt=False,
+                # Note, resolvers are always optional because the underlying function may return None
+                opt=True,
                 missing=False,
                 inter=True,
                 exp=resolver_output,
@@ -335,7 +347,7 @@ class TestNodeTypesMatrix:
                 cfg,
                 "int_resolver",
                 none=False,
-                opt=False,
+                opt=True,
                 missing=False,
                 inter=True,
                 exp=resolver_output,
