@@ -14,6 +14,7 @@ from ._utils import (
     get_value_kind,
     get_yaml_loader,
     is_dict_annotation,
+    is_dict_subclass,
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
@@ -251,13 +252,20 @@ class BaseContainer(Container, ABC):
         dest._metadata.object_type = None
 
         for key, src_value in src.items_ex(resolve=False):
-
+            if dest._is_missing():
+                if dest._metadata.ref_type is not None and not is_dict_annotation(
+                    dest._metadata.ref_type
+                ):
+                    dest._set_value(dest._metadata.ref_type())
+                else:
+                    dest._set_value({})
             dest_element_type = dest._metadata.element_type
             element_typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(src_value, DictConfig):
                     if key not in dest:
                         dest[key] = src_value
+
             if (dest.get_node(key) is not None) or element_typed:
                 dest_node = dest.get_node(key)
                 if dest_node is None and element_typed:
@@ -320,9 +328,16 @@ class BaseContainer(Container, ABC):
         from .nodes import ValueNode
 
         self._validate_get(key)
-        self._validate_set(key, value)
+        if isinstance(value, Node):
+            try:
+                old = value._key()
+                value._set_key(key)
+                self._validate_set(key, value)
+            finally:
+                value._set_key(old)
+        else:
+            self._validate_set(key, value)
 
-        must_wrap = is_primitive_container(value)
         input_config = isinstance(value, Container)
         target_node_ref = self.get_node(key)
         special_value = value is None or value == "???"
@@ -342,16 +357,23 @@ class BaseContainer(Container, ABC):
             target_node = isinstance(target_node_ref, ValueNode)
 
         def wrap(key: Any, val: Any) -> Node:
-            if is_structured_config(val):
-                annotated_type = OmegaConf.get_type(val)
+            if is_dict_annotation(self._metadata.ref_type) or (
+                not is_primitive_dict(self._metadata.ref_type)
+                and is_dict_subclass(self._metadata.ref_type)
+            ):
+                ref_type = self._metadata.element_type
             else:
-                annotated_type = self._metadata.element_type
+                target = self.get_node(key)
+                if target is None:
+                    if is_structured_config(val):
+                        ref_type = OmegaConf.get_type(val)
+                    else:
+                        # assignment
+                        ref_type = OmegaConf.get_ref_type(val)
+                else:
+                    ref_type = OmegaConf.get_ref_type(target)
             return _maybe_wrap(
-                ref_type=annotated_type,
-                key=key,
-                value=val,
-                is_optional=True,
-                parent=self,
+                ref_type=ref_type, key=key, value=val, is_optional=True, parent=self
             )
 
         def assign(value_key: Any, value_to_assign: Any) -> None:
@@ -360,7 +382,7 @@ class BaseContainer(Container, ABC):
             self.__dict__["_content"][value_key] = value_to_assign
 
         try:
-            if must_wrap:
+            if is_primitive_container(value):
                 self.__dict__["_content"][key] = wrap(key, value)
             elif input_node and target_node:
                 # both nodes, replace existing node with new one

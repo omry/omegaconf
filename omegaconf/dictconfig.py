@@ -15,11 +15,13 @@ from typing import (
 )
 
 from ._utils import (
+    ValueKind,
     _is_interpolation,
+    get_key_value_types,
     get_structured_config_data,
     get_type_of,
+    get_value_kind,
     is_dict,
-    is_dict_annotation,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -48,19 +50,17 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         parent: Optional[Container] = None,
         ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
-        key_type: Any = None,
-        element_type: Any = None,
     ) -> None:
-
+        key_type, element_type = get_key_value_types(ref_type)
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
                 key=key,
                 optional=is_optional,
-                element_type=element_type,
-                key_type=key_type,
                 ref_type=ref_type,
                 object_type=None,
+                key_type=key_type,
+                element_type=element_type,
             ),
         )
 
@@ -89,7 +89,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return res
 
     def __copy__(self) -> "DictConfig":
-        res = DictConfig(content={}, element_type=self._metadata.element_type)
+        res = DictConfig(content=None)
         for k, v in self.__dict__.items():
             res.__dict__[k] = copy.copy(v)
         res._re_parent()
@@ -99,11 +99,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return copy.copy(self)
 
     def _validate_get(self, key: Union[int, str, Enum]) -> None:
-        is_typed = self._metadata.object_type not in (Any, None,) and not (
-            # TODO: consider folding two checks into one is_dict call.
-            is_dict_annotation(self._metadata.object_type)
-            or is_primitive_dict(self._metadata.object_type)
+        is_typed = self._metadata.object_type not in (Any, None,) and not is_dict(
+            self._metadata.object_type
         )
+
         is_struct = self._get_flag("struct") is True
         if key not in self.__dict__["_content"]:
             if is_typed:
@@ -126,14 +125,56 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def _validate_set(self, key: Any, value: Any) -> None:
         self._validate_set_merge_impl(key, value, is_assign=True)
 
+    def _raise(self, exception_type: Any, msg: str) -> None:
+        ref_type: Any = self._metadata.ref_type
+        if ref_type is None:
+            ref_type = Any
+        object_type = self._metadata.object_type
+
+        rt = ref_type.__name__ if ref_type is not Any else "Any"
+        if self._metadata.optional:
+            rt = f"Optional[{rt}]"
+
+        if ref_type is not Any and object_type is not None:
+            ot = object_type.__name__
+            raise exception_type(f"{rt} = {ot}() :: {msg}")
+        elif ref_type is Any and object_type is not None:
+            ot = object_type.__name__
+            raise exception_type(f"{ot}() :: {msg}")
+        elif ref_type is not Any and object_type is None:
+            raise exception_type(f"{rt} :: {msg}")
+        else:
+            raise exception_type(f"{msg}")
+
     def _validate_set_merge_impl(self, key: Any, value: Any, is_assign: bool) -> None:
         from omegaconf import OmegaConf
+
+        vk = get_value_kind(value)
+        if vk == ValueKind.INTERPOLATION:
+            return
+        if isinstance(value, (str, ValueNode)) and vk == ValueKind.STR_INTERPOLATION:
+            return
 
         target: Node
         if key is None:
             target = self
         else:
             target = self.get_node(key)
+
+        if OmegaConf.is_none(value):
+            if key is not None:
+                node = self.get_node(key)
+                if node is not None and not node._is_optional():
+                    self._raise(
+                        exception_type=ValidationError,
+                        msg=f"field '{self._get_full_key(key)}' is not Optional",
+                    )
+            else:
+                if not self._is_optional():
+                    self._raise(
+                        exception_type=ValidationError,
+                        msg=f"field '{self._get_full_key(None)}' is not Optional",
+                    )
 
         if value == "???":
             return
@@ -199,7 +240,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 except KeyValidationError:
                     pass
             raise KeyValidationError(
-                f"Key {key} (type {type(key).__name__}) is incompatible with {key_type}"
+                f"Unsupported key type {type(key).__name__} : {key}"
             )
 
         if key_type == str:
@@ -222,7 +263,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             self.__set_impl(key, value)
         except AttributeError as e:
-            raise KeyError(str(e))
+            import sys
+
+            raise KeyError(
+                f"Error setting '{self._get_full_key(str(key))} = {value}' : {e}"
+            ).with_traceback(sys.exc_info()[2]) from None
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
@@ -416,10 +461,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def _set_value(self, value: Any) -> None:
         from omegaconf import OmegaConf
 
+        assert not isinstance(value, ValueNode)
+        self._validate_set(key=None, value=value)
+
         if OmegaConf.is_none(value):
-            if not self._is_optional():
-                # TODO: should this happen in validate_set?
-                raise ValidationError("field is not Optional")
             self.__dict__["_content"] = None
             self._metadata.object_type = None
         elif _is_interpolation(value):
@@ -440,12 +485,21 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self._metadata.object_type = dict
                 for k, v in value.items_ex(resolve=False):
                     self.__setitem__(k, v)
+                # TODO: validate that it's needed
+                # try:
+                #     backup = self._metadata.object_type
+                #     self._metadata.object_type = dict
+                #     for k, v in value.items_ex(resolve=False):
+                #         self.__setitem__(k, v)
+                # finally:
+                #     self._metadata.object_type = backup
+                self._metadata.object_type = OmegaConf.get_type(value)
             elif isinstance(value, dict):
                 self._metadata.object_type = self._metadata.ref_type
                 for k, v in value.items():
                     self.__setitem__(k, v)
             else:
-                assert False, f"Unsupported value type : {value}"
+                assert False, f"Unsupported value type : {value}"  # pragma: no cover
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:

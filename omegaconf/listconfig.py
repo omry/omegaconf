@@ -32,13 +32,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         content: Union[List[Any], Tuple[Any, ...], str, None],
         key: Any = None,
         parent: Optional[Container] = None,
+        ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
         element_type: Optional[Type[Any]] = None,
     ) -> None:
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
-                ref_type=list,
+                ref_type=ref_type,
                 object_type=list,
                 key=key,
                 optional=is_optional,

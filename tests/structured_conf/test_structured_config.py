@@ -118,10 +118,14 @@ class TestConfigs:
             }
 
             with pytest.raises(ValidationError):
+                cfg.user_provided_default = 10
+
+            with pytest.raises(ValidationError):
                 cfg.default_value = 10
 
-            conf1.default_value = module.NestedSubclass()
-            assert conf1.default_value == {
+            # assign subclass
+            cfg.default_value = module.NestedSubclass()
+            assert cfg.default_value == {
                 "additional": 20,
                 "with_default": 10,
                 "null_default": None,
@@ -129,8 +133,9 @@ class TestConfigs:
                 "interpolation": "${value_at_root}",
             }
 
-            with pytest.raises(ValidationError):
-                cfg.default_value = module.Nested()
+            # assign original ref type back
+            cfg.default_value = module.Nested()
+            assert cfg.default_value == module.Nested()
 
         conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
@@ -416,12 +421,6 @@ class TestConfigs:
         res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
         assert OmegaConf.get_type(res) == input_
 
-    # TODO:
-    # define and test behavior for merging and overriding considering both the ref type and the object type.
-    # consider also the case for no object type (None or MISSING)
-    # ensure object type is inherited on node value interpolation
-    # define behavior when interpolation would cause an incompatibility between ref type and object type.
-
     def test_merged_with_subclass(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
         module: Any = import_module(class_type)
@@ -686,6 +685,12 @@ class TestDictSubclass:
     def test_color2color(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
+
+        # add key
+        cfg[Color.RED] = "GREEN"
+        assert cfg[Color.RED] == Color.GREEN
+
+        # replace key
         cfg[Color.RED] = "RED"
         assert cfg[Color.RED] == Color.RED
 

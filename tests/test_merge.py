@@ -67,6 +67,10 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
         ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
         ([{}, ConfWithMissingDict], {"dict": "???"}),
         ([{"user": User}, {"user": Group}], pytest.raises(ValidationError)),
+        (
+            [{"user": DictConfig(ref_type=User, content=User)}, {"user": Group}],
+            pytest.raises(ValidationError),
+        ),
         ([Plugin, ConcretePlugin], ConcretePlugin),
     ],
 )

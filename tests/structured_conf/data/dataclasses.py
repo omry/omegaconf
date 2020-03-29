@@ -367,7 +367,14 @@ class FaultyPlugin:
     name: str = "faulty_plugin"
 
 
-# Missing
+@dataclass
+class PluginHolder:
+    none: Optional[Plugin] = None
+    missing: Plugin = MISSING
+    plugin: Plugin = Plugin()
+    plugin2: Plugin = ConcretePlugin()
+
+
 @dataclass
 class LinkedList:
     next: Optional["LinkedList"] = None

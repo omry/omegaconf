@@ -6,7 +6,7 @@ import attr
 import pytest
 
 from omegaconf import DictConfig, OmegaConf, _utils
-from omegaconf.errors import ValidationError
+from omegaconf.errors import KeyValidationError, ValidationError
 from omegaconf.nodes import StringNode
 
 from . import Color, does_not_raise
@@ -118,9 +118,9 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
-    from omegaconf._utils import _valid_value_annotation_type
+    from omegaconf._utils import valid_value_annotation_type
 
-    assert _valid_value_annotation_type(type_) == expected
+    assert valid_value_annotation_type(type_) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -232,3 +232,32 @@ def test_get_class() -> None:
 
     with pytest.raises(ImportError):
         _utils._get_class("tests.examples.test_dataclass_example.not_found")
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "key_type,expected_key_type",
+    [
+        (int, KeyValidationError),
+        (str, str),
+        (Color, Color),
+        (Any, None),
+        (None, KeyValidationError),
+    ],
+)
+@pytest.mark.parametrize(  # type: ignore
+    "value_type,expected_value_type",
+    [(int, int), (str, str), (Color, Color), (Any, None), (None, type(None))],
+)
+def test_get_key_value_types(
+    key_type: Any, expected_key_type: Any, value_type: Any, expected_value_type: Any,
+) -> None:
+    dt = Dict[key_type, value_type]  # type: ignore
+    if expected_key_type is not None and issubclass(expected_key_type, Exception):
+        with pytest.raises(expected_key_type):
+            _utils.get_key_value_types(dt)
+
+    else:
+        assert _utils.get_key_value_types(dt) == (
+            expected_key_type,
+            expected_value_type,
+        )

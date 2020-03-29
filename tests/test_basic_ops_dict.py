@@ -11,10 +11,19 @@ from omegaconf import (
     MissingMandatoryValue,
     OmegaConf,
     UnsupportedValueType,
+    ValidationError,
 )
 from omegaconf.basecontainer import BaseContainer
 
-from . import Enum1, IllegalType, StructuredWithMissing, User, does_not_raise
+from . import (
+    ConcretePlugin,
+    Enum1,
+    IllegalType,
+    Plugin,
+    StructuredWithMissing,
+    User,
+    does_not_raise,
+)
 
 
 def test_setattr_deep_value() -> None:
@@ -26,7 +35,7 @@ def test_setattr_deep_value() -> None:
 def test_setattr_deep_from_empty() -> None:
     c = OmegaConf.create()
     # Unfortunately we can't just do c.a.b = 9 here.
-    # The reason is that if c.a is being resolved first and it does not exist, so there
+    # The reason is that if c.a is being accessed first and it does not exist, so there
     # is nothing to call .b = 9 on.
     # The alternative is to auto-create fields as they are being accessed, but this is opening
     # a whole new can of worms, and is also breaking map semantics.
@@ -326,16 +335,16 @@ def test_dict_assign_illegal_value_nested() -> None:
 
 
 def test_assign_dict_in_dict() -> None:
-    c = OmegaConf.create(dict())
-    c.foo = dict(foo="bar")
-    assert c.foo == dict(foo="bar")
+    c = OmegaConf.create({})
+    c.foo = {"foo": "bar"}
+    assert c.foo == {"foo": "bar"}
     assert isinstance(c.foo, DictConfig)
 
 
 @pytest.mark.parametrize(  # type: ignore
     "src",
     [
-        dict(a=1, b=2, c=dict(aa=10)),
+        {"a": 1, "b": 2, "c": {"aa": 10}},
         [1, 2, 3],
         {"a": 1, "b": 2, "c": {"aa": 10, "lst": [1, 2, 3]}},
     ],
@@ -368,14 +377,23 @@ def test_pretty_with_resolve() -> None:
 
 def test_instantiate_config_fails() -> None:
     with pytest.raises(TypeError):
-        BaseContainer(element_type=Any, parent=None)  # type: ignore
+        BaseContainer()  # type: ignore
 
 
-def test_dir() -> None:
-    c1 = OmegaConf.create(dict(a=1, b=2, c=3))
-    assert dir(c1) == ["a", "b", "c"]
-    c2 = OmegaConf.structured(StructuredWithMissing)
-    assert dir(c2.get_node("dict")) == []
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key, expected",
+    [
+        ({"a": 1, "b": 2, "c": 3}, None, ["a", "b", "c"]),
+        ({"a": {}}, "a", []),
+        (StructuredWithMissing, "dict", []),
+    ],
+)
+def test_dir(cfg: Any, key: Any, expected: Any) -> None:
+    c = OmegaConf.create(cfg)
+    if key is None:
+        assert dir(c) == expected
+    else:
+        assert dir(c.get_node(key)) == expected
 
 
 def test_hash() -> None:
@@ -476,8 +494,31 @@ def test_get_type() -> None:
     cfg = OmegaConf.structured(User(name="bond"))
     assert OmegaConf.get_type(cfg) == User
 
-    cfg = OmegaConf.create({"user": User})
+    cfg = OmegaConf.create({"user": User, "inter": "${user}"})
     assert OmegaConf.get_type(cfg.user) == User
+    assert OmegaConf.get_type(cfg.inter) == User
+
+
+def test_get_ref_type() -> None:
+    cfg = OmegaConf.create(
+        {"plugin": DictConfig(ref_type=Plugin, content=ConcretePlugin)}
+    )
+
+    assert OmegaConf.get_type(cfg.plugin) == ConcretePlugin
+    assert OmegaConf.get_ref_type(cfg.plugin) == Plugin
+
+
+def test_get_ref_type_with_conflict() -> None:
+    cfg = OmegaConf.create(
+        {"user": User, "inter": DictConfig(ref_type=Plugin, content="${user}")}
+    )
+
+    assert OmegaConf.get_type(cfg.user) == User
+    assert OmegaConf.get_ref_type(cfg.user) == User
+
+    # Interpolation inherits both type and ref type from the target
+    assert OmegaConf.get_type(cfg.inter) == User
+    assert OmegaConf.get_ref_type(cfg.inter) == User
 
 
 def test_is_missing() -> None:
@@ -495,3 +536,73 @@ def test_is_missing() -> None:
     assert cfg.get_node("str_inter")._is_missing()
     assert cfg.get_node("missing_node")._is_missing()
     assert cfg.get_node("missing_node_inter")._is_missing()
+
+
+@pytest.mark.parametrize("ref_type", [None, Any])  # type: ignore
+@pytest.mark.parametrize("assign", [None, {}, {"foo": "bar"}, [1, 2, 3]])  # type: ignore
+def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
+    cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content={})})
+    cfg.foo = assign
+    assert cfg.foo == assign
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "ref_type,values,assign,expectation",
+    [
+        (Plugin, [None, "???", Plugin], None, does_not_raise),
+        (Plugin, [None, "???", Plugin], Plugin, does_not_raise),
+        (Plugin, [None, "???", Plugin], Plugin(), does_not_raise),
+        (Plugin, [None, "???", Plugin], ConcretePlugin, does_not_raise),
+        (Plugin, [None, "???", Plugin], ConcretePlugin(), does_not_raise),
+        (Plugin, [None, "???", Plugin], 10, lambda: pytest.raises(ValidationError)),
+        (ConcretePlugin, [None, "???", ConcretePlugin], None, does_not_raise),
+        (
+            ConcretePlugin,
+            [None, "???", ConcretePlugin],
+            Plugin,
+            lambda: pytest.raises(ValidationError),
+        ),
+        (
+            ConcretePlugin,
+            [None, "???", ConcretePlugin],
+            Plugin(),
+            lambda: pytest.raises(ValidationError),
+        ),
+        (
+            ConcretePlugin,
+            [None, "???", ConcretePlugin],
+            ConcretePlugin,
+            does_not_raise,
+        ),
+        (
+            ConcretePlugin,
+            [None, "???", ConcretePlugin],
+            ConcretePlugin(),
+            does_not_raise,
+        ),
+    ],
+)
+def test_assign_to_reftype_plugin(
+    ref_type: Any, values: List[Any], assign: Any, expectation: Any
+) -> None:
+    for value in values:
+        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
+        with expectation():
+            assert OmegaConf.get_ref_type(cfg, "foo") == ref_type
+            cfg.foo = assign
+            assert cfg.foo == assign
+            # validate assignment does not change ref type.
+            assert OmegaConf.get_ref_type(cfg, "foo") == ref_type
+
+        if value is not None:
+            cfg = OmegaConf.create(
+                {"foo": DictConfig(ref_type=ref_type, content=value)}
+            )
+            with expectation():
+                cfg2 = OmegaConf.merge(cfg, {"foo": assign})
+                assert cfg2.foo == assign
+
+
+# TODO:
+# define behavior when interpolation would cause an incompatibility between ref type and object type.
+# Test that assignment changes object type but not ref type

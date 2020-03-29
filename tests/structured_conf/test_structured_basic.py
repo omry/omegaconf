@@ -66,9 +66,7 @@ class TestStructured:
         def test_error_message(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.structured(module.StructuredOptional)
-            msg = re.escape(
-                "Error setting 'not_optional = None' : field is not Optional"
-            )
+            msg = re.escape("field 'not_optional' is not Optional")
             with pytest.raises(ValidationError, match=msg):
                 cfg.not_optional = None
 
@@ -132,3 +130,21 @@ class TestStructured:
 
             cfg.head.next = module.LinkedList(value=2)
             assert cfg == {"head": {"next": {"next": None, "value": 2}, "value": 1}}
+
+        def test_plugin_holder(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.create(module.PluginHolder)
+            assert OmegaConf.get_ref_type(cfg, "none") == module.Plugin
+            assert OmegaConf.get_type(cfg, "none") is None
+
+            assert OmegaConf.get_ref_type(cfg, "missing") == module.Plugin
+            assert OmegaConf.get_type(cfg, "missing") is None
+
+            assert OmegaConf.get_ref_type(cfg, "plugin") == module.Plugin
+            assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
+            cfg.plugin = module.ConcretePlugin()
+            assert OmegaConf.get_ref_type(cfg, "plugin") == module.Plugin
+            assert OmegaConf.get_type(cfg, "plugin") == module.ConcretePlugin
+
+            assert OmegaConf.get_ref_type(cfg, "plugin2") == module.Plugin
+            assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
