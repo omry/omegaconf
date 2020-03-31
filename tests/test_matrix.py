@@ -1,4 +1,5 @@
 import copy
+import re
 from typing import Any
 
 import pytest
@@ -67,19 +68,14 @@ def verify(
             lambda value, is_optional, key=None: DictConfig(
                 is_optional=is_optional, content=value, key=key
             ),
-            [
-                {},
-                {"foo": "bar"},
-                OmegaConf.create({}),
-                OmegaConf.create({"foo": "bar"}),
-            ],
+            [{}, {"foo": "bar"}],
         ),
         # ListConfig
         (
             lambda value, is_optional, key=None: ListConfig(
                 is_optional=is_optional, content=value, key=key
             ),
-            [[], [1, 2, 3], OmegaConf.create([]), OmegaConf.create([1, 2, 3])],
+            [[], [1, 2, 3]],
         ),
         # dataclass
         (
@@ -110,7 +106,8 @@ class TestNodeTypesMatrix:
             data = {"node": node}
             cfg = OmegaConf.create(obj=data)
             verify(cfg, "node", none=False, opt=False, missing=False, inter=False)
-            with pytest.raises(ValidationError):
+            msg = "field 'node' is not Optional"
+            with pytest.raises(ValidationError, match=re.escape(msg)):
                 cfg.node = None
 
             with pytest.raises(ValidationError):

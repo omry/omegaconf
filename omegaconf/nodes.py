@@ -1,9 +1,10 @@
 import copy
 import math
+import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation
+from omegaconf._utils import _is_interpolation, get_type_of
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     MissingMandatoryValue,
@@ -91,6 +92,14 @@ class ValueNode(Node):
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())
 
+    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+        # TODO: add testing for get_full_key on value nodes, including value nodes without a parent.
+        parent = self._get_parent()
+        if parent is None:
+            return str(self._metadata.key)
+        else:
+            return parent._get_full_key(self._metadata.key)
+
 
 class AnyNode(ValueNode):
     def __init__(
@@ -112,8 +121,9 @@ class AnyNode(ValueNode):
         from ._utils import is_primitive_type
 
         if not is_primitive_type(value):
+            t = get_type_of(value)
             raise UnsupportedValueType(
-                f"Unsupported value type, type={type(value)}, value={value}"
+                f"Value '{t.__name__}' is not a supported primitive type"
             )
         return value
 
@@ -173,9 +183,7 @@ class IntegerNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(
-                f"Value '{value}' could not be converted to Integer"
-            ) from None
+            raise ValidationError("Value '$VALUE' could not be converted to Integer")
         return val
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "IntegerNode":
@@ -209,9 +217,7 @@ class FloatNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError(
-                f"Value '{value}' could not be converted to float"
-            ) from None
+            raise ValidationError("Value '$VALUE' could not be converted to Float")
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
@@ -263,18 +269,18 @@ class BooleanNode(ValueNode):
         elif isinstance(value, str):
             try:
                 return self.validate_and_convert(int(value))
-            except ValueError:
+            except ValueError as e:
                 if value.lower() in ("yes", "y", "on", "true"):
                     return True
                 elif value.lower() in ("no", "n", "off", "false"):
                     return False
                 else:
                     raise ValidationError(
-                        "Value '{}' is not a valid bool".format(value)
-                    ) from None
+                        "Value '$VALUE' is not a valid bool (type $VALUE_TYPE)"
+                    ).with_traceback(sys.exc_info()[2]) from e
         else:
             raise ValidationError(
-                f"Value '{value}' is not a valid bool (type {type(value).__name__})"
+                "Value '$VALUE' is not a valid bool (type $VALUE_TYPE)"
             )
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "BooleanNode":
@@ -316,19 +322,20 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         )
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
-        return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
+        return self.validate_and_convert_to_enum(
+            self, enum_type=self.enum_type, value=value
+        )
 
     @staticmethod
     def validate_and_convert_to_enum(
-        enum_type: Type[Enum], value: Any
+        node: Node, enum_type: Type[Enum], value: Any
     ) -> Optional[Enum]:
         if value is None:
             return None
 
         if not isinstance(value, (str, int)) and not isinstance(value, enum_type):
-            # if type(value) not in (str, int) and not isinstance(value, enum_type):
             raise ValidationError(
-                f"Value {value} ({type(value).__name__}) is not a valid input for {enum_type}"
+                f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"
             )
 
         if isinstance(value, enum_type):
@@ -339,21 +346,21 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                 raise ValueError
 
             if isinstance(value, int):
-                return enum_type(value)
+                return enum_type(value)  # TODO: does this ever work??
 
             if isinstance(value, str):
-                prefix = "{}.".format(enum_type.__name__)
+                prefix = f"{enum_type.__name__}."
                 if value.startswith(prefix):
                     value = value[len(prefix) :]
                 return enum_type[value]
 
             assert False  # pragma: no cover
 
-        except (ValueError, KeyError):
+        except (ValueError, KeyError) as e:
             valid = "\n".join([f"\t{x}" for x in enum_type.__members__.keys()])
             raise ValidationError(
-                f"Invalid value '{value}', expected one of:\n{valid}"
-            ) from None
+                f"Invalid value '$VALUE', expected one of:\n{valid}"
+            ).with_traceback(sys.exc_info()[2]) from e
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)

@@ -109,6 +109,7 @@ def register_default_resolvers() -> None:
             if default is not None:
                 return decode_primitive(default)
             else:
+                # TODO: validate and test
                 raise KeyError("Environment variable '{}' not found".format(key))
 
     OmegaConf.register_resolver("env", env)
@@ -149,6 +150,12 @@ class OmegaConf:
     def create(  # noqa F811
         obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
     ) -> Union[DictConfig, ListConfig]:
+        return OmegaConf._create_impl(obj=obj, parent=parent)
+
+    @staticmethod
+    def _create_impl(  # noqa F811
+        obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
+    ) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -185,7 +192,7 @@ class OmegaConf:
                     )
                 else:
                     raise ValidationError(
-                        "Unsupported type {}".format(type(obj).__name__)
+                        f"Object of unsupported type: '{type(obj).__name__}'"
                     )
 
     @staticmethod
@@ -376,6 +383,8 @@ class OmegaConf:
     def is_missing(cfg: BaseContainer, key: Union[int, str]) -> bool:
         try:
             node = cfg.get_node(key)
+            if node is None:
+                return False
             return node._is_missing()
         except (UnsupportedInterpolationType, KeyError, AttributeError):
             return False
@@ -563,6 +572,8 @@ def _maybe_wrap(
     from . import DictConfig, ListConfig
 
     if isinstance(value, ValueNode):
+        value._set_key(key)
+        value._set_parent(parent)
         return value
     ret: Node  # pragma: no cover
     origin_ = getattr(ref_type, "__origin__", None)
@@ -635,7 +646,7 @@ def _maybe_wrap(
 
 
 def _select_one(
-    c: Container, key: str, throw_on_missing: bool
+    c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
@@ -644,12 +655,13 @@ def _select_one(
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
-        val: Optional[Node]
-        if c.get_node_ex(ret_key, validate_access=False) is not None:
-            val = c.get_node(ret_key)
+        val: Optional[Node] = c.get_node_ex(ret_key, validate_access=False)
+        if val is not None:
             if val._is_missing():
                 if throw_on_missing:
-                    raise MissingMandatoryValue(c._get_full_key(ret_key))
+                    raise MissingMandatoryValue(
+                        f"Missing mandatory value : {c._get_full_key(ret_key)}"
+                    )
                 else:
                     return val, ret_key
         else:
@@ -657,12 +669,18 @@ def _select_one(
     elif isinstance(c, ListConfig):
         assert isinstance(ret_key, str)
         if not isint(ret_key):
-            raise TypeError("Index {} is not an int".format(ret_key))
-        ret_key = int(ret_key)
-        if ret_key < 0 or ret_key + 1 > len(c):
-            val = None
+            if throw_on_type_error:
+                raise TypeError(
+                    f"Index '{ret_key}' ({type(ret_key).__name__}) is not an int"
+                )
+            else:
+                val = None
         else:
-            val = c.get_node(ret_key)
+            ret_key = int(ret_key)
+            if ret_key < 0 or ret_key + 1 > len(c):
+                val = None
+            else:
+                val = c.get_node(ret_key)
     else:
         assert False  # pragma: no cover
 

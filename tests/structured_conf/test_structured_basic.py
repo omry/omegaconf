@@ -49,7 +49,7 @@ class TestStructured:
             cfg1 = OmegaConf.create({"plugin": module.Plugin})
             cfg2 = OmegaConf.create({"plugin": module.ConcretePlugin})
             assert cfg2.plugin == module.ConcretePlugin
-            res = OmegaConf.merge(cfg1, cfg2)
+            res: Any = OmegaConf.merge(cfg1, cfg2)
             assert OmegaConf.get_type(res.plugin) == module.ConcretePlugin
             assert (
                 OmegaConf.get_type(res.plugin.params)

@@ -86,8 +86,9 @@ def test_create_list_with_illegal_value_idx0() -> None:
 
 
 def test_create_list_with_illegal_value_idx1() -> None:
+    lst = [1, IllegalType(), 3]
     with pytest.raises(UnsupportedValueType, match=re.escape("key: [1]")):
-        OmegaConf.create([1, IllegalType(), 3])
+        OmegaConf.create(lst)
 
 
 def test_create_dict_with_illegal_value() -> None:
@@ -113,3 +114,7 @@ def test_create_from_oc_with_flags() -> None:
     c2 = OmegaConf.create(c1)
     assert c1 == c2
     assert c1._metadata.flags == c2._metadata.flags
+
+
+# TODO: test that DictConfig created with OmegaConf.create(DictConfig(...))
+#  is preserving the metadata of the inner dict config, same for listconfig

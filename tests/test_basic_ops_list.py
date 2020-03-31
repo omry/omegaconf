@@ -5,7 +5,11 @@ from typing import Any, List, Optional
 import pytest
 
 from omegaconf import AnyNode, ListConfig, OmegaConf
-from omegaconf.errors import KeyValidationError, UnsupportedValueType
+from omegaconf.errors import (
+    KeyValidationError,
+    MissingMandatoryValue,
+    UnsupportedValueType,
+)
 from omegaconf.nodes import IntegerNode, StringNode
 
 from . import IllegalType, does_not_raise
@@ -119,7 +123,7 @@ def test_list_config_with_tuple() -> None:
 def test_items_on_list() -> None:
     c = OmegaConf.create([1, 2])
     with pytest.raises(AttributeError):
-        c.items()
+        c.items()  # type: ignore
 
 
 def test_list_enumerate() -> None:
@@ -143,14 +147,26 @@ def test_list_delitem() -> None:
         del c[100]
 
 
-def test_list_len() -> None:
-    c = OmegaConf.create([1, 2])
-    assert len(c) == 2
+@pytest.mark.parametrize(  # type: ignore
+    "lst,expected",
+    [
+        (OmegaConf.create([1, 2]), 2),
+        (ListConfig(content=None), 0),
+        (ListConfig(content="???"), 0),
+    ],
+)
+def test_list_len(lst: Any, expected: Any) -> None:
+    assert len(lst) == expected
 
 
 def test_nested_list_assign_illegal_value() -> None:
-    c = OmegaConf.create(dict(a=[None]))
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: a[0]")):
+    c = OmegaConf.create({"a": [None]})
+    with pytest.raises(
+        UnsupportedValueType,
+        match=re.escape(
+            "Value 'IllegalType' is not a supported primitive type\n\tfull_key: a[0]"
+        ),
+    ):
         c.a[0] = IllegalType()
 
 
@@ -194,15 +210,6 @@ def test_list_dir() -> None:
     assert ["0", "1", "2"] == dir(c)
 
 
-def test_getattr() -> None:
-    c = OmegaConf.create(["a", "b", "c"])
-    assert getattr(c, "0") == "a"
-    assert getattr(c, "1") == "b"
-    assert getattr(c, "2") == "c"
-    with pytest.raises(AttributeError):
-        getattr(c, "anything")
-
-
 @pytest.mark.parametrize(  # type: ignore
     "input_, index, value, expected, expected_node_type",
     [
@@ -219,6 +226,18 @@ def test_insert(
     c.insert(index, value)
     assert c == expected
     assert type(c.get_node(index)) == expected_node_type
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "lst,idx,value,expectation",
+    [
+        (ListConfig(content=None), 0, 10, pytest.raises(TypeError)),
+        (ListConfig(content="???"), 0, 10, pytest.raises(MissingMandatoryValue)),
+    ],
+)
+def test_insert_special_list(lst: Any, idx: Any, value: Any, expectation: Any) -> None:
+    with expectation:
+        lst.insert(idx, value)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -320,8 +339,9 @@ def test_insert_throws_not_changing_list() -> None:
 
 def test_append_throws_not_changing_list() -> None:
     c = OmegaConf.create([])
+    v = IllegalType()
     with pytest.raises(ValueError):
-        c.append(IllegalType())
+        c.append(v)
     assert len(c) == 0
     assert c == []
 
@@ -372,3 +392,36 @@ def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create([1, 2, 3])
     with pytest.raises(KeyValidationError):
         cfg["foo"] = 4  # type: ignore
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "lst,idx,expected",
+    [
+        (OmegaConf.create([1, 2]), 0, 1),
+        (ListConfig(content=None), 0, TypeError),
+        (ListConfig(content="???"), 0, MissingMandatoryValue),
+    ],
+)
+def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
+    if isinstance(expected, type):
+        with pytest.raises(expected):
+            lst.__getitem__(idx)
+    else:
+        lst.__getitem__(idx) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "lst,idx,expected",
+    [
+        (OmegaConf.create([1, 2]), 0, 1),
+        (OmegaConf.create([1, 2]), "foo", KeyValidationError),
+        (ListConfig(content=None), 0, TypeError),
+        (ListConfig(content="???"), 0, MissingMandatoryValue),
+    ],
+)
+def test_get(lst: Any, idx: Any, expected: Any) -> None:
+    if isinstance(expected, type):
+        with pytest.raises(expected):
+            lst.get(idx)
+    else:
+        lst.__getitem__(idx) == expected

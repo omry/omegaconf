@@ -151,5 +151,5 @@ def test_readonly_from_cli() -> None:
     assert isinstance(c, DictConfig)
     OmegaConf.set_readonly(c, True)
     cli = OmegaConf.from_dotlist(["foo.bar=[2]"])
-    with raises(ReadonlyConfigError, match="foo"):
+    with raises(ReadonlyConfigError):
         OmegaConf.merge(c, cli)

@@ -7,13 +7,13 @@ import pytest
 
 from omegaconf import (
     DictConfig,
-    KeyValidationError,
     MissingMandatoryValue,
     OmegaConf,
     UnsupportedValueType,
     ValidationError,
 )
 from omegaconf.basecontainer import BaseContainer
+from omegaconf.errors import KeyValidationError
 
 from . import (
     ConcretePlugin,
@@ -52,11 +52,13 @@ def test_setattr_deep_map() -> None:
 
 def test_getattr() -> None:
     c = OmegaConf.create("a: b")
+    assert isinstance(c, DictConfig)
     assert "b" == c.a
 
 
 def test_getattr_dict() -> None:
     c = OmegaConf.create("a: {b: 1}")
+    assert isinstance(c, DictConfig)
     assert {"b": 1} == c.a
 
 
@@ -131,6 +133,7 @@ def test_get_default_value() -> None:
 
 def test_scientific_notation_float() -> None:
     c = OmegaConf.create("a: 10e-3")
+    assert isinstance(c, DictConfig)
     assert 10e-3 == c.a
 
 
@@ -187,6 +190,7 @@ def test_items_with_interpolation() -> None:
 
 def test_dict_keys() -> None:
     c = OmegaConf.create("{a: 2, b: 10}")
+    assert isinstance(c, DictConfig)
     assert {"a": 2, "b": 10}.keys() == c.keys()
 
 
@@ -261,6 +265,9 @@ def test_dict_pop(
         assert type(val) == type(expected)
 
 
+# TODO: test that a failed pop does not mutate the dict
+
+
 @pytest.mark.parametrize(  # type: ignore
     "conf,key,expected",
     [
@@ -293,6 +300,7 @@ def test_get_root_of_merged() -> None:
 
     c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
     c3 = OmegaConf.merge(c1, c2)
+    assert isinstance(c3, DictConfig)
 
     assert c3._get_root() == c3
     assert c3.a._get_root() == c3
@@ -531,11 +539,11 @@ def test_is_missing() -> None:
             "missing_node_inter": "${missing_node}",
         }
     )
-    assert cfg.get_node("foo")._is_missing()
-    assert cfg.get_node("inter")._is_missing()
-    assert cfg.get_node("str_inter")._is_missing()
-    assert cfg.get_node("missing_node")._is_missing()
-    assert cfg.get_node("missing_node_inter")._is_missing()
+    assert cfg.get_node("foo")._is_missing()  # type:ignore
+    assert cfg.get_node("inter")._is_missing()  # type:ignore
+    assert cfg.get_node("str_inter")._is_missing()  # type:ignore
+    assert cfg.get_node("missing_node")._is_missing()  # type:ignore
+    assert cfg.get_node("missing_node_inter")._is_missing()  # type:ignore
 
 
 @pytest.mark.parametrize("ref_type", [None, Any])  # type: ignore
@@ -600,9 +608,5 @@ def test_assign_to_reftype_plugin(
             )
             with expectation():
                 cfg2 = OmegaConf.merge(cfg, {"foo": assign})
+                assert isinstance(cfg2, DictConfig)
                 assert cfg2.foo == assign
-
-
-# TODO:
-# define behavior when interpolation would cause an incompatibility between ref type and object type.
-# Test that assignment changes object type but not ref type
