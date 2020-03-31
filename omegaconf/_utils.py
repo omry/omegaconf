@@ -1,4 +1,7 @@
 import re
+import string
+import sys
+import warnings
 from enum import Enum
 from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
@@ -369,6 +372,14 @@ def is_primitive_type(type_: Any) -> bool:
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
 
 
+def _is_primitive_type(type_: Any) -> bool:
+    warnings.warn(
+        "use omegaconf._utils.is_primitive_type", DeprecationWarning, stacklevel=2,
+    )
+
+    return is_primitive_type(type_)
+
+
 def _is_interpolation(v: Any) -> bool:
     if isinstance(v, str):
         ret = get_value_kind(v) in (
@@ -389,3 +400,73 @@ def _get_value(value: Any) -> Any:
     if isinstance(value, ValueNode):
         value = value._value()
     return value
+
+
+def format_and_raise(
+    node: Any,
+    key: Any,
+    value: Any,
+    exception_type: Any,
+    msg: str,
+    cause: Optional[Exception] = None,
+) -> None:
+    def type_str(t: Any) -> str:
+        if isinstance(t, type):
+            return t.__name__
+        else:
+            return str(node._metadata.object_type)
+
+    key = key
+    if key is None:
+        node = node
+    else:
+        if node is None or node._is_none() or node._is_missing():
+            node = None
+        else:
+            if isinstance(key, slice):
+                node = node
+            else:
+                child_node = node.get_node_ex(key, validate_access=False)
+                if child_node is not None:
+                    node = child_node
+                    key = None
+
+    if node is None:
+        full_key = None
+        object_type = None
+        rt = None
+    else:
+        full_key = node._get_full_key(key=key)
+
+        ref_type: Any = node._metadata.ref_type
+        if ref_type is None:
+            ref_type = Any
+        object_type = type_str(node._metadata.object_type)
+        rt = type_str(ref_type)
+        if node._metadata.optional:
+            if ref_type is Any:
+                rt = "Any"
+            else:
+                rt = f"Optional[{rt}]"
+
+    msg = string.Template(msg).substitute(
+        REF_TYPE=rt,
+        OBJECT_TYPE=object_type,
+        KEY=key,
+        FULL_KEY=full_key,
+        VALUE=value,
+        VALUE_TYPE=f"{type(value).__name__}",
+        KEY_TYPE=f"{type(key).__name__}",
+    )
+
+    s = string.Template(
+        """$MSG
+\tfull_key: $FULL_KEY
+\treference_type=$REF_TYPE
+\tobject_type=$OBJECT_TYPE
+"""
+    )
+    message = s.substitute(
+        REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
+    )
+    raise exception_type(f"{message}").with_traceback(sys.exc_info()[2]) from cause

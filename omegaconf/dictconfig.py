@@ -33,7 +33,6 @@ from .errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
-    UnsupportedValueType,
     ValidationError,
 )
 from .nodes import EnumNode, ValueNode
@@ -98,7 +97,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def copy(self) -> "DictConfig":
         return copy.copy(self)
 
-    def _validate_get(self, key: Union[int, str, Enum]) -> None:
+    def _validate_get(self, key: Any, value: Any = None) -> None:
         is_typed = self._metadata.object_type not in (Any, None,) and not is_dict(
             self._metadata.object_type
         )
@@ -112,11 +111,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             if is_typed or is_struct:
                 if is_typed:
                     assert self._metadata.object_type is not None
-                    msg = f"Accessing unknown key in {self._metadata.object_type.__name__} : {self._get_full_key(key)}"
+                    msg = f"Key '{key}' not in ({self._metadata.object_type.__name__})"
                 else:
-                    msg = "Accessing unknown key in a struct : {}".format(
-                        self._get_full_key(key)
-                    )
+                    msg = f"Key '{key}' in not in struct"
                 raise AttributeError(msg)
 
     def _validate_merge(self, key: Any, value: Any) -> None:
@@ -124,27 +121,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def _validate_set(self, key: Any, value: Any) -> None:
         self._validate_set_merge_impl(key, value, is_assign=True)
-
-    def _raise(self, exception_type: Any, msg: str) -> None:
-        ref_type: Any = self._metadata.ref_type
-        if ref_type is None:
-            ref_type = Any
-        object_type = self._metadata.object_type
-
-        rt = ref_type.__name__ if ref_type is not Any else "Any"
-        if self._metadata.optional:
-            rt = f"Optional[{rt}]"
-
-        if ref_type is not Any and object_type is not None:
-            ot = object_type.__name__
-            raise exception_type(f"{rt} = {ot}() :: {msg}")
-        elif ref_type is Any and object_type is not None:
-            ot = object_type.__name__
-            raise exception_type(f"{ot}() :: {msg}")
-        elif ref_type is not Any and object_type is None:
-            raise exception_type(f"{rt} :: {msg}")
-        else:
-            raise exception_type(f"{msg}")
 
     def _validate_set_merge_impl(self, key: Any, value: Any, is_assign: bool) -> None:
         from omegaconf import OmegaConf
@@ -155,36 +131,41 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if isinstance(value, (str, ValueNode)) and vk == ValueKind.STR_INTERPOLATION:
             return
 
-        target: Node
+        if OmegaConf.is_none(value):
+            if key is not None:
+                node = self.get_node(key)
+                if node is not None and not node._is_optional():
+                    raise ValidationError("field '$FULL_KEY' is not Optional")
+            else:
+                if not self._is_optional():
+                    raise ValidationError("field '$FULL_KEY' is not Optional")
+
+        if value == "???":
+            return
+
+        # validate get
+        if key is not None:
+            try:
+                self._validate_get(key, value)
+            except AttributeError as e:
+                raise AttributeError(f"Error setting $KEY=$VALUE : {e}")
+
+        target: Optional[Node]
         if key is None:
             target = self
         else:
             target = self.get_node(key)
 
-        if OmegaConf.is_none(value):
-            if key is not None:
-                node = self.get_node(key)
-                if node is not None and not node._is_optional():
-                    self._raise(
-                        exception_type=ValidationError,
-                        msg=f"field '{self._get_full_key(key)}' is not Optional",
-                    )
+        if (target is not None and target._get_flag("readonly")) or self._get_flag(
+            "readonly"
+        ):
+            if is_assign:
+                msg = f"Cannot assign to read-only node : {value}"
             else:
-                if not self._is_optional():
-                    self._raise(
-                        exception_type=ValidationError,
-                        msg=f"field '{self._get_full_key(None)}' is not Optional",
-                    )
-
-        if value == "???":
-            return
-
-        if target is not None:
-            if target._get_flag("readonly"):
-                raise ReadonlyConfigError(self._get_full_key(key))
-        else:
-            if self._get_flag("readonly"):
-                raise ReadonlyConfigError(self._get_full_key(key))
+                msg = f"Cannot merge into read-only node : {value}"
+            self._format_and_raise(
+                exception_type=ReadonlyConfigError, msg=msg, key=key,
+            )
 
         if target is None:
             return
@@ -221,63 +202,59 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             )
 
         if validation_error:
-            assert isinstance(value_type, type)
-            assert isinstance(target_type, type)
-            raise ValidationError(
-                f"Invalid type assigned : {value_type.__name__} "
-                f"is not a subclass of {target_type.__name__}. value: {value}"
+            assert value_type is not None
+            assert target_type is not None
+            msg = (
+                f"Invalid type assigned : {value_type.__name__}  is not a "
+                f"subclass of {target_type.__name__}. value: {value}"
             )
+            self._format_and_raise(exception_type=ValidationError, key=key, msg=msg)
 
     def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
-    @staticmethod
-    def _s_validate_and_normalize_key(key_type: Any, key: Any) -> Union[str, Enum]:
+    # TODO: this function is a mess.
+    def _s_validate_and_normalize_key(
+        self, key_type: Any, key: Any
+    ) -> Union[str, Enum]:
         if key_type is None:
             for t in (str, Enum):
                 try:
-                    return DictConfig._s_validate_and_normalize_key(key_type=t, key=key)
+                    return self._s_validate_and_normalize_key(key_type=t, key=key)
                 except KeyValidationError:
                     pass
-            raise KeyValidationError(
-                f"Unsupported key type {type(key).__name__} : {key}"
-            )
-
-        if key_type == str:
-            if not isinstance(key, str):
-                raise KeyValidationError(
-                    f"Key {key} is incompatible with {key_type.__name__}"
-                )
-            return key
-
-        try:
-            ret = EnumNode.validate_and_convert_to_enum(key_type, key)
-            assert ret is not None
-            return ret
-        except ValidationError as e:
-            raise KeyValidationError(
-                f"Key {key} is incompatible with {key_type.__name__} : {e}"
-            )
+            raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
+        else:
+            if key_type == str:
+                if not isinstance(key, str):
+                    raise KeyValidationError(
+                        f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
+                    )
+                return key
+            elif issubclass(key_type, Enum):
+                try:
+                    ret = EnumNode.validate_and_convert_to_enum(self, key_type, key)
+                    assert ret is not None
+                    return ret
+                except ValidationError as e:
+                    raise KeyValidationError(
+                        f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
+                    )
+            else:
+                assert False  # pragma: no cover
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
-        try:
-            self.__set_impl(key, value)
-        except AttributeError as e:
-            import sys
 
-            raise KeyError(
-                f"Error setting '{self._get_full_key(str(key))} = {value}' : {e}"
-            ).with_traceback(sys.exc_info()[2]) from None
+        try:
+            self.__set_impl(key=key, value=value)
+        except AttributeError as e:
+            self._translate_exception(e=e, key=key, value=value, type_override=KeyError)
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=value)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
-
-        try:
-            self._set_item_impl(key, value)
-        except UnsupportedValueType as ex:
-            raise UnsupportedValueType(
-                f"'{type(value).__name__}' is not a supported type (key: {self._get_full_key(key)}) : {ex}"
-            )
+        self._set_item_impl(key, value)
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
@@ -292,7 +269,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param value:
         :return:
         """
-        self.__set_impl(key, value)
+        try:
+            self.__set_impl(key, value)
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=value)
+            assert False  # pragma: no cover
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -304,7 +285,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if key == "__members__":
             raise AttributeError()
 
-        return self.get(key=key)
+        if key == "__name__":
+            raise AttributeError()
+
+        try:
+            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=None)
 
     def __getitem__(self, key: Union[str, Enum]) -> Any:
         """
@@ -312,21 +299,30 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param key:
         :return:
         """
+
         try:
-            return self.get(key=key)
+            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except AttributeError as e:
-            raise KeyError(str(e))
+            raise KeyError(f"Error getting '{key}' : {e}")
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=None)
 
     def get(
         self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
+        try:
+            return self._get_impl(key=key, default_value=default_value)
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=None)
+
+    def _get_impl(self, key: Union[str, Enum], default_value: Any,) -> Any:
         key = self._validate_and_normalize_key(key)
         node = self.get_node_ex(key=key, default_value=default_value)
         return self._resolve_with_default(
             key=key, value=node, default_value=default_value,
         )
 
-    def get_node(self, key: Union[str, Enum]) -> Node:
+    def get_node(self, key: Union[str, Enum]) -> Optional[Node]:
         return self.get_node_ex(key, default_value=DEFAULT_VALUE_MARKER)
 
     def get_node_ex(
@@ -334,7 +330,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         key: Union[str, Enum],
         default_value: Any = DEFAULT_VALUE_MARKER,
         validate_access: bool = True,
-    ) -> Node:
+    ) -> Optional[Node]:
         value: Node = self.__dict__["_content"].get(key)
         if validate_access:
             try:
@@ -349,19 +345,30 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 value = default_value
         return value
 
-    __pop_marker = object()
+    __pop_marker = str("__POP_MARKER__")
 
     def pop(self, key: Union[str, Enum], default: Any = __pop_marker) -> Any:
         key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self._get_full_key(key))
+            self._translate_exception(
+                e=ReadonlyConfigError("Cannot pop from read-only node"),
+                key=key,
+                value=None,
+            )
+
         value = self._resolve_with_default(
             key=key,
             value=self.__dict__["_content"].pop(key, default),
             default_value=default,
         )
+
         if value is self.__pop_marker:
-            raise KeyError(key)
+            full_key = self._get_full_key(key)
+            msg = f"Cannot pop key '{key}'"
+            if key != full_key:
+                msg += f", path='{full_key}'"
+
+            raise KeyError(msg)
         return value
 
     def keys(self) -> Any:
@@ -446,7 +453,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if type_or_prototype is None:
             return
         if not is_structured_config(type_or_prototype):
-            raise ValueError("Expected structured config class")
+            self._format_and_raise(
+                exception_type=ValueError,
+                key=None,
+                msg=f"Expected structured config class : {type_or_prototype}",
+            )
 
         from omegaconf import OmegaConf
 
@@ -485,14 +496,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self._metadata.object_type = dict
                 for k, v in value.items_ex(resolve=False):
                     self.__setitem__(k, v)
-                # TODO: validate that it's needed
-                # try:
-                #     backup = self._metadata.object_type
-                #     self._metadata.object_type = dict
-                #     for k, v in value.items_ex(resolve=False):
-                #         self.__setitem__(k, v)
-                # finally:
-                #     self._metadata.object_type = backup
                 self._metadata.object_type = OmegaConf.get_type(value)
             elif isinstance(value, dict):
                 self._metadata.object_type = self._metadata.ref_type

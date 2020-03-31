@@ -269,27 +269,33 @@ def test_deepcopy_preserves_container_type(cfg: Container) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "src, flag_name, flag_value, func, expectation",
+    "src, flag_name, func, expectation",
     [
-        ({}, "struct", False, lambda c: c.__setitem__("foo", 1), raises(KeyError),),
-        (
+        pytest.param(
             {},
             "struct",
-            False,
+            lambda c: c.__setitem__("foo", 1),
+            raises(KeyError),
+            id="struct_setiitem",
+        ),
+        pytest.param(
+            {},
+            "struct",
             lambda c: c.__setattr__("foo", 1),
             raises(AttributeError),
+            id="struct_setattr",
         ),
-        (
+        pytest.param(
             {},
             "readonly",
-            False,
             lambda c: c.__setitem__("foo", 1),
             raises(ReadonlyConfigError),
+            id="readonly",
         ),
     ],
 )
 def test_flag_override(
-    src: Dict[str, Any], flag_name: str, flag_value: bool, func: Any, expectation: Any
+    src: Dict[str, Any], flag_name: str, func: Any, expectation: Any
 ) -> None:
     c = OmegaConf.create(src)
     c._set_flag(flag_name, True)
@@ -297,7 +303,7 @@ def test_flag_override(
         func(c)
 
     with does_not_raise():
-        with flag_override(c, flag_name, flag_value):
+        with flag_override(c, flag_name, False):
             func(c)
 
 
@@ -446,7 +452,7 @@ def test_omegaconf_create() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "parent, index, value, expected",
+    "parent, key, value, expected",
     [
         ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
         ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
@@ -456,7 +462,7 @@ def test_omegaconf_create() -> None:
         ({}, "foo", OmegaConf.create({"foo": "bar"}), {"foo": {"foo": "bar"}}),
     ],
 )
-def test_assign(parent: Any, index: Union[str, int], value: Any, expected: Any) -> None:
+def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) -> None:
     c = OmegaConf.create(parent)
-    c[index] = value
+    c[key] = value
     assert c == expected

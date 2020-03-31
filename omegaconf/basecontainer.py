@@ -1,4 +1,5 @@
 import copy
+import string
 import sys
 import warnings
 from abc import ABC, abstractmethod
@@ -64,15 +65,14 @@ class BaseContainer(Container, ABC):
         ):
             value = default_value
 
-        value = self._resolve_str_interpolation(
+        resolved = self._resolve_str_interpolation(
             key=key, value=value, throw_on_missing=True
         )
-        if is_mandatory_missing(value):
-            raise MissingMandatoryValue(self._get_full_key(str(key)))
+        if is_mandatory_missing(resolved):
+            raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
+        resolved2 = _get_value(resolved)
 
-        value = _get_value(value)
-
-        return value
+        return resolved2
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -157,14 +157,19 @@ class BaseContainer(Container, ABC):
             root[idx] = value
 
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        _root, _last_key, value = self._select_impl(key, throw_on_missing=False)
-        if value is not None and value._is_missing():
-            if throw_on_missing:
-                raise MissingMandatoryValue(value._get_full_key(""))
-            else:
-                return None
+        try:
+            _root, _last_key, value = self._select_impl(key, throw_on_missing=False)
+            if value is not None and value._is_missing():
+                if throw_on_missing:
+                    raise MissingMandatoryValue(
+                        f"Missing mandatory value : {self._get_full_key('')}"
+                    )
+                else:
+                    return None
 
-        return _get_value(value)
+            return _get_value(value)
+        except Exception as e:
+            self._translate_exception(e=e, key=key, value=None)
 
     def is_empty(self) -> bool:
         """return true if config is empty"""
@@ -220,8 +225,6 @@ class BaseContainer(Container, ABC):
         return BaseContainer._to_content(self, resolve)
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        from omegaconf import OmegaConf
-
         """
         returns a yaml dump of this config object.
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
@@ -229,6 +232,8 @@ class BaseContainer(Container, ABC):
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
+        from omegaconf import OmegaConf
+
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
             container, default_flow_style=False, allow_unicode=True, sort_keys=sort_keys
@@ -251,6 +256,9 @@ class BaseContainer(Container, ABC):
         type_backup = dest._metadata.object_type
         dest._metadata.object_type = None
 
+        if (dest._get_flag("readonly")) or dest._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot merge into read-only node")
+        dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         for key, src_value in src.items_ex(resolve=False):
             if dest._is_missing():
                 if dest._metadata.ref_type is not None and not is_dict_annotation(
@@ -316,7 +324,7 @@ class BaseContainer(Container, ABC):
                 for item in other:
                     self.append(item)
             else:
-                raise TypeError("Merging DictConfig with ListConfig is not supported")
+                raise TypeError("Cannot merge DictConfig with ListConfig")
 
         # recursively correct the parent hierarchy after the merge
         self._re_parent()
@@ -327,7 +335,6 @@ class BaseContainer(Container, ABC):
 
         from .nodes import ValueNode
 
-        self._validate_get(key)
         if isinstance(value, Node):
             try:
                 old = value._key()
@@ -404,11 +411,56 @@ class BaseContainer(Container, ABC):
                 else:
                     self.__dict__["_content"][key] = wrap(key, value)
         except ValidationError as ve:
-            import sys
+            self._format_and_raise(
+                exception_type=ValidationError, key=key, msg=f"{ve}",
+            )
 
-            raise type(ve)(
-                f"Error setting '{self._get_full_key(str(key))} = {value}' : {ve}"
-            ).with_traceback(sys.exc_info()[2]) from None
+    # TODO: cleanup
+    def _format_and_raise(
+        self, exception_type: Any, msg: str, key: Optional[str]
+    ) -> None:
+        def type_str(t: Any) -> str:
+            if isinstance(t, type):
+                return t.__name__
+            else:
+                return str(node._metadata.object_type)
+
+        full_key = self._get_full_key(key=key)
+        if key is None:
+            node = self
+        else:
+            node = (
+                self.__dict__["_content"][key]
+                if key in self.__dict__["_content"]
+                else None
+            )
+            if node is None:
+                node = self
+
+        ref_type: Any = node._metadata.ref_type
+        if ref_type is None:
+            ref_type = Any
+        object_type = type_str(node._metadata.object_type)
+
+        rt = type_str(ref_type)
+        if node._metadata.optional:
+            if ref_type is Any:
+                rt = "Any"
+            else:
+                rt = f"Optional[{rt}]"
+
+        s = string.Template(
+            """$MSG
+\tfull_key: $FULL_KEY
+\treference_type=$REF_TYPE
+\tobject_type=$OBJECT_TYPE
+"""
+        )
+        message = s.substitute(
+            REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
+        )
+
+        raise exception_type(f"{message}").with_traceback(sys.exc_info()[2]) from None
 
     @staticmethod
     def _item_eq(
@@ -500,7 +552,7 @@ class BaseContainer(Container, ABC):
         return _is_interpolation(self.__dict__["_content"])
 
     @abstractmethod
-    def _validate_get(self, key: Any) -> None:
+    def _validate_get(self, key: Any, value: Any = None) -> None:
         ...  # pragma: no cover
 
     @abstractmethod
@@ -509,3 +561,58 @@ class BaseContainer(Container, ABC):
 
     def _value(self) -> Any:
         return self.__dict__["_content"]
+
+    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+        from .listconfig import ListConfig
+        from .omegaconf import _select_one
+
+        def prepand(full_key: str, parent_type: Any, cur_type: Any, key: Any) -> str:
+            if issubclass(parent_type, ListConfig):
+                if full_key != "":
+                    if issubclass(cur_type, ListConfig):
+                        full_key = f"[{key}]{full_key}"
+                    else:
+                        full_key = f"[{key}].{full_key}"
+                else:
+                    full_key = f"[{key}]"
+            else:
+                if full_key == "":
+                    full_key = key
+                else:
+                    if issubclass(cur_type, ListConfig):
+                        full_key = f"{key}{full_key}"
+                    else:
+                        full_key = f"{key}.{full_key}"
+            return full_key
+
+        if key is not None and key != "":
+            assert isinstance(self, Container)
+            cur, _ = _select_one(
+                c=self, key=str(key), throw_on_missing=False, throw_on_type_error=False,
+            )
+            if cur is None:
+                cur = self
+                full_key = prepand("", type(cur), None, key)
+                if cur._key() is not None:
+                    full_key = prepand(
+                        full_key, type(cur._get_parent()), type(cur), cur._key()
+                    )
+            else:
+                full_key = prepand("", type(cur._get_parent()), type(cur), cur._key())
+        else:
+            cur = self
+            if cur._key() is None:
+                return ""
+            full_key = self._key()
+
+        assert cur is not None
+        while cur._get_parent() is not None:
+            cur = cur._get_parent()
+            assert cur is not None
+            key = cur._key()
+            if key is not None:
+                full_key = prepand(
+                    full_key, type(cur._get_parent()), type(cur), cur._key()
+                )
+
+        return full_key

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
-from ._utils import ValueKind, _get_value, get_value_kind
+from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import MissingMandatoryValue, UnsupportedInterpolationType
 
 
@@ -84,58 +84,19 @@ class Node(ABC):
             # noinspection PyProtectedMember
             return parent._get_flag(flag)
 
+    # TODO: move to utils
+    def _translate_exception(
+        self, e: Exception, key: Any, value: Any, type_override: Any = None
+    ) -> None:
+        etype = type(e) if type_override is None else type_override
+        format_and_raise(
+            exception_type=etype, node=self, key=key, value=value, msg=str(e), cause=e,
+        )
+        assert False  # pragma: no cover
+
+    @abstractmethod
     def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
-        from .listconfig import ListConfig
-        from .omegaconf import _select_one
-
-        def prepand(full_key: str, parent_type: Any, cur_type: Any, key: Any) -> str:
-            if issubclass(parent_type, ListConfig):
-                if full_key != "":
-                    if issubclass(cur_type, ListConfig):
-                        full_key = f"[{key}]{full_key}"
-                    else:
-                        full_key = f"[{key}].{full_key}"
-                else:
-                    full_key = f"[{key}]"
-            else:
-                if full_key == "":
-                    full_key = key
-                else:
-                    if issubclass(cur_type, ListConfig):
-                        full_key = f"{key}{full_key}"
-                    else:
-                        full_key = f"{key}.{full_key}"
-            return full_key
-
-        if key is not None and key != "":
-            assert isinstance(self, Container)
-            cur, _ = _select_one(c=self, key=str(key), throw_on_missing=False)
-            if cur is None:
-                cur = self
-                full_key = prepand("", type(cur), None, key)
-                if cur._key() is not None:
-                    full_key = prepand(
-                        full_key, type(cur._get_parent()), type(cur), cur._key()
-                    )
-            else:
-                full_key = prepand("", type(cur._get_parent()), type(cur), cur._key())
-        else:
-            cur = self
-            if cur._key() is None:
-                return ""
-            full_key = self._key()
-
-        assert cur is not None
-        while cur._get_parent() is not None:
-            cur = cur._get_parent()
-            assert cur is not None
-            key = cur._key()
-            if key is not None:
-                full_key = prepand(
-                    full_key, type(cur._get_parent()), type(cur), cur._key()
-                )
-
-        return full_key
+        ...
 
     def _dereference_node(self, throw_on_missing: bool = False) -> "Node":
         from .nodes import StringNode
@@ -172,7 +133,7 @@ class Node(ABC):
             if throw_on_missing:
                 value = self._value()
                 if value == "???":
-                    raise MissingMandatoryValue(self._get_full_key(""))
+                    raise MissingMandatoryValue("Missing mandatory value")
             return self
 
     @abstractmethod
@@ -237,7 +198,7 @@ class Container(Node):
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         ...  # pragma: no cover
 
-    def get_node(self, key: Any) -> Node:
+    def get_node(self, key: Any) -> Optional[Node]:
         ...  # pragma: no cover
 
     @abstractmethod
@@ -318,7 +279,7 @@ class Container(Node):
 
             if parent is None or (value is None and last_key not in parent):  # type: ignore
                 raise KeyError(
-                    "{} interpolation key '{}' not found".format(inter_type, inter_key)
+                    f"{inter_type} interpolation key '{inter_key}' not found"
                 )
             assert isinstance(value, Node)
             return value
@@ -335,7 +296,7 @@ class Container(Node):
                 )
             else:
                 raise UnsupportedInterpolationType(
-                    "Unsupported interpolation type {}".format(inter_type)
+                    f"Unsupported interpolation type {inter_type}"
                 )
 
     def _resolve_str_interpolation(

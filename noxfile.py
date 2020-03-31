@@ -50,6 +50,7 @@ def lint(session):
     session.run("mypy", ".", "--strict", silent=True)
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)
+    session.run("flake8")
 
 
 @nox.session(python=PYTHON_VERSIONS)

@@ -419,7 +419,7 @@ def test_node_wrap_illegal_type() -> None:
 
     from omegaconf.omegaconf import _node_wrap
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         _node_wrap(
             type_=UserClass, value=UserClass(), is_optional=False, parent=None, key=None
         )

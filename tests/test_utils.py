@@ -9,66 +9,75 @@ from omegaconf import DictConfig, OmegaConf, _utils
 from omegaconf.errors import KeyValidationError, ValidationError
 from omegaconf.nodes import StringNode
 
-from . import Color, does_not_raise
+from . import Color, IllegalType, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
     "target_type, value, expectation",
     [
         # Any
-        (Any, "foo", does_not_raise()),
-        (Any, True, does_not_raise()),
-        (Any, 1, does_not_raise()),
-        (Any, 1.0, does_not_raise()),
-        (Any, Color.RED, does_not_raise()),
+        (Any, "foo", None),
+        (Any, True, None),
+        (Any, 1, None),
+        (Any, 1.0, None),
+        (Any, Color.RED, None),
         # int
-        (int, "foo", pytest.raises(ValidationError)),
-        (int, True, pytest.raises(ValidationError)),
-        (int, 1, does_not_raise()),
-        (int, 1.0, pytest.raises(ValidationError)),
-        (int, Color.RED, pytest.raises(ValidationError)),
+        (int, "foo", ValidationError),
+        (int, True, ValidationError),
+        (int, 1, None),
+        (int, 1.0, ValidationError),
+        (int, Color.RED, ValidationError),
         # float
-        (float, "foo", pytest.raises(ValidationError)),
-        (float, True, pytest.raises(ValidationError)),
-        (float, 1, does_not_raise()),
-        (float, 1.0, does_not_raise()),
-        (float, Color.RED, pytest.raises(ValidationError)),
+        (float, "foo", ValidationError),
+        (float, True, ValidationError),
+        (float, 1, None),
+        (float, 1.0, None),
+        (float, Color.RED, ValidationError),
         # bool
-        (bool, "foo", pytest.raises(ValidationError)),
-        (bool, True, does_not_raise()),
-        (bool, 1, does_not_raise()),
-        (bool, 0, does_not_raise()),
-        (bool, 1.0, pytest.raises(ValidationError)),
-        (bool, Color.RED, pytest.raises(ValidationError)),
-        (bool, "true", does_not_raise()),
-        (bool, "false", does_not_raise()),
-        (bool, "on", does_not_raise()),
-        (bool, "off", does_not_raise()),
+        (bool, "foo", ValidationError),
+        (bool, True, None),
+        (bool, 1, None),
+        (bool, 0, None),
+        (bool, 1.0, ValidationError),
+        (bool, Color.RED, ValidationError),
+        (bool, "true", None),
+        (bool, "false", None),
+        (bool, "on", None),
+        (bool, "off", None),
         # str
-        (str, "foo", does_not_raise()),
-        (str, True, does_not_raise()),
-        (str, 1, does_not_raise()),
-        (str, 1.0, does_not_raise()),
-        (str, Color.RED, does_not_raise()),
+        (str, "foo", None),
+        (str, True, None),
+        (str, 1, None),
+        (str, 1.0, None),
+        (str, Color.RED, None),
         # Color
-        (Color, "foo", pytest.raises(ValidationError)),
-        (Color, True, pytest.raises(ValidationError)),
-        (Color, 1, does_not_raise()),
-        (Color, 1.0, pytest.raises(ValidationError)),
-        (Color, Color.RED, does_not_raise()),
-        (Color, "RED", does_not_raise()),
-        (Color, "Color.RED", does_not_raise()),
+        (Color, "foo", ValidationError),
+        (Color, True, ValidationError),
+        (Color, 1, None),
+        (Color, 1.0, ValidationError),
+        (Color, Color.RED, None),
+        (Color, "RED", None),
+        (Color, "Color.RED", None),
         # bad type
-        (Exception, "nope", pytest.raises(ValueError)),
+        (IllegalType, "nope", ValidationError),
     ],
 )
 def test_maybe_wrap(target_type: type, value: Any, expectation: Any) -> None:
-    with expectation:
-        from omegaconf.omegaconf import _maybe_wrap
+    from omegaconf.omegaconf import _maybe_wrap
 
+    if expectation is None:
         _maybe_wrap(
             ref_type=target_type, key=None, value=value, is_optional=False, parent=None,
         )
+    else:
+        with pytest.raises(expectation):
+            _maybe_wrap(
+                ref_type=target_type,
+                key=None,
+                value=value,
+                is_optional=False,
+                parent=None,
+            )
 
 
 class _TestEnum(Enum):
@@ -202,8 +211,8 @@ def test_value_kind(value: Any, kind: _utils.ValueKind) -> None:
 def test_re_parent() -> None:
     def validate(cfg1: DictConfig) -> None:
         assert cfg1._get_parent() is None
-        assert cfg1.get_node("str")._get_parent() == cfg1
-        assert cfg1.get_node("list")._get_parent() == cfg1
+        assert cfg1.get_node("str")._get_parent() == cfg1  # type:ignore
+        assert cfg1.get_node("list")._get_parent() == cfg1  # type:ignore
         assert cfg1.list.get_node(0)._get_parent() == cfg1.list
 
     cfg = OmegaConf.create({})
@@ -213,8 +222,8 @@ def test_re_parent() -> None:
 
     validate(cfg)
 
-    cfg.get_node("str")._set_parent(None)
-    cfg.get_node("list")._set_parent(None)
+    cfg.get_node("str")._set_parent(None)  # type:ignore
+    cfg.get_node("list")._set_parent(None)  # type:ignore
     cfg.list.get_node(0)._set_parent(None)  # type: ignore
     # noinspection PyProtectedMember
     cfg._re_parent()
