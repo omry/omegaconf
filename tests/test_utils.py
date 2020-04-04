@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 import attr
 import pytest
 
-from omegaconf import DictConfig, OmegaConf, _utils
+from omegaconf import DictConfig, ListConfig, OmegaConf, _utils
 from omegaconf.errors import KeyValidationError, ValidationError
 from omegaconf.nodes import StringNode
 
@@ -263,10 +263,34 @@ def test_get_key_value_types(
     dt = Dict[key_type, value_type]  # type: ignore
     if expected_key_type is not None and issubclass(expected_key_type, Exception):
         with pytest.raises(expected_key_type):
-            _utils.get_key_value_types(dt)
+            _utils.get_dict_key_value_types(dt)
 
     else:
-        assert _utils.get_key_value_types(dt) == (
+        assert _utils.get_dict_key_value_types(dt) == (
             expected_key_type,
             expected_value_type,
         )
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "type_, is_primitive",
+    [
+        (int, True),
+        (float, True),
+        (bool, True),
+        (str, True),
+        (type(None), True),
+        (Color, True),
+        (list, False),
+        (ListConfig, False),
+        (dict, False),
+        (DictConfig, False),
+    ],
+)
+def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
+    assert _utils.is_primitive_type(type_) == is_primitive
+
+
+def test_deprectated_is_primitive_type() -> None:
+    with pytest.deprecated_call():
+        _utils._is_primitive_type(int)

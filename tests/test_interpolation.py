@@ -1,5 +1,6 @@
 import os
 import random
+import re
 from typing import Any, Dict
 
 import pytest
@@ -140,7 +141,9 @@ def test_env_interpolation1() -> None:
 
 def test_env_interpolation_not_found() -> None:
     c = OmegaConf.create({"path": "/test/${env:foobar}"})
-    with pytest.raises(KeyError):
+    with pytest.raises(
+        ValidationError, match=re.escape("Environment variable 'foobar' not found")
+    ):
         c.path
 
 

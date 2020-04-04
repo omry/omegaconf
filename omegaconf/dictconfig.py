@@ -17,7 +17,7 @@ from typing import (
 from ._utils import (
     ValueKind,
     _is_interpolation,
-    get_key_value_types,
+    get_dict_key_value_types,
     get_structured_config_data,
     get_type_of,
     get_value_kind,
@@ -50,7 +50,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
     ) -> None:
-        key_type, element_type = get_key_value_types(ref_type)
+        key_type, element_type = get_dict_key_value_types(ref_type)
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
@@ -111,7 +111,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             if is_typed or is_struct:
                 if is_typed:
                     assert self._metadata.object_type is not None
-                    msg = f"Key '{key}' not in ({self._metadata.object_type.__name__})"
+                    msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
                     msg = f"Key '{key}' in not in struct"
                 raise AttributeError(msg)
@@ -163,9 +163,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 msg = f"Cannot assign to read-only node : {value}"
             else:
                 msg = f"Cannot merge into read-only node : {value}"
-            self._format_and_raise(
-                exception_type=ReadonlyConfigError, msg=msg, key=key,
-            )
+            raise ReadonlyConfigError(msg)
 
         if target is None:
             return
@@ -205,15 +203,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             assert value_type is not None
             assert target_type is not None
             msg = (
-                f"Invalid type assigned : {value_type.__name__}  is not a "
+                f"Invalid type assigned : {value_type.__name__} is not a "
                 f"subclass of {target_type.__name__}. value: {value}"
             )
-            self._format_and_raise(exception_type=ValidationError, key=key, msg=msg)
+            raise ValidationError(msg)
 
     def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
-    # TODO: this function is a mess.
     def _s_validate_and_normalize_key(
         self, key_type: Any, key: Any
     ) -> Union[str, Enum]:
@@ -233,7 +230,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 return key
             elif issubclass(key_type, Enum):
                 try:
-                    ret = EnumNode.validate_and_convert_to_enum(self, key_type, key)
+                    ret = EnumNode.validate_and_convert_to_enum(key_type, key)
                     assert ret is not None
                     return ret
                 except ValidationError as e:
@@ -241,16 +238,18 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                         f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
                     )
             else:
-                assert False  # pragma: no cover
+                assert False
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
 
         try:
             self.__set_impl(key=key, value=value)
         except AttributeError as e:
-            self._translate_exception(e=e, key=key, value=value, type_override=KeyError)
+            self._format_and_raise(
+                key=key, value=value, type_override=KeyError, cause=e
+            )
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=value)
+            self._format_and_raise(key=key, value=value, cause=e)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
@@ -272,8 +271,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             self.__set_impl(key, value)
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=value)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=key, value=value, cause=e)
+            assert False
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -291,7 +290,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=None)
+            self._format_and_raise(key=key, value=None, cause=e)
 
     def __getitem__(self, key: Union[str, Enum]) -> Any:
         """
@@ -305,7 +304,18 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except AttributeError as e:
             raise KeyError(f"Error getting '{key}' : {e}")
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=None)
+            self._format_and_raise(key=key, value=None, cause=e)
+
+    def __delitem__(self, key: Union[str, int, Enum]) -> None:
+        if self._get_flag("readonly"):
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ReadonlyConfigError(
+                    "Cannot delete item from read-only DictConfig"
+                ),
+            )
+        del self.__dict__["_content"][key]
 
     def get(
         self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER,
@@ -313,9 +323,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             return self._get_impl(key=key, default_value=default_value)
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=None)
+            self._format_and_raise(key=key, value=None, cause=e)
 
-    def _get_impl(self, key: Union[str, Enum], default_value: Any,) -> Any:
+    def _get_impl(self, key: Union[str, Enum], default_value: Any) -> Any:
         key = self._validate_and_normalize_key(key)
         node = self.get_node_ex(key=key, default_value=default_value)
         return self._resolve_with_default(
@@ -340,36 +350,43 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     value = default_value
                 else:
                     raise
-        else:
-            if default_value is not DEFAULT_VALUE_MARKER:
-                value = default_value
+
+        if default_value is not DEFAULT_VALUE_MARKER:
+            value = default_value
+
         return value
 
-    __pop_marker = str("__POP_MARKER__")
+    def pop(self, key: Union[str, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
+        try:
+            key = self._validate_and_normalize_key(key)
+            if self._get_flag("readonly"):
+                self._format_and_raise(
+                    key=key,
+                    value=None,
+                    cause=ReadonlyConfigError("Cannot pop from read-only node"),
+                )
 
-    def pop(self, key: Union[str, Enum], default: Any = __pop_marker) -> Any:
-        key = self._validate_and_normalize_key(key)
-        if self._get_flag("readonly"):
-            self._translate_exception(
-                e=ReadonlyConfigError("Cannot pop from read-only node"),
-                key=key,
-                value=None,
-            )
-
-        value = self._resolve_with_default(
-            key=key,
-            value=self.__dict__["_content"].pop(key, default),
-            default_value=default,
-        )
-
-        if value is self.__pop_marker:
-            full_key = self._get_full_key(key)
-            msg = f"Cannot pop key '{key}'"
-            if key != full_key:
-                msg += f", path='{full_key}'"
-
-            raise KeyError(msg)
-        return value
+            node = self.get_node(key=key)
+            if node is not None:
+                value = self._resolve_with_default(
+                    key=key, value=node, default_value=default
+                )
+                del self[key]
+                return value
+            else:
+                if default is not DEFAULT_VALUE_MARKER:
+                    return default
+                else:
+                    full = self._get_full_key(key)
+                    if full != key:
+                        raise KeyError(f"Key not found: '{key}' (path: '{full}')")
+                    else:
+                        raise KeyError(f"Key not found: '{key}'")
+        except Exception as e:
+            if isinstance(e, KeyError):
+                raise
+            else:
+                self._format_and_raise(key=key, value=None, cause=e)
 
     def keys(self) -> Any:
         if self._is_missing() or self._is_interpolation() or self._is_none():
@@ -453,11 +470,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if type_or_prototype is None:
             return
         if not is_structured_config(type_or_prototype):
-            self._format_and_raise(
-                exception_type=ValueError,
-                key=None,
-                msg=f"Expected structured config class : {type_or_prototype}",
-            )
+            raise ValueError(f"Expected structured config class : {type_or_prototype}")
 
         from omegaconf import OmegaConf
 
@@ -496,7 +509,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self._metadata.object_type = dict
                 for k, v in value.items_ex(resolve=False):
                     self.__setitem__(k, v)
-                self._metadata.object_type = OmegaConf.get_type(value)
+                self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
+
             elif isinstance(value, dict):
                 self._metadata.object_type = self._metadata.ref_type
                 for k, v in value.items():

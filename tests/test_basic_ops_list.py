@@ -9,6 +9,7 @@ from omegaconf.errors import (
     KeyValidationError,
     MissingMandatoryValue,
     UnsupportedValueType,
+    ValidationError,
 )
 from omegaconf.nodes import IntegerNode, StringNode
 
@@ -100,6 +101,23 @@ def test_list_pop() -> None:
     assert c == [2, 3]
     with pytest.raises(IndexError):
         c.pop(100)
+    validate_list_keys(c)
+
+
+def test_list_pop_on_unexpected_exception_not_modifying(mocker: Any) -> None:
+    src = [1, 2, 3, 4]
+    c = OmegaConf.create(src)
+
+    def resolve_with_default_throws(
+        key: Any, value: Any, default_value: Any = None,
+    ) -> None:
+        raise Exception("mocked_exception")
+
+    mocker.patch.object(c, "_resolve_with_default", resolve_with_default_throws)
+
+    with pytest.raises(Exception, match="mocked_exception"):
+        c.pop(0)
+    assert c == src
 
 
 def test_in_list() -> None:
@@ -146,6 +164,8 @@ def test_list_delitem() -> None:
     with pytest.raises(IndexError):
         del c[100]
 
+    validate_list_keys(c)
+
 
 @pytest.mark.parametrize(  # type: ignore
     "lst,expected",
@@ -177,6 +197,8 @@ def test_list_append() -> None:
     c.append({})
     c.append([])
     assert c == [1, 2, {}, []]
+
+    validate_list_keys(c)
 
 
 def test_pretty_without_resolve() -> None:
@@ -210,22 +232,60 @@ def test_list_dir() -> None:
     assert ["0", "1", "2"] == dir(c)
 
 
+def validate_list_keys(c: Any) -> None:
+    # validate keys are maintained
+    for i in range(len(c)):
+        assert c.get_node(i)._metadata.key == i
+
+
 @pytest.mark.parametrize(  # type: ignore
-    "input_, index, value, expected, expected_node_type",
+    "input_, index, value, expected, expected_node_type, expectation",
     [
-        (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode),
-        (["a", "b", "c"], 1, IntegerNode(100), ["a", 100, "b", "c"], IntegerNode),
-        (["a", "b", "c"], 1, "foo", ["a", "foo", "b", "c"], AnyNode),
-        (["a", "b", "c"], 1, StringNode("foo"), ["a", "foo", "b", "c"], StringNode),
+        (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode, None),
+        (
+            ["a", "b", "c"],
+            1,
+            IntegerNode(100),
+            ["a", 100, "b", "c"],
+            IntegerNode,
+            None,
+        ),
+        (["a", "b", "c"], 1, "foo", ["a", "foo", "b", "c"], AnyNode, None),
+        (
+            ["a", "b", "c"],
+            1,
+            StringNode("foo"),
+            ["a", "foo", "b", "c"],
+            StringNode,
+            None,
+        ),
+        (
+            ListConfig(ref_type=List[int], content=[]),
+            0,
+            "foo",
+            None,
+            None,
+            ValidationError,
+        ),
     ],
 )
 def test_insert(
-    input_: List[str], index: int, value: Any, expected: Any, expected_node_type: type
+    input_: List[str],
+    index: int,
+    value: Any,
+    expected: Any,
+    expected_node_type: type,
+    expectation: Any,
 ) -> None:
     c = OmegaConf.create(input_)
-    c.insert(index, value)
-    assert c == expected
-    assert type(c.get_node(index)) == expected_node_type
+    if expectation is None:
+        c.insert(index, value)
+        assert c == expected
+        assert type(c.get_node(index)) == expected_node_type
+    else:
+        with pytest.raises(expectation):
+            c.insert(index, value)
+    validate_list_keys(c)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -344,6 +404,7 @@ def test_append_throws_not_changing_list() -> None:
         c.append(v)
     assert len(c) == 0
     assert c == []
+    validate_list_keys(c)
 
 
 def test_hash() -> None:

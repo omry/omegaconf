@@ -109,8 +109,7 @@ def register_default_resolvers() -> None:
             if default is not None:
                 return decode_primitive(default)
             else:
-                # TODO: validate and test
-                raise KeyError("Environment variable '{}' not found".format(key))
+                raise ValidationError(f"Environment variable '{key}' not found")
 
     OmegaConf.register_resolver("env", env)
 
@@ -183,7 +182,7 @@ class OmegaConf:
                 return DictConfig(content=obj, parent=parent, ref_type=ref_type)
             elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                 ref_type = OmegaConf.get_type(obj)
-                return ListConfig(content=obj, parent=parent, ref_type=ref_type)
+                return ListConfig(ref_type=ref_type, content=obj, parent=parent)
             else:
                 if isinstance(obj, type):
                     raise ValidationError(
@@ -261,7 +260,8 @@ class OmegaConf:
         if is_primitive_container(target) or is_structured_config(target):
             target = OmegaConf.create(target)
         assert isinstance(target, (DictConfig, ListConfig))
-        target.merge_with(*others[1:])
+        with flag_override(target, "readonly", False):
+            target.merge_with(*others[1:])
         return target
 
     @staticmethod
@@ -472,7 +472,7 @@ class OmegaConf:
         elif isinstance(c, (list, tuple)):
             return list
         else:
-            assert False  # pragma: no cover
+            assert False
 
     @staticmethod
     def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
@@ -558,7 +558,9 @@ def _node_wrap(
     elif type_ == str:
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
-        raise ValidationError(f"Unexpected object type : {type_.__name__}")
+        raise ValidationError(
+            f"Unexpected object type : {type_.__name__}"
+        )  # pragma: no cover
     return node
 
 
@@ -575,7 +577,7 @@ def _maybe_wrap(
         value._set_key(key)
         value._set_parent(parent)
         return value
-    ret: Node  # pragma: no cover
+    ret: Node
     origin_ = getattr(ref_type, "__origin__", None)
     is_dict = (
         type(value) in (dict, DictConfig)
@@ -598,23 +600,14 @@ def _maybe_wrap(
             is_optional=is_optional,
         )
     elif is_list:
-        args = getattr(ref_type, "__args__", None)
-        if ref_type is not List and args is not None:
-            element_type = args[0]
-        else:
-            element_type = None
-
-        if not (valid_value_annotation_type(element_type)):
-            raise ValidationError(f"Unsupported value type : {element_type}")
 
         ret = ListConfig(
             content=value,
             key=key,
             parent=parent,
             is_optional=is_optional,
-            element_type=element_type,
+            ref_type=ref_type,
         )
-
     elif (
         is_structured_config(ref_type)
         and (
@@ -623,7 +616,7 @@ def _maybe_wrap(
             or value_kind == ValueKind.INTERPOLATION
             or value is None
         )
-    ) or is_structured_config(value):
+    ) or is_structured_config(ref_type):
         from . import DictConfig
 
         ret = DictConfig(
@@ -682,6 +675,6 @@ def _select_one(
             else:
                 val = c.get_node(ret_key)
     else:
-        assert False  # pragma: no cover
+        assert False
 
     return val, ret_key

@@ -14,7 +14,7 @@ from typing import (
     Union,
 )
 
-from ._utils import ValueKind, get_value_kind, is_primitive_list
+from ._utils import ValueKind, get_list_element_type, get_value_kind, is_primitive_list
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
 from .errors import (
@@ -23,7 +23,7 @@ from .errors import (
     ReadonlyConfigError,
     ValidationError,
 )
-from .nodes import AnyNode, ValueNode
+from .nodes import ValueNode
 
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
@@ -37,8 +37,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         parent: Optional[Container] = None,
         ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
-        element_type: Optional[Type[Any]] = None,
     ) -> None:
+        element_type = get_list_element_type(ref_type)
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
@@ -115,7 +115,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             else:
                 return self._resolve_with_default(key=index, value=self._content[index])
         except Exception as e:
-            self._translate_exception(e=e, key=index, value=None)
+            self._format_and_raise(key=index, value=None, cause=e)
 
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
         self._set_item_impl(index, value)
@@ -124,7 +124,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         try:
             self._set_at_index(index, value)
         except Exception as e:
-            self._translate_exception(e=e, key=index, value=value)
+            self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
         try:
@@ -142,10 +142,18 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
             self.__dict__["_content"].append(node)
         except Exception as e:
-            self._translate_exception(e=e, key=index, value=item)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=index, value=item, cause=e)
+            assert False
+
+    def _update_keys(self) -> None:
+        for i in range(len(self)):
+            node = self.get_node(i)
+            if node is not None:
+                node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
+        from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot insert into a read-only ListConfig")
@@ -155,30 +163,28 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
             if self._is_missing():
                 raise MissingMandatoryValue("Cannot insert into missing ListConfig")
+
             try:
-                # TODO: not respecting element type
-                # TODO: this and other list ops like delete are not updating key in list element nodes
-                # from omegaconf.omegaconf import OmegaConf, _maybe_wrap
-                #
-                # index = len(self)
-                # self._validate_set(key=index, value=item)
-                #
-                # node = _maybe_wrap(
-                #     ref_type=self._metadata.element_type,
-                #     key=index,
-                #     value=item,
-                #     is_optional=OmegaConf.is_optional(item),
-                #     parent=self,
-                # )
                 assert isinstance(self._content, list)
-                self._content.insert(index, AnyNode(None))
-                self._set_at_index(index, item)
+                # insert place holder
+                self._content.insert(index, None)
+                node = _maybe_wrap(
+                    ref_type=self._metadata.element_type,
+                    key=index,
+                    value=item,
+                    is_optional=OmegaConf.is_optional(item),
+                    parent=self,
+                )
+                self._validate_set(key=index, value=node)
+                self._set_at_index(index, node)
+                self._update_keys()
             except Exception:
                 del self.__dict__["_content"][index]
+                self._update_keys()
                 raise
         except Exception as e:
-            self._translate_exception(e=e, key=index, value=item)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=index, value=item, cause=e)
+            assert False
 
     def extend(self, lst: Iterable[Any]) -> None:
         assert isinstance(lst, (tuple, list, ListConfig))
@@ -187,6 +193,18 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def remove(self, x: Any) -> None:
         del self[self.index(x)]
+
+    def __delitem__(self, key: Union[str, int, slice]) -> None:
+        if self._get_flag("readonly"):
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ReadonlyConfigError(
+                    "Cannot delete item from read-only ListConfig"
+                ),
+            )
+        del self.__dict__["_content"][key]
+        self._update_keys()
 
     def clear(self) -> None:
         del self[:]
@@ -209,10 +227,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if found_idx != -1:
             return found_idx
         else:
-            self._translate_exception(
-                e=ValueError("Item not found in ListConfig"), key=None, value=None
+            self._format_and_raise(
+                key=None, value=None, cause=ValueError("Item not found in ListConfig")
             )
-            assert False  # pragma: no cover
+            assert False
 
     def count(self, x: Any) -> int:
         c = 0
@@ -240,8 +258,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return self._content[key]  # type: ignore
         except (IndexError, TypeError) as e:
             if validate_access:
-                self._translate_exception(e=e, key=key, value=None)
-                assert False  # pragma: no cover
+                self._format_and_raise(key=key, value=None, cause=e)
+                assert False
             else:
                 return None
 
@@ -257,8 +275,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 key=index, value=self._content[index], default_value=default_value
             )
         except Exception as e:
-            self._translate_exception(e=e, key=index, value=None)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=index, value=None, cause=e)
+            assert False
 
     def pop(self, index: int = -1) -> Any:
         try:
@@ -270,13 +288,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot pop from a missing ListConfig")
 
             assert isinstance(self._content, list)
-
-            return self._resolve_with_default(
-                key=index, value=self._content.pop(index), default_value=None
+            ret = self._resolve_with_default(
+                key=index, value=self.get_node(index), default_value=None
             )
+            del self._content[index]
+            self._update_keys()
+            return ret
         except (ReadonlyConfigError, IndexError) as e:
-            self._translate_exception(e=e, key=index, value=None)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=index, value=None, cause=e)
+            assert False
 
     def sort(
         self, key: Optional[Callable[[Any], Any]] = None, reverse: bool = False
@@ -303,8 +323,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._content.sort(key=key1, reverse=reverse)
 
         except (ReadonlyConfigError, IndexError) as e:
-            self._translate_exception(e=e, key=None, value=None)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=None, value=None, cause=e)
+            assert False
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, (list, tuple)) or other is None:
@@ -346,8 +366,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self._content, list)
             return MyItems(self._content)
         except (ReadonlyConfigError, TypeError, MissingMandatoryValue) as e:
-            self._translate_exception(e=e, key=None, value=None)
-            assert False  # pragma: no cover
+            self._format_and_raise(key=None, value=None, cause=e)
+            assert False
 
     def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
@@ -384,11 +404,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = value
         else:
             assert is_primitive_list(value) or isinstance(value, ListConfig)
+            self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
                 self._metadata = copy.deepcopy(value._metadata)
-            self.__dict__["_content"] = []
+                self._metadata.flags = {}
             for item in value:
                 self.append(item)
+
+            if isinstance(value, ListConfig):
+                self._metadata.flags = value._metadata.flags
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:

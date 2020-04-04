@@ -323,17 +323,30 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def get_key_value_types(annotated_type: Any) -> Tuple[Any, Any]:
+def get_list_element_type(ref_type: Optional[Type[Any]]) -> Optional[Type[Any]]:
+    args = getattr(ref_type, "__args__", None)
+    if ref_type is not List and args is not None and args[0] is not Any:
+        element_type = args[0]
+    else:
+        element_type = None
 
-    args = getattr(annotated_type, "__args__", None)
+    if not (valid_value_annotation_type(element_type)):
+        raise ValidationError(f"Unsupported value type : {element_type}")
+    assert element_type is None or isinstance(element_type, type)
+    return element_type
+
+
+def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
+
+    args = getattr(ref_type, "__args__", None)
     if args is None:
-        bases = getattr(annotated_type, "__orig_bases__", None)
+        bases = getattr(ref_type, "__orig_bases__", None)
         if bases is not None and len(bases) > 0:
             args = getattr(bases[0], "__args__", None)
 
     key_type: Any
     element_type: Any
-    if annotated_type is None:
+    if ref_type is None:
         key_type = None
         element_type = None
     else:
@@ -406,9 +419,9 @@ def format_and_raise(
     node: Any,
     key: Any,
     value: Any,
-    exception_type: Any,
     msg: str,
-    cause: Optional[Exception] = None,
+    cause: Exception,
+    type_override: Any = None,
 ) -> None:
     def type_str(t: Any) -> str:
         if isinstance(t, type):
@@ -469,4 +482,5 @@ def format_and_raise(
     message = s.substitute(
         REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
     )
+    exception_type = type(cause) if type_override is None else type_override
     raise exception_type(f"{message}").with_traceback(sys.exc_info()[2]) from cause

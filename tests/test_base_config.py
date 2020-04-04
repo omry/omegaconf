@@ -261,7 +261,7 @@ def test_deepcopy_and_merge_and_flags() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "cfg", [ListConfig(content=[], element_type=int), DictConfig(content={})],
+    "cfg", [ListConfig(ref_type=List[int], content=[]), DictConfig(content={})],
 )
 def test_deepcopy_preserves_container_type(cfg: Container) -> None:
     cp: Container = copy.deepcopy(cfg)

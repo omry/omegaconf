@@ -277,9 +277,7 @@ def test_enum_key() -> None:
 def test_dict_of_objects() -> None:
     conf: WebServer = OmegaConf.structured(WebServer)
     conf.domains["blog"] = Domain(name="blog.example.com", path="/www/blog.example.com")
-    with pytest.raises(
-        ValidationError
-    ):  # TODO: improve exception, error makes no sense.
+    with pytest.raises(ValidationError):
         conf.domains.foo = 10  # type: ignore
 
     assert conf.domains["blog"].name == "blog.example.com"
