@@ -5,10 +5,10 @@ from typing import Any, Dict, List
 
 import pytest
 
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType
 
-from . import IllegalType
+from . import ConcretePlugin, IllegalType, Plugin
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -116,5 +116,19 @@ def test_create_from_oc_with_flags() -> None:
     assert c1._metadata.flags == c2._metadata.flags
 
 
-# TODO: test that DictConfig created with OmegaConf.create(DictConfig(...))
-#  is preserving the metadata of the inner dict config, same for listconfig
+def test_create_from_dictconfig_preserves_metadata() -> None:
+    cfg1 = DictConfig(ref_type=Plugin, is_optional=False, content=ConcretePlugin)
+    OmegaConf.set_struct(cfg1, True)
+    OmegaConf.set_readonly(cfg1, True)
+    cfg2 = OmegaConf.create(cfg1)
+    assert cfg1 == cfg2
+    assert cfg1._metadata == cfg2._metadata
+
+
+def test_create_from_listconfig_preserves_metadata() -> None:
+    cfg1 = ListConfig(ref_type=List[int], is_optional=False, content=[1, 2, 3])
+    OmegaConf.set_struct(cfg1, True)
+    OmegaConf.set_readonly(cfg1, True)
+    cfg2 = OmegaConf.create(cfg1)
+    assert cfg1 == cfg2
+    assert cfg1._metadata == cfg2._metadata

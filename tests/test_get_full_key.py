@@ -2,10 +2,10 @@ from typing import Any
 
 import pytest
 
-from omegaconf import OmegaConf
+from omegaconf import IntegerNode, OmegaConf
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "cfg, select, key, expected",
     [
         ({}, "", "a", "a"),
@@ -67,10 +67,23 @@ from omegaconf import OmegaConf
         # special cases
         # parent_with_missing_item
         ({"x": "???", "a": 1, "b": {"c": 1}}, "b", "c", "b.c"),
+        ({"foo": IntegerNode(value=10)}, "", "foo", "foo"),
+        ({"foo": {"bar": IntegerNode(value=10)}}, "foo", "bar", "foo.bar"),
     ],
 )
-class TestGetFullKeyMatrix:
-    def test(self, cfg: Any, select: str, key: Any, expected: Any) -> None:
-        c = OmegaConf.create(cfg)
-        node = c.select(select)
-        assert node._get_full_key(key) == expected
+def test_get_full_key_from_config(
+    cfg: Any, select: str, key: Any, expected: Any
+) -> None:
+    c = OmegaConf.create(cfg)
+    node = c.select(select)
+    assert node._get_full_key(key) == expected
+
+
+def test_value_node_get_full_key() -> None:
+    cfg = OmegaConf.create({"foo": IntegerNode(value=10)})
+    assert cfg.get_node("foo")._get_full_key(None) == "foo"  # type: ignore
+
+    node = IntegerNode(value=10)
+    assert node._get_full_key(None) == ""
+    node = IntegerNode(key="foo", value=10)
+    assert node._get_full_key(None) == "foo"

@@ -84,19 +84,22 @@ class Node(ABC):
             # noinspection PyProtectedMember
             return parent._get_flag(flag)
 
-    # TODO: move to utils
-    def _translate_exception(
-        self, e: Exception, key: Any, value: Any, type_override: Any = None
+    def _format_and_raise(
+        self, key: Any, value: Any, cause: Exception, type_override: Any = None,
     ) -> None:
-        etype = type(e) if type_override is None else type_override
         format_and_raise(
-            exception_type=etype, node=self, key=key, value=value, msg=str(e), cause=e,
+            node=self,
+            key=key,
+            value=value,
+            msg=str(cause),
+            cause=cause,
+            type_override=type_override,
         )
-        assert False  # pragma: no cover
+        assert False
 
     @abstractmethod
     def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
-        ...
+        ...  # pragma: no cover
 
     def _dereference_node(self, throw_on_missing: bool = False) -> "Node":
         from .nodes import StringNode
@@ -127,7 +130,7 @@ class Node(ABC):
                     parent=parent,
                     is_optional=self._metadata.optional,
                 )
-            assert False  # pragma: no cover
+            assert False
         else:
             # not interpolation, compare directly
             if throw_on_missing:
@@ -202,7 +205,7 @@ class Container(Node):
         ...  # pragma: no cover
 
     @abstractmethod
-    def __delitem__(self, key: Union[str, int, slice]) -> None:
+    def __delitem__(self, key: Any) -> None:
         ...  # pragma: no cover
 
     @abstractmethod
@@ -286,14 +289,18 @@ class Container(Node):
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
-                value = resolver(root_node, inter_key)
-                return ValueNode(
-                    value=value,
-                    parent=self,
-                    metadata=Metadata(
-                        ref_type=None, object_type=None, key=key, optional=True
-                    ),
-                )
+                try:
+                    value = resolver(root_node, inter_key)
+                    return ValueNode(
+                        value=value,
+                        parent=self,
+                        metadata=Metadata(
+                            ref_type=None, object_type=None, key=key, optional=True
+                        ),
+                    )
+                except Exception as e:
+                    self._format_and_raise(key=inter_key, value=None, cause=e)
+                    assert False
             else:
                 raise UnsupportedInterpolationType(
                     f"Unsupported interpolation type {inter_type}"
@@ -336,4 +343,4 @@ class Container(Node):
             new += orig[last_index:]
             return StringNode(value=new, key=key)
         else:
-            assert False  # pragma: no cover
+            assert False

@@ -2,8 +2,15 @@ from typing import Any, Tuple
 
 import pytest
 
-from omegaconf import MISSING, DictConfig, OmegaConf, ValidationError, _utils, nodes
-from omegaconf.errors import ReadonlyConfigError
+from omegaconf import (
+    MISSING,
+    DictConfig,
+    OmegaConf,
+    ReadonlyConfigError,
+    ValidationError,
+    nodes,
+)
+from omegaconf._utils import is_structured_config
 
 from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
 
@@ -72,12 +79,17 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
             pytest.raises(ValidationError),
         ),
         ([Plugin, ConcretePlugin], ConcretePlugin),
+        pytest.param(
+            [{"user": "???"}, {"user": Group}],
+            {"user": Group},
+            id="merge_into_missing_node",
+        ),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
     configs = [OmegaConf.create(c) for c in inputs]
 
-    if isinstance(expected, (dict, list)) or _utils.is_structured_config(expected):
+    if isinstance(expected, (dict, list)) or is_structured_config(expected):
         merged = OmegaConf.merge(*configs)
         assert merged == expected
         # test input configs are not changed.
@@ -114,7 +126,7 @@ def test_merge_no_eq_verify(
 
 def test_merge_with_1() -> None:
     a = OmegaConf.create()
-    b = OmegaConf.create(dict(a=1, b=2))
+    b = OmegaConf.create({"a": 1, "b": 2})
     a.merge_with(b)
     assert a == b
 
@@ -123,12 +135,7 @@ def test_merge_with_2() -> None:
     a = OmegaConf.create()
     assert isinstance(a, DictConfig)
     a.inner = {}
-    b = OmegaConf.create(
-        """
-    a : 1
-    b : 2
-    """
-    )
+    b = OmegaConf.create({"a": 1, "b": 2})
     a.inner.merge_with(b)  # type: ignore
     assert a.inner == b
 
@@ -154,7 +161,7 @@ def test_merge_list_list() -> None:
         ({}, [], TypeError),
         ([], {}, TypeError),
         ([1, 2, 3], None, ValueError),
-        (dict(a=10), None, ValueError),
+        ({"a": 10}, None, ValueError),
     ],
 )
 def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
@@ -164,23 +171,29 @@ def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
         OmegaConf.merge(base, merge)
 
 
-def test_into_readonly_dict() -> None:
-    cfg = OmegaConf.create({"foo": "bar"})
+@pytest.mark.parametrize(  # type: ignore
+    "c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])]
+)
+def test_with_readonly(c1: Any, c2: Any) -> None:
+    cfg = OmegaConf.create(c1)
     OmegaConf.set_readonly(cfg, True)
-    with pytest.raises(ReadonlyConfigError):
-        OmegaConf.merge(cfg, {"zoo": "foo"})
+    cfg2 = OmegaConf.merge(cfg, c2)
+    assert OmegaConf.is_readonly(cfg2)
 
 
-def test_into_readonly_list() -> None:
-    cfg = OmegaConf.create([1, 2, 3])
+@pytest.mark.parametrize(  # type: ignore
+    "c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])]
+)
+def test_into_readonly(c1: Any, c2: Any) -> None:
+    cfg = OmegaConf.create(c1)
     OmegaConf.set_readonly(cfg, True)
     with pytest.raises(ReadonlyConfigError):
-        OmegaConf.merge(cfg, [4, 5, 6])
+        cfg.merge_with(c2)
 
 
 def test_parent_maintained() -> None:
-    c1 = OmegaConf.create(dict(a=dict(b=10)))
-    c2 = OmegaConf.create(dict(aa=dict(bb=100)))
+    c1 = OmegaConf.create({"a": {"b": 10}})
+    c2 = OmegaConf.create({"aa": {"bb": 100}})
     c3 = OmegaConf.merge(c1, c2)
     assert isinstance(c1, DictConfig)
     assert isinstance(c2, DictConfig)

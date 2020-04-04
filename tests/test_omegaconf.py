@@ -346,12 +346,12 @@ def test_is_interpolation(fac):
         ({"foo": 10.0}, float),
         ({"foo": True}, bool),
         ({"foo": "bar"}, str),
-        ({"foo": None}, type(None)),  # TODO: can this be None instead?
+        ({"foo": None}, type(None)),
         ({"foo": ConcretePlugin()}, ConcretePlugin),
         ({"foo": ConcretePlugin}, ConcretePlugin),
-        # ({"foo": {}}, dict),
+        ({"foo": {}}, dict),
         ({"foo": OmegaConf.create()}, dict),
-        # ({"foo": []}, list),
+        ({"foo": []}, list),
         ({"foo": OmegaConf.create([])}, list),
     ],
 )

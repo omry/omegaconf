@@ -230,42 +230,44 @@ def test_iterate_dictionary() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "cfg, key, default_, expected, expectation",
+    "cfg, key, default_, expected",
     [
-        (dict(a=1, b=2), "a", None, 1, does_not_raise()),
-        (dict(a=1, b=2), "not_found", "default", "default", does_not_raise()),
-        (dict(a=1, b=2), "not_found", None, None, pytest.raises(KeyError)),
+        ({"a": 1, "b": 2}, "a", None, 1),
+        ({"a": 1, "b": 2}, "not_found", "default", "default"),
         # Interpolations
-        (dict(a="${b}", b=2), "a", None, 2, does_not_raise()),
-        (dict(a="???", b=2), "a", None, None, pytest.raises(KeyError)),
-        (
-            dict(a="${b}", b="???"),
-            "a",
-            None,
-            None,
-            pytest.raises(MissingMandatoryValue),
-        ),
+        ({"a": "${b}", "b": 2}, "a", None, 2),
         # enum key
-        ({Enum1.FOO: "bar"}, Enum1.FOO, None, "bar", does_not_raise()),
-        ({Enum1.FOO: "bar"}, Enum1.BAR, "default", "default", does_not_raise()),
-        ({Enum1.FOO: "bar"}, Enum1.BAR, None, None, pytest.raises(KeyError)),
+        ({Enum1.FOO: "bar"}, Enum1.FOO, None, "bar"),
+        ({Enum1.FOO: "bar"}, Enum1.BAR, "default", "default"),
     ],
 )
-def test_dict_pop(
-    cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any, expectation: Any
-) -> None:
+def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -> None:
+    c = OmegaConf.create(cfg)
+    if default_ is not None:
+        val = c.pop(key, default_)
+    else:
+        val = c.pop(key)
+
+    assert val == expected
+    assert type(val) == type(expected)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key, expectation",
+    [
+        ({"a": 1, "b": 2}, "not_found", pytest.raises(KeyError)),
+        # Interpolations
+        ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
+        ({"a": "${b}", "b": "???"}, "a", pytest.raises(MissingMandatoryValue),),
+        # enum key
+        ({Enum1.FOO: "bar"}, Enum1.BAR, pytest.raises(KeyError)),
+    ],
+)
+def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None:
     c = OmegaConf.create(cfg)
     with expectation:
-        if default_ is not None:
-            val = c.pop(key, default_)
-        else:
-            val = c.pop(key)
-
-        assert val == expected
-        assert type(val) == type(expected)
-
-
-# TODO: test that a failed pop does not mutate the dict
+        c.pop(key)
+    assert c == cfg
 
 
 @pytest.mark.parametrize(  # type: ignore

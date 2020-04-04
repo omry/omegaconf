@@ -1,5 +1,4 @@
 import copy
-import string
 import sys
 import warnings
 from abc import ABC, abstractmethod
@@ -21,9 +20,9 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
-from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
+from .errors import MissingMandatoryValue, ReadonlyConfigError
 
-DEFAULT_VALUE_MARKER: Any = object()
+DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
 
 class BaseContainer(Container, ABC):
@@ -94,10 +93,9 @@ class BaseContainer(Container, ABC):
     def __setstate__(self, d: Dict[str, Any]) -> None:
         self.__dict__.update(d)
 
-    def __delitem__(self, key: Union[str, int, slice]) -> None:
-        if self._get_flag("readonly"):
-            raise ReadonlyConfigError(self._get_full_key(str(key)))
-        del self.__dict__["_content"][key]
+    @abstractmethod
+    def __delitem__(self, key: Any) -> None:
+        ...  # pragma: no cover
 
     def __len__(self) -> int:
         return self.__dict__["_content"].__len__()  # type: ignore
@@ -169,7 +167,7 @@ class BaseContainer(Container, ABC):
 
             return _get_value(value)
         except Exception as e:
-            self._translate_exception(e=e, key=key, value=None)
+            self._format_and_raise(key=key, value=None, cause=e)
 
     def is_empty(self) -> bool:
         """return true if config is empty"""
@@ -213,7 +211,7 @@ class BaseContainer(Container, ABC):
                 retlist.append(item)
             return retlist
 
-        assert False  # pragma: no cover
+        assert False
 
     def to_container(self, resolve: bool = False) -> Union[Dict[str, Any], List[Any]]:
         warnings.warn(
@@ -256,22 +254,13 @@ class BaseContainer(Container, ABC):
         type_backup = dest._metadata.object_type
         dest._metadata.object_type = None
 
-        if (dest._get_flag("readonly")) or dest._get_flag("readonly"):
-            raise ReadonlyConfigError("Cannot merge into read-only node")
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         for key, src_value in src.items_ex(resolve=False):
-            if dest._is_missing():
-                if dest._metadata.ref_type is not None and not is_dict_annotation(
-                    dest._metadata.ref_type
-                ):
-                    dest._set_value(dest._metadata.ref_type())
-                else:
-                    dest._set_value({})
             dest_element_type = dest._metadata.element_type
             element_typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(src_value, DictConfig):
-                    if key not in dest:
+                    if OmegaConf.is_missing(dest, key):
                         dest[key] = src_value
 
             if (dest.get_node(key) is not None) or element_typed:
@@ -388,79 +377,27 @@ class BaseContainer(Container, ABC):
             value_to_assign._set_key(value_key)
             self.__dict__["_content"][value_key] = value_to_assign
 
-        try:
-            if is_primitive_container(value):
+        if is_primitive_container(value):
+            self.__dict__["_content"][key] = wrap(key, value)
+        elif input_node and target_node:
+            # both nodes, replace existing node with new one
+            assign(key, value)
+        elif not input_node and target_node:
+            # input is not node, can be primitive or config
+            if input_config:
+                assign(key, value)
+            else:
+                self.__dict__["_content"][key]._set_value(value)
+        elif input_node and not target_node:
+            # target must be config, replace target with input node
+            assign(key, value)
+        elif not input_node and not target_node:
+            if should_set_value:
+                self.__dict__["_content"][key]._set_value(value)
+            elif input_config:
+                assign(key, value)
+            else:
                 self.__dict__["_content"][key] = wrap(key, value)
-            elif input_node and target_node:
-                # both nodes, replace existing node with new one
-                assign(key, value)
-            elif not input_node and target_node:
-                # input is not node, can be primitive or config
-                if input_config:
-                    assign(key, value)
-                else:
-                    self.__dict__["_content"][key]._set_value(value)
-            elif input_node and not target_node:
-                # target must be config, replace target with input node
-                assign(key, value)
-            elif not input_node and not target_node:
-                if should_set_value:
-                    self.__dict__["_content"][key]._set_value(value)
-                elif input_config:
-                    assign(key, value)
-                else:
-                    self.__dict__["_content"][key] = wrap(key, value)
-        except ValidationError as ve:
-            self._format_and_raise(
-                exception_type=ValidationError, key=key, msg=f"{ve}",
-            )
-
-    # TODO: cleanup
-    def _format_and_raise(
-        self, exception_type: Any, msg: str, key: Optional[str]
-    ) -> None:
-        def type_str(t: Any) -> str:
-            if isinstance(t, type):
-                return t.__name__
-            else:
-                return str(node._metadata.object_type)
-
-        full_key = self._get_full_key(key=key)
-        if key is None:
-            node = self
-        else:
-            node = (
-                self.__dict__["_content"][key]
-                if key in self.__dict__["_content"]
-                else None
-            )
-            if node is None:
-                node = self
-
-        ref_type: Any = node._metadata.ref_type
-        if ref_type is None:
-            ref_type = Any
-        object_type = type_str(node._metadata.object_type)
-
-        rt = type_str(ref_type)
-        if node._metadata.optional:
-            if ref_type is Any:
-                rt = "Any"
-            else:
-                rt = f"Optional[{rt}]"
-
-        s = string.Template(
-            """$MSG
-\tfull_key: $FULL_KEY
-\treference_type=$REF_TYPE
-\tobject_type=$OBJECT_TYPE
-"""
-        )
-        message = s.substitute(
-            REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
-        )
-
-        raise exception_type(f"{message}").with_traceback(sys.exc_info()[2]) from None
 
     @staticmethod
     def _item_eq(

@@ -93,10 +93,12 @@ class ValueNode(Node):
         return _is_interpolation(self._value())
 
     def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
-        # TODO: add testing for get_full_key on value nodes, including value nodes without a parent.
         parent = self._get_parent()
         if parent is None:
-            return str(self._metadata.key)
+            if self._metadata.key is None:
+                return ""
+            else:
+                return str(self._metadata.key)
         else:
             return parent._get_full_key(self._metadata.key)
 
@@ -322,13 +324,11 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         )
 
     def validate_and_convert(self, value: Any) -> Optional[Enum]:
-        return self.validate_and_convert_to_enum(
-            self, enum_type=self.enum_type, value=value
-        )
+        return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
 
     @staticmethod
     def validate_and_convert_to_enum(
-        node: Node, enum_type: Type[Enum], value: Any
+        enum_type: Type[Enum], value: Any
     ) -> Optional[Enum]:
         if value is None:
             return None
@@ -346,7 +346,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                 raise ValueError
 
             if isinstance(value, int):
-                return enum_type(value)  # TODO: does this ever work??
+                return enum_type(value)
 
             if isinstance(value, str):
                 prefix = f"{enum_type.__name__}."
@@ -354,7 +354,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                     value = value[len(prefix) :]
                 return enum_type[value]
 
-            assert False  # pragma: no cover
+            assert False
 
         except (ValueError, KeyError) as e:
             valid = "\n".join([f"\t{x}" for x in enum_type.__members__.keys()])
