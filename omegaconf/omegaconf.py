@@ -29,7 +29,9 @@ from typing_extensions import Protocol
 from . import DictConfig, ListConfig
 from ._utils import (
     ValueKind,
+    _get_value,
     decode_primitive,
+    format_and_raise,
     get_type_of,
     get_value_kind,
     is_primitive_container,
@@ -486,6 +488,45 @@ class OmegaConf:
         else:
             return None
 
+    @staticmethod
+    def select(cfg: Container, key: str, throw_on_missing: bool = False) -> Any:
+        try:
+            _root, _last_key, value = cfg._select_impl(key, throw_on_missing=False)
+            if value is not None and value._is_missing():
+                if throw_on_missing:
+                    raise MissingMandatoryValue("missing node selected")
+                else:
+                    return None
+
+            return _get_value(value)
+        except Exception as e:
+            format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
+
+    @staticmethod
+    def update(cfg: Container, key: str, value: Any) -> None:
+        """Updates a dot separated key sequence to a value"""
+        split = key.split(".")
+        root = cfg
+        for i in range(len(split) - 1):
+            k = split[i]
+            # if next_root is a primitive (string, int etc) replace it with an empty map
+            next_root, key_ = _select_one(root, k, throw_on_missing=False)
+            if not isinstance(next_root, Container):
+                root[key_] = {}
+            root = root[key_]
+
+        last = split[-1]
+
+        assert isinstance(
+            root, Container
+        ), f"Unexpected type for root : {type(root).__name__}"
+
+        if isinstance(root, DictConfig):
+            setattr(root, last, value)
+        elif isinstance(root, ListConfig):
+            idx = int(last)
+            root[idx] = value
+
 
 # register all default resolvers
 register_default_resolvers()
@@ -507,7 +548,6 @@ def flag_override(
 # noinspection PyProtectedMember
 @contextmanager
 def read_write(config: Node) -> Generator[Node, None, None]:
-    # noinspection PyProtectedMember
     prev_state = config._get_node_flag("readonly")
     try:
         OmegaConf.set_readonly(config, False)
@@ -516,9 +556,9 @@ def read_write(config: Node) -> Generator[Node, None, None]:
         OmegaConf.set_readonly(config, prev_state)
 
 
+# noinspection PyProtectedMember
 @contextmanager
 def open_dict(config: Container) -> Generator[Container, None, None]:
-    # noinspection PyProtectedMember
     prev_state = config._get_node_flag("struct")
     try:
         OmegaConf.set_struct(config, False)

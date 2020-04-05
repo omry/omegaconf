@@ -75,7 +75,7 @@ def test_get_full_key_from_config(
     cfg: Any, select: str, key: Any, expected: Any
 ) -> None:
     c = OmegaConf.create(cfg)
-    node = c.select(select)
+    node = OmegaConf.select(c, select)
     assert node._get_full_key(key) == expected
 
 

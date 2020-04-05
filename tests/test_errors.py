@@ -33,27 +33,27 @@ params = [
     ##############
     # DictConfig #
     ##############
-    # update_node
+    # update
     pytest.param(
         lambda: OmegaConf.structured(StructuredWithMissing),
-        lambda cfg: cfg.update_node("num", "hello"),
+        lambda cfg: OmegaConf.update(cfg, "num", "hello"),
         ValidationError,
         "Value 'hello' could not be converted to Integer",
-        id="structured:update_node_with_invalid_value",
+        id="structured:update_with_invalid_value",
     ),
     pytest.param(
         lambda: OmegaConf.structured(StructuredWithMissing),
-        lambda cfg: cfg.update_node("num", None),
+        lambda cfg: OmegaConf.update(cfg, "num", None),
         ValidationError,
         "field 'num' is not Optional",
-        id="structured:update_node:none_to_non_optional",
+        id="structured:update:none_to_non_optional",
     ),
     pytest.param(
         lambda: OmegaConf.create({}),
-        lambda cfg: cfg.update_node("a", IllegalType()),
+        lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
         UnsupportedValueType,
         "Value 'IllegalType' is not a supported primitive type",
-        id="dict:update_node:object_of_illegal_type",
+        id="dict:update:object_of_illegal_type",
     ),
     # pop
     pytest.param(

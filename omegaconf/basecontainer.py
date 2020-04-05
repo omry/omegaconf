@@ -1,5 +1,6 @@
 import copy
 import sys
+import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -93,6 +94,8 @@ class BaseContainer(Container, ABC):
         self.merge_with_dotlist(args_list)
 
     def merge_with_dotlist(self, dotlist: List[str]) -> None:
+        from omegaconf import OmegaConf
+
         def fail() -> None:
             raise ValueError("Input list must be a list or a tuple of strings")
 
@@ -112,50 +115,27 @@ class BaseContainer(Container, ABC):
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
 
-            self.update_node(key, value)
+            OmegaConf.update(self, key, value)
 
-    def update_node(self, key: str, value: Any = None) -> None:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-        from .omegaconf import _select_one
+    def update(self, key: str, value: Any = None) -> None:
+        from omegaconf import OmegaConf
 
-        """Updates a dot separated key sequence to a value"""
-        split = key.split(".")
-        root = self
-        for i in range(len(split) - 1):
-            k = split[i]
-            # if next_root is a primitive (string, int etc) replace it with an empty map
-            next_root, key_ = _select_one(root, k, throw_on_missing=False)
-            if not isinstance(next_root, Container):
-                root[key_] = {}
-            root = root[key_]
+        warnings.warn(
+            "update() is deprecated, use OmegaConf.update(). (Since 2.0)",
+            category=DeprecationWarning,
+        )
 
-        last = split[-1]
-
-        assert isinstance(
-            root, Container
-        ), f"Unexpected type for root : {type(root).__name__}"
-
-        if isinstance(root, DictConfig):
-            setattr(root, last, value)
-        elif isinstance(root, ListConfig):
-            idx = int(last)
-            root[idx] = value
+        return OmegaConf.update(self, key, value)
 
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        try:
-            _root, _last_key, value = self._select_impl(key, throw_on_missing=False)
-            if value is not None and value._is_missing():
-                if throw_on_missing:
-                    raise MissingMandatoryValue(
-                        f"Missing mandatory value : {self._get_full_key('')}"
-                    )
-                else:
-                    return None
+        from omegaconf import OmegaConf
 
-            return _get_value(value)
-        except Exception as e:
-            self._format_and_raise(key=key, value=None, cause=e)
+        warnings.warn(
+            "select() is deprecated, use OmegaConf.select(). (Since 2.0)",
+            category=DeprecationWarning,
+        )
+
+        return OmegaConf.select(self, key, throw_on_missing)
 
     def is_empty(self) -> bool:
         """return true if config is empty"""

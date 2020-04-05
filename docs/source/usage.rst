@@ -1,6 +1,6 @@
 .. testsetup:: *
 
-    from omegaconf import OmegaConf
+    from omegaconf import OmegaConf, DictConfig
     import os
     import sys
     os.environ['USER'] = 'omry'
@@ -39,7 +39,7 @@ From a dictionary
 
 .. doctest::
 
-    >>> conf = OmegaConf.create(dict(k='v',list=[1,dict(a='1',b='2')]))
+    >>> conf = OmegaConf.create({"k" : "v", "list" : [1, {"a": "1", "b": "2"}]})
     >>> print(conf.pretty())
     k: v
     list:
@@ -53,7 +53,7 @@ From a list
 
 .. doctest::
 
-    >>> conf = OmegaConf.create([1, dict(a=10, b=dict(a=10))])
+    >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10}}])
     >>> print(conf.pretty())
     - 1
     - a: 10
@@ -82,8 +82,6 @@ From a yaml file
 
 From a yaml string
 ^^^^^^^^^^^^^^^^^^
-
-
 
 .. doctest::
 
@@ -428,7 +426,7 @@ An attempt to modify it will result in omegaconf.ReadonlyConfigError exception
 
 .. doctest:: loaded
 
-    >>> conf = OmegaConf.create(dict(a=dict(b=10)))
+    >>> conf = OmegaConf.create({"a": {"b": 10}})
     >>> OmegaConf.set_readonly(conf, True)
     >>> conf.a.b = 20
     Traceback (most recent call last):
@@ -440,7 +438,7 @@ You can temporarily remove the read only flag from a config object:
 .. doctest:: loaded
 
     >>> import omegaconf
-    >>> conf = OmegaConf.create(dict(a=dict(b=10)))
+    >>> conf = OmegaConf.create({"a": {"b": 10}})
     >>> OmegaConf.set_readonly(conf, True)
     >>> with omegaconf.read_write(conf):
     ...   conf.a.b = 20
@@ -458,7 +456,7 @@ It's sometime useful to change this behavior.
 
 .. doctest:: loaded
 
-    >>> conf = OmegaConf.create(dict(a=dict(aa=10, bb=20)))
+    >>> conf = OmegaConf.create({"a": {"aa": 10, "bb": 20}})
     >>> OmegaConf.set_struct(conf, True)
     >>> conf.a.cc = 30
     Traceback (most recent call last):
@@ -470,7 +468,7 @@ You can temporarily remove the struct flag from a config object:
 .. doctest:: loaded
 
     >>> import omegaconf
-    >>> conf = OmegaConf.create(dict(a=dict(aa=10, bb=20)))
+    >>> conf = OmegaConf.create({"a": {"aa": 10, "bb": 20}})
     >>> OmegaConf.set_struct(conf, True)
     >>> with omegaconf.open_dict(conf):
     ...   conf.a.cc = 30
@@ -506,19 +504,16 @@ Tests if an object is an OmegaConf object, or if it's representing a list or a d
 
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
-OmegaConf config objects looks very similar to python dict and lists, but in fact are not.
-Use OmegaConf.to_container(cfg, resolve) to convert to a primitive container.
-If resolve is set to True the values will be resolved during conversion.
+OmegaConf config objects looks very similar to python dict and list, but in fact are not.
+Use OmegaConf.to_container(cfg : Container, resolve : bool) to convert to a primitive container.
+If resolve is set to True, interpolations will be resolved during conversion.
 
 .. doctest::
 
-    >>> # Simulating command line arguments
     >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
-    >>> print(type(conf).__name__)
-    DictConfig
+    >>> assert type(conf) == DictConfig
     >>> primitive = OmegaConf.to_container(conf)
-    >>> print(type(primitive).__name__)
-    dict
+    >>> assert type(primitive) == dict
     >>> print(primitive)
     {'foo': 'bar', 'foo2': '${foo}'}
     >>> resolved = OmegaConf.to_container(conf, resolve=True)
@@ -526,12 +521,44 @@ If resolve is set to True the values will be resolved during conversion.
     {'foo': 'bar', 'foo2': 'bar'}
 
 
+OmegaConf.select
+^^^^^^^^^^^^^^^^
+OmegaConf.select() allow you to select a config node or value using a dot-notation key.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"foo" : {"bar": {"zonk" : 10, "missing" : "???"}}})
+    >>> assert OmegaConf.select(cfg, "foo") == {"bar": {"zonk" : 10, "missing" : "???"}}
+    >>> assert OmegaConf.select(cfg, "foo.bar") == {"zonk" : 10, "missing" : "???"}
+    >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10
+    >>> assert OmegaConf.select(cfg, "foo.bar.missing") is None
+    >>> OmegaConf.select(cfg, "foo.bar.missing", throw_on_missing=True)
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.MissingMandatoryValue: missing node selected
+        full_key: foo.bar.missing
+
+OmegaConf.update
+^^^^^^^^^^^^^^^^
+OmegaConf.update() allow you to update values in your config using a dot-notation key.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
+    >>> OmegaConf.update(cfg, "foo.bar", 20)
+    >>> assert cfg.foo.bar == 20
+    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30})
+    >>> assert cfg.foo.bar == {"zonk" : 30}
+
+
+
 OmegaConf.masked_copy
 ^^^^^^^^^^^^^^^^^^^^^
 Creates a copy of a DictConfig that contains only specific keys.
+
 .. doctest:: loaded
 
-    >>> conf = OmegaConf.create(dict(a=dict(b=10), c=20))
+    >>> conf = OmegaConf.create({"a": {"b": 10}, "c":20})
     >>> print(conf.pretty())
     a:
       b: 10
