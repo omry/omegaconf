@@ -403,7 +403,7 @@ def test_dir(cfg: Any, key: Any, expected: Any) -> None:
     if key is None:
         assert dir(c) == expected
     else:
-        assert dir(c.get_node(key)) == expected
+        assert dir(c._get_node(key)) == expected
 
 
 def test_hash() -> None:
@@ -541,11 +541,11 @@ def test_is_missing() -> None:
             "missing_node_inter": "${missing_node}",
         }
     )
-    assert cfg.get_node("foo")._is_missing()  # type:ignore
-    assert cfg.get_node("inter")._is_missing()  # type:ignore
-    assert cfg.get_node("str_inter")._is_missing()  # type:ignore
-    assert cfg.get_node("missing_node")._is_missing()  # type:ignore
-    assert cfg.get_node("missing_node_inter")._is_missing()  # type:ignore
+    assert cfg._get_node("foo")._is_missing()  # type:ignore
+    assert cfg._get_node("inter")._is_missing()  # type:ignore
+    assert cfg._get_node("str_inter")._is_missing()  # type:ignore
+    assert cfg._get_node("missing_node")._is_missing()  # type:ignore
+    assert cfg._get_node("missing_node_inter")._is_missing()  # type:ignore
 
 
 @pytest.mark.parametrize("ref_type", [None, Any])  # type: ignore

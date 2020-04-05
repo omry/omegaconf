@@ -235,7 +235,7 @@ def test_list_dir() -> None:
 def validate_list_keys(c: Any) -> None:
     # validate keys are maintained
     for i in range(len(c)):
-        assert c.get_node(i)._metadata.key == i
+        assert c._get_node(i)._metadata.key == i
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -281,7 +281,7 @@ def test_insert(
     if expectation is None:
         c.insert(index, value)
         assert c == expected
-        assert type(c.get_node(index)) == expected_node_type
+        assert type(c._get_node(index)) == expected_node_type
     else:
         with pytest.raises(expectation):
             c.insert(index, value)

@@ -211,9 +211,9 @@ def test_value_kind(value: Any, kind: _utils.ValueKind) -> None:
 def test_re_parent() -> None:
     def validate(cfg1: DictConfig) -> None:
         assert cfg1._get_parent() is None
-        assert cfg1.get_node("str")._get_parent() == cfg1  # type:ignore
-        assert cfg1.get_node("list")._get_parent() == cfg1  # type:ignore
-        assert cfg1.list.get_node(0)._get_parent() == cfg1.list
+        assert cfg1._get_node("str")._get_parent() == cfg1  # type:ignore
+        assert cfg1._get_node("list")._get_parent() == cfg1  # type:ignore
+        assert cfg1.list._get_node(0)._get_parent() == cfg1.list
 
     cfg = OmegaConf.create({})
     assert isinstance(cfg, DictConfig)
@@ -222,9 +222,9 @@ def test_re_parent() -> None:
 
     validate(cfg)
 
-    cfg.get_node("str")._set_parent(None)  # type:ignore
-    cfg.get_node("list")._set_parent(None)  # type:ignore
-    cfg.list.get_node(0)._set_parent(None)  # type: ignore
+    cfg._get_node("str")._set_parent(None)  # type:ignore
+    cfg._get_node("list")._set_parent(None)  # type:ignore
+    cfg.list._get_node(0)._set_parent(None)  # type: ignore
     # noinspection PyProtectedMember
     cfg._re_parent()
     validate(cfg)

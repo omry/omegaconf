@@ -317,12 +317,12 @@ class TestConfigs:
             # noinspection PyStatementEffect
             conf.mandatory_missing
 
-        assert type(conf.get_node("null_default")) == AnyNode
-        assert type(conf.get_node("int_default")) == AnyNode
-        assert type(conf.get_node("float_default")) == AnyNode
-        assert type(conf.get_node("str_default")) == AnyNode
-        assert type(conf.get_node("bool_default")) == AnyNode
-        assert type(conf.get_node("mandatory_missing")) == AnyNode
+        assert type(conf._get_node("null_default")) == AnyNode
+        assert type(conf._get_node("int_default")) == AnyNode
+        assert type(conf._get_node("float_default")) == AnyNode
+        assert type(conf._get_node("str_default")) == AnyNode
+        assert type(conf._get_node("bool_default")) == AnyNode
+        assert type(conf._get_node("mandatory_missing")) == AnyNode
 
         assert conf.int_default == expected.int_default
         with pytest.raises(ValidationError):

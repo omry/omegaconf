@@ -382,7 +382,7 @@ class OmegaConf:
     @staticmethod
     def is_missing(cfg: BaseContainer, key: Union[int, str]) -> bool:
         try:
-            node = cfg.get_node(key)
+            node = cfg._get_node(key)
             if node is None:
                 return False
             return node._is_missing()
@@ -393,7 +393,7 @@ class OmegaConf:
     def is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
         if key is not None:
             assert isinstance(obj, Container)
-            obj = obj.get_node(key)
+            obj = obj._get_node(key)
         if isinstance(obj, Node):
             return obj._is_optional()
         else:
@@ -403,7 +403,7 @@ class OmegaConf:
     def is_none(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
         if key is not None:
             assert isinstance(obj, Container)
-            obj = obj.get_node(key)
+            obj = obj._get_node(key)
         if isinstance(obj, Node):
             return obj._is_none()
         else:
@@ -413,7 +413,7 @@ class OmegaConf:
     def is_interpolation(node: Node, key: Optional[Union[int, str]] = None) -> bool:
         if key is not None:
             assert isinstance(node, Container)
-            target = node.get_node(key)
+            target = node._get_node(key)
         else:
             target = node
         if target is not None:
@@ -449,7 +449,7 @@ class OmegaConf:
                 return get_type_of(obj)
 
         if key is not None:
-            c = obj.get_node(key)
+            c = obj._get_node(key)
         else:
             c = obj
 
@@ -477,7 +477,7 @@ class OmegaConf:
     @staticmethod
     def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
         if key is not None:
-            c = obj.get_node(key)
+            c = obj._get_node(key)
         else:
             c = obj
 
@@ -673,7 +673,7 @@ def _select_one(
             if ret_key < 0 or ret_key + 1 > len(c):
                 val = None
             else:
-                val = c.get_node(ret_key)
+                val = c._get_node(ret_key)
     else:
         assert False
 
