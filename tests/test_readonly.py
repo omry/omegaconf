@@ -18,7 +18,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
         ),
         (
             {},
-            lambda c: c.update_node("a.b", 10),
+            lambda c: OmegaConf.update(c, "a.b", 10),
             raises(ReadonlyConfigError, match="a"),
         ),
         (
@@ -36,7 +36,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
         ([], lambda c: c.__setitem__(0, 1), raises(ReadonlyConfigError, match="0")),
         (
             [],
-            lambda c: c.update_node("0.b", 10),
+            lambda c: OmegaConf.update(c, "0.b", 10),
             raises(ReadonlyConfigError, match="[0]"),
         ),
         ([10], lambda c: c.pop(), raises(ReadonlyConfigError)),

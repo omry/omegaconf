@@ -12,7 +12,7 @@ from . import does_not_raise
 def test_select_key_from_empty(struct: Optional[bool]) -> None:
     c = OmegaConf.create()
     OmegaConf.set_struct(c, struct)
-    assert c.select("not_there") is None
+    assert OmegaConf.select(c, "not_there") is None
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -67,12 +67,18 @@ def test_select(
     c = OmegaConf.create(cfg)
     with expectation:
         for idx, key in enumerate(keys):
-            assert c.select(key) == expected[idx]
+            assert OmegaConf.select(c, key) == expected[idx]
 
 
 def test_select_from_dict() -> None:
     c = OmegaConf.create({"missing": "???"})
     with pytest.raises(MissingMandatoryValue):
-        c.select("missing", throw_on_missing=True)
-    assert c.select("missing", throw_on_missing=False) is None
-    assert c.select("missing") is None
+        OmegaConf.select(c, "missing", throw_on_missing=True)
+    assert OmegaConf.select(c, "missing", throw_on_missing=False) is None
+    assert OmegaConf.select(c, "missing") is None
+
+
+def test_select_deprecated() -> None:
+    c = OmegaConf.create({"foo": "bar"})
+    with pytest.deprecated_call():
+        c.select("foo")

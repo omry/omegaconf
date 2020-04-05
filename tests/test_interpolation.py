@@ -121,7 +121,7 @@ def test_complex_str_interpolation_is_always_str_1() -> None:
 )
 def test_interpolation(input_: Dict[str, Any], key: str, expected: str) -> None:
     c = OmegaConf.create(input_)
-    assert c.select(key) == expected
+    assert OmegaConf.select(c, key) == expected
 
 
 def test_2_step_interpolation() -> None:
@@ -342,7 +342,7 @@ def test_incremental_dict_with_interpolation() -> None:
 )
 def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
     c = OmegaConf.create(cfg)
-    assert c.select(key) == expected
+    assert OmegaConf.select(c, key) == expected
 
 
 def test_interpolation_with_missing() -> None:
