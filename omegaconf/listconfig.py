@@ -65,7 +65,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             raise ReadonlyConfigError("ListConfig is read-only")
 
         if 0 <= key < self.__len__():
-            target = self.get_node(key)
+            target = self._get_node(key)
             if target is not None:
                 if value is None and not target._is_optional():
                     raise ValidationError(
@@ -147,7 +147,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _update_keys(self) -> None:
         for i in range(len(self)):
-            node = self.get_node(i)
+            node = self._get_node(i)
             if node is not None:
                 node._metadata.key = i
 
@@ -242,7 +242,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def copy(self) -> "ListConfig":
         return copy.copy(self)
 
-    def get_node(self, key: Any) -> Optional[Node]:
+    def _get_node(self, key: Any) -> Optional[Node]:
         return self.get_node_ex(key)
 
     def get_node_ex(self, key: Any, validate_access: bool = True) -> Optional[Node]:
@@ -289,7 +289,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
             assert isinstance(self._content, list)
             ret = self._resolve_with_default(
-                key=index, value=self.get_node(index), default_value=None
+                key=index, value=self._get_node(index), default_value=None
             )
             del self._content[index]
             self._update_keys()

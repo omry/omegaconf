@@ -31,7 +31,7 @@ def verify(
     inter: bool,
     exp: Any = SKIP,
 ) -> None:
-    target_node = cfg.get_node(key)
+    target_node = cfg._get_node(key)
     assert target_node._key() == key
     assert target_node._is_none() == none
     assert target_node._is_optional() == opt
@@ -121,14 +121,14 @@ class TestNodeTypesMatrix:
             verify(cfg, "node", none=True, opt=True, missing=False, inter=False)
 
             cfg.node = value
-            assert cfg.get_node("node") == value
+            assert cfg._get_node("node") == value
             verify(cfg, "node", none=False, opt=True, missing=False, inter=False)
 
             cfg.node = "???"
             verify(cfg, "node", none=False, opt=True, missing=True, inter=False)
 
             cfg.node = value_backup
-            assert cfg.get_node("node") == value_backup
+            assert cfg._get_node("node") == value_backup
             verify(cfg, "node", none=False, opt=True, missing=False, inter=False)
 
     def test_none_assignment_in_list(self, node_type: Any, values: Any) -> None:

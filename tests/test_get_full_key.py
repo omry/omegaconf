@@ -81,7 +81,7 @@ def test_get_full_key_from_config(
 
 def test_value_node_get_full_key() -> None:
     cfg = OmegaConf.create({"foo": IntegerNode(value=10)})
-    assert cfg.get_node("foo")._get_full_key(None) == "foo"  # type: ignore
+    assert cfg._get_node("foo")._get_full_key(None) == "foo"  # type: ignore
 
     node = IntegerNode(value=10)
     assert node._get_full_key(None) == ""

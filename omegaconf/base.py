@@ -201,7 +201,7 @@ class Container(Node):
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         ...  # pragma: no cover
 
-    def get_node(self, key: Any) -> Optional[Node]:
+    def _get_node(self, key: Any) -> Optional[Node]:
         ...  # pragma: no cover
 
     @abstractmethod

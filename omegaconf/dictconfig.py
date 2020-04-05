@@ -133,7 +133,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         if OmegaConf.is_none(value):
             if key is not None:
-                node = self.get_node(key)
+                node = self._get_node(key)
                 if node is not None and not node._is_optional():
                     raise ValidationError("field '$FULL_KEY' is not Optional")
             else:
@@ -154,7 +154,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if key is None:
             target = self
         else:
-            target = self.get_node(key)
+            target = self._get_node(key)
 
         if (target is not None and target._get_flag("readonly")) or self._get_flag(
             "readonly"
@@ -332,7 +332,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             key=key, value=node, default_value=default_value,
         )
 
-    def get_node(self, key: Union[str, Enum]) -> Optional[Node]:
+    def _get_node(self, key: Union[str, Enum]) -> Optional[Node]:
         return self.get_node_ex(key, default_value=DEFAULT_VALUE_MARKER)
 
     def get_node_ex(
@@ -366,7 +366,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     cause=ReadonlyConfigError("Cannot pop from read-only node"),
                 )
 
-            node = self.get_node(key=key)
+            node = self._get_node(key=key)
             if node is not None:
                 value = self._resolve_with_default(
                     key=key, value=node, default_value=default
@@ -403,7 +403,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         key = self._validate_and_normalize_key(key)
         try:
-            node: Optional[Node] = self.get_node(key)
+            node: Optional[Node] = self._get_node(key)
         except (KeyError, AttributeError):
             node = None
 

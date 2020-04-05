@@ -242,11 +242,11 @@ class BaseContainer(Container, ABC):
                     if OmegaConf.is_missing(dest, key):
                         dest[key] = src_value
 
-            if (dest.get_node(key) is not None) or element_typed:
-                dest_node = dest.get_node(key)
+            if (dest._get_node(key) is not None) or element_typed:
+                dest_node = dest._get_node(key)
                 if dest_node is None and element_typed:
                     dest[key] = DictConfig(content=dest_element_type, parent=dest)
-                    dest_node = dest.get_node(key)
+                    dest_node = dest._get_node(key)
 
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_value, BaseContainer):
@@ -261,7 +261,7 @@ class BaseContainer(Container, ABC):
                         assert isinstance(dest_node, ValueNode)
                         dest_node._set_value(src_value)
             else:
-                dest[key] = src.get_node(key)
+                dest[key] = src._get_node(key)
 
         if src_type is not Any and not is_primitive_dict(src_type):
             dest._metadata.object_type = src_type
@@ -314,7 +314,7 @@ class BaseContainer(Container, ABC):
             self._validate_set(key, value)
 
         input_config = isinstance(value, Container)
-        target_node_ref = self.get_node(key)
+        target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
         should_set_value = (
             target_node_ref is not None
@@ -338,7 +338,7 @@ class BaseContainer(Container, ABC):
             ):
                 ref_type = self._metadata.element_type
             else:
-                target = self.get_node(key)
+                target = self._get_node(key)
                 if target is None:
                     if is_structured_config(val):
                         ref_type = OmegaConf.get_type(val)
@@ -385,8 +385,8 @@ class BaseContainer(Container, ABC):
         c2: "BaseContainer",
         k2: Union[str, int],
     ) -> bool:
-        v1 = c1.get_node(k1)
-        v2 = c2.get_node(k2)
+        v1 = c1._get_node(k1)
+        v2 = c2._get_node(k2)
         v1_kind = get_value_kind(v1)
         v2_kind = get_value_kind(v2)
 

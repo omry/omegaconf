@@ -112,7 +112,7 @@ def test_assigned_value_node_type(input_: type, expected_type: Any) -> None:
     c = OmegaConf.create()
     assert isinstance(c, DictConfig)
     c.foo = input_
-    assert type(c.get_node("foo")) == expected_type
+    assert type(c._get_node("foo")) == expected_type
 
 
 def test_get_node_no_validate_access() -> None:
@@ -137,18 +137,18 @@ def test_dict_any() -> None:
     c[Enum1.FOO] = "bar"
 
     assert c.foo == 10
-    assert type(c.get_node("foo")) == AnyNode
+    assert type(c._get_node("foo")) == AnyNode
     c.foo = "string"
     assert c.foo == "string"
 
-    assert type(c.get_node(Enum1.FOO)) == AnyNode
+    assert type(c._get_node(Enum1.FOO)) == AnyNode
 
 
 def test_dict_integer_1() -> None:
     c = OmegaConf.create()
     assert isinstance(c, DictConfig)
     c.foo = IntegerNode(10)
-    assert type(c.get_node("foo")) == IntegerNode
+    assert type(c._get_node("foo")) == IntegerNode
     assert c.foo == 10
 
 
@@ -159,7 +159,7 @@ def test_list_any() -> None:
     # default type is Any
     c.append(10)
     assert c[0] == 10
-    assert type(c.get_node(0)) == AnyNode
+    assert type(c._get_node(0)) == AnyNode
     c[0] = "string"
     assert c[0] == "string"
 
@@ -169,7 +169,7 @@ def test_list_integer() -> None:
     c = OmegaConf.create([])
     assert isinstance(c, ListConfig)
     c.append(IntegerNode(val))
-    assert type(c.get_node(0)) == IntegerNode
+    assert type(c._get_node(0)) == IntegerNode
     assert c.get(0) == val
 
 
@@ -181,7 +181,7 @@ def test_list_integer_rejects_string() -> None:
     with pytest.raises(ValidationError):
         c[0] = "string"
     assert c[0] == 10
-    assert type(c.get_node(0)) == IntegerNode
+    assert type(c._get_node(0)) == IntegerNode
 
 
 # Test merge raises validation error
@@ -224,11 +224,11 @@ def test_accepts_mandatory_missing(
     conf = OmegaConf.create({"foo": node})
     assert isinstance(conf, DictConfig)
     assert "foo" not in conf
-    assert type(conf.get_node("foo")) == type_
+    assert type(conf._get_node("foo")) == type_
 
     conf.foo = valid_value
     # make sure valid assignment does not change the type
-    assert type(conf.get_node("foo")) == type_
+    assert type(conf._get_node("foo")) == type_
     assert "foo" in conf
     assert conf.foo == valid_value
 
