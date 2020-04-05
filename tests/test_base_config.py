@@ -105,10 +105,6 @@ def test_to_container_returns_primitives(input_: Any) -> None:
     res = OmegaConf.to_container(c, resolve=True)
     assert_container_with_primitives(res)
 
-    # Test deprecated API
-    res = c.to_container(resolve=True)
-    assert_container_with_primitives(res)
-
 
 @pytest.mark.parametrize(  # type: ignore
     "input_, is_empty", [([], True), ({}, True), ([1, 2], False), (dict(a=10), False)]
