@@ -1,6 +1,5 @@
 import copy
 import sys
-import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -34,17 +33,6 @@ class BaseContainer(Container, ABC):
             parent=parent, metadata=metadata,
         )
         self.__dict__["_content"] = None
-
-    def save(self, f: str) -> None:
-        warnings.warn(
-            "Use OmegaConf.save(config, filename) (since 1.4.0)",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        from omegaconf import OmegaConf
-
-        OmegaConf.save(self, f)
 
     def _resolve_with_default(
         self,
@@ -212,15 +200,6 @@ class BaseContainer(Container, ABC):
             return retlist
 
         assert False
-
-    def to_container(self, resolve: bool = False) -> Union[Dict[str, Any], List[Any]]:
-        warnings.warn(
-            "Use OmegaConf.to_container(config, resolve) (since 1.4.0)",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return BaseContainer._to_content(self, resolve)
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
         """

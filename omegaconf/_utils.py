@@ -1,7 +1,6 @@
 import re
 import string
 import sys
-import warnings
 from enum import Enum
 from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
@@ -385,14 +384,6 @@ def is_primitive_type(type_: Any) -> bool:
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
 
 
-def _is_primitive_type(type_: Any) -> bool:
-    warnings.warn(
-        "use omegaconf._utils.is_primitive_type", DeprecationWarning, stacklevel=2,
-    )
-
-    return is_primitive_type(type_)
-
-
 def _is_interpolation(v: Any) -> bool:
     if isinstance(v, str):
         ret = get_value_kind(v) in (
@@ -429,16 +420,11 @@ def format_and_raise(
         else:
             return str(node._metadata.object_type)
 
-    key = key
-    if key is None:
-        node = node
-    else:
+    if key is not None:
         if node is None or node._is_none() or node._is_missing():
             node = None
         else:
-            if isinstance(key, slice):
-                node = node
-            else:
+            if not isinstance(key, slice):
                 child_node = node.get_node_ex(key, validate_access=False)
                 if child_node is not None:
                     node = child_node

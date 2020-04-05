@@ -289,8 +289,3 @@ def test_get_key_value_types(
 )
 def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
     assert _utils.is_primitive_type(type_) == is_primitive
-
-
-def test_deprectated_is_primitive_type() -> None:
-    with pytest.deprecated_call():
-        _utils._is_primitive_type(int)
