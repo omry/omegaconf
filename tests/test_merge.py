@@ -36,14 +36,57 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
         (([1, 2, {"a": 10}], [4, 5, {"b": 20}]), [4, 5, {"b": 20}]),
         # Interpolations
-        (
-            ({"data": 123, "reference": "${data}"}, {"data": 456}),
-            {"data": 456, "reference": 456},
+        # value interpolation
+        pytest.param(
+            ({"d1": 1, "inter": "${d1}"}, {"d1": 2}),
+            {"d1": 2, "inter": 2},
+            id="inter:updating_data",
         ),
-        (({"missing": "${data}"}, {"missing": 123}), {"missing": 123}),
-        (
-            ({"missing": 123}, {"missing": "${data}"}, {"missing": 456}),
-            {"missing": 456},
+        pytest.param(
+            ({"d1": 1, "d2": 2, "inter": "${d1}"}, {"inter": "${d2}"}),
+            {"d1": 1, "d2": 2, "inter": 2},
+            id="inter:value_inter_over_value_inter",
+        ),
+        pytest.param(
+            ({"inter": "${d1}"}, {"inter": 123}),
+            {"inter": 123},
+            id="inter:data_over_value_inter",
+        ),
+        pytest.param(
+            ({"inter": "${d1}", "d1": 1, "n1": {"foo": "bar"}}, {"inter": "${n1}"}),
+            {"inter": {"foo": "bar"}, "d1": 1, "n1": {"foo": "bar"}},
+            id="inter:node_inter_over_value_inter",
+        ),
+        pytest.param(
+            ({"inter": 123}, {"inter": "${data}"}),
+            {"inter": "${data}"},
+            id="inter:inter_over_data",
+        ),
+        # node interpolation
+        pytest.param(
+            ({"n": {"a": 10}, "i": "${n}"}, {"n": {"a": 20}}),
+            {"n": {"a": 20}, "i": {"a": 20}},
+            id="node_inter:node_update",
+        ),
+        pytest.param(
+            ({"d": 20, "n": {"a": 10}, "i": "${n}"}, {"i": "${d}"}),
+            {"d": 20, "n": {"a": 10}, "i": 20},
+            id="node_inter:value_inter_over_node_inter",
+        ),
+        pytest.param(
+            ({"n": {"a": 10}, "i": "${n}"}, {"i": 30}),
+            {"n": {"a": 10}, "i": 30},
+            id="node_inter:data_over_node_inter",
+        ),
+        pytest.param(
+            ({"n1": {"a": 10}, "n2": {"b": 20}, "i": "${n1}"}, {"i": "${n2}"}),
+            {"n1": {"a": 10}, "n2": {"b": 20}, "i": {"b": 20}},
+            id="node_inter:node_inter_over_node_inter",
+        ),
+        pytest.param(
+            ({"v": 10, "n": {"a": 20}}, {"v": "${n}"}),
+            {"v": {"a": 20}, "n": {"a": 20}},
+            id="inter:node_inter_over_data",
         ),
         # Structured configs
         (({"user": User}, {}), {"user": User(name=MISSING, age=MISSING)}),
