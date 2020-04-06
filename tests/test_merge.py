@@ -88,6 +88,11 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
             {"v": {"a": 20}, "n": {"a": 20}},
             id="inter:node_inter_over_data",
         ),
+        pytest.param(
+            ({"n": {"a": 10}, "i": "${n}"}, {"i": {"b": 20}}),
+            {"n": {"a": 10}, "i": {"a": 10, "b": 20}},
+            id="inter:node_over_node_interpolation",
+        ),
         # Structured configs
         (({"user": User}, {}), {"user": User(name=MISSING, age=MISSING)}),
         (({"user": User}, {"user": {}}), {"user": User(name=MISSING, age=MISSING)}),

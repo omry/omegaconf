@@ -101,7 +101,9 @@ class Node(ABC):
     def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
         ...  # pragma: no cover
 
-    def _dereference_node(self, throw_on_missing: bool = False) -> "Node":
+    def _dereference_node(
+        self, throw_on_missing: bool = False, throw_on_resolution_failure: bool = True
+    ) -> Optional["Node"]:
         from .nodes import StringNode
 
         if self._is_interpolation():
@@ -118,11 +120,15 @@ class Node(ABC):
                     inter_type=match.group(1),
                     inter_key=match.group(2),
                     throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
                 )
                 return v
             elif value_kind == ValueKind.STR_INTERPOLATION:
                 ret = parent._resolve_str_interpolation(
-                    key=key, value=self, throw_on_missing=throw_on_missing
+                    key=key,
+                    value=self,
+                    throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
                 )
                 return StringNode(
                     value=ret,
@@ -261,13 +267,21 @@ class Container(Node):
         if value is None:
             return root, last_key, value
         value = root._resolve_str_interpolation(
-            key=last_key, value=value, throw_on_missing=False
+            key=last_key,
+            value=value,
+            throw_on_missing=False,
+            throw_on_resolution_failure=True,
         )
         return root, last_key, value
 
     def _resolve_interpolation(
-        self, key: Any, inter_type: str, inter_key: str, throw_on_missing: bool,
-    ) -> "Node":
+        self,
+        key: Any,
+        inter_type: str,
+        inter_key: str,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
         from omegaconf import OmegaConf
 
         from .nodes import ValueNode
@@ -281,9 +295,12 @@ class Container(Node):
             )
 
             if parent is None or (value is None and last_key not in parent):  # type: ignore
-                raise KeyError(
-                    f"{inter_type} interpolation key '{inter_key}' not found"
-                )
+                if throw_on_resolution_failure:
+                    raise KeyError(
+                        f"{inter_type} interpolation key '{inter_key}' not found"
+                    )
+                else:
+                    return None
             assert isinstance(value, Node)
             return value
         else:
@@ -302,12 +319,19 @@ class Container(Node):
                     self._format_and_raise(key=inter_key, value=None, cause=e)
                     assert False
             else:
-                raise UnsupportedInterpolationType(
-                    f"Unsupported interpolation type {inter_type}"
-                )
+                if throw_on_resolution_failure:
+                    raise UnsupportedInterpolationType(
+                        f"Unsupported interpolation type {inter_type}"
+                    )
+                else:
+                    return None
 
     def _resolve_str_interpolation(
-        self, key: Any, value: "Node", throw_on_missing: bool
+        self,
+        key: Any,
+        value: "Node",
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
     ) -> Any:
         from .nodes import StringNode
 
@@ -323,6 +347,7 @@ class Container(Node):
                 inter_type=match.group(1),
                 inter_key=match.group(2),
                 throw_on_missing=throw_on_missing,
+                throw_on_resolution_failure=throw_on_resolution_failure,
             )
         elif value_kind == ValueKind.STR_INTERPOLATION:
             value = _get_value(value)
@@ -336,6 +361,7 @@ class Container(Node):
                     inter_type=match.group(1),
                     inter_key=match.group(2),
                     throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
                 )
                 new += orig[last_index : match.start(0)] + str(new_val)
                 last_index = match.end(0)

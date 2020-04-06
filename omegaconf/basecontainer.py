@@ -54,7 +54,10 @@ class BaseContainer(Container, ABC):
             value = default_value
 
         resolved = self._resolve_str_interpolation(
-            key=key, value=value, throw_on_missing=True
+            key=key,
+            value=value,
+            throw_on_missing=True,
+            throw_on_resolution_failure=True,
         )
         if is_mandatory_missing(resolved):
             raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
@@ -222,8 +225,17 @@ class BaseContainer(Container, ABC):
                     if OmegaConf.is_missing(dest, key):
                         dest[key] = src_value
 
-            if (dest._get_node(key) is not None) or element_typed:
-                dest_node = dest._get_node(key)
+            dest_node = dest._get_node(key)
+            if dest_node is not None and dest_node._is_interpolation():
+                target_node = dest_node._dereference_node(
+                    throw_on_resolution_failure=False
+                )
+                if isinstance(target_node, Container):
+                    dest_node = copy.deepcopy(target_node)
+                    dest[key] = dest_node
+
+            if dest_node is not None or element_typed:
+
                 if dest_node is None and element_typed:
                     dest[key] = DictConfig(content=dest_element_type, parent=dest)
                     dest_node = dest._get_node(key)
@@ -383,11 +395,22 @@ class BaseContainer(Container, ABC):
             ValueKind.STR_INTERPOLATION,
             ValueKind.INTERPOLATION,
         ) and v2_kind in (ValueKind.STR_INTERPOLATION, ValueKind.INTERPOLATION):
+            # TODO: true for differnet interpolations?!
             return True
         if isinstance(v1, str):
-            v1 = c1._resolve_str_interpolation(key=k1, value=v1, throw_on_missing=False)
+            v1 = c1._resolve_str_interpolation(
+                key=k1,
+                value=v1,
+                throw_on_missing=False,
+                throw_on_resolution_failure=True,
+            )
         if isinstance(v2, str):
-            v2 = c2._resolve_str_interpolation(key=k2, value=v2, throw_on_missing=False)
+            v2 = c2._resolve_str_interpolation(
+                key=k2,
+                value=v2,
+                throw_on_missing=False,
+                throw_on_resolution_failure=True,
+            )
 
         if isinstance(v1, BaseContainer) and isinstance(v2, BaseContainer):
             if not BaseContainer._config_eq(v1, v2):
