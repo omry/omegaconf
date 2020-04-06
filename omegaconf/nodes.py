@@ -71,15 +71,18 @@ class ValueNode(Node):
 
     def _is_none(self) -> bool:
         node = self._dereference_node()
+        assert node is not None
         return node._value() is None
 
     def _is_optional(self) -> bool:
         node = self._dereference_node()
+        assert node is not None
         return node._metadata.optional
 
     def _is_missing(self) -> bool:
         try:
             node = self._dereference_node(throw_on_missing=True)
+            assert node is not None
             if isinstance(node, Container):
                 ret = node._is_missing()
             else:
