@@ -386,3 +386,9 @@ def test_get_type(cfg: Any, type_: Any) -> None:
 def test_get_ref_type(cfg: Any, type_: Any) -> None:
     cfg = OmegaConf.create(cfg)
     assert OmegaConf.get_ref_type(cfg, "foo") == type_
+
+
+def test_is_issubclass() -> None:
+    cfg = OmegaConf.structured(ConcretePlugin)
+    t = OmegaConf.get_type(cfg)
+    assert t is not None and issubclass(t, ConcretePlugin)
