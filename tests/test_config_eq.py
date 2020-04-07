@@ -1,38 +1,37 @@
-from typing import Any, List
+from typing import Any
 
 import pytest
 
 from omegaconf import AnyNode, DictConfig, OmegaConf
-from omegaconf.basecontainer import BaseContainer
 
 from . import Group, User
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "l1,l2",
+    "i1,i2",
     [
         # === LISTS ===
         # empty list
-        ([], []),
+        pytest.param([], [], id="empty"),
         # simple list
-        (["a", 12, "15"], ["a", 12, "15"]),
+        pytest.param(["a", 12, "15"], ["a", 12, "15"], id="simple_list"),
         # raw vs any
         ([1, 2, 12], [1, 2, AnyNode(12)]),
         # nested empty dict
-        ([12, dict()], [12, dict()]),
+        ([12, {}], [12, {}]),
         # nested dict
-        ([12, dict(c=10)], [12, dict(c=10)]),
+        ([12, {"c": 10}], [12, {"c": 10}]),
         # nested list
         ([1, 2, 3, [10, 20, 30]], [1, 2, 3, [10, 20, 30]]),
         # nested list with any
         ([1, 2, 3, [1, 2, AnyNode(3)]], [1, 2, 3, [1, 2, AnyNode(3)]]),
-        # === DICTS ==
+        # === DICTS ===
         # empty
-        (dict(), dict()),
+        ({}, {}),
         # simple
-        (dict(a=12), dict(a=12)),
+        ({"a": 12}, {"a": 12}),
         # any vs raw
-        (dict(a=12), dict(a=AnyNode(12))),
+        ({"a": 12}, {"a": AnyNode(12)}),
         # nested dict empty
         (dict(a=12, b=dict()), dict(a=12, b=dict())),
         # nested dict
@@ -44,21 +43,32 @@ from . import Group, User
         # In python 3.6+ insert order changes iteration order. this ensures that equality is preserved.
         (dict(a=1, b=2, c=3, d=4, e=5), dict(e=5, b=2, c=3, d=4, a=1)),
         (DictConfig(content=None), DictConfig(content=None)),
+        pytest.param({"a": [1, 2]}, {"a": [1, 2]}, id="list_in_dict"),
         # With interpolations
         ([10, "${0}"], [10, 10]),
         (dict(a=12, b="${a}"), dict(a=12, b=12)),
         # With missing interpolation
-        ([10, "${0}"], [10, 10]),
-        (dict(a="${missing}"), dict(a="${missing}")),
-        (User, User),
-        ({"name": "poo", "age": 7}, User(name="poo", age=7)),
-        (Group, Group),
-        ({"group": {"admin": None}}, {"group": Group}),
+        pytest.param([10, "${0}"], [10, 10], id="list_simple_interpolation"),
+        pytest.param(
+            {"a": "${ref_error}"}, {"a": "${ref_error}"}, id="dict==dict,ref_error"
+        ),
+        pytest.param({"a": "???"}, {"a": "???"}, id="dict==dict,missing"),
+        pytest.param(User, User, id="User==User"),
+        pytest.param(
+            {"name": "poo", "age": 7}, User(name="poo", age=7), id="dict==User"
+        ),
+        pytest.param(Group, Group, id="Group==Group"),
+        pytest.param({"group": {"admin": None}}, {"group": Group}, id="dict==Group"),
+        pytest.param(
+            {"i1": "${n1}", "n1": {"a": 10}},
+            {"i1": "${n1}", "n1": {"a": 10}},
+            id="node_interpolation",
+        ),
     ],
 )
-def test_eq(l1: List[Any], l2: List[Any]) -> None:
-    c1 = OmegaConf.create(l1)
-    c2 = OmegaConf.create(l2)
+def test_eq(i1: Any, i2: Any) -> None:
+    c1 = OmegaConf.create(i1)
+    c2 = OmegaConf.create(i2)
 
     def eq(a: Any, b: Any) -> None:
         assert a == b
@@ -67,32 +77,41 @@ def test_eq(l1: List[Any], l2: List[Any]) -> None:
         assert not b != a
 
     eq(c1, c2)
-    eq(c1, l1)
-    eq(c2, l2)
+    eq(c1, i1)
+    eq(c2, i2)
 
 
 @pytest.mark.parametrize(  # type: ignore
     "input1, input2",
     [
         # Dicts
-        ({}, {"a": 10}),
-        ({}, []),
-        ({}, None),
-        (dict(a=12), dict(a=13)),
-        (dict(a=0), dict(b=0)),
-        (dict(a=12), dict(a=AnyNode(13))),
-        (dict(a=12, b=dict()), dict(a=13, b=dict())),
-        (dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
-        (dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
-        (dict(a=12, b=[1, 2, AnyNode(3)]), dict(a=12, b=[1, 2, AnyNode(30)])),
+        pytest.param({}, {"a": 10}, id="empty_dict_neq_dict"),
+        pytest.param({}, [], id="empty_dict_vs_list"),
+        pytest.param({}, None, id="dict_neq_none"),
+        pytest.param({"foo": None}, {"foo": "bar"}, id="dict_none_neq_dict_not_none"),
+        pytest.param({"a": 12}, {"a": 13}, id="simple_dict_neq"),
+        pytest.param({"a": 0}, {"b": 0}, id="different_key_same_value"),
+        pytest.param(dict(a=12), dict(a=AnyNode(13))),
+        pytest.param(dict(a=12, b=dict()), dict(a=13, b=dict())),
+        pytest.param(dict(a=12, b=dict(c=10)), dict(a=13, b=dict(c=10))),
+        pytest.param(dict(a=12, b=[1, 2, 3]), dict(a=12, b=[10, 2, 3])),
+        pytest.param(
+            dict(a=12, b=[1, 2, AnyNode(3)]), dict(a=12, b=[1, 2, AnyNode(30)])
+        ),
         # Lists
-        ([], [10]),
-        ([10], [11]),
+        pytest.param([], [10], id="list:empty_vs_full"),
+        pytest.param([10], [11], id="list:different_value"),
         ([12], [AnyNode(13)]),
         ([12, dict()], [13, dict()]),
         ([12, dict(c=10)], [13, dict(c=10)]),
         ([12, [1, 2, 3]], [12, [10, 2, 3]]),
         ([12, [1, 2, AnyNode(3)]], [12, [1, 2, AnyNode(30)]]),
+        (dict(a="${foo1}"), dict(a="${foo2}")),
+        pytest.param(
+            {"i1": "${n1}", "n1": {"a": 10}},
+            {"i1": "${n1}", "n1": {"a": 20}},
+            id="node_interpolation",
+        ),
     ],
 )
 def test_not_eq(input1: Any, input2: Any) -> None:
@@ -113,8 +132,7 @@ def test_not_eq(input1: Any, input2: Any) -> None:
 def test_config_eq_mismatch_types() -> None:
     c1 = OmegaConf.create({})
     c2 = OmegaConf.create([])
-    assert not BaseContainer._config_eq(c1, c2)
-    assert not BaseContainer._config_eq(c2, c1)
+    assert c1 != c2
 
 
 def test_dict_not_eq_with_another_class() -> None:

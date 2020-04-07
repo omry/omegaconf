@@ -446,7 +446,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):  # type: ignore
         if other is None:
             return self.__dict__["_content"] is None
         if is_primitive_dict(other) or is_structured_config(other):
-            return DictConfig._dict_conf_eq(self, DictConfig(other))
+            other = DictConfig(other)
+            return DictConfig._dict_conf_eq(self, other)
         if isinstance(other, DictConfig):
             return DictConfig._dict_conf_eq(self, other)
         return NotImplemented

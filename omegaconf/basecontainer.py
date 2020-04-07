@@ -372,64 +372,51 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _item_eq(
-        c1: "BaseContainer",
-        k1: Union[str, int],
-        c2: "BaseContainer",
-        k2: Union[str, int],
+        c1: Container, k1: Union[str, int], c2: Container, k2: Union[str, int],
     ) -> bool:
         v1 = c1._get_node(k1)
         v2 = c2._get_node(k2)
-        v1_kind = get_value_kind(v1)
-        v2_kind = get_value_kind(v2)
+        assert v1 is not None and v2 is not None
 
-        if v1_kind == v2_kind and v1_kind == ValueKind.MANDATORY_MISSING:
+        if v1._is_none() and v2._is_none():
             return True
 
-        v1 = _get_value(v1)
-        v2 = _get_value(v2)
-
-        # special case for two interpolations. just compare them literally.
-        # This is helping in cases where the two interpolations are not resolvable
-        # but the objects are still considered equal.
-        if v1_kind in (
-            ValueKind.STR_INTERPOLATION,
-            ValueKind.INTERPOLATION,
-        ) and v2_kind in (ValueKind.STR_INTERPOLATION, ValueKind.INTERPOLATION):
-            # TODO: true for differnet interpolations?!
+        if v1._is_missing() and v2._is_missing():
             return True
-        if isinstance(v1, str):
-            v1 = c1._resolve_str_interpolation(
-                key=k1,
-                value=v1,
-                throw_on_missing=False,
-                throw_on_resolution_failure=True,
+
+        v1_inter = v1._is_interpolation()
+        v2_inter = v2._is_interpolation()
+        dv1: Optional[Node] = v1
+        dv2: Optional[Node] = v2
+
+        if v1_inter:
+            dv1 = v1._dereference_node(
+                throw_on_missing=False, throw_on_resolution_failure=False
             )
-        if isinstance(v2, str):
-            v2 = c2._resolve_str_interpolation(
-                key=k2,
-                value=v2,
-                throw_on_missing=False,
-                throw_on_resolution_failure=True,
+        if v2_inter:
+            dv2 = v2._dereference_node(
+                throw_on_missing=False, throw_on_resolution_failure=False
             )
 
-        if isinstance(v1, BaseContainer) and isinstance(v2, BaseContainer):
-            if not BaseContainer._config_eq(v1, v2):
-                return False
-        return v1 == v2
-
-    @staticmethod
-    def _config_eq(c1: "BaseContainer", c2: "BaseContainer") -> bool:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-
-        assert isinstance(c1, Container)
-        assert isinstance(c2, Container)
-        if isinstance(c1, DictConfig) and isinstance(c2, DictConfig):
-            return DictConfig._dict_conf_eq(c1, c2)
-        if isinstance(c1, ListConfig) and isinstance(c2, ListConfig):
-            return ListConfig._list_eq(c1, c2)
-        # if type does not match objects are different
-        return False
+        if v1_inter and v2_inter:
+            if dv1 is None or dv2 is None:
+                return v1 == v2
+            else:
+                # both are not none, if both are containers compare as container
+                if isinstance(dv1, Container) and isinstance(dv2, Container):
+                    if dv1 != dv2:
+                        return False
+                dv1 = _get_value(dv1)
+                dv2 = _get_value(dv2)
+                return dv1 == dv2
+        elif not v1_inter and not v2_inter:
+            v1 = _get_value(v1)
+            v2 = _get_value(v2)
+            return v1 == v2
+        else:
+            dv1 = _get_value(dv1)
+            dv2 = _get_value(dv2)
+            return dv1 == dv2
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig
