@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
 import yaml
 
-from .errors import KeyValidationError, ValidationError
+from .errors import KeyValidationError, OmegaConfBaseException, ValidationError
 
 try:
     import dataclasses
@@ -469,4 +469,13 @@ def format_and_raise(
         REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
     )
     exception_type = type(cause) if type_override is None else type_override
-    raise exception_type(f"{message}").with_traceback(sys.exc_info()[2]) from cause
+
+    ex = exception_type(f"{message}").with_traceback(sys.exc_info()[2])
+    if issubclass(exception_type, OmegaConfBaseException):
+        ex.node = node
+        ex.key = key
+        ex.value = value
+        ex.msg = msg
+        ex.cause = cause
+
+    raise ex from cause
