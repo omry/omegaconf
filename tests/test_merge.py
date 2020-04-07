@@ -120,7 +120,11 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
         ),
         ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
-        ([{}, ConfWithMissingDict], {"dict": "???"}),
+        pytest.param(
+            [{}, ConfWithMissingDict],
+            {"dict": "???"},
+            id="merge_missing_dict_into_missing_dict",
+        ),
         ([{"user": User}, {"user": Group}], pytest.raises(ValidationError)),
         (
             [{"user": DictConfig(ref_type=User, content=User)}, {"user": Group}],

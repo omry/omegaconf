@@ -491,7 +491,10 @@ class OmegaConf:
     @staticmethod
     def select(cfg: Container, key: str, throw_on_missing: bool = False) -> Any:
         try:
-            _root, _last_key, value = cfg._select_impl(key, throw_on_missing=False)
+            # TODO: should be throw_on_missing=throw_on_missing ?
+            _root, _last_key, value = cfg._select_impl(
+                key, throw_on_missing=False, throw_on_resolution_failure=True
+            )
             if value is not None and value._is_missing():
                 if throw_on_missing:
                     raise MissingMandatoryValue("missing node selected")

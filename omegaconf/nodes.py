@@ -70,8 +70,15 @@ class ValueNode(Node):
         res.__dict__ = copy.deepcopy(self.__dict__, memo=memo)
 
     def _is_none(self) -> bool:
-        node = self._dereference_node()
-        assert node is not None
+        if self._is_interpolation():
+            node = self._dereference_node(
+                throw_on_resolution_failure=False, throw_on_missing=False
+            )
+            if node is None:
+                # missing or resolution failure
+                return False
+        else:
+            node = self
         return node._value() is None
 
     def _is_optional(self) -> bool:
@@ -81,7 +88,16 @@ class ValueNode(Node):
 
     def _is_missing(self) -> bool:
         try:
-            node = self._dereference_node(throw_on_missing=True)
+            if self._is_interpolation():
+                node = self._dereference_node(
+                    throw_on_resolution_failure=False, throw_on_missing=True
+                )
+                if node is None:
+                    # resolution failure
+                    return False
+            else:
+                node = self
+
             assert node is not None
             if isinstance(node, Container):
                 ret = node._is_missing()

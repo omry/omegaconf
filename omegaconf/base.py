@@ -130,6 +130,8 @@ class Node(ABC):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
+                if ret is None:
+                    return ret
                 return StringNode(
                     value=ret,
                     key=key,
@@ -237,7 +239,7 @@ class Container(Node):
         return root
 
     def _select_impl(
-        self, key: str, throw_on_missing: bool
+        self, key: str, throw_on_missing: bool, throw_on_resolution_failure: bool
     ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
         """
         Select a value using dot separated key sequence
@@ -255,7 +257,12 @@ class Container(Node):
             if root is None:
                 break
             k = split[i]
-            ret, _ = _select_one(c=root, key=k, throw_on_missing=throw_on_missing)
+            ret, _ = _select_one(
+                c=root,
+                key=k,
+                throw_on_missing=throw_on_missing,
+                throw_on_type_error=throw_on_resolution_failure,
+            )
             assert ret is None or isinstance(ret, Container)
             root = ret
 
@@ -263,7 +270,12 @@ class Container(Node):
             return None, None, None
 
         last_key = split[-1]
-        value, _ = _select_one(c=root, key=last_key, throw_on_missing=throw_on_missing)
+        value, _ = _select_one(
+            c=root,
+            key=last_key,
+            throw_on_missing=throw_on_missing,
+            throw_on_type_error=throw_on_resolution_failure,
+        )
         if value is None:
             return root, last_key, value
         value = root._resolve_str_interpolation(
@@ -291,7 +303,9 @@ class Container(Node):
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
             parent, last_key, value = root_node._select_impl(
-                inter_key, throw_on_missing=throw_on_missing
+                inter_key,
+                throw_on_missing=throw_on_missing,
+                throw_on_resolution_failure=throw_on_resolution_failure,
             )
 
             if parent is None or (value is None and last_key not in parent):  # type: ignore
@@ -363,6 +377,9 @@ class Container(Node):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
+                # if failed to resolve, return None for the whole thing.
+                if new_val is None:
+                    return None
                 new += orig[last_index : match.start(0)] + str(new_val)
                 last_index = match.end(0)
 
