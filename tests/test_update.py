@@ -11,7 +11,7 @@ def test_update_map_value() -> None:
     # Replacing an existing key in a map
     s = "hello: world"
     c = OmegaConf.create(s)
-    c.update("hello", "there")
+    OmegaConf.update(c, "hello", "there")
     assert {"hello": "there"} == c
 
 
@@ -19,7 +19,7 @@ def test_update_map_new_keyvalue() -> None:
     # Adding another key to a map
     s = "hello: world"
     c = OmegaConf.create(s)
-    c.update("who", "goes there")
+    OmegaConf.update(c, "who", "goes there")
     assert {"hello": "world", "who": "goes there"} == c
 
 
@@ -27,56 +27,56 @@ def test_update_map_to_value() -> None:
     # changing map to single node
     s = "hello: world"
     c = OmegaConf.create(s)
-    c.update("value")
+    OmegaConf.update(c, "value")
     assert {"hello": "world", "value": None} == c
 
 
 def test_update_with_empty_map_value() -> None:
     c = OmegaConf.create()
-    c.update("a", {})
+    OmegaConf.update(c, "a", {})
     assert {"a": {}} == c
 
 
 def test_update_with_map_value() -> None:
     c = OmegaConf.create()
-    c.update("a", {"aa": 1, "bb": 2})
+    OmegaConf.update(c, "a", {"aa": 1, "bb": 2})
     assert {"a": {"aa": 1, "bb": 2}} == c
 
 
 def test_update_deep_from_empty() -> None:
     c = OmegaConf.create()
-    c.update("a.b", 1)
+    OmegaConf.update(c, "a.b", 1)
     assert {"a": {"b": 1}} == c
 
 
 def test_update_deep_with_map() -> None:
     c = OmegaConf.create("a: b")
-    c.update("a.b", {"c": 1})
+    OmegaConf.update(c, "a.b", {"c": 1})
     assert {"a": {"b": {"c": 1}}} == c
 
 
 def test_update_deep_with_value() -> None:
     c = OmegaConf.create()
-    c.update("a.b", 1)
+    OmegaConf.update(c, "a.b", 1)
     assert {"a": {"b": 1}} == c
 
 
 def test_update_deep_with_map2() -> None:
     c = OmegaConf.create("a: 1")
-    c.update("b.c", 2)
+    OmegaConf.update(c, "b.c", 2)
     assert {"a": 1, "b": {"c": 2}} == c
 
 
 def test_update_deep_with_map_update() -> None:
     c = OmegaConf.create("a: {b : {c: 1}}")
-    c.update("a.b.d", 2)
+    OmegaConf.update(c, "a.b.d", 2)
     assert {"a": {"b": {"c": 1, "d": 2}}} == c
 
 
 def test_list_value_update() -> None:
     # List update is always a replace because a list can be merged in too many ways
     c = OmegaConf.create("a: [1,2]")
-    c.update("a", [2, 3, 4])
+    OmegaConf.update(c, "a", [2, 3, 4])
     assert {"a": [2, 3, 4]} == c
 
 
@@ -85,7 +85,7 @@ def test_override_mandatory_value() -> None:
     assert isinstance(c, DictConfig)
     with raises(MissingMandatoryValue):
         c.get("a")
-    c.update("a", 123)
+    OmegaConf.update(c, "a", 123)
     assert {"a": 123} == c
 
 
@@ -93,7 +93,7 @@ def test_update_empty_to_value() -> None:
     """"""
     s = ""
     c = OmegaConf.create(s)
-    c.update("hello")
+    OmegaConf.update(c, "hello")
     assert {"hello": None} == c
 
 
@@ -101,31 +101,31 @@ def test_update_same_value() -> None:
     """"""
     s = "hello"
     c = OmegaConf.create(s)
-    c.update("hello")
+    OmegaConf.update(c, "hello")
     assert {"hello": None} == c
 
 
 def test_update_value_to_map() -> None:
     s = "hello"
     c = OmegaConf.create(s)
-    c.update("hi", "there")
+    OmegaConf.update(c, "hi", "there")
     assert {"hello": None, "hi": "there"} == c
 
 
 def test_update_map_empty_to_map() -> None:
     s = ""
     c = OmegaConf.create(s)
-    c.update("hello", "there")
+    OmegaConf.update(c, "hello", "there")
     assert {"hello": "there"} == c
 
 
 def test_update_list() -> None:
     c = OmegaConf.create([1, 2, 3])
     assert isinstance(c, ListConfig)
-    c.update("1", "abc")
-    c.update("-1", "last")
+    OmegaConf.update(c, "1", "abc")
+    OmegaConf.update(c, "-1", "last")
     with raises(IndexError):
-        c.update("4", "abc")
+        OmegaConf.update(c, "4", "abc")
 
     assert len(c) == 3
     assert c[0] == 1
@@ -135,10 +135,10 @@ def test_update_list() -> None:
 
 def test_update_nested_list() -> None:
     c = OmegaConf.create(dict(deep=dict(list=[1, 2, 3])))
-    c.update("deep.list.1", "abc")
-    c.update("deep.list.-1", "last")
+    OmegaConf.update(c, "deep.list.1", "abc")
+    OmegaConf.update(c, "deep.list.-1", "last")
     with raises(IndexError):
-        c.update("deep.list.4", "abc")
+        OmegaConf.update(c, "deep.list.4", "abc")
 
     assert c.deep.list[0] == 1
     assert c.deep.list[1] == "abc"
@@ -148,10 +148,10 @@ def test_update_nested_list() -> None:
 def test_update_list_make_dict() -> None:
     c = OmegaConf.create([None, None])
     assert isinstance(c, ListConfig)
-    c.update("0.a.a", "aa")
-    c.update("0.a.b", "ab")
-    c.update("1.b.a", "ba")
-    c.update("1.b.b", "bb")
+    OmegaConf.update(c, "0.a.a", "aa")
+    OmegaConf.update(c, "0.a.b", "ab")
+    OmegaConf.update(c, "1.b.a", "ba")
+    OmegaConf.update(c, "1.b.b", "bb")
     assert c[0].a.a == "aa"
     assert c[0].a.b == "ab"
     assert c[1].b.a == "ba"
@@ -198,13 +198,6 @@ def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
     c = OmegaConf.create()
     with pytest.raises(ValueError):
         c.merge_with_dotlist(dotlist)
-
-
-def test_update_deprecated() -> None:
-    c = OmegaConf.create()
-    with pytest.deprecated_call():
-        c.update("foo", "bar")
-        assert c.foo == "bar"
 
 
 def test_update_node_deprecated() -> None:

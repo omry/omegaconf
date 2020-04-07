@@ -506,7 +506,7 @@ class OmegaConf:
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
-    def update(cfg: Container, key: str, value: Any) -> None:
+    def update(cfg: Container, key: str, value: Any = None) -> None:
         """Updates a dot separated key sequence to a value"""
         split = key.split(".")
         root = cfg

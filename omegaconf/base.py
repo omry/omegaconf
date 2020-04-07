@@ -202,7 +202,7 @@ class Container(Node):
         ...  # pragma: no cover
 
     @abstractmethod
-    def update(self, key: str, value: Any = None) -> None:
+    def update_node(self, key: str, value: Any = None) -> None:
         ...  # pragma: no cover
 
     @abstractmethod
