@@ -140,6 +140,16 @@ class BaseContainer(Container, ABC):
 
         return OmegaConf.select(self, key, throw_on_missing)
 
+    def update_node(self, key: str, value: Any) -> None:
+        from omegaconf import OmegaConf
+
+        warnings.warn(
+            "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)",
+            category=DeprecationWarning,
+        )
+
+        OmegaConf.update(self, key, value)
+
     def is_empty(self) -> bool:
         """return true if config is empty"""
         return len(self.__dict__["_content"]) == 0

@@ -204,3 +204,11 @@ def test_update_deprecated() -> None:
     c = OmegaConf.create()
     with pytest.deprecated_call():
         c.update("foo", "bar")
+        assert c.foo == "bar"
+
+
+def test_update_node_deprecated() -> None:
+    c = OmegaConf.create()
+    with pytest.deprecated_call():
+        c.update_node("foo", "bar")
+        assert c.foo == "bar"
