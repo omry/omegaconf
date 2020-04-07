@@ -120,16 +120,6 @@ class BaseContainer(Container, ABC):
 
             OmegaConf.update(self, key, value)
 
-    def update(self, key: str, value: Any = None) -> None:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            "update() is deprecated, use OmegaConf.update(). (Since 2.0)",
-            category=DeprecationWarning,
-        )
-
-        return OmegaConf.update(self, key, value)
-
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         from omegaconf import OmegaConf
 
@@ -140,7 +130,7 @@ class BaseContainer(Container, ABC):
 
         return OmegaConf.select(self, key, throw_on_missing)
 
-    def update_node(self, key: str, value: Any) -> None:
+    def update_node(self, key: str, value: Any = None) -> None:
         from omegaconf import OmegaConf
 
         warnings.warn(
