@@ -465,3 +465,20 @@ def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) ->
     c = OmegaConf.create(parent)
     c[key] = value
     assert c == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key, expected",
+    [
+        # dict
+        (OmegaConf.create({"foo": "bar"}), "foo", "bar"),
+        (OmegaConf.create({"foo": None}), "foo", None),
+        (OmegaConf.create({"foo": "???"}), "foo", "???"),
+        # list
+        (OmegaConf.create([10, 20, 30]), 1, 20),
+        (OmegaConf.create([10, None, 30]), 1, None),
+        (OmegaConf.create([10, "???", 30]), 1, "???"),
+    ],
+)
+def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
+    assert cfg._get_node(key) == expected

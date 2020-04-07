@@ -10,6 +10,11 @@ class IllegalType:
     def __init__(self) -> None:
         pass
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, IllegalType):
+            return True
+        return False
+
 
 @contextmanager
 def does_not_raise(enter_result: Any = None) -> Iterator[Any]:

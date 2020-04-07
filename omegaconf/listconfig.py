@@ -14,10 +14,17 @@ from typing import (
     Union,
 )
 
-from ._utils import ValueKind, get_list_element_type, get_value_kind, is_primitive_list
+from ._utils import (
+    ValueKind,
+    format_and_raise,
+    get_list_element_type,
+    get_value_kind,
+    is_primitive_list,
+)
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigValueError,
     KeyValidationError,
     MissingMandatoryValue,
     ReadonlyConfigError,
@@ -38,20 +45,23 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         ref_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
     ) -> None:
-        element_type = get_list_element_type(ref_type)
-        super().__init__(
-            parent=parent,
-            metadata=ContainerMetadata(
-                ref_type=ref_type,
-                object_type=list,
-                key=key,
-                optional=is_optional,
-                element_type=element_type,
-                key_type=int,
-            ),
-        )
-        self._content = None
-        self._set_value(value=content)
+        try:
+            element_type = get_list_element_type(ref_type)
+            super().__init__(
+                parent=parent,
+                metadata=ContainerMetadata(
+                    ref_type=ref_type,
+                    object_type=list,
+                    key=key,
+                    optional=is_optional,
+                    element_type=element_type,
+                    key_type=int,
+                ),
+            )
+            self._content = None
+            self._set_value(value=content)
+        except Exception as ex:
+            format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
     def _validate_get(self, key: Any, value: Any = None) -> None:
         if not isinstance(key, (int, slice)):
@@ -194,7 +204,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def remove(self, x: Any) -> None:
         del self[self.index(x)]
 
-    def __delitem__(self, key: Union[str, int, slice]) -> None:
+    def __delitem__(self, key: Union[int, slice]) -> None:
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -228,7 +238,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return found_idx
         else:
             self._format_and_raise(
-                key=None, value=None, cause=ValueError("Item not found in ListConfig")
+                key=None,
+                value=None,
+                cause=ConfigValueError("Item not found in ListConfig"),
             )
             assert False
 
@@ -242,21 +254,22 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def copy(self) -> "ListConfig":
         return copy.copy(self)
 
-    def _get_node(self, key: Any) -> Optional[Node]:
-        return self.get_node_ex(key)
-
-    def get_node_ex(self, key: Any, validate_access: bool = True) -> Optional[Node]:
-        if self._is_none():
-            raise TypeError(
-                "Cannot get_node from a ListConfig object representing None"
-            )
-        if self._is_missing():
-            raise MissingMandatoryValue("Cannot get_node from a missing ListConfig")
-
+    def _get_node(
+        self,
+        key: Any,
+        # default_value: Any = DEFAULT_VALUE_MARKER,
+        validate_access: bool = True,
+    ) -> Optional[Node]:
         try:
+            if self._is_none():
+                raise TypeError(
+                    "Cannot get_node from a ListConfig object representing None"
+                )
+            if self._is_missing():
+                raise MissingMandatoryValue("Cannot get_node from a missing ListConfig")
             assert isinstance(self._content, list)
             return self._content[key]  # type: ignore
-        except (IndexError, TypeError) as e:
+        except (IndexError, TypeError, MissingMandatoryValue) as e:
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)
                 assert False
@@ -294,7 +307,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             del self._content[index]
             self._update_keys()
             return ret
-        except (ReadonlyConfigError, IndexError) as e:
+        except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
             assert False
 
@@ -322,7 +335,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self._content, list)
             self._content.sort(key=key1, reverse=reverse)
 
-        except (ReadonlyConfigError, IndexError) as e:
+        except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
 

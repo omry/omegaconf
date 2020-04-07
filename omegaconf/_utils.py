@@ -6,7 +6,13 @@ from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
 import yaml
 
-from .errors import KeyValidationError, OmegaConfBaseException, ValidationError
+from .errors import (
+    ConfigIndexError,
+    ConfigTypeError,
+    KeyValidationError,
+    OmegaConfBaseException,
+    ValidationError,
+)
 
 try:
     import dataclasses
@@ -366,7 +372,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     ):
         raise ValidationError(f"Unsupported value type : {element_type}")
 
-    if not _valid_key_annotation_type(key_type):
+    if not _valid_dict_key_annotation_type(key_type):
         raise KeyValidationError(f"Unsupported key type {key_type}")
     return key_type, element_type
 
@@ -375,7 +381,7 @@ def valid_value_annotation_type(type_: Any) -> bool:
     return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
 
 
-def _valid_key_annotation_type(type_: Any) -> bool:
+def _valid_dict_key_annotation_type(type_: Any) -> bool:
     return type_ is None or issubclass(type_, str) or issubclass(type_, Enum)
 
 
@@ -414,43 +420,46 @@ def format_and_raise(
     cause: Exception,
     type_override: Any = None,
 ) -> None:
+    from omegaconf import OmegaConf
+    from omegaconf.base import Node
+
     def type_str(t: Any) -> str:
         if isinstance(t, type):
             return t.__name__
         else:
             return str(node._metadata.object_type)
 
+    if isinstance(cause, OmegaConfBaseException) and cause._initialized:
+        raise cause
+
+    object_type: Optional[Type[Any]]
+    object_type_str: Optional[str] = None
+    ref_type: Optional[Type[Any]]
+    ref_type_str: Optional[str]
+
+    child_node: Optional[Node] = None
     if key is not None:
-        if node is None or node._is_none() or node._is_missing():
-            node = None
-        else:
-            if not isinstance(key, slice):
-                child_node = node.get_node_ex(key, validate_access=False)
-                if child_node is not None:
-                    node = child_node
-                    key = None
+        child_node = node._get_node(key, validate_access=False)
 
     if node is None:
-        full_key = None
+        full_key = ""
         object_type = None
-        rt = None
+        ref_type = None
+        ref_type_str = None
     else:
         full_key = node._get_full_key(key=key)
 
-        ref_type: Any = node._metadata.ref_type
-        if ref_type is None:
-            ref_type = Any
-        object_type = type_str(node._metadata.object_type)
-        rt = type_str(ref_type)
+        ref_type = OmegaConf.get_ref_type(node)
+        object_type = OmegaConf.get_type(node)
+
+        object_type_str = type_str(object_type)
+        ref_type_str = type_str(ref_type)
         if node._metadata.optional:
-            if ref_type is Any:
-                rt = "Any"
-            else:
-                rt = f"Optional[{rt}]"
+            ref_type_str = f"Optional[{ref_type_str}]"
 
     msg = string.Template(msg).substitute(
-        REF_TYPE=rt,
-        OBJECT_TYPE=object_type,
+        REF_TYPE=ref_type_str,
+        OBJECT_TYPE=object_type_str,
         KEY=key,
         FULL_KEY=full_key,
         VALUE=value,
@@ -466,16 +475,25 @@ def format_and_raise(
 """
     )
     message = s.substitute(
-        REF_TYPE=rt, OBJECT_TYPE=object_type, MSG=msg, FULL_KEY=full_key,
+        REF_TYPE=ref_type_str, OBJECT_TYPE=object_type_str, MSG=msg, FULL_KEY=full_key,
     )
     exception_type = type(cause) if type_override is None else type_override
+    if exception_type == TypeError:
+        exception_type = ConfigTypeError
+    elif exception_type == IndexError:
+        exception_type = ConfigIndexError
 
     ex = exception_type(f"{message}").with_traceback(sys.exc_info()[2])
     if issubclass(exception_type, OmegaConfBaseException):
-        ex.node = node
+        ex._initialized = True
+        ex.parent_node = node
+        ex.child_node = child_node
         ex.key = key
+        ex.full_key = full_key
         ex.value = value
         ex.msg = msg
         ex.cause = cause
+        ex.object_type = object_type
+        ex.ref_type = ref_type
 
     raise ex from cause

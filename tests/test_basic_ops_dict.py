@@ -7,6 +7,7 @@ import pytest
 
 from omegaconf import (
     DictConfig,
+    ListConfig,
     MissingMandatoryValue,
     OmegaConf,
     UnsupportedValueType,
@@ -137,12 +138,26 @@ def test_scientific_notation_float() -> None:
     assert 10e-3 == c.a
 
 
-def test_dict_get_with_default() -> None:
-    s = "{hello: {a : 2}}"
-    c = OmegaConf.create(s)
+@pytest.mark.parametrize(  # type: ignore
+    "d,select,key",
+    [
+        ({"hello": {"a": 2}}, "", "missing"),
+        ({"hello": {"a": 2}}, "hello", "missing"),
+        ({"hello": "???"}, "", "hello"),
+        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
+        ({"hello": None}, "", "hello"),
+        ({"hello": "${foo}"}, "", "hello"),
+        ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
+        ({"hello": DictConfig(content="???")}, "", "hello"),
+        ({"hello": DictConfig(content="${foo}")}, "", "hello"),
+        ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
+        ({"hello": ListConfig(content="???")}, "", "hello"),
+    ],
+)
+def test_dict_get_with_default(d: Any, select: Any, key: Any) -> None:
+    c = OmegaConf.create(d).select(select)
     assert isinstance(c, DictConfig)
-    assert c.get("missing", 4) == 4
-    assert c.hello.get("missing", 5) == 5
+    assert c.get(key, 4) == 4
 
 
 def test_map_expansion() -> None:

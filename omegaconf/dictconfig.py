@@ -29,6 +29,8 @@ from ._utils import (
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
+    ConfigAttributeError,
+    ConfigKeyError,
     KeyValidationError,
     MissingMandatoryValue,
     ReadonlyConfigError,
@@ -114,7 +116,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
                     msg = f"Key '{key}' in not in struct"
-                raise AttributeError(msg)
+                raise ConfigAttributeError(msg)
 
     def _validate_merge(self, key: Any, value: Any) -> None:
         self._validate_set_merge_impl(key, value, is_assign=False)
@@ -148,7 +150,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             try:
                 self._validate_get(key, value)
             except AttributeError as e:
-                raise AttributeError(f"Error setting $KEY=$VALUE : {e}")
+                raise ConfigAttributeError(f"Error setting $KEY=$VALUE : {e}")
 
         target: Optional[Node]
         if key is None:
@@ -246,7 +248,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self.__set_impl(key=key, value=value)
         except AttributeError as e:
             self._format_and_raise(
-                key=key, value=value, type_override=KeyError, cause=e
+                key=key, value=value, type_override=ConfigKeyError, cause=e
             )
         except Exception as e:
             self._format_and_raise(key=key, value=value, cause=e)
@@ -280,14 +282,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param key:
         :return:
         """
-        # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
-        if key == "__members__":
-            raise AttributeError()
-
-        if key == "__name__":
-            raise AttributeError()
-
         try:
+            # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
+            if key == "__members__":
+                raise ConfigAttributeError()
+
+            if key == "__name__":
+                raise ConfigAttributeError()
+
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
@@ -302,7 +304,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except AttributeError as e:
-            raise KeyError(f"Error getting '{key}' : {e}")
+            self._format_and_raise(
+                key=key, value=None, cause=e, type_override=ConfigKeyError
+            )
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
@@ -326,33 +330,30 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self._format_and_raise(key=key, value=None, cause=e)
 
     def _get_impl(self, key: Union[str, Enum], default_value: Any) -> Any:
-        key = self._validate_and_normalize_key(key)
-        node = self.get_node_ex(key=key, default_value=default_value)
+        try:
+            node = self._get_node(key=key)
+        except ConfigAttributeError:
+            if default_value != DEFAULT_VALUE_MARKER:
+                node = default_value
+            else:
+                raise
         return self._resolve_with_default(
             key=key, value=node, default_value=default_value,
         )
 
-    def _get_node(self, key: Union[str, Enum]) -> Optional[Node]:
-        return self.get_node_ex(key, default_value=DEFAULT_VALUE_MARKER)
-
-    def get_node_ex(
-        self,
-        key: Union[str, Enum],
-        default_value: Any = DEFAULT_VALUE_MARKER,
-        validate_access: bool = True,
+    def _get_node(
+        self, key: Union[str, Enum], validate_access: bool = True,
     ) -> Optional[Node]:
+        try:
+            key = self._validate_and_normalize_key(key)
+        except KeyValidationError:
+            if validate_access:
+                raise
+            else:
+                return None
         value: Node = self.__dict__["_content"].get(key)
         if validate_access:
-            try:
-                self._validate_get(key)
-            except (KeyError, AttributeError):
-                if default_value != DEFAULT_VALUE_MARKER:
-                    value = default_value
-                else:
-                    raise
-
-        if default_value is not DEFAULT_VALUE_MARKER:
-            value = default_value
+            self._validate_get(key)
 
         return value
 
@@ -379,14 +380,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 else:
                     full = self._get_full_key(key)
                     if full != key:
-                        raise KeyError(f"Key not found: '{key}' (path: '{full}')")
+                        raise ConfigKeyError(f"Key not found: '{key}' (path: '{full}')")
                     else:
-                        raise KeyError(f"Key not found: '{key}'")
+                        raise ConfigKeyError(f"Key not found: '{key}'")
         except Exception as e:
-            if isinstance(e, KeyError):
-                raise
-            else:
-                self._format_and_raise(key=key, value=None, cause=e)
+            self._format_and_raise(key=key, value=None, cause=e)
 
     def keys(self) -> Any:
         if self._is_missing() or self._is_interpolation() or self._is_none():
