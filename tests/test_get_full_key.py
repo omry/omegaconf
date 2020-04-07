@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, Dict
 
 import pytest
 
-from omegaconf import IntegerNode, OmegaConf
+from omegaconf import DictConfig, IntegerNode, OmegaConf
+
+from . import Color
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -69,13 +71,34 @@ from omegaconf import IntegerNode, OmegaConf
         ({"x": "???", "a": 1, "b": {"c": 1}}, "b", "c", "b.c"),
         ({"foo": IntegerNode(value=10)}, "", "foo", "foo"),
         ({"foo": {"bar": IntegerNode(value=10)}}, "foo", "bar", "foo.bar"),
+        # enum
+        pytest.param(
+            DictConfig(ref_type=Dict[Color, str], content={Color.RED: "red"}),
+            "RED",
+            "",
+            "RED",
+            id="get_full_key_with_enum_key",
+        ),
+        pytest.param(
+            {"foo": DictConfig(ref_type=Dict[Color, str], content={Color.RED: "red"})},
+            "foo",
+            "RED",
+            "foo.RED",
+            id="get_full_key_with_nested_enum_key",
+        ),
+        # slice
+        ([1, 2, 3], "", slice(0, 1), "[0:1]"),
+        ([1, 2, 3], "", slice(0, 1, 2), "[0:1:2]"),
     ],
 )
 def test_get_full_key_from_config(
     cfg: Any, select: str, key: Any, expected: Any
 ) -> None:
     c = OmegaConf.create(cfg)
-    node = OmegaConf.select(c, select)
+    _root, _last_key, node = c._select_impl(
+        select, throw_on_missing=True, throw_on_resolution_failure=True
+    )
+    assert node is not None
     assert node._get_full_key(key) == expected
 
 

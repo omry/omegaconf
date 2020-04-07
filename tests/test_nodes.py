@@ -115,19 +115,6 @@ def test_assigned_value_node_type(input_: type, expected_type: Any) -> None:
     assert type(c._get_node("foo")) == expected_type
 
 
-def test_get_node_no_validate_access() -> None:
-    c = OmegaConf.create({"foo": "bar"})
-    assert isinstance(c, DictConfig)
-    OmegaConf.set_struct(c, True)
-    with pytest.raises(AttributeError):
-        c.get_node_ex("zoo", validate_access=True)
-
-    assert c.get_node_ex("zoo", validate_access=False) is None
-
-    val = c.get_node_ex("zoo", validate_access=False, default_value="default")
-    assert val == "default"
-
-
 # dict
 def test_dict_any() -> None:
     c = OmegaConf.create()

@@ -378,7 +378,9 @@ def test_get_type(cfg: Any, type_: Any) -> None:
         ({"foo": ConcretePlugin}, ConcretePlugin),
         ({"foo": DictConfig(ref_type=Plugin, content=ConcretePlugin)}, Plugin),
         ({"foo": {}}, None),
-        ({"foo": OmegaConf.create()}, dict),
+        pytest.param(
+            {"foo": OmegaConf.create()}, dict, id="create_with_nested_dictconfig"
+        ),
         ({"foo": []}, None),
         ({"foo": OmegaConf.create([])}, list),
     ],

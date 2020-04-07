@@ -20,7 +20,7 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
-from .errors import MissingMandatoryValue, ReadonlyConfigError
+from .errors import MissingMandatoryValue, OmegaConfBaseException, ReadonlyConfigError
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
@@ -47,23 +47,26 @@ class BaseContainer(Container, ABC):
             return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
 
         value = _get_value(value)
-
-        if default_value is not DEFAULT_VALUE_MARKER and (
-            value is None or is_mandatory_missing(value)
-        ):
-            value = default_value
+        has_default = default_value is not DEFAULT_VALUE_MARKER
+        if has_default and (value is None or is_mandatory_missing(value)):
+            return default_value
 
         resolved = self._resolve_str_interpolation(
             key=key,
             value=value,
-            throw_on_missing=True,
-            throw_on_resolution_failure=True,
+            throw_on_missing=not has_default,
+            throw_on_resolution_failure=not has_default,
         )
-        if is_mandatory_missing(resolved):
-            raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
-        resolved2 = _get_value(resolved)
+        if resolved is None and has_default:
+            return default_value
 
-        return resolved2
+        if is_mandatory_missing(resolved):
+            if has_default:
+                return default_value
+            else:
+                raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
+
+        return _get_value(resolved)
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -214,9 +217,9 @@ class BaseContainer(Container, ABC):
 
         # disable object time during the merge
         type_backup = dest._metadata.object_type
+        dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         dest._metadata.object_type = None
 
-        dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         for key, src_value in src.items_ex(resolve=False):
             dest_element_type = dest._metadata.element_type
             element_typed = dest_element_type not in (None, Any)
@@ -268,26 +271,29 @@ class BaseContainer(Container, ABC):
         from .listconfig import ListConfig
         from .omegaconf import OmegaConf
 
-        """merge a list of other Config objects into this one, overriding as needed"""
-        for other in others:
-            if is_primitive_container(other) or is_structured_config(other):
-                other = OmegaConf.create(other)
+        try:
+            """merge a list of other Config objects into this one, overriding as needed"""
+            for other in others:
+                if is_primitive_container(other) or is_structured_config(other):
+                    other = OmegaConf.create(other)
 
-            if other is None:
-                raise ValueError("Cannot merge with a None config")
-            if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                BaseContainer._map_merge(self, other)
-            elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                if self._get_flag("readonly"):
-                    raise ReadonlyConfigError(self._get_full_key(""))
-                self.__dict__["_content"].clear()
-                for item in other:
-                    self.append(item)
-            else:
-                raise TypeError("Cannot merge DictConfig with ListConfig")
+                if other is None:
+                    raise ValueError("Cannot merge with a None config")
+                if isinstance(self, DictConfig) and isinstance(other, DictConfig):
+                    BaseContainer._map_merge(self, other)
+                elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                    if self._get_flag("readonly"):
+                        raise ReadonlyConfigError(self._get_full_key(""))
+                    self.__dict__["_content"].clear()
+                    for item in other:
+                        self.append(item)
+                else:
+                    raise TypeError("Cannot merge DictConfig with ListConfig")
 
-        # recursively correct the parent hierarchy after the merge
-        self._re_parent()
+            # recursively correct the parent hierarchy after the merge
+            self._re_parent()
+        except OmegaConfBaseException as e:
+            self._format_and_raise(key=None, value=None, cause=e)
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:
@@ -468,11 +474,25 @@ class BaseContainer(Container, ABC):
     def _value(self) -> Any:
         return self.__dict__["_content"]
 
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(self, key: Union[str, Enum, int, slice, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
+        if not isinstance(key, (int, str, Enum, slice)):
+            return ""
+
+        def _slice_to_str(x: slice) -> str:
+            if x.step is not None:
+                return f"{x.start}:{x.stop}:{x.step}"
+            else:
+                return f"{x.start}:{x.stop}"
+
         def prepand(full_key: str, parent_type: Any, cur_type: Any, key: Any) -> str:
+            if isinstance(key, slice):
+                key = _slice_to_str(key)
+            elif isinstance(key, Enum):
+                key = key.name
+
             if issubclass(parent_type, ListConfig):
                 if full_key != "":
                     if issubclass(cur_type, ListConfig):

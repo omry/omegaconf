@@ -1,20 +1,30 @@
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 
 class OmegaConfBaseException(Exception):
     # would ideally be typed Optional[Node]
-    node: Any
+    parent_node: Any
+    child_node: Any
     key: Any
+    full_key: Optional[str]
     value: Any
     msg: Optional[str]
     cause: Optional[Exception]
+    object_type: Optional[Type[Any]]
+    ref_type: Optional[Type[Any]]
+
+    _initialized: bool = False
 
     def __init__(self, *_args: Any, **_kwargs: Any) -> None:
-        self.node = None
+        self.parent_node = None
+        self.child_node = None
         self.key = None
+        self.full_key = None
         self.value = None
         self.msg = None
         self.cause = None
+        self.object_type = None
+        self.ref_type = None
 
 
 class MissingMandatoryValue(OmegaConfBaseException):
@@ -52,4 +62,42 @@ class UnsupportedInterpolationType(OmegaConfBaseException, ValueError):
     """
 
 
-# TODO KeyError subclass?
+class ConfigKeyError(OmegaConfBaseException, KeyError):
+    """
+    Thrown from DictConfig when a regular dict access would have caused a KeyError.
+    """
+
+    msg: str
+
+    def __init__(self, msg: str) -> None:
+        self.msg = msg
+
+    def __str__(self) -> str:
+        """
+        Workaround to nasty KeyError quirk: https://bugs.python.org/issue2651
+        """
+        return self.msg
+
+
+class ConfigAttributeError(OmegaConfBaseException, AttributeError):
+    """
+    Thrown from a config object when a regular access would have caused an AttributeError.
+    """
+
+
+class ConfigTypeError(OmegaConfBaseException, TypeError):
+    """
+    Thrown from a config object when a regular access would have caused a TypeError.
+    """
+
+
+class ConfigIndexError(OmegaConfBaseException, IndexError):
+    """
+    Thrown from a config object when a regular access would have caused an IndexError.
+    """
+
+
+class ConfigValueError(OmegaConfBaseException, ValueError):
+    """
+    Thrown from a config object when a regular access would have caused a ValueError.
+    """

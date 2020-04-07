@@ -44,7 +44,12 @@ from ._utils import (
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
-from .errors import MissingMandatoryValue, UnsupportedInterpolationType, ValidationError
+from .errors import (
+    MissingMandatoryValue,
+    OmegaConfBaseException,
+    UnsupportedInterpolationType,
+    ValidationError,
+)
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -157,44 +162,50 @@ class OmegaConf:
     def _create_impl(  # noqa F811
         obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
     ) -> Union[DictConfig, ListConfig]:
-        from ._utils import get_yaml_loader
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
+        try:
+            from ._utils import get_yaml_loader
+            from .dictconfig import DictConfig
+            from .listconfig import ListConfig
 
-        if obj is _EMPTY_MARKER_:
-            obj = {}
-        if isinstance(obj, str):
-            obj = yaml.load(obj, Loader=get_yaml_loader())
-            if obj is None:
-                return OmegaConf.create({})
-            elif isinstance(obj, str):
-                return OmegaConf.create({obj: None})
-            else:
-                assert isinstance(obj, (list, dict))
-                return OmegaConf.create(obj)
-
-        else:
-            if (
-                is_primitive_dict(obj)
-                or OmegaConf.is_dict(obj)
-                or is_structured_config(obj)
-                or obj is None
-            ):
-                ref_type = OmegaConf.get_type(obj)
-                return DictConfig(content=obj, parent=parent, ref_type=ref_type)
-            elif is_primitive_list(obj) or OmegaConf.is_list(obj):
-                ref_type = OmegaConf.get_type(obj)
-                return ListConfig(ref_type=ref_type, content=obj, parent=parent)
-            else:
-                if isinstance(obj, type):
-                    raise ValidationError(
-                        f"Input class '{obj.__name__}' is not a structured config. "
-                        "did you forget to decorate it as a dataclass?"
-                    )
+            if obj is _EMPTY_MARKER_:
+                obj = {}
+            if isinstance(obj, str):
+                obj = yaml.load(obj, Loader=get_yaml_loader())
+                if obj is None:
+                    return OmegaConf.create({})
+                elif isinstance(obj, str):
+                    return OmegaConf.create({obj: None})
                 else:
-                    raise ValidationError(
-                        f"Object of unsupported type: '{type(obj).__name__}'"
-                    )
+                    assert isinstance(obj, (list, dict))
+                    return OmegaConf.create(obj)
+
+            else:
+                if (
+                    is_primitive_dict(obj)
+                    or OmegaConf.is_dict(obj)
+                    or is_structured_config(obj)
+                    or obj is None
+                ):
+                    ref_type = OmegaConf.get_ref_type(obj)
+                    if ref_type is None:
+                        ref_type = OmegaConf.get_type(obj)
+                    return DictConfig(content=obj, parent=parent, ref_type=ref_type)
+                elif is_primitive_list(obj) or OmegaConf.is_list(obj):
+                    ref_type = OmegaConf.get_type(obj)
+                    return ListConfig(ref_type=ref_type, content=obj, parent=parent)
+                else:
+                    if isinstance(obj, type):
+                        raise ValidationError(
+                            f"Input class '{obj.__name__}' is not a structured config. "
+                            "did you forget to decorate it as a dataclass?"
+                        )
+                    else:
+                        raise ValidationError(
+                            f"Object of unsupported type: '{type(obj).__name__}'"
+                        )
+        except OmegaConfBaseException as e:
+            format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+            assert False
 
     @staticmethod
     def load(
@@ -491,15 +502,12 @@ class OmegaConf:
     @staticmethod
     def select(cfg: Container, key: str, throw_on_missing: bool = False) -> Any:
         try:
-            # TODO: should be throw_on_missing=throw_on_missing ?
             _root, _last_key, value = cfg._select_impl(
-                key, throw_on_missing=False, throw_on_resolution_failure=True
+                key, throw_on_missing=throw_on_missing, throw_on_resolution_failure=True
             )
             if value is not None and value._is_missing():
-                if throw_on_missing:
-                    raise MissingMandatoryValue("missing node selected")
-                else:
-                    return None
+                # throw_on_missing must be False
+                return None
 
             return _get_value(value)
         except Exception as e:
@@ -691,7 +699,7 @@ def _select_one(
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
-        val: Optional[Node] = c.get_node_ex(ret_key, validate_access=False)
+        val: Optional[Node] = c._get_node(ret_key, validate_access=False)
         if val is not None:
             if val._is_missing():
                 if throw_on_missing:
