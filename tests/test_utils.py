@@ -9,7 +9,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, _utils
 from omegaconf.errors import KeyValidationError, ValidationError
 from omegaconf.nodes import StringNode
 
-from . import Color, IllegalType, does_not_raise
+from . import Color, IllegalType, Plugin, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -289,3 +289,26 @@ def test_get_key_value_types(
 )
 def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
     assert _utils.is_primitive_type(type_) == is_primitive
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "type_, expected",
+    [
+        (int, "int"),
+        (bool, "bool"),
+        (float, "float"),
+        (str, "str"),
+        (Color, "Color"),
+        (DictConfig, "DictConfig"),
+        (ListConfig, "ListConfig"),
+        (Dict[str, str], "Dict[str, str]"),
+        (Dict[Color, int], "Dict[Color, int]"),
+        (Dict[str, Plugin], "Dict[str, Plugin]"),
+        (Dict[str, List[Plugin]], "Dict[str, List[Plugin]]"),
+        (List[str], "List[str]"),
+        (List[Color], "List[Color]"),
+        (List[Dict[str, Color]], "List[Dict[str, Color]]"),
+    ],
+)
+def test_type_str(type_: Any, expected: str) -> None:
+    assert _utils.type_str(type_) == expected

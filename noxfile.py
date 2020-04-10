@@ -28,7 +28,7 @@ def docs(session):
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
 
 
-@nox.session
+@nox.session(python=PYTHON_VERSIONS)
 def coverage(session):
     session.install("--upgrade", "setuptools", "pip")
     session.install("coverage", "pytest", "pytest-mock")
