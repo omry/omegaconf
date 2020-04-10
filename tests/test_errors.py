@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -14,6 +14,7 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
 )
+from omegaconf._utils import type_str
 from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -42,6 +43,8 @@ class Expected:
     op: Any = lambda _cfg: None
     child_node: Any = lambda cfg: None
     parent_node: Any = lambda cfg: cfg
+    object_type_str: Optional[str] = "AUTO"
+    ref_type_str: Optional[str] = "AUTO"
 
     def finalize(self, cfg: Any) -> None:
         if self.object_type == "AUTO":
@@ -55,6 +58,24 @@ class Expected:
                     self.full_key = self.key
                 else:
                     self.full_key = ""
+
+        parent = self.parent_node(cfg)
+        if self.object_type_str == "AUTO":
+            parent_type = OmegaConf.get_type(parent)
+            if parent_type is not None:
+                self.object_type_str = type_str(parent_type)
+            else:
+                self.object_type_str = "Any"
+
+        if self.ref_type_str == "AUTO":
+            parent_type = OmegaConf.get_ref_type(parent)
+            if parent_type is not None:
+                self.ref_type_str = type_str(parent_type)
+                if parent._is_optional():
+                    self.ref_type_str = f"Optional[{self.ref_type_str}]"
+
+            else:
+                self.ref_type_str = "Any"
 
 
 params = [
@@ -294,6 +315,8 @@ params = [
             op=lambda cfg: OmegaConf.structured(NonOptionalAssignedNone),
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
+            object_type_str=None,
+            ref_type_str=None,
         ),
         id="dict_create_none_optional_with_none",
     ),
@@ -303,6 +326,8 @@ params = [
             op=lambda cfg: OmegaConf.structured(IllegalType),
             exception_type=ValidationError,
             msg="Input class 'IllegalType' is not a structured config. did you forget to decorate it as a dataclass?",
+            object_type_str=None,
+            ref_type_str=None,
         ),
         id="dict_create_from_illegal_type",
     ),
@@ -312,6 +337,8 @@ params = [
             op=lambda cfg: OmegaConf.structured(IllegalType()),
             exception_type=ValidationError,
             msg="Object of unsupported type: 'IllegalType'",
+            object_type_str=None,
+            ref_type_str=None,
         ),
         id="structured:create_from_unsupported_object",
     ),
@@ -406,6 +433,8 @@ params = [
             exception_type=ValidationError,
             object_type=None,
             msg="Non optional ListConfig cannot be constructed from None",
+            object_type_str=None,
+            ref_type_str=None,
         ),
         id="list:create_not_optional_with_none",
     ),
@@ -782,3 +811,5 @@ def test_errors(expected: Expected) -> None:
         assert ex.child_node == expected.child_node(cfg)
         assert ex.full_key == expected.full_key
         assert isinstance(expected.full_key, str)
+        assert ex.object_type_str == expected.object_type_str
+        assert ex.ref_type_str == expected.ref_type_str

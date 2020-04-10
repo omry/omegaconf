@@ -461,7 +461,11 @@ It's sometime useful to change this behavior.
     >>> conf.a.cc = 30
     Traceback (most recent call last):
     ...
-    AttributeError: 'Accessing unknown key in a struct : a.cc'
+    omegaconf.errors.ConfigAttributeError: Error setting cc=30 : Key 'cc' in not in struct
+        full_key: a.cc
+        reference_type=Any
+        object_type=dict
+
 
 You can temporarily remove the struct flag from a config object:
 

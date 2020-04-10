@@ -423,12 +423,6 @@ def format_and_raise(
     from omegaconf import OmegaConf
     from omegaconf.base import Node
 
-    def type_str(t: Any) -> str:
-        if isinstance(t, type):
-            return t.__name__
-        else:
-            return str(node._metadata.object_type)
-
     if isinstance(cause, OmegaConfBaseException) and cause._initialized:
         raise cause
 
@@ -453,9 +447,11 @@ def format_and_raise(
         object_type = OmegaConf.get_type(node)
 
         object_type_str = type_str(object_type)
-        ref_type_str = type_str(ref_type)
-        if ref_type_str is None:
+        if ref_type is None:
             ref_type_str = "Any"
+        else:
+            ref_type_str = type_str(ref_type)
+
         if node._metadata.optional and ref_type_str != "Any":
             ref_type_str = f"Optional[{ref_type_str}]"
 
@@ -501,3 +497,17 @@ def format_and_raise(
         ex.ref_type_str = ref_type_str
 
     raise ex from cause
+
+
+def type_str(t: Any) -> str:
+    if hasattr(t, "__name__"):
+        name = str(t.__name__)
+    else:
+        name = str(t._name)  # pragma: no cover
+
+    args = getattr(t, "__args__", None)
+    if args is not None:
+        args = ", ".join([type_str(t) for t in (list(t.__args__))])
+        return f"{name}[{args}]"
+    else:
+        return name
