@@ -454,7 +454,9 @@ def format_and_raise(
 
         object_type_str = type_str(object_type)
         ref_type_str = type_str(ref_type)
-        if node._metadata.optional:
+        if ref_type_str is None:
+            ref_type_str = "Any"
+        if node._metadata.optional and ref_type_str != "Any":
             ref_type_str = f"Optional[{ref_type_str}]"
 
     msg = string.Template(msg).substitute(
@@ -494,6 +496,8 @@ def format_and_raise(
         ex.msg = msg
         ex.cause = cause
         ex.object_type = object_type
+        ex.object_type_str = object_type_str
         ex.ref_type = ref_type
+        ex.ref_type_str = ref_type_str
 
     raise ex from cause
