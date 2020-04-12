@@ -72,6 +72,7 @@ class ConfigKeyError(OmegaConfBaseException, KeyError):
     msg: str
 
     def __init__(self, msg: str) -> None:
+        super().__init__(msg)
         self.msg = msg
 
     def __str__(self) -> str:
