@@ -214,10 +214,10 @@ class BaseContainer(Container, ABC):
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
 
-        # disable object type during the merge
-        type_backup = dest._metadata.object_type  # TODO: try finally
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         try:
+            # disable object type during the merge
+            type_backup = dest._metadata.object_type
             dest._metadata.object_type = None
 
             for key, src_value in src.items_ex(resolve=False):
@@ -258,7 +258,7 @@ class BaseContainer(Container, ABC):
                 else:
                     dest[key] = src._get_node(key)
         finally:
-            if src_type is not Any and not is_primitive_dict(src_type):
+            if src_type is not None and not is_primitive_dict(src_type):
                 dest._metadata.object_type = src_type
             else:
                 dest._metadata.object_type = type_backup
