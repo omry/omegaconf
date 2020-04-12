@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
-from .errors import MissingMandatoryValue, UnsupportedInterpolationType
+from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
 
 
 @dataclass
@@ -112,9 +112,9 @@ class Node(ABC):
             )
             match = match_list[0]
             parent = self._get_parent()
-            assert parent is not None
             key = self._key()
             if value_kind == ValueKind.INTERPOLATION:
+                assert parent is not None
                 v = parent._resolve_interpolation(
                     key=key,
                     inter_type=match.group(1),
@@ -124,6 +124,7 @@ class Node(ABC):
                 )
                 return v
             elif value_kind == ValueKind.STR_INTERPOLATION:
+                assert parent is not None
                 ret = parent._resolve_str_interpolation(
                     key=key,
                     value=self,
@@ -310,7 +311,7 @@ class Container(Node):
 
             if parent is None or (value is None and last_key not in parent):  # type: ignore
                 if throw_on_resolution_failure:
-                    raise KeyError(
+                    raise ConfigKeyError(
                         f"{inter_type} interpolation key '{inter_key}' not found"
                     )
                 else:
@@ -387,3 +388,27 @@ class Container(Node):
             return StringNode(value=new, key=key)
         else:
             assert False
+
+    def _re_parent(self) -> None:
+        from .dictconfig import DictConfig
+        from .listconfig import ListConfig
+
+        # update parents of first level Config nodes to self
+
+        if isinstance(self, Container):
+            if isinstance(self, DictConfig):
+                content = self.__dict__["_content"]
+                if isinstance(content, dict):
+                    for _key, value in self.__dict__["_content"].items():
+                        if value is not None:
+                            value._set_parent(self)
+                        if isinstance(value, Container):
+                            value._re_parent()
+            elif isinstance(self, ListConfig):
+                content = self.__dict__["_content"]
+                if isinstance(content, list):
+                    for item in self.__dict__["_content"]:
+                        if item is not None:
+                            item._set_parent(self)
+                        if isinstance(item, Container):
+                            item._re_parent()

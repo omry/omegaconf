@@ -132,3 +132,11 @@ def test_create_from_listconfig_preserves_metadata() -> None:
     cfg2 = OmegaConf.create(cfg1)
     assert cfg1 == cfg2
     assert cfg1._metadata == cfg2._metadata
+
+
+@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])  # type: ignore
+def test_create_node_parent_retained_on_create(node: Any) -> None:
+    cfg1 = OmegaConf.create({"foo": node})
+    cfg2 = OmegaConf.create({"zonk": cfg1.foo})
+    assert cfg2 == {"zonk": node}
+    assert cfg1.foo._get_parent() == cfg1
