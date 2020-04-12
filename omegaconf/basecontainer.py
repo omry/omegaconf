@@ -212,11 +212,11 @@ class BaseContainer(Container, ABC):
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
-        src = copy.deepcopy(src)
+        src = copy.deepcopy(src)  # TODO: may not be required anymore
         src_type = src._metadata.object_type
 
-        # disable object time during the merge
-        type_backup = dest._metadata.object_type
+        # disable object type during the merge
+        type_backup = dest._metadata.object_type  # TODO: try finally
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         dest._metadata.object_type = None
 
@@ -234,8 +234,8 @@ class BaseContainer(Container, ABC):
                     throw_on_resolution_failure=False
                 )
                 if isinstance(target_node, Container):
-                    dest_node = copy.deepcopy(target_node)
-                    dest[key] = dest_node
+                    dest[key] = copy.deepcopy(target_node)  # maybe deepcopy not needed
+                    dest_node = dest._get_node(key)
 
             if dest_node is not None or element_typed:
 
@@ -350,9 +350,10 @@ class BaseContainer(Container, ABC):
             )
 
         def assign(value_key: Any, value_to_assign: Any) -> None:
-            value_to_assign._set_parent(self)
-            value_to_assign._set_key(value_key)
-            self.__dict__["_content"][value_key] = value_to_assign
+            v = copy.deepcopy(value_to_assign)
+            v._set_parent(self)
+            v._set_key(value_key)
+            self.__dict__["_content"][value_key] = v
 
         if is_primitive_container(value):
             self.__dict__["_content"][key] = wrap(key, value)
@@ -423,26 +424,6 @@ class BaseContainer(Container, ABC):
             dv1 = _get_value(dv1)
             dv2 = _get_value(dv2)
             return dv1 == dv2
-
-    def _re_parent(self) -> None:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-
-        # update parents of first level Config nodes to self
-
-        if isinstance(self, Container) and not self._is_missing():
-            if isinstance(self, DictConfig):
-                if (
-                    self.__dict__["_content"] is not None
-                    and not self._is_interpolation()
-                ):
-                    for _key, value in self.__dict__["_content"].items():
-                        value._set_parent(self)
-                        BaseContainer._re_parent(value)
-            elif isinstance(self, ListConfig):
-                for item in self.__dict__["_content"]:
-                    item._set_parent(self)
-                    BaseContainer._re_parent(item)
 
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None
