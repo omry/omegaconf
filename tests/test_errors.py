@@ -119,7 +119,7 @@ params = [
         ),
         id="dict:update:object_of_illegal_type",
     ),
-    # # pop
+    # pop
     pytest.param(
         Expected(
             create=lambda: create_readonly({"foo": "bar"}),
@@ -174,6 +174,28 @@ params = [
             key="fail",
         ),
         id="dict,struct:access_invalid_attribute",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "${missing}"}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=ConfigKeyError,
+            msg="str interpolation key 'missing' not found",
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_missing_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=ConfigKeyError,
+            msg="str interpolation key 'missing' not found",
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_missing_str_interpolation",
     ),
     # setattr
     pytest.param(
