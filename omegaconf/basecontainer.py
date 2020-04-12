@@ -212,7 +212,6 @@ class BaseContainer(Container, ABC):
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
-        src = copy.deepcopy(src)  # TODO: may not be required anymore
         src_type = src._metadata.object_type
 
         # disable object type during the merge
@@ -234,7 +233,7 @@ class BaseContainer(Container, ABC):
                     throw_on_resolution_failure=False
                 )
                 if isinstance(target_node, Container):
-                    dest[key] = copy.deepcopy(target_node)  # maybe deepcopy not needed
+                    dest[key] = target_node
                     dest_node = dest._get_node(key)
 
             if dest_node is not None or element_typed:
