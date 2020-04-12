@@ -217,50 +217,51 @@ class BaseContainer(Container, ABC):
         # disable object type during the merge
         type_backup = dest._metadata.object_type  # TODO: try finally
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
-        dest._metadata.object_type = None
+        try:
+            dest._metadata.object_type = None
 
-        for key, src_value in src.items_ex(resolve=False):
-            dest_element_type = dest._metadata.element_type
-            element_typed = dest_element_type not in (None, Any)
-            if OmegaConf.is_missing(dest, key):
-                if isinstance(src_value, DictConfig):
-                    if OmegaConf.is_missing(dest, key):
-                        dest[key] = src_value
+            for key, src_value in src.items_ex(resolve=False):
+                dest_element_type = dest._metadata.element_type
+                element_typed = dest_element_type not in (None, Any)
+                if OmegaConf.is_missing(dest, key):
+                    if isinstance(src_value, DictConfig):
+                        if OmegaConf.is_missing(dest, key):
+                            dest[key] = src_value
 
-            dest_node = dest._get_node(key)
-            if dest_node is not None and dest_node._is_interpolation():
-                target_node = dest_node._dereference_node(
-                    throw_on_resolution_failure=False
-                )
-                if isinstance(target_node, Container):
-                    dest[key] = target_node
-                    dest_node = dest._get_node(key)
+                dest_node = dest._get_node(key)
+                if dest_node is not None and dest_node._is_interpolation():
+                    target_node = dest_node._dereference_node(
+                        throw_on_resolution_failure=False
+                    )
+                    if isinstance(target_node, Container):
+                        dest[key] = target_node
+                        dest_node = dest._get_node(key)
 
-            if dest_node is not None or element_typed:
+                if dest_node is not None or element_typed:
 
-                if dest_node is None and element_typed:
-                    dest[key] = DictConfig(content=dest_element_type, parent=dest)
-                    dest_node = dest._get_node(key)
+                    if dest_node is None and element_typed:
+                        dest[key] = DictConfig(content=dest_element_type, parent=dest)
+                        dest_node = dest._get_node(key)
 
-                if isinstance(dest_node, BaseContainer):
-                    if isinstance(src_value, BaseContainer):
-                        dest._validate_merge(key=key, value=src_value)
-                        dest_node.merge_with(src_value)
+                    if isinstance(dest_node, BaseContainer):
+                        if isinstance(src_value, BaseContainer):
+                            dest._validate_merge(key=key, value=src_value)
+                            dest_node.merge_with(src_value)
+                        else:
+                            dest.__setitem__(key, src_value)
                     else:
-                        dest.__setitem__(key, src_value)
+                        if isinstance(src_value, BaseContainer):
+                            dest.__setitem__(key, src_value)
+                        else:
+                            assert isinstance(dest_node, ValueNode)
+                            dest_node._set_value(src_value)
                 else:
-                    if isinstance(src_value, BaseContainer):
-                        dest.__setitem__(key, src_value)
-                    else:
-                        assert isinstance(dest_node, ValueNode)
-                        dest_node._set_value(src_value)
+                    dest[key] = src._get_node(key)
+        finally:
+            if src_type is not Any and not is_primitive_dict(src_type):
+                dest._metadata.object_type = src_type
             else:
-                dest[key] = src._get_node(key)
-
-        if src_type is not Any and not is_primitive_dict(src_type):
-            dest._metadata.object_type = src_type
-        else:
-            dest._metadata.object_type = type_backup
+                dest._metadata.object_type = type_backup
 
     def merge_with(
         self,

@@ -156,6 +156,13 @@ def test_merge(inputs: Any, expected: Any) -> None:
             OmegaConf.merge(*configs)
 
 
+def test_merge_error_retains_type() -> None:
+    cfg = OmegaConf.structured(ConcretePlugin)
+    with pytest.raises(ValidationError):
+        cfg.merge_with({"params": {"foo": "error"}})
+    assert OmegaConf.get_type(cfg) == ConcretePlugin
+
+
 def test_primitive_dicts() -> None:
     c1 = {"a": 10}
     c2 = {"b": 20}

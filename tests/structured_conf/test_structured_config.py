@@ -424,10 +424,17 @@ class TestConfigs:
     def test_merged_with_subclass(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
         module: Any = import_module(class_type)
-        c1 = OmegaConf.structured(module.Nested)
-        c2 = OmegaConf.structured(module.NestedSubclass)
+        c1 = OmegaConf.structured(module.Plugin)
+        c2 = OmegaConf.structured(module.ConcretePlugin)
         res = OmegaConf.merge(c1, c2)
-        assert OmegaConf.get_type(res) == module.NestedSubclass
+        assert OmegaConf.get_type(res) == module.ConcretePlugin
+
+    def test_merged_with_nons_subclass(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.structured(module.Plugin)
+        c2 = OmegaConf.structured(module.FaultyPlugin)
+        with pytest.raises(ValidationError):
+            OmegaConf.merge(c1, c2)
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
