@@ -254,7 +254,7 @@ This example creates a resolver that adds 10 the the given value.
     1000
 
 
-Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values (coming in OmegaConf 1.3.1).
+Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
 You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
 .. doctest::
