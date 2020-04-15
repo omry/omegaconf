@@ -1,3 +1,4 @@
+import re
 from importlib import import_module
 from typing import Any, Dict
 
@@ -142,8 +143,20 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.NestedConfig(default_value=module.Nested()))
         validate(conf1)
 
-        with pytest.raises(ValueError):
+    def test_value_without_a_default(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Missing default value for no_default, "
+                "to indicate default must be populated later use OmegaConf.MISSING"
+            ),
+        ):
             OmegaConf.structured(module.NoDefaultErrors)
+
+        OmegaConf.structured(module.NoDefaultErrors(no_default=10)) == {
+            "no_default": 10
+        }
 
     def test_config_with_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)

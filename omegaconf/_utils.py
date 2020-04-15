@@ -118,8 +118,8 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                     value = type_
                 else:
                     raise ValueError(
-                        "Missing default value for {}, to indicate "
-                        "default must be populated later use '???'".format(name)
+                        f"Missing default value for {name}, to indicate "
+                        "default must be populated later use OmegaConf.MISSING"
                     )
         d[name] = _maybe_wrap(
             ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None,
@@ -146,8 +146,8 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                     value = type_
                 else:
                     raise ValueError(
-                        "Missing default value for {}, to indicate "
-                        "default must be populated later use '???'".format(name)
+                        f"Missing default value for {name}, to indicate "
+                        "default must be populated later use OmegaConf.MISSING"
                     )
 
         d[name] = _maybe_wrap(
