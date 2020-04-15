@@ -116,7 +116,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
                     msg = f"Key '{key}' in not in struct"
-                raise ConfigAttributeError(msg)
+                self._format_and_raise(
+                    key=key, value=value, cause=ConfigAttributeError(msg)
+                )
 
     def _validate_merge(self, key: Any, value: Any) -> None:
         self._validate_set_merge_impl(key, value, is_assign=False)

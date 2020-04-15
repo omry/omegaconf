@@ -17,6 +17,7 @@ from omegaconf import (
     open_dict,
     read_write,
 )
+from omegaconf.errors import ConfigKeyError
 
 from . import StructuredWithMissing, does_not_raise
 
@@ -252,7 +253,7 @@ def test_deepcopy_and_merge_and_flags() -> None:
     )
     OmegaConf.set_struct(c1, True)
     c2 = copy.deepcopy(c1)
-    with raises(AttributeError):
+    with raises(ConfigKeyError):
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
