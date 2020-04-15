@@ -4,6 +4,7 @@ from typing import Any, Dict
 import pytest
 
 from omegaconf import OmegaConf
+from omegaconf.errors import ConfigKeyError
 
 
 def test_struct_default() -> None:
@@ -49,7 +50,7 @@ def test_merge_config_with_struct(
     base = OmegaConf.create(in_base)
     merged = OmegaConf.create(in_merged)
     OmegaConf.set_struct(base, True)
-    with pytest.raises(AttributeError):
+    with pytest.raises(ConfigKeyError):
         OmegaConf.merge(base, merged)
 
 

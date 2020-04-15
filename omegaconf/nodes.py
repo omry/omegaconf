@@ -33,7 +33,6 @@ class ValueNode(Node):
         ):
             self._val = value
         else:
-
             if not self._metadata.optional and value is None:
                 raise ValidationError("Non optional field cannot be assigned None")
             self._val = self.validate_and_convert(value)

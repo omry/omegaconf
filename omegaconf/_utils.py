@@ -423,9 +423,6 @@ def format_and_raise(
     from omegaconf import OmegaConf
     from omegaconf.base import Node
 
-    if isinstance(cause, OmegaConfBaseException) and cause._initialized:
-        raise cause
-
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
     ref_type: Optional[Type[Any]]

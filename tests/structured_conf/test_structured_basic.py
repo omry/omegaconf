@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from omegaconf import OmegaConf, ValidationError
+from omegaconf.errors import ConfigKeyError
 
 
 @pytest.mark.parametrize(
@@ -62,6 +63,22 @@ class TestStructured:
             cfg2 = OmegaConf.create({"plugin": module.FaultyPlugin})
             with pytest.raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
+
+        def test_merge_error_new_attribute(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.structured(module.ConcretePlugin)
+            cfg2 = OmegaConf.create({"params": {"bar": 10}})
+            # raise if an invalid key is merged into a struct
+            with pytest.raises(ConfigKeyError):
+                OmegaConf.merge(cfg, cfg2)
+
+        def test_merge_error_override_bad_type(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.structured(module.ConcretePlugin)
+
+            # raise if an invalid key is merged into a struct
+            with pytest.raises(ValidationError):
+                OmegaConf.merge(cfg, {"params": {"foo": "zonk"}})
 
         def test_error_message(self, class_type: str) -> None:
             module: Any = import_module(class_type)

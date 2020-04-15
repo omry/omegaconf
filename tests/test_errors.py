@@ -218,7 +218,7 @@ params = [
             object_type=ConcretePlugin,
             child_node=lambda cfg: cfg.params,
         ),
-        id="structured:setattr,invalid_type",
+        id="structured:setattr,invalid_type_assigned_to_structured",
     ),
     pytest.param(
         Expected(
@@ -243,6 +243,20 @@ params = [
             child_node=lambda cfg: cfg.foo,
         ),
         id="dict,none_optional:set_none",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(ConcretePlugin),
+            op=lambda cfg: cfg.params.__setattr__("foo", "bar"),
+            exception_type=ValidationError,
+            msg="Value 'bar' could not be converted to Integer",
+            key="foo",
+            full_key="params.foo",
+            object_type=ConcretePlugin.FoobarParams,
+            child_node=lambda cfg: cfg.params.foo,
+            parent_node=lambda cfg: cfg.params,
+        ),
+        id="structured:setattr,invalid_type_assigned_to_field",
     ),
     # setitem
     pytest.param(
@@ -287,7 +301,7 @@ params = [
         ),
         id="dict,reftype=Dict[str,str]:,getitem_color_key",
     ),
-    # # merge
+    # merge
     pytest.param(
         Expected(
             create=lambda: create_readonly({"foo": "bar"}),
@@ -296,6 +310,33 @@ params = [
             msg="Cannot merge into read-only node",
         ),
         id="dict,readonly:merge_with",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(ConcretePlugin),
+            op=lambda cfg: OmegaConf.merge(cfg, {"params": {"foo": "bar"}}),
+            exception_type=ValidationError,
+            msg="Value 'bar' could not be converted to Integer",
+            key="foo",
+            full_key="params.foo",
+            object_type=ConcretePlugin.FoobarParams,
+            child_node=lambda cfg: cfg.params.foo,
+            parent_node=lambda cfg: cfg.params,
+        ),
+        id="structured:merge,invalid_field_type",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(ConcretePlugin),
+            op=lambda cfg: OmegaConf.merge(cfg, {"params": {"zlonk": 10}}),
+            exception_type=ConfigKeyError,
+            msg="Key 'zlonk' not in 'FoobarParams'",
+            key="zlonk",
+            full_key="params.zlonk",
+            object_type=ConcretePlugin.FoobarParams,
+            parent_node=lambda cfg: cfg.params,
+        ),
+        id="structured:merge,adding_an_invalid_key",
     ),
     # merge_with
     pytest.param(
