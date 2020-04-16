@@ -443,15 +443,15 @@ def format_and_raise(
     ref_type_str: Optional[str]
 
     child_node: Optional[Node] = None
-    if key is not None:
-        child_node = node._get_node(key, validate_access=False)
-
     if node is None:
         full_key = ""
         object_type = None
         ref_type = None
         ref_type_str = None
     else:
+        if key is not None:
+            child_node = node._get_node(key, validate_access=False)
+
         full_key = node._get_full_key(key=key)
 
         ref_type = OmegaConf.get_ref_type(node)
