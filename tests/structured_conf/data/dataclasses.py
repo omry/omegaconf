@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field  # noqaE402
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
@@ -394,3 +394,8 @@ class MissingTest:
 @dataclass
 class NestedWithNone:
     plugin: Optional[Plugin] = None
+
+
+@dataclass
+class UnionError:
+    x: Union[int, str] = 10

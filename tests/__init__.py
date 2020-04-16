@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 from omegaconf import II, MISSING
 
@@ -83,3 +83,8 @@ class StructuredWithMissing:
     inter_num: int = II("num")
     inter_user: User = II("user")
     inter_opt_user: Optional[User] = II("opt_user")
+
+
+@dataclass
+class UnionError:
+    x: Union[int, str] = 10
