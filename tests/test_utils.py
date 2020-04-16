@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import attr
 import pytest
@@ -308,6 +308,7 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
         (List[str], "List[str]"),
         (List[Color], "List[Color]"),
         (List[Dict[str, Color]], "List[Dict[str, Color]]"),
+        (Union[str, int, Color], "Union[str, int, Color]"),
     ],
 )
 def test_type_str(type_: Any, expected: str) -> None:

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr  # noqaE402
 import pytest
@@ -387,3 +387,8 @@ class MissingTest:
 @attr.s(auto_attribs=True)
 class NestedWithNone:
     plugin: Optional[Plugin] = None
+
+
+@attr.s(auto_attribs=True)
+class UnionError:
+    x: Union[int, str] = 10

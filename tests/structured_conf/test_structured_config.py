@@ -158,6 +158,11 @@ class TestConfigs:
             "no_default": 10
         }
 
+    def test_union_errors(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        with pytest.raises(ValueError):
+            OmegaConf.structured(module.UnionError)
+
     def test_config_with_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
 

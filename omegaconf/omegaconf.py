@@ -40,6 +40,7 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
     isint,
+    type_str,
     valid_value_annotation_type,
 )
 from .base import Container, Node
@@ -586,7 +587,7 @@ def _node_wrap(
 ) -> ValueNode:
     if not valid_value_annotation_type(type_):
         raise ValidationError(
-            f"Annotated class '{type_.__name__}' is not a structured config. "
+            f"Annotated class '{type_str(type_)}' is not a structured config. "
             "did you forget to decorate it as a dataclass?"
         )
     node: ValueNode

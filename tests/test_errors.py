@@ -24,7 +24,14 @@ from omegaconf.errors import (
     MissingMandatoryValue,
 )
 
-from . import Color, ConcretePlugin, IllegalType, Plugin, StructuredWithMissing
+from . import (
+    Color,
+    ConcretePlugin,
+    IllegalType,
+    Plugin,
+    StructuredWithMissing,
+    UnionError,
+)
 
 
 @dataclass
@@ -404,6 +411,17 @@ params = [
             ref_type_str=None,
         ),
         id="structured:create_from_unsupported_object",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: None,
+            op=lambda cfg: OmegaConf.structured(UnionError),
+            exception_type=ValueError,
+            msg="Union types are not supported:\nx: Union[int, str]",
+            object_type_str=None,
+            ref_type_str=None,
+        ),
+        id="structured:create_with_union_error",
     ),
     # assign
     pytest.param(

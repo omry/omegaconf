@@ -9,6 +9,7 @@ import yaml
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
+    ConfigValueError,
     KeyValidationError,
     OmegaConfBaseException,
     ValidationError,
@@ -76,9 +77,11 @@ def _get_class(path: str) -> type:
     return klass
 
 
-def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
-    from typing import Union
+def _is_union(type_: Any) -> bool:
+    return getattr(type_, "__origin__", None) is Union
 
+
+def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     if getattr(type_, "__origin__", None) is Union:
         args = type_.__args__
         if len(args) == 2 and args[1] == type(None):  # noqa E721
@@ -107,8 +110,8 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
     obj_type = obj if is_type else type(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
-        type_ = _resolve_forward(type_, obj.__module__)
         is_nested = is_attr_class(type_)
+        type_ = _resolve_forward(type_, obj.__module__)
         if not is_type:
             value = getattr(obj, name)
         else:
@@ -121,6 +124,12 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                         f"Missing default value for {name}, to indicate "
                         "default must be populated later use OmegaConf.MISSING"
                     )
+        if _is_union(type_):
+            e = ConfigValueError(
+                f"Union types are not supported:\n{name}: {type_str(type_)}"
+            )
+            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
+
         d[name] = _maybe_wrap(
             ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None,
         )
@@ -150,6 +159,11 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
                         "default must be populated later use OmegaConf.MISSING"
                     )
 
+        if _is_union(type_):
+            e = ConfigValueError(
+                f"Union types are not supported:\n{name}: {type_str(type_)}"
+            )
+            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         d[name] = _maybe_wrap(
             ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None,
         )
@@ -497,10 +511,27 @@ def format_and_raise(
 
 
 def type_str(t: Any) -> str:
-    if hasattr(t, "__name__"):
-        name = str(t.__name__)
-    else:
-        name = str(t._name)  # pragma: no cover
+    if sys.version_info < (3, 7, 0):  # pragma: no cover
+        # Python 3.6
+        if hasattr(t, "__name__"):
+            name = str(t.__name__)
+        else:
+            if t.__origin__ is not None:
+                name = type_str(t.__origin__)
+            else:
+                name = str(t)
+                if name.startswith("typing."):
+                    name = name[len("typing.") :]
+    else:  # pragma: no cover
+        # Python >= 3.7
+        if hasattr(t, "__name__"):
+            name = str(t.__name__)
+        else:
+            if t._name is None:
+                if t.__origin__ is not None:
+                    name = type_str(t.__origin__)
+            else:
+                name = str(t._name)
 
     args = getattr(t, "__args__", None)
     if args is not None:
