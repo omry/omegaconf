@@ -477,18 +477,11 @@ def format_and_raise(
         KEY_TYPE=f"{type(key).__name__}",
     )
 
-    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
     template = """$MSG
 \tfull_key: $FULL_KEY
 \treference_type=$REF_TYPE
 \tobject_type=$OBJECT_TYPE
 """
-
-    if not full_backtrace:
-        template += """
-
-Set env OC_CAUSE=1 to include causing exception
-    """
 
     s = string.Template(template=template)
 
@@ -515,6 +508,9 @@ Set env OC_CAUSE=1 to include causing exception
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
+    # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+    # causing exception.
+    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
     if full_backtrace:
         ex.__cause__ = cause
     else:

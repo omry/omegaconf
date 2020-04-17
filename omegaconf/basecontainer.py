@@ -179,9 +179,7 @@ class BaseContainer(Container, ABC):
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
-            for index, item in enumerate(conf):
-                if resolve:
-                    item = conf[index]
+            for index, item in enumerate(conf._iter_ex(resolve=resolve)):
                 item = convert(item)
                 if isinstance(item, Container):
                     item = BaseContainer._to_content(

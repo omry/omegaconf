@@ -237,11 +237,21 @@ def test_pickle_get_root() -> None:
 
 
 def test_iterate_dictionary() -> None:
-    c = OmegaConf.create(dict(a=1, b=2))
+    c = OmegaConf.create({"a": 1, "b": 2})
     m2 = {}
     for key in c:
         m2[key] = c[key]
     assert m2 == c
+
+
+def test_iterate_dict_with_interpolation() -> None:
+    c = OmegaConf.create({"a": "${b}", "b": 2})
+    expected = [("a", 2), ("b", 2)]
+    i = 0
+    for k, v in c.items():
+        assert k == expected[i][0]
+        assert v == expected[i][1]
+        i = i + 1
 
 
 @pytest.mark.parametrize(  # type: ignore
