@@ -6,6 +6,7 @@ import pytest
 
 from omegaconf import AnyNode, ListConfig, OmegaConf
 from omegaconf.errors import (
+    ConfigTypeError,
     KeyValidationError,
     MissingMandatoryValue,
     UnsupportedValueType,
@@ -108,8 +109,8 @@ def test_list_pop_on_unexpected_exception_not_modifying() -> None:
     src = [1, 2, 3, 4]
     c = OmegaConf.create(src)
 
-    with pytest.raises(Exception):
-        c.pop("foo")
+    with pytest.raises(ConfigTypeError):
+        c.pop("foo")  # type: ignore
     assert c == src
 
 

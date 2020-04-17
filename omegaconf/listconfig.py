@@ -24,12 +24,13 @@ from ._utils import (
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigAttributeError,
+    ConfigTypeError,
     ConfigValueError,
     KeyValidationError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
-    ConfigAttributeError,
 )
 from .nodes import ValueNode
 
@@ -66,7 +67,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _validate_get(self, key: Any, value: Any = None) -> None:
         if not isinstance(key, (int, slice)):
-            raise KeyValidationError("Invalid key type '$KEY_TYPE'")
+            raise KeyValidationError(
+                "ListConfig indices must be integers or slices, not $KEY_TYPE"
+            )
 
     def _validate_set(self, key: Any, value: Any) -> None:
 
@@ -287,8 +290,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if self._is_missing():
                 raise MissingMandatoryValue("Cannot get_node from a missing ListConfig")
             assert isinstance(self.__dict__["_content"], list)
+            if validate_access:
+                self._validate_get(key)
             return self.__dict__["_content"][key]  # type: ignore
-        except (IndexError, TypeError, MissingMandatoryValue) as e:
+        except (IndexError, TypeError, MissingMandatoryValue, KeyValidationError) as e:
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)
                 assert False
@@ -328,6 +333,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             del self.__dict__["_content"][index]
             self._update_keys()
             return ret
+        except KeyValidationError as e:
+            self._format_and_raise(
+                key=index, value=None, cause=e, type_override=ConfigTypeError
+            )
+            assert False
         except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
             assert False
