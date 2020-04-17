@@ -1,3 +1,4 @@
+import os
 import re
 import string
 import sys
@@ -476,13 +477,21 @@ def format_and_raise(
         KEY_TYPE=f"{type(key).__name__}",
     )
 
-    s = string.Template(
-        """$MSG
+    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+    template = """$MSG
 \tfull_key: $FULL_KEY
 \treference_type=$REF_TYPE
 \tobject_type=$OBJECT_TYPE
 """
-    )
+
+    if not full_backtrace:
+        template += """
+
+Set env OC_CAUSE=1 to include causing exception
+    """
+
+    s = string.Template(template=template)
+
     message = s.substitute(
         REF_TYPE=ref_type_str, OBJECT_TYPE=object_type_str, MSG=msg, FULL_KEY=full_key,
     )
@@ -492,7 +501,7 @@ def format_and_raise(
     elif exception_type == IndexError:
         exception_type = ConfigIndexError
 
-    ex = exception_type(f"{message}").with_traceback(sys.exc_info()[2])
+    ex = exception_type(f"{message}")
     if issubclass(exception_type, OmegaConfBaseException):
         ex._initialized = True
         ex.parent_node = node
@@ -501,13 +510,16 @@ def format_and_raise(
         ex.full_key = full_key
         ex.value = value
         ex.msg = msg
-        ex.cause = cause
         ex.object_type = object_type
         ex.object_type_str = object_type_str
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
-    raise ex from cause
+    if full_backtrace:
+        ex.__cause__ = cause
+    else:
+        ex.__cause__ = None
+    raise ex
 
 
 def type_str(t: Any) -> str:

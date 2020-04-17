@@ -24,7 +24,6 @@ class OmegaConfBaseException(Exception):
         self.full_key = None
         self.value = None
         self.msg = None
-        self.cause = None
         self.object_type = None
         self.ref_type = None
 
