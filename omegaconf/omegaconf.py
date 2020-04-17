@@ -88,22 +88,22 @@ def SI(interpolation: str) -> Any:
 
 class Resolver0(Protocol):
     def __call__(self) -> Any:
-        ...  # pragma: no cover
+        ...
 
 
 class Resolver1(Protocol):
     def __call__(self, __x1: str) -> Any:
-        ...  # pragma: no cover
+        ...
 
 
 class Resolver2(Protocol):
     def __call__(self, __x1: str, __x2: str) -> Any:
-        ...  # pragma: no cover
+        ...
 
 
 class Resolver3(Protocol):
     def __call__(self, __x1: str, __x2: str, __x3: str) -> Any:
-        ...  # pragma: no cover
+        ...
 
 
 Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
@@ -135,23 +135,33 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
+        obj: str, parent: Optional[BaseContainer] = None
+    ) -> Union[DictConfig, ListConfig]:
+        ...
+
+    @staticmethod
+    @overload
+    def create(
         obj: Union[List[Any], Tuple[Any, ...]], parent: Optional[BaseContainer] = None
     ) -> ListConfig:
-        ...  # pragma: no cover
+        ...
+
+    @staticmethod
+    @overload
+    def create(obj: DictConfig, parent: Optional[BaseContainer] = None) -> DictConfig:
+        ...
+
+    @staticmethod
+    @overload
+    def create(obj: ListConfig, parent: Optional[BaseContainer] = None) -> ListConfig:
+        ...
 
     @staticmethod
     @overload
     def create(
-        obj: Union[BaseContainer, str], parent: Optional[BaseContainer] = None
-    ) -> Union[DictConfig, ListConfig]:
-        ...  # pragma: no cover
-
-    @staticmethod
-    @overload
-    def create(
-        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None
+        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None,
     ) -> DictConfig:
-        ...  # pragma: no cover
+        ...
 
     @staticmethod
     def create(  # noqa F811
@@ -271,8 +281,11 @@ class OmegaConf:
         """Merge a list of previously created configs into a single one"""
         assert len(others) > 0
         target = copy.deepcopy(others[0])
-        if is_primitive_container(target) or is_structured_config(target):
+        if is_primitive_container(target):
+            assert isinstance(target, (list, dict))
             target = OmegaConf.create(target)
+        elif is_structured_config(target):
+            target = OmegaConf.structured(target)
         assert isinstance(target, (DictConfig, ListConfig))
         with flag_override(target, "readonly", False):
             target.merge_with(*others[1:])
