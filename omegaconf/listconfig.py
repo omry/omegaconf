@@ -29,6 +29,7 @@ from .errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
+    ConfigAttributeError,
 )
 from .nodes import ValueNode
 
@@ -58,7 +59,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     key_type=int,
                 ),
             )
-            self._content = None
+            self.__dict__["_content"] = None
             self._set_value(value=content)
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
@@ -98,8 +99,24 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return 0
         if self._is_missing():
             return 0
-        assert isinstance(self._content, list)
-        return len(self._content)
+        assert isinstance(self.__dict__["_content"], list)
+        return len(self.__dict__["_content"])
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        self._format_and_raise(
+            key=key,
+            value=value,
+            cause=ConfigAttributeError("ListConfig does not support attribute access"),
+        )
+        assert False
+
+    def __getattr__(self, key: str) -> None:
+        self._format_and_raise(
+            key=key,
+            value=None,
+            cause=ConfigAttributeError("ListConfig does not support attribute access"),
+        )
+        assert False
 
     def __getitem__(self, index: Union[int, slice]) -> Any:
         try:
@@ -111,19 +128,21 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     "ListConfig object representing None is not subscriptable"
                 )
 
-            assert isinstance(self._content, list)
+            assert isinstance(self.__dict__["_content"], list)
             if isinstance(index, slice):
                 result = []
                 for slice_idx in itertools.islice(
                     range(0, len(self)), index.start, index.stop, index.step
                 ):
                     val = self._resolve_with_default(
-                        key=slice_idx, value=self._content[slice_idx]
+                        key=slice_idx, value=self.__dict__["_content"][slice_idx]
                     )
                     result.append(val)
                 return result
             else:
-                return self._resolve_with_default(key=index, value=self._content[index])
+                return self._resolve_with_default(
+                    key=index, value=self.__dict__["_content"][index]
+                )
         except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
 
@@ -144,7 +163,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._validate_set(key=index, value=item)
 
             node = _maybe_wrap(
-                ref_type=self._metadata.element_type,
+                ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
                 value=item,
                 is_optional=OmegaConf.is_optional(item),
@@ -175,11 +194,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot insert into missing ListConfig")
 
             try:
-                assert isinstance(self._content, list)
+                assert isinstance(self.__dict__["_content"], list)
                 # insert place holder
-                self._content.insert(index, None)
+                self.__dict__["_content"].insert(index, None)
                 node = _maybe_wrap(
-                    ref_type=self._metadata.element_type,
+                    ref_type=self.__dict__["_metadata"].element_type,
                     key=index,
                     value=item,
                     is_optional=OmegaConf.is_optional(item),
@@ -267,8 +286,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
             if self._is_missing():
                 raise MissingMandatoryValue("Cannot get_node from a missing ListConfig")
-            assert isinstance(self._content, list)
-            return self._content[key]  # type: ignore
+            assert isinstance(self.__dict__["_content"], list)
+            return self.__dict__["_content"][key]  # type: ignore
         except (IndexError, TypeError, MissingMandatoryValue) as e:
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)
@@ -283,9 +302,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if self._is_missing():
                 raise MissingMandatoryValue("Cannot get from a missing ListConfig")
             self._validate_get(index, None)
-            assert isinstance(self._content, list)
+            assert isinstance(self.__dict__["_content"], list)
             return self._resolve_with_default(
-                key=index, value=self._content[index], default_value=default_value
+                key=index,
+                value=self.__dict__["_content"][index],
+                default_value=default_value,
             )
         except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
@@ -300,11 +321,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if self._is_missing():
                 raise MissingMandatoryValue("Cannot pop from a missing ListConfig")
 
-            assert isinstance(self._content, list)
+            assert isinstance(self.__dict__["_content"], list)
             ret = self._resolve_with_default(
                 key=index, value=self._get_node(index), default_value=None
             )
-            del self._content[index]
+            del self.__dict__["_content"][index]
             self._update_keys()
             return ret
         except Exception as e:
@@ -332,8 +353,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 def key1(x: Any) -> Any:
                     return key(x._value())  # type: ignore
 
-            assert isinstance(self._content, list)
-            self._content.sort(key=key1, reverse=reverse)
+            assert isinstance(self.__dict__["_content"], list)
+            self.__dict__["_content"].sort(key=key1, reverse=reverse)
 
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
@@ -377,8 +398,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                         v = v._value()
                     return v
 
-            assert isinstance(self._content, list)
-            return MyItems(self._content)
+            assert isinstance(self.__dict__["_content"], list)
+            return MyItems(self.__dict__["_content"])
         except (ReadonlyConfigError, TypeError, MissingMandatoryValue) as e:
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
@@ -420,13 +441,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert is_primitive_list(value) or isinstance(value, ListConfig)
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
-                self._metadata = copy.deepcopy(value._metadata)
-                self._metadata.flags = {}
+                self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
+                self.__dict__["_metadata"].flags = {}
             for item in value:
                 self.append(item)
 
             if isinstance(value, ListConfig):
-                self._metadata.flags = value._metadata.flags
+                self.__dict__["_metadata"].flags = value._metadata.flags
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:

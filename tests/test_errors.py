@@ -461,6 +461,30 @@ params = [
     ##############
     # ListConfig #
     ##############
+    # getattr
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create([1, 2, 3]),
+            op=lambda cfg: setattr(cfg, "foo", 10),
+            exception_type=ConfigAttributeError,
+            key="foo",
+            full_key="[foo]",
+            msg="ListConfig does not support attribute access",
+        ),
+        id="list:setattr",
+    ),
+    # # setattr
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create([1, 2, 3]),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=ConfigAttributeError,
+            key="foo",
+            full_key="[foo]",
+            msg="ListConfig does not support attribute access",
+        ),
+        id="list:setattr",
+    ),
     # get node
     pytest.param(
         Expected(
