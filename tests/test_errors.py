@@ -897,7 +897,7 @@ def create_readonly(cfg: Any) -> Any:
 @pytest.mark.parametrize(  # type:ignore
     "expected", params,
 )
-def test_errors(expected: Expected) -> None:
+def test_errors(expected: Expected, monkeypatch: Any) -> None:
     cfg = expected.create()
     expected.finalize(cfg)
     msg = expected.msg
@@ -918,3 +918,17 @@ def test_errors(expected: Expected) -> None:
         assert isinstance(expected.full_key, str)
         assert ex.object_type_str == expected.object_type_str
         assert ex.ref_type_str == expected.ref_type_str
+
+        with monkeypatch.context() as m:
+            m.setenv("OC_CAUSE", "1")
+            try:
+                expected.op(cfg)
+            except Exception as e:
+                assert e.__cause__ is not None
+
+        with monkeypatch.context() as m:
+            m.delenv("OC_CAUSE", raising=False)
+            try:
+                expected.op(cfg)
+            except Exception as e:
+                assert e.__cause__ is None
