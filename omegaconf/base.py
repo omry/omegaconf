@@ -115,7 +115,7 @@ class Node(ABC):
             key = self._key()
             if value_kind == ValueKind.INTERPOLATION:
                 assert parent is not None
-                v = parent._resolve_interpolation(
+                v = parent._resolve_simple_interpolation(
                     key=key,
                     inter_type=match.group(1),
                     inter_key=match.group(2),
@@ -125,7 +125,7 @@ class Node(ABC):
                 return v
             elif value_kind == ValueKind.STR_INTERPOLATION:
                 assert parent is not None
-                ret = parent._resolve_str_interpolation(
+                ret = parent._resolve_interpolation(
                     key=key,
                     value=self,
                     throw_on_missing=throw_on_missing,
@@ -279,7 +279,7 @@ class Container(Node):
         )
         if value is None:
             return root, last_key, value
-        value = root._resolve_str_interpolation(
+        value = root._resolve_interpolation(
             key=last_key,
             value=value,
             throw_on_missing=False,
@@ -287,7 +287,7 @@ class Container(Node):
         )
         return root, last_key, value
 
-    def _resolve_interpolation(
+    def _resolve_simple_interpolation(
         self,
         key: Any,
         inter_type: str,
@@ -342,7 +342,7 @@ class Container(Node):
                 else:
                     return None
 
-    def _resolve_str_interpolation(  # TODO: rename to _resolve_interpolation of sorts
+    def _resolve_interpolation(
         self,
         key: Any,
         value: "Node",
@@ -358,7 +358,7 @@ class Container(Node):
         if value_kind == ValueKind.INTERPOLATION:
             # simple interpolation, inherit type
             match = match_list[0]
-            return self._resolve_interpolation(
+            return self._resolve_simple_interpolation(
                 key=key,
                 inter_type=match.group(1),
                 inter_key=match.group(2),
@@ -372,7 +372,7 @@ class Container(Node):
             new = ""
             last_index = 0
             for match in match_list:
-                new_val = self._resolve_interpolation(
+                new_val = self._resolve_simple_interpolation(
                     key=key,
                     inter_type=match.group(1),
                     inter_key=match.group(2),

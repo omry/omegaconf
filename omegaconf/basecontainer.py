@@ -56,7 +56,7 @@ class BaseContainer(Container, ABC):
         if has_default and (value is None or is_mandatory_missing(value)):
             return default_value
 
-        resolved = self._resolve_str_interpolation(
+        resolved = self._resolve_interpolation(
             key=key,
             value=value,
             throw_on_missing=not has_default,
