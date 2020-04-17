@@ -359,9 +359,14 @@ def test_pretty_with_enum() -> None:
     cfg.foo = EnumNode(Enum1)
     cfg.foo = Enum1.FOO
 
-    expected = """foo: Enum1.FOO
+    expected = """foo: FOO
 """
-    assert cfg.pretty() == expected
+    s = cfg.pretty()
+    assert s == expected
+    assert (
+        OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
+        == cfg
+    )
 
 
 class DummyEnum(Enum):
