@@ -104,19 +104,12 @@ def test_list_pop() -> None:
     validate_list_keys(c)
 
 
-def test_list_pop_on_unexpected_exception_not_modifying(mocker: Any) -> None:
+def test_list_pop_on_unexpected_exception_not_modifying() -> None:
     src = [1, 2, 3, 4]
     c = OmegaConf.create(src)
 
-    def resolve_with_default_throws(
-        key: Any, value: Any, default_value: Any = None,
-    ) -> None:
-        raise Exception("mocked_exception")
-
-    mocker.patch.object(c, "_resolve_with_default", resolve_with_default_throws)
-
-    with pytest.raises(Exception, match="mocked_exception"):
-        c.pop(0)
+    with pytest.raises(Exception):
+        c.pop("foo")
     assert c == src
 
 
