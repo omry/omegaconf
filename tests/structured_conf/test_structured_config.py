@@ -447,6 +447,18 @@ class TestConfigs:
         res = OmegaConf.merge(c1, c2)
         assert OmegaConf.get_type(res) == module.ConcretePlugin
 
+    def test_merge_with_subclass_into_missing(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        base = OmegaConf.structured(module.PluginHolder)
+        assert OmegaConf.get_ref_type(base, "missing") == module.Plugin
+        assert OmegaConf.get_type(base, "missing") is None
+        res = OmegaConf.merge(base, {"missing": module.Plugin})
+        assert OmegaConf.get_type(res) == module.PluginHolder
+        assert OmegaConf.get_ref_type(base, "missing") == module.Plugin
+        assert OmegaConf.get_type(res, "missing") == module.Plugin
+
+    # TODO: test_nested_missing
+
     def test_merged_with_nons_subclass(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.Plugin)

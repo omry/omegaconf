@@ -99,7 +99,7 @@ class Node(ABC):
 
     @abstractmethod
     def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
-        ...  # pragma: no cover
+        ...
 
     def _dereference_node(
         self, throw_on_missing: bool = False, throw_on_resolution_failure: bool = True
@@ -150,39 +150,39 @@ class Node(ABC):
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __ne__(self, other: Any) -> bool:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __hash__(self) -> int:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _value(self) -> Any:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _set_value(self, value: Any) -> None:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _is_none(self) -> bool:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _is_optional(self) -> bool:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _is_missing(self) -> bool:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _is_interpolation(self) -> bool:
-        ...  # pragma: no cover
+        ...
 
     def _key(self) -> Any:
         return self._metadata.key
@@ -200,34 +200,34 @@ class Container(Node):
 
     @abstractmethod
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def update_node(self, key: str, value: Any = None) -> None:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        ...  # pragma: no cover
+        ...
 
     def _get_node(self, key: Any) -> Optional[Node]:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __delitem__(self, key: Any) -> None:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __setitem__(self, key: Any, value: Any) -> None:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __iter__(self) -> Iterator[str]:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any:
-        ...  # pragma: no cover
+        ...
 
     def _get_root(self) -> "Container":
         root: Optional[Container] = self._get_parent()

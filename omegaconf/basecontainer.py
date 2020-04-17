@@ -90,7 +90,7 @@ class BaseContainer(Container, ABC):
 
     @abstractmethod
     def __delitem__(self, key: Any) -> None:
-        ...  # pragma: no cover
+        ...
 
     def __len__(self) -> int:
         return self.__dict__["_content"].__len__()  # type: ignore
@@ -267,11 +267,13 @@ class BaseContainer(Container, ABC):
         try:
             """merge a list of other Config objects into this one, overriding as needed"""
             for other in others:
-                if is_primitive_container(other) or is_structured_config(other):
-                    other = OmegaConf.create(other)
-
                 if other is None:
                     raise ValueError("Cannot merge with a None config")
+                if is_primitive_container(other):
+                    assert isinstance(other, (list, dict))
+                    other = OmegaConf.create(other)
+                elif is_structured_config(other):
+                    other = OmegaConf.structured(other)
                 if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                     BaseContainer._map_merge(self, other)
                 elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
@@ -439,11 +441,11 @@ class BaseContainer(Container, ABC):
 
     @abstractmethod
     def _validate_get(self, key: Any, value: Any = None) -> None:
-        ...  # pragma: no cover
+        ...
 
     @abstractmethod
     def _validate_set(self, key: Any, value: Any) -> None:
-        ...  # pragma: no cover
+        ...
 
     def _value(self) -> Any:
         return self.__dict__["_content"]

@@ -15,6 +15,7 @@ exclude_lines =
     return NotImplemented
     assert False
     @abstractmethod
+    \.\.\.
 
 
 [html]
