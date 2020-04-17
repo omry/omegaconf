@@ -157,7 +157,7 @@ admin:
   height: ???
 manager:
   name: manager
-  height: Height.TALL
+  height: TALL
 """
     assert conf.pretty() == expected
 

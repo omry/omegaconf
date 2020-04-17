@@ -162,7 +162,7 @@ class BaseContainer(Container, ABC):
         def convert(val: Any) -> Any:
             if enum_to_str:
                 if isinstance(val, Enum):
-                    val = "{}.{}".format(type(val).__name__, val.name)
+                    val = f"{val.name}"
 
             return val
 

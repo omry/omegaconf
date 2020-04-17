@@ -70,7 +70,7 @@ fields during construction.
     num: 20
     pi: 3.1415
     is_awesome: true
-    height: Height.TALL
+    height: TALL
     description: text
     <BLANKLINE>
 
@@ -183,7 +183,7 @@ Structured configs can be nested.
       height: ???
     manager:
       name: manager
-      height: Height.TALL
+      height: TALL
     <BLANKLINE>
 
 OmegaConf will validate that assignment of nested objects is of the correct type:
