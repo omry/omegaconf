@@ -70,13 +70,13 @@ def test_list_get_with_default() -> None:
                     {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"},
                 ]
             },
-            [{"optimizer": "adam"}, {"dataset": "imagenet"}, {"foo": "adam_imagenet"},],
+            [{"optimizer": "adam"}, {"dataset": "imagenet"}, {"foo": "adam_imagenet"}],
             "defaults",
             id="str_interpolation",
         ),
     ],
 )
-def test_iterate_list(input_: Any, expected, list_key: str) -> None:
+def test_iterate_list(input_: Any, expected: Any, list_key: str) -> None:
     c = OmegaConf.create(input_)
     if list_key is not None:
         lst = c.get(list_key)
