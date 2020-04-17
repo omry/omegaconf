@@ -309,7 +309,8 @@ class Container(Node):
                 throw_on_resolution_failure=throw_on_resolution_failure,
             )
 
-            if parent is None or (value is None and last_key not in parent):  # type: ignore
+            # if parent is None or (value is None and last_key not in parent):  # type: ignore
+            if parent is None or value is None:
                 if throw_on_resolution_failure:
                     raise ConfigKeyError(
                         f"{inter_type} interpolation key '{inter_key}' not found"
@@ -341,7 +342,7 @@ class Container(Node):
                 else:
                     return None
 
-    def _resolve_str_interpolation(
+    def _resolve_str_interpolation(  # TODO: rename to _resolve_interpolation of sorts
         self,
         key: Any,
         value: "Node",

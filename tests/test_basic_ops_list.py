@@ -6,6 +6,7 @@ import pytest
 
 from omegaconf import AnyNode, ListConfig, OmegaConf
 from omegaconf.errors import (
+    ConfigKeyError,
     ConfigTypeError,
     KeyValidationError,
     MissingMandatoryValue,
@@ -57,11 +58,11 @@ def test_list_get_with_default() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "input_, list_key",
+    "input_, expected, list_key",
     [
-        ([1, 2], None),
-        (["${1}", 2], None),
-        (
+        pytest.param([1, 2], [1, 2], None, id="simple"),
+        pytest.param(["${1}", 2], [2, 2], None, id="interpolation"),
+        pytest.param(
             {
                 "defaults": [
                     {"optimizer": "adam"},
@@ -69,25 +70,36 @@ def test_list_get_with_default() -> None:
                     {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"},
                 ]
             },
+            [{"optimizer": "adam"}, {"dataset": "imagenet"}, {"foo": "adam_imagenet"},],
             "defaults",
+            id="str_interpolation",
         ),
-        ([1, 2, "${missing}"], None),
     ],
 )
-def test_iterate_list(input_: Any, list_key: str) -> None:
+def test_iterate_list(input_: Any, expected, list_key: str) -> None:
     c = OmegaConf.create(input_)
     if list_key is not None:
         lst = c.get(list_key)
     else:
         lst = c
     items = [x for x in lst]
-    assert items == lst
+    assert items == expected
 
 
-def test_iterate_interpolated_list() -> None:
-    cfg = OmegaConf.create({"inter": "${list}", "list": [1, 2, 3]})
-    items = [x for x in cfg.inter]
-    assert items == [1, 2, 3]
+def test_iterate_list_with_missing_interpolation() -> None:
+    c = OmegaConf.create([1, "${10}"])
+    itr = iter(c)
+    assert 1 == next(itr)
+    with pytest.raises(ConfigKeyError):
+        next(itr)
+
+
+def test_iterate_list_with_missing() -> None:
+    c = OmegaConf.create([1, "???"])
+    itr = iter(c)
+    assert 1 == next(itr)
+    with pytest.raises(MissingMandatoryValue):
+        next(itr)
 
 
 def test_items_with_interpolation() -> None:
@@ -198,7 +210,8 @@ def test_list_append() -> None:
 def test_pretty_without_resolve() -> None:
     c = OmegaConf.create([100, "${0}"])
     # without resolve, references are preserved
-    c2 = OmegaConf.create(c.pretty(resolve=False))
+    yaml_str = c.pretty(resolve=False)
+    c2 = OmegaConf.create(yaml_str)
     assert isinstance(c2, ListConfig)
     c2[0] = 1000
     assert c2[1] == 1000

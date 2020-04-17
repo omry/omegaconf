@@ -16,6 +16,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
+    _get_value,
     format_and_raise,
     get_list_element_type,
     get_value_kind,
@@ -32,7 +33,6 @@ from .errors import (
     ReadonlyConfigError,
     ValidationError,
 )
-from .nodes import ValueNode
 
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
@@ -388,6 +388,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return hash(str(self))
 
     def __iter__(self) -> Iterator[Any]:
+        return self._iter_ex(resolve=True)
+
+    def _iter_ex(self, resolve: bool) -> Iterator[Any]:
         try:
             if self._is_none():
                 raise TypeError("Cannot iterate on ListConfig object representing None")
@@ -395,21 +398,24 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot iterate on a missing ListConfig")
 
             class MyItems(Iterator[Any]):
-                def __init__(self, lst: List[Any]) -> None:
+                def __init__(self, lst: ListConfig) -> None:
                     self.lst = lst
-                    self.iterator = iter(lst)
+                    self.index = 0
 
                 def __next__(self) -> Any:
-                    return self.next()
-
-                def next(self) -> Any:
-                    v = next(self.iterator)
-                    if isinstance(v, ValueNode):
-                        v = v._value()
+                    if self.index == len(self.lst):
+                        raise StopIteration()
+                    if resolve:
+                        v = self.lst[self.index]
+                    else:
+                        v = self.lst.__dict__["_content"][self.index]
+                        if v is not None:
+                            v = _get_value(v)
+                    self.index = self.index + 1
                     return v
 
             assert isinstance(self.__dict__["_content"], list)
-            return MyItems(self.__dict__["_content"])
+            return MyItems(self)
         except (ReadonlyConfigError, TypeError, MissingMandatoryValue) as e:
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
@@ -453,8 +459,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
                 self.__dict__["_metadata"].flags = {}
-            for item in value:
-                self.append(item)
+                for item in value._iter_ex(resolve=False):
+                    self.append(item)
+                self.__dict__["_metadata"].flags = copy.deepcopy(value._metadata.flags)
+            elif is_primitive_list(value):
+                for item in value:
+                    self.append(item)
 
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"].flags = value._metadata.flags
