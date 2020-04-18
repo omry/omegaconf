@@ -457,8 +457,6 @@ class TestConfigs:
         assert OmegaConf.get_ref_type(base, "missing") == module.Plugin
         assert OmegaConf.get_type(res, "missing") == module.Plugin
 
-    # TODO: test_nested_missing
-
     def test_merged_with_nons_subclass(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.Plugin)

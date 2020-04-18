@@ -17,7 +17,14 @@ from omegaconf import (
 )
 from omegaconf.errors import UnsupportedInterpolationType
 
-from . import Color, ConcretePlugin, Plugin, StructuredWithMissing, does_not_raise
+from . import (
+    Color,
+    ConcretePlugin,
+    Plugin,
+    StructuredWithMissing,
+    does_not_raise,
+    IllegalType,
+)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -358,6 +365,23 @@ def test_is_interpolation(fac):
 def test_get_type(cfg: Any, type_: Any) -> None:
     cfg = OmegaConf.create(cfg)
     assert OmegaConf.get_type(cfg, "foo") == type_
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj, type_",
+    [
+        (10, int),
+        (10.0, float),
+        (True, bool),
+        ("foo", str),
+        (DictConfig(content={}), dict),
+        (ListConfig(content=[]), list),
+        (IllegalType, IllegalType),
+        (IllegalType(), IllegalType),
+    ],
+)
+def test_get_type_on_raw(obj: Any, type_: Any) -> None:
+    assert OmegaConf.get_type(obj) == type_
 
 
 @pytest.mark.parametrize(  # type: ignore
