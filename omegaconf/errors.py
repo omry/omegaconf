@@ -11,9 +11,9 @@ class OmegaConfBaseException(Exception):
     msg: Optional[str]
     cause: Optional[Exception]
     object_type: Optional[Type[Any]]
-    object_type_str: str
+    object_type_str: Optional[str]
     ref_type: Optional[Type[Any]]
-    ref_type_str: str
+    ref_type_str: Optional[str]
 
     _initialized: bool = False
 

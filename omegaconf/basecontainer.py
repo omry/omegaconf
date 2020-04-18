@@ -20,12 +20,7 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
-from .errors import (
-    MissingMandatoryValue,
-    OmegaConfBaseException,
-    ReadonlyConfigError,
-    ValidationError,
-)
+from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
@@ -291,10 +286,7 @@ class BaseContainer(Container, ABC):
             # recursively correct the parent hierarchy after the merge
             self._re_parent()
         except Exception as e:
-            if isinstance(e, OmegaConfBaseException) and e._initialized:
-                raise e
-            else:
-                self._format_and_raise(key=None, value=None, cause=e)
+            self._format_and_raise(key=None, value=None, cause=e)
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:

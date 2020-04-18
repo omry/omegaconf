@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 import string
@@ -438,6 +439,23 @@ def format_and_raise(
     from omegaconf import OmegaConf
     from omegaconf.base import Node
 
+    def raise_(ex: Exception, cause: Exception) -> None:
+        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+        # causing exception.
+        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+        if full_backtrace:
+            ex.__cause__ = cause
+        else:
+            ex.__cause__ = None
+        raise ex
+
+    if isinstance(cause, OmegaConfBaseException) and cause._initialized:
+        ex = cause
+        if type_override is not None:
+            ex = type_override(str(cause))
+            ex.__dict__ = copy.deepcopy(cause.__dict__)
+        raise_(ex, cause)
+
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
     ref_type: Optional[Type[Any]]
@@ -497,25 +515,18 @@ def format_and_raise(
     ex = exception_type(f"{message}")
     if issubclass(exception_type, OmegaConfBaseException):
         ex._initialized = True
+        ex.msg = message
         ex.parent_node = node
         ex.child_node = child_node
         ex.key = key
         ex.full_key = full_key
         ex.value = value
-        ex.msg = msg
         ex.object_type = object_type
         ex.object_type_str = object_type_str
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
-    # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
-    # causing exception.
-    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
-    if full_backtrace:
-        ex.__cause__ = cause
-    else:
-        ex.__cause__ = None
-    raise ex
+    raise_(ex, cause)
 
 
 def type_str(t: Any) -> str:

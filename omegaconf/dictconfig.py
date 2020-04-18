@@ -149,10 +149,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         # validate get
         if key is not None:
-            try:
-                self._validate_get(key, value)
-            except AttributeError as e:
-                raise ConfigAttributeError(f"Error setting $KEY=$VALUE : {e}")
+            self._validate_get(key, value)
 
         target: Optional[Node]
         if key is None:
@@ -363,11 +360,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             key = self._validate_and_normalize_key(key)
             if self._get_flag("readonly"):
-                self._format_and_raise(
-                    key=key,
-                    value=None,
-                    cause=ReadonlyConfigError("Cannot pop from read-only node"),
-                )
+                raise ReadonlyConfigError("Cannot pop from read-only node")
 
             node = self._get_node(key=key)
             if node is not None:
