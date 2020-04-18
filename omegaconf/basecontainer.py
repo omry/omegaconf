@@ -291,10 +291,7 @@ class BaseContainer(Container, ABC):
             # recursively correct the parent hierarchy after the merge
             self._re_parent()
         except Exception as e:
-            if isinstance(e, OmegaConfBaseException) and e._initialized:
-                raise e
-            else:
-                self._format_and_raise(key=None, value=None, cause=e)
+            self._format_and_raise(key=None, value=None, cause=e)
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:

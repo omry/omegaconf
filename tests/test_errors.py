@@ -22,6 +22,7 @@ from omegaconf.errors import (
     ConfigValueError,
     KeyValidationError,
     MissingMandatoryValue,
+    OmegaConfBaseException,
 )
 
 from . import (
@@ -52,6 +53,7 @@ class Expected:
     parent_node: Any = lambda cfg: cfg
     object_type_str: Optional[str] = "AUTO"
     ref_type_str: Optional[str] = "AUTO"
+    num_lines: int = 4
 
     def finalize(self, cfg: Any) -> None:
         if self.object_type == "AUTO":
@@ -271,7 +273,7 @@ params = [
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: cfg.__setitem__("zoo", "zonk"),
             exception_type=KeyError,
-            msg="Error setting zoo=zonk : Key 'zoo' in not in struct",
+            msg="Key 'zoo' in not in struct",
             key="zoo",
         ),
         id="dict,struct:setitem_on_none_existing_key",
@@ -294,6 +296,7 @@ params = [
             exception_type=KeyValidationError,
             msg="Key 'foo' is incompatible with (Color)",
             key="foo",
+            num_lines=7,
         ),
         id="dict,reftype=Dict[Color,str]:,getitem_str_key",
     ),
@@ -420,6 +423,7 @@ params = [
             msg="Union types are not supported:\nx: Union[int, str]",
             object_type_str=None,
             ref_type_str=None,
+            num_lines=5,
         ),
         id="structured:create_with_union_error",
     ),
@@ -906,12 +910,14 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
             expected.op(cfg)
         except Exception as e:
             # helps in debugging
-            raise e from e
+            raise
     ex = einfo.value
 
     assert ex.object_type == expected.object_type
     assert ex.key == expected.key
     if not expected.low_level:
+        if isinstance(ex, OmegaConfBaseException):
+            assert str(ex).count("\n") == expected.num_lines
         assert ex.parent_node == expected.parent_node(cfg)
         assert ex.child_node == expected.child_node(cfg)
         assert ex.full_key == expected.full_key
