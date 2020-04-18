@@ -33,7 +33,6 @@ from .errors import (
     ConfigKeyError,
     KeyValidationError,
     MissingMandatoryValue,
-    OmegaConfBaseException,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
     ValidationError,

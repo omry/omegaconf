@@ -908,7 +908,7 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
     with pytest.raises(expected.exception_type, match=re.escape(msg)) as einfo:
         try:
             expected.op(cfg)
-        except Exception as e:
+        except Exception:
             # helps in debugging
             raise
     ex = einfo.value

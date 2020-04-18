@@ -22,7 +22,6 @@ from ._utils import (
 from .base import Container, ContainerMetadata, Node
 from .errors import (
     MissingMandatoryValue,
-    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
