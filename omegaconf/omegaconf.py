@@ -467,20 +467,19 @@ class OmegaConf:
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
-        if is_structured_config(obj):
-            return get_type_of(obj)
-        else:
-            if obj is None:
-                return None
-            if is_primitive_type(obj):
-                return get_type_of(obj)
-
         if key is not None:
             c = obj._get_node(key)
         else:
             c = obj
+        return OmegaConf._get_obj_type(c)
 
-        if isinstance(c, DictConfig):
+    @staticmethod
+    def _get_obj_type(c: Any) -> Optional[Type[Any]]:
+        if is_structured_config(c):
+            return get_type_of(c)
+        elif c is None:
+            return None
+        elif isinstance(c, DictConfig):
             if c._is_none():
                 return None
             elif c._is_missing():
@@ -499,7 +498,7 @@ class OmegaConf:
         elif isinstance(c, (list, tuple)):
             return list
         else:
-            assert False
+            return get_type_of(c)
 
     @staticmethod
     def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
