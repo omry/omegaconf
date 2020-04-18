@@ -20,11 +20,7 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
-from .errors import (
-    MissingMandatoryValue,
-    ReadonlyConfigError,
-    ValidationError,
-)
+from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
