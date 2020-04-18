@@ -104,6 +104,13 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
         return type_
 
 
+def _raise_missing_error(obj: Any, name: str) -> None:
+    raise ValueError(
+        f"Missing default value for {get_type_of(obj).__name__}.{name}, to indicate "
+        "default must be populated later use OmegaConf.MISSING"
+    )
+
+
 def get_attr_data(obj: Any) -> Dict[str, Any]:
     from omegaconf.omegaconf import _maybe_wrap
 
@@ -122,10 +129,8 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
                 if is_nested:
                     value = type_
                 else:
-                    raise ValueError(
-                        f"Missing default value for {name}, to indicate "
-                        "default must be populated later use OmegaConf.MISSING"
-                    )
+                    _raise_missing_error(obj, name)
+                    assert False
         if _is_union(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
@@ -147,19 +152,21 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
         is_optional, type_ = _resolve_optional(field.type)
         type_ = _resolve_forward(type_, obj.__module__)
         is_nested = is_structured_config(type_)
+
         if hasattr(obj, name):
             value = getattr(obj, name)
+            if value == dataclasses.MISSING:
+                _raise_missing_error(obj, name)
+                assert False
         else:
-            if field.default_factory != dataclasses.MISSING:  # type: ignore
-                value = field.default_factory()  # type: ignore
-            else:
+            if field.default_factory == dataclasses.MISSING:  # type: ignore
                 if is_nested:
                     value = type_
                 else:
-                    raise ValueError(
-                        f"Missing default value for {name}, to indicate "
-                        "default must be populated later use OmegaConf.MISSING"
-                    )
+                    _raise_missing_error(obj, name)
+                    assert False
+            else:
+                value = field.default_factory()  # type: ignore
 
         if _is_union(type_):
             e = ConfigValueError(

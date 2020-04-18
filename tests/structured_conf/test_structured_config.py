@@ -148,8 +148,8 @@ class TestConfigs:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "Missing default value for no_default, "
-                "to indicate default must be populated later use OmegaConf.MISSING"
+                "Missing default value for NoDefaultErrors.no_default,"
+                " to indicate default must be populated later use OmegaConf.MISSING"
             ),
         ):
             OmegaConf.structured(module.NoDefaultErrors)

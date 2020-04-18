@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field  # noqaE402
+import dataclasses
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
@@ -399,3 +400,8 @@ class NestedWithNone:
 @dataclass
 class UnionError:
     x: Union[int, str] = 10
+
+
+@dataclass
+class WithNativeMISSING:
+    num: int = dataclasses.MISSING  # type: ignore

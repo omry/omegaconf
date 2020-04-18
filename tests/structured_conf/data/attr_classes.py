@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import attr  # noqaE402
+import attr
 import pytest
 
 from omegaconf import II, MISSING, SI
@@ -392,3 +392,8 @@ class NestedWithNone:
 @attr.s(auto_attribs=True)
 class UnionError:
     x: Union[int, str] = 10
+
+
+@attr.s(auto_attribs=True)
+class WithNativeMISSING:
+    num: int = attr.NOTHING  # type: ignore
