@@ -20,10 +20,10 @@ from omegaconf.errors import UnsupportedInterpolationType
 from . import (
     Color,
     ConcretePlugin,
+    IllegalType,
     Plugin,
     StructuredWithMissing,
     does_not_raise,
-    IllegalType,
 )
 
 

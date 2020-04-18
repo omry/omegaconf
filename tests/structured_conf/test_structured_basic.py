@@ -165,3 +165,14 @@ class TestStructured:
 
             assert OmegaConf.get_ref_type(cfg, "plugin2") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
+
+        def test_native_missing(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    "Missing default value for WithNativeMISSING.num,"
+                    " to indicate default must be populated later use OmegaConf.MISSING"
+                ),
+            ):
+                OmegaConf.create(module.WithNativeMISSING)
