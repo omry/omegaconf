@@ -147,7 +147,7 @@ def test_list_config_with_tuple() -> None:
 def test_items_on_list() -> None:
     c = OmegaConf.create([1, 2])
     with pytest.raises(AttributeError):
-        c.items()  # type: ignore
+        c.items()
 
 
 def test_list_enumerate() -> None:
@@ -234,9 +234,16 @@ def test_list_index(index: Any, expected: Any) -> None:
     assert c[index] == expected
 
 
-def test_list_dir() -> None:
-    c = OmegaConf.create([1, 2, 3])
-    assert ["0", "1", "2"] == dir(c)
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, expected",
+    [
+        (OmegaConf.create([1, 2, 3]), ["0", "1", "2"]),
+        (ListConfig(content="???"), []),
+        (ListConfig(content=None), []),
+    ],
+)
+def test_list_dir(cfg: Any, expected: Any) -> None:
+    assert dir(cfg) == expected
 
 
 def validate_list_keys(c: Any) -> None:
@@ -493,3 +500,13 @@ def test_get(lst: Any, idx: Any, expected: Any) -> None:
             lst.get(idx)
     else:
         lst.__getitem__(idx) == expected
+
+
+def test_getattr() -> None:
+    src = ["a", "b", "c"]
+    cfg = OmegaConf.create(src)
+    with pytest.raises(AttributeError):
+        getattr(cfg, "foo")
+    assert getattr(cfg, "0") == src[0]
+    assert getattr(cfg, "1") == src[1]
+    assert getattr(cfg, "2") == src[2]

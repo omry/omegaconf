@@ -21,6 +21,7 @@ from ._utils import (
     get_list_element_type,
     get_value_kind,
     is_primitive_list,
+    isint,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -95,6 +96,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
+        if self._is_missing() or self._is_none():
+            return []
         return [str(x) for x in range(0, len(self))]
 
     def __len__(self) -> int:
@@ -113,13 +116,17 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         )
         assert False
 
-    def __getattr__(self, key: str) -> None:
-        self._format_and_raise(
-            key=key,
-            value=None,
-            cause=ConfigAttributeError("ListConfig does not support attribute access"),
-        )
-        assert False
+    def __getattr__(self, key: str) -> Any:
+        if isint(key):
+            return self.__getitem__(int(key))
+        else:
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ConfigAttributeError(
+                    "ListConfig does not support attribute access"
+                ),
+            )
 
     def __getitem__(self, index: Union[int, slice]) -> Any:
         try:
