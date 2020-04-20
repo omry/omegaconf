@@ -26,7 +26,10 @@ class TestStructured:
             self, class_type: str
         ) -> None:
             module: Any = import_module(class_type)
-            with pytest.raises(ValidationError, match="structured config"):
+            with pytest.raises(
+                ValidationError,
+                match=re.escape("Unexpected object type : NotStructuredConfig"),
+            ):
                 OmegaConf.structured(module.StructuredWithInvalidField)
 
         def test_assignment_of_subclass(self, class_type: str) -> None:

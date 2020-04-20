@@ -5,15 +5,16 @@ from typing import Any, Dict, List, Union
 import attr
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, _utils, Node
+from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
+from omegaconf._utils import is_dict_annotation, is_list_annotation
 from omegaconf.errors import KeyValidationError, ValidationError
 from omegaconf.nodes import (
-    StringNode,
     AnyNode,
-    IntegerNode,
-    FloatNode,
     BooleanNode,
     EnumNode,
+    FloatNode,
+    IntegerNode,
+    StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
 
@@ -24,50 +25,67 @@ from . import Color, IllegalType, Plugin, does_not_raise
     "target_type, value, expected",
     [
         # Any
-        (Any, "foo", AnyNode("foo")),
-        (Any, True, AnyNode(True)),
-        (Any, 1, AnyNode(1)),
-        (Any, 1.0, AnyNode(1.0)),
-        (Any, Color.RED, AnyNode(Color.RED)),
+        pytest.param(Any, "foo", AnyNode("foo"), id="any"),
+        pytest.param(Any, True, AnyNode(True), id="any"),
+        pytest.param(Any, 1, AnyNode(1), id="any"),
+        pytest.param(Any, 1.0, AnyNode(1.0), id="any"),
+        pytest.param(Any, Color.RED, AnyNode(Color.RED), id="any"),
+        pytest.param(Any, {}, DictConfig(content={}), id="any_as_dict"),
+        pytest.param(Any, [], ListConfig(content=[]), id="any_as_list"),
         # int
-        (int, "foo", ValidationError),
-        (int, True, ValidationError),
-        (int, 1, IntegerNode(1)),
-        (int, 1.0, ValidationError),
-        (int, Color.RED, ValidationError),
+        pytest.param(int, "foo", ValidationError, id="int"),
+        pytest.param(int, True, ValidationError, id="int"),
+        pytest.param(int, 1, IntegerNode(1), id="int"),
+        pytest.param(int, 1.0, ValidationError, id="int"),
+        pytest.param(int, Color.RED, ValidationError, id="int"),
         # float
-        (float, "foo", ValidationError),
-        (float, True, ValidationError),
-        (float, 1, FloatNode(1)),
-        (float, 1.0, FloatNode(1.0)),
-        (float, Color.RED, ValidationError),
-        # bool
-        (bool, "foo", ValidationError),
-        (bool, True, BooleanNode(True)),
-        (bool, 1, BooleanNode(True)),
-        (bool, 0, BooleanNode(False)),
-        (bool, 1.0, ValidationError),
-        (bool, Color.RED, ValidationError),
-        (bool, "true", BooleanNode(True)),
-        (bool, "false", BooleanNode(False)),
-        (bool, "on", BooleanNode(True)),
-        (bool, "off", BooleanNode(False)),
+        pytest.param(float, "foo", ValidationError, id="float"),
+        pytest.param(float, True, ValidationError, id="float"),
+        pytest.param(float, 1, FloatNode(1), id="float"),
+        pytest.param(float, 1.0, FloatNode(1.0), id="float"),
+        pytest.param(float, Color.RED, ValidationError, id="float"),
+        # # bool
+        pytest.param(bool, "foo", ValidationError, id="bool"),
+        pytest.param(bool, True, BooleanNode(True), id="bool"),
+        pytest.param(bool, 1, BooleanNode(True), id="bool"),
+        pytest.param(bool, 0, BooleanNode(False), id="bool"),
+        pytest.param(bool, 1.0, ValidationError, id="bool"),
+        pytest.param(bool, Color.RED, ValidationError, id="bool"),
+        pytest.param(bool, "true", BooleanNode(True), id="bool"),
+        pytest.param(bool, "false", BooleanNode(False), id="bool"),
+        pytest.param(bool, "on", BooleanNode(True), id="bool"),
+        pytest.param(bool, "off", BooleanNode(False), id="bool"),
         # str
-        (str, "foo", StringNode("foo")),
-        (str, True, StringNode("True")),
-        (str, 1, StringNode("1")),
-        (str, 1.0, StringNode("1.0")),
-        (str, Color.RED, StringNode("Color.RED")),
+        pytest.param(str, "foo", StringNode("foo"), id="str"),
+        pytest.param(str, True, StringNode("True"), id="str"),
+        pytest.param(str, 1, StringNode("1"), id="str"),
+        pytest.param(str, 1.0, StringNode("1.0"), id="str"),
+        pytest.param(str, Color.RED, StringNode("Color.RED"), id="str"),
         # Color
-        (Color, "foo", ValidationError),
-        (Color, True, ValidationError),
-        (Color, 1, EnumNode(enum_type=Color, value=Color.RED)),
-        (Color, 1.0, ValidationError),
-        (Color, Color.RED, EnumNode(enum_type=Color, value=Color.RED)),
-        (Color, "RED", EnumNode(enum_type=Color, value=Color.RED)),
-        (Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED)),
+        pytest.param(Color, "foo", ValidationError, id="Color"),
+        pytest.param(Color, True, ValidationError, id="Color"),
+        pytest.param(Color, 1, EnumNode(enum_type=Color, value=Color.RED), id="Color"),
+        pytest.param(Color, 1.0, ValidationError, id="Color"),
+        pytest.param(
+            Color, Color.RED, EnumNode(enum_type=Color, value=Color.RED), id="Color"
+        ),
+        pytest.param(
+            Color, "RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
+        ),
+        pytest.param(
+            Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
+        ),
         # bad type
-        (IllegalType, "nope", ValidationError),
+        pytest.param(IllegalType, "nope", ValidationError, id="bad_type"),
+        # DictConfig
+        pytest.param(
+            dict, {"foo": "bar"}, DictConfig(content={"foo": "bar"}), id="DictConfig"
+        ),
+        pytest.param(
+            Plugin, Plugin(), DictConfig(content=Plugin()), id="DictConfig[Plugin]"
+        ),
+        # ListConfig
+        pytest.param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
     ],
 )
 def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
@@ -328,3 +346,44 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
 )
 def test_type_str(type_: Any, expected: str) -> None:
     assert _utils.type_str(type_) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "type_, expected",
+    [
+        (Dict[str, int], True),
+        (Dict[str, float], True),
+        (Dict[IllegalType, bool], True),
+        (Dict[str, IllegalType], True),
+        (Dict[int, Color], True),
+        (Dict[Plugin, Plugin], True),
+        (Dict[IllegalType, int], True),
+        (Dict, True),
+        (List, False),
+        (dict, False),
+        (DictConfig, False),
+    ],
+)
+def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
+    assert is_dict_annotation(type_=type_) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "type_, expected",
+    [
+        (List[int], True),
+        (List[float], True),
+        (List[bool], True),
+        (List[str], True),
+        (List[Color], True),
+        (List[Plugin], True),
+        (List[IllegalType], True),
+        (Dict, False),
+        (List, True),
+        (list, False),
+        (tuple, False),
+        (ListConfig, False),
+    ],
+)
+def test_is_list_annotation(type_: Any, expected: Any) -> Any:
+    assert is_list_annotation(type_=type_) == expected
