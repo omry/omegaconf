@@ -32,6 +32,10 @@ class ContainerMetadata(Metadata):
     key_type: Any = None
     element_type: Any = None
 
+    def __post_init__(self) -> None:
+        assert self.key_type is None or isinstance(self.key_type, type)
+        assert self.element_type is None or isinstance(self.element_type, type)
+
 
 class Node(ABC):
     _metadata: Metadata

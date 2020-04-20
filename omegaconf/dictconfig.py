@@ -50,9 +50,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         key: Any = None,
         parent: Optional[Container] = None,
         ref_type: Optional[Type[Any]] = None,
+        key_type: Optional[Type[Any]] = None,
+        element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
     ) -> None:
-        key_type, element_type = get_dict_key_value_types(ref_type)
+        if ref_type is not None:
+            if get_dict_key_value_types(ref_type) != (key_type, element_type):
+                pass
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
@@ -506,6 +510,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
 
             elif isinstance(value, dict):
+                # TODO: does this make sense?
                 self._metadata.object_type = self._metadata.ref_type
                 for k, v in value.items():
                     self.__setitem__(k, v)

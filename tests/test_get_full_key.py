@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -73,14 +73,18 @@ from . import Color
         ({"foo": {"bar": IntegerNode(value=10)}}, "foo", "bar", "foo.bar"),
         # enum
         pytest.param(
-            DictConfig(ref_type=Dict[Color, str], content={Color.RED: "red"}),
+            DictConfig(key_type=Color, element_type=str, content={Color.RED: "red"}),
             "RED",
             "",
             "RED",
             id="get_full_key_with_enum_key",
         ),
         pytest.param(
-            {"foo": DictConfig(ref_type=Dict[Color, str], content={Color.RED: "red"})},
+            {
+                "foo": DictConfig(
+                    key_type=Color, element_type=str, content={Color.RED: "red"}
+                )
+            },
             "foo",
             "RED",
             "foo.RED",

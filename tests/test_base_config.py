@@ -85,10 +85,10 @@ def test_replace_value_node_type_with_another(
     "input_",
     [
         [1, 2, 3],
-        [1, 2, dict(a=3)],
+        [1, 2, {"a": 3}],
         [1, 2, [10, 20]],
-        dict(b=dict(b=10)),
-        dict(b=[1, 2, 3]),
+        {"b": {"b": 10}},
+        {"b": [1, 2, 3]},
     ],
 )
 def test_to_container_returns_primitives(input_: Any) -> None:
