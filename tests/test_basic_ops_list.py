@@ -274,7 +274,7 @@ def validate_list_keys(c: Any) -> None:
             None,
         ),
         (
-            ListConfig(ref_type=List[int], content=[]),
+            ListConfig(element_type=int, content=[]),
             0,
             "foo",
             None,
