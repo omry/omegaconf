@@ -597,6 +597,7 @@ def _node_wrap(
     type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any, key: Any
 ) -> ValueNode:
     if not valid_value_annotation_type(type_):
+        # TODO: this exception does not make sense in this function
         raise ValidationError(
             f"Annotated class '{type_str(type_)}' is not a structured config. "
             "did you forget to decorate it as a dataclass?"

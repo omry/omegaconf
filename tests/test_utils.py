@@ -5,72 +5,83 @@ from typing import Any, Dict, List, Union
 import attr
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, _utils
+from omegaconf import DictConfig, ListConfig, OmegaConf, _utils, Node
 from omegaconf.errors import KeyValidationError, ValidationError
-from omegaconf.nodes import StringNode
+from omegaconf.nodes import (
+    StringNode,
+    AnyNode,
+    IntegerNode,
+    FloatNode,
+    BooleanNode,
+    EnumNode,
+)
+from omegaconf.omegaconf import _node_wrap
 
 from . import Color, IllegalType, Plugin, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "target_type, value, expectation",
+    "target_type, value, expected",
     [
         # Any
-        (Any, "foo", None),
-        (Any, True, None),
-        (Any, 1, None),
-        (Any, 1.0, None),
-        (Any, Color.RED, None),
+        (Any, "foo", AnyNode("foo")),
+        (Any, True, AnyNode(True)),
+        (Any, 1, AnyNode(1)),
+        (Any, 1.0, AnyNode(1.0)),
+        (Any, Color.RED, AnyNode(Color.RED)),
         # int
         (int, "foo", ValidationError),
         (int, True, ValidationError),
-        (int, 1, None),
+        (int, 1, IntegerNode(1)),
         (int, 1.0, ValidationError),
         (int, Color.RED, ValidationError),
         # float
         (float, "foo", ValidationError),
         (float, True, ValidationError),
-        (float, 1, None),
-        (float, 1.0, None),
+        (float, 1, FloatNode(1)),
+        (float, 1.0, FloatNode(1.0)),
         (float, Color.RED, ValidationError),
         # bool
         (bool, "foo", ValidationError),
-        (bool, True, None),
-        (bool, 1, None),
-        (bool, 0, None),
+        (bool, True, BooleanNode(True)),
+        (bool, 1, BooleanNode(True)),
+        (bool, 0, BooleanNode(False)),
         (bool, 1.0, ValidationError),
         (bool, Color.RED, ValidationError),
-        (bool, "true", None),
-        (bool, "false", None),
-        (bool, "on", None),
-        (bool, "off", None),
+        (bool, "true", BooleanNode(True)),
+        (bool, "false", BooleanNode(False)),
+        (bool, "on", BooleanNode(True)),
+        (bool, "off", BooleanNode(False)),
         # str
-        (str, "foo", None),
-        (str, True, None),
-        (str, 1, None),
-        (str, 1.0, None),
-        (str, Color.RED, None),
+        (str, "foo", StringNode("foo")),
+        (str, True, StringNode("True")),
+        (str, 1, StringNode("1")),
+        (str, 1.0, StringNode("1.0")),
+        (str, Color.RED, StringNode("Color.RED")),
         # Color
         (Color, "foo", ValidationError),
         (Color, True, ValidationError),
-        (Color, 1, None),
+        (Color, 1, EnumNode(enum_type=Color, value=Color.RED)),
         (Color, 1.0, ValidationError),
-        (Color, Color.RED, None),
-        (Color, "RED", None),
-        (Color, "Color.RED", None),
+        (Color, Color.RED, EnumNode(enum_type=Color, value=Color.RED)),
+        (Color, "RED", EnumNode(enum_type=Color, value=Color.RED)),
+        (Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED)),
         # bad type
         (IllegalType, "nope", ValidationError),
     ],
 )
-def test_maybe_wrap(target_type: type, value: Any, expectation: Any) -> None:
+def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
     from omegaconf.omegaconf import _maybe_wrap
 
-    if expectation is None:
-        _maybe_wrap(
-            ref_type=target_type, key=None, value=value, is_optional=False, parent=None,
+    if isinstance(expected, Node):
+        res = _node_wrap(
+            type_=target_type, key="foo", value=value, is_optional=False, parent=None,
         )
+        assert type(res) == type(expected)
+        assert res == expected
+        assert res._key() == "foo"
     else:
-        with pytest.raises(expectation):
+        with pytest.raises(expected):
             _maybe_wrap(
                 ref_type=target_type,
                 key=None,
