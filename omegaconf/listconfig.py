@@ -18,7 +18,6 @@ from ._utils import (
     ValueKind,
     _get_value,
     format_and_raise,
-    get_list_element_type,
     get_value_kind,
     is_primitive_list,
     isint,
@@ -45,7 +44,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         content: Union[List[Any], Tuple[Any, ...], str, None],
         key: Any = None,
         parent: Optional[Container] = None,
-        element_type: Type[Any] = Any,
+        element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
     ) -> None:
         try:

@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Optional, Type
 
 import pytest
 
@@ -291,25 +291,25 @@ params = [
     ),
     pytest.param(
         Expected(
-            create=lambda: DictConfig(ref_type=Dict[Color, str], content={}),
+            create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__("foo"),
             exception_type=KeyValidationError,
             msg="Key 'foo' is incompatible with (Color)",
             key="foo",
             num_lines=7,
         ),
-        id="dict,reftype=Dict[Color,str]:,getitem_str_key",
+        id="DictConfig[Color,str]:getitem_str_key",
     ),
     pytest.param(
         Expected(
-            create=lambda: DictConfig(ref_type=Dict[str, str], content={}),
+            create=lambda: DictConfig(key_type=str, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__(Color.RED),
             exception_type=KeyValidationError,
             msg="Key Color.RED (Color) is incompatible with (str)",
             full_key="RED",
             key=Color.RED,
         ),
-        id="dict,reftype=Dict[str,str]:,getitem_color_key",
+        id="DictConfig[str,str]:getitem_color_key",
     ),
     # merge
     pytest.param(
@@ -441,14 +441,14 @@ params = [
     pytest.param(
         Expected(
             create=lambda: DictConfig(
-                ref_type=Dict[str, int], content={"foo": 10, "bar": 20}
+                key_type=str, element_type=int, content={"foo": 10, "bar": 20}
             ),
             op=lambda cfg: cfg.__setitem__("baz", "fail"),
             exception_type=ValidationError,
             msg="Value 'fail' could not be converted to Integer",
             key="baz",
         ),
-        id="dict,int_element_type:assigned_str_value",
+        id="DictConfig[str,int]:assigned_str_value",
     ),
     # delete
     pytest.param(

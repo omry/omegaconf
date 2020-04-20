@@ -31,6 +31,8 @@ from ._utils import (
     _get_value,
     decode_primitive,
     format_and_raise,
+    get_dict_key_value_types,
+    get_list_element_type,
     get_type_of,
     is_dict_annotation,
     is_list_annotation,
@@ -40,7 +42,6 @@ from ._utils import (
     is_structured_config,
     isint,
     type_str,
-    get_list_element_type,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -198,8 +199,21 @@ class OmegaConf:
                 ):
                     ref_type = OmegaConf.get_ref_type(obj)
                     if ref_type is None:
+                        # TODO: does this make sense?
                         ref_type = OmegaConf.get_type(obj)
-                    return DictConfig(content=obj, parent=parent, ref_type=ref_type)
+
+                    if isinstance(obj, DictConfig):
+                        key_type = obj._metadata.key_type
+                        element_type = obj._metadata.element_type
+                    else:
+                        key_type, element_type = get_dict_key_value_types(ref_type)
+                    return DictConfig(
+                        content=obj,
+                        parent=parent,
+                        ref_type=ref_type,
+                        key_type=key_type,
+                        element_type=element_type,
+                    )
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                     ref_type = OmegaConf.get_type(obj)
                     element_type = get_list_element_type(ref_type)
@@ -600,12 +614,15 @@ def _node_wrap(
     is_dict = type(value) is dict or is_dict_annotation(type_)
     is_list = type(value) in (list, tuple) or is_list_annotation(type_)
     if is_dict:
+        key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
             content=value,
             key=key,
             parent=parent,
             ref_type=type_,
             is_optional=is_optional,
+            key_type=key_type,
+            element_type=element_type,
         )
     elif is_list:
         element_type = get_list_element_type(type_)
@@ -617,12 +634,17 @@ def _node_wrap(
             element_type=element_type,
         )
     elif is_structured_config(type_):
+        key_type, element_type = get_dict_key_value_types(type_)
+        assert key_type is None
+        assert element_type is None
         node = DictConfig(
             ref_type=type_,
             is_optional=is_optional,
             content=value,
             key=key,
             parent=parent,
+            key_type=key_type,
+            element_type=element_type,
         )
     elif type_ == Any or type_ is None:
         node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)

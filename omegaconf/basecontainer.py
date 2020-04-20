@@ -13,8 +13,6 @@ from ._utils import (
     _is_interpolation,
     get_value_kind,
     get_yaml_loader,
-    is_dict_annotation,
-    is_dict_subclass,
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
@@ -325,19 +323,14 @@ class BaseContainer(Container, ABC):
             target_node = isinstance(target_node_ref, ValueNode)
 
         def wrap(key: Any, val: Any) -> Node:
-            if is_dict_annotation(self._metadata.ref_type) or (
-                not is_primitive_dict(self._metadata.ref_type)
-                and is_dict_subclass(self._metadata.ref_type)
-            ):
+
+            if not is_structured_config(val):
                 ref_type = self._metadata.element_type
             else:
                 target = self._get_node(key)
                 if target is None:
                     if is_structured_config(val):
                         ref_type = OmegaConf.get_type(val)
-                    else:
-                        # assignment
-                        ref_type = OmegaConf.get_ref_type(val)
                 else:
                     ref_type = OmegaConf.get_ref_type(target)
             return _maybe_wrap(
