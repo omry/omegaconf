@@ -336,7 +336,12 @@ def is_primitive_dict(obj: Any) -> bool:
 
 def is_dict_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    return origin is Dict or origin is dict
+    return origin is dict
+
+
+def is_list_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    return origin is list
 
 
 def is_dict_subclass(type_: Any) -> bool:

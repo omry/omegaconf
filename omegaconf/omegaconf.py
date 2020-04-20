@@ -28,19 +28,18 @@ from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
 from ._utils import (
-    ValueKind,
     _get_value,
     decode_primitive,
     format_and_raise,
     get_type_of,
-    get_value_kind,
+    is_dict_annotation,
+    is_list_annotation,
     is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
     isint,
     type_str,
-    valid_value_annotation_type,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -555,7 +554,6 @@ class OmegaConf:
 register_default_resolvers()
 
 
-# noinspection PyProtectedMember
 @contextmanager
 def flag_override(
     config: Node, name: str, value: Optional[bool]
@@ -568,7 +566,6 @@ def flag_override(
         config._set_flag(name, prev_state)
 
 
-# noinspection PyProtectedMember
 @contextmanager
 def read_write(config: Node) -> Generator[Node, None, None]:
     prev_state = config._get_node_flag("readonly")
@@ -579,7 +576,6 @@ def read_write(config: Node) -> Generator[Node, None, None]:
         OmegaConf.set_readonly(config, prev_state)
 
 
-# noinspection PyProtectedMember
 @contextmanager
 def open_dict(config: Container) -> Generator[Container, None, None]:
     prev_state = config._get_node_flag("struct")
@@ -595,15 +591,35 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 def _node_wrap(
     type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any, key: Any
-) -> ValueNode:
-    if not valid_value_annotation_type(type_):
-        # TODO: this exception does not make sense in this function
-        raise ValidationError(
-            f"Annotated class '{type_str(type_)}' is not a structured config. "
-            "did you forget to decorate it as a dataclass?"
+) -> Node:
+    node: Node
+    is_dict = type(value) is dict or is_dict_annotation(type_)
+    is_list = type(value) in (list, tuple) or is_list_annotation(type_)
+    if is_dict:
+        node = DictConfig(
+            content=value,
+            key=key,
+            parent=parent,
+            ref_type=type_,
+            is_optional=is_optional,
         )
-    node: ValueNode
-    if type_ == Any or type_ is None:
+    elif is_list:
+        node = ListConfig(
+            content=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            ref_type=type_,
+        )
+    elif is_structured_config(type_):
+        node = DictConfig(
+            ref_type=type_,
+            is_optional=is_optional,
+            content=value,
+            key=key,
+            parent=parent,
+        )
+    elif type_ == Any or type_ is None:
         node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif issubclass(type_, Enum):
         node = EnumNode(
@@ -622,9 +638,7 @@ def _node_wrap(
     elif type_ == str:
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
-        raise ValidationError(
-            f"Unexpected object type : {type_.__name__}"
-        )  # pragma: no cover
+        raise ValidationError(f"Unexpected object type : {type_str(type_)}")
     return node
 
 
@@ -635,71 +649,20 @@ def _maybe_wrap(
     is_optional: bool,
     parent: Optional[BaseContainer],
 ) -> Node:
-    from . import DictConfig, ListConfig
-
-    if isinstance(value, ValueNode):
+    # if already a node, update key and parent and return as is.
+    # NOTE: that this mutate the input node!
+    if isinstance(value, Node):
         value._set_key(key)
         value._set_parent(parent)
         return value
-    ret: Node
-    origin_ = getattr(ref_type, "__origin__", None)
-    is_dict = (
-        type(value) in (dict, DictConfig)
-        or origin_ in (dict, DictConfig)
-        or origin_ is Dict
-    )
-    is_list = (
-        type(value) in (list, tuple, ListConfig)
-        or origin_ in (list, tuple, ListConfig)
-        or origin_ is List
-    )
-    value_kind = get_value_kind(value)
-
-    if is_dict:
-        ret = DictConfig(
-            content=value,
-            key=key,
-            parent=parent,
-            ref_type=ref_type,
-            is_optional=is_optional,
-        )
-    elif is_list:
-
-        ret = ListConfig(
-            content=value,
-            key=key,
-            parent=parent,
-            is_optional=is_optional,
-            ref_type=ref_type,
-        )
-    elif (
-        is_structured_config(ref_type)
-        and (
-            is_structured_config(value)
-            or value_kind == ValueKind.MANDATORY_MISSING
-            or value_kind == ValueKind.INTERPOLATION
-            or value is None
-        )
-    ) or is_structured_config(ref_type):
-        from . import DictConfig
-
-        ret = DictConfig(
-            ref_type=ref_type,
-            is_optional=is_optional,
-            content=value,
-            key=key,
-            parent=parent,
-        )
     else:
-        ret = _node_wrap(
+        return _node_wrap(
             type_=ref_type,
             parent=parent,
             is_optional=is_optional,
             value=value,
             key=key,
         )
-    assert isinstance(ret, Node)
-    return ret
 
 
 def _select_one(
