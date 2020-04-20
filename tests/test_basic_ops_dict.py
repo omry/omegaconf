@@ -14,7 +14,6 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf.basecontainer import BaseContainer
-
 from omegaconf.errors import CompactKeyError, KeyValidationError
 
 from . import (
@@ -26,9 +25,6 @@ from . import (
     User,
     does_not_raise,
 )
-
-
-from . import IllegalType, StructuredWithMissing, does_not_raise, Enum1
 
 
 def test_setattr_deep_value() -> None:
