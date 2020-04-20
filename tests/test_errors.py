@@ -701,7 +701,7 @@ params = [
     # assign
     pytest.param(
         Expected(
-            create=lambda: ListConfig(ref_type=List[int], content=[1, 2, 3]),
+            create=lambda: ListConfig(element_type=int, content=[1, 2, 3]),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,
             msg="Value 'foo' could not be converted to Integer",
@@ -715,7 +715,7 @@ params = [
         Expected(
             # make sure OmegaConf.create is not losing critical metadata.
             create=lambda: OmegaConf.create(
-                ListConfig(ref_type=List[int], content=[1, 2, 3])
+                ListConfig(element_type=int, content=[1, 2, 3])
             ),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,

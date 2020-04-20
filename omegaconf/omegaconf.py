@@ -40,6 +40,7 @@ from ._utils import (
     is_structured_config,
     isint,
     type_str,
+    get_list_element_type,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -201,7 +202,10 @@ class OmegaConf:
                     return DictConfig(content=obj, parent=parent, ref_type=ref_type)
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                     ref_type = OmegaConf.get_type(obj)
-                    return ListConfig(ref_type=ref_type, content=obj, parent=parent)
+                    element_type = get_list_element_type(ref_type)
+                    return ListConfig(
+                        element_type=element_type, content=obj, parent=parent
+                    )
                 else:
                     if isinstance(obj, type):
                         raise ValidationError(
@@ -604,12 +608,13 @@ def _node_wrap(
             is_optional=is_optional,
         )
     elif is_list:
+        element_type = get_list_element_type(type_)
         node = ListConfig(
             content=value,
             key=key,
             parent=parent,
             is_optional=is_optional,
-            ref_type=type_,
+            element_type=element_type,
         )
     elif is_structured_config(type_):
         node = DictConfig(

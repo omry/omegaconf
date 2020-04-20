@@ -405,7 +405,7 @@ def test_get_type_on_raw(obj: Any, type_: Any) -> None:
         pytest.param(
             {"foo": OmegaConf.create()}, dict, id="create_with_nested_dictconfig"
         ),
-        ({"foo": []}, None),
+        ({"foo": []}, list),
         ({"foo": OmegaConf.create([])}, list),
     ],
 )

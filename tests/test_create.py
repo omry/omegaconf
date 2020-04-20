@@ -126,7 +126,7 @@ def test_create_from_dictconfig_preserves_metadata() -> None:
 
 
 def test_create_from_listconfig_preserves_metadata() -> None:
-    cfg1 = ListConfig(ref_type=List[int], is_optional=False, content=[1, 2, 3])
+    cfg1 = ListConfig(element_type=int, is_optional=False, content=[1, 2, 3])
     OmegaConf.set_struct(cfg1, True)
     OmegaConf.set_readonly(cfg1, True)
     cfg2 = OmegaConf.create(cfg1)
