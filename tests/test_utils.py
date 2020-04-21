@@ -202,6 +202,10 @@ class Dataclass:
         ("???", _utils.ValueKind.MANDATORY_MISSING),
         ("${foo.bar}", _utils.ValueKind.INTERPOLATION),
         ("ftp://${host}/path", _utils.ValueKind.STR_INTERPOLATION),
+        ("${func:foo}", _utils.ValueKind.INTERPOLATION),
+        ("${func:a/b}", _utils.ValueKind.INTERPOLATION),
+        ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
+        ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
     ],
 )
 def test_value_kind(value: Any, kind: _utils.ValueKind) -> None:
