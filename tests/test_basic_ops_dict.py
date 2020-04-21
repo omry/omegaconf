@@ -570,7 +570,7 @@ def test_get_type() -> None:
     assert OmegaConf.get_type(cfg.inter) == User
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "cfg, expected_ref_type",
     [
         (
@@ -591,7 +591,7 @@ def test_get_type() -> None:
         ),
     ],
 )
-def test_get_ref_type(cfg, expected_ref_type) -> None:
+def test_get_ref_type(cfg: Any, expected_ref_type: Any) -> None:
     assert _utils.get_ref_type(cfg.plugin) == expected_ref_type
 
 

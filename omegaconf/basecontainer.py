@@ -452,7 +452,7 @@ class BaseContainer(Container, ABC):
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
-        if not isinstance(key, (int, str, Enum, slice)):
+        if not isinstance(key, (int, str, Enum, slice, type(None))):
             return ""
 
         def _slice_to_str(x: slice) -> str:

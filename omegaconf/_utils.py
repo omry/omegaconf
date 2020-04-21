@@ -336,7 +336,10 @@ def is_primitive_dict(obj: Any) -> bool:
 
 def is_dict_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    return origin is dict
+    if sys.version_info <= (3, 6, 0):
+        return origin is Dict  # pragma: no cover
+    else:
+        return origin is dict  # pragma: no cover
 
 
 def is_list_annotation(type_: Any) -> bool:
@@ -584,6 +587,8 @@ def format_and_raise(
 
 def type_str(t: Any) -> str:
     is_optional, t = _resolve_optional(t)
+    if t is Any:
+        return "Any"
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6
         if hasattr(t, "__name__"):
