@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import tempfile
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pytest
 
@@ -255,20 +255,55 @@ def test_iterate_dict_with_interpolation() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "cfg, key, default_, expected",
+    "struct",
     [
-        ({"a": 1, "b": 2}, "a", None, 1),
-        ({"a": 1, "b": 2}, "not_found", "default", "default"),
-        # Interpolations
-        ({"a": "${b}", "b": 2}, "a", None, 2),
-        # enum key
-        ({Enum1.FOO: "bar"}, Enum1.FOO, None, "bar"),
-        ({Enum1.FOO: "bar"}, Enum1.BAR, "default", "default"),
+        pytest.param(None, id="struct_unspecified"),
+        pytest.param(False, id="struct_False"),
+        pytest.param(True, id="struct_True"),
     ],
 )
-def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -> None:
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key, default_, expected",
+    [
+        pytest.param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
+        pytest.param({"a": 1, "b": 2}, "not_found", None, None, id="none_default"),
+        pytest.param(
+            {"a": 1, "b": 2}, "not_found", "default", "default", id="with_default"
+        ),
+        # Interpolations
+        pytest.param(
+            {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
+        ),
+        pytest.param(
+            {"a": "${b}"}, "a", "default", "default", id="interpolation_with_default"
+        ),
+        # enum key
+        pytest.param(
+            {Enum1.FOO: "bar"},
+            Enum1.FOO,
+            "__NO_DEFAULT__",
+            "bar",
+            id="enum_key_no_default",
+        ),
+        pytest.param(
+            {Enum1.FOO: "bar"}, Enum1.BAR, None, None, id="enum_key_with_none_default",
+        ),
+        pytest.param(
+            {Enum1.FOO: "bar"},
+            Enum1.BAR,
+            "default",
+            "default",
+            id="enum_key_with_default",
+        ),
+    ],
+)
+def test_dict_pop(
+    cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any, struct: Optional[bool]
+) -> None:
     c = OmegaConf.create(cfg)
-    if default_ is not None:
+    OmegaConf.set_struct(c, struct)
+
+    if default_ != "__NO_DEFAULT__":
         val = c.pop(key, default_)
     else:
         val = c.pop(key)
