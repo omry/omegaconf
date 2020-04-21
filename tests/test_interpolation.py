@@ -147,11 +147,18 @@ def test_env_interpolation_not_found() -> None:
         c.path
 
 
-def test_env_default_interpolation_missing_env() -> None:
+def test_env_default_str_interpolation_missing_env() -> None:
     if os.getenv("foobar") is not None:
         del os.environ["foobar"]
     c = OmegaConf.create({"path": "/test/${env:foobar,abc}"})
     assert c.path == "/test/abc"
+
+
+def test_env_default_interpolation_missing_env_default_with_slash() -> None:
+    if os.getenv("foobar") is not None:
+        del os.environ["foobar"]
+    c = OmegaConf.create({"path": "${env:DATA_PATH,a/b}"})
+    assert c.path == "a/b"
 
 
 def test_env_default_interpolation_env_exist() -> None:
