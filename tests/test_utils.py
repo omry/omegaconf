@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
 import attr
 import pytest
@@ -18,7 +18,7 @@ from omegaconf.nodes import (
 )
 from omegaconf.omegaconf import _node_wrap
 
-from . import Color, IllegalType, Plugin, does_not_raise
+from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -324,6 +324,7 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
     assert _utils.is_primitive_type(type_) == is_primitive
 
 
+@pytest.mark.parametrize("optional", [False, True])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
     "type_, expected",
     [
@@ -341,10 +342,25 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
         (List[str], "List[str]"),
         (List[Color], "List[Color]"),
         (List[Dict[str, Color]], "List[Dict[str, Color]]"),
-        (Union[str, int, Color], "Union[str, int, Color]"),
     ],
 )
-def test_type_str(type_: Any, expected: str) -> None:
+def test_type_str(type_: Any, expected: str, optional: bool) -> None:
+    if optional:
+        assert _utils.type_str(Optional[type_]) == f"Optional[{expected}]"
+    else:
+        assert _utils.type_str(type_) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "type_, expected",
+    [
+        (Optional[int], "Optional[int]"),
+        (Union[str, int, Color], "Union[str, int, Color]"),
+        (Optional[Union[int]], "Optional[int]"),
+        (Optional[Union[int, str]], "Union[int, str, NoneType]"),
+    ],
+)
+def test_type_str_union(type_: Any, expected: str) -> None:
     assert _utils.type_str(type_) == expected
 
 
@@ -387,3 +403,81 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
 )
 def test_is_list_annotation(type_: Any, expected: Any) -> Any:
     assert is_list_annotation(type_=type_) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj, expected",
+    [
+        # Unwrapped values
+        pytest.param(10, Optional[int], id="int"),
+        pytest.param(10.0, Optional[float], id="float"),
+        pytest.param(True, Optional[bool], id="bool"),
+        pytest.param("bar", Optional[str], id="str"),
+        pytest.param(None, type(None), id="NoneType"),
+        pytest.param({}, Optional[Dict[Any, Any]], id="dict"),
+        pytest.param([], Optional[List[Any]], id="List[Any]"),
+        pytest.param(tuple(), Optional[List[Any]], id="List[Any]"),
+        pytest.param(ConcretePlugin(), Optional[ConcretePlugin], id="ConcretePlugin"),
+        pytest.param(ConcretePlugin, Optional[ConcretePlugin], id="ConcretePlugin"),
+        # Optional value nodes
+        pytest.param(IntegerNode(10), Optional[int], id="IntegerNode"),
+        pytest.param(FloatNode(10.0), Optional[float], id="FloatNode"),
+        pytest.param(BooleanNode(True), Optional[bool], id="BooleanNode"),
+        pytest.param(StringNode("bar"), Optional[str], id="StringNode"),
+        pytest.param(
+            EnumNode(enum_type=Color, value=Color.RED),
+            Optional[Color],
+            id="EnumNode[Color]",
+        ),
+        # Non-optional value nodes:
+        pytest.param(IntegerNode(10, is_optional=False), int, id="IntegerNode"),
+        pytest.param(FloatNode(10.0, is_optional=False), float, id="FloatNode"),
+        pytest.param(BooleanNode(True, is_optional=False), bool, id="BooleanNode"),
+        pytest.param(StringNode("bar", is_optional=False), str, id="StringNode"),
+        pytest.param(
+            EnumNode(enum_type=Color, value=Color.RED, is_optional=False),
+            Color,
+            id="EnumNode[Color]",
+        ),
+        # DictConfig
+        pytest.param(DictConfig(content={}), Optional[Dict[Any, Any]], id="DictConfig"),
+        pytest.param(
+            DictConfig(key_type=int, element_type=Color, content={}),
+            Optional[Dict[int, Color]],
+            id="DictConfig[int,Color]",
+        ),
+        pytest.param(
+            DictConfig(key_type=Color, element_type=int, content={}),
+            Optional[Dict[Color, int]],
+            id="DictConfig[Color,int]",
+        ),
+        pytest.param(
+            DictConfig(ref_type=Any, content=ConcretePlugin),
+            Any,
+            id="DictConfig[ConcretePlugin]_Any_reftype",
+        ),
+        pytest.param(
+            DictConfig(ref_type=Plugin, content=ConcretePlugin),
+            Optional[Plugin],
+            id="DictConfig[Plugin]",
+        ),
+        pytest.param(
+            DictConfig(ref_type=Plugin, content=ConcretePlugin),
+            Optional[Plugin],
+            id="Plugin",
+        ),
+        # Non optional DictConfig
+        pytest.param(
+            DictConfig(ref_type=Plugin, content=ConcretePlugin, is_optional=False),
+            Plugin,
+            id="Plugin",
+        ),
+        # ListConfig
+        pytest.param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
+        pytest.param(
+            ListConfig([], element_type=int), Optional[List[int]], id="ListConfig[int]",
+        ),
+    ],
+)
+def test_get_ref_type(obj: Any, expected: Any) -> None:
+    assert _utils.get_ref_type(obj) == expected

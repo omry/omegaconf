@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Type
+from typing import Any, Optional, Type, Dict
 
 import pytest
 
@@ -14,7 +14,6 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
 )
-from omegaconf._utils import type_str
 from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -45,12 +44,15 @@ class Expected:
     key: Any = None
     # "AUTO" : determine automatically based on OmegaConf.get_type(cfg)
     object_type: Any = "AUTO"
+    ref_type: Any = None
+
     # "AUTO: full_key is key
     full_key: Any = "AUTO"
     create: Any = lambda: None
     op: Any = lambda _cfg: None
     child_node: Any = lambda cfg: None
     parent_node: Any = lambda cfg: cfg
+
     object_type_str: Optional[str] = "AUTO"
     ref_type_str: Optional[str] = "AUTO"
     num_lines: int = 4
@@ -68,24 +70,6 @@ class Expected:
                 else:
                     self.full_key = ""
 
-        parent = self.parent_node(cfg)
-        if self.object_type_str == "AUTO":
-            parent_type = OmegaConf.get_type(parent)
-            if parent_type is not None:
-                self.object_type_str = type_str(parent_type)
-            else:
-                self.object_type_str = "Any"
-
-        if self.ref_type_str == "AUTO":
-            parent_type = OmegaConf._get_ref_type(parent)
-            if parent_type is not None:
-                self.ref_type_str = type_str(parent_type)
-                if parent._is_optional():
-                    self.ref_type_str = f"Optional[{self.ref_type_str}]"
-
-            else:
-                self.ref_type_str = "Any"
-
 
 params = [
     ##############
@@ -101,6 +85,7 @@ params = [
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
+            ref_type=Optional[StructuredWithMissing],
             key="num",
         ),
         id="structured:update_with_invalid_value",
@@ -114,6 +99,7 @@ params = [
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
+            ref_type=Optional[StructuredWithMissing],
             key="num",
         ),
         id="structured:update:none_to_non_optional",
@@ -170,6 +156,7 @@ params = [
             msg="Key 'fail' not in 'ConcretePlugin'",
             key="fail",
             object_type=ConcretePlugin,
+            ref_type=Optional[ConcretePlugin],
         ),
         id="structured:access_invalid_attribute",
     ),
@@ -225,6 +212,7 @@ params = [
             msg="Invalid type assigned : int is not a subclass of FoobarParams. value: 20",
             key="params",
             object_type=ConcretePlugin,
+            ref_type=Optional[ConcretePlugin],
             child_node=lambda cfg: cfg.params,
         ),
         id="structured:setattr,invalid_type_assigned_to_structured",
@@ -249,6 +237,7 @@ params = [
             exception_type=ValidationError,
             msg="field 'foo' is not Optional",
             key="foo",
+            ref_type=Dict[Any, Any],
             child_node=lambda cfg: cfg.foo,
         ),
         id="dict,none_optional:set_none",
@@ -922,8 +911,12 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
         assert ex.child_node == expected.child_node(cfg)
         assert ex.full_key == expected.full_key
         assert isinstance(expected.full_key, str)
-        assert ex.object_type_str == expected.object_type_str
-        assert ex.ref_type_str == expected.ref_type_str
+
+        if expected.ref_type is not None:
+            assert ex.ref_type == expected.ref_type
+
+        if expected.object_type is not None:
+            assert ex.object_type == expected.object_type
 
         with monkeypatch.context() as m:
             m.setenv("OC_CAUSE", "1")

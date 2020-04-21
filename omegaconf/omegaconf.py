@@ -197,9 +197,13 @@ class OmegaConf:
                     or is_structured_config(obj)
                     or obj is None
                 ):
-                    ref_type = OmegaConf._get_ref_type(obj)
+                    ref_type = None
+                    if is_structured_config(obj):
+                        ref_type = get_type_of(obj)
+                    elif OmegaConf.is_dict(obj):
+                        ref_type = obj._metadata.ref_type
+
                     if ref_type is None:
-                        # TODO: does this make sense?
                         ref_type = OmegaConf.get_type(obj)
 
                     if isinstance(obj, DictConfig):
@@ -515,18 +519,6 @@ class OmegaConf:
             return list
         else:
             return get_type_of(c)
-
-    @staticmethod
-    def _get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
-        if key is not None:
-            c = obj._get_node(key)
-        else:
-            c = obj
-
-        if isinstance(c, Node):
-            return c._metadata.ref_type
-        else:
-            return None
 
     @staticmethod
     def select(cfg: Container, key: str, throw_on_missing: bool = False) -> Any:

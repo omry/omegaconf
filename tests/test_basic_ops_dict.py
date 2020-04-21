@@ -12,6 +12,7 @@ from omegaconf import (
     OmegaConf,
     UnsupportedValueType,
     ValidationError,
+    _utils,
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import KeyValidationError
@@ -569,13 +570,29 @@ def test_get_type() -> None:
     assert OmegaConf.get_type(cfg.inter) == User
 
 
-def test_get_ref_type() -> None:
-    cfg = OmegaConf.create(
-        {"plugin": DictConfig(ref_type=Plugin, content=ConcretePlugin)}
-    )
-
-    assert OmegaConf.get_type(cfg.plugin) == ConcretePlugin
-    assert OmegaConf._get_ref_type(cfg.plugin) == Plugin
+@pytest.mark.parametrize(
+    "cfg, expected_ref_type",
+    [
+        (
+            OmegaConf.create(
+                {"plugin": DictConfig(ref_type=Plugin, content=ConcretePlugin)}
+            ),
+            Optional[Plugin],
+        ),
+        (
+            OmegaConf.create(
+                {
+                    "plugin": DictConfig(
+                        ref_type=Plugin, content=ConcretePlugin, is_optional=False
+                    )
+                }
+            ),
+            Plugin,
+        ),
+    ],
+)
+def test_get_ref_type(cfg, expected_ref_type) -> None:
+    assert _utils.get_ref_type(cfg.plugin) == expected_ref_type
 
 
 def test_get_ref_type_with_conflict() -> None:
@@ -584,11 +601,11 @@ def test_get_ref_type_with_conflict() -> None:
     )
 
     assert OmegaConf.get_type(cfg.user) == User
-    assert OmegaConf._get_ref_type(cfg.user) == User
+    assert _utils.get_ref_type(cfg.user) == Optional[User]
 
     # Interpolation inherits both type and ref type from the target
     assert OmegaConf.get_type(cfg.inter) == User
-    assert OmegaConf._get_ref_type(cfg.inter) == User
+    assert _utils.get_ref_type(cfg.inter) == Optional[User]
 
 
 def test_is_missing() -> None:
@@ -658,11 +675,11 @@ def test_assign_to_reftype_plugin(
     for value in values:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
         with expectation():
-            assert OmegaConf._get_ref_type(cfg, "foo") == ref_type
+            assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
             cfg.foo = assign
             assert cfg.foo == assign
             # validate assignment does not change ref type.
-            assert OmegaConf._get_ref_type(cfg, "foo") == ref_type
+            assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
 
         if value is not None:
             cfg = OmegaConf.create(

@@ -51,7 +51,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             super().__init__(
                 parent=parent,
                 metadata=ContainerMetadata(
-                    ref_type=list,
+                    ref_type=None,
                     object_type=list,
                     key=key,
                     optional=is_optional,
