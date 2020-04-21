@@ -440,6 +440,53 @@ def _get_value(value: Any) -> Any:
     return value
 
 
+def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
+    from omegaconf import DictConfig, ListConfig
+    from omegaconf.base import Container, Node
+    from omegaconf.nodes import ValueNode
+
+    def none_as_any(t: Optional[Type[Any]]) -> Union[Type[Any], Any]:
+        if t is None:
+            return Any
+        else:
+            return t
+
+    if isinstance(obj, Container) and key is not None:
+        obj = obj._get_node(key)
+
+    is_optional = True
+    ref_type = None
+    if isinstance(obj, ValueNode):
+        is_optional = obj._is_optional()
+        ref_type = obj._metadata.ref_type
+    elif isinstance(obj, Container):
+        if isinstance(obj, Node):
+            ref_type = obj._metadata.ref_type
+        if ref_type is Any:
+            pass
+        elif not is_structured_config(ref_type):
+            kt = none_as_any(obj._metadata.key_type)
+            vt = none_as_any(obj._metadata.element_type)
+            if isinstance(obj, DictConfig):
+                ref_type = Dict[kt, vt]  # type: ignore
+            elif isinstance(obj, ListConfig):
+                ref_type = List[vt]  # type: ignore
+        is_optional = obj._is_optional()
+    else:
+        if isinstance(obj, dict):
+            ref_type = Dict[Any, Any]
+        elif isinstance(obj, (list, tuple)):
+            ref_type = List[Any]
+        else:
+            ref_type = get_type_of(obj)
+
+    ref_type = none_as_any(ref_type)
+    if is_optional and ref_type is not Any:
+        ref_type = Optional[ref_type]
+
+    return ref_type
+
+
 def format_and_raise(
     node: Any,
     key: Any,
@@ -485,17 +532,11 @@ def format_and_raise(
 
         full_key = node._get_full_key(key=key)
 
-        ref_type = OmegaConf._get_ref_type(node)
         object_type = OmegaConf.get_type(node)
-
         object_type_str = type_str(object_type)
-        if ref_type is None:
-            ref_type_str = "Any"
-        else:
-            ref_type_str = type_str(ref_type)
 
-        if node._metadata.optional and ref_type_str != "Any":
-            ref_type_str = f"Optional[{ref_type_str}]"
+        ref_type = get_ref_type(node)
+        ref_type_str = type_str(ref_type)
 
     msg = string.Template(msg).substitute(
         REF_TYPE=ref_type_str,
@@ -542,6 +583,7 @@ def format_and_raise(
 
 
 def type_str(t: Any) -> str:
+    is_optional, t = _resolve_optional(t)
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6
         if hasattr(t, "__name__"):
@@ -567,6 +609,10 @@ def type_str(t: Any) -> str:
     args = getattr(t, "__args__", None)
     if args is not None:
         args = ", ".join([type_str(t) for t in (list(t.__args__))])
-        return f"{name}[{args}]"
+        ret = f"{name}[{args}]"
     else:
-        return name
+        ret = name
+    if is_optional:
+        return f"Optional[{ret}]"
+    else:
+        return ret

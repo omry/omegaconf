@@ -384,36 +384,6 @@ def test_get_type_on_raw(obj: Any, type_: Any) -> None:
     assert OmegaConf.get_type(obj) == type_
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "cfg, type_",
-    [
-        ({}, None),  # missing foo key
-        ({"foo": 10}, None),
-        ({"foo": 10.0}, None),
-        ({"foo": True}, None),
-        ({"foo": "bar"}, None),
-        ({"foo": None}, None),
-        ({"foo": IntegerNode(10)}, int),
-        ({"foo": FloatNode(10.0)}, float),
-        ({"foo": BooleanNode(True)}, bool),
-        ({"foo": StringNode("bar")}, str),
-        ({"foo": EnumNode(enum_type=Color, value=Color.RED)}, Color),
-        ({"foo": ConcretePlugin()}, ConcretePlugin),
-        ({"foo": ConcretePlugin}, ConcretePlugin),
-        ({"foo": DictConfig(ref_type=Plugin, content=ConcretePlugin)}, Plugin),
-        ({"foo": {}}, None),
-        pytest.param(
-            {"foo": OmegaConf.create()}, dict, id="create_with_nested_dictconfig"
-        ),
-        ({"foo": []}, list),
-        ({"foo": OmegaConf.create([])}, list),
-    ],
-)
-def test_get_ref_type(cfg: Any, type_: Any) -> None:
-    cfg = OmegaConf.create(cfg)
-    assert OmegaConf._get_ref_type(cfg, "foo") == type_
-
-
 def test_is_issubclass() -> None:
     cfg = OmegaConf.structured(ConcretePlugin)
     t = OmegaConf.get_type(cfg)

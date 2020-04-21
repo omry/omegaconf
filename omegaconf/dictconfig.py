@@ -25,6 +25,7 @@ from ._utils import (
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
+    type_str,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
@@ -183,33 +184,30 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if value is None:
             return
 
-        target_type = OmegaConf._get_ref_type(target)
+        target_type = target._metadata.ref_type
         value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):
             return
 
-        if is_assign:
-            # assign
-            validation_error = (
-                target_type is not None
-                and value_type is not None
-                and not issubclass(value_type, target_type)
-            )
-        else:
+        # is assignment illegal?
+        validation_error = (
+            target_type is not None
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        )
+
+        if not is_assign:
             # merge
-            validation_error = not is_dict(value_type) and (
-                target_type is not None
-                and value_type is not None
-                and not issubclass(value_type, target_type)
-            )
+            # Merging of a dictionary is allowed even if assignment is illegal (merge would do deeper checks)
+            validation_error = not is_dict(value_type) and validation_error
 
         if validation_error:
             assert value_type is not None
             assert target_type is not None
             msg = (
-                f"Invalid type assigned : {value_type.__name__} is not a "
-                f"subclass of {target_type.__name__}. value: {value}"
+                f"Invalid type assigned : {type_str(value_type)} is not a "
+                f"subclass of {type_str(target_type)}. value: {value}"
             )
             raise ValidationError(msg)
 
@@ -226,24 +224,23 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 except KeyValidationError:
                     pass
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
+        elif key_type == str:
+            if not isinstance(key, str):
+                raise KeyValidationError(
+                    f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
+                )
+            return key
+        elif issubclass(key_type, Enum):
+            try:
+                ret = EnumNode.validate_and_convert_to_enum(key_type, key)
+                assert ret is not None
+                return ret
+            except ValidationError as e:
+                raise KeyValidationError(
+                    f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
+                )
         else:
-            if key_type == str:
-                if not isinstance(key, str):
-                    raise KeyValidationError(
-                        f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
-                    )
-                return key
-            elif issubclass(key_type, Enum):
-                try:
-                    ret = EnumNode.validate_and_convert_to_enum(key_type, key)
-                    assert ret is not None
-                    return ret
-                except ValidationError as e:
-                    raise KeyValidationError(
-                        f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
-                    )
-            else:
-                assert False
+            raise KeyValidationError(f"Unexpected key type $KEY_TYPE")
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
 

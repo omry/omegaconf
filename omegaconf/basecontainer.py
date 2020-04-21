@@ -323,7 +323,7 @@ class BaseContainer(Container, ABC):
             target_node = isinstance(target_node_ref, ValueNode)
 
         def wrap(key: Any, val: Any) -> Node:
-
+            is_optional = True
             if not is_structured_config(val):
                 ref_type = self._metadata.element_type
             else:
@@ -332,9 +332,14 @@ class BaseContainer(Container, ABC):
                     if is_structured_config(val):
                         ref_type = OmegaConf.get_type(val)
                 else:
-                    ref_type = OmegaConf._get_ref_type(target)
+                    is_optional = target._is_optional()
+                    ref_type = target._metadata.ref_type
             return _maybe_wrap(
-                ref_type=ref_type, key=key, value=val, is_optional=True, parent=self
+                ref_type=ref_type,
+                key=key,
+                value=val,
+                is_optional=is_optional,
+                parent=self,
             )
 
         def assign(value_key: Any, value_to_assign: Any) -> None:
