@@ -485,7 +485,7 @@ def format_and_raise(
 
         full_key = node._get_full_key(key=key)
 
-        ref_type = OmegaConf.get_ref_type(node)
+        ref_type = OmegaConf._get_ref_type(node)
         object_type = OmegaConf.get_type(node)
 
         object_type_str = type_str(object_type)

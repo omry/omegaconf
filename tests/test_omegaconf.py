@@ -411,7 +411,7 @@ def test_get_type_on_raw(obj: Any, type_: Any) -> None:
 )
 def test_get_ref_type(cfg: Any, type_: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    assert OmegaConf.get_ref_type(cfg, "foo") == type_
+    assert OmegaConf._get_ref_type(cfg, "foo") == type_
 
 
 def test_is_issubclass() -> None:

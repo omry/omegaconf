@@ -120,7 +120,7 @@ class TestStructured:
         module: Any = import_module(class_type)
         cfg1 = OmegaConf.create(module.LinkedList)
         assert OmegaConf.get_type(cfg1) == module.LinkedList
-        assert OmegaConf.get_ref_type(cfg1, "next") == module.LinkedList
+        assert OmegaConf._get_ref_type(cfg1, "next") == module.LinkedList
         assert OmegaConf.get_type(cfg1, "next") is None
 
         assert cfg1.next is None
@@ -128,7 +128,7 @@ class TestStructured:
 
         cfg2 = OmegaConf.create(module.MissingTest.Missing1)
         assert OmegaConf.is_missing(cfg2, "head")
-        assert OmegaConf.get_ref_type(cfg2, "head") == module.LinkedList
+        assert OmegaConf._get_ref_type(cfg2, "head") == module.LinkedList
         assert OmegaConf.get_type(cfg2, "head") is None
 
     class TestMissing:
@@ -154,19 +154,19 @@ class TestStructured:
         def test_plugin_holder(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.create(module.PluginHolder)
-            assert OmegaConf.get_ref_type(cfg, "none") == module.Plugin
+            assert OmegaConf._get_ref_type(cfg, "none") == module.Plugin
             assert OmegaConf.get_type(cfg, "none") is None
 
-            assert OmegaConf.get_ref_type(cfg, "missing") == module.Plugin
+            assert OmegaConf._get_ref_type(cfg, "missing") == module.Plugin
             assert OmegaConf.get_type(cfg, "missing") is None
 
-            assert OmegaConf.get_ref_type(cfg, "plugin") == module.Plugin
+            assert OmegaConf._get_ref_type(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
             cfg.plugin = module.ConcretePlugin()
-            assert OmegaConf.get_ref_type(cfg, "plugin") == module.Plugin
+            assert OmegaConf._get_ref_type(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.ConcretePlugin
 
-            assert OmegaConf.get_ref_type(cfg, "plugin2") == module.Plugin
+            assert OmegaConf._get_ref_type(cfg, "plugin2") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
 
         def test_native_missing(self, class_type: str) -> None:

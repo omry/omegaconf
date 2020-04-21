@@ -183,7 +183,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if value is None:
             return
 
-        target_type = OmegaConf.get_ref_type(target)
+        target_type = OmegaConf._get_ref_type(target)
         value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):

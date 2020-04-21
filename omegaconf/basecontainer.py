@@ -332,7 +332,7 @@ class BaseContainer(Container, ABC):
                     if is_structured_config(val):
                         ref_type = OmegaConf.get_type(val)
                 else:
-                    ref_type = OmegaConf.get_ref_type(target)
+                    ref_type = OmegaConf._get_ref_type(target)
             return _maybe_wrap(
                 ref_type=ref_type, key=key, value=val, is_optional=True, parent=self
             )

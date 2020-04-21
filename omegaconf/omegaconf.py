@@ -197,7 +197,7 @@ class OmegaConf:
                     or is_structured_config(obj)
                     or obj is None
                 ):
-                    ref_type = OmegaConf.get_ref_type(obj)
+                    ref_type = OmegaConf._get_ref_type(obj)
                     if ref_type is None:
                         # TODO: does this make sense?
                         ref_type = OmegaConf.get_type(obj)
@@ -517,7 +517,7 @@ class OmegaConf:
             return get_type_of(c)
 
     @staticmethod
-    def get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+    def _get_ref_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
         if key is not None:
             c = obj._get_node(key)
         else:
