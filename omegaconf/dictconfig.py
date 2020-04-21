@@ -362,7 +362,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
 
-            node = self._get_node(key=key)
+            node = self._get_node(key=key, validate_access=False)
             if node is not None:
                 value = self._resolve_with_default(
                     key=key, value=node, default_value=default
