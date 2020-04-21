@@ -398,9 +398,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _iter_ex(self, resolve: bool) -> Iterator[Any]:
         try:
             if self._is_none():
-                raise TypeError("Cannot iterate on ListConfig object representing None")
+                raise TypeError("Cannot iterate a ListConfig object representing None")
             if self._is_missing():
-                raise MissingMandatoryValue("Cannot iterate on a missing ListConfig")
+                raise MissingMandatoryValue("Cannot iterate a missing ListConfig")
 
             class MyItems(Iterator[Any]):
                 def __init__(self, lst: ListConfig) -> None:

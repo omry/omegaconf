@@ -12,7 +12,6 @@ exclude_lines =
     raise AssertionError
     raise NotImplementedError
     raise TypeError
-    return NotImplemented
     assert False
     @abstractmethod
     \.\.\.

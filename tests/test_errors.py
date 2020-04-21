@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Type, Dict
+from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -110,6 +110,7 @@ params = [
             op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
             key="a",
             exception_type=UnsupportedValueType,
+            ref_type=Optional[Dict[Any, Any]],
             msg="Value 'IllegalType' is not a supported primitive type",
         ),
         id="dict:update:object_of_illegal_type",
@@ -122,6 +123,7 @@ params = [
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
             exception_type=ReadonlyConfigError,
+            ref_type=Optional[Dict[Any, Any]],
             msg="Cannot pop from read-only node",
         ),
         id="dict,readonly:pop",
@@ -237,10 +239,10 @@ params = [
             exception_type=ValidationError,
             msg="field 'foo' is not Optional",
             key="foo",
-            ref_type=Dict[Any, Any],
+            full_key="foo",
             child_node=lambda cfg: cfg.foo,
         ),
-        id="dict,none_optional:set_none",
+        id="dict,not_optional:set_none",
     ),
     pytest.param(
         Expected(
@@ -424,6 +426,7 @@ params = [
             exception_type=ValidationError,
             msg="Invalid type assigned : int is not a subclass of ConcretePlugin. value: 1",
             low_level=True,
+            ref_type=Optional[ConcretePlugin],
         ),
         id="dict:set_value:reftype_mismatch",
     ),
@@ -436,6 +439,7 @@ params = [
             exception_type=ValidationError,
             msg="Value 'fail' could not be converted to Integer",
             key="baz",
+            ref_type=Optional[Dict[str, int]],
         ),
         id="DictConfig[str,int]:assigned_str_value",
     ),
@@ -466,7 +470,7 @@ params = [
         ),
         id="list:setattr",
     ),
-    # # setattr
+    # setattr
     pytest.param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
@@ -487,6 +491,7 @@ params = [
             key="foo",
             full_key="[foo]",
             msg="ListConfig indices must be integers or slices, not str",
+            ref_type=Optional[List[Any]],
         ),
         id="list:get_nox_ex:invalid_index_type",
     ),
@@ -509,6 +514,7 @@ params = [
             msg="Cannot get_node from a ListConfig object representing None",
             key=20,
             full_key="[20]",
+            ref_type=Optional[List[Any]],
         ),
         id="list:get_node_none",
     ),
@@ -687,6 +693,19 @@ params = [
         ),
         id="list,readonly:setitem",
     ),
+    # _set_value
+    pytest.param(
+        Expected(
+            create=lambda: ListConfig(is_optional=False, element_type=int, content=[]),
+            op=lambda cfg: cfg._set_value(None),
+            exception_type=ValidationError,
+            object_type=None,
+            msg="Non optional ListConfig cannot be constructed from None",
+            ref_type=List[int],
+            low_level=True,
+        ),
+        id="list:create_not_optional:_set_value(None)",
+    ),
     # assign
     pytest.param(
         Expected(
@@ -697,6 +716,7 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
+            ref_type=Optional[List[int]],
         ),
         id="list,int_elements:assigned_str_element",
     ),
@@ -712,6 +732,7 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
+            ref_type=Optional[List[int]],
         ),
         id="list,int_elements:assigned_str_element",
     ),
@@ -726,6 +747,7 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
+            ref_type=Optional[List[Any]],
         ),
         id="list,not_optional:null_assignment",
     ),
@@ -772,6 +794,7 @@ params = [
             key=1,
             full_key="[1]",
             child_node=lambda _cfg: None,
+            ref_type=Optional[List[Any]],
         ),
         id="list:insert_into_missing",
     ),
@@ -784,6 +807,7 @@ params = [
             msg="Cannot get from a ListConfig object representing None",
             key=0,
             full_key="[0]",
+            ref_type=Optional[List[Any]],
         ),
         id="list:get_from_none",
     ),
@@ -841,7 +865,7 @@ params = [
             create=lambda: ListConfig(content=None),
             op=lambda cfg: iter(cfg),
             exception_type=TypeError,
-            msg="Cannot iterate on ListConfig object representing None",
+            msg="Cannot iterate a ListConfig object representing None",
         ),
         id="list:iter_none",
     ),
@@ -850,7 +874,7 @@ params = [
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: iter(cfg),
             exception_type=MissingMandatoryValue,
-            msg="Cannot iterate on a missing ListConfig",
+            msg="Cannot iterate a missing ListConfig",
         ),
         id="list:iter_missing",
     ),
@@ -897,9 +921,9 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
     with pytest.raises(expected.exception_type, match=re.escape(msg)) as einfo:
         try:
             expected.op(cfg)
-        except Exception:
+        except Exception as e:
             # helps in debugging
-            raise
+            raise e
     ex = einfo.value
 
     assert ex.object_type == expected.object_type

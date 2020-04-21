@@ -17,14 +17,7 @@ from omegaconf import (
 )
 from omegaconf.errors import UnsupportedInterpolationType
 
-from . import (
-    Color,
-    ConcretePlugin,
-    IllegalType,
-    Plugin,
-    StructuredWithMissing,
-    does_not_raise,
-)
+from . import Color, ConcretePlugin, IllegalType, StructuredWithMissing, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore

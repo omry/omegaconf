@@ -17,7 +17,6 @@ from typing import (
 from ._utils import (
     ValueKind,
     _is_interpolation,
-    get_dict_key_value_types,
     get_structured_config_data,
     get_type_of,
     get_value_kind,
@@ -34,6 +33,7 @@ from .errors import (
     ConfigKeyError,
     KeyValidationError,
     MissingMandatoryValue,
+    OmegaConfBaseException,
     ReadonlyConfigError,
     UnsupportedInterpolationType,
     ValidationError,
@@ -50,14 +50,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         content: Union[Dict[str, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
-        ref_type: Optional[Type[Any]] = None,
+        ref_type: Union[Type[Any], Any] = None,
         key_type: Optional[Type[Any]] = None,
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
     ) -> None:
-        if ref_type is not None:
-            if get_dict_key_value_types(ref_type) != (key_type, element_type):
-                pass
         super().__init__(
             parent=parent,
             metadata=ContainerMetadata(
@@ -144,7 +141,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             if key is not None:
                 node = self._get_node(key)
                 if node is not None and not node._is_optional():
-                    raise ValidationError("field '$FULL_KEY' is not Optional")
+                    self._format_and_raise(
+                        key=key,
+                        value=value,
+                        cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                    )
             else:
                 if not self._is_optional():
                     raise ValidationError("field '$FULL_KEY' is not Optional")
@@ -240,7 +241,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
                 )
         else:
-            raise KeyValidationError(f"Unexpected key type $KEY_TYPE")
+            assert False
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
 
@@ -273,6 +274,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         try:
             self.__set_impl(key, value)
         except Exception as e:
+            if isinstance(e, OmegaConfBaseException) and e._initialized:
+                raise e
             self._format_and_raise(key=key, value=value, cause=e)
             assert False
 
@@ -507,8 +510,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
 
             elif isinstance(value, dict):
-                # TODO: does this make sense?
-                self._metadata.object_type = self._metadata.ref_type
                 for k, v in value.items():
                     self.__setitem__(k, v)
             else:
