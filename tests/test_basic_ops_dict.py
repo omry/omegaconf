@@ -575,7 +575,7 @@ def test_get_ref_type() -> None:
     )
 
     assert OmegaConf.get_type(cfg.plugin) == ConcretePlugin
-    assert OmegaConf.get_ref_type(cfg.plugin) == Plugin
+    assert OmegaConf._get_ref_type(cfg.plugin) == Plugin
 
 
 def test_get_ref_type_with_conflict() -> None:
@@ -584,11 +584,11 @@ def test_get_ref_type_with_conflict() -> None:
     )
 
     assert OmegaConf.get_type(cfg.user) == User
-    assert OmegaConf.get_ref_type(cfg.user) == User
+    assert OmegaConf._get_ref_type(cfg.user) == User
 
     # Interpolation inherits both type and ref type from the target
     assert OmegaConf.get_type(cfg.inter) == User
-    assert OmegaConf.get_ref_type(cfg.inter) == User
+    assert OmegaConf._get_ref_type(cfg.inter) == User
 
 
 def test_is_missing() -> None:
@@ -658,11 +658,11 @@ def test_assign_to_reftype_plugin(
     for value in values:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
         with expectation():
-            assert OmegaConf.get_ref_type(cfg, "foo") == ref_type
+            assert OmegaConf._get_ref_type(cfg, "foo") == ref_type
             cfg.foo = assign
             assert cfg.foo == assign
             # validate assignment does not change ref type.
-            assert OmegaConf.get_ref_type(cfg, "foo") == ref_type
+            assert OmegaConf._get_ref_type(cfg, "foo") == ref_type
 
         if value is not None:
             cfg = OmegaConf.create(

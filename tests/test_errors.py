@@ -77,7 +77,7 @@ class Expected:
                 self.object_type_str = "Any"
 
         if self.ref_type_str == "AUTO":
-            parent_type = OmegaConf.get_ref_type(parent)
+            parent_type = OmegaConf._get_ref_type(parent)
             if parent_type is not None:
                 self.ref_type_str = type_str(parent_type)
                 if parent._is_optional():
