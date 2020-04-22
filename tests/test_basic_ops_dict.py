@@ -13,6 +13,7 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
     _utils,
+    open_dict,
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigTypeError, KeyValidationError
@@ -302,14 +303,9 @@ def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -
     assert type(val) == type(expected)
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "cfg",
-    [
-        (OmegaConf.create({"name": "Bond", "age": 7})._set_flag("struct", True)),
-        (OmegaConf.structured(User)),
-    ],
-)
-def test_dict_struct_mode_pop(cfg: Any) -> None:
+def test_dict_struct_mode_pop() -> None:
+    cfg = OmegaConf.create({"name": "Bond", "age": 7})
+    cfg._set_flag("struct", True)
     with pytest.raises(ConfigTypeError):
         cfg.pop("name")
 
@@ -318,6 +314,28 @@ def test_dict_struct_mode_pop(cfg: Any) -> None:
 
     with pytest.raises(ConfigTypeError):
         cfg.pop("bar", "not even with default")
+
+
+def test_dict_structured_mode_pop() -> None:
+    cfg = OmegaConf.create({"user": User(name="Bond")})
+    with pytest.raises(ConfigTypeError):
+        cfg.user.pop("name")
+
+    with pytest.raises(ConfigTypeError):
+        cfg.user.pop("bar")
+
+    with pytest.raises(ConfigTypeError):
+        cfg.user.pop("bar", "not even with default")
+
+    # Unlocking the top level node is not enough.
+    with pytest.raises(ConfigTypeError):
+        with open_dict(cfg):
+            cfg.user.pop("name")
+
+    # You need to unlock the specified structured node to pop a field from it.
+    with open_dict(cfg.user):
+        cfg.user.pop("name")
+    assert "name" not in cfg.user
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -399,6 +417,35 @@ def test_dict_struct_delitem() -> None:
     OmegaConf.set_struct(c, True)
     with pytest.raises(ConfigTypeError):
         del c["a"]
+    with open_dict(c):
+        del c["a"]
+    assert "a" not in c
+
+
+def test_dict_structured_delitem() -> None:
+    c = OmegaConf.structured(User(name="Bond"))
+    with pytest.raises(ConfigTypeError):
+        del c["name"]
+
+    with open_dict(c):
+        del c["name"]
+    assert "name" not in c
+
+
+def test_dict_nested_structured_delitem() -> None:
+    c = OmegaConf.create({"user": User(name="Bond")})
+    with pytest.raises(ConfigTypeError):
+        del c.user["name"]
+
+    # Unlocking the top level node is not enough.
+    with pytest.raises(ConfigTypeError):
+        with open_dict(c):
+            del c.user["name"]
+
+    # You need to unlock the specified structured node to delete a field from it.
+    with open_dict(c.user):
+        del c.user["name"]
+    assert "name" not in c.user
 
 
 @pytest.mark.parametrize(  # type: ignore
