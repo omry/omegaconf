@@ -15,7 +15,7 @@ from omegaconf import (
     _utils,
 )
 from omegaconf.basecontainer import BaseContainer
-from omegaconf.errors import KeyValidationError
+from omegaconf.errors import ConfigTypeError, KeyValidationError
 
 from . import (
     ConcretePlugin,
@@ -256,14 +256,6 @@ def test_iterate_dict_with_interpolation() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "struct",
-    [
-        pytest.param(None, id="struct_unspecified"),
-        pytest.param(False, id="struct_False"),
-        pytest.param(True, id="struct_True"),
-    ],
-)
-@pytest.mark.parametrize(  # type: ignore
     "cfg, key, default_, expected",
     [
         pytest.param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
@@ -298,11 +290,8 @@ def test_iterate_dict_with_interpolation() -> None:
         ),
     ],
 )
-def test_dict_pop(
-    cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any, struct: Optional[bool]
-) -> None:
+def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -> None:
     c = OmegaConf.create(cfg)
-    OmegaConf.set_struct(c, struct)
 
     if default_ != "__NO_DEFAULT__":
         val = c.pop(key, default_)
@@ -311,6 +300,24 @@ def test_dict_pop(
 
     assert val == expected
     assert type(val) == type(expected)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg",
+    [
+        (OmegaConf.create({"name": "Bond", "age": 7})._set_flag("struct", True)),
+        (OmegaConf.structured(User)),
+    ],
+)
+def test_dict_struct_mode_pop(cfg: Any) -> None:
+    with pytest.raises(ConfigTypeError):
+        cfg.pop("name")
+
+    with pytest.raises(ConfigTypeError):
+        cfg.pop("bar")
+
+    with pytest.raises(ConfigTypeError):
+        cfg.pop("bar", "not even with default")
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -377,12 +384,21 @@ def test_dict_config() -> None:
 
 
 def test_dict_delitem() -> None:
-    c = OmegaConf.create(dict(a=10, b=11))
-    assert c == dict(a=10, b=11)
+    src = {"a": 10, "b": 11}
+    c = OmegaConf.create(src)
+    assert c == src
     del c["a"]
-    assert c == dict(b=11)
+    assert c == {"b": 11}
     with pytest.raises(KeyError):
         del c["not_found"]
+
+
+def test_dict_struct_delitem() -> None:
+    src = {"a": 10, "b": 11}
+    c = OmegaConf.create(src)
+    OmegaConf.set_struct(c, True)
+    with pytest.raises(ConfigTypeError):
+        del c["a"]
 
 
 @pytest.mark.parametrize(  # type: ignore

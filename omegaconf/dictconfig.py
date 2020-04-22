@@ -31,6 +31,7 @@ from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
+    ConfigTypeError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -101,10 +102,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def copy(self) -> "DictConfig":
         return copy.copy(self)
 
-    def _validate_get(self, key: Any, value: Any = None) -> None:
-        is_typed = self._metadata.object_type not in (Any, None,) and not is_dict(
+    def _is_typed(self) -> bool:
+        return self._metadata.object_type not in (Any, None) and not is_dict(
             self._metadata.object_type
         )
+
+    def _validate_get(self, key: Any, value: Any = None) -> None:
+        is_typed = self._is_typed()
 
         is_struct = self._get_flag("struct") is True
         if key not in self.__dict__["_content"]:
@@ -319,9 +323,26 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 key=key,
                 value=None,
                 cause=ReadonlyConfigError(
-                    "Cannot delete item from read-only DictConfig"
+                    "DictConfig in read-only mode does not support deletion"
                 ),
             )
+        if self._get_flag("struct"):
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ConfigTypeError(
+                    "DictConfig in struct mode does not support deletion"
+                ),
+            )
+        if self._is_typed():
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ConfigTypeError(
+                    f"{type_str(self._metadata.object_type)} (DictConfig) does not support deletion"
+                ),
+            )
+
         del self.__dict__["_content"][key]
 
     def get(
@@ -362,15 +383,21 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def pop(self, key: Union[str, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
-            key = self._validate_and_normalize_key(key)
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
-
+            if self._get_flag("struct"):
+                raise ConfigTypeError("DictConfig in struct mode does not support pop")
+            if self._is_typed():
+                raise ConfigTypeError(
+                    f"{type_str(self._metadata.object_type)} (DictConfig) does not support pop"
+                )
+            key = self._validate_and_normalize_key(key)
             node = self._get_node(key=key, validate_access=False)
             if node is not None:
                 value = self._resolve_with_default(
                     key=key, value=node, default_value=default
                 )
+
                 del self[key]
                 return value
             else:
