@@ -31,6 +31,7 @@ from . import (
     Plugin,
     StructuredWithMissing,
     UnionError,
+    User,
 )
 
 
@@ -449,11 +450,34 @@ params = [
             create=lambda: create_readonly({"foo": "bar"}),
             op=lambda cfg: cfg.__delitem__("foo"),
             exception_type=ReadonlyConfigError,
-            msg="Cannot delete item from read-only DictConfig",
+            msg="DictConfig in read-only mode does not support deletion",
             key="foo",
             child_node=lambda cfg: cfg.foo,
         ),
         id="dict,readonly:del",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: create_struct({"foo": "bar"}),
+            op=lambda cfg: cfg.__delitem__("foo"),
+            exception_type=ConfigTypeError,
+            msg="DictConfig in struct mode does not support deletion",
+            key="foo",
+            child_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,struct:del",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(User(name="bond")),
+            op=lambda cfg: cfg.__delitem__("name"),
+            exception_type=ConfigTypeError,
+            msg="User (DictConfig) does not support deletion",
+            object_type=User,
+            key="name",
+            child_node=lambda cfg: cfg.name,
+        ),
+        id="dict,structured:del",
     ),
     ##############
     # ListConfig #
@@ -577,6 +601,28 @@ params = [
             full_key="[Invalid_key_type]",
         ),
         id="list:pop_invalid_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: create_struct({"foo": "bar"}),
+            op=lambda cfg: cfg.pop("foo"),
+            exception_type=ConfigTypeError,
+            msg="DictConfig in struct mode does not support pop",
+            key="foo",
+            child_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,struct:pop",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(ConcretePlugin),
+            op=lambda cfg: cfg.pop("name"),
+            exception_type=ConfigTypeError,
+            msg="ConcretePlugin (DictConfig) does not support pop",
+            key="name",
+            child_node=lambda cfg: cfg.name,
+        ),
+        id="dict,structured:pop",
     ),
     pytest.param(
         Expected(

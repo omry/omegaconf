@@ -55,13 +55,14 @@ class Node(ABC):
         assert parent is None or isinstance(parent, Container)
         return parent
 
-    def _set_flag(self, flag: str, value: Optional[bool]) -> None:
+    def _set_flag(self, flag: str, value: Optional[bool]) -> "Node":
         assert value is None or isinstance(value, bool)
         if value is None:
             if flag in self._metadata.flags:
                 del self._metadata.flags[flag]
         else:
             self._metadata.flags[flag] = value
+        return self
 
     def _get_node_flag(self, flag: str) -> Optional[bool]:
         """
