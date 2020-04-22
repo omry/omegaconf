@@ -157,7 +157,8 @@ def test_scientific_notation_float() -> None:
 def test_dict_get_with_default(
     d: Any, select: Any, key: Any, default_val: Any, struct: Any
 ) -> None:
-    c = OmegaConf.create(d).select(select)
+    c = OmegaConf.create(d)
+    c = OmegaConf.select(c, select)
     OmegaConf.set_struct(c, struct)
     assert c.get(key, default_val) == default_val
 
