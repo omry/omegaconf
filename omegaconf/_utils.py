@@ -336,15 +336,18 @@ def is_primitive_dict(obj: Any) -> bool:
 
 def is_dict_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info <= (3, 6, 0):
-        return origin is Dict  # pragma: no cover
+    if sys.version_info < (3, 7, 0):
+        return origin is Dict or type_ is Dict  # pragma: no cover
     else:
         return origin is dict  # pragma: no cover
 
 
 def is_list_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    return origin is list
+    if sys.version_info < (3, 7, 0):
+        return origin is List or type_ is List  # pragma: no cover
+    else:
+        return origin is list  # pragma: no cover
 
 
 def is_dict_subclass(type_: Any) -> bool:
