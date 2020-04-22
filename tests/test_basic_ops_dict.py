@@ -76,11 +76,6 @@ def test_nested_dict_mandatory_value() -> None:
         c.a.b
 
 
-def test_mandatory_with_default() -> None:
-    c = OmegaConf.create(dict(name="???"))
-    assert c.get("name", "default value") == "default value"
-
-
 def test_subscript_get() -> None:
     c = OmegaConf.create("a: b")
     assert isinstance(c, DictConfig)
@@ -139,6 +134,8 @@ def test_scientific_notation_float() -> None:
     assert 10e-3 == c.a
 
 
+@pytest.mark.parametrize("struct", [None, True, False])  # type: ignore
+@pytest.mark.parametrize("default_val", [4, True, False, None])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
     "d,select,key",
     [
@@ -148,6 +145,7 @@ def test_scientific_notation_float() -> None:
         ({"hello": "${foo}", "foo": "???"}, "", "hello"),
         ({"hello": None}, "", "hello"),
         ({"hello": "${foo}"}, "", "hello"),
+        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
         ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
         ({"hello": DictConfig(content="???")}, "", "hello"),
         ({"hello": DictConfig(content="${foo}")}, "", "hello"),
@@ -155,10 +153,12 @@ def test_scientific_notation_float() -> None:
         ({"hello": ListConfig(content="???")}, "", "hello"),
     ],
 )
-def test_dict_get_with_default(d: Any, select: Any, key: Any) -> None:
+def test_dict_get_with_default(
+    d: Any, select: Any, key: Any, default_val: Any, struct: Any
+) -> None:
     c = OmegaConf.create(d).select(select)
-    assert isinstance(c, DictConfig)
-    assert c.get(key, 4) == 4
+    OmegaConf.set_struct(c, struct)
+    assert c.get(key, default_val) == default_val
 
 
 def test_map_expansion() -> None:
