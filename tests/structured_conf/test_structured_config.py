@@ -710,6 +710,18 @@ class TestDictSubclass:
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
+    def test_str2str_as_sub_node(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
+        assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
+        assert _utils.get_ref_type(cfg.foo) == Optional[module.DictSubclass.Str2Str]
+
+        cfg.foo.hello = "world"
+        assert cfg.foo.hello == "world"
+
+        with pytest.raises(KeyValidationError):
+            cfg.foo[Color.RED] = "fail"
+
     def test_color2str(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
