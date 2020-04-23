@@ -136,9 +136,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         from omegaconf import OmegaConf
 
         vk = get_value_kind(value)
-        if vk == ValueKind.INTERPOLATION:
-            return
-        if isinstance(value, (str, ValueNode)) and vk == ValueKind.STR_INTERPOLATION:
+        if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
             return
 
         if OmegaConf.is_none(value):
@@ -156,10 +154,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         if value == "???":
             return
-
-        # validate get
-        if key is not None:
-            self._validate_get(key, value)
 
         target: Optional[Node]
         if key is None:
@@ -248,7 +242,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             assert False
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
-
         try:
             self.__set_impl(key=key, value=value)
         except AttributeError as e:
