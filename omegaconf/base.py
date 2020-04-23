@@ -217,7 +217,9 @@ class Container(Node):
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         ...
 
-    def _get_node(self, key: Any) -> Optional[Node]:
+    def _get_node(
+        self, key: Any, validate_access: bool = True, disable_warning: bool = False
+    ) -> Optional[Node]:
         ...
 
     @abstractmethod

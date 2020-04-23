@@ -52,7 +52,7 @@ def test_set_value(
     "input_, key, value",
     [
         # dict
-        (dict(foo=IntegerNode(10)), "foo", "str"),
+        ({"foo": IntegerNode(10)}, "foo", "str"),
         # list
         ([1, IntegerNode(10)], 1, "str"),
     ],

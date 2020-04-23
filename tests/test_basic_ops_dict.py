@@ -15,6 +15,7 @@ from omegaconf import (
     ValidationError,
     _utils,
     open_dict,
+    IntegerNode,
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigTypeError, KeyValidationError
@@ -90,20 +91,24 @@ def test_subscript_set() -> None:
     assert {"a": "b"} == c
 
 
+dot_key_warning = (
+    "Keys with dot (foo.bar) are deprecated and will have different semantic "
+    "meaning the next major version of OmegaConf (2.1)\n"
+    "See the compact keys issue for more details: https://github.com/omry/omegaconf/issues/152\n"
+    "You can disable this warning by setting the environment variable OC_DISABLE_DOT_ACCESS_WARNING=1"
+)
+
+
 def test_subscript_setitem_with_dot_warning() -> None:
     c = OmegaConf.create()
-    msg = (
-        "Key with dot (foo.bar) are deprecated and will have different semantic "
-        "meaning the next major version of OmegaConf (2.1)\n"
-        "See the compact keys issue for more details: https://github.com/omry/omegaconf/issues/152\n"
-        "You can disable this warning by setting the environment variable OC_DISABLE_DOT_ACCESS_WARNING=1"
-    )
-
-    with pytest.warns(expected_warning=PendingDeprecationWarning, match=re.escape(msg)):
+    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
         c.__setitem__("foo.bar", 42)
 
-    with pytest.warns(expected_warning=PendingDeprecationWarning, match=re.escape(msg)):
+    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
         assert c.__getitem__("foo.bar") == 42
+
+    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
+        c = OmegaConf.create({"foo.bar": IntegerNode(10)})
 
 
 def test_subscript_set_with_dot_warning_suppressed(recwarn: Any, mocker: Any) -> None:
