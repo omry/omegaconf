@@ -8,6 +8,7 @@ import pytest
 
 from omegaconf import (
     DictConfig,
+    IntegerNode,
     ListConfig,
     MissingMandatoryValue,
     OmegaConf,
@@ -15,7 +16,6 @@ from omegaconf import (
     ValidationError,
     _utils,
     open_dict,
-    IntegerNode,
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigTypeError, KeyValidationError
