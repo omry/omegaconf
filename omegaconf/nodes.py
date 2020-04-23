@@ -110,7 +110,9 @@ class ValueNode(Node):
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())
 
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(
+        self, key: Union[str, Enum, int, None], disable_warning: bool = False
+    ) -> str:
         parent = self._get_parent()
         if parent is None:
             if self._metadata.key is None:
@@ -118,7 +120,9 @@ class ValueNode(Node):
             else:
                 return str(self._metadata.key)
         else:
-            return parent._get_full_key(self._metadata.key)
+            return parent._get_full_key(
+                self._metadata.key, disable_warning=disable_warning
+            )
 
 
 class AnyNode(ValueNode):

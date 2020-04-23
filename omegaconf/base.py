@@ -103,7 +103,9 @@ class Node(ABC):
         assert False
 
     @abstractmethod
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(
+        self, key: Union[str, Enum, int, None], disable_warning: bool = False
+    ) -> str:
         ...
 
     def _dereference_node(

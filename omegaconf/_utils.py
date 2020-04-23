@@ -536,7 +536,7 @@ def format_and_raise(
         if key is not None:
             child_node = node._get_node(key, validate_access=False)
 
-        full_key = node._get_full_key(key=key)
+        full_key = node._get_full_key(key=key, disable_warning=True)
 
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)
