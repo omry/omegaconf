@@ -243,13 +243,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     and os.environ["OC_DISABLE_DOT_ACCESS_WARNING"] == "1"
                 )
                 msg = (
-                    f"Key with dot ({key}) are deprecated and will have different semantic "
+                    f"Keys with dot ({key}) are deprecated and will have different semantic "
                     "meaning the next major version of OmegaConf (2.1)\n"
                     "See the compact keys issue for more details: https://github.com/omry/omegaconf/issues/152\n"
                     "You can disable this warning by setting the environment variable OC_DISABLE_DOT_ACCESS_WARNING=1"
                 )
                 if not (disable_warning or env_disabled_warning):
-                    warnings.warn(message=msg, category=PendingDeprecationWarning)
+                    warnings.warn(message=msg, category=UserWarning)
 
             return key
         elif issubclass(key_type, Enum):

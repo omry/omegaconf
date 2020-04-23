@@ -283,9 +283,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _get_node(
         self,
-        key: Any,
-        # default_value: Any = DEFAULT_VALUE_MARKER,
+        key: Union[int, slice],
         validate_access: bool = True,
+        disable_warning: bool = False,
     ) -> Optional[Node]:
         try:
             if self._is_none():
