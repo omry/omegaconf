@@ -126,7 +126,8 @@ class BaseContainer(Container, ABC):
 
         warnings.warn(
             "select() is deprecated, use OmegaConf.select(). (Since 2.0)",
-            category=DeprecationWarning,
+            category=UserWarning,
+            stacklevel=2,
         )
 
         return OmegaConf.select(self, key, throw_on_missing)
@@ -136,7 +137,8 @@ class BaseContainer(Container, ABC):
 
         warnings.warn(
             "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)",
-            category=DeprecationWarning,
+            category=UserWarning,
+            stacklevel=2,
         )
 
         OmegaConf.update(self, key, value)

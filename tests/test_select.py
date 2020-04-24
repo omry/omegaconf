@@ -1,3 +1,4 @@
+import re
 from typing import Any, Optional
 
 import pytest
@@ -80,5 +81,8 @@ def test_select_from_dict() -> None:
 
 def test_select_deprecated() -> None:
     c = OmegaConf.create({"foo": "bar"})
-    with pytest.deprecated_call():
+    with pytest.warns(
+        expected_warning=UserWarning,
+        match=re.escape("select() is deprecated, use OmegaConf.select(). (Since 2.0)"),
+    ):
         c.select("foo")
