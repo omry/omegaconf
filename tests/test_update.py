@@ -1,3 +1,4 @@
+import re
 import sys
 from typing import Any, Dict, List, Union
 
@@ -202,6 +203,11 @@ def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
 
 def test_update_node_deprecated() -> None:
     c = OmegaConf.create()
-    with pytest.deprecated_call():
+    with pytest.warns(
+        expected_warning=UserWarning,
+        match=re.escape(
+            "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)"
+        ),
+    ):
         c.update_node("foo", "bar")
-        assert c.foo == "bar"
+    assert c.foo == "bar"

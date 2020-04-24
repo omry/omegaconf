@@ -534,7 +534,9 @@ def format_and_raise(
         ref_type_str = None
     else:
         if key is not None:
-            child_node = node._get_node(key, validate_access=False)
+            child_node = node._get_node(
+                key, validate_access=False, disable_warning=True
+            )
 
         full_key = node._get_full_key(key=key, disable_warning=True)
 
