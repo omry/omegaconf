@@ -328,7 +328,6 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "type_, expected",
     [
-        (None, "None"),
         (int, "int"),
         (bool, "bool"),
         (float, "float"),
@@ -350,6 +349,10 @@ def test_type_str(type_: Any, expected: str, optional: bool) -> None:
         assert _utils.type_str(Optional[type_]) == f"Optional[{expected}]"
     else:
         assert _utils.type_str(type_) == expected
+
+
+def test_type_str_none() -> None:
+    assert _utils.type_str(None) == "NoneType"
 
 
 @pytest.mark.parametrize(  # type: ignore
