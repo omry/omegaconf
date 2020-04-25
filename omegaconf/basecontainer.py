@@ -153,9 +153,8 @@ class BaseContainer(Container, ABC):
     ) -> Union[None, str, Dict[str, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from .nodes import ValueNode
 
-        def convert(val: ValueNode) -> Any:
+        def convert(val: Node) -> Any:
             value = val._value()
             if enum_to_str and isinstance(value, Enum):
                 value = f"{value.name}"
@@ -167,37 +166,45 @@ class BaseContainer(Container, ABC):
             return None
         elif conf._is_missing():
             return "???"
+        elif conf._is_interpolation() and not resolve:
+            inter = conf._value()
+            assert isinstance(inter, str)
+            return inter
         elif isinstance(conf, DictConfig):
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
+                assert node is not None
+                if resolve:
+                    node = node._dereference_node(
+                        throw_on_missing=False, throw_on_resolution_failure=True
+                    )
+
+                assert node is not None
                 if isinstance(node, Container):
                     retdict[key] = BaseContainer._to_content(
                         node, resolve=resolve, enum_to_str=enum_to_str
                     )
                 else:
-                    if resolve:
-                        node = node._dereference_node(
-                            throw_on_missing=False, throw_on_resolution_failure=True
-                        )
                     retdict[key] = convert(node)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
                 node = conf._get_node(index)
-                item = convert(node)
-                if isinstance(item, Container):
+                assert node is not None
+                if resolve:
+                    node = node._dereference_node(
+                        throw_on_missing=False, throw_on_resolution_failure=True
+                    )
+                assert node is not None
+                if isinstance(node, Container):
                     item = BaseContainer._to_content(
-                        item, resolve=resolve, enum_to_str=enum_to_str
+                        node, resolve=resolve, enum_to_str=enum_to_str
                     )
                     retlist.append(item)
                 else:
-                    if resolve:
-                        node = node._dereference_node(
-                            throw_on_missing=False, throw_on_resolution_failure=True
-                        )
-                    retlist.append(node._value())
+                    retlist.append(convert(node))
 
             return retlist
 

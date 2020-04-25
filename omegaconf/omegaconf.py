@@ -247,7 +247,10 @@ class OmegaConf:
         if isinstance(file_, (str, pathlib.Path)):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
                 obj = yaml.load(f, Loader=get_yaml_loader())
-                return OmegaConf.create(obj)
+                res = OmegaConf.create(obj)
+                if not isinstance(res, (ListConfig, DictConfig)):
+                    raise ValueError(f"Unexpected config type {type_str(res)}")
+                return res
         elif getattr(file_, "read", None):
             obj = yaml.load(file_, Loader=get_yaml_loader())
             assert isinstance(obj, (list, dict, str))
@@ -413,7 +416,7 @@ class OmegaConf:
     @staticmethod
     def to_container(
         cfg: Container, resolve: bool = False, enum_to_str: bool = False
-    ) -> Union[Dict[str, Any], List[Any]]:
+    ) -> Union[Dict[str, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert

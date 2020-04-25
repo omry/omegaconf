@@ -1,5 +1,4 @@
 import copy
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Union
 
@@ -86,24 +85,27 @@ def test_replace_value_node_type_with_another(
 @pytest.mark.parametrize(  # type: ignore
     "input_",
     [
-        [1, 2, 3],
-        [1, 2, {"a": 3}],
-        [1, 2, [10, 20]],
-        {"b": {"b": 10}},
-        {"b": [False, 1, "2", 3.0, Color.RED]},
-        {"b": DictConfig(is_optional=True, content=None)},
+        pytest.param([1, 2, 3], id="list"),
+        pytest.param([1, 2, {"a": 3}], id="dict_in_list"),
+        pytest.param([1, 2, [10, 20]], id="list_in_list"),
+        pytest.param({"b": {"b": 10}}, id="dict_in_dict"),
+        pytest.param({"b": [False, 1, "2", 3.0, Color.RED]}, id="list_in_dict"),
+        pytest.param({"b": DictConfig(content=None)}, id="none_dictconfig"),
+        pytest.param({"b": ListConfig(content=None)}, id="none_listconfig"),
+        pytest.param({"b": DictConfig(content="???")}, id="missing_dictconfig"),
+        pytest.param({"b": ListConfig(content="???")}, id="missing_listconfig"),
     ],
 )
 def test_to_container_returns_primitives(input_: Any) -> None:
-    def assert_container_with_primitives(container: Any) -> None:
-        if isinstance(container, list):
-            for v in container:
+    def assert_container_with_primitives(item: Any) -> None:
+        if isinstance(item, list):
+            for v in item:
                 assert_container_with_primitives(v)
-        elif isinstance(container, dict):
-            for _k, v in container.items():
+        elif isinstance(item, dict):
+            for _k, v in item.items():
                 assert_container_with_primitives(v)
         else:
-            assert isinstance(container, (int, float, str, bool, type(None), Enum))
+            assert isinstance(item, (int, float, str, bool, type(None), Enum))
 
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
@@ -115,6 +117,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
     [
         pytest.param([], None, None, id="empty_list"),
         pytest.param([1, 2, 3], None, None, id="list"),
+        pytest.param([None], None, None, id="list_with_none"),
         pytest.param([1, "${0}", 3], None, [1, 1, 3], id="list_with_inter"),
         pytest.param({}, None, None, id="empty_dict"),
         pytest.param({"foo": "bar"}, None, None, id="dict"),
@@ -124,8 +127,10 @@ def test_to_container_returns_primitives(input_: Any) -> None:
             {"foo": "zonk", "bar": "zonk"},
             id="dict_with_inter",
         ),
+        pytest.param({"foo": None}, None, None, id="dict_with_none"),
         pytest.param({"foo": "???"}, None, None, id="dict_missing_value"),
         pytest.param({"foo": None}, None, None, id="dict_none_value"),
+        # containers
         pytest.param(
             {"foo": DictConfig(is_optional=True, content=None)},
             {"foo": None},
@@ -136,7 +141,13 @@ def test_to_container_returns_primitives(input_: Any) -> None:
             {"foo": DictConfig(content="???")},
             {"foo": "???"},
             None,
-            id="dict_missing_dictconfigt",
+            id="dict_missing_dictconfig",
+        ),
+        pytest.param(
+            {"foo": DictConfig(content="${bar}"), "bar": 10},
+            {"foo": "${bar}", "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="dict_inter_dictconfig",
         ),
         pytest.param(
             {"foo": ListConfig(content="???")},
@@ -150,16 +161,24 @@ def test_to_container_returns_primitives(input_: Any) -> None:
             None,
             id="dict_none_listconfig",
         ),
+        pytest.param(
+            {"foo": ListConfig(content="${bar}"), "bar": 10},
+            {"foo": "${bar}", "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="dict_inter_listconfig",
+        ),
     ],
 )
-def test_to_container(src: Any, expected: Any, expected_with_resolve) -> None:
+def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> None:
     if expected is None:
         expected = src
     if expected_with_resolve is None:
-        expected_with_resolve = src
+        expected_with_resolve = expected
     cfg = OmegaConf.create(src)
-    assert OmegaConf.to_container(cfg) == expected
-    assert OmegaConf.to_container(cfg, resolve=True) == expected_with_resolve
+    container = OmegaConf.to_container(cfg)
+    assert container == expected
+    container = OmegaConf.to_container(cfg, resolve=True)
+    assert container == expected_with_resolve
 
 
 @pytest.mark.parametrize(  # type: ignore

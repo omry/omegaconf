@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from omegaconf import AnyNode, DictConfig, OmegaConf
+from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
 
 from . import Group, User
 
@@ -63,6 +63,31 @@ from . import Group, User
             {"i1": "${n1}", "n1": {"a": 10}},
             {"i1": "${n1}", "n1": {"a": 10}},
             id="node_interpolation",
+        ),
+        # Inter containers
+        pytest.param(
+            {"foo": DictConfig(content="${bar}"), "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="dictconfig_inter",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content="${bar}"), "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="listconfig_inter",
+        ),
+        # None containers
+        pytest.param(
+            {"foo": DictConfig(content=None)}, {"foo": None}, id="dictconfig_none",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content=None)}, {"foo": None}, id="listconfig_none",
+        ),
+        # Missing containers
+        pytest.param(
+            {"foo": DictConfig(content="???")}, {"foo": "???"}, id="dictconfig_missing",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content="???")}, {"foo": "???"}, id="listconfig_missing",
         ),
     ],
 )
