@@ -592,6 +592,8 @@ def format_and_raise(
 
 def type_str(t: Any) -> str:
     is_optional, t = _resolve_optional(t)
+    if t is None:
+        return type(t).__name__
     if t is Any:
         return "Any"
     if sys.version_info < (3, 7, 0):  # pragma: no cover

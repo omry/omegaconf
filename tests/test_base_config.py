@@ -1,5 +1,6 @@
 import copy
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Dict, List, Union
 
 import pytest
@@ -17,11 +18,10 @@ from omegaconf import (
     flag_override,
     open_dict,
     read_write,
-    MISSING,
 )
 from omegaconf.errors import ConfigKeyError
 
-from . import StructuredWithMissing, does_not_raise, User, MissingUser
+from . import Color, StructuredWithMissing, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -90,7 +90,8 @@ def test_replace_value_node_type_with_another(
         [1, 2, {"a": 3}],
         [1, 2, [10, 20]],
         {"b": {"b": 10}},
-        {"b": [1, 2, 3]},
+        {"b": [False, 1, "2", 3.0, Color.RED]},
+        {"b": DictConfig(is_optional=True, content=None)},
     ],
 )
 def test_to_container_returns_primitives(input_: Any) -> None:
@@ -102,11 +103,63 @@ def test_to_container_returns_primitives(input_: Any) -> None:
             for _k, v in container.items():
                 assert_container_with_primitives(v)
         else:
-            assert isinstance(container, (int, str, bool))
+            assert isinstance(container, (int, float, str, bool, type(None), Enum))
 
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
     assert_container_with_primitives(res)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "src, expected, expected_with_resolve",
+    [
+        pytest.param([], None, None, id="empty_list"),
+        pytest.param([1, 2, 3], None, None, id="list"),
+        pytest.param([1, "${0}", 3], None, [1, 1, 3], id="list_with_inter"),
+        pytest.param({}, None, None, id="empty_dict"),
+        pytest.param({"foo": "bar"}, None, None, id="dict"),
+        pytest.param(
+            {"foo": "${bar}", "bar": "zonk"},
+            None,
+            {"foo": "zonk", "bar": "zonk"},
+            id="dict_with_inter",
+        ),
+        pytest.param({"foo": "???"}, None, None, id="dict_missing_value"),
+        pytest.param({"foo": None}, None, None, id="dict_none_value"),
+        pytest.param(
+            {"foo": DictConfig(is_optional=True, content=None)},
+            {"foo": None},
+            None,
+            id="dict_none_dictconfig",
+        ),
+        pytest.param(
+            {"foo": DictConfig(content="???")},
+            {"foo": "???"},
+            None,
+            id="dict_missing_dictconfigt",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content="???")},
+            {"foo": "???"},
+            None,
+            id="dict_missing_listconfig",
+        ),
+        pytest.param(
+            {"foo": ListConfig(is_optional=True, content=None)},
+            {"foo": None},
+            None,
+            id="dict_none_listconfig",
+        ),
+    ],
+)
+def test_to_container(src: Any, expected: Any, expected_with_resolve) -> None:
+    if expected is None:
+        expected = src
+    if expected_with_resolve is None:
+        expected_with_resolve = src
+    cfg = OmegaConf.create(src)
+    assert OmegaConf.to_container(cfg) == expected
+    assert OmegaConf.to_container(cfg, resolve=True) == expected_with_resolve
 
 
 @pytest.mark.parametrize(  # type: ignore
