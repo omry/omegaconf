@@ -506,21 +506,6 @@ def test_assign_dict_in_dict() -> None:
     assert isinstance(c.foo, DictConfig)
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "src",
-    [
-        {"a": 1, "b": 2, "c": {"aa": 10}},
-        [1, 2, 3],
-        {"a": 1, "b": 2, "c": {"aa": 10, "lst": [1, 2, 3]}},
-    ],
-)
-def test_to_container(src: Any) -> None:
-    c = OmegaConf.create(src)
-    result = OmegaConf.to_container(c)
-    assert type(result) == type(src)
-    assert result == src
-
-
 def test_pretty_without_resolve() -> None:
     c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     # without resolve, references are preserved

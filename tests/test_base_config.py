@@ -1,4 +1,5 @@
 import copy
+from enum import Enum
 from typing import Any, Dict, List, Union
 
 import pytest
@@ -19,7 +20,7 @@ from omegaconf import (
 )
 from omegaconf.errors import ConfigKeyError
 
-from . import StructuredWithMissing, does_not_raise
+from . import Color, StructuredWithMissing, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -84,27 +85,100 @@ def test_replace_value_node_type_with_another(
 @pytest.mark.parametrize(  # type: ignore
     "input_",
     [
-        [1, 2, 3],
-        [1, 2, {"a": 3}],
-        [1, 2, [10, 20]],
-        {"b": {"b": 10}},
-        {"b": [1, 2, 3]},
+        pytest.param([1, 2, 3], id="list"),
+        pytest.param([1, 2, {"a": 3}], id="dict_in_list"),
+        pytest.param([1, 2, [10, 20]], id="list_in_list"),
+        pytest.param({"b": {"b": 10}}, id="dict_in_dict"),
+        pytest.param({"b": [False, 1, "2", 3.0, Color.RED]}, id="list_in_dict"),
+        pytest.param({"b": DictConfig(content=None)}, id="none_dictconfig"),
+        pytest.param({"b": ListConfig(content=None)}, id="none_listconfig"),
+        pytest.param({"b": DictConfig(content="???")}, id="missing_dictconfig"),
+        pytest.param({"b": ListConfig(content="???")}, id="missing_listconfig"),
     ],
 )
 def test_to_container_returns_primitives(input_: Any) -> None:
-    def assert_container_with_primitives(container: Any) -> None:
-        if isinstance(container, list):
-            for v in container:
+    def assert_container_with_primitives(item: Any) -> None:
+        if isinstance(item, list):
+            for v in item:
                 assert_container_with_primitives(v)
-        elif isinstance(container, dict):
-            for _k, v in container.items():
+        elif isinstance(item, dict):
+            for _k, v in item.items():
                 assert_container_with_primitives(v)
         else:
-            assert isinstance(container, (int, str, bool))
+            assert isinstance(item, (int, float, str, bool, type(None), Enum))
 
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
     assert_container_with_primitives(res)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "src, expected, expected_with_resolve",
+    [
+        pytest.param([], None, None, id="empty_list"),
+        pytest.param([1, 2, 3], None, None, id="list"),
+        pytest.param([None], None, None, id="list_with_none"),
+        pytest.param([1, "${0}", 3], None, [1, 1, 3], id="list_with_inter"),
+        pytest.param({}, None, None, id="empty_dict"),
+        pytest.param({"foo": "bar"}, None, None, id="dict"),
+        pytest.param(
+            {"foo": "${bar}", "bar": "zonk"},
+            None,
+            {"foo": "zonk", "bar": "zonk"},
+            id="dict_with_inter",
+        ),
+        pytest.param({"foo": None}, None, None, id="dict_with_none"),
+        pytest.param({"foo": "???"}, None, None, id="dict_missing_value"),
+        pytest.param({"foo": None}, None, None, id="dict_none_value"),
+        # containers
+        pytest.param(
+            {"foo": DictConfig(is_optional=True, content=None)},
+            {"foo": None},
+            None,
+            id="dict_none_dictconfig",
+        ),
+        pytest.param(
+            {"foo": DictConfig(content="???")},
+            {"foo": "???"},
+            None,
+            id="dict_missing_dictconfig",
+        ),
+        pytest.param(
+            {"foo": DictConfig(content="${bar}"), "bar": 10},
+            {"foo": "${bar}", "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="dict_inter_dictconfig",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content="???")},
+            {"foo": "???"},
+            None,
+            id="dict_missing_listconfig",
+        ),
+        pytest.param(
+            {"foo": ListConfig(is_optional=True, content=None)},
+            {"foo": None},
+            None,
+            id="dict_none_listconfig",
+        ),
+        pytest.param(
+            {"foo": ListConfig(content="${bar}"), "bar": 10},
+            {"foo": "${bar}", "bar": 10},
+            {"foo": 10, "bar": 10},
+            id="dict_inter_listconfig",
+        ),
+    ],
+)
+def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> None:
+    if expected is None:
+        expected = src
+    if expected_with_resolve is None:
+        expected_with_resolve = expected
+    cfg = OmegaConf.create(src)
+    container = OmegaConf.to_container(cfg)
+    assert container == expected
+    container = OmegaConf.to_container(cfg, resolve=True)
+    assert container == expected_with_resolve
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -119,26 +193,28 @@ def test_empty(input_: Any, is_empty: bool) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "input_, expected",
     [
-        ([], "[]"),
-        ({}, "{}"),
-        ([1, 2, 3], "[1, 2, 3]"),
-        ([1, 2, dict(a=3)], "[1, 2, {'a': 3}]"),
-        ([1, 2, [10, 20]], "[1, 2, [10, 20]]"),
-        (dict(b=dict(b=10)), "{'b': {'b': 10}}"),
-        (dict(b=[1, 2, 3]), "{'b': [1, 2, 3]}"),
-        (
+        pytest.param([], "[]", id="list"),
+        pytest.param({}, "{}", id="dict"),
+        pytest.param([1, 2, 3], "[1, 2, 3]", id="list"),
+        pytest.param([1, 2, {"a": 3}], "[1, 2, {'a': 3}]", id="dict_in_list"),
+        pytest.param([1, 2, [10, 20]], "[1, 2, [10, 20]]", id="list_in_list"),
+        pytest.param({"b": {"b": 10}}, "{'b': {'b': 10}}", id="dict"),
+        pytest.param({"b": [1, 2, 3]}, "{'b': [1, 2, 3]}", id="list_in_dict"),
+        pytest.param(
             StructuredWithMissing,
             (
                 "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': "
                 "'???', 'opt_list': '???', 'user': '???', 'opt_user': '???', 'inter_num': "
                 "'${num}', 'inter_user': '${user}', 'inter_opt_user': '${opt_user}'}"
             ),
+            id="structured_with_missing",
         ),
     ],
 )
 def test_str(func: Any, input_: Any, expected: str) -> None:
     c = OmegaConf.create(input_)
-    assert func(c) == expected
+    string = func(c)
+    assert string == expected
 
 
 @pytest.mark.parametrize("flag", ["readonly", "struct"])  # type: ignore

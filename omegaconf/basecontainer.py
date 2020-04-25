@@ -150,37 +150,62 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _to_content(
         conf: Container, resolve: bool, enum_to_str: bool = False
-    ) -> Union[Dict[str, Any], List[Any]]:
+    ) -> Union[None, str, Dict[str, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
-        def convert(val: Any) -> Any:
-            if enum_to_str:
-                if isinstance(val, Enum):
-                    val = f"{val.name}"
+        def convert(val: Node) -> Any:
+            value = val._value()
+            if enum_to_str and isinstance(value, Enum):
+                value = f"{value.name}"
 
-            return val
+            return value
 
         assert isinstance(conf, Container)
-        if isinstance(conf, DictConfig):
+        if conf._is_none():
+            return None
+        elif conf._is_missing():
+            return "???"
+        elif conf._is_interpolation() and not resolve:
+            inter = conf._value()
+            assert isinstance(inter, str)
+            return inter
+        elif isinstance(conf, DictConfig):
             retdict: Dict[str, Any] = {}
-            for key, value in conf.items_ex(resolve=resolve):
-                if isinstance(value, Container):
+            for key in conf.keys():
+                node = conf._get_node(key)
+                assert node is not None
+                if resolve:
+                    node = node._dereference_node(
+                        throw_on_missing=False, throw_on_resolution_failure=True
+                    )
+
+                assert node is not None
+                if isinstance(node, Container):
                     retdict[key] = BaseContainer._to_content(
-                        value, resolve=resolve, enum_to_str=enum_to_str
+                        node, resolve=resolve, enum_to_str=enum_to_str
                     )
                 else:
-                    retdict[key] = convert(value)
+                    retdict[key] = convert(node)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
-            for index, item in enumerate(conf._iter_ex(resolve=resolve)):
-                item = convert(item)
-                if isinstance(item, Container):
-                    item = BaseContainer._to_content(
-                        item, resolve=resolve, enum_to_str=enum_to_str
+            for index in range(len(conf)):
+                node = conf._get_node(index)
+                assert node is not None
+                if resolve:
+                    node = node._dereference_node(
+                        throw_on_missing=False, throw_on_resolution_failure=True
                     )
-                retlist.append(item)
+                assert node is not None
+                if isinstance(node, Container):
+                    item = BaseContainer._to_content(
+                        node, resolve=resolve, enum_to_str=enum_to_str
+                    )
+                    retlist.append(item)
+                else:
+                    retlist.append(convert(node))
+
             return retlist
 
         assert False

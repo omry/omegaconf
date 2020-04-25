@@ -351,6 +351,10 @@ def test_type_str(type_: Any, expected: str, optional: bool) -> None:
         assert _utils.type_str(type_) == expected
 
 
+def test_type_str_none() -> None:
+    assert _utils.type_str(None) == "NoneType"
+
+
 @pytest.mark.parametrize(  # type: ignore
     "type_, expected",
     [
