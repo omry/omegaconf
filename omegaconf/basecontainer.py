@@ -164,12 +164,12 @@ class BaseContainer(Container, ABC):
         assert isinstance(conf, Container)
         if conf._is_none():
             return None
-        elif conf._is_missing():
-            return "???"
         elif conf._is_interpolation() and not resolve:
             inter = conf._value()
             assert isinstance(inter, str)
             return inter
+        elif conf._is_missing():
+            return "???"
         elif isinstance(conf, DictConfig):
             retdict: Dict[str, Any] = {}
             for key in conf.keys():

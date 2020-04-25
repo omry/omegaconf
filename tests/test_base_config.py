@@ -181,6 +181,22 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     assert container == expected_with_resolve
 
 
+@pytest.mark.parametrize(
+    "src,expected",
+    [
+        pytest.param(DictConfig(content="${bar}"), "${bar}", id="DictConfig"),
+        pytest.param(
+            OmegaConf.create({"foo": DictConfig(content="${bar}")}),
+            {"foo": "${bar}"},
+            id="nested_DictConfig",
+        ),
+    ],
+)
+def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
+    res = OmegaConf.to_container(src, resolve=False)
+    assert res == expected
+
+
 @pytest.mark.parametrize(  # type: ignore
     "input_, is_empty", [([], True), ({}, True), ([1, 2], False), (dict(a=10), False)]
 )
