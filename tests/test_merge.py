@@ -5,11 +5,11 @@ import pytest
 from omegaconf import (
     MISSING,
     DictConfig,
+    ListConfig,
     OmegaConf,
     ReadonlyConfigError,
     ValidationError,
     nodes,
-    ListConfig,
 )
 from omegaconf._utils import is_structured_config
 
@@ -17,12 +17,11 @@ from . import (
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
+    MissingDict,
+    MissingList,
     Plugin,
     User,
     Users,
-    StructuredWithMissing,
-    MissingList,
-    MissingDict,
 )
 
 
@@ -147,7 +146,6 @@ from . import (
             {"user": Group},
             id="merge_into_missing_node",
         ),
-        ## Missing
         # Mising DictConfig
         pytest.param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
