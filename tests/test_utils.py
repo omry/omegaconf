@@ -328,6 +328,7 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "type_, expected",
     [
+        (None, "None"),
         (int, "int"),
         (bool, "bool"),
         (float, "float"),
