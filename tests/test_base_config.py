@@ -181,7 +181,7 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     assert container == expected_with_resolve
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "src,expected",
     [
         pytest.param(DictConfig(content="${bar}"), "${bar}", id="DictConfig"),
