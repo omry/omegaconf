@@ -1,4 +1,5 @@
 import copy
+from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
 import pytest
@@ -16,10 +17,11 @@ from omegaconf import (
     flag_override,
     open_dict,
     read_write,
+    MISSING,
 )
 from omegaconf.errors import ConfigKeyError
 
-from . import StructuredWithMissing, does_not_raise
+from . import StructuredWithMissing, does_not_raise, User, MissingUser
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -119,26 +121,28 @@ def test_empty(input_: Any, is_empty: bool) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "input_, expected",
     [
-        ([], "[]"),
-        ({}, "{}"),
-        ([1, 2, 3], "[1, 2, 3]"),
-        ([1, 2, dict(a=3)], "[1, 2, {'a': 3}]"),
-        ([1, 2, [10, 20]], "[1, 2, [10, 20]]"),
-        (dict(b=dict(b=10)), "{'b': {'b': 10}}"),
-        (dict(b=[1, 2, 3]), "{'b': [1, 2, 3]}"),
-        (
+        pytest.param([], "[]", id="list"),
+        pytest.param({}, "{}", id="dict"),
+        pytest.param([1, 2, 3], "[1, 2, 3]", id="list"),
+        pytest.param([1, 2, {"a": 3}], "[1, 2, {'a': 3}]", id="dict_in_list"),
+        pytest.param([1, 2, [10, 20]], "[1, 2, [10, 20]]", id="list_in_list"),
+        pytest.param({"b": {"b": 10}}, "{'b': {'b': 10}}", id="dict"),
+        pytest.param({"b": [1, 2, 3]}, "{'b': [1, 2, 3]}", id="list_in_dict"),
+        pytest.param(
             StructuredWithMissing,
             (
                 "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': "
                 "'???', 'opt_list': '???', 'user': '???', 'opt_user': '???', 'inter_num': "
                 "'${num}', 'inter_user': '${user}', 'inter_opt_user': '${opt_user}'}"
             ),
+            id="structured_with_missing",
         ),
     ],
 )
 def test_str(func: Any, input_: Any, expected: str) -> None:
     c = OmegaConf.create(input_)
-    assert func(c) == expected
+    string = func(c)
+    assert string == expected
 
 
 @pytest.mark.parametrize("flag", ["readonly", "struct"])  # type: ignore
