@@ -9,10 +9,21 @@ from omegaconf import (
     ReadonlyConfigError,
     ValidationError,
     nodes,
+    ListConfig,
 )
 from omegaconf._utils import is_structured_config
 
-from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
+from . import (
+    ConcretePlugin,
+    ConfWithMissingDict,
+    Group,
+    Plugin,
+    User,
+    Users,
+    StructuredWithMissing,
+    MissingList,
+    MissingDict,
+)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -135,6 +146,31 @@ from . import ConcretePlugin, ConfWithMissingDict, Group, Plugin, User, Users
             [{"user": "???"}, {"user": Group}],
             {"user": Group},
             id="merge_into_missing_node",
+        ),
+        ## Missing
+        # Mising DictConfig
+        pytest.param(
+            [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
+            {"dict": {"foo": "bar"}},
+            id="merge_into_missing_DictConfig",
+        ),
+        # missing Dict[str, str]
+        pytest.param(
+            [MissingDict, {"dict": {"foo": "bar"}}],
+            {"dict": {"foo": "bar"}},
+            id="merge_into_missing_Dict[str,str]",
+        ),
+        # missing ListConfig
+        pytest.param(
+            [{"list": ListConfig(content="???")}, {"list": [1, 2, 3]}],
+            {"list": [1, 2, 3]},
+            id="merge_into_missing_ListConfig",
+        ),
+        # missing List[str]
+        pytest.param(
+            [MissingList, {"list": ["a", "b", "c"]}],
+            {"list": ["a", "b", "c"]},
+            id="merge_into_missing_List[str]",
         ),
     ],
 )

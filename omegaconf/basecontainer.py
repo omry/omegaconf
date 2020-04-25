@@ -304,7 +304,14 @@ class BaseContainer(Container, ABC):
                 elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                     if self._get_flag("readonly"):
                         raise ReadonlyConfigError(self._get_full_key(""))
-                    self.__dict__["_content"].clear()
+                    if (
+                        self._is_none()
+                        or self._is_missing()
+                        or self._is_interpolation()
+                    ):
+                        self.__dict__["_content"] = []
+                    else:
+                        self.__dict__["_content"].clear()
                     for item in other:
                         self.append(item)
                 else:
