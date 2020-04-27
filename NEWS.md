@@ -1,10 +1,11 @@
 ## 2.0.0rc28 (2020-04-26)
 
-OmegaConf 2.0 is a major release introducing substantial new features, and introducing some incompatible changes
-The biggest new feature is Structured Configs, which essentially extends OmegaConf into an schema validation system
+OmegaConf 2.0 is a major release introducing substantial new features, and introducing some incompatible changes.
+The biggest new feature is Structured Configs, which extends OmegaConf into an schema validation system
 as well as a configuration system.
 With Structured Configs you can create OmegaConf objects from standard dataclasses or attr classes (or objects).
 OmegaConf will retain the type information from the source object/class and validate that config mutations are legal.
+
 This is the biggest OmegaConf release ever, the number of unit tests more than trippled (485 to 1571).
 
 Features
