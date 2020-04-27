@@ -1,1 +1,0 @@
-Fix AttributeError when accessing config in struct-mode with get() while providing None as default
