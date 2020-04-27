@@ -10,21 +10,27 @@
 OmegaConf is a hierarchical configuration system, with support for merging configurations from multiple sources (YAML config files, dataclasses/objects and CLI arguments)
 providing a consistent API regardless of how the configuration was created.
 
-## Documentation
-### Pre release (2.0)
+## Releases
+### Release candidate (2.0)
 OmegaConf 2.0 is coming, this is a real release candidate and you should feel free to use it.
 Ths reason that this is still marked as release candidate is that this is a very big release and I want it to see some more use before officially releasing it.
 No additional changes are planned for 2.0, please report any issues.
 
 [What's new in OmegaConf 2.0](https://github.com/omry/omegaconf/releases/tag/2.0.0rc28).
-[2.0 Documentation] https://omegaconf.readthedocs.io/en/latest/?badge=latest).
+
+[2.0 Documentation](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
+
+[Source code](https://github.com/omry/omegaconf/tree/master)
 
 Install with `pip install --upgrade --pre omegaconf`
 
-### Stable (1.4)
-This is the old stable version, despite it being stable, many bugs have been fixed in 2.0.
-Use this only if you cannot use 2.0.0 for some reason.
+### Old stable (1.4)
+This is the old stable version, despite it being stable - many bugs 1.4 have been fixed in 2.0.
+Use this only if you cannot use 2.0 for some reason.
+
 [1.4 Documentation](https://omegaconf.readthedocs.io/en/1.4_branch/).
+
+[Source code](https://github.com/omry/omegaconf/tree/1.4_branch)
 
 Install with `pip install omegaconf`
 
