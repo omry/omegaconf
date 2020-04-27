@@ -1,1 +1,0 @@
-Add support for loading/saving config files by using native python pathlib.Path
