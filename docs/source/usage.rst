@@ -1,6 +1,6 @@
 .. testsetup:: *
 
-    from omegaconf import OmegaConf, DictConfig
+    from omegaconf import OmegaConf, DictConfig, open_dict, read_wr
     import os
     import sys
     os.environ['USER'] = 'omry'
@@ -17,7 +17,7 @@ Just pip install::
 
     pip install omegaconf
 
-OmegaConf requires Python 3.6 and newer. If you need Python 2.7 support please use OmegaConf 1.4.x.
+OmegaConf requires Python 3.6 and newer.
 
 Creating
 --------
@@ -386,16 +386,16 @@ Note how the port changes to 82, and how the users lists are combined.
 
     >>> from omegaconf import OmegaConf
     >>> import sys
-    >>> base_conf = OmegaConf.load('source/example2.yaml')
-    >>> second_conf = OmegaConf.load('source/example3.yaml')
-
-    >>> # Merge configs:
-    >>> conf = OmegaConf.merge(base_conf, second_conf)
-
+    >>>
     >>> # Simulate command line arguments
     >>> sys.argv = ['program.py', 'server.port=82']
-    >>> # Merge with cli arguments
-    >>> conf.merge_with_cli()
+    >>>
+    >>> base_conf = OmegaConf.load('source/example2.yaml')
+    >>> second_conf = OmegaConf.load('source/example3.yaml')
+    >>> cli_conf = OmegaConf.from_cli()
+    >>>
+    >>> # merge them all
+    >>> conf = OmegaConf.merge(base_conf, second_conf, cli_conf)
     >>> print(conf.pretty())
     server:
       port: 82
@@ -408,9 +408,6 @@ Note how the port changes to 82, and how the users lists are combined.
 
 Configuration flags
 -------------------
-
-.. note:: Flags are a new feature in 1.3.0 (Pre release). The API is not considered stable yet and might change before 1.3.0 is released.
-
 
 OmegaConf support several configuration flags.
 Configuration flags can be set on any configuration node (Sequence or Mapping). if a configuration flag is not set
@@ -437,10 +434,9 @@ You can temporarily remove the read only flag from a config object:
 
 .. doctest:: loaded
 
-    >>> import omegaconf
     >>> conf = OmegaConf.create({"a": {"b": 10}})
     >>> OmegaConf.set_readonly(conf, True)
-    >>> with omegaconf.read_write(conf):
+    >>> with read_write(conf):
     ...   conf.a.b = 20
     >>> conf.a.b
     20
@@ -471,10 +467,9 @@ You can temporarily remove the struct flag from a config object:
 
 .. doctest:: loaded
 
-    >>> import omegaconf
     >>> conf = OmegaConf.create({"a": {"aa": 10, "bb": 20}})
     >>> OmegaConf.set_struct(conf, True)
-    >>> with omegaconf.open_dict(conf):
+    >>> with open_dict(conf):
     ...   conf.a.cc = 30
     >>> conf.a.cc
     30
