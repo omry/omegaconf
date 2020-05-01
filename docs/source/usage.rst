@@ -1,6 +1,6 @@
 .. testsetup:: *
 
-    from omegaconf import OmegaConf, DictConfig, open_dict, read_wr
+    from omegaconf import OmegaConf, DictConfig, open_dict, read_write
     import os
     import sys
     os.environ['USER'] = 'omry'

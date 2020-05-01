@@ -3,6 +3,8 @@
 .. testsetup:: *
 
     from omegaconf import *
+    from enum import Enum
+    from dataclasses import dataclass, field
     import os
     from pytest import raises
     from typing import Dict, Any
@@ -38,9 +40,6 @@ The following class defines fields with all simple types:
 
 .. doctest::
 
-    >>> from enum import Enum
-    >>> from dataclasses import dataclass, field
-
     >>> class Height(Enum):
     ...     SHORT = 0
     ...     TALL = 1
@@ -64,8 +63,9 @@ fields during construction.
     >>> # The two configs are identical in this case
     >>> assert conf1 == conf2
     >>> # But the second form allow for easy customization of the values:
-    >>> conf3 = OmegaConf.create(SimpleTypes(num=20,
-    ...                                      height=Height.TALL))
+    >>> conf3 = OmegaConf.structured(
+    ...   SimpleTypes(num=20,
+    ...   height=Height.TALL))
     >>> print(conf3.pretty())
     num: 20
     pi: 3.1415
@@ -74,10 +74,10 @@ fields during construction.
     description: text
     <BLANKLINE>
 
-The resulting object is a regular OmegaConf object, except it will utilize the type information in the input class/object
+The resulting object is a regular OmegaConf DictConfig, except it will utilize the type information in the input class/object
 and will validate the data at runtime.
-Another difference is that by default, The config objects created from Structured Config have their :ref:`struct-flag` set.
-Configs in struct mode rejects attempts to access or set fields that are not already defined.
+The resulting object and will also rejects attempts to access or set fields that are not already defined
+(similarly to configs with their to :ref:`struct-flag` set, but not recursive).
 
 .. doctest::
 
