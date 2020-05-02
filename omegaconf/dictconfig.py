@@ -257,9 +257,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 ret = EnumNode.validate_and_convert_to_enum(key_type, key)
                 assert ret is not None
                 return ret
-            except ValidationError as e:
+            except ValidationError:
+                valid = ", ".join([x for x in key_type.__members__.keys()])
                 raise KeyValidationError(
-                    f"Key '$KEY' is incompatible with ({key_type.__name__}) : {e}"
+                    f"Key '$KEY' is incompatible with the enum type '{key_type.__name__}', valid: [{valid}]"
                 )
         else:
             assert False

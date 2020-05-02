@@ -379,9 +379,9 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             assert False
 
         except (ValueError, KeyError) as e:
-            valid = "\n".join([f"\t{x}" for x in enum_type.__members__.keys()])
+            valid = ", ".join([x for x in enum_type.__members__.keys()])
             raise ValidationError(
-                f"Invalid value '$VALUE', expected one of:\n{valid}"
+                f"Invalid value '$VALUE', expected one of [{valid}]"
             ).with_traceback(sys.exc_info()[2]) from e
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "EnumNode":

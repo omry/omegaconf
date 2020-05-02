@@ -98,3 +98,9 @@ class MissingList:
 @dataclass
 class MissingDict:
     dict: Dict[str, str] = MISSING
+
+
+@dataclass
+class DictEnum:
+    color_key: Dict[Color, str] = field(default_factory=lambda: {})
+    color_val: Dict[str, Color] = field(default_factory=lambda: {})
