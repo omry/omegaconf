@@ -270,6 +270,28 @@ params = [
         ),
         id="dict,struct:setitem_on_none_existing_key",
     ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
+            op=lambda cfg: cfg.__setitem__("foo", "bar"),
+            exception_type=KeyValidationError,
+            msg="Key 'foo' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
+            full_key="foo",
+            key="foo",
+        ),
+        id="DictConfig[Color,str]:setitem_bad_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig(key_type=str, element_type=Color, content={}),
+            op=lambda cfg: cfg.__setitem__("foo", "bar"),
+            exception_type=ValidationError,
+            msg="Invalid value 'bar', expected one of [RED, GREEN, BLUE]",
+            full_key="foo",
+            key="foo",
+        ),
+        id="DictConfig[str,Color]:setitem_bad_value",
+    ),
     # getitem
     pytest.param(
         Expected(
@@ -286,9 +308,9 @@ params = [
             create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__("foo"),
             exception_type=KeyValidationError,
-            msg="Key 'foo' is incompatible with (Color)",
+            msg="Key 'foo' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
             key="foo",
-            num_lines=7,
+            num_lines=4,
         ),
         id="DictConfig[Color,str]:getitem_str_key",
     ),
