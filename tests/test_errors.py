@@ -32,7 +32,6 @@ from . import (
     StructuredWithMissing,
     UnionError,
     User,
-    DictEnum,
 )
 
 
