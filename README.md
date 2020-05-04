@@ -17,7 +17,8 @@ OmegaConf 2.0 stable version.
 [What's new in OmegaConf 2.0](https://github.com/omry/omegaconf/releases/tag/2.0.0).
 
 [2.0 Documentation](https://omegaconf.readthedocs.io/en/latest/?badge=latest).
-[Slides](https://docs.google.com/presentation/d/e/2PACX-1vTxUGpb4jAqPuPrUFz5sj3zSwCicHLqj3LZmB_kaIn0fV16oY2T2Nu8KkzHH_v_zwl_w7lObA6X6NTk/pub?start=false&loop=false&delayms=3000)
+
+[Slides](https://docs.google.com/presentation/d/e/2PACX-1vTxUGpb4jAqPuPrUFz5sj3zSwCicHLqj3LZmB_kaIn0fV16oY2T2Nu8KkzHH_v_zwl_w7lObA6X6NTk/pub?start=false&loop=false&delayms=3000).
 
 [Source code](https://github.com/omry/omegaconf/tree/2.0_branch)
 
