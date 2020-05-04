@@ -1,4 +1,4 @@
-## 2.0.0rc28 (2020-04-26)
+## 2.0.0 (2020-05-04)
 
 OmegaConf 2.0 is a major release introducing substantial new features, and introducing some incompatible changes.
 The biggest new feature is Structured Configs, which extends OmegaConf into an schema validation system
