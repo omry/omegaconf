@@ -468,8 +468,8 @@ class TestConfigs:
     def test_merge_into_Dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictExamples)
-        res = OmegaConf.merge(cfg, {"strings": {"foo": "bar"}})
-        assert res.strings == {"foo": "bar"}
+        res = OmegaConf.merge(cfg, {"strings": {"x": "abc"}})
+        assert res.strings == {"a": "foo", "b": "bar", "x": "abc"}
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
