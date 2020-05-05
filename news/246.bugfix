@@ -1,0 +1,1 @@
+Fixes merging of dict into a Dict[str, str]
