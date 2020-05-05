@@ -465,6 +465,12 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.merge(c1, c2)
 
+    def test_merge_into_Dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictExamples)
+        res = OmegaConf.merge(cfg, {"strings": {"foo": "bar"}})
+        assert res.strings == {"foo": "bar"}
+
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictIntKey
@@ -532,11 +538,6 @@ class TestConfigs:
     def test_dict_examples(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictExamples)
-        # any: Dict = {"a": 1, "b": "foo"}
-        # ints: Dict[str, int] = {"a": 10, "b": 20}
-        # strings: Dict[str, str] = {"a": "foo", "b": "bar"}
-        # booleans: Dict[str, bool] = {"a": True, "b": False}
-        # colors: Dict[str, Color] = {"red": Color.RED, "green": "GREEN", "blue": 3}
 
         def test_any(name: str) -> None:
             conf[name].c = True
