@@ -263,7 +263,7 @@ class BaseContainer(Container, ABC):
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_value, BaseContainer):
                         dest._validate_merge(key=key, value=src_value)
-                        dest_node.merge_with(src_value)
+                        dest_node._merge_with(src_value)
                     else:
                         dest.__setitem__(key, src_value)
                 else:
@@ -285,42 +285,44 @@ class BaseContainer(Container, ABC):
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
     ) -> None:
+        try:
+            self._merge_with(*others)
+        except Exception as e:
+            self._format_and_raise(key=None, value=None, cause=e)
+
+    def _merge_with(
+        self,
+        *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
+    ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
         from .omegaconf import OmegaConf
 
-        try:
-            """merge a list of other Config objects into this one, overriding as needed"""
-            for other in others:
-                if other is None:
-                    raise ValueError("Cannot merge with a None config")
-                if is_primitive_container(other):
-                    assert isinstance(other, (list, dict))
-                    other = OmegaConf.create(other)
-                elif is_structured_config(other):
-                    other = OmegaConf.structured(other)
-                if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                    BaseContainer._map_merge(self, other)
-                elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                    if self._get_flag("readonly"):
-                        raise ReadonlyConfigError(self._get_full_key(""))
-                    if (
-                        self._is_none()
-                        or self._is_missing()
-                        or self._is_interpolation()
-                    ):
-                        self.__dict__["_content"] = []
-                    else:
-                        self.__dict__["_content"].clear()
-                    for item in other:
-                        self.append(item)
+        """merge a list of other Config objects into this one, overriding as needed"""
+        for other in others:
+            if other is None:
+                raise ValueError("Cannot merge with a None config")
+            if is_primitive_container(other):
+                assert isinstance(other, (list, dict))
+                other = OmegaConf.create(other)
+            elif is_structured_config(other):
+                other = OmegaConf.structured(other)
+            if isinstance(self, DictConfig) and isinstance(other, DictConfig):
+                BaseContainer._map_merge(self, other)
+            elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                if self._get_flag("readonly"):
+                    raise ReadonlyConfigError(self._get_full_key(""))
+                if self._is_none() or self._is_missing() or self._is_interpolation():
+                    self.__dict__["_content"] = []
                 else:
-                    raise TypeError("Cannot merge DictConfig with ListConfig")
+                    self.__dict__["_content"].clear()
+                for item in other:
+                    self.append(item)
+            else:
+                raise TypeError("Cannot merge DictConfig with ListConfig")
 
-            # recursively correct the parent hierarchy after the merge
-            self._re_parent()
-        except Exception as e:
-            self._format_and_raise(key=None, value=None, cause=e)
+        # recursively correct the parent hierarchy after the merge
+        self._re_parent()
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:
