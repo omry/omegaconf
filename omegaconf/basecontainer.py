@@ -239,27 +239,26 @@ class BaseContainer(Container, ABC):
 
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
         for key, src_value in src.items_ex(resolve=False):
-            dest_element_type = dest._metadata.element_type
-            element_typed = dest_element_type not in (None, Any)
             if OmegaConf.is_missing(dest, key):
                 if isinstance(src_value, DictConfig):
                     if OmegaConf.is_missing(dest, key):
                         dest[key] = src_value
 
             dest_node = dest._get_node(key, validate_access=False)
-            if dest_node is not None and dest_node._is_interpolation():
-                target_node = dest_node._dereference_node(
-                    throw_on_resolution_failure=False
-                )
-                if isinstance(target_node, Container):
-                    dest[key] = target_node
-                    dest_node = dest._get_node(key)
+            if dest_node is not None:
+                if dest_node._is_interpolation():
+                    target_node = dest_node._dereference_node(
+                        throw_on_resolution_failure=False
+                    )
+                    if isinstance(target_node, Container):
+                        dest[key] = target_node
+                        dest_node = dest._get_node(key)
 
-            if dest_node is not None or element_typed:
-                if dest_node is None and element_typed:
-                    dest[key] = DictConfig(content=dest_element_type, parent=dest)
-                    dest_node = dest._get_node(key)
+            if is_structured_config(dest._metadata.element_type):
+                dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
+                dest_node = dest._get_node(key)
 
+            if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_value, BaseContainer):
                         dest._validate_merge(key=key, value=src_value)

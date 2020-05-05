@@ -125,11 +125,16 @@ from . import (
             [Users, {"name2user": {"joe": User(name="joe")}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
         ),
-        (
+        pytest.param(
             [Users, {"name2user": {"joe": {"name": "joe"}}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
+            id="users_merge_with_missing_age",
         ),
-        ([ConfWithMissingDict, {"dict": {"foo": "bar"}}], {"dict": {"foo": "bar"}}),
+        pytest.param(
+            [ConfWithMissingDict, {"dict": {"foo": "bar"}}],
+            {"dict": {"foo": "bar"}},
+            id="conf_missing_dict",
+        ),
         pytest.param(
             [{}, ConfWithMissingDict],
             {"dict": "???"},
