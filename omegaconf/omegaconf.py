@@ -239,9 +239,7 @@ class OmegaConf:
             assert False
 
     @staticmethod
-    def load(
-        file_: Union[str, pathlib.Path, IO[bytes]]
-    ) -> Union[DictConfig, ListConfig]:
+    def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
         if isinstance(file_, (str, pathlib.Path)):
@@ -259,7 +257,7 @@ class OmegaConf:
 
     @staticmethod
     def save(
-        config: Container, f: Union[str, pathlib.Path, IO[str]], resolve: bool = False
+        config: Container, f: Union[str, pathlib.Path, IO[Any]], resolve: bool = False
     ) -> None:
         """
         Save as configuration object to a file
