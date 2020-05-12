@@ -800,3 +800,13 @@ class TestDictSubclass:
             module: Any = import_module(class_type)
             with pytest.raises(KeyValidationError):
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
+
+    def test_construct_from_another_retain_node_types(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg1 = OmegaConf.create(module.User(name="James Bond", age=7))
+        with pytest.raises(ValidationError):
+            cfg1.age = "not a number"
+
+        cfg2 = OmegaConf.create(cfg1)
+        with pytest.raises(ValidationError):
+            cfg2.age = "not a number"
