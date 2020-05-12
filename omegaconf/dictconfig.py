@@ -552,7 +552,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self._metadata.object_type = get_type_of(value)
             elif isinstance(value, DictConfig):
                 self._metadata.object_type = dict
-                for k, v in value.items_ex(resolve=False):
+                for k, v in value.__dict__["_content"].items():
                     self.__setitem__(k, v)
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
 
