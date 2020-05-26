@@ -41,8 +41,10 @@ def isint(s: str) -> bool:
 def get_yaml_loader() -> Any:
     # Custom constructor that checks for duplicate keys
     # (from https://gist.github.com/pypt/94d747fe5180851196eb)
-    def no_duplicates_constructor(loader, node, deep=False):
-        mapping = {}
+    def no_duplicates_constructor(
+        loader: yaml.Loader, node: yaml.Node, deep: bool = False
+    ) -> Any:
+        mapping: Dict[str, Any] = {}
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=deep)
             value = loader.construct_object(value_node, deep=deep)
