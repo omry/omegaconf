@@ -39,6 +39,23 @@ def isint(s: str) -> bool:
 
 
 def get_yaml_loader() -> Any:
+    # Custom constructor that checks for duplicate keys
+    # (from https://gist.github.com/pypt/94d747fe5180851196eb)
+    def no_duplicates_constructor(loader, node, deep=False):
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = loader.construct_object(key_node, deep=deep)
+            value = loader.construct_object(value_node, deep=deep)
+            if key in mapping:
+                raise yaml.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key}",
+                    key_node.start_mark,
+                )
+            mapping[key] = value
+        return loader.construct_mapping(node, deep)
+
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(
         "tag:yaml.org,2002:float",
@@ -62,6 +79,9 @@ def get_yaml_loader() -> Any:
         ]
         for key, resolvers in loader.yaml_implicit_resolvers.items()
     }
+    loader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, no_duplicates_constructor
+    )
     return loader
 
 

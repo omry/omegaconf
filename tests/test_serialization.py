@@ -105,3 +105,26 @@ def test_pickle_list() -> None:
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
+
+
+def test_load_duplicate_keys_top() -> None:
+    from yaml.constructor import ConstructorError
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            fp.write("a:\n  b: 1\na:\n  b: 2\n".encode("utf-8"))
+        with pytest.raises(ConstructorError):
+            OmegaConf.load(fp.name)
+    finally:
+        os.unlink(fp.name)
+
+def test_load_duplicate_keys_sub() -> None:
+    from yaml.constructor import ConstructorError
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            fp.write("a:\n  b: 1\n  c: 2\n  b: 3".encode("utf-8"))
+        with pytest.raises(ConstructorError):
+            OmegaConf.load(fp.name)
+    finally:
+        os.unlink(fp.name)
