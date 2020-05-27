@@ -112,18 +112,31 @@ def test_load_duplicate_keys_top() -> None:
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            fp.write("a:\n  b: 1\na:\n  b: 2\n".encode("utf-8"))
+            content = """
+a:
+  b: 1
+a:
+  b: 2
+"""
+            fp.write(content.encode("utf-8"))
         with pytest.raises(ConstructorError):
             OmegaConf.load(fp.name)
     finally:
         os.unlink(fp.name)
+
 
 def test_load_duplicate_keys_sub() -> None:
     from yaml.constructor import ConstructorError
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            fp.write("a:\n  b: 1\n  c: 2\n  b: 3".encode("utf-8"))
+            content = """
+a:
+  b: 1
+  c: 2
+  b: 3
+"""
+            fp.write(content.encode("utf-8"))
         with pytest.raises(ConstructorError):
             OmegaConf.load(fp.name)
     finally:
