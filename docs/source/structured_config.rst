@@ -52,7 +52,7 @@ The following class defines fields with all simple types:
     ...     height: Height = Height.SHORT
     ...     description: str = "text"
 
-You can create a config based on the SimpleTypes class itself ot instances of it.
+You can create a config based on the SimpleTypes class itself or instances of it.
 Those would be equivalent by default, but the Object variant allow you to set the values of specific
 fields during construction.
 
