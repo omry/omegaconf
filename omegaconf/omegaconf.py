@@ -624,7 +624,7 @@ def _node_wrap(
             is_optional=is_optional,
             element_type=element_type,
         )
-    elif is_structured_config(type_):
+    elif is_structured_config(type_) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
             ref_type=type_,

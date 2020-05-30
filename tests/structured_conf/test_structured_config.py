@@ -810,3 +810,15 @@ class TestDictSubclass:
         cfg2 = OmegaConf.create(cfg1)
         with pytest.raises(ValidationError):
             cfg2.age = "not a number"
+
+    def test_nested_with_any_var_type(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.NestedWithAny)
+        assert cfg == {
+            "var": {
+                "with_default": 10,
+                "null_default": None,
+                "mandatory_missing": "???",
+                "interpolation": "${value_at_root}",
+            }
+        }

@@ -174,6 +174,11 @@ class NestedConfig:
 
 
 @attr.s(auto_attribs=True)
+class NestedWithAny:
+    var: Any = Nested()
+
+
+@attr.s(auto_attribs=True)
 class NoDefaultErrors:
     no_default: Any
 
