@@ -170,6 +170,11 @@ class NestedConfig:
 
 
 @dataclass
+class NestedWithAny:
+    var: Any = Nested()
+
+
+@dataclass
 class NoDefaultErrors:
     no_default: Any
 
