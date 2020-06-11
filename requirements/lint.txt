@@ -1,6 +1,6 @@
 black
 flake8
 isort@git+git://github.com/timothycrosley/isort.git@c54b3dd#egg=isort
-mypy
+mypy==0.770
 pyflakes@git+git://github.com/pycqa/pyflakes.git@1911c20#egg=pyflakes
 pytest
