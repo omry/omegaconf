@@ -123,7 +123,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     assert self._metadata.object_type is not None
                     msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
-                    msg = f"Key '{key}' in not in struct"
+                    msg = f"Key '{key}' is not in struct"
                 self._format_and_raise(
                     key=key, value=value, cause=ConfigAttributeError(msg)
                 )
