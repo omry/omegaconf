@@ -1,5 +1,5 @@
 from typing import Any, Tuple
-
+from dataclasses import dataclass
 import pytest
 
 from omegaconf import (
@@ -25,10 +25,20 @@ from . import (
 )
 
 
+@dataclass
+class A:
+    a: int = 10
+
+
+@dataclass
+class B:
+    x: A = MISSING
+
+
 @pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
-        # # dictionaries
+        # dictionaries
         ([{}, {"a": 1}], {"a": 1}),
         ([{"a": None}, {"b": None}], {"a": None, "b": None}),
         ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
@@ -41,6 +51,10 @@ from . import (
         (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": nodes.IntegerNode(10)}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": 1}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": nodes.IntegerNode(1)}),
+        pytest.param(({"a": "???"}, {"a": {}}), {"a": {}}, id="merge_into_missing"),
+        pytest.param(
+            ({"a": "???"}, {"a": {"b": 10}}), {"a": {"b": 10}}, id="merge_into_missing"
+        ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
@@ -151,7 +165,7 @@ from . import (
             {"user": Group},
             id="merge_into_missing_node",
         ),
-        # Mising DictConfig
+        # missing DictConfig
         pytest.param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
             {"dict": {"foo": "bar"}},
@@ -175,6 +189,14 @@ from . import (
             {"list": ["a", "b", "c"]},
             id="merge_into_missing_List[str]",
         ),
+        # merging compatible dict into MISSING structured config expands it
+        # to ensure the resulting node follows the protocol set by the underlying type
+        pytest.param(
+            [B, {"x": {}}], {"x": {"a": 10}}, id="structured_merge_into_missing",
+        ),
+        pytest.param(
+            [B, {"x": {"a": 20}}], {"x": {"a": 20}}, id="structured_merge_into_missing",
+        ),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
@@ -193,6 +215,22 @@ def test_merge(inputs: Any, expected: Any) -> None:
     else:
         with expected:
             OmegaConf.merge(*configs)
+
+
+"""
+from omegaconf import OmegaConf, MISSING
+from dataclasses import dataclass
+
+@dataclass
+class A:
+    a : int = 10
+
+@dataclass
+class B:
+    x : A = MISSING
+
+OmegaConf.merge(B, {"x": {}})
+"""
 
 
 def test_merge_error_retains_type() -> None:

@@ -17,6 +17,9 @@ from ._utils import (
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
+    get_ref_type,
+    is_dict_annotation,
+    _resolve_optional,
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -232,6 +235,7 @@ class BaseContainer(Container, ABC):
         from omegaconf import OmegaConf
 
         from .dictconfig import DictConfig
+        from .listconfig import ListConfig
         from .nodes import ValueNode
 
         assert isinstance(dest, DictConfig)
@@ -239,12 +243,20 @@ class BaseContainer(Container, ABC):
         src_type = src._metadata.object_type
 
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
-        for key, src_value in src.items_ex(resolve=False):
-            if OmegaConf.is_missing(dest, key):
-                if isinstance(src_value, DictConfig):
-                    if OmegaConf.is_missing(dest, key):
-                        dest[key] = src_value
 
+        if isinstance(dest, DictConfig) and dest._is_missing():
+            type_ = get_ref_type(dest)
+            if type_ is not None:
+                _is_optional, type_ = _resolve_optional(type_)
+                if is_dict_annotation(type_):
+                    dest._set_value({})
+                else:
+                    dest._set_value(type_)
+
+        elif isinstance(dest, ListConfig) and dest._is_missing():
+            dest._set_value([])
+
+        for key, src_value in src.items_ex(resolve=False):
             dest_node = dest._get_node(key, validate_access=False)
             if dest_node is not None:
                 if dest_node._is_interpolation():
