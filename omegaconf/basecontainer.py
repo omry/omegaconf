@@ -9,6 +9,7 @@ import yaml
 
 from ._utils import (
     ValueKind,
+    _convert_to_omegaconf_container,
     _get_value,
     _is_interpolation,
     get_value_kind,
@@ -272,7 +273,7 @@ class BaseContainer(Container, ABC):
                         assert isinstance(dest_node, ValueNode)
                         try:
                             dest_node._set_value(src_value)
-                        except ValidationError as e:
+                        except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
             else:
                 dest[key] = src._get_node(key)
@@ -295,17 +296,12 @@ class BaseContainer(Container, ABC):
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from .omegaconf import OmegaConf
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
             if other is None:
                 raise ValueError("Cannot merge with a None config")
-            if is_primitive_container(other):
-                assert isinstance(other, (list, dict))
-                other = OmegaConf.create(other)
-            elif is_structured_config(other):
-                other = OmegaConf.structured(other)
+            other = _convert_to_omegaconf_container(other)
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
@@ -338,6 +334,9 @@ class BaseContainer(Container, ABC):
                 value._set_key(old)
         else:
             self._validate_set(key, value)
+
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot change read-only config container")
 
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)

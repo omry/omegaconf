@@ -28,6 +28,7 @@ from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
 from ._utils import (
+    _convert_to_omegaconf_container,
     _get_value,
     decode_primitive,
     format_and_raise,
@@ -300,11 +301,7 @@ class OmegaConf:
         """Merge a list of previously created configs into a single one"""
         assert len(others) > 0
         target = copy.deepcopy(others[0])
-        if is_primitive_container(target):
-            assert isinstance(target, (list, dict))
-            target = OmegaConf.create(target)
-        elif is_structured_config(target):
-            target = OmegaConf.structured(target)
+        target = _convert_to_omegaconf_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
         with flag_override(target, "readonly", False):
             target.merge_with(*others[1:])

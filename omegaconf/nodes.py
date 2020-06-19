@@ -8,6 +8,7 @@ from omegaconf._utils import _is_interpolation, get_type_of
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     MissingMandatoryValue,
+    ReadonlyConfigError,
     UnsupportedValueType,
     ValidationError,
 )
@@ -25,6 +26,9 @@ class ValueNode(Node):
 
     def _set_value(self, value: Any) -> None:
         from ._utils import ValueKind, get_value_kind
+
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot set value of read-only config node")
 
         if isinstance(value, str) and get_value_kind(value) in (
             ValueKind.INTERPOLATION,
