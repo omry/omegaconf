@@ -225,7 +225,7 @@ params = [
             create=lambda: create_readonly({"foo": "bar"}),
             op=lambda cfg: setattr(cfg, "foo", 20),
             exception_type=ReadonlyConfigError,
-            msg="Cannot assign to read-only node : 20",
+            msg="Cannot change read-only config container",
             key="foo",
             child_node=lambda cfg: cfg.foo,
         ),
@@ -325,13 +325,13 @@ params = [
         ),
         id="DictConfig[str,str]:getitem_color_key",
     ),
-    # merge
     pytest.param(
         Expected(
-            create=lambda: create_readonly({"foo": "bar"}),
-            op=lambda cfg: cfg.merge_with(OmegaConf.create()),
+            create=lambda: create_readonly({"foo1": "bar"}),
+            op=lambda cfg: cfg.merge_with({"foo2": "bar"}),
             exception_type=ReadonlyConfigError,
-            msg="Cannot merge into read-only node",
+            key="foo2",
+            msg="Cannot change read-only config container",
         ),
         id="dict,readonly:merge_with",
     ),

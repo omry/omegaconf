@@ -163,15 +163,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         else:
             target = self._get_node(key)
 
-        if (target is not None and target._get_flag("readonly")) or self._get_flag(
-            "readonly"
-        ):
-            if is_assign:
-                msg = f"Cannot assign to read-only node : {value}"
-            else:
-                msg = f"Cannot merge into read-only node : {value}"
-            raise ReadonlyConfigError(msg)
-
         if target is None:
             return
 

@@ -650,3 +650,15 @@ def type_str(t: Any) -> str:
         return f"Optional[{ret}]"
     else:
         return ret
+
+
+def _convert_to_omegaconf_container(target: Any) -> Any:
+    from omegaconf import OmegaConf
+
+    if is_primitive_container(target):
+        assert isinstance(target, (list, dict))
+        target = OmegaConf.create(target)
+    elif is_structured_config(target):
+        target = OmegaConf.structured(target)
+    assert OmegaConf.is_config(target)
+    return target

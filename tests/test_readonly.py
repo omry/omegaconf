@@ -10,37 +10,64 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 @pytest.mark.parametrize(  # type: ignore
     "src, func, expectation",
     [
-        ({}, lambda c: c.__setitem__("a", 1), raises(ReadonlyConfigError, match="a")),
-        (
-            dict(a=dict(b=dict(c=1))),
+        pytest.param(
+            {},
+            lambda c: c.__setitem__("a", 1),
+            raises(ReadonlyConfigError, match="a"),
+            id="dict_setitem",
+        ),
+        pytest.param(
+            {"a": {"b": {"c": 1}}},
             lambda c: c.__getattr__("a").__getattr__("b").__setitem__("c", 1),
             raises(ReadonlyConfigError, match="a.b.c"),
+            id="dict_nested_setitem",
         ),
-        (
+        pytest.param(
             {},
             lambda c: OmegaConf.update(c, "a.b", 10),
             raises(ReadonlyConfigError, match="a"),
+            id="dict_update",
         ),
-        (
-            dict(a=10),
+        pytest.param(
+            {"a": 10},
             lambda c: c.__setattr__("a", 1),
             raises(ReadonlyConfigError, match="a"),
+            id="dict_setattr",
         ),
-        (dict(a=10), lambda c: c.pop("a"), raises(ReadonlyConfigError, match="a")),
-        (
-            dict(a=10),
+        pytest.param(
+            {"a": 10},
+            lambda c: c.pop("a"),
+            raises(ReadonlyConfigError, match="a"),
+            id="dict_pop",
+        ),
+        pytest.param(
+            {"a": 10},
             lambda c: c.__delitem__("a"),
             raises(ReadonlyConfigError, match="a"),
+            id="dict_delitem",
         ),
         # list
-        ([], lambda c: c.__setitem__(0, 1), raises(ReadonlyConfigError, match="0")),
-        (
+        pytest.param(
+            [],
+            lambda c: c.__setitem__(0, 1),
+            raises(ReadonlyConfigError, match="0"),
+            id="list_setitem",
+        ),
+        pytest.param(
             [],
             lambda c: OmegaConf.update(c, "0.b", 10),
             raises(ReadonlyConfigError, match="[0]"),
+            id="list_update",
         ),
-        ([10], lambda c: c.pop(), raises(ReadonlyConfigError)),
-        ([0], lambda c: c.__delitem__(0), raises(ReadonlyConfigError, match="[0]")),
+        pytest.param(
+            [10], lambda c: c.pop(), raises(ReadonlyConfigError), id="list_pop"
+        ),
+        pytest.param(
+            [0],
+            lambda c: c.__delitem__(0),
+            raises(ReadonlyConfigError, match="[0]"),
+            id="list_delitem",
+        ),
     ],
 )
 def test_readonly(
@@ -154,3 +181,50 @@ def test_readonly_from_cli() -> None:
     cfg2 = OmegaConf.merge(c, cli)
     assert OmegaConf.is_readonly(c)
     assert OmegaConf.is_readonly(cfg2)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg1, cfg2",
+    [
+        pytest.param({"foo": {"bar": 10}}, {"foo": {"bar": 20}}, id="override_value"),
+        pytest.param({"foo": {"bar": 10}}, {"foo": {"yup": 20}}, id="adding_key"),
+        pytest.param({"a": 1}, {"b": 2}, id="adding_key"),
+        pytest.param({"a": 1}, OmegaConf.create({"b": 2}), id="adding_key"),
+    ],
+)
+def test_merge_with_readonly(cfg1: Dict[str, Any], cfg2: Dict[str, Any]) -> None:
+    c = OmegaConf.create(cfg1)
+    OmegaConf.set_readonly(c, True)
+    with raises(ReadonlyConfigError):
+        c.merge_with(cfg2)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "readonly_key, cfg1, cfg2, expected",
+    [
+        pytest.param(
+            "",
+            {"foo": {"bar": 10}},
+            {"foo": {}},
+            {"foo": {"bar": 10}},
+            id="merge_empty_dict",
+        ),
+        pytest.param(
+            "foo",
+            {"foo": {"bar": 10}},
+            {"xyz": 10},
+            {"foo": {"bar": 10}, "xyz": 10},
+            id="merge_different_node",
+        ),
+    ],
+)
+def test_merge_with_readonly_nop(
+    readonly_key: str,
+    cfg1: Dict[str, Any],
+    cfg2: Dict[str, Any],
+    expected: Dict[str, Any],
+) -> None:
+    c = OmegaConf.create(cfg1)
+    OmegaConf.set_readonly(OmegaConf.select(c, readonly_key), True)
+    c.merge_with(cfg2)
+    assert c == OmegaConf.create(expected)
