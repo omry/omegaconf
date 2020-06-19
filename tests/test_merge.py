@@ -1,5 +1,5 @@
 from typing import Any, Tuple
-from dataclasses import dataclass
+
 import pytest
 
 from omegaconf import (
@@ -14,6 +14,7 @@ from omegaconf import (
 from omegaconf._utils import is_structured_config
 
 from . import (
+    B,
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
@@ -23,16 +24,6 @@ from . import (
     User,
     Users,
 )
-
-
-@dataclass
-class A:
-    a: int = 10
-
-
-@dataclass
-class B:
-    x: A = MISSING
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -51,14 +42,26 @@ class B:
         (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": nodes.IntegerNode(10)}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": 1}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": nodes.IntegerNode(1)}),
-        pytest.param(({"a": "???"}, {"a": {}}), {"a": {}}, id="merge_into_missing"),
         pytest.param(
-            ({"a": "???"}, {"a": {"b": 10}}), {"a": {"b": 10}}, id="merge_into_missing"
+            ({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"
+        ),
+        pytest.param(
+            ({"a": "???"}, {"a": {"b": 10}}),
+            {"a": {"b": 10}},
+            id="dict_merge_into_missing",
         ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
         (([1, 2, {"a": 10}], [4, 5, {"b": 20}]), [4, 5, {"b": 20}]),
+        pytest.param(
+            ({"a": "???"}, {"a": []}), {"a": []}, id="list_merge_into_missing"
+        ),
+        pytest.param(
+            ({"a": "???"}, {"a": [1, 2, 3]}),
+            {"a": [1, 2, 3]},
+            id="list_merge_into_missing",
+        ),
         # Interpolations
         # value interpolation
         pytest.param(
@@ -215,22 +218,6 @@ def test_merge(inputs: Any, expected: Any) -> None:
     else:
         with expected:
             OmegaConf.merge(*configs)
-
-
-"""
-from omegaconf import OmegaConf, MISSING
-from dataclasses import dataclass
-
-@dataclass
-class A:
-    a : int = 10
-
-@dataclass
-class B:
-    x : A = MISSING
-
-OmegaConf.merge(B, {"x": {}})
-"""
 
 
 def test_merge_error_retains_type() -> None:

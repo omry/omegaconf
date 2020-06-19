@@ -12,14 +12,14 @@ from ._utils import (
     _convert_to_omegaconf_container,
     _get_value,
     _is_interpolation,
+    _resolve_optional,
+    get_ref_type,
     get_value_kind,
     get_yaml_loader,
+    is_dict_annotation,
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
-    get_ref_type,
-    is_dict_annotation,
-    _resolve_optional,
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -232,10 +232,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import OmegaConf
-
         from .dictconfig import DictConfig
-        from .listconfig import ListConfig
         from .nodes import ValueNode
 
         assert isinstance(dest, DictConfig)
@@ -252,9 +249,6 @@ class BaseContainer(Container, ABC):
                     dest._set_value({})
                 else:
                     dest._set_value(type_)
-
-        elif isinstance(dest, ListConfig) and dest._is_missing():
-            dest._set_value([])
 
         for key, src_value in src.items_ex(resolve=False):
             dest_node = dest._get_node(key, validate_access=False)

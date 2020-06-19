@@ -1,0 +1,1 @@
+Fix merging into a config with a read only node if merge is not mutating that node
