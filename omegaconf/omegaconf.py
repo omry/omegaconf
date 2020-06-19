@@ -37,7 +37,6 @@ from ._utils import (
     get_type_of,
     is_dict_annotation,
     is_list_annotation,
-    is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
