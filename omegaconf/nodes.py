@@ -18,8 +18,11 @@ class ValueNode(Node):
     _val: Any
 
     def __init__(self, parent: Optional[Container], value: Any, metadata: Metadata):
+        from omegaconf import read_write
+
         super().__init__(parent=parent, metadata=metadata)
-        self._set_value(value)
+        with read_write(self):
+            self._set_value(value)
 
     def _value(self) -> Any:
         return self._val
