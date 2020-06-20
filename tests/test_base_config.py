@@ -181,6 +181,15 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     assert container == expected_with_resolve
 
 
+def test_string_interpolation_with_readonly_parent() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": {"c": "hello_${a}"}})
+    OmegaConf.set_readonly(cfg, True)
+    assert OmegaConf.to_container(cfg, resolve=True) == {
+        "a": 10,
+        "b": {"c": "hello_10"},
+    }
+
+
 @pytest.mark.parametrize(  # type: ignore
     "src,expected",
     [
