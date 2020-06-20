@@ -12,8 +12,11 @@ from ._utils import (
     _convert_to_omegaconf_container,
     _get_value,
     _is_interpolation,
+    _resolve_optional,
+    get_ref_type,
     get_value_kind,
     get_yaml_loader,
+    is_dict_annotation,
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
@@ -229,8 +232,6 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import OmegaConf
-
         from .dictconfig import DictConfig
         from .nodes import ValueNode
 
@@ -239,12 +240,17 @@ class BaseContainer(Container, ABC):
         src_type = src._metadata.object_type
 
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
-        for key, src_value in src.items_ex(resolve=False):
-            if OmegaConf.is_missing(dest, key):
-                if isinstance(src_value, DictConfig):
-                    if OmegaConf.is_missing(dest, key):
-                        dest[key] = src_value
 
+        if isinstance(dest, DictConfig) and dest._is_missing():
+            type_ = get_ref_type(dest)
+            if type_ is not None:
+                _is_optional, type_ = _resolve_optional(type_)
+                if is_dict_annotation(type_):
+                    dest._set_value({})
+                else:
+                    dest._set_value(type_)
+
+        for key, src_value in src.items_ex(resolve=False):
             dest_node = dest._get_node(key, validate_access=False)
             if dest_node is not None:
                 if dest_node._is_interpolation():

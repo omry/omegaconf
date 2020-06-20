@@ -14,6 +14,7 @@ from omegaconf import (
 from omegaconf._utils import is_structured_config
 
 from . import (
+    B,
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
@@ -28,7 +29,7 @@ from . import (
 @pytest.mark.parametrize(  # type: ignore
     "inputs, expected",
     [
-        # # dictionaries
+        # dictionaries
         ([{}, {"a": 1}], {"a": 1}),
         ([{"a": None}, {"b": None}], {"a": None, "b": None}),
         ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
@@ -41,10 +42,26 @@ from . import (
         (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": nodes.IntegerNode(10)}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": 1}),
         (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": nodes.IntegerNode(1)}),
+        pytest.param(
+            ({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"
+        ),
+        pytest.param(
+            ({"a": "???"}, {"a": {"b": 10}}),
+            {"a": {"b": 10}},
+            id="dict_merge_into_missing",
+        ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
         (([1, 2, {"a": 10}], [4, 5, {"b": 20}]), [4, 5, {"b": 20}]),
+        pytest.param(
+            ({"a": "???"}, {"a": []}), {"a": []}, id="list_merge_into_missing"
+        ),
+        pytest.param(
+            ({"a": "???"}, {"a": [1, 2, 3]}),
+            {"a": [1, 2, 3]},
+            id="list_merge_into_missing",
+        ),
         # Interpolations
         # value interpolation
         pytest.param(
@@ -151,7 +168,7 @@ from . import (
             {"user": Group},
             id="merge_into_missing_node",
         ),
-        # Mising DictConfig
+        # missing DictConfig
         pytest.param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
             {"dict": {"foo": "bar"}},
@@ -174,6 +191,14 @@ from . import (
             [MissingList, {"list": ["a", "b", "c"]}],
             {"list": ["a", "b", "c"]},
             id="merge_into_missing_List[str]",
+        ),
+        # merging compatible dict into MISSING structured config expands it
+        # to ensure the resulting node follows the protocol set by the underlying type
+        pytest.param(
+            [B, {"x": {}}], {"x": {"a": 10}}, id="structured_merge_into_missing",
+        ),
+        pytest.param(
+            [B, {"x": {"a": 20}}], {"x": {"a": 20}}, id="structured_merge_into_missing",
         ),
     ],
 )

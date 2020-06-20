@@ -104,3 +104,13 @@ class MissingDict:
 class DictEnum:
     color_key: Dict[Color, str] = field(default_factory=lambda: {})
     color_val: Dict[str, Color] = field(default_factory=lambda: {})
+
+
+@dataclass
+class A:
+    a: int = 10
+
+
+@dataclass
+class B:
+    x: A = MISSING
