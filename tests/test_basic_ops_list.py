@@ -476,12 +476,16 @@ def test_set_with_invalid_key() -> None:
         (ListConfig(content=None), 0, TypeError),
         (ListConfig(content="???"), 0, MissingMandatoryValue),
         (OmegaConf.create([1, 2, 3]), slice(None, None, None), [1, 2, 3]),
+        (OmegaConf.create([1, 2, 3]), slice(1, None, None), [2, 3]),
+        (OmegaConf.create([1, 2, 3]), slice(-1, None, None), [3]),
         (OmegaConf.create([1, 2, 3]), slice(None, 1, None), [1]),
         (OmegaConf.create([1, 2, 3]), slice(None, -1, None), [1, 2]),
         (OmegaConf.create([1, 2, 3]), slice(None, None, 1), [1, 2, 3]),
         (OmegaConf.create([1, 2, 3]), slice(None, None, -1), [3, 2, 1]),
         (OmegaConf.create([1, 2, 3]), slice(1, None, -2), [2]),
         (OmegaConf.create([1, 2, 3]), slice(None, 1, -2), [3]),
+        (OmegaConf.create([1, 2, 3]), slice(1, 3, -1), []),
+        (OmegaConf.create([1, 2, 3]), slice(3, 1, -1), [3]),
     ],
 )
 def test_getitem(lst: Any, idx: Any, expected: Any) -> None:

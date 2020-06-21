@@ -167,8 +167,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             stop = self.__len__() + index.stop
         if index.step and index.step < 0:
             step = abs(step)
-            if start and stop and start > stop:
-                start, stop = stop + 1, start + 1
+            if start and stop:
+                if start > stop:
+                    start, stop = stop + 1, start + 1
+                else:
+                    start = stop = 0
             elif not start and stop:
                 start = list(range(self.__len__() - 1, stop, -step))[0]
                 stop = None
