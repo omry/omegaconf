@@ -167,6 +167,16 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             stop = self.__len__() + index.stop
         if index.step and index.step < 0:
             step = abs(step)
+            if start and stop and start > stop:
+                start, stop = stop + 1, start + 1
+            elif not start and stop:
+                start = list(range(self.__len__() - 1, stop, -step))[0]
+                stop = None
+            elif start and not stop:
+                stop = start + 1
+                start = (stop - 1) % step
+            else:
+                start = (self.__len__() - 1) % step
         return start, stop, step
 
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:

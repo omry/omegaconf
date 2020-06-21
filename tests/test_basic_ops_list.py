@@ -480,8 +480,8 @@ def test_set_with_invalid_key() -> None:
         (OmegaConf.create([1, 2, 3]), slice(None, -1, None), [1, 2]),
         (OmegaConf.create([1, 2, 3]), slice(None, None, 1), [1, 2, 3]),
         (OmegaConf.create([1, 2, 3]), slice(None, None, -1), [3, 2, 1]),
-        (OmegaConf.create([1, 2, 3]), slice(1, None, None), [1, 2]),
-        (OmegaConf.create([1, 2, 3]), slice(-1, None, None), [3]),
+        (OmegaConf.create([1, 2, 3]), slice(1, None, -2), [2]),
+        (OmegaConf.create([1, 2, 3]), slice(None, 1, -2), [3]),
     ],
 )
 def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
@@ -489,7 +489,7 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
         with pytest.raises(expected):
             lst.__getitem__(idx)
     else:
-        lst.__getitem__(idx) == expected
+        assert lst.__getitem__(idx) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
