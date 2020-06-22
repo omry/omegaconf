@@ -482,7 +482,30 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
         with pytest.raises(expected):
             lst.__getitem__(idx)
     else:
-        lst.__getitem__(idx) == expected
+        assert lst.__getitem__(idx) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "sli",
+    [
+        (slice(None, None, None)),
+        (slice(1, None, None)),
+        (slice(-1, None, None)),
+        (slice(None, 1, None)),
+        (slice(None, -1, None)),
+        (slice(None, None, 1)),
+        (slice(None, None, -1)),
+        (slice(1, None, -2)),
+        (slice(None, 1, -2)),
+        (slice(1, 3, -1)),
+        (slice(3, 1, -1)),
+    ],
+)
+def test_getitem_slice(sli: slice) -> None:
+    lst = [1, 2, 3]
+    olst = OmegaConf.create([1, 2, 3])
+    expected = lst[sli.start : sli.stop : sli.step]
+    assert olst.__getitem__(sli) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
