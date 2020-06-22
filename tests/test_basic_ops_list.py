@@ -475,17 +475,6 @@ def test_set_with_invalid_key() -> None:
         (OmegaConf.create([1, 2]), 0, 1),
         (ListConfig(content=None), 0, TypeError),
         (ListConfig(content="???"), 0, MissingMandatoryValue),
-        (OmegaConf.create([1, 2, 3]), slice(None, None, None), [1, 2, 3]),
-        (OmegaConf.create([1, 2, 3]), slice(1, None, None), [2, 3]),
-        (OmegaConf.create([1, 2, 3]), slice(-1, None, None), [3]),
-        (OmegaConf.create([1, 2, 3]), slice(None, 1, None), [1]),
-        (OmegaConf.create([1, 2, 3]), slice(None, -1, None), [1, 2]),
-        (OmegaConf.create([1, 2, 3]), slice(None, None, 1), [1, 2, 3]),
-        (OmegaConf.create([1, 2, 3]), slice(None, None, -1), [3, 2, 1]),
-        (OmegaConf.create([1, 2, 3]), slice(1, None, -2), [2]),
-        (OmegaConf.create([1, 2, 3]), slice(None, 1, -2), [3]),
-        (OmegaConf.create([1, 2, 3]), slice(1, 3, -1), []),
-        (OmegaConf.create([1, 2, 3]), slice(3, 1, -1), [3]),
     ],
 )
 def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
@@ -494,6 +483,29 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
             lst.__getitem__(idx)
     else:
         assert lst.__getitem__(idx) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "sli",
+    [
+        (slice(None, None, None)),
+        (slice(1, None, None)),
+        (slice(-1, None, None)),
+        (slice(None, 1, None)),
+        (slice(None, -1, None)),
+        (slice(None, None, 1)),
+        (slice(None, None, -1)),
+        (slice(1, None, -2)),
+        (slice(None, 1, -2)),
+        (slice(1, 3, -1)),
+        (slice(3, 1, -1)),
+    ],
+)
+def test_getitem_slice(sli: slice) -> None:
+    lst = [1, 2, 3]
+    olst = OmegaConf.create([1, 2, 3])
+    expected = lst[sli.start : sli.stop : sli.step]
+    assert olst.__getitem__(sli) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
