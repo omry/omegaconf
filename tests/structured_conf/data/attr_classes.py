@@ -257,6 +257,12 @@ class FrozenClass:
 
 
 @attr.s(auto_attribs=True)
+class ContainsFrozen:
+    x: int = 10
+    frozen: FrozenClass = FrozenClass()
+
+
+@attr.s(auto_attribs=True)
 class WithTypedList:
     list: List[int] = [1, 2, 3]
 

@@ -255,6 +255,12 @@ class FrozenClass:
 
 
 @dataclass
+class ContainsFrozen:
+    x: int = 10
+    frozen: FrozenClass = FrozenClass()
+
+
+@dataclass
 class WithTypedList:
     list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
