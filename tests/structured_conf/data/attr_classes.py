@@ -222,6 +222,20 @@ class StringOptional:
 
 
 @attr.s(auto_attribs=True)
+class ListOptional:
+    with_default: Optional[List[int]] = [1, 2, 3]
+    as_none: Optional[List[int]] = None
+    not_optional: List[int] = [1, 2, 3]
+
+
+@attr.s(auto_attribs=True)
+class TupleOptional:
+    with_default: Optional[Tuple[int, int, int]] = (1, 2, 3)
+    as_none: Optional[Tuple[int, int, int]] = None
+    not_optional: Tuple[int, int, int] = (1, 2, 3)
+
+
+@attr.s(auto_attribs=True)
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
@@ -240,12 +254,6 @@ class FrozenClass:
     user: User = User(name="Bart", age=10)
     x: int = 10
     list: List[int] = [1, 2, 3]
-
-
-@attr.s(auto_attribs=True)
-class ContainsFrozen:
-    x: int = 10
-    frozen: FrozenClass = FrozenClass()
 
 
 @attr.s(auto_attribs=True)

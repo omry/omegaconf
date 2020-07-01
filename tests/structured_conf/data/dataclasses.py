@@ -218,6 +218,22 @@ class StringOptional:
 
 
 @dataclass
+class ListOptional:
+    with_default: Optional[List[int]] = field(default_factory=lambda: [1, 2, 3])
+    as_none: Optional[List[int]] = None
+    not_optional: List[int] = field(default_factory=lambda: [1, 2, 3])
+
+
+@dataclass
+class TupleOptional:
+    with_default: Optional[Tuple[int, int, int]] = field(
+        default_factory=lambda: (1, 2, 3)
+    )
+    as_none: Optional[Tuple[int, int, int]] = None
+    not_optional: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
+
+
+@dataclass
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
@@ -236,12 +252,6 @@ class FrozenClass:
     user: User = User(name="Bart", age=10)
     x: int = 10
     list: List[int] = field(default_factory=lambda: [1, 2, 3])
-
-
-@dataclass
-class ContainsFrozen:
-    x: int = 10
-    frozen: FrozenClass = FrozenClass()
 
 
 @dataclass

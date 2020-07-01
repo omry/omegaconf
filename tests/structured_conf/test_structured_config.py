@@ -380,6 +380,8 @@ class TestConfigs:
             "IntegerOptional",
             "FloatOptional",
             "StringOptional",
+            "ListOptional",
+            "TupleOptional",
             "EnumOptional",
             "StructuredOptional",
         ],
@@ -821,13 +823,4 @@ class TestDictSubclass:
                 "mandatory_missing": "???",
                 "interpolation": "${value_at_root}",
             }
-        }
-
-    def test_noop_merge_into_frozen(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.ContainsFrozen)
-        ret = OmegaConf.merge(cfg, {"x": 20, "frozen": {}})
-        assert ret == {
-            "x": 20,
-            "frozen": {"user": {"name": "Bart", "age": 10}, "x": 10, "list": [1, 2, 3]},
         }
