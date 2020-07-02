@@ -304,6 +304,15 @@ class ListExamples:
 
 
 @attr.s(auto_attribs=True)
+class TupleExamples:
+    any: Tuple[Any, Any] = (1, "foo")
+    ints: Tuple[int, int] = (1, 2)
+    strings: Tuple[str, str] = ("foo", "bar")
+    booleans: Tuple[bool, bool] = (True, False)
+    colors: Tuple[Color, Color] = (Color.RED, Color.GREEN)
+
+
+@attr.s(auto_attribs=True)
 class DictExamples:
     any: Dict[str, Any] = {"a": 1, "b": "foo"}
     ints: Dict[str, int] = {"a": 10, "b": 20}

@@ -308,6 +308,17 @@ class ListExamples:
 
 
 @dataclass
+class TupleExamples:
+    any: Tuple[Any, Any] = field(default_factory=lambda: (1, "foo"))
+    ints: Tuple[int, int] = field(default_factory=lambda: (1, 2))
+    strings: Tuple[str, str] = field(default_factory=lambda: ("foo", "bar"))
+    booleans: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
+    colors: Tuple[Color, Color] = field(
+        default_factory=lambda: (Color.RED, Color.GREEN)
+    )
+
+
+@dataclass
 class DictExamples:
     any: Dict[str, Any] = field(default_factory=lambda: {"a": 1, "b": "foo"})
     ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20})
