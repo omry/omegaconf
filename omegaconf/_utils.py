@@ -518,8 +518,7 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
 
     ref_type = none_as_any(ref_type)
     if is_optional and ref_type is not Any:
-        ref_type = Optional[ref_type]
-
+        ref_type = Optional[ref_type]  # type: ignore
     return ref_type
 
 
