@@ -505,46 +505,42 @@ class TestConfigs:
             conf[name][2] = False
             assert conf[name] == [1, "foo", False, Color.RED, 3.1415]
 
-        def test_ints() -> None:
-            with pytest.raises(ValidationError):
-                conf.ints[0] = "foo"
-            conf.ints.append(10)
-            assert conf.ints == [1, 2, 10]
-
-        def test_strings() -> None:
-            conf.strings.append(Color.BLUE)
-            assert conf.strings == ["foo", "bar", "Color.BLUE"]
-
-        def test_booleans() -> None:
-            with pytest.raises(ValidationError):
-                conf.booleans[0] = "foo"
-            conf.booleans.append(True)
-            conf.booleans.append("off")
-            conf.booleans.append(1)
-            assert conf.booleans == [True, False, True, False, True]
-
-        def test_colors() -> None:
-            with pytest.raises(ValidationError):
-                conf.colors[0] = "foo"
-            conf.colors.append(Color.BLUE)
-            conf.colors.append("RED")
-            conf.colors.append("Color.GREEN")
-            conf.colors.append(3)
-            assert conf.colors == [
-                Color.RED,
-                Color.GREEN,
-                Color.BLUE,
-                Color.RED,
-                Color.GREEN,
-                Color.BLUE,
-            ]
-
         # any and untyped
         test_any("any")
-        test_ints()
-        test_strings()
-        test_booleans()
-        test_colors()
+
+        # test ints
+        with pytest.raises(ValidationError):
+            conf.ints[0] = "foo"
+        conf.ints.append(10)
+        assert conf.ints == [1, 2, 10]
+
+        # test strings
+        conf.strings.append(Color.BLUE)
+        assert conf.strings == ["foo", "bar", "Color.BLUE"]
+
+        # test booleans
+        with pytest.raises(ValidationError):
+            conf.booleans[0] = "foo"
+        conf.booleans.append(True)
+        conf.booleans.append("off")
+        conf.booleans.append(1)
+        assert conf.booleans == [True, False, True, False, True]
+
+        # test colors
+        with pytest.raises(ValidationError):
+            conf.colors[0] = "foo"
+        conf.colors.append(Color.BLUE)
+        conf.colors.append("RED")
+        conf.colors.append("Color.GREEN")
+        conf.colors.append(3)
+        assert conf.colors == [
+            Color.RED,
+            Color.GREEN,
+            Color.BLUE,
+            Color.RED,
+            Color.GREEN,
+            Color.BLUE,
+        ]
 
     def test_dict_examples(self, class_type: str) -> None:
         module: Any = import_module(class_type)
