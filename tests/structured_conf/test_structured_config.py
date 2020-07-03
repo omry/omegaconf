@@ -491,29 +491,31 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
-    def test_list_examples(self, class_type: str) -> None:
+    @pytest.mark.parametrize(  # type: ignore
+        "example", ["ListExamples", "TupleExamples"],
+    )
+    def test_list_examples(self, class_type: str, example: str) -> None:
         module: Any = import_module(class_type)
-        conf0 = OmegaConf.structured(module.ListExamples)
-        conf1 = OmegaConf.structured(module.TupleExamples)
-        confs = [conf0, conf1]
+        input_ = getattr(module, example)
+        conf = OmegaConf.structured(input_)
 
-        def test_any(name: str, conf: DictConfig) -> None:
+        def test_any(name: str) -> None:
             conf[name].append(True)
             conf[name].extend([Color.RED, 3.1415])
             conf[name][2] = False
             assert conf[name] == [1, "foo", False, Color.RED, 3.1415]
 
-        def test_ints(conf: DictConfig) -> None:
+        def test_ints() -> None:
             with pytest.raises(ValidationError):
                 conf.ints[0] = "foo"
             conf.ints.append(10)
             assert conf.ints == [1, 2, 10]
 
-        def test_strings(conf: DictConfig) -> None:
+        def test_strings() -> None:
             conf.strings.append(Color.BLUE)
             assert conf.strings == ["foo", "bar", "Color.BLUE"]
 
-        def test_booleans(conf: DictConfig) -> None:
+        def test_booleans() -> None:
             with pytest.raises(ValidationError):
                 conf.booleans[0] = "foo"
             conf.booleans.append(True)
@@ -521,7 +523,7 @@ class TestConfigs:
             conf.booleans.append(1)
             assert conf.booleans == [True, False, True, False, True]
 
-        def test_colors(conf: DictConfig) -> None:
+        def test_colors() -> None:
             with pytest.raises(ValidationError):
                 conf.colors[0] = "foo"
             conf.colors.append(Color.BLUE)
@@ -537,13 +539,12 @@ class TestConfigs:
                 Color.BLUE,
             ]
 
-        for conf in confs:
-            # any and untyped
-            test_any("any", conf)
-            test_ints(conf)
-            test_strings(conf)
-            test_booleans(conf)
-            test_colors(conf)
+        # any and untyped
+        test_any("any")
+        test_ints()
+        test_strings()
+        test_booleans()
+        test_colors()
 
     def test_dict_examples(self, class_type: str) -> None:
         module: Any = import_module(class_type)
