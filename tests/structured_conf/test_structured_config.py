@@ -493,95 +493,57 @@ class TestConfigs:
 
     def test_list_examples(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        conf = OmegaConf.structured(module.ListExamples)
+        conf0 = OmegaConf.structured(module.ListExamples)
+        conf1 = OmegaConf.structured(module.TupleExamples)
+        confs = [conf0, conf1]
 
-        def test_any(name: str) -> None:
+        def test_any(name: str, conf: DictConfig) -> None:
             conf[name].append(True)
             conf[name].extend([Color.RED, 3.1415])
             conf[name][2] = False
             assert conf[name] == [1, "foo", False, Color.RED, 3.1415]
 
-        # any and untyped
-        test_any("any")
+        def test_ints(conf: DictConfig) -> None:
+            with pytest.raises(ValidationError):
+                conf.ints[0] = "foo"
+            conf.ints.append(10)
+            assert conf.ints == [1, 2, 10]
 
-        # test ints
-        with pytest.raises(ValidationError):
-            conf.ints[0] = "foo"
-        conf.ints.append(10)
-        assert conf.ints == [1, 2, 10]
+        def test_strings(conf: DictConfig) -> None:
+            conf.strings.append(Color.BLUE)
+            assert conf.strings == ["foo", "bar", "Color.BLUE"]
 
-        # test strings
-        conf.strings.append(Color.BLUE)
-        assert conf.strings == ["foo", "bar", "Color.BLUE"]
-        # tests booleans
-        with pytest.raises(ValidationError):
-            conf.booleans[0] = "foo"
-        conf.booleans.append(True)
-        conf.booleans.append("off")
-        conf.booleans.append(1)
-        assert conf.booleans == [True, False, True, False, True]
+        def test_booleans(conf: DictConfig) -> None:
+            with pytest.raises(ValidationError):
+                conf.booleans[0] = "foo"
+            conf.booleans.append(True)
+            conf.booleans.append("off")
+            conf.booleans.append(1)
+            assert conf.booleans == [True, False, True, False, True]
 
-        # test colors
-        with pytest.raises(ValidationError):
-            conf.colors[0] = "foo"
-        conf.colors.append(Color.BLUE)
-        conf.colors.append("RED")
-        conf.colors.append("Color.GREEN")
-        conf.colors.append(3)
-        assert conf.colors == [
-            Color.RED,
-            Color.GREEN,
-            Color.BLUE,
-            Color.RED,
-            Color.GREEN,
-            Color.BLUE,
-        ]
+        def test_colors(conf: DictConfig) -> None:
+            with pytest.raises(ValidationError):
+                conf.colors[0] = "foo"
+            conf.colors.append(Color.BLUE)
+            conf.colors.append("RED")
+            conf.colors.append("Color.GREEN")
+            conf.colors.append(3)
+            assert conf.colors == [
+                Color.RED,
+                Color.GREEN,
+                Color.BLUE,
+                Color.RED,
+                Color.GREEN,
+                Color.BLUE,
+            ]
 
-    def test_tuple_examples(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        conf = OmegaConf.structured(module.TupleExamples)
-
-        def test_any(name: str) -> None:
-            conf[name].append(True)
-            conf[name].extend([Color.RED, 3.1415])
-            conf[name][2] = False
-            assert conf[name] == [1, "foo", False, Color.RED, 3.1415]
-
-        # any and untyped
-        test_any("any")
-
-        # test ints
-        with pytest.raises(ValidationError):
-            conf.ints[0] = "foo"
-        conf.ints.append(10)
-        assert conf.ints == [1, 2, 10]
-
-        # test strings
-        conf.strings.append(Color.BLUE)
-        assert conf.strings == ["foo", "bar", "Color.BLUE"]
-        # tests booleans
-        with pytest.raises(ValidationError):
-            conf.booleans[0] = "foo"
-        conf.booleans.append(True)
-        conf.booleans.append("off")
-        conf.booleans.append(1)
-        assert conf.booleans == [True, False, True, False, True]
-
-        # test colors
-        with pytest.raises(ValidationError):
-            conf.colors[0] = "foo"
-        conf.colors.append(Color.BLUE)
-        conf.colors.append("RED")
-        conf.colors.append("Color.GREEN")
-        conf.colors.append(3)
-        assert conf.colors == [
-            Color.RED,
-            Color.GREEN,
-            Color.BLUE,
-            Color.RED,
-            Color.GREEN,
-            Color.BLUE,
-        ]
+        for conf in confs:
+            # any and untyped
+            test_any("any", conf)
+            test_ints(conf)
+            test_strings(conf)
+            test_booleans(conf)
+            test_colors(conf)
 
     def test_dict_examples(self, class_type: str) -> None:
         module: Any = import_module(class_type)
