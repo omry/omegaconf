@@ -61,6 +61,19 @@ From a list
         a: 10
     <BLANKLINE>
 
+From a tuple
+^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> conf = OmegaConf.create((1, {"a":10, "b": {"a":10}}))
+    >>> print(conf.pretty())
+    - 1
+    - a: 10
+      b:
+        a: 10
+    <BLANKLINE>
+
 From a yaml file
 ^^^^^^^^^^^^^^^^
 

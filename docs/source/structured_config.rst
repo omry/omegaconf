@@ -208,11 +208,11 @@ Python container types are fully supported in Structured configs.
 
 Lists
 ^^^^^
-Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and Structured configs)
+Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and Structured configs). Lists can be created from Lists and Tuples.
 
 .. doctest::
 
-    >>> from typing import List
+    >>> from typing import List, Tuple
     >>> @dataclass
     ... class User:
     ...     name: str = MISSING
@@ -222,6 +222,7 @@ Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and 
     ...     # Typed list can hold Any, int, float, bool, str and Enums as well
     ...     # as arbitrary Structured configs
     ...     ints: List[int] = field(default_factory=lambda: [10, 20, 30])
+    ...     bools: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
     ...     users: List[User] = field(default_factory=lambda: [User(name="omry")])
 
 OmegaConf verifies at runtime that your Lists contains only values of the correct type.
@@ -235,6 +236,7 @@ OmegaConf verifies at runtime that your Lists contains only values of the correc
     >>> # Okay, "20" can be converted to an int
     >>> conf.ints.append("20")
 
+    >>> conf.bools.append(True)
     >>> conf.users.append(User(name="Joe"))
     >>> # Not okay, 10 cannot be converted to a User
     >>> with raises(ValidationError):
