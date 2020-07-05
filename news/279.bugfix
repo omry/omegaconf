@@ -1,1 +1,1 @@
-Tuples weren't checked when creating a List container.
+Optional[Tuple] types are now supported within DictConfigs.
