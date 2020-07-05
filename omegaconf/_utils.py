@@ -372,6 +372,14 @@ def is_list_annotation(type_: Any) -> bool:
         return origin is list  # pragma: no cover
 
 
+def is_tuple_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    if sys.version_info < (3, 7, 0):
+        return origin is Tuple or type_ is Tuple  # pragma: no cover
+    else:
+        return origin is tuple  # pragma: no cover
+
+
 def is_dict_subclass(type_: Any) -> bool:
     return type_ is not None and isinstance(type_, type) and issubclass(type_, Dict)
 
@@ -511,7 +519,6 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     ref_type = none_as_any(ref_type)
     if is_optional and ref_type is not Any:
         ref_type = Optional[ref_type]  # type: ignore
-
     return ref_type
 
 

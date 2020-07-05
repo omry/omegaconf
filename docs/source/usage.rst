@@ -61,6 +61,8 @@ From a list
         a: 10
     <BLANKLINE>
 
+Tuples are supported as an valid option too.
+
 From a yaml file
 ^^^^^^^^^^^^^^^^
 

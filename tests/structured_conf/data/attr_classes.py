@@ -222,6 +222,20 @@ class StringOptional:
 
 
 @attr.s(auto_attribs=True)
+class ListOptional:
+    with_default: Optional[List[int]] = [1, 2, 3]
+    as_none: Optional[List[int]] = None
+    not_optional: List[int] = [1, 2, 3]
+
+
+@attr.s(auto_attribs=True)
+class TupleOptional:
+    with_default: Optional[Tuple[int, int, int]] = (1, 2, 3)
+    as_none: Optional[Tuple[int, int, int]] = None
+    not_optional: Tuple[int, int, int] = (1, 2, 3)
+
+
+@attr.s(auto_attribs=True)
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
@@ -287,6 +301,15 @@ class ListExamples:
     strings: List[str] = ["foo", "bar"]
     booleans: List[bool] = [True, False]
     colors: List[Color] = [Color.RED, Color.GREEN]
+
+
+@attr.s(auto_attribs=True)
+class TupleExamples:
+    any: Tuple[Any, Any] = (1, "foo")
+    ints: Tuple[int, int] = (1, 2)
+    strings: Tuple[str, str] = ("foo", "bar")
+    booleans: Tuple[bool, bool] = (True, False)
+    colors: Tuple[Color, Color] = (Color.RED, Color.GREEN)
 
 
 @attr.s(auto_attribs=True)

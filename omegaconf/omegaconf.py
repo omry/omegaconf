@@ -40,6 +40,7 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
+    is_tuple_annotation,
     isint,
     type_str,
 )
@@ -599,7 +600,11 @@ def _node_wrap(
 ) -> Node:
     node: Node
     is_dict = type(value) is dict or is_dict_annotation(type_)
-    is_list = type(value) in (list, tuple) or is_list_annotation(type_)
+    is_list = (
+        type(value) in (list, tuple)
+        or is_list_annotation(type_)
+        or is_tuple_annotation(type_)
+    )
     if is_dict:
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(

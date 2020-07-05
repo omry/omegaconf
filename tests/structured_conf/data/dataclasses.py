@@ -218,6 +218,22 @@ class StringOptional:
 
 
 @dataclass
+class ListOptional:
+    with_default: Optional[List[int]] = field(default_factory=lambda: [1, 2, 3])
+    as_none: Optional[List[int]] = None
+    not_optional: List[int] = field(default_factory=lambda: [1, 2, 3])
+
+
+@dataclass
+class TupleOptional:
+    with_default: Optional[Tuple[int, int, int]] = field(
+        default_factory=lambda: (1, 2, 3)
+    )
+    as_none: Optional[Tuple[int, int, int]] = None
+    not_optional: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
+
+
+@dataclass
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
@@ -289,6 +305,17 @@ class ListExamples:
     strings: List[str] = field(default_factory=lambda: ["foo", "bar"])
     booleans: List[bool] = field(default_factory=lambda: [True, False])
     colors: List[Color] = field(default_factory=lambda: [Color.RED, Color.GREEN])
+
+
+@dataclass
+class TupleExamples:
+    any: Tuple[Any, Any] = field(default_factory=lambda: (1, "foo"))
+    ints: Tuple[int, int] = field(default_factory=lambda: (1, 2))
+    strings: Tuple[str, str] = field(default_factory=lambda: ("foo", "bar"))
+    booleans: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
+    colors: Tuple[Color, Color] = field(
+        default_factory=lambda: (Color.RED, Color.GREEN)
+    )
 
 
 @dataclass

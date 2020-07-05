@@ -1,0 +1,1 @@
+Optional[Tuple] types are now supported as type annotation in Structured Configs.

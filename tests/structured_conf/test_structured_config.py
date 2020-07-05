@@ -380,6 +380,8 @@ class TestConfigs:
             "IntegerOptional",
             "FloatOptional",
             "StringOptional",
+            "ListOptional",
+            "TupleOptional",
             "EnumOptional",
             "StructuredOptional",
         ],
@@ -489,9 +491,13 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
-    def test_list_examples(self, class_type: str) -> None:
+    @pytest.mark.parametrize(  # type: ignore
+        "example", ["ListExamples", "TupleExamples"],
+    )
+    def test_list_examples(self, class_type: str, example: str) -> None:
         module: Any = import_module(class_type)
-        conf = OmegaConf.structured(module.ListExamples)
+        input_ = getattr(module, example)
+        conf = OmegaConf.structured(input_)
 
         def test_any(name: str) -> None:
             conf[name].append(True)
@@ -511,7 +517,8 @@ class TestConfigs:
         # test strings
         conf.strings.append(Color.BLUE)
         assert conf.strings == ["foo", "bar", "Color.BLUE"]
-        # tests booleans
+
+        # test booleans
         with pytest.raises(ValidationError):
             conf.booleans[0] = "foo"
         conf.booleans.append(True)
