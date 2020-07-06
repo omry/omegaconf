@@ -19,7 +19,7 @@ Install commit hooks:
 
 `pre-commit install`
 
-pre-commit will review your code whenever you commit changes with git.
+pre-commit will verify your code lints cleanly when you commit. You can use `git commit -n` to skip the pre-commit hook for a specific commit.
 
 #### Testing
 Run tests directly with `pytest`.
@@ -42,7 +42,7 @@ OmegaConf is formatted with black, to format your code automatically use `black 
 
 Imports are sorted using isort, use `isort -y` to sort all imports prior to pushing.  
 
-To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html` and then open index.html inside the build folder.
+To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html`. Once the docs are built you can open `index.html` in the build directory to view the generated docs with your browser.
 
 
 #### Building the package
