@@ -5,13 +5,13 @@
 We reccomend using conda or pyenv to create a new environment. You can skip to install python 
 if you prefer. We'll use conda as an example:
 
-`conda create -n myenv python=3.6`
+`conda create -n myenv python=3.8`
 
 Now that you created a new environment you can select it with:
 
 `conda activate myenv`
 
-Install python 3.6 (if you didn't follow the previous steps)
+Install python (if you didn't follow the previous steps)
 
 `pip install -r requirements/dev.txt -e .`
 
