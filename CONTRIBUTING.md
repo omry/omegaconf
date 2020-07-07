@@ -4,7 +4,7 @@
 
 We recomend using Conda or pyenv to create a new environment.
 
-Example with Conda: `conda create -n omegaconf38 python=3.8`
+Example with Conda: `conda create -n omegaconf38 python=3.8 -qy`
 
 Activate your new conda environment: `conda activate omegaconf38`
 
