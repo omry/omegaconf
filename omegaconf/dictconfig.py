@@ -317,7 +317,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         """
 
         try:
-            print(key)
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except AttributeError as e:
             self._format_and_raise(
