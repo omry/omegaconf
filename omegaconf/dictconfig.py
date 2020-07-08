@@ -97,7 +97,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def __copy__(self) -> "DictConfig":
         res = DictConfig(content=None)
         for k, v in self.__dict__.items():
-            res.__dict__[k] = copy.copy(v)
+            res.__dict__[k] = v
         res._re_parent()
         return res
 
@@ -317,6 +317,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         """
 
         try:
+            print(key)
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except AttributeError as e:
             self._format_and_raise(
