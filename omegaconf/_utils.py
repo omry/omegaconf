@@ -660,7 +660,7 @@ def type_str(t: Any) -> str:
         return ret
 
 
-def _convert_to_omegaconf_container(target: Any) -> Any:
+def _ensure_container(target: Any) -> Any:
     from omegaconf import OmegaConf
 
     if is_primitive_container(target):

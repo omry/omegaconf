@@ -186,6 +186,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if is_dict(value_type) and is_dict(target_type):
             return
 
+        # TODO: simplify this flow. (if assign validate assign else validate merge)
         # is assignment illegal?
         validation_error = (
             target_type is not None
@@ -391,6 +392,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             else:
                 return None
         value: Node = self.__dict__["_content"].get(key)
+        # TODO : why is validate happening after the get??
         if validate_access:
             self._validate_get(key)
 
