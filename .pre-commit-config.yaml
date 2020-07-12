@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/timothycrosley/isort
-    rev: 'c54b3dd'
+    rev: 5.0.1
     hooks:
       - id: isort
 
