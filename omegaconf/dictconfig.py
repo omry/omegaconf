@@ -143,16 +143,20 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         if OmegaConf.is_none(value):
             if key is not None:
-                node = self._get_node(key)
-                if node is not None and not node._is_optional():
+                child = self._get_node(key)
+                if child is not None and not child._is_optional():
                     self._format_and_raise(
                         key=key,
                         value=value,
-                        cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                        cause=ValidationError("child '$FULL_KEY' is not Optional"),
                     )
             else:
                 if not self._is_optional():
-                    raise ValidationError("field '$FULL_KEY' is not Optional")
+                    self._format_and_raise(
+                        key=None,
+                        value=value,
+                        cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                    )
 
         if value == "???":
             return

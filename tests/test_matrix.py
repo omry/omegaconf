@@ -106,7 +106,7 @@ class TestNodeTypesMatrix:
             data = {"node": node}
             cfg = OmegaConf.create(obj=data)
             verify(cfg, "node", none=False, opt=False, missing=False, inter=False)
-            msg = "field 'node' is not Optional"
+            msg = "child 'node' is not Optional"
             with pytest.raises(ValidationError, match=re.escape(msg)):
                 cfg.node = None
 

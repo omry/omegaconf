@@ -32,7 +32,18 @@ from . import (
     StructuredWithMissing,
     UnionError,
     User,
+    A,
 )
+
+# tests classes
+@dataclass
+class NotOptionalInt:
+    foo: int = None  # type:ignore
+
+
+@dataclass
+class NotOptionalA:
+    x: A = None  # type : ignore
 
 
 @dataclass
@@ -96,7 +107,7 @@ params = [
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", None),
             exception_type=ValidationError,
-            msg="field 'num' is not Optional",
+            msg="child 'num' is not Optional",
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
@@ -238,12 +249,12 @@ params = [
             ),
             op=lambda cfg: setattr(cfg, "foo", None),
             exception_type=ValidationError,
-            msg="field 'foo' is not Optional",
+            msg="child 'foo' is not Optional",
             key="foo",
             full_key="foo",
             child_node=lambda cfg: cfg.foo,
         ),
-        id="dict,not_optional:set_none",
+        id="dict:setattr:not_optional:set_none",
     ),
     pytest.param(
         Expected(
@@ -395,17 +406,43 @@ params = [
         ),
         id="dict:get_object_of_illegal_type",
     ),
-    # create
+    # dict:create
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NonOptionalAssignedNone),
+            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
             object_type_str=None,
             ref_type_str=None,
         ),
-        id="dict_create_none_optional_with_none",
+        id="dict:create_none_optional_with_none",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: None,
+            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
+            exception_type=ValidationError,
+            object_type=None,
+            msg="Non optional field cannot be assigned None",
+            object_type_str="NotOptionalInt",
+            ref_type_str=None,
+        ),
+        id="dict:create:not_optional_int_field_with_none",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: None,
+            op=lambda cfg: OmegaConf.structured(NotOptionalA),
+            exception_type=ValidationError,
+            object_type=None,
+            key=None,
+            full_key="x",
+            msg="field 'x' is not Optional",
+            object_type_str="NotOptionalInt",
+            ref_type_str=None,
+        ),
+        id="dict:create:not_optional_A_field_with_none",
     ),
     pytest.param(
         Expected(
@@ -575,7 +612,7 @@ params = [
         ),
         id="list:get_node_missing",
     ),
-    # create
+    # list:create
     pytest.param(
         Expected(
             create=lambda: None,
@@ -586,7 +623,7 @@ params = [
             object_type_str=None,
             ref_type_str=None,
         ),
-        id="list:create_not_optional_with_none",
+        id="list:create:not_optional_with_none",
     ),
     # append
     pytest.param(
@@ -966,11 +1003,6 @@ def create_struct(cfg: Any) -> Any:
     cfg = OmegaConf.create(cfg)
     OmegaConf.set_struct(cfg, True)
     return cfg
-
-
-@dataclass
-class NonOptionalAssignedNone:
-    foo: int = None  # type:ignore
 
 
 def create_readonly(cfg: Any) -> Any:
