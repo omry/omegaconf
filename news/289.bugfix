@@ -1,0 +1,1 @@
+OmegaConf.create() doesn't modify yaml.loader.SafeLoader
