@@ -253,9 +253,10 @@ def is_structured_config_frozen(obj: Any) -> bool:
 def get_structured_config_data(obj: Any) -> Dict[str, Any]:
     if is_dataclass(obj):
         return get_dataclass_data(obj)
-    if is_attr_class(obj):
+    elif is_attr_class(obj):
         return get_attr_data(obj)
-    raise ValueError(f"Unsupported type: {type(obj).__name__}")
+    else:
+        raise ValueError(f"Unsupported type: {type(obj).__name__}")
 
 
 class ValueKind(Enum):
