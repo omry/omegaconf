@@ -400,6 +400,12 @@ class ConcretePlugin(Plugin):
     params: FoobarParams = FoobarParams()
 
 
+@dataclass
+class PluginWithAdditionalField(Plugin):
+    name: str = "foobar2_plugin"
+    additional: int = 10
+
+
 # Does not extend Plugin, cannot be assigned or merged
 @dataclass
 class FaultyPlugin:

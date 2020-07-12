@@ -176,6 +176,19 @@ class TestStructured:
             assert _utils.get_ref_type(cfg, "plugin2") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
 
+        def test_plugin_merge(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            plugin = OmegaConf.structured(module.Plugin)
+            concrete = OmegaConf.structured(module.ConcretePlugin)
+            ret = OmegaConf.merge(plugin, concrete)
+            assert ret == concrete
+            assert OmegaConf.get_type(ret) == module.ConcretePlugin
+
+            more_fields = OmegaConf.structured(module.PluginWithAdditionalField)
+            ret = OmegaConf.merge(plugin, more_fields)
+            assert ret == more_fields
+            assert OmegaConf.get_type(ret) == module.PluginWithAdditionalField
+
         def test_native_missing(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             with pytest.raises(

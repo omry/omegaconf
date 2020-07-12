@@ -388,6 +388,12 @@ class ConcretePlugin(Plugin):
     params: FoobarParams = FoobarParams()
 
 
+@attr.s(auto_attribs=True)
+class PluginWithAdditionalField(Plugin):
+    name: str = "foobar2_plugin"
+    additional: int = 10
+
+
 # Does not extend Plugin, cannot be assigned or merged
 @attr.s(auto_attribs=True)
 class FaultyPlugin:

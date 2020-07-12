@@ -9,7 +9,7 @@ import yaml
 
 from ._utils import (
     ValueKind,
-    _convert_to_omegaconf_container,
+    _ensure_container,
     _get_value,
     _is_interpolation,
     _resolve_optional,
@@ -282,7 +282,14 @@ class BaseContainer(Container, ABC):
                         except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
             else:
-                dest[key] = src._get_node(key)
+                from omegaconf import open_dict
+
+                if is_structured_config(src_type):
+                    # verified to be compatible above in _validate_set_merge_impl
+                    with open_dict(dest):
+                        dest[key] = src._get_node(key)
+                else:
+                    dest[key] = src._get_node(key)
 
         if src_type is not None and not is_primitive_dict(src_type):
             dest._metadata.object_type = src_type
@@ -307,7 +314,7 @@ class BaseContainer(Container, ABC):
         for other in others:
             if other is None:
                 raise ValueError("Cannot merge with a None config")
-            other = _convert_to_omegaconf_container(other)
+            other = _ensure_container(other)
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
