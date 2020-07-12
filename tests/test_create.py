@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 
 import pytest
 
+import yaml
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType
 
@@ -140,3 +141,10 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     cfg2 = OmegaConf.create({"zonk": cfg1.foo})
     assert cfg2 == {"zonk": node}
     assert cfg1.foo._get_parent() == cfg1
+
+
+def test_create_unmodified_loader() -> None:
+    cfg = OmegaConf.create("gitrev: 100e100")
+    yaml_cfg = yaml.load("gitrev: 100e100", Loader=yaml.loader.SafeLoader)
+    assert cfg.gitrev == 1e102
+    assert yaml_cfg["gitrev"] == "100e100"

@@ -58,7 +58,11 @@ def get_yaml_loader() -> Any:
             mapping[key] = value
         return loader.construct_mapping(node, deep)
 
-    loader = yaml.SafeLoader
+    class SafeLoaderWrapper(yaml.SafeLoader):  # type: ignore
+        pass
+
+    loader = SafeLoaderWrapper
+    assert id(loader) != id(yaml.SafeLoader)
     loader.add_implicit_resolver(
         "tag:yaml.org,2002:float",
         re.compile(
