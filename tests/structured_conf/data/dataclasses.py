@@ -449,3 +449,8 @@ class UnionError:
 @dataclass
 class WithNativeMISSING:
     num: int = dataclasses.MISSING  # type: ignore
+
+
+@dataclass
+class MissingStructuredConfigField:
+    plugin: Plugin = MISSING

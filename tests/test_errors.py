@@ -25,6 +25,7 @@ from omegaconf.errors import (
 )
 
 from . import (
+    A,
     Color,
     ConcretePlugin,
     IllegalType,
@@ -32,8 +33,8 @@ from . import (
     StructuredWithMissing,
     UnionError,
     User,
-    A,
 )
+
 
 # tests classes
 @dataclass
@@ -43,7 +44,7 @@ class NotOptionalInt:
 
 @dataclass
 class NotOptionalA:
-    x: A = None  # type : ignore
+    x: A = None  # type: ignore
 
 
 @dataclass

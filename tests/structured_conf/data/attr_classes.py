@@ -437,3 +437,8 @@ class UnionError:
 @attr.s(auto_attribs=True)
 class WithNativeMISSING:
     num: int = attr.NOTHING  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class MissingStructuredConfigField:
+    plugin: Plugin = MISSING

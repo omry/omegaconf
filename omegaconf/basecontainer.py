@@ -232,13 +232,16 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from .dictconfig import DictConfig
-        from .nodes import ValueNode
+        from omegaconf import DictConfig, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
 
+        # if source DictConfig is missing set the DictConfig one to be missing too.
+        if src._is_missing():
+            dest._set_value("???")
+            return
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
 
         if isinstance(dest, DictConfig) and dest._is_missing():
