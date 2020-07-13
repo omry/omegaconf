@@ -3,6 +3,7 @@ import io
 import os
 import pathlib
 import tempfile
+from pathlib import Path
 from typing import Any, Dict, Type
 
 import pytest
@@ -141,3 +142,10 @@ a:
             OmegaConf.load(fp.name)
     finally:
         os.unlink(fp.name)
+
+
+def test_load_empty_file(tmpdir: str) -> None:
+    empty = Path(tmpdir) / "test.yaml"
+    empty.touch()
+
+    assert OmegaConf.load(empty) == {}
