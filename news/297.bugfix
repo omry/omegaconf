@@ -1,0 +1,1 @@
+Loading an empty YAML file now returns an empty DictConfig

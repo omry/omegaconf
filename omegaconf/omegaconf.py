@@ -246,7 +246,10 @@ class OmegaConf:
         if isinstance(file_, (str, pathlib.Path)):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
                 obj = yaml.load(f, Loader=get_yaml_loader())
-                res = OmegaConf.create(obj)
+                if obj is None:
+                    res = OmegaConf.create()
+                else:
+                    res = OmegaConf.create(obj)
                 assert isinstance(res, (ListConfig, DictConfig))
                 return res
         elif getattr(file_, "read", None):
