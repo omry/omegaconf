@@ -1,0 +1,1 @@
+merge_with() now copied flags (readonly, struct) into target config

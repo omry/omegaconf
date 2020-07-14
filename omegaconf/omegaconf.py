@@ -306,8 +306,14 @@ class OmegaConf:
         target = copy.deepcopy(others[0])
         target = _ensure_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
+
         with flag_override(target, "readonly", False):
             target.merge_with(*others[1:])
+            turned_readonly = target._get_flag("readonly") is True
+
+        if turned_readonly:
+            OmegaConf.set_readonly(target, True)
+
         return target
 
     @staticmethod
