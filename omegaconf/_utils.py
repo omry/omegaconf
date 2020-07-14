@@ -30,6 +30,44 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 
+YAML_BOOL_TYPES = [
+    "y",
+    "Y",
+    "yes",
+    "Yes",
+    "YES",
+    "n",
+    "N",
+    "no",
+    "No",
+    "NO",
+    "true",
+    "True",
+    "TRUE",
+    "false",
+    "False",
+    "FALSE",
+    "on",
+    "On",
+    "ON",
+    "off",
+    "Off",
+    "OFF",
+]
+
+
+def isbool(b: str) -> bool:
+    return b in YAML_BOOL_TYPES
+
+
+def isfloat(f: str) -> bool:
+    try:
+        float(f)
+        return True
+    except ValueError:
+        return False
+
+
 def isint(s: str) -> bool:
     try:
         int(s)

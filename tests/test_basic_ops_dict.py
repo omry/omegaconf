@@ -154,36 +154,10 @@ def test_pretty_strings_float() -> None:
     assert c.pretty() == "b: '10e2'\na: '1.0'\nc: 1.0\n"
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "yaml_bool",
-    [
-        "y",
-        "Y",
-        "yes",
-        "Yes",
-        "YES",
-        "n",
-        "N",
-        "no",
-        "No",
-        "NO",
-        "true",
-        "True",
-        "TRUE",
-        "false",
-        "False",
-        "FALSE",
-        "on",
-        "On",
-        "ON",
-        "off",
-        "Off",
-        "OFF",
-    ],
-)
-def test_pretty_string_boolean(yaml_bool: str) -> None:
-    c = OmegaConf.create({"b": yaml_bool, "a": 1})
-    assert c.pretty() == "b: '%s'\na: 1\n" % yaml_bool
+def test_pretty_string_boolean() -> None:
+    for t in _utils.YAML_BOOL_TYPES:
+        c = OmegaConf.create({"b": t, "a": 1})
+        assert c.pretty() == "b: '%s'\na: 1\n" % t
 
 
 def test_pretty_string_int() -> None:

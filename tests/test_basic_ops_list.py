@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf
+from omegaconf import AnyNode, ListConfig, OmegaConf, _utils
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -59,48 +59,17 @@ def test_pretty_strings_float() -> None:
     assert c.pretty() == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "yaml_bool",
-    [
-        "y",
-        "Y",
-        "yes",
-        "Yes",
-        "YES",
-        "n",
-        "N",
-        "no",
-        "No",
-        "NO",
-        "true",
-        "True",
-        "TRUE",
-        "false",
-        "False",
-        "FALSE",
-        "on",
-        "On",
-        "ON",
-        "off",
-        "Off",
-        "OFF",
-    ],
-)
-def test_pretty_string_boolean(yaml_bool: str) -> None:
-    c = OmegaConf.create([yaml_bool, 1])
-    expected = """- '{0}'
-- 1
-""".format(
-        yaml_bool
-    )
-    assert c.pretty() == expected
+def test_pretty_string_boolean() -> None:
+    for t in _utils.YAML_BOOL_TYPES:
+        print(t)
+        c = OmegaConf.create([t, 1])
+        expected = "- '%s'\n- 1\n" % t
+        assert c.pretty() == expected
 
 
 def test_pretty_string_int() -> None:
     c = OmegaConf.create(["1", 1])
-    expected = """- '1'
-- 1
-"""
+    expected = "- '1'\n- 1\n"
     assert c.pretty() == expected
 
 

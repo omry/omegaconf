@@ -20,6 +20,9 @@ from ._utils import (
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
+    isbool,
+    isfloat,
+    isint,
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -227,44 +230,7 @@ class BaseContainer(Container, ABC):
         dumper = yaml.Dumper
 
         def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-            def is_bool(data: str) -> bool:
-                return data in [
-                    "yes",
-                    "Yes",
-                    "YES",
-                    "no",
-                    "No",
-                    "NO",
-                    "true",
-                    "True",
-                    "TRUE",
-                    "false",
-                    "False",
-                    "FALSE",
-                    "on",
-                    "On",
-                    "ON",
-                    "off",
-                    "Off",
-                    "OFF",
-                    "y",
-                    "Y",
-                    "n",
-                    "N",
-                ]
-
-            def is_int(data: str) -> bool:
-                return data.isdecimal()
-
-            def is_float(data: str) -> bool:
-                is_float = True
-                try:
-                    float(data)
-                except ValueError:
-                    is_float = False
-                return is_float
-
-            with_quotes = is_bool(data) or is_int(data) or is_float(data)
+            with_quotes = isbool(data) or isint(data) or isfloat(data)
             return dumper.represent_scalar(
                 yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
                 data,
