@@ -149,6 +149,11 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_strings() -> None:
+    c = OmegaConf.create({"b": "10e2", "a": "1", "c": "False"})
+    assert c.pretty() == 'b: "10e2"\na: "1"\nc: "False"\n'
+
+
 def test_default_value() -> None:
     c = OmegaConf.create()
     assert c.missing_key or "a default value" == "a default value"

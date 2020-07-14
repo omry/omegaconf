@@ -50,6 +50,15 @@ def test_pretty_list_unicode() -> None:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_strings() -> None:
+    c = OmegaConf.create(["10e2", "1", "False"])
+    expected = """- "10e2"
+- "1"
+- "False"
+"""
+    assert c.pretty() == expected
+
+
 def test_list_get_with_default() -> None:
     c = OmegaConf.create([None, "???", "found"])
     assert c.get(0, "default_value") == "default_value"

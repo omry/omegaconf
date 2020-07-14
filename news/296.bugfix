@@ -1,0 +1,1 @@
+bool, ints and floats represented as string are now formatted with surrounding quotes on pretty()

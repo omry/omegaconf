@@ -224,9 +224,37 @@ class BaseContainer(Container, ABC):
         """
         from omegaconf import OmegaConf
 
+        dumper = yaml.Dumper
+
+        def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+            def is_bool(data: str) -> bool:
+                return data in ["True", "False"]
+
+            def is_int(data: str) -> bool:
+                return data.isdecimal()
+
+            def is_float(data: str) -> bool:
+                is_float = True
+                try:
+                    float(data)
+                except ValueError:
+                    is_float = False
+                return is_float
+
+            with_quotes = is_bool(data) or is_int(data) or is_float(data)
+            return dumper.represent_scalar(
+                yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+                data,
+                style=("single-quoted" if with_quotes else None),
+            )
+
+        dumper.add_representer(str, str_representer)
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
-            container, default_flow_style=False, allow_unicode=True, sort_keys=sort_keys
+            container,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=sort_keys,
         )
 
     @staticmethod
