@@ -702,6 +702,16 @@ def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
         conf.user.age = 20
 
+    # merge into is rejected because it mutates a readonly object
+    with pytest.raises(ReadonlyConfigError):
+        conf.merge_with({"user": {"name": "iceman"}})
+
+    # Normal merge is allowed.
+    ret = OmegaConf.merge(conf, {"user": {"name": "iceman"}})
+    assert ret == {"user": {"name": "iceman", "age": 10}, "x": 10, "list": [1, 2, 3]}
+    with pytest.raises(ReadonlyConfigError):
+        ret.user.age = 20
+
 
 def test_attr_frozen() -> None:
     from tests.structured_conf.data.attr_classes import FrozenClass

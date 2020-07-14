@@ -247,20 +247,28 @@ def test_merge_no_eq_verify(
     assert expected == c
 
 
-def test_merge_with_1() -> None:
-    a = OmegaConf.create()
-    b = OmegaConf.create({"a": 1, "b": 2})
+@pytest.mark.parametrize(  # type: ignore
+    "c1,c2,expected",
+    [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
+)
+def test_merge_with(c1: Any, c2: Any, expected: Any) -> None:
+    a = OmegaConf.create(c1)
+    b = OmegaConf.create(c2)
     a.merge_with(b)
-    assert a == b
+    assert a == expected
 
 
-def test_merge_with_2() -> None:
-    a = OmegaConf.create()
-    assert isinstance(a, DictConfig)
-    a.inner = {}
-    b = OmegaConf.create({"a": 1, "b": 2})
-    a.inner.merge_with(b)  # type: ignore
-    assert a.inner == b
+@pytest.mark.parametrize(  # type: ignore
+    "c1,c2,expected",
+    [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
+)
+def test_merge_with_c2_readonly(c1: Any, c2: Any, expected: Any) -> None:
+    a = OmegaConf.create(c1)
+    b = OmegaConf.create(c2)
+    OmegaConf.set_readonly(b, True)
+    a.merge_with(b)
+    assert a == expected
+    assert OmegaConf.is_readonly(a)
 
 
 def test_3way_dict_merge() -> None:
@@ -295,13 +303,33 @@ def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])]
+    "c1, c2",
+    [
+        pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
+        pytest.param([1, 2, 3], [4, 5, 6], id="list"),
+    ],
 )
-def test_with_readonly(c1: Any, c2: Any) -> None:
-    cfg = OmegaConf.create(c1)
-    OmegaConf.set_readonly(cfg, True)
-    cfg2 = OmegaConf.merge(cfg, c2)
-    assert OmegaConf.is_readonly(cfg2)
+def test_with_readonly_c1(c1: Any, c2: Any) -> None:
+    cfg1 = OmegaConf.create(c1)
+    cfg2 = OmegaConf.create(c2)
+    OmegaConf.set_readonly(cfg1, True)
+    cfg3 = OmegaConf.merge(cfg1, cfg2)
+    assert OmegaConf.is_readonly(cfg3)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "c1, c2",
+    [
+        pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
+        pytest.param([1, 2, 3], [4, 5, 6], id="list"),
+    ],
+)
+def test_with_readonly_c2(c1: Any, c2: Any) -> None:
+    cfg1 = OmegaConf.create(c1)
+    cfg2 = OmegaConf.create(c1)
+    OmegaConf.set_readonly(cfg2, True)
+    cfg3 = OmegaConf.merge(cfg1, cfg2)
+    assert OmegaConf.is_readonly(cfg3)
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -312,6 +340,42 @@ def test_into_readonly(c1: Any, c2: Any) -> None:
     OmegaConf.set_readonly(cfg, True)
     with pytest.raises(ReadonlyConfigError):
         cfg.merge_with(c2)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "c1, c2, expected",
+    [
+        (
+            {"node": {"foo": "bar"}},
+            {"node": {"zoo": "foo"}},
+            {"node": {"foo": "bar", "zoo": "foo"}},
+        ),
+    ],
+)
+def test_dict_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> None:
+    c1 = OmegaConf.create(c1)
+    c2 = OmegaConf.create(c2)
+    OmegaConf.set_readonly(c2.node, True)
+    with pytest.raises(ReadonlyConfigError):
+        c2.node.foo = 10
+    assert OmegaConf.merge(c1, c2) == expected
+    c1.merge_with(c2)
+    assert c1 == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "c1, c2, expected",
+    [({"node": [1, 2, 3]}, {"node": [4, 5, 6]}, {"node": [4, 5, 6]})],
+)
+def test_list_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> None:
+    c1 = OmegaConf.create(c1)
+    c2 = OmegaConf.create(c2)
+    OmegaConf.set_readonly(c2.node, True)
+    with pytest.raises(ReadonlyConfigError):
+        c2.node.append(10)
+    assert OmegaConf.merge(c1, c2) == expected
+    c1.merge_with(c2)
+    assert c1 == expected
 
 
 def test_parent_maintained() -> None:

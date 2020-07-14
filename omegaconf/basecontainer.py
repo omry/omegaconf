@@ -297,6 +297,11 @@ class BaseContainer(Container, ABC):
         if src_type is not None and not is_primitive_dict(src_type):
             dest._metadata.object_type = src_type
 
+        # explicit flags on the source config are replacing the flag values in the destination
+        for flag, value in src._metadata.flags.items():
+            if value is not None:
+                dest._set_flag(flag, value)
+
     def merge_with(
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
@@ -321,14 +326,18 @@ class BaseContainer(Container, ABC):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                if self._get_flag("readonly"):
-                    raise ReadonlyConfigError(self._get_full_key(""))
                 if self._is_none() or self._is_missing() or self._is_interpolation():
                     self.__dict__["_content"] = []
                 else:
                     self.__dict__["_content"].clear()
+
                 for item in other:
                     self.append(item)
+
+                # explicit flags on the source config are replacing the flag values in the destination
+                for flag, value in other._metadata.flags.items():
+                    if value is not None:
+                        self._set_flag(flag, value)
             else:
                 raise TypeError("Cannot merge DictConfig with ListConfig")
 
