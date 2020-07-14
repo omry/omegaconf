@@ -30,6 +30,7 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 
+# source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [
     "y",
     "Y",
@@ -54,6 +55,10 @@ YAML_BOOL_TYPES = [
     "Off",
     "OFF",
 ]
+
+
+class DumperWrapper(yaml.Dumper):  # type: ignore
+    pass
 
 
 def isbool(b: str) -> bool:

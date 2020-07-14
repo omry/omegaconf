@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
+    DumperWrapper,
     ValueKind,
     _ensure_container,
     _get_value,
@@ -225,9 +226,11 @@ class BaseContainer(Container, ABC):
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
-        from omegaconf import OmegaConf
 
-        dumper = yaml.Dumper
+        return self._dump(resolve=resolve, sort_keys=sort_keys)
+
+    def _dump(self, stream=None, Dumper=DumperWrapper, **kwds) -> str:  # type: ignore
+        from omegaconf import OmegaConf
 
         def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
             with_quotes = isbool(data) or isint(data) or isfloat(data)
@@ -237,13 +240,16 @@ class BaseContainer(Container, ABC):
                 style=("'" if with_quotes else None),
             )
 
-        dumper.add_representer(str, str_representer)
-        container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
+        Dumper.add_representer(str, str_representer)
+        container = OmegaConf.to_container(
+            self, resolve=kwds["resolve"], enum_to_str=True
+        )
         return yaml.dump(  # type: ignore
             container,
             default_flow_style=False,
             allow_unicode=True,
-            sort_keys=sort_keys,
+            sort_keys=kwds["sort_keys"],
+            Dumper=Dumper,
         )
 
     @staticmethod
