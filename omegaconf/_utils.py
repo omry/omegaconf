@@ -58,27 +58,20 @@ YAML_BOOL_TYPES = [
 
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
-    pass
+    def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+        with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
+        return dumper.represent_scalar(
+            yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+            data,
+            style=("'" if with_quotes else None),
+        )
 
 
-def isbool(b: str) -> bool:
+OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
+
+
+def yaml_is_bool(b: str) -> bool:
     return b in YAML_BOOL_TYPES
-
-
-def isfloat(f: str) -> bool:
-    try:
-        float(f)
-        return True
-    except ValueError:
-        return False
-
-
-def isint(s: str) -> bool:
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
 
 
 def get_yaml_loader() -> Any:
@@ -361,25 +354,28 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
         return ret(ValueKind.STR_INTERPOLATION)
 
 
+def is_bool(st: str) -> bool:
+    st = str.lower(st)
+    return st == "true" or st == "false"
+
+
+def is_float(st: str) -> bool:
+    try:
+        float(st)
+        return True
+    except ValueError:
+        return False
+
+
+def is_int(st: str) -> bool:
+    try:
+        int(st)
+        return True
+    except ValueError:
+        return False
+
+
 def decode_primitive(s: str) -> Any:
-    def is_bool(st: str) -> bool:
-        st = str.lower(st)
-        return st == "true" or st == "false"
-
-    def is_float(st: str) -> bool:
-        try:
-            float(st)
-            return True
-        except ValueError:
-            return False
-
-    def is_int(st: str) -> bool:
-        try:
-            int(st)
-            return True
-        except ValueError:
-            return False
-
     if is_bool(s):
         return str.lower(s) == "true"
 

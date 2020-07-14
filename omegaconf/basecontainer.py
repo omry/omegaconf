@@ -21,9 +21,6 @@ from ._utils import (
     is_primitive_container,
     is_primitive_dict,
     is_structured_config,
-    isbool,
-    isfloat,
-    isint,
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -228,23 +225,13 @@ class BaseContainer(Container, ABC):
         """
         from omegaconf import OmegaConf
 
-        def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-            with_quotes = isbool(data) or isint(data) or isfloat(data)
-            return dumper.represent_scalar(
-                yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
-                data,
-                style=("'" if with_quotes else None),
-            )
-
-        Dumper = OmegaConfDumper
-        Dumper.add_representer(str, str_representer)
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
             container,
             default_flow_style=False,
             allow_unicode=True,
             sort_keys=sort_keys,
-            Dumper=Dumper,
+            Dumper=OmegaConfDumper,
         )
 
     @staticmethod
