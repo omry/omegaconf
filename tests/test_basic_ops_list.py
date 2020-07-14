@@ -50,11 +50,56 @@ def test_pretty_list_unicode() -> None:
     assert OmegaConf.create(c.pretty()) == c
 
 
-def test_pretty_strings() -> None:
-    c = OmegaConf.create(["10e2", "1", "False"])
-    expected = """- "10e2"
-- "1"
-- "False"
+def test_pretty_strings_float() -> None:
+    c = OmegaConf.create(["10e2", "1.0", 1.0])
+    expected = """- '10e2'
+- '1.0'
+- 1.0
+"""
+    assert c.pretty() == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "yaml_bool",
+    [
+        "y",
+        "Y",
+        "yes",
+        "Yes",
+        "YES",
+        "n",
+        "N",
+        "no",
+        "No",
+        "NO",
+        "true",
+        "True",
+        "TRUE",
+        "false",
+        "False",
+        "FALSE",
+        "on",
+        "On",
+        "ON",
+        "off",
+        "Off",
+        "OFF",
+    ],
+)
+def test_pretty_string_boolean(yaml_bool: str) -> None:
+    c = OmegaConf.create([yaml_bool, 1])
+    expected = """- '{0}'
+- 1
+""".format(
+        yaml_bool
+    )
+    assert c.pretty() == expected
+
+
+def test_pretty_string_int() -> None:
+    c = OmegaConf.create(["1", 1])
+    expected = """- '1'
+- 1
 """
     assert c.pretty() == expected
 

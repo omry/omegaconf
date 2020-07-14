@@ -149,9 +149,46 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
-def test_pretty_strings() -> None:
-    c = OmegaConf.create({"b": "10e2", "a": "1", "c": "False"})
-    assert c.pretty() == 'b: "10e2"\na: "1"\nc: "False"\n'
+def test_pretty_strings_float() -> None:
+    c = OmegaConf.create({"b": "10e2", "a": "1.0", "c": 1.0})
+    assert c.pretty() == "b: '10e2'\na: '1.0'\nc: 1.0\n"
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "yaml_bool",
+    [
+        "y",
+        "Y",
+        "yes",
+        "Yes",
+        "YES",
+        "n",
+        "N",
+        "no",
+        "No",
+        "NO",
+        "true",
+        "True",
+        "TRUE",
+        "false",
+        "False",
+        "FALSE",
+        "on",
+        "On",
+        "ON",
+        "off",
+        "Off",
+        "OFF",
+    ],
+)
+def test_pretty_string_boolean(yaml_bool: str) -> None:
+    c = OmegaConf.create({"b": yaml_bool, "a": 1})
+    assert c.pretty() == "b: '%s'\na: 1\n" % yaml_bool
+
+
+def test_pretty_string_int() -> None:
+    c = OmegaConf.create({"b": "1", "a": 1})
+    assert c.pretty() == "b: '1'\na: 1\n"
 
 
 def test_default_value() -> None:

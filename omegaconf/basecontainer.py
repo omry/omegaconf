@@ -228,7 +228,30 @@ class BaseContainer(Container, ABC):
 
         def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
             def is_bool(data: str) -> bool:
-                return data in ["True", "False"]
+                return data in [
+                    "yes",
+                    "Yes",
+                    "YES",
+                    "no",
+                    "No",
+                    "NO",
+                    "true",
+                    "True",
+                    "TRUE",
+                    "false",
+                    "False",
+                    "FALSE",
+                    "on",
+                    "On",
+                    "ON",
+                    "off",
+                    "Off",
+                    "OFF",
+                    "y",
+                    "Y",
+                    "n",
+                    "N",
+                ]
 
             def is_int(data: str) -> bool:
                 return data.isdecimal()
@@ -245,7 +268,7 @@ class BaseContainer(Container, ABC):
             return dumper.represent_scalar(
                 yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
                 data,
-                style=("single-quoted" if with_quotes else None),
+                style=("'" if with_quotes else None),
             )
 
         dumper.add_representer(str, str_representer)
