@@ -57,7 +57,7 @@ YAML_BOOL_TYPES = [
 ]
 
 
-class DumperWrapper(yaml.Dumper):  # type: ignore
+class OmegaConfDumper(yaml.Dumper):  # type: ignore
     pass
 
 
@@ -101,10 +101,10 @@ def get_yaml_loader() -> Any:
             mapping[key] = value
         return loader.construct_mapping(node, deep)
 
-    class SafeLoaderWrapper(yaml.SafeLoader):  # type: ignore
+    class OmegaConfLoader(yaml.SafeLoader):  # type: ignore
         pass
 
-    loader = SafeLoaderWrapper
+    loader = OmegaConfLoader
     loader.add_implicit_resolver(
         "tag:yaml.org,2002:float",
         re.compile(
