@@ -58,6 +58,8 @@ YAML_BOOL_TYPES = [
 
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
+    str_representer_added = False
+
     def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
         with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
         return dumper.represent_scalar(
@@ -67,7 +69,11 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
         )
 
 
-OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
+def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
+    if not OmegaConfDumper.str_representer_added:
+        OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
+        OmegaConfDumper.str_representer_added = True
+    return OmegaConfDumper
 
 
 def yaml_is_bool(b: str) -> bool:

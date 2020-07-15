@@ -8,12 +8,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
-    OmegaConfDumper,
     ValueKind,
     _ensure_container,
     _get_value,
     _is_interpolation,
     _resolve_optional,
+    get_omega_conf_dumper,
     get_ref_type,
     get_value_kind,
     get_yaml_loader,
@@ -231,7 +231,7 @@ class BaseContainer(Container, ABC):
             default_flow_style=False,
             allow_unicode=True,
             sort_keys=sort_keys,
-            Dumper=OmegaConfDumper,
+            Dumper=get_omega_conf_dumper(),
         )
 
     @staticmethod
