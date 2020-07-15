@@ -149,6 +149,22 @@ list:
     assert OmegaConf.create(c.pretty()) == c
 
 
+def test_pretty_strings_float() -> None:
+    c = OmegaConf.create({"b": "10e2", "a": "1.0", "c": 1.0})
+    assert c.pretty() == "b: '10e2'\na: '1.0'\nc: 1.0\n"
+
+
+def test_pretty_string_boolean() -> None:
+    for t in _utils.YAML_BOOL_TYPES:
+        c = OmegaConf.create({"b": t, "a": 1})
+        assert c.pretty() == "b: '%s'\na: 1\n" % t
+
+
+def test_pretty_string_int() -> None:
+    c = OmegaConf.create({"b": "1", "a": 1})
+    assert c.pretty() == "b: '1'\na: 1\n"
+
+
 def test_default_value() -> None:
     c = OmegaConf.create()
     assert c.missing_key or "a default value" == "a default value"

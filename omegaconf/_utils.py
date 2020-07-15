@@ -30,12 +30,55 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 
-def isint(s: str) -> bool:
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+# source: https://yaml.org/type/bool.html
+YAML_BOOL_TYPES = [
+    "y",
+    "Y",
+    "yes",
+    "Yes",
+    "YES",
+    "n",
+    "N",
+    "no",
+    "No",
+    "NO",
+    "true",
+    "True",
+    "TRUE",
+    "false",
+    "False",
+    "FALSE",
+    "on",
+    "On",
+    "ON",
+    "off",
+    "Off",
+    "OFF",
+]
+
+
+class OmegaConfDumper(yaml.Dumper):  # type: ignore
+    str_representer_added = False
+
+    @staticmethod
+    def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+        with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
+        return dumper.represent_scalar(
+            yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+            data,
+            style=("'" if with_quotes else None),
+        )
+
+
+def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
+    if not OmegaConfDumper.str_representer_added:
+        OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
+        OmegaConfDumper.str_representer_added = True
+    return OmegaConfDumper
+
+
+def yaml_is_bool(b: str) -> bool:
+    return b in YAML_BOOL_TYPES
 
 
 def get_yaml_loader() -> Any:
@@ -58,10 +101,10 @@ def get_yaml_loader() -> Any:
             mapping[key] = value
         return loader.construct_mapping(node, deep)
 
-    class SafeLoaderWrapper(yaml.SafeLoader):  # type: ignore
+    class OmegaConfLoader(yaml.SafeLoader):  # type: ignore
         pass
 
-    loader = SafeLoaderWrapper
+    loader = OmegaConfLoader
     loader.add_implicit_resolver(
         "tag:yaml.org,2002:float",
         re.compile(
@@ -318,25 +361,28 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
         return ret(ValueKind.STR_INTERPOLATION)
 
 
+def is_bool(st: str) -> bool:
+    st = str.lower(st)
+    return st == "true" or st == "false"
+
+
+def is_float(st: str) -> bool:
+    try:
+        float(st)
+        return True
+    except ValueError:
+        return False
+
+
+def is_int(st: str) -> bool:
+    try:
+        int(st)
+        return True
+    except ValueError:
+        return False
+
+
 def decode_primitive(s: str) -> Any:
-    def is_bool(st: str) -> bool:
-        st = str.lower(st)
-        return st == "true" or st == "false"
-
-    def is_float(st: str) -> bool:
-        try:
-            float(st)
-            return True
-        except ValueError:
-            return False
-
-    def is_int(st: str) -> bool:
-        try:
-            int(st)
-            return True
-        except ValueError:
-            return False
-
     if is_bool(s):
         return str.lower(s) == "true"
 

@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf
+from omegaconf import AnyNode, ListConfig, OmegaConf, _utils
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -48,6 +48,29 @@ def test_pretty_list_unicode() -> None:
 """
     assert expected == c.pretty()
     assert OmegaConf.create(c.pretty()) == c
+
+
+def test_pretty_strings_float() -> None:
+    c = OmegaConf.create(["10e2", "1.0", 1.0])
+    expected = """- '10e2'
+- '1.0'
+- 1.0
+"""
+    assert c.pretty() == expected
+
+
+def test_pretty_string_boolean() -> None:
+    for t in _utils.YAML_BOOL_TYPES:
+        print(t)
+        c = OmegaConf.create([t, 1])
+        expected = "- '%s'\n- 1\n" % t
+        assert c.pretty() == expected
+
+
+def test_pretty_string_int() -> None:
+    c = OmegaConf.create(["1", 1])
+    expected = "- '1'\n- 1\n"
+    assert c.pretty() == expected
 
 
 def test_list_get_with_default() -> None:

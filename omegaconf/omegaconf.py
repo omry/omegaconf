@@ -36,12 +36,12 @@ from ._utils import (
     get_list_element_type,
     get_type_of,
     is_dict_annotation,
+    is_int,
     is_list_annotation,
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
     is_tuple_annotation,
-    isint,
     type_str,
 )
 from .base import Container, Node
@@ -720,7 +720,7 @@ def _select_one(
             val = None
     elif isinstance(c, ListConfig):
         assert isinstance(ret_key, str)
-        if not isint(ret_key):
+        if not is_int(ret_key):
             if throw_on_type_error:
                 raise TypeError(
                     f"Index '{ret_key}' ({type(ret_key).__name__}) is not an int"

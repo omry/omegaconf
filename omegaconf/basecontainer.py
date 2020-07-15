@@ -13,6 +13,7 @@ from ._utils import (
     _get_value,
     _is_interpolation,
     _resolve_optional,
+    get_omega_conf_dumper,
     get_ref_type,
     get_value_kind,
     get_yaml_loader,
@@ -226,7 +227,11 @@ class BaseContainer(Container, ABC):
 
         container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
-            container, default_flow_style=False, allow_unicode=True, sort_keys=sort_keys
+            container,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=sort_keys,
+            Dumper=get_omega_conf_dumper(),
         )
 
     @staticmethod

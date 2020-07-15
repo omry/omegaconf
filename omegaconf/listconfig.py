@@ -19,8 +19,8 @@ from ._utils import (
     _get_value,
     format_and_raise,
     get_value_kind,
+    is_int,
     is_primitive_list,
-    isint,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -115,7 +115,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         assert False
 
     def __getattr__(self, key: str) -> Any:
-        if isint(key):
+        if is_int(key):
             return self.__getitem__(int(key))
         else:
             self._format_and_raise(
