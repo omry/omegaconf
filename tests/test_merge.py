@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any, MutableMapping, MutableSequence, Tuple
 
 import pytest
 
@@ -50,6 +50,11 @@ from . import (
             {"a": {"b": 10}},
             id="dict_merge_into_missing",
         ),
+        pytest.param(
+            ({"a": {"b": 10}}, {"a": "???"}),
+            {"a": "???"},
+            id="dict_merge_missing_onto",
+        ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
@@ -61,6 +66,16 @@ from . import (
             ({"a": "???"}, {"a": [1, 2, 3]}),
             {"a": [1, 2, 3]},
             id="list_merge_into_missing",
+        ),
+        pytest.param(
+            ({"a": [1, 2, 3]}, {"a": "???"}),
+            {"a": "???"},
+            id="list_merge_missing_onto",
+        ),
+        pytest.param(
+            ([1, 2, 3], ListConfig(content=MISSING)),
+            ListConfig(content=MISSING),
+            id="list_merge_missing_onto2",
         ),
         # Interpolations
         # value interpolation
@@ -205,7 +220,9 @@ from . import (
 def test_merge(inputs: Any, expected: Any) -> None:
     configs = [OmegaConf.create(c) for c in inputs]
 
-    if isinstance(expected, (dict, list)) or is_structured_config(expected):
+    if isinstance(expected, (MutableMapping, MutableSequence)) or is_structured_config(
+        expected
+    ):
         merged = OmegaConf.merge(*configs)
         assert merged == expected
         # test input configs are not changed.
