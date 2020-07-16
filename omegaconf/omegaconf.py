@@ -272,7 +272,6 @@ class OmegaConf:
         :param resolve: True to save a resolved config (defaults to False)
         """
         if is_dataclass(config) or is_attr_class(config):
-            print("xd")
             config = OmegaConf.create(config)
         data = config.pretty(resolve=resolve)
         if isinstance(f, (str, pathlib.Path)):
