@@ -336,8 +336,11 @@ class BaseContainer(Container, ABC):
                 else:
                     self.__dict__["_content"].clear()
 
-                for item in other:
-                    self.append(item)
+                if other._is_missing():
+                    self._set_value("???")
+                else:
+                    for item in other:
+                        self.append(item)
 
                 # explicit flags on the source config are replacing the flag values in the destination
                 for flag, value in other._metadata.flags.items():
