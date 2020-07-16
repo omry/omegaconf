@@ -3,15 +3,17 @@ import io
 import os
 import pathlib
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Type
 
+import attr
 import pytest
 
-from omegaconf import Container, OmegaConf
+from omegaconf import OmegaConf
 
 
-def save_load_from_file(conf: Container, resolve: bool, expected: Any) -> None:
+def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
     if expected is None:
         expected = conf
     try:
@@ -27,7 +29,7 @@ def save_load_from_file(conf: Container, resolve: bool, expected: Any) -> None:
 
 
 def save_load_from_filename(
-    conf: Container, resolve: bool, expected: Any, file_class: Type[Any]
+    conf: Any, resolve: bool, expected: Any, file_class: Type[Any]
 ) -> None:
     if expected is None:
         expected = conf
@@ -77,6 +79,45 @@ class TestSaveLoad:
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_filename(cfg, resolve, expected, file_class)
+
+
+@dataclass
+class Dataclass:
+    number: int = 2
+    done: bool = True
+
+
+@attr.s(auto_attribs=True)
+class Attr:
+    number: int = 2
+    done: bool = True
+
+
+@pytest.mark.parametrize(
+    "input_,resolve,expected,file_class",
+    [
+        (Dataclass, False, {"number": 2, "done": True}, str),
+        (Attr, False, {"number": 2, "done": True}, str),
+    ],
+)
+class TestSaveLoadStructured:
+    def test_save_load__from_file(
+        self,
+        input_: Dict[str, Any],
+        resolve: bool,
+        expected: Any,
+        file_class: Type[Any],
+    ) -> None:
+        save_load_from_file(input_, resolve, expected)
+
+    def test_save_load__from_filename(
+        self,
+        input_: Dict[str, Any],
+        resolve: bool,
+        expected: Any,
+        file_class: Type[Any],
+    ) -> None:
+        save_load_from_filename(input_, resolve, expected, file_class)
 
 
 def test_save_illegal_type() -> None:
