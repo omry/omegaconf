@@ -4,8 +4,31 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import (
+    ValueKind,
+    _get_value,
+    format_and_raise,
+    get_value_kind,
+    update_string,
+)
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
+
+
+@dataclass
+class InterpolationRange:
+    """Used to store start/stop indices of interpolations being evaluated"""
+
+    start: int = -1
+    stop: int = -1
+
+
+class ParseError(Exception):
+    """Thrown when unable to parse a complex interpolation"""
+
+    @staticmethod
+    def assert_(condition: Any) -> None:
+        if not condition:
+            raise ParseError()
 
 
 @dataclass
@@ -377,27 +400,71 @@ class Container(Node):
         elif value_kind == ValueKind.STR_INTERPOLATION:
             value = _get_value(value)
             assert isinstance(value, str)
-            orig = value
-            new = ""
-            last_index = 0
-            for match in match_list:
-                new_val = self._resolve_simple_interpolation(
+            try:
+                # NB: `match_list` is ignored here as complex interpolations may be
+                # nested, the string will be re-parsed within `_evaluate_complex()`.
+                new = self._evaluate_complex(
+                    value,
                     key=key,
-                    inter_type=match.group(1),
-                    inter_key=match.group(2),
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-                # if failed to resolve, return None for the whole thing.
-                if new_val is None:
-                    return None
-                new += orig[last_index : match.start(0)] + str(new_val)
-                last_index = match.end(0)
-
-            new += orig[last_index:]
+            except ParseError:
+                return None
             return StringNode(value=new, key=key)
         else:
             assert False
+
+    def _evaluate_simple(self, value: str, **kw: Any) -> Optional["Node"]:
+        """Evaluate a simple interpolation"""
+        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
+        assert value_kind == ValueKind.INTERPOLATION and len(match_list) == 1
+        match = match_list[0]
+        node = self._resolve_simple_interpolation(
+            inter_type=match.group(1), inter_key=match.group(2), **kw,
+        )
+        return node
+
+    def _evaluate_complex(self, value: str, **kw: Any) -> Optional[str]:
+        """Evaluate a complex interpolation (>1, nested, with other strings...)"""
+        to_eval = []  # list of ongoing interpolations to be evaluated
+        # `result` will be updated iteratively from `value` to final result.
+        result = value
+        total_offset = 0  # keep track of offset between indices in `result` vs `value`
+        for idx, ch in enumerate(value):
+            if value[idx : idx + 2] == "${":
+                # New interpolation starting.
+                to_eval.append(InterpolationRange(start=idx))
+            elif ch == "}":
+                # Current interpolation is ending.
+                if not to_eval:
+                    # This can happen if someone uses braces in their strings, which
+                    # we should still allow (ex: "I_like_braces_{}_and_${liked}").
+                    continue
+                inter = to_eval.pop()
+                inter.stop = idx + 1
+                # Evaluate this interpolation.
+                res_start = inter.start - total_offset
+                res_stop = inter.stop - total_offset
+                val = self._evaluate_simple(result[res_start:res_stop], **kw)
+                ParseError.assert_(val is not None)
+                # Update `result` with the evaluation of the interpolation.
+                val_str = str(val)
+                result = update_string(result, res_start, res_stop, val_str)  # type: ignore
+                ParseError.assert_(result is not None)
+                # Update offset based on difference between the length of the definition
+                # of the interpolation vs the length of its evaluation.
+                offset = inter.stop - inter.start - len(val_str)
+                if offset != 0:
+                    # Interpolations already in `to_eval` started before the current
+                    # one, and thus their start index should not actually be
+                    # modified. We shift it by `offset` here, which will cancel out
+                    # future subtractions (when we use `inter.start - total_offset`).
+                    for prev in to_eval:
+                        prev.start += offset
+                    total_offset += offset
+        ParseError.assert_(not to_eval)
+        return result
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig

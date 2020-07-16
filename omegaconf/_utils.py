@@ -319,7 +319,7 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     MANDATORY_MISSING : "???
     VALUE : "10", "20", True,
     INTERPOLATION: "${foo}", "${foo.bar}"
-    STR_INTERPOLATION: "ftp://${host}/path"
+    STR_INTERPOLATION: "ftp://${host}/path", ${foo.${bar}}
 
     :param value: input string to classify
     :param return_match_list: True to return the match list as well
@@ -707,6 +707,17 @@ def type_str(t: Any) -> str:
         return f"Optional[{ret}]"
     else:
         return ret
+
+
+def update_string(to_s: str, start: int, stop: int, from_s: str) -> Optional[str]:
+    """
+    Update `to_s`, replacing its content from `start` to `stop` (excluded) with `from_s`.
+
+    Return `None` if input indices are invalid.
+    """
+    if start < 0 or start > len(to_s) or stop < 0 or stop > len(to_s) or stop < start:
+        return None
+    return "".join([to_s[0:start], from_s, to_s[stop:]])
 
 
 def _ensure_container(target: Any) -> Any:
