@@ -440,7 +440,23 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Optional[str]:
-        """Evaluate a complex interpolation (>1, nested, with other strings...)"""
+        """
+        Evaluate a complex interpolation (>1, nested, with other strings...).
+
+        The high-level logic consists in scanning the input string `value` from
+        left to right, keeping track of the tokens signaling the opening and closing
+        of each interpolation in the string. Whenever an interpolation is closed we
+        evaluate it and replace its definition with the result of this evaluation.
+
+        As an example, consider the string `value` set to "${foo.${bar}}":
+            1. We initialized our result with the original string: "${foo.${bar}}"
+            2. Scanning `value` from left to right, the first interpolation to be
+               closed is "${bar}". We evaluate it: if it resolves to "baz", we update
+               the result string to "${foo.baz}".
+            3. The next interpolation to be closed is now "${foo.baz}". We evaluate it:
+               if it resolves to "abc", we update the result accordingly to "abc".
+            4. We are done scanning `value` => the final result is "abc".
+        """
         to_eval = []  # list of ongoing interpolations to be evaluated
         # `result` will be updated iteratively from `value` to final result.
         result = value
