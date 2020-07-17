@@ -8,6 +8,7 @@ import pytest
 from omegaconf import (
     DictConfig,
     IntegerNode,
+    InterpolationParseError,
     ListConfig,
     OmegaConf,
     Resolver,
@@ -347,9 +348,83 @@ def test_incremental_dict_with_interpolation() -> None:
         ({"list": ["${ref}"], "ref": "bar"}, "list.0", "bar"),
     ],
 )
-def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
+def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
     c = OmegaConf.create(cfg)
     assert OmegaConf.select(c, key) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg,expected_dict",
+    [
+        (
+            """
+            a: 1
+            b: a
+            c: ${${b}}
+            """,
+            {"c": 1},  # basic nesting
+        ),
+        (
+            """
+            a: OMEGACONF
+            b: NESTED_INTERPOLATIONS_TEST
+            c: ${env:${a}_${b}}
+            """,
+            {"c": "test123"},  # nesting with key
+        ),
+        (
+            """
+            a:
+                b: 1
+                c: 2
+                d: ${a.b}
+            b: c
+            c: ${a.${b}}
+            d: ${${b}}
+            e: .d
+            f: ${a${e}}
+            """,
+            {"c": 2, "d": 2, "f": 1},  # member access
+        ),
+        (
+            """
+            a: def
+            b: abc_{${a}}
+            """,
+            {"b": "abc_{def}"},  # braces in string
+        ),
+        (
+            """
+            a: A
+            b: ${env:x=A}
+            c: ${env:x=${a}}
+            """,
+            # This behavior may be a bit surprising but it is how it works now. If
+            # it changes in the future we should ensure that both `b` and `c` yield
+            # the same result.
+            {"b": "${env:x=A}", "c": "${env:x=A}"},
+        ),
+    ],
+)
+def test_nested_interpolations(cfg: str, expected_dict: Dict[str, Any]) -> None:
+    os.environ["OMEGACONF_NESTED_INTERPOLATIONS_TEST"] = "test123"
+    c = OmegaConf.create(cfg)
+    for key, expected in expected_dict.items():
+        assert OmegaConf.select(c, key) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg,key",
+    [
+        ({"a": "PATH", "b": "${env:${a}"}, "b"),
+        ({"a": 1, "b": 2, "c": "${a ${b}"}, "c"),
+        ({"a": 1, "b": 2, "c": "${a} ${b"}, "c"),
+    ],
+)
+def test_nested_interpolation_errors(cfg: Dict[str, Any], key: str) -> None:
+    c = OmegaConf.create(cfg)
+    with pytest.raises(InterpolationParseError):
+        OmegaConf.select(c, key)
 
 
 def test_interpolation_with_missing() -> None:
