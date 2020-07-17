@@ -496,7 +496,7 @@ class Container(Node):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-                _parse_assert(val is not None, "unexpected error during parsing")
+                _cond_parse_error(val is not None, "unexpected error during parsing")
                 # If this interpolation covers the whole expression we are evaluating,
                 # then `val` is our final result. We should *not* cast it to string!
                 if inter.start == 0 and idx == len(value) - 1:
@@ -504,12 +504,12 @@ class Container(Node):
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
                 result = update_string(result, inter.start, inter.stop, val_str)  # type: ignore
-                _parse_assert(result is not None, "unexpected error during parsing")
+                _cond_parse_error(result is not None, "unexpected error during parsing")
                 # Update offset based on difference between the length of the definition
                 # of the interpolation vs the length of its evaluation.
                 offset = inter.stop - inter.start - len(val_str)
                 total_offset += offset
-        _parse_assert(not to_eval, "syntax error - maybe no matching braces?")
+        _cond_parse_error(not to_eval, "syntax error - maybe no matching braces?")
         return StringNode(value=result, key=key)
 
     def _re_parent(self) -> None:
@@ -537,7 +537,7 @@ class Container(Node):
                             item._re_parent()
 
 
-def _parse_assert(condition: Any, msg: str = "") -> None:
+def _cond_parse_error(condition: Any, msg: str = "") -> None:
     """
     Raise an `InterpolationParseError` if `condition` evaluates to `False`.
 
