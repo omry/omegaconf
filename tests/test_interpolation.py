@@ -374,6 +374,16 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
         ),
         (
             """
+            x: 1
+            y: 2
+            op: plus
+            z: ${plus:${x},${y}}
+            t: ${${op}:${x},${y}}
+            """,
+            {"z": 3, "t": 3},  # nesting with (possibly dynamic) resolver
+        ),
+        (
+            """
             a:
                 b: 1
                 c: 2
@@ -408,9 +418,13 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
 )
 def test_nested_interpolations(cfg: str, expected_dict: Dict[str, Any]) -> None:
     os.environ["OMEGACONF_NESTED_INTERPOLATIONS_TEST"] = "test123"
-    c = OmegaConf.create(cfg)
-    for key, expected in expected_dict.items():
-        assert OmegaConf.select(c, key) == expected
+    OmegaConf.register_resolver("plus", lambda x, y: int(x) + int(y))
+    try:
+        c = OmegaConf.create(cfg)
+        for key, expected in expected_dict.items():
+            assert OmegaConf.select(c, key) == expected
+    finally:
+        OmegaConf.clear_resolvers()
 
 
 @pytest.mark.parametrize(  # type: ignore
