@@ -396,7 +396,7 @@ class Container(Node):
             value = _get_value(value)
             assert isinstance(value, str)
             try:
-                # NB: `match_list` is ignored here as complex interpolations may be
+                # Note: `match_list` is ignored here as complex interpolations may be
                 # nested, the string will be re-parsed within `_evaluate_complex()`.
                 return self._evaluate_complex(
                     value,
@@ -457,7 +457,7 @@ class Container(Node):
         evaluate it and replace its definition with the result of this evaluation.
 
         As an example, consider the string `value` set to "${foo.${bar}}":
-            1. We initialized our result with the original string: "${foo.${bar}}"
+            1. We initialize our result with the original string: "${foo.${bar}}"
             2. Scanning `value` from left to right, the first interpolation to be
                closed is "${bar}". We evaluate it: if it resolves to "baz", we update
                the result string to "${foo.baz}".
