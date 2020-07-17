@@ -420,16 +420,26 @@ class Container(Node):
     ) -> Optional["Node"]:
         """Evaluate a simple interpolation"""
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
-        assert value_kind == ValueKind.INTERPOLATION and len(match_list) == 1
+        if value_kind == ValueKind.VALUE:
+            from .nodes import StringNode
+
+            # False positive, this is not an interpolation after all! This may happen
+            # with strings like "${foo:abc=def}" that are not valid interpolations per
+            # current parsing rules in `get_value_kind()`.
+            return StringNode(key=key, value=value)
+        assert value_kind == ValueKind.INTERPOLATION and len(match_list) == 1, (
+            value,
+            value_kind,
+            match_list,
+        )
         match = match_list[0]
-        node = self._resolve_simple_interpolation(
+        return self._resolve_simple_interpolation(
             inter_type=match.group(1),
             inter_key=match.group(2),
             key=key,
             throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
-        return node
 
     def _evaluate_complex(
         self,
