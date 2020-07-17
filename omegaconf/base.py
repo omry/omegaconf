@@ -413,17 +413,33 @@ class Container(Node):
         else:
             assert False
 
-    def _evaluate_simple(self, value: str, **kw: Any) -> Optional["Node"]:
+    def _evaluate_simple(
+        self,
+        value: str,
+        key: Any,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
         """Evaluate a simple interpolation"""
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
         assert value_kind == ValueKind.INTERPOLATION and len(match_list) == 1
         match = match_list[0]
         node = self._resolve_simple_interpolation(
-            inter_type=match.group(1), inter_key=match.group(2), **kw,
+            inter_type=match.group(1),
+            inter_key=match.group(2),
+            key=key,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
         )
         return node
 
-    def _evaluate_complex(self, value: str, **kw: Any) -> Optional[str]:
+    def _evaluate_complex(
+        self,
+        value: str,
+        key: Any,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional[str]:
         """Evaluate a complex interpolation (>1, nested, with other strings...)"""
         to_eval = []  # list of ongoing interpolations to be evaluated
         # `result` will be updated iteratively from `value` to final result.
@@ -442,7 +458,12 @@ class Container(Node):
                 inter = to_eval.pop()
                 inter.stop = idx + 1 - total_offset
                 # Evaluate this interpolation.
-                val = self._evaluate_simple(result[inter.start : inter.stop], **kw)
+                val = self._evaluate_simple(
+                    value=result[inter.start : inter.stop],
+                    key=key,
+                    throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
+                )
                 _parse_assert(val is not None, "unexpected error during parsing")
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
