@@ -3,11 +3,9 @@ import io
 import os
 import pathlib
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Type
 
-import attr
 import pytest
 
 from omegaconf import OmegaConf
@@ -81,18 +79,6 @@ class TestSaveLoad:
     ) -> None:
         cfg = OmegaConf.create(input_)
         save_load_from_filename(cfg, resolve, expected, file_class)
-
-
-@dataclass
-class Dataclass:
-    number: int = 2
-    done: bool = True
-
-
-@attr.s(auto_attribs=True)
-class Attr:
-    number: int = 2
-    done: bool = True
 
 
 @pytest.mark.parametrize(
