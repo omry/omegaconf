@@ -452,8 +452,7 @@ class Container(Node):
         Evaluate a complex interpolation.
 
         A complex interpolation is more elaborate than "${a}" or "${a:b,c}", e.g.:
-            "I really like ${liked}" (concatenating a string)
-            "${subject} {verb} ${object}" (concatenating multiple strings)
+            "Sentence: ${subject} {verb} ${object}" (string interpolation)
             "${plus:${x},${y}} (calling a custom resolver on config variables)
             "${${op}:${x},${y}} (same as previous but with a dynamic resolver)
             "${${a}}" (fetching the key whose name is stored in `a`)
