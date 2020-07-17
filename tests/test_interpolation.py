@@ -430,6 +430,7 @@ def test_nested_interpolations(cfg: str, expected_dict: Dict[str, Any]) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "cfg,key",
     [
+        # All these examples have non-matching braces.
         ({"a": "PATH", "b": "${env:${a}"}, "b"),
         ({"a": 1, "b": 2, "c": "${a ${b}"}, "c"),
         ({"a": 1, "b": 2, "c": "${a} ${b"}, "c"),
