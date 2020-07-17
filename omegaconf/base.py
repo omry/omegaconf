@@ -434,7 +434,7 @@ class Container(Node):
         for idx, ch in enumerate(value):
             if value[idx : idx + 2] == "${":
                 # New interpolation starting.
-                to_eval.append(InterpolationRange(start=idx))
+                to_eval.append(InterpolationRange(start=idx - total_offset))
             elif ch == "}":
                 # Current interpolation is ending.
                 if not to_eval:
@@ -442,27 +442,18 @@ class Container(Node):
                     # we should still allow (ex: "I_like_braces_{}_and_${liked}").
                     continue
                 inter = to_eval.pop()
-                inter.stop = idx + 1
+                inter.stop = idx + 1 - total_offset
                 # Evaluate this interpolation.
-                res_start = inter.start - total_offset
-                res_stop = inter.stop - total_offset
-                val = self._evaluate_simple(result[res_start:res_stop], **kw)
+                val = self._evaluate_simple(result[inter.start : inter.stop], **kw)
                 ParseError.assert_(val is not None)
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
-                result = update_string(result, res_start, res_stop, val_str)  # type: ignore
+                result = update_string(result, inter.start, inter.stop, val_str)  # type: ignore
                 ParseError.assert_(result is not None)
                 # Update offset based on difference between the length of the definition
                 # of the interpolation vs the length of its evaluation.
                 offset = inter.stop - inter.start - len(val_str)
-                if offset != 0:
-                    # Interpolations already in `to_eval` started before the current
-                    # one, and thus their start index should not actually be
-                    # modified. We shift it by `offset` here, which will cancel out
-                    # future subtractions (when we use `inter.start - total_offset`).
-                    for prev in to_eval:
-                        prev.start += offset
-                    total_offset += offset
+                total_offset += offset
         ParseError.assert_(not to_eval)
         return result
 
