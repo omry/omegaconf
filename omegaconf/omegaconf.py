@@ -35,6 +35,8 @@ from ._utils import (
     get_dict_key_value_types,
     get_list_element_type,
     get_type_of,
+    is_attr_class,
+    is_dataclass,
     is_dict_annotation,
     is_int,
     is_list_annotation,
@@ -261,7 +263,7 @@ class OmegaConf:
 
     @staticmethod
     def save(
-        config: Container, f: Union[str, pathlib.Path, IO[Any]], resolve: bool = False
+        config: Any, f: Union[str, pathlib.Path, IO[Any]], resolve: bool = False
     ) -> None:
         """
         Save as configuration object to a file
@@ -269,6 +271,8 @@ class OmegaConf:
         :param f: filename or file object
         :param resolve: True to save a resolved config (defaults to False)
         """
+        if is_dataclass(config) or is_attr_class(config):
+            config = OmegaConf.create(config)
         data = config.pretty(resolve=resolve)
         if isinstance(f, (str, pathlib.Path)):
             with io.open(os.path.abspath(f), "w", encoding="utf-8") as file:
