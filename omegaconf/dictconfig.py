@@ -391,10 +391,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 raise
             else:
                 return None
-        value: Node = self.__dict__["_content"].get(key)
-        # TODO : why is validate happening after the get??
+
         if validate_access:
             self._validate_get(key)
+
+        value: Node = self.__dict__["_content"].get(key)
 
         return value
 

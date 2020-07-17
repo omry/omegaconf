@@ -1,0 +1,1 @@
+Fix error when merging a structured config into a field with None value

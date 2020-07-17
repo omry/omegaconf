@@ -237,7 +237,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import DictConfig, ValueNode
+        from omegaconf import DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -249,17 +249,25 @@ class BaseContainer(Container, ABC):
             return
         dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
 
-        if isinstance(dest, DictConfig) and dest._is_missing():
-            type_ = get_ref_type(dest)
+        def expand(node: Container) -> None:
+            type_ = get_ref_type(node)
             if type_ is not None:
                 _is_optional, type_ = _resolve_optional(type_)
                 if is_dict_annotation(type_):
-                    dest._set_value({})
+                    node._set_value({})
                 else:
-                    dest._set_value(type_)
+                    node._set_value(type_)
+
+        if dest._is_missing():
+            expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
+
             dest_node = dest._get_node(key, validate_access=False)
+            if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
+                if not OmegaConf.is_none(src_value):
+                    expand(dest_node)
+
             if dest_node is not None:
                 if dest_node._is_interpolation():
                     target_node = dest_node._dereference_node(

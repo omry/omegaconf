@@ -572,6 +572,17 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     return ref_type
 
 
+def _raise(ex: Exception, cause: Exception) -> None:
+    # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+    # causing exception.
+    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+    if full_backtrace:
+        ex.__cause__ = cause
+    else:
+        ex.__cause__ = None
+    raise ex  # set end OC_CAUSE=1 for full backtrace
+
+
 def format_and_raise(
     node: Any,
     key: Any,
@@ -583,22 +594,12 @@ def format_and_raise(
     from omegaconf import OmegaConf
     from omegaconf.base import Node
 
-    def raise_(ex: Exception, cause: Exception) -> None:
-        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
-        # causing exception.
-        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
-        if full_backtrace:
-            ex.__cause__ = cause
-        else:
-            ex.__cause__ = None
-        raise ex
-
     if isinstance(cause, OmegaConfBaseException) and cause._initialized:
         ex = cause
         if type_override is not None:
             ex = type_override(str(cause))
             ex.__dict__ = copy.deepcopy(cause.__dict__)
-        raise_(ex, cause)
+        _raise(ex, cause)
 
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
@@ -612,7 +613,7 @@ def format_and_raise(
         ref_type = None
         ref_type_str = None
     else:
-        if key is not None:
+        if key is not None and not OmegaConf.is_none(node):
             child_node = node._get_node(
                 key, validate_access=False, disable_warning=True
             )
@@ -665,7 +666,7 @@ def format_and_raise(
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
-    raise_(ex, cause)
+    _raise(ex, cause)
 
 
 def type_str(t: Any) -> str:

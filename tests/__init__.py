@@ -119,6 +119,11 @@ class B:
 
 
 @dataclass
+class C:
+    x: Optional[A] = None
+
+
+@dataclass
 class PersonD:
     age: int = 18
     registered: bool = True
