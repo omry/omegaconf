@@ -638,8 +638,7 @@ def format_and_raise(
     template = """$MSG
 \tfull_key: $FULL_KEY
 \treference_type=$REF_TYPE
-\tobject_type=$OBJECT_TYPE
-"""
+\tobject_type=$OBJECT_TYPE"""
 
     s = string.Template(template=template)
 

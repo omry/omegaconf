@@ -68,7 +68,7 @@ class Expected:
 
     object_type_str: Optional[str] = "AUTO"
     ref_type_str: Optional[str] = "AUTO"
-    num_lines: int = 4
+    num_lines: int = 3
 
     def finalize(self, cfg: Any) -> None:
         if self.object_type == "AUTO":
@@ -322,7 +322,7 @@ params = [
             exception_type=KeyValidationError,
             msg="Key 'foo' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
             key="foo",
-            num_lines=4,
+            num_lines=3,
         ),
         id="DictConfig[Color,str]:getitem_str_key",
     ),
@@ -475,7 +475,7 @@ params = [
             msg="Union types are not supported:\nx: Union[int, str]",
             object_type_str=None,
             ref_type_str=None,
-            num_lines=5,
+            num_lines=4,
         ),
         id="structured:create_with_union_error",
     ),
