@@ -364,6 +364,23 @@ operation over config variables:
     >>> c.a_plus_b
     3
 
+Another typical use case is to to dynamically select a sub-config:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create("""
+        plans:
+            A: plan A
+            B: plan B
+        selected_plan: A
+        plan: ${plans.${selected_plan}}
+        """)
+    >>> print(f"Default: cfg.plan = {cfg.plan}")
+    Default: cfg.plan = plan A
+    >>> cfg.selected_plan = "B"
+    >>> print(f"After selecting plan B: cfg.plan = {cfg.plan}")
+    After selecting plan B: cfg.plan = plan B
+
 
 Merging configurations
 ----------------------
