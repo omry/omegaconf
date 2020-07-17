@@ -12,6 +12,8 @@ import pytest
 
 from omegaconf import OmegaConf
 
+from . import PersonA, PersonD
+
 
 def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
     if expected is None:
@@ -96,8 +98,10 @@ class Attr:
 @pytest.mark.parametrize(
     "input_,resolve,expected,file_class",
     [
-        (Dataclass, False, {"number": 2, "done": True}, str),
-        (Attr, False, {"number": 2, "done": True}, str),
+        (PersonA, False, {"age": 18, "registered": True}, str),
+        (PersonD, False, {"age": 18, "registered": True}, str),
+        (PersonA(), False, {"age": 18, "registered": True}, str),
+        (PersonD(), False, {"age": 18, "registered": True}, str),
     ],
 )
 class TestSaveLoadStructured:

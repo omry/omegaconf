@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Union
 
+import attr
+
 from omegaconf import II, MISSING
 
 
@@ -114,3 +116,15 @@ class A:
 @dataclass
 class B:
     x: A = MISSING
+
+
+@dataclass
+class PersonD:
+    age: int = 18
+    registered: bool = True
+
+
+@attr.s(auto_attribs=True)
+class PersonA:
+    age: int = 18
+    registered: bool = True
