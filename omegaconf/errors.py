@@ -105,7 +105,7 @@ class ConfigValueError(OmegaConfBaseException, ValueError):
     """
 
 
-class ParseError(OmegaConfBaseException):
+class InterpolationParseError(OmegaConfBaseException):
     """
     Thrown when unable to parse a complex interpolation.
     """

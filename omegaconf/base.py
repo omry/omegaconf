@@ -13,8 +13,8 @@ from ._utils import (
 )
 from .errors import (
     ConfigKeyError,
+    InterpolationParseError,
     MissingMandatoryValue,
-    ParseError,
     UnsupportedInterpolationType,
 )
 
@@ -404,7 +404,7 @@ class Container(Node):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-            except ParseError as e:
+            except InterpolationParseError as e:
                 if throw_on_resolution_failure:
                     self._format_and_raise(key=key, value=value, cause=e)
                 return None
@@ -533,10 +533,10 @@ class Container(Node):
 
 def _parse_assert(condition: Any, msg: str = "") -> None:
     """
-    Raise a `ParseError` if `condition` evaluates to `False`.
+    Raise an `InterpolationParseError` if `condition` evaluates to `False`.
 
     `msg` is an optional message that may give additional information about
     the error.
     """
     if not condition:
-        raise ParseError(msg)
+        raise InterpolationParseError(msg)
