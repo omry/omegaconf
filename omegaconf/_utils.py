@@ -316,7 +316,7 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     """
     Determine the kind of a value
     Examples:
-    MANDATORY_MISSING : "???
+    MANDATORY_MISSING : "???"
     VALUE : "10", "20", True,
     INTERPOLATION: "${foo}", "${foo.bar}"
     STR_INTERPOLATION: "ftp://${host}/path", ${foo.${bar}}
@@ -713,7 +713,7 @@ def update_string(to_s: str, start: int, stop: int, from_s: str) -> Optional[str
     """
     Update `to_s`, replacing its content from `start` to `stop` (excluded) with `from_s`.
 
-    Return `None` if input indices are invalid.
+    Return `None` if input indices are invalid (negative indices are *not* allowed).
     """
     if start < 0 or start > len(to_s) or stop < 0 or stop > len(to_s) or stop < start:
         return None

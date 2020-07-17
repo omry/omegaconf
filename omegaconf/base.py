@@ -11,7 +11,12 @@ from ._utils import (
     get_value_kind,
     update_string,
 )
-from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
+from .errors import (
+    ConfigKeyError,
+    MissingMandatoryValue,
+    ParseError,
+    UnsupportedInterpolationType,
+)
 
 
 @dataclass
@@ -20,15 +25,6 @@ class InterpolationRange:
 
     start: int = -1
     stop: int = -1
-
-
-class ParseError(Exception):
-    """Thrown when unable to parse a complex interpolation"""
-
-    @staticmethod
-    def assert_(condition: Any) -> None:
-        if not condition:
-            raise ParseError()
 
 
 @dataclass
@@ -409,7 +405,9 @@ class Container(Node):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-            except ParseError:
+            except ParseError as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(key=key, value=value, cause=e)
                 return None
             return StringNode(value=new, key=key)
         else:
@@ -445,16 +443,16 @@ class Container(Node):
                 inter.stop = idx + 1 - total_offset
                 # Evaluate this interpolation.
                 val = self._evaluate_simple(result[inter.start : inter.stop], **kw)
-                ParseError.assert_(val is not None)
+                _parse_assert(val is not None, "unexpected error during parsing")
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
                 result = update_string(result, inter.start, inter.stop, val_str)  # type: ignore
-                ParseError.assert_(result is not None)
+                _parse_assert(result is not None, "unexpected error during parsing")
                 # Update offset based on difference between the length of the definition
                 # of the interpolation vs the length of its evaluation.
                 offset = inter.stop - inter.start - len(val_str)
                 total_offset += offset
-        ParseError.assert_(not to_eval)
+        _parse_assert(not to_eval, "syntax error - maybe no matching braces?")
         return result
 
     def _re_parent(self) -> None:
@@ -480,3 +478,14 @@ class Container(Node):
                             item._set_parent(self)
                         if isinstance(item, Container):
                             item._re_parent()
+
+
+def _parse_assert(condition: Any, msg: str = "") -> None:
+    """
+    Raise a `ParseError` if `condition` evaluates to `False`.
+
+    `msg` is an optional message that may give additional information about
+    the error.
+    """
+    if not condition:
+        raise ParseError(msg)
