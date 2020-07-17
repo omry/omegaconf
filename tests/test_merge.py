@@ -14,7 +14,9 @@ from omegaconf import (
 from omegaconf._utils import is_structured_config
 
 from . import (
+    A,
     B,
+    C,
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
@@ -215,6 +217,8 @@ from . import (
         pytest.param(
             [B, {"x": {"a": 20}}], {"x": {"a": 20}}, id="structured_merge_into_missing",
         ),
+        pytest.param([C, {"x": A}], {"x": {"a": 10}}, id="structured_merge_into_none"),
+        pytest.param([C, C], {"x": None}, id="none_not_expanding"),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
