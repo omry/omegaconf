@@ -485,3 +485,21 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
     assert _utils.get_ref_type(obj) == expected
+
+
+def test_update_string() -> None:
+    assert _utils.update_string("hello world", 1, 5, "i") == "hi world"
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "start, stop",
+    [
+        (-1, 1),
+        (1, -1),
+        (2, 1),
+        (len("hello world") + 1, 100),
+        (0, len("hello world") + 1),
+    ],
+)
+def test_update_string_error(start: int, stop: int) -> None:
+    assert _utils.update_string("hello world", start, stop, "i") is None
