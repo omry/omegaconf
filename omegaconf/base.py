@@ -377,7 +377,6 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
-        from .nodes import StringNode
 
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
         if value_kind not in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
@@ -399,7 +398,7 @@ class Container(Node):
             try:
                 # NB: `match_list` is ignored here as complex interpolations may be
                 # nested, the string will be re-parsed within `_evaluate_complex()`.
-                new = self._evaluate_complex(
+                return self._evaluate_complex(
                     value,
                     key=key,
                     throw_on_missing=throw_on_missing,
@@ -409,7 +408,6 @@ class Container(Node):
                 if throw_on_resolution_failure:
                     self._format_and_raise(key=key, value=value, cause=e)
                 return None
-            return StringNode(value=new, key=key)
         else:
             assert False
 
@@ -439,7 +437,7 @@ class Container(Node):
         key: Any,
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
-    ) -> Optional[str]:
+    ) -> Optional["Node"]:
         """
         Evaluate a complex interpolation (>1, nested, with other strings...).
 
@@ -457,6 +455,8 @@ class Container(Node):
                if it resolves to "abc", we update the result accordingly to "abc".
             4. We are done scanning `value` => the final result is "abc".
         """
+        from .nodes import StringNode
+
         to_eval = []  # list of ongoing interpolations to be evaluated
         # `result` will be updated iteratively from `value` to final result.
         result = value
@@ -481,6 +481,10 @@ class Container(Node):
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
                 _parse_assert(val is not None, "unexpected error during parsing")
+                # If this interpolation covers the whole expression we are evaluating,
+                # then `val` is our final result. We should *not* cast it to string!
+                if inter.start == 0 and idx == len(value) - 1:
+                    return val
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
                 result = update_string(result, inter.start, inter.stop, val_str)  # type: ignore
@@ -490,7 +494,7 @@ class Container(Node):
                 offset = inter.stop - inter.start - len(val_str)
                 total_offset += offset
         _parse_assert(not to_eval, "syntax error - maybe no matching braces?")
-        return result
+        return StringNode(value=result, key=key)
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig
