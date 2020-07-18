@@ -369,12 +369,12 @@ Another typical use case is to to dynamically select a sub-config:
 .. doctest::
 
     >>> cfg = OmegaConf.create("""
-        plans:
-            A: plan A
-            B: plan B
-        selected_plan: A
-        plan: ${plans.${selected_plan}}
-        """)
+    ... plans:
+    ...     A: plan A
+    ...     B: plan B
+    ... selected_plan: A
+    ... plan: ${plans.${selected_plan}}
+    ... """)
     >>> print(f"Default: cfg.plan = {cfg.plan}")
     Default: cfg.plan = plan A
     >>> cfg.selected_plan = "B"
