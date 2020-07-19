@@ -286,6 +286,23 @@ Example:
     >>> print(type(conf.client.url).__name__)
     str
 
+Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create("""
+    ... plans:
+    ...     A: plan A
+    ...     B: plan B
+    ... selected_plan: A
+    ... plan: ${plans.${selected_plan}}
+    ... """)
+    >>> print(f"Default: cfg.plan = {cfg.plan}")
+    Default: cfg.plan = plan A
+    >>> cfg.selected_plan = "B"
+    >>> print(f"After selecting plan B: cfg.plan = {cfg.plan}")
+    After selecting plan B: cfg.plan = plan B
+
 
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -336,6 +353,7 @@ This example creates a resolver that adds 10 to the given value (note the need t
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
 You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
+
 .. doctest::
 
     >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
@@ -351,11 +369,7 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     >>> c.escape_whitespace
     'Hello World'
 
-Nested interpolations
-^^^^^^^^^^^^^^^^^^^^^
-
-You can use interpolations within interpolations, for instance to perform an
-operation over config variables:
+You can take advantage of nested interpolations to perform operations over variables:
 
 .. doctest::
 
@@ -363,23 +377,6 @@ operation over config variables:
     >>> c = OmegaConf.create({"a": 1, "b": 2, "a_plus_b": "${plus_int:${a},${b}}"})
     >>> c.a_plus_b
     3
-
-Another typical use case is to to dynamically select a sub-config:
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create("""
-    ... plans:
-    ...     A: plan A
-    ...     B: plan B
-    ... selected_plan: A
-    ... plan: ${plans.${selected_plan}}
-    ... """)
-    >>> print(f"Default: cfg.plan = {cfg.plan}")
-    Default: cfg.plan = plan A
-    >>> cfg.selected_plan = "B"
-    >>> print(f"After selecting plan B: cfg.plan = {cfg.plan}")
-    After selecting plan B: cfg.plan = plan B
 
 
 Merging configurations
