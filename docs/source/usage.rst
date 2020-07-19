@@ -297,11 +297,11 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
     ... selected_plan: A
     ... plan: ${plans.${selected_plan}}
     ... """)
-    >>> print(f"Default: cfg.plan = {cfg.plan}")
-    Default: cfg.plan = plan A
+    >>> print(cfg.plan) # default plan
+    plan A
     >>> cfg.selected_plan = "B"
-    >>> print(f"After selecting plan B: cfg.plan = {cfg.plan}")
-    After selecting plan B: cfg.plan = plan B
+    >>> print(cfg.plan) # new plan
+    plan B
 
 
 Environment variable interpolation
