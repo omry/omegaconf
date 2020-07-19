@@ -363,7 +363,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             c: ${${b}}
             """,
             {"c": 1},
-            id="basic nesting",
+            id="basic_nesting",
         ),
         pytest.param(
             """
@@ -372,7 +372,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             c: ${env:${a}_${b}}
             """,
             {"c": "test123"},
-            id="nesting with key",
+            id="nesting_with_key",
         ),
         pytest.param(
             """
@@ -383,7 +383,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             t: ${${op}:${x},${y}}
             """,
             {"z": 3, "t": 3},
-            id="nesting with (possibly dynamic) resolver",
+            id="nesting_with_resolver",
         ),
         pytest.param(
             """
@@ -398,7 +398,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             f: ${a${e}}
             """,
             {"c": 2, "d": 2, "f": 1},
-            id="member access",
+            id="member_access",
         ),
         pytest.param(
             """
@@ -406,7 +406,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             b: abc_{${a}}
             """,
             {"b": "abc_{def}"},
-            id="braces in string",
+            id="braces_in_string",
         ),
         pytest.param(
             """
@@ -418,7 +418,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             # it changes in the future we should ensure that both `b` and `c` yield
             # the same result.
             {"b": "${env:x=A}", "c": "${env:x=A}"},
-            id="illegal character in interpolation",
+            id="illegal_character_in_interpolation",
         ),
     ],
 )
@@ -437,9 +437,9 @@ def test_nested_interpolations(cfg: str, expected_dict: Dict[str, Any]) -> None:
     "cfg,key",
     [
         # All these examples have non-matching braces.
-        ({"a": "PATH", "b": "${env:${a}"}, "b"),
-        ({"a": 1, "b": 2, "c": "${a ${b}"}, "c"),
-        ({"a": 1, "b": 2, "c": "${a} ${b"}, "c"),
+        pytest.param({"a": "PATH", "b": "${env:${a}"}, "b", id="env_not_closed"),
+        pytest.param({"a": 1, "b": 2, "c": "${a ${b}"}, "c", id="a_not_closed"),
+        pytest.param({"a": 1, "b": 2, "c": "${a} ${b"}, "c", id="b_not_closed"),
     ],
 )
 def test_nested_interpolation_errors(cfg: Dict[str, Any], key: str) -> None:
