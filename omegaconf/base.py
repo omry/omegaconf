@@ -17,8 +17,8 @@ from .errors import (
 class InterpolationRange:
     """Used to store start/stop indices of interpolations being evaluated"""
 
-    start: int = -1
-    stop: int = -1
+    start: int
+    stop: Optional[int] = None
 
 
 @dataclass
