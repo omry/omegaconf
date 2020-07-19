@@ -4,13 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
-from ._utils import (
-    ValueKind,
-    _get_value,
-    format_and_raise,
-    get_value_kind,
-    update_string,
-)
+from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import (
     ConfigKeyError,
     InterpolationParseError,
@@ -503,8 +497,7 @@ class Container(Node):
                     return val
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
-                result = update_string(result, inter.start, inter.stop, val_str)  # type: ignore
-                _cond_parse_error(result is not None, "unexpected error during parsing")
+                result = _update_string(result, inter.start, inter.stop, val_str)
                 # Update offset based on difference between the length of the definition
                 # of the interpolation vs the length of its evaluation.
                 offset = inter.stop - inter.start - len(val_str)
@@ -546,3 +539,13 @@ def _cond_parse_error(condition: Any, msg: str = "") -> None:
     """
     if not condition:
         raise InterpolationParseError(msg)
+
+
+def _update_string(to_s: str, start: int, stop: int, from_s: str) -> str:
+    """
+    Update `to_s`, replacing its content from `start` to `stop` (excluded) with `from_s`.
+
+    Both `start` and `stop` indices must be between 0 and `len(to_s)` (included).
+    """
+    assert 0 <= start <= len(to_s) and 0 <= stop <= len(to_s)
+    return "".join([to_s[0:start], from_s, to_s[stop:]])
