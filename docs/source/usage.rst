@@ -373,8 +373,11 @@ You can take advantage of nested interpolations to perform operations over varia
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("plus_int", lambda x, y: int(x) + int(y))
-    >>> c = OmegaConf.create({"a": 1, "b": 2, "a_plus_b": "${plus_int:${a},${b}}"})
+    >>> OmegaConf.register_resolver("plus_int",
+    ...                             lambda x, y: int(x) + int(y))
+    >>> c = OmegaConf.create({"a": 1,
+    ...                       "b": 2,
+    ...                       "a_plus_b": "${plus_int:${a},${b}}"})
     >>> c.a_plus_b
     3
 
