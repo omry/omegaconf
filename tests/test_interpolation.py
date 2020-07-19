@@ -356,23 +356,25 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "cfg,expected_dict",
     [
-        (
+        pytest.param(
             """
             a: 1
             b: a
             c: ${${b}}
             """,
-            {"c": 1},  # basic nesting
+            {"c": 1},
+            id="basic nesting",
         ),
-        (
+        pytest.param(
             """
             a: OMEGACONF
             b: NESTED_INTERPOLATIONS_TEST
             c: ${env:${a}_${b}}
             """,
-            {"c": "test123"},  # nesting with key
+            {"c": "test123"},
+            id="nesting with key",
         ),
-        (
+        pytest.param(
             """
             x: 1
             y: 2
@@ -380,9 +382,10 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             z: ${plus:${x},${y}}
             t: ${${op}:${x},${y}}
             """,
-            {"z": 3, "t": 3},  # nesting with (possibly dynamic) resolver
+            {"z": 3, "t": 3},
+            id="nesting with (possibly dynamic) resolver",
         ),
-        (
+        pytest.param(
             """
             a:
                 b: 1
@@ -394,16 +397,18 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             e: .d
             f: ${a${e}}
             """,
-            {"c": 2, "d": 2, "f": 1},  # member access
+            {"c": 2, "d": 2, "f": 1},
+            id="member access",
         ),
-        (
+        pytest.param(
             """
             a: def
             b: abc_{${a}}
             """,
-            {"b": "abc_{def}"},  # braces in string
+            {"b": "abc_{def}"},
+            id="braces in string",
         ),
-        (
+        pytest.param(
             """
             a: A
             b: ${env:x=A}
@@ -413,6 +418,7 @@ def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
             # it changes in the future we should ensure that both `b` and `c` yield
             # the same result.
             {"b": "${env:x=A}", "c": "${env:x=A}"},
+            id="illegal character in interpolation",
         ),
     ],
 )
