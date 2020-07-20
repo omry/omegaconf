@@ -375,7 +375,10 @@ def test_pretty_deprecated() -> None:
     with pytest.warns(
         expected_warning=UserWarning,
         match=re.escape(
-            "pretty() is deprecated, use OmegaConf.to_yaml(). (Since 2.0.1)"
+            """
+            pretty() is deprecated, use OmegaConf.to_yaml() and resolve
+            now defaults to True (Since 2.0.1)
+            """
         ),
     ):
         assert c.pretty() == "foo: bar\n"

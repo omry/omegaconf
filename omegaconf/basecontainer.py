@@ -226,7 +226,10 @@ class BaseContainer(Container, ABC):
         from omegaconf import OmegaConf
 
         warnings.warn(
-            "pretty() is deprecated, use OmegaConf.to_yaml(). (Since 2.0.1)",
+            """
+            pretty() is deprecated, use OmegaConf.to_yaml() and resolve
+            now defaults to True (Since 2.0.1)
+            """,
             category=UserWarning,
             stacklevel=2,
         )

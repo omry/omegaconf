@@ -570,7 +570,9 @@ class OmegaConf:
             root[idx] = value
 
     @staticmethod
-    def to_yaml(cfg: Container, resolve: bool = False, sort_keys: bool = False) -> str:
+    def to_yaml(
+        cfg: Container, *, resolve: bool = True, sort_keys: bool = False
+    ) -> str:
         """
         returns a yaml dump of this config object.
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
