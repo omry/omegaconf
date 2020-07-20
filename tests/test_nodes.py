@@ -361,7 +361,7 @@ def test_pretty_with_enum() -> None:
 
     expected = """foo: FOO
 """
-    s = cfg.pretty()
+    s = OmegaConf.to_yaml(cfg)
     assert s == expected
     assert (
         OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))

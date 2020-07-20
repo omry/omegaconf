@@ -36,8 +36,8 @@ def test_pretty_list() -> None:
 - item2
 - key3: value3
 """
-    assert expected == c.pretty()
-    assert OmegaConf.create(c.pretty()) == c
+    assert expected == OmegaConf.to_yaml(c)
+    assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
 def test_pretty_list_unicode() -> None:
@@ -46,8 +46,8 @@ def test_pretty_list_unicode() -> None:
 - item二
 - key三: value三
 """
-    assert expected == c.pretty()
-    assert OmegaConf.create(c.pretty()) == c
+    assert expected == OmegaConf.to_yaml(c)
+    assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
 def test_pretty_strings_float() -> None:
@@ -56,7 +56,7 @@ def test_pretty_strings_float() -> None:
 - '1.0'
 - 1.0
 """
-    assert c.pretty() == expected
+    assert OmegaConf.to_yaml(c) == expected
 
 
 def test_pretty_string_boolean() -> None:
@@ -64,13 +64,13 @@ def test_pretty_string_boolean() -> None:
         print(t)
         c = OmegaConf.create([t, 1])
         expected = "- '%s'\n- 1\n" % t
-        assert c.pretty() == expected
+        assert OmegaConf.to_yaml(c) == expected
 
 
 def test_pretty_string_int() -> None:
     c = OmegaConf.create(["1", 1])
     expected = "- '1'\n- 1\n"
-    assert c.pretty() == expected
+    assert OmegaConf.to_yaml(c) == expected
 
 
 def test_list_get_with_default() -> None:
@@ -233,7 +233,7 @@ def test_list_append() -> None:
 def test_pretty_without_resolve() -> None:
     c = OmegaConf.create([100, "${0}"])
     # without resolve, references are preserved
-    yaml_str = c.pretty(resolve=False)
+    yaml_str = OmegaConf.to_yaml(c, resolve=False)
     c2 = OmegaConf.create(yaml_str)
     assert isinstance(c2, ListConfig)
     c2[0] = 1000
@@ -243,7 +243,7 @@ def test_pretty_without_resolve() -> None:
 def test_pretty_with_resolve() -> None:
     c = OmegaConf.create([100, "${0}"])
     # with resolve, references are not preserved.
-    c2 = OmegaConf.create(c.pretty(resolve=True))
+    c2 = OmegaConf.create(OmegaConf.to_yaml(c, resolve=True))
     assert isinstance(c2, ListConfig)
     c2[0] = 1000
     assert c[1] == 100
