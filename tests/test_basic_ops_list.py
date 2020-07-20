@@ -30,7 +30,7 @@ def test_list_of_dicts() -> None:
     assert c[1].key2 == "value2"
 
 
-def test_pretty_list() -> None:
+def test_to_yaml_list() -> None:
     c = OmegaConf.create(["item1", "item2", dict(key3="value3")])
     expected = """- item1
 - item2
@@ -40,7 +40,7 @@ def test_pretty_list() -> None:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-def test_pretty_list_unicode() -> None:
+def test_to_yaml_list_unicode() -> None:
     c = OmegaConf.create(["item一", "item二", dict(key三="value三")])
     expected = """- item一
 - item二
@@ -50,7 +50,7 @@ def test_pretty_list_unicode() -> None:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-def test_pretty_strings_float() -> None:
+def test_to_yaml_strings_float() -> None:
     c = OmegaConf.create(["10e2", "1.0", 1.0])
     expected = """- '10e2'
 - '1.0'
@@ -59,7 +59,7 @@ def test_pretty_strings_float() -> None:
     assert OmegaConf.to_yaml(c) == expected
 
 
-def test_pretty_string_boolean() -> None:
+def test_to_yaml_string_boolean() -> None:
     for t in _utils.YAML_BOOL_TYPES:
         print(t)
         c = OmegaConf.create([t, 1])
@@ -67,7 +67,7 @@ def test_pretty_string_boolean() -> None:
         assert OmegaConf.to_yaml(c) == expected
 
 
-def test_pretty_string_int() -> None:
+def test_to_yaml_string_int() -> None:
     c = OmegaConf.create(["1", 1])
     expected = "- '1'\n- 1\n"
     assert OmegaConf.to_yaml(c) == expected
@@ -230,7 +230,7 @@ def test_list_append() -> None:
     validate_list_keys(c)
 
 
-def test_pretty_without_resolve() -> None:
+def test_to_yaml_without_resolve() -> None:
     c = OmegaConf.create([100, "${0}"])
     # without resolve, references are preserved
     yaml_str = OmegaConf.to_yaml(c, resolve=False)
@@ -240,7 +240,7 @@ def test_pretty_without_resolve() -> None:
     assert c2[1] == 1000
 
 
-def test_pretty_with_resolve() -> None:
+def test_to_yaml_with_resolve() -> None:
     c = OmegaConf.create([100, "${0}"])
     # with resolve, references are not preserved.
     c2 = OmegaConf.create(OmegaConf.to_yaml(c, resolve=True))

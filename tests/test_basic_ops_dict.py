@@ -119,7 +119,7 @@ def test_subscript_set_with_dot_warning_suppressed(recwarn: Any, mocker: Any) ->
     assert len(recwarn) == 0
 
 
-def test_pretty_dict() -> None:
+def test_to_yaml_dict() -> None:
     c = OmegaConf.create(dict(hello="world", list=[1, 2]))
     expected = """hello: world
 list:
@@ -130,7 +130,7 @@ list:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-def test_pretty_sort_keys() -> None:
+def test_to_yaml_sort_keys() -> None:
     c = OmegaConf.create({"b": 2, "a": 1})
     # keys are not sorted by default
     assert OmegaConf.to_yaml(c) == "b: 2\na: 1\n"
@@ -138,7 +138,7 @@ def test_pretty_sort_keys() -> None:
     assert OmegaConf.to_yaml(c, sort_keys=True) == "a: 1\nb: 2\n"
 
 
-def test_pretty_dict_unicode() -> None:
+def test_to_yaml_dict_unicode() -> None:
     c = OmegaConf.create(dict(你好="世界", list=[1, 2]))
     expected = """你好: 世界
 list:
@@ -149,18 +149,18 @@ list:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-def test_pretty_strings_float() -> None:
+def test_to_yaml_strings_float() -> None:
     c = OmegaConf.create({"b": "10e2", "a": "1.0", "c": 1.0})
     assert OmegaConf.to_yaml(c) == "b: '10e2'\na: '1.0'\nc: 1.0\n"
 
 
-def test_pretty_string_boolean() -> None:
+def test_to_yaml_string_boolean() -> None:
     for t in _utils.YAML_BOOL_TYPES:
         c = OmegaConf.create({"b": t, "a": 1})
         assert OmegaConf.to_yaml(c) == "b: '%s'\na: 1\n" % t
 
 
-def test_pretty_string_int() -> None:
+def test_to_yaml_string_int() -> None:
     c = OmegaConf.create({"b": "1", "a": 1})
     assert OmegaConf.to_yaml(c) == "b: '1'\na: 1\n"
 
@@ -522,7 +522,7 @@ def test_assign_dict_in_dict() -> None:
     assert isinstance(c.foo, DictConfig)
 
 
-def test_pretty_without_resolve() -> None:
+def test_to_yaml_without_resolve() -> None:
     c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     # without resolve, references are preserved
     c2 = OmegaConf.create(OmegaConf.to_yaml(c, resolve=False))
@@ -532,7 +532,7 @@ def test_pretty_without_resolve() -> None:
     assert c2.a1 == "changed"
 
 
-def test_pretty_with_resolve() -> None:
+def test_to_yaml_with_resolve() -> None:
     c = OmegaConf.create(dict(a1="${ref}", ref="bar"))
     c2 = OmegaConf.create(OmegaConf.to_yaml(c, resolve=True))
     assert isinstance(c2, DictConfig)

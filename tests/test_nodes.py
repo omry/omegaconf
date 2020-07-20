@@ -1,4 +1,5 @@
 import copy
+import re
 from enum import Enum
 from typing import Any, Dict, Tuple, Type
 
@@ -353,7 +354,7 @@ def test_legal_assignment_enum(
                 node_type(enum_type)
 
 
-def test_pretty_with_enum() -> None:
+def test_to_yaml_with_enum() -> None:
     cfg = OmegaConf.create()
     assert isinstance(cfg, DictConfig)
     cfg.foo = EnumNode(Enum1)
@@ -367,6 +368,17 @@ def test_pretty_with_enum() -> None:
         OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
         == cfg
     )
+
+
+def test_pretty_deprecated() -> None:
+    c = OmegaConf.create({"foo": "bar"})
+    with pytest.warns(
+        expected_warning=UserWarning,
+        match=re.escape(
+            "pretty() is deprecated, use OmegaConf.to_yaml(). (Since 2.0.1)"
+        ),
+    ):
+        assert c.pretty() == "foo: bar\n"
 
 
 class DummyEnum(Enum):
