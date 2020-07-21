@@ -497,7 +497,9 @@ class Container(Node):
                     return val
                 # Update `result` with the evaluation of the interpolation.
                 val_str = str(val)
-                result = _update_string(result, inter.start, inter.stop, val_str)
+                result = "".join(
+                    [result[0 : inter.start], val_str, result[inter.stop :]]
+                )
                 # Update offset based on difference between the length of the definition
                 # of the interpolation vs the length of its evaluation.
                 offset = inter.stop - inter.start - len(val_str)
@@ -539,13 +541,3 @@ def _cond_parse_error(condition: Any, msg: str = "") -> None:
     """
     if not condition:
         raise InterpolationParseError(msg)
-
-
-def _update_string(to_s: str, start: int, stop: int, from_s: str) -> str:
-    """
-    Update `to_s`, replacing its content from `start` to `stop` (excluded) with `from_s`.
-
-    Both `start` and `stop` indices must be between 0 and `len(to_s)` (included).
-    """
-    assert 0 <= start <= len(to_s) and 0 <= stop <= len(to_s)
-    return "".join([to_s[0:start], from_s, to_s[stop:]])
