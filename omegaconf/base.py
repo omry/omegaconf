@@ -5,7 +5,20 @@ from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
-from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
+from .errors import (
+    ConfigKeyError,
+    InterpolationParseError,
+    MissingMandatoryValue,
+    UnsupportedInterpolationType,
+)
+
+
+@dataclass
+class InterpolationRange:
+    """Used to store start/stop indices of interpolations being evaluated"""
+
+    start: int
+    stop: Optional[int] = None
 
 
 @dataclass
@@ -358,7 +371,6 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
-        from .nodes import StringNode
 
         value_kind, match_list = get_value_kind(value=value, return_match_list=True)
         if value_kind not in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
@@ -377,27 +389,123 @@ class Container(Node):
         elif value_kind == ValueKind.STR_INTERPOLATION:
             value = _get_value(value)
             assert isinstance(value, str)
-            orig = value
-            new = ""
-            last_index = 0
-            for match in match_list:
-                new_val = self._resolve_simple_interpolation(
+            try:
+                # Note: `match_list` is ignored here as complex interpolations may be
+                # nested, the string will be re-parsed within `_evaluate_complex()`.
+                return self._evaluate_complex(
+                    value,
                     key=key,
-                    inter_type=match.group(1),
-                    inter_key=match.group(2),
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-                # if failed to resolve, return None for the whole thing.
-                if new_val is None:
-                    return None
-                new += orig[last_index : match.start(0)] + str(new_val)
-                last_index = match.end(0)
-
-            new += orig[last_index:]
-            return StringNode(value=new, key=key)
+            except InterpolationParseError as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(key=key, value=value, cause=e)
+                return None
         else:
             assert False
+
+    def _evaluate_simple(
+        self,
+        value: str,
+        key: Any,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        """Evaluate a simple interpolation"""
+        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
+        if value_kind == ValueKind.VALUE:
+            from .nodes import StringNode
+
+            # False positive, this is not an interpolation after all! This may happen
+            # with strings like "${foo:abc=def}" that are not valid interpolations per
+            # current parsing rules in `get_value_kind()`.
+            return StringNode(key=key, value=value)
+        assert value_kind == ValueKind.INTERPOLATION and len(match_list) == 1, (
+            value,
+            value_kind,
+            match_list,
+        )
+        match = match_list[0]
+        return self._resolve_simple_interpolation(
+            inter_type=match.group(1),
+            inter_key=match.group(2),
+            key=key,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
+
+    def _evaluate_complex(
+        self,
+        value: str,
+        key: Any,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        """
+        Evaluate a complex interpolation.
+
+        A complex interpolation is more elaborate than "${a}" or "${a:b,c}", e.g.:
+            "Sentence: ${subject} {verb} ${object}" (string interpolation)
+            "${plus:${x},${y}} (calling a custom resolver on config variables)
+            "${${op}:${x},${y}} (same as previous but with a dynamic resolver)
+            "${${a}}" (fetching the key whose name is stored in `a`)
+
+        The high-level logic consists in scanning the input string `value` from
+        left to right, keeping track of the tokens signaling the opening and closing
+        of each interpolation in the string. Whenever an interpolation is closed we
+        evaluate it and replace its definition with the result of this evaluation.
+
+        As an example, consider the string `value` set to "${foo.${bar}}":
+            1. We initialize our result with the original string: "${foo.${bar}}"
+            2. Scanning `value` from left to right, the first interpolation to be
+               closed is "${bar}". We evaluate it: if it resolves to "baz", we update
+               the result string to "${foo.baz}".
+            3. The next interpolation to be closed is now "${foo.baz}". We evaluate it:
+               if it resolves to "abc", we update the result accordingly to "abc".
+            4. We are done scanning `value` => the final result is "abc".
+        """
+        from .nodes import StringNode
+
+        to_eval = []  # list of ongoing interpolations to be evaluated
+        # `result` will be updated iteratively from `value` to final result.
+        result = value
+        total_offset = 0  # keep track of offset between indices in `result` vs `value`
+        for idx, ch in enumerate(value):
+            if value[idx : idx + 2] == "${":
+                # New interpolation starting.
+                to_eval.append(InterpolationRange(start=idx - total_offset))
+            elif ch == "}":
+                # Current interpolation is ending.
+                if not to_eval:
+                    # This can happen if someone uses braces in their strings, which
+                    # we should still allow (ex: "I_like_braces_{}_and_${liked}").
+                    continue
+                inter = to_eval.pop()
+                inter.stop = idx + 1 - total_offset
+                # Evaluate this interpolation.
+                val = self._evaluate_simple(
+                    value=result[inter.start : inter.stop],
+                    key=key,
+                    throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
+                )
+                _cond_parse_error(val is not None, "unexpected error during parsing")
+                # If this interpolation covers the whole expression we are evaluating,
+                # then `val` is our final result. We should *not* cast it to string!
+                if inter.start == 0 and idx == len(value) - 1:
+                    return val
+                # Update `result` with the evaluation of the interpolation.
+                val_str = str(val)
+                result = "".join(
+                    [result[0 : inter.start], val_str, result[inter.stop :]]
+                )
+                # Update offset based on difference between the length of the definition
+                # of the interpolation vs the length of its evaluation.
+                offset = inter.stop - inter.start - len(val_str)
+                total_offset += offset
+        _cond_parse_error(not to_eval, "syntax error - maybe no matching braces?")
+        return StringNode(value=result, key=key)
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig
@@ -422,3 +530,14 @@ class Container(Node):
                             item._set_parent(self)
                         if isinstance(item, Container):
                             item._re_parent()
+
+
+def _cond_parse_error(condition: Any, msg: str = "") -> None:
+    """
+    Raise an `InterpolationParseError` if `condition` evaluates to `False`.
+
+    `msg` is an optional message that may give additional information about
+    the error.
+    """
+    if not condition:
+        raise InterpolationParseError(msg)

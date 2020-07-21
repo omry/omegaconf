@@ -316,10 +316,15 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     """
     Determine the kind of a value
     Examples:
-    MANDATORY_MISSING : "???
+    MANDATORY_MISSING : "???"
     VALUE : "10", "20", True,
     INTERPOLATION: "${foo}", "${foo.bar}"
-    STR_INTERPOLATION: "ftp://${host}/path"
+    STR_INTERPOLATION: "ftp://${host}/path", "${foo.${bar}}"
+
+    Note in particular that in the current implementation, "${foo.${bar}}" is
+    identified as a string interpolation (`STR_INTERPOLATION`) while it is
+    actually a (nested) simple interpolation. This discrepancy w.r.t naming
+    conventions will be addressed in a future update.
 
     :param value: input string to classify
     :param return_match_list: True to return the match list as well
