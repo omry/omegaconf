@@ -523,6 +523,17 @@ class TestCopy:
         assert id(cfg[0]) == id(cp[0])
 
 
+# This test is to ensure 100% coverage with Python <= 3.6.3, even when the
+# above tests are skipped.
+@pytest.mark.skipif(  # type: ignore
+    sys.version_info >= (3, 6, 4), reason="Copy is tested in `TestCopy`"
+)
+def test_enforce_copy_coverage() -> None:
+    cfg = OmegaConf.create([])
+    with raises(TypeError):
+        cfg.copy()
+
+
 def test_not_implemented() -> None:
     with raises(NotImplementedError):
         OmegaConf()
