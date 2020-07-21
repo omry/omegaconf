@@ -264,6 +264,12 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
             "${my_resolver:cat\\, do g}",
             ("cat, do g",),
         ),
+        (
+            lambda *args: args,
+            "bracketed_list",
+            "${my_resolver:[cat\\, dog], unicorn}",
+            ("[cat, dog]", "unicorn"),
+        ),
         (lambda: "zero", "zero_arg", "${my_resolver:}", "zero"),
     ],
 )
