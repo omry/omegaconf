@@ -48,11 +48,11 @@ To build the docs execute `nox -s docs` or `make`(inside docs folder). Make give
 ### Modifying Jupyter notebook
 
 In order to change the Jupyter notebook you first need to open it with `jupyter notebook`.
-Then, change the cell you want and execute it so the expected output is shown. 
+Change the cell you want and then, execute it so the expected output is shown. 
 Note that the output after you execute the cell is saved as expected ouput for further 
 testing.
 
-In case that that the `in[number]` between cells isn't clean you should reset the kernel with 
+In case that that the `in[number]` of cells aren't in order you should reset the kernel with 
 `00` and then execute all the cells.
 
 
