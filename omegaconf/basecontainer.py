@@ -13,7 +13,6 @@ from ._utils import (
     _get_value,
     _is_interpolation,
     _resolve_optional,
-    get_omega_conf_dumper,
     get_ref_type,
     get_value_kind,
     get_yaml_loader,
@@ -216,32 +215,18 @@ class BaseContainer(Container, ABC):
         assert False
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        """
-        returns a yaml dump of this config object.
-        :param resolve: if True, will return a string with the interpolations resolved, otherwise
-        interpolations are preserved
-        :param sort_keys: If True, will print dict keys in sorted order. default False.
-        :return: A string containing the yaml representation.
-        """
         from omegaconf import OmegaConf
 
         warnings.warn(
             """
-            pretty() is deprecated, use OmegaConf.to_yaml() and resolve
-            now defaults to True (Since 2.0.1)
+            pretty() is deprecated and will be removed in a future version.
+            Use OmegaConf.to_yaml. Please note that the default value for
+            resolve has changed to True.
             """,
             category=UserWarning,
-            stacklevel=2,
         )
 
-        container = OmegaConf.to_container(self, resolve=resolve, enum_to_str=True)
-        return yaml.dump(  # type: ignore
-            container,
-            default_flow_style=False,
-            allow_unicode=True,
-            sort_keys=sort_keys,
-            Dumper=get_omega_conf_dumper(),
-        )
+        return OmegaConf.to_yaml(self, resolve=resolve, sort_keys=sort_keys)
 
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
