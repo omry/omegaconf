@@ -30,7 +30,7 @@ Empty
 
     >>> from omegaconf import OmegaConf
     >>> conf = OmegaConf.create()
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     {}
     <BLANKLINE>
 
@@ -40,7 +40,7 @@ From a dictionary
 .. doctest::
 
     >>> conf = OmegaConf.create({"k" : "v", "list" : [1, {"a": "1", "b": "2"}]})
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     k: v
     list:
     - 1
@@ -54,7 +54,7 @@ From a list
 .. doctest::
 
     >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10}}])
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     - 1
     - a: 10
       b:
@@ -70,7 +70,7 @@ From a yaml file
 
     >>> conf = OmegaConf.load('source/example.yaml')
     >>> # Output is identical to the yaml file
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 80
     log:
@@ -95,7 +95,7 @@ From a yaml string
     ... - item2
     ... """
     >>> conf = OmegaConf.create(s)
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     a: b
     b: c
     list:
@@ -110,7 +110,7 @@ From a dot-list
 
     >>> dot_list = ["a.aa.aaa=1", "a.aa.bbb=2", "a.bb.aaa=3", "a.bb.bbb=4"]
     >>> conf = OmegaConf.from_dotlist(dot_list)
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     a:
       aa:
         aaa: 1
@@ -130,7 +130,7 @@ To parse the content of sys.arg:
     >>> # Simulating command line arguments
     >>> sys.argv = ['your-program.py', 'server.port=82', 'log.file=log2.txt']
     >>> conf = OmegaConf.from_cli()
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 82
     log:
@@ -153,7 +153,7 @@ See :doc:`structured_config` for more details, or keep reading for a minimal exa
     ...     host: str = "localhost"
     >>> # For strict typing purposes, prefer OmegaConf.structured() when creating structured configs
     >>> conf = OmegaConf.structured(MyConfig)
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     port: 80
     host: localhost
     <BLANKLINE>
@@ -163,7 +163,7 @@ You can use an object to initialize the config as well:
 .. doctest::
 
     >>> conf = OmegaConf.structured(MyConfig(port=443))
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     port: 443
     host: localhost
     <BLANKLINE>
@@ -427,7 +427,7 @@ Note how the port changes to 82, and how the users lists are combined.
     >>>
     >>> # merge them all
     >>> conf = OmegaConf.merge(base_conf, second_conf, cli_conf)
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 82
     users:
@@ -589,13 +589,13 @@ Creates a copy of a DictConfig that contains only specific keys.
 .. doctest:: loaded
 
     >>> conf = OmegaConf.create({"a": {"b": 10}, "c":20})
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     a:
       b: 10
     c: 20
     <BLANKLINE>
     >>> c = OmegaConf.masked_copy(conf, ["a"])
-    >>> print(c.pretty())
+    >>> print(OmegaConf.to_yaml(c))
     a:
       b: 10
     <BLANKLINE>
