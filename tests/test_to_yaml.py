@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 import pytest
@@ -121,3 +122,18 @@ def test_to_yaml_with_enum() -> None:
         OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
         == cfg
     )
+
+
+def test_pretty_deprecated() -> None:
+    c = OmegaConf.create({"foo": "bar"})
+    with pytest.warns(
+        expected_warning=UserWarning,
+        match=re.escape(
+            """
+            pretty() is deprecated and will be removed in a future version.
+            Use OmegaConf.to_yaml. Please note that the default value for
+            resolve has changed to True.
+            """,
+        ),
+    ):
+        assert c.pretty() == "foo: bar\n"

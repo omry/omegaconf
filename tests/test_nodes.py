@@ -1,5 +1,4 @@
 import copy
-import re
 from enum import Enum
 from typing import Any, Dict, Tuple, Type
 
@@ -352,21 +351,6 @@ def test_legal_assignment_enum(
         else:
             with pytest.raises(ValidationError):
                 node_type(enum_type)
-
-
-def test_pretty_deprecated() -> None:
-    c = OmegaConf.create({"foo": "bar"})
-    with pytest.warns(
-        expected_warning=UserWarning,
-        match=re.escape(
-            """
-            pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml. Please note that the default value for
-            resolve has changed to True.
-            """,
-        ),
-    ):
-        assert c.pretty() == "foo: bar\n"
 
 
 class DummyEnum(Enum):
