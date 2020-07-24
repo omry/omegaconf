@@ -66,7 +66,7 @@ fields during construction.
     >>> conf3 = OmegaConf.structured(
     ...   SimpleTypes(num=20,
     ...   height=Height.TALL))
-    >>> print(conf3.pretty())
+    >>> print(OmegaConf.to_yaml(conf3))
     num: 20
     pi: 3.1415
     is_awesome: true
@@ -176,7 +176,7 @@ Structured configs can be nested.
     ...     manager: User = User(name="manager", height=Height.TALL)
 
     >>> conf : Group = OmegaConf.structured(Group)
-    >>> print(conf.pretty())
+    >>> print(OmegaConf.to_yaml(conf))
     name: ???
     admin:
       name: ???

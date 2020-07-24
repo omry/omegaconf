@@ -353,22 +353,6 @@ def test_legal_assignment_enum(
                 node_type(enum_type)
 
 
-def test_pretty_with_enum() -> None:
-    cfg = OmegaConf.create()
-    assert isinstance(cfg, DictConfig)
-    cfg.foo = EnumNode(Enum1)
-    cfg.foo = Enum1.FOO
-
-    expected = """foo: FOO
-"""
-    s = cfg.pretty()
-    assert s == expected
-    assert (
-        OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
-        == cfg
-    )
-
-
 class DummyEnum(Enum):
     FOO = 1
 

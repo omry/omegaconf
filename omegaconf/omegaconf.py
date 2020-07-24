@@ -34,6 +34,7 @@ from ._utils import (
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
+    get_omega_conf_dumper,
     get_type_of,
     is_attr_class,
     is_dataclass,
@@ -273,7 +274,7 @@ class OmegaConf:
         """
         if is_dataclass(config) or is_attr_class(config):
             config = OmegaConf.create(config)
-        data = config.pretty(resolve=resolve)
+        data = OmegaConf.to_yaml(config, resolve=resolve)
         if isinstance(f, (str, pathlib.Path)):
             with io.open(os.path.abspath(f), "w", encoding="utf-8") as file:
                 file.write(data)
@@ -567,6 +568,26 @@ class OmegaConf:
         elif isinstance(root, ListConfig):
             idx = int(last)
             root[idx] = value
+
+    @staticmethod
+    def to_yaml(
+        cfg: Container, *, resolve: bool = True, sort_keys: bool = False
+    ) -> str:
+        """
+        returns a yaml dump of this config object.
+        :param resolve: if True, will return a string with the interpolations resolved, otherwise
+        interpolations are preserved
+        :param sort_keys: If True, will print dict keys in sorted order. default False.
+        :return: A string containing the yaml representation.
+        """
+        container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
+        return yaml.dump(  # type: ignore
+            container,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=sort_keys,
+            Dumper=get_omega_conf_dumper(),
+        )
 
 
 # register all default resolvers

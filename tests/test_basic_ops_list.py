@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf, _utils
+from omegaconf import AnyNode, ListConfig, OmegaConf
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -28,49 +28,6 @@ def test_list_of_dicts() -> None:
     c = OmegaConf.create(v)
     assert c[0].key1 == "value1"
     assert c[1].key2 == "value2"
-
-
-def test_pretty_list() -> None:
-    c = OmegaConf.create(["item1", "item2", dict(key3="value3")])
-    expected = """- item1
-- item2
-- key3: value3
-"""
-    assert expected == c.pretty()
-    assert OmegaConf.create(c.pretty()) == c
-
-
-def test_pretty_list_unicode() -> None:
-    c = OmegaConf.create(["item一", "item二", dict(key三="value三")])
-    expected = """- item一
-- item二
-- key三: value三
-"""
-    assert expected == c.pretty()
-    assert OmegaConf.create(c.pretty()) == c
-
-
-def test_pretty_strings_float() -> None:
-    c = OmegaConf.create(["10e2", "1.0", 1.0])
-    expected = """- '10e2'
-- '1.0'
-- 1.0
-"""
-    assert c.pretty() == expected
-
-
-def test_pretty_string_boolean() -> None:
-    for t in _utils.YAML_BOOL_TYPES:
-        print(t)
-        c = OmegaConf.create([t, 1])
-        expected = "- '%s'\n- 1\n" % t
-        assert c.pretty() == expected
-
-
-def test_pretty_string_int() -> None:
-    c = OmegaConf.create(["1", 1])
-    expected = "- '1'\n- 1\n"
-    assert c.pretty() == expected
 
 
 def test_list_get_with_default() -> None:
@@ -228,25 +185,6 @@ def test_list_append() -> None:
     assert c == [1, 2, {}, []]
 
     validate_list_keys(c)
-
-
-def test_pretty_without_resolve() -> None:
-    c = OmegaConf.create([100, "${0}"])
-    # without resolve, references are preserved
-    yaml_str = c.pretty(resolve=False)
-    c2 = OmegaConf.create(yaml_str)
-    assert isinstance(c2, ListConfig)
-    c2[0] = 1000
-    assert c2[1] == 1000
-
-
-def test_pretty_with_resolve() -> None:
-    c = OmegaConf.create([100, "${0}"])
-    # with resolve, references are not preserved.
-    c2 = OmegaConf.create(c.pretty(resolve=True))
-    assert isinstance(c2, ListConfig)
-    c2[0] = 1000
-    assert c[1] == 100
 
 
 @pytest.mark.parametrize(  # type: ignore

@@ -159,7 +159,7 @@ manager:
   name: manager
   height: TALL
 """
-    assert conf.pretty() == expected
+    assert OmegaConf.to_yaml(conf) == expected
 
     # you can assign a different object of the same type
     conf.admin = User(name="omry", height=Height.TALL)
