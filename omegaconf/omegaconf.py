@@ -571,7 +571,7 @@ class OmegaConf:
 
     @staticmethod
     def to_yaml(
-        cfg: Container, *, resolve: bool = True, sort_keys: bool = False
+        cfg: Container, *, resolve: bool = False, sort_keys: bool = False
     ) -> str:
         """
         returns a yaml dump of this config object.
