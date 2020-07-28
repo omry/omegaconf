@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import attr
 
@@ -133,3 +133,9 @@ class PersonD:
 class PersonA:
     age: int = 18
     registered: bool = True
+
+
+@dataclass
+class ListClass:
+    list: List[int] = field(default_factory=lambda: [])
+    tuple: Tuple[int, int] = field(default_factory=lambda: (1, 2))

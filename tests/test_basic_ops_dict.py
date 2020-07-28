@@ -24,6 +24,7 @@ from . import (
     ConcretePlugin,
     Enum1,
     IllegalType,
+    ListClass,
     Plugin,
     StructuredWithMissing,
     User,
@@ -558,6 +559,23 @@ def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with pytest.raises(KeyValidationError):
         cfg[1] = "a"  # type: ignore
+
+
+@pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
+def test_set_list_different_type(value: Any) -> None:
+    cfg = OmegaConf.structured(ListClass)
+    with pytest.raises(ValidationError):
+        cfg.list = value
+        cfg.tuple = value
+
+
+def test_set_list_correct_type() -> None:
+    cfg = OmegaConf.structured(ListClass)
+    value = [1, 2, 3]
+    cfg.list = value
+    cfg.tuple = value
+    assert cfg.list == value
+    assert cfg.tuple == value
 
 
 def test_get_with_invalid_key() -> None:

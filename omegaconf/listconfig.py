@@ -46,12 +46,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         parent: Optional[Container] = None,
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
+        ref_type: Union[Type[Any], Any] = None,
     ) -> None:
         try:
             super().__init__(
                 parent=parent,
                 metadata=ContainerMetadata(
-                    ref_type=None,
+                    ref_type=ref_type,
                     object_type=list,
                     key=key,
                     optional=is_optional,
@@ -487,7 +488,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         ):
             self.__dict__["_content"] = value
         else:
-            assert is_primitive_list(value) or isinstance(value, ListConfig)
+            if not (is_primitive_list(value) or isinstance(value, ListConfig)):
+                raise ValidationError()
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
