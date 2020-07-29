@@ -561,6 +561,11 @@ def test_set_with_invalid_key() -> None:
         cfg[1] = "a"  # type: ignore
 
 
+def test_set_key_with_with_dataclass() -> None:
+    cfg = OmegaConf.create({"foo": [1, 2]})
+    cfg.foo = ListClass()
+
+
 @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
 def test_set_list_different_type(value: Any) -> None:
     cfg = OmegaConf.structured(ListClass)
