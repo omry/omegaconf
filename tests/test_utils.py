@@ -457,7 +457,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         ),
         pytest.param(
             DictConfig(ref_type=Any, content=ConcretePlugin),
-            Any,
+            Optional[Dict[Any, Any]],
             id="DictConfig[ConcretePlugin]_Any_reftype",
         ),
         pytest.param(

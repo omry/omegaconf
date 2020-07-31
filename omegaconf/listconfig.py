@@ -46,7 +46,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         parent: Optional[Container] = None,
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
-        ref_type: Union[Type[Any], Any] = None,
+        ref_type: Union[Type[Any], Any] = Any,
     ) -> None:
         try:
             super().__init__(
@@ -489,7 +489,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = value
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
-                raise ValidationError()
+                msg = (
+                    f"Invalid value assigned : {value} is not a "
+                    f"subclass of ListConfig or list."
+                )
+                raise ValidationError(msg=msg)
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)

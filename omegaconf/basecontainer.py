@@ -36,6 +36,11 @@ class BaseContainer(Container, ABC):
             parent=parent, metadata=metadata,
         )
         self.__dict__["_content"] = None
+        self._normalize_ref_type()
+
+    def _normalize_ref_type(self) -> None:
+        if self._metadata.ref_type is None:
+            self._metadata.ref_type = Any  # type: ignore
 
     def _resolve_with_default(
         self,

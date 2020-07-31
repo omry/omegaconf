@@ -553,9 +553,7 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     elif isinstance(obj, Container):
         if isinstance(obj, Node):
             ref_type = obj._metadata.ref_type
-        if ref_type is Any:
-            pass
-        elif not is_structured_config(ref_type):
+        if not is_structured_config(ref_type):
             kt = none_as_any(obj._metadata.key_type)
             vt = none_as_any(obj._metadata.element_type)
             if isinstance(obj, DictConfig):

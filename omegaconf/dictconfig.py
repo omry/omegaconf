@@ -53,7 +53,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         content: Union[Dict[str, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
-        ref_type: Union[Type[Any], Any] = None,
+        ref_type: Union[Type[Any], Any] = Any,
         key_type: Optional[Type[Any]] = None,
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
