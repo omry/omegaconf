@@ -706,7 +706,7 @@ class TestConfigs:
         assert cfg.tuple == value
 
     @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
-    def test_set_list_different_type(self, class_type: str, value: Any) -> None:
+    def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.ListClass)
         with pytest.raises(ValidationError):
