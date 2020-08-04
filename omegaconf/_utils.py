@@ -400,9 +400,14 @@ def decode_primitive(s: str) -> Any:
     return s
 
 
+def type_is_primitive_list(obj: Any) -> bool:
+    return issubclass(obj, (list, tuple))
+
+
 def is_primitive_list(obj: Any) -> bool:
     from .base import Container
 
+    print("is list", obj, isinstance(obj, list))
     return not isinstance(obj, Container) and isinstance(obj, (list, tuple))
 
 

@@ -714,6 +714,13 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             cfg.tuple = value
 
+    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
+    def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.ConfigWithDict)
+        with pytest.raises(ValidationError):
+            cfg.dict1 = value
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
