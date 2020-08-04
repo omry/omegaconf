@@ -143,7 +143,7 @@ class AnyNode(ValueNode):
         super().__init__(
             parent=parent,
             value=value,
-            metadata=Metadata(  # ref_type should be Optional[Type[Any]]
+            metadata=Metadata(
                 ref_type=Any, object_type=None, key=key, optional=is_optional  # type: ignore
             ),
         )
