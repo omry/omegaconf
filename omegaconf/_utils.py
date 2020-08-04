@@ -407,7 +407,6 @@ def type_is_primitive_list(obj: Any) -> bool:
 def is_primitive_list(obj: Any) -> bool:
     from .base import Container
 
-    print("is list", obj, isinstance(obj, list))
     return not isinstance(obj, Container) and isinstance(obj, (list, tuple))
 
 

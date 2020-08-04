@@ -188,8 +188,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if is_dict(value_type) and is_dict(target_type):
             return
 
-        print(value_type, target_type)
-
         def is_not_valid_type(value_type: Any, target_type: Any) -> bool:
             return (
                 type_is_primitive_list(value_type)
