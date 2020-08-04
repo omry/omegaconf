@@ -711,6 +711,7 @@ class TestConfigs:
         cfg = OmegaConf.structured(module.ListClass)
         with pytest.raises(ValidationError):
             cfg.list = value
+        with pytest.raises(ValidationError):
             cfg.tuple = value
 
 
