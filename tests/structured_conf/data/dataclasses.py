@@ -454,3 +454,9 @@ class WithNativeMISSING:
 @dataclass
 class MissingStructuredConfigField:
     plugin: Plugin = MISSING
+
+
+@dataclass
+class ListClass:
+    list: List[int] = field(default_factory=lambda: [])
+    tuple: Tuple[int, int] = field(default_factory=lambda: (1, 2))

@@ -442,3 +442,9 @@ class WithNativeMISSING:
 @attr.s(auto_attribs=True)
 class MissingStructuredConfigField:
     plugin: Plugin = MISSING
+
+
+@attr.s(auto_attribs=True)
+class ListClass:
+    list: List[int] = []
+    tuple: Tuple[int, int] = (1, 2)
