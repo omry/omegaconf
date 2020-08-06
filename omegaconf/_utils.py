@@ -725,8 +725,26 @@ def _ensure_container(target: Any) -> Any:
 
 
 def is_generic_list(type_: Any) -> bool:
+    """
+    Checks if a type is a generic list, for example:
+    list returns False
+    typing.List returns False
+    typing.List[T] returns True
+
+    :param type_: variable type
+    :return: bool
+    """
     return is_list_annotation(type_) and get_list_element_type(type_) is not None
 
 
 def is_generic_dict(type_: Any) -> bool:
+    """
+    Checks if a type is a generic dict, for example:
+    list returns False
+    typing.List returns False
+    typing.List[T] returns True
+
+    :param type_: variable type
+    :return: bool
+    """
     return is_dict_annotation(type_) and len(get_dict_key_value_types(type_)) > 0
