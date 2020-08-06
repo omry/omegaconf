@@ -714,10 +714,12 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             cfg.tuple = value
 
-    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
+    @pytest.mark.parametrize(  # type: ignore
+        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], {"foo": True}]
+    )
     def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.ConfigWithDict)
+        cfg = OmegaConf.structured(module.ConfigWithDict2)
         with pytest.raises(ValidationError):
             cfg.dict1 = value
 

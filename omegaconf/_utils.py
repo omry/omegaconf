@@ -400,10 +400,6 @@ def decode_primitive(s: str) -> Any:
     return s
 
 
-def type_is_primitive_list(obj: Any) -> bool:
-    return issubclass(obj, (list, tuple))
-
-
 def is_primitive_list(obj: Any) -> bool:
     from .base import Container
 
@@ -726,3 +722,11 @@ def _ensure_container(target: Any) -> Any:
         target = OmegaConf.structured(target)
     assert OmegaConf.is_config(target)
     return target
+
+
+def is_generic_list(type_: Any) -> bool:
+    return is_list_annotation(type_) and get_list_element_type(type_) is not None
+
+
+def is_generic_dict(type_: Any) -> bool:
+    return is_dict_annotation(type_) and len(get_dict_key_value_types(type_)) > 0

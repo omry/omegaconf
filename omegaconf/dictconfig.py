@@ -23,11 +23,11 @@ from ._utils import (
     get_type_of,
     get_value_kind,
     is_dict,
+    is_generic_dict,
+    is_generic_list,
     is_primitive_dict,
-    is_primitive_type,
     is_structured_config,
     is_structured_config_frozen,
-    type_is_primitive_list,
     type_str,
 )
 from .base import Container, ContainerMetadata, Node
@@ -188,19 +188,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if is_dict(value_type) and is_dict(target_type):
             return
 
-        def is_not_valid_type(value_type: Any, target_type: Any) -> bool:
-            return (
-                type_is_primitive_list(value_type)
-                or is_primitive_type(value_type)
-                or not issubclass(value_type, target_type)
-            )
-
+        if is_generic_list(target_type) or is_generic_dict(target_type):
+            return
         # TODO: simplify this flow. (if assign validate assign else validate merge)
         # is assignment illegal?
         validation_error = (
             target_type is not None
             and value_type is not None
-            and is_not_valid_type(value_type, target_type)
+            and not issubclass(value_type, target_type)
         )
 
         if not is_assign:
@@ -567,7 +562,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 for k, v in value.items():
                     self.__setitem__(k, v)
             else:
-                assert False, f"Unsupported value type : {value}"  # pragma: no cover
+                msg = f"Unsupported value type : {value}"
+                raise ValidationError(msg=msg)  # pragma: no cover
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
