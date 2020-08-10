@@ -418,7 +418,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         pytest.param(True, Optional[bool], id="bool"),
         pytest.param("bar", Optional[str], id="str"),
         pytest.param(None, type(None), id="NoneType"),
-        pytest.param({}, Optional[Dict[str, Any]], id="dict"),
+        pytest.param({}, Optional[Dict[Union[str, Enum], Any]], id="dict"),
         pytest.param([], Optional[List[Any]], id="List[Any]"),
         pytest.param(tuple(), Optional[List[Any]], id="List[Any]"),
         pytest.param(ConcretePlugin(), Optional[ConcretePlugin], id="ConcretePlugin"),
@@ -459,6 +459,11 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
             DictConfig(ref_type=Any, content=ConcretePlugin),
             Any,
             id="DictConfig[ConcretePlugin]_Any_reftype",
+        ),
+        pytest.param(
+            DictConfig(content="???", element_type=int, key_type=str),
+            Optional[Dict[str, int]],
+            id="DictConfig[str, int]_missing",
         ),
         pytest.param(
             DictConfig(ref_type=Plugin, content=ConcretePlugin),

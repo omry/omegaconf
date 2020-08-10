@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 import pytest
 
@@ -123,7 +123,7 @@ params = [
             op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
             key="a",
             exception_type=UnsupportedValueType,
-            ref_type=Optional[Dict[str, Any]],
+            ref_type=Optional[Dict[Union[str, Enum], Any]],
             msg="Value 'IllegalType' is not a supported primitive type",
         ),
         id="dict:update:object_of_illegal_type",
@@ -136,7 +136,7 @@ params = [
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
             exception_type=ReadonlyConfigError,
-            ref_type=Optional[Dict[str, Any]],
+            ref_type=Optional[Dict[Union[str, Enum], Any]],
             msg="Cannot pop from read-only node",
         ),
         id="dict,readonly:pop",
