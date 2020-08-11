@@ -556,7 +556,13 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
         is_optional = obj._is_optional()
         kt = none_as_any(obj._metadata.key_type)
         vt = none_as_any(obj._metadata.element_type)
-        if ref_type is Any and kt is Any and vt is Any and not obj._is_missing():
+        if (
+            ref_type is Any
+            and kt is Any
+            and vt is Any
+            and not obj._is_missing()
+            and not obj._is_none()
+        ):
             ref_type = Any  # type: ignore
         elif not is_structured_config(ref_type):
             if kt is Any:

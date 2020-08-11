@@ -461,6 +461,11 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
             id="DictConfig[ConcretePlugin]_Any_reftype",
         ),
         pytest.param(
+            DictConfig(content="???"),
+            Optional[Dict[Union[str, Enum], Any]],
+            id="DictConfig[Union[str, Enum], Any]_missing",
+        ),
+        pytest.param(
             DictConfig(content="???", element_type=int, key_type=str),
             Optional[Dict[str, int]],
             id="DictConfig[str, int]_missing",
@@ -485,6 +490,22 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         pytest.param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
         pytest.param(
             ListConfig([], element_type=int), Optional[List[int]], id="ListConfig[int]",
+        ),
+        pytest.param(
+            ListConfig(content="???"), Optional[List[Any]], id="ListConfig_missing",
+        ),
+        pytest.param(
+            ListConfig(content="???", element_type=int),
+            Optional[List[int]],
+            id="ListConfig[int]_missing",
+        ),
+        pytest.param(
+            ListConfig(content=None), Optional[List[Any]], id="ListConfig_none",
+        ),
+        pytest.param(
+            ListConfig(content=None, element_type=int),
+            Optional[List[int]],
+            id="ListConfig[int]_none",
         ),
     ],
 )
