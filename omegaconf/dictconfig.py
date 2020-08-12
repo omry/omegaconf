@@ -23,6 +23,8 @@ from ._utils import (
     get_type_of,
     get_value_kind,
     is_dict,
+    is_generic_dict,
+    is_generic_list,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -53,7 +55,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         content: Union[Dict[str, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
-        ref_type: Union[Type[Any], Any] = None,
+        ref_type: Union[Type[Any], Any] = Any,
         key_type: Optional[Type[Any]] = None,
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
@@ -186,6 +188,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if is_dict(value_type) and is_dict(target_type):
             return
 
+        if is_generic_list(target_type) or is_generic_dict(target_type):
+            return
         # TODO: simplify this flow. (if assign validate assign else validate merge)
         # is assignment illegal?
         validation_error = (
@@ -558,7 +562,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 for k, v in value.items():
                     self.__setitem__(k, v)
             else:
-                assert False, f"Unsupported value type : {value}"  # pragma: no cover
+                msg = f"Unsupported value type : {value}"
+                raise ValidationError(msg=msg)  # pragma: no cover
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:

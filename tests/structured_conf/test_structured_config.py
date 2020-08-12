@@ -691,6 +691,38 @@ class TestConfigs:
         assert OmegaConf.get_type(conf) == module.BoolConfig
         assert conf.with_default is False
 
+    def test_set_key_with_with_dataclass(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.create({"foo": [1, 2]})
+        cfg.foo = module.ListClass()
+
+    def test_set_list_correct_type(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.ListClass)
+        value = [1, 2, 3]
+        cfg.list = value
+        cfg.tuple = value
+        assert cfg.list == value
+        assert cfg.tuple == value
+
+    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
+    def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.ListClass)
+        with pytest.raises(ValidationError):
+            cfg.list = value
+        with pytest.raises(ValidationError):
+            cfg.tuple = value
+
+    @pytest.mark.parametrize(  # type: ignore
+        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], {"foo": True}]
+    )
+    def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.ConfigWithDict2)
+        with pytest.raises(ValidationError):
+            cfg.dict1 = value
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):

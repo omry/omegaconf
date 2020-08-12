@@ -359,30 +359,41 @@ class DummyEnum(Enum):
 
 @pytest.mark.parametrize("is_optional", [True, False])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
-    "type_,value, expected_type",
+    "ref_type, type_, value, expected_type",
     [
-        (Any, 10, AnyNode),
-        (DummyEnum, DummyEnum.FOO, EnumNode),
-        (int, 42, IntegerNode),
-        (float, 3.1415, FloatNode),
-        (bool, True, BooleanNode),
-        (str, "foo", StringNode),
+        (Any, Any, 10, AnyNode),
+        (DummyEnum, DummyEnum, DummyEnum.FOO, EnumNode),
+        (int, int, 42, IntegerNode),
+        (float, float, 3.1415, FloatNode),
+        (bool, bool, True, BooleanNode),
+        (str, str, "foo", StringNode),
     ],
 )
 def test_node_wrap(
-    type_: type, is_optional: bool, value: Any, expected_type: Any
+    ref_type: type, type_: type, is_optional: bool, value: Any, expected_type: Any
 ) -> None:
     from omegaconf.omegaconf import _node_wrap
 
     ret = _node_wrap(
-        type_=type_, value=value, is_optional=is_optional, parent=None, key=None
+        ref_type=Any,
+        type_=type_,
+        value=value,
+        is_optional=is_optional,
+        parent=None,
+        key=None,
     )
+    assert ret._metadata.ref_type == ref_type
     assert type(ret) == expected_type
     assert ret == value
 
     if is_optional:
         ret = _node_wrap(
-            type_=type_, value=None, is_optional=is_optional, parent=None, key=None
+            ref_type=Any,
+            type_=type_,
+            value=None,
+            is_optional=is_optional,
+            parent=None,
+            key=None,
         )
         assert type(ret) == expected_type
         # noinspection PyComparisonWithNone

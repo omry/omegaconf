@@ -139,6 +139,11 @@ class ConfigWithDict:
 
 
 @dataclass
+class ConfigWithDict2:
+    dict1: Dict[str, int] = field(default_factory=lambda: {"foo": 2})
+
+
+@dataclass
 class Nested:
     # with default value
     with_default: int = 10
@@ -454,3 +459,9 @@ class WithNativeMISSING:
 @dataclass
 class MissingStructuredConfigField:
     plugin: Plugin = MISSING
+
+
+@dataclass
+class ListClass:
+    list: List[int] = field(default_factory=lambda: [])
+    tuple: Tuple[int, int] = field(default_factory=lambda: (1, 2))

@@ -144,7 +144,7 @@ class AnyNode(ValueNode):
             parent=parent,
             value=value,
             metadata=Metadata(
-                ref_type=None, object_type=None, key=key, optional=is_optional
+                ref_type=Any, object_type=None, key=key, optional=is_optional  # type: ignore
             ),
         )
 

@@ -143,6 +143,11 @@ class ConfigWithDict:
 
 
 @attr.s(auto_attribs=True)
+class ConfigWithDict2:
+    dict1: Dict[str, int] = {"foo": 2}
+
+
+@attr.s(auto_attribs=True)
 class Nested:
     # with default value
     with_default: int = 10
@@ -442,3 +447,9 @@ class WithNativeMISSING:
 @attr.s(auto_attribs=True)
 class MissingStructuredConfigField:
     plugin: Plugin = MISSING
+
+
+@attr.s(auto_attribs=True)
+class ListClass:
+    list: List[int] = []
+    tuple: Tuple[int, int] = (1, 2)

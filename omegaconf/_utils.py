@@ -553,19 +553,27 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     elif isinstance(obj, Container):
         if isinstance(obj, Node):
             ref_type = obj._metadata.ref_type
-        if ref_type is Any:
-            pass
+        is_optional = obj._is_optional()
+        kt = none_as_any(obj._metadata.key_type)
+        vt = none_as_any(obj._metadata.element_type)
+        if (
+            ref_type is Any
+            and kt is Any
+            and vt is Any
+            and not obj._is_missing()
+            and not obj._is_none()
+        ):
+            ref_type = Any  # type: ignore
         elif not is_structured_config(ref_type):
-            kt = none_as_any(obj._metadata.key_type)
-            vt = none_as_any(obj._metadata.element_type)
+            if kt is Any:
+                kt = Union[str, Enum]
             if isinstance(obj, DictConfig):
                 ref_type = Dict[kt, vt]  # type: ignore
             elif isinstance(obj, ListConfig):
                 ref_type = List[vt]  # type: ignore
-        is_optional = obj._is_optional()
     else:
         if isinstance(obj, dict):
-            ref_type = Dict[Any, Any]
+            ref_type = Dict[Union[str, Enum], Any]
         elif isinstance(obj, (list, tuple)):
             ref_type = List[Any]
         else:
@@ -724,3 +732,29 @@ def _ensure_container(target: Any) -> Any:
         target = OmegaConf.structured(target)
     assert OmegaConf.is_config(target)
     return target
+
+
+def is_generic_list(type_: Any) -> bool:
+    """
+    Checks if a type is a generic list, for example:
+    list returns False
+    typing.List returns False
+    typing.List[T] returns True
+
+    :param type_: variable type
+    :return: bool
+    """
+    return is_list_annotation(type_) and get_list_element_type(type_) is not None
+
+
+def is_generic_dict(type_: Any) -> bool:
+    """
+    Checks if a type is a generic dict, for example:
+    list returns False
+    typing.List returns False
+    typing.List[T] returns True
+
+    :param type_: variable type
+    :return: bool
+    """
+    return is_dict_annotation(type_) and len(get_dict_key_value_types(type_)) > 0

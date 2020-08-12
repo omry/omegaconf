@@ -36,6 +36,11 @@ class BaseContainer(Container, ABC):
             parent=parent, metadata=metadata,
         )
         self.__dict__["_content"] = None
+        self._normalize_ref_type()
+
+    def _normalize_ref_type(self) -> None:
+        if self._metadata.ref_type is None:
+            self._metadata.ref_type = Any  # type: ignore
 
     def _resolve_with_default(
         self,
@@ -376,10 +381,9 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
-        should_set_value = (
-            target_node_ref is not None
-            and isinstance(target_node_ref, Container)
-            and special_value
+        should_set_value = target_node_ref is not None and (
+            isinstance(target_node_ref, Container)
+            and (special_value or target_node_ref._has_ref_type())
         )
 
         input_node = isinstance(value, ValueNode)
@@ -418,7 +422,10 @@ class BaseContainer(Container, ABC):
             self.__dict__["_content"][value_key] = v
 
         if is_primitive_container(value):
-            self.__dict__["_content"][key] = wrap(key, value)
+            if should_set_value:
+                self.__dict__["_content"][key]._set_value(value)
+            else:
+                self.__dict__["_content"][key] = wrap(key, value)
         elif input_node and target_node:
             # both nodes, replace existing node with new one
             assign(key, value)

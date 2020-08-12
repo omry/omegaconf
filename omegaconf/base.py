@@ -531,6 +531,9 @@ class Container(Node):
                         if isinstance(item, Container):
                             item._re_parent()
 
+    def _has_ref_type(self) -> bool:
+        return self._metadata.ref_type is not Any
+
 
 def _cond_parse_error(condition: Any, msg: str = "") -> None:
     """

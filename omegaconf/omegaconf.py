@@ -630,7 +630,12 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    type_: Any, parent: Optional[BaseContainer], is_optional: bool, value: Any, key: Any
+    type_: Any,
+    parent: Optional[BaseContainer],
+    is_optional: bool,
+    value: Any,
+    key: Any,
+    ref_type: Any = None,
 ) -> Node:
     node: Node
     is_dict = type(value) is dict or is_dict_annotation(type_)
@@ -658,6 +663,7 @@ def _node_wrap(
             parent=parent,
             is_optional=is_optional,
             element_type=element_type,
+            ref_type=ref_type,
         )
     elif is_structured_config(type_) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(type_)
@@ -713,6 +719,7 @@ def _maybe_wrap(
             is_optional=is_optional,
             value=value,
             key=key,
+            ref_type=ref_type,
         )
 
 
