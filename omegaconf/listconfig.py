@@ -489,8 +489,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = value
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
+                type_ = type(value)
                 msg = (
-                    f"Invalid value assigned : {value} is not a "
+                    f"Invalid value assigned : {type_.__name__} is not a "
                     f"subclass of ListConfig or list."
                 )
                 raise ValidationError(msg)

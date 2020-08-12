@@ -818,11 +818,11 @@ params = [
             op=lambda cfg: cfg._set_value(True),
             exception_type=ValidationError,
             object_type=None,
-            msg="Invalid value assigned : True is not a subclass of ListConfig or list",
+            msg="Invalid value assigned : bool is not a subclass of ListConfig or list",
             ref_type=List[int],
             low_level=True,
         ),
-        id="list:create_not_optional:_set_value(None)",
+        id="list:create_not_optional:_set_value(True)",
     ),
     # assign
     pytest.param(
