@@ -493,7 +493,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     f"Invalid value assigned : {value} is not a "
                     f"subclass of ListConfig or list."
                 )
-                raise ValidationError(msg=msg)
+                raise ValidationError(msg)
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
