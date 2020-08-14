@@ -423,7 +423,7 @@ class OmegaConf:
 
     @staticmethod
     def to_container(
-        cfg: Container, resolve: bool = False, enum_to_str: bool = False
+        cfg: Any, resolve: bool = False, enum_to_str: bool = False
     ) -> Union[Dict[str, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
@@ -437,7 +437,8 @@ class OmegaConf:
         return BaseContainer._to_content(cfg, resolve=resolve, enum_to_str=enum_to_str)
 
     @staticmethod
-    def is_missing(cfg: BaseContainer, key: Union[int, str]) -> bool:
+    def is_missing(cfg: Any, key: Union[int, str]) -> bool:
+        assert isinstance(cfg, Container)
         try:
             node = cfg._get_node(key)
             if node is None:
@@ -467,13 +468,14 @@ class OmegaConf:
             return obj is None
 
     @staticmethod
-    def is_interpolation(node: Node, key: Optional[Union[int, str]] = None) -> bool:
+    def is_interpolation(node: Any, key: Optional[Union[int, str]] = None) -> bool:
         if key is not None:
             assert isinstance(node, Container)
             target = node._get_node(key)
         else:
             target = node
         if target is not None:
+            assert isinstance(target, Node)
             return target._is_interpolation()
         return False
 
