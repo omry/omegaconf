@@ -8,7 +8,6 @@ import pytest
 from omegaconf import (
     DictConfig,
     IntegerNode,
-    InterpolationParseError,
     ListConfig,
     OmegaConf,
     Resolver,
@@ -348,104 +347,9 @@ def test_incremental_dict_with_interpolation() -> None:
         ({"list": ["${ref}"], "ref": "bar"}, "list.0", "bar"),
     ],
 )
-def test_interpolations(cfg: Dict[str, Any], key: str, expected: Any) -> None:
+def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
     c = OmegaConf.create(cfg)
     assert OmegaConf.select(c, key) == expected
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "cfg,expected_dict",
-    [
-        pytest.param(
-            """
-            a: 1
-            b: a
-            c: ${${b}}
-            """,
-            {"c": 1},
-            id="basic_nesting",
-        ),
-        pytest.param(
-            """
-            a: OMEGACONF
-            b: NESTED_INTERPOLATIONS_TEST
-            c: ${env:${a}_${b}}
-            """,
-            {"c": "test123"},
-            id="nesting_with_key",
-        ),
-        pytest.param(
-            """
-            x: 1
-            y: 2
-            op: plus
-            z: ${plus:${x},${y}}
-            t: ${${op}:${x},${y}}
-            """,
-            {"z": 3, "t": 3},
-            id="nesting_with_resolver",
-        ),
-        pytest.param(
-            """
-            a:
-                b: 1
-                c: 2
-                d: ${a.b}
-            b: c
-            c: ${a.${b}}
-            d: ${${b}}
-            e: .d
-            f: ${a${e}}
-            """,
-            {"c": 2, "d": 2, "f": 1},
-            id="member_access",
-        ),
-        pytest.param(
-            """
-            a: def
-            b: abc_{${a}}
-            """,
-            {"b": "abc_{def}"},
-            id="braces_in_string",
-        ),
-        pytest.param(
-            """
-            a: A
-            b: ${env:x=A}
-            c: ${env:x=${a}}
-            """,
-            # This behavior may be a bit surprising but it is how it works now. If
-            # it changes in the future we should ensure that both `b` and `c` yield
-            # the same result.
-            {"b": "${env:x=A}", "c": "${env:x=A}"},
-            id="illegal_character_in_interpolation",
-        ),
-    ],
-)
-def test_nested_interpolations(cfg: str, expected_dict: Dict[str, Any]) -> None:
-    os.environ["OMEGACONF_NESTED_INTERPOLATIONS_TEST"] = "test123"
-    OmegaConf.register_resolver("plus", lambda x, y: int(x) + int(y))
-    try:
-        c = OmegaConf.create(cfg)
-        for key, expected in expected_dict.items():
-            assert OmegaConf.select(c, key) == expected
-    finally:
-        OmegaConf.clear_resolvers()
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "cfg,key",
-    [
-        # All these examples have non-matching braces.
-        pytest.param({"a": "PATH", "b": "${env:${a}"}, "b", id="env_not_closed"),
-        pytest.param({"a": 1, "b": 2, "c": "${a ${b}"}, "c", id="a_not_closed"),
-        pytest.param({"a": 1, "b": 2, "c": "${a} ${b"}, "c", id="b_not_closed"),
-    ],
-)
-def test_nested_interpolation_errors(cfg: Dict[str, Any], key: str) -> None:
-    c = OmegaConf.create(cfg)
-    with pytest.raises(InterpolationParseError):
-        OmegaConf.select(c, key)
 
 
 def test_interpolation_with_missing() -> None:
