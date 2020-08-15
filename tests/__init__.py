@@ -133,3 +133,14 @@ class PersonD:
 class PersonA:
     age: int = 18
     registered: bool = True
+
+
+@dataclass
+class Module:
+    name: str = MISSING
+    classes: List[str] = MISSING
+
+
+@dataclass
+class Config:
+    modules: List[Module] = MISSING

@@ -23,8 +23,18 @@ class StructuredWithInvalidField:
 
 @dataclass
 class User:
-    name: str
-    age: int
+    name: str = MISSING
+    age: int = MISSING
+
+
+@dataclass
+class UserList:
+    list: List[User] = MISSING
+
+
+@dataclass
+class UserDict:
+    dict: Dict[str, User] = MISSING
 
 
 @dataclass
