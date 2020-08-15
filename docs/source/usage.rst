@@ -286,23 +286,6 @@ Example:
     >>> print(type(conf.client.url).__name__)
     str
 
-Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create("""
-    ... plans:
-    ...     A: plan A
-    ...     B: plan B
-    ... selected_plan: A
-    ... plan: ${plans.${selected_plan}}
-    ... """)
-    >>> print(cfg.plan) # default plan
-    plan A
-    >>> cfg.selected_plan = "B"
-    >>> print(cfg.plan) # new plan
-    plan B
-
 
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -339,8 +322,8 @@ The following example sets `12345` as the the default value for the `DB_PASSWORD
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
-You can add additional interpolation types using custom resolvers, which take strings as inputs.
-This example creates a resolver that adds 10 to the given value (note the need to cast it to `int`).
+You can add additional interpolation types using custom resolvers.
+This example creates a resolver that adds 10 the the given value.
 
 .. doctest::
 
@@ -353,7 +336,6 @@ This example creates a resolver that adds 10 to the given value (note the need t
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
 You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
-
 .. doctest::
 
     >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
@@ -369,17 +351,6 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     >>> c.escape_whitespace
     'Hello World'
 
-You can take advantage of nested interpolations to perform operations over variables:
-
-.. doctest::
-
-    >>> OmegaConf.register_resolver("plus_int",
-    ...                             lambda x, y: int(x) + int(y))
-    >>> c = OmegaConf.create({"a": 1,
-    ...                       "b": 2,
-    ...                       "a_plus_b": "${plus_int:${a},${b}}"})
-    >>> c.a_plus_b
-    3
 
 
 Merging configurations
