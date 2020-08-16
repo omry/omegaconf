@@ -469,6 +469,39 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> c.x  # not the same anymore since the cache is disabled
     796
 
+For more advanced operations on the config, you can allow a resolver to access the config
+object by setting `config_arg` -- preferably pointing to a keyword-only argument of
+the resolver.
+Note that you cannot use the cache in this case, since the resolver's output may now
+depend on arbitrary components of the config.
+
+.. doctest::
+
+    >>> OmegaConf.register_resolver("key_exists",
+    ...                             lambda key, *, config: key in config,
+    ...                             config_arg="config",
+    ...                             use_cache=False)
+    >>> c = OmegaConf.create({"a": 1,
+    ...                       "can_process_a": "${key_exists:a}",
+    ...                       "can_process_b": "${key_exists:b}"})
+    >>> c.can_process_a
+    True
+    >>> c.can_process_b
+    False
+
+A similar mechanism can be used to access the parent of the current key being processed,
+by declaring a `parent_arg`. This may be useful to access keys in a relative way:
+
+    >>> OmegaConf.register_resolver(
+    ...         "get_sibling",
+    ...         lambda sibling, *, parent: getattr(parent, sibling),
+    ...         parent_arg="parent",
+    ...         use_cache=False)
+    >>> c = OmegaConf.create(
+    ...         {"foo": {"bar": {"baz1": 123,
+    ...                          "baz2": "${get_sibling:baz1}"}}})
+    >>> c.foo.bar.baz2
+    123
 
 
 Merging configurations
