@@ -410,7 +410,8 @@ as strings).
 
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
-You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
+You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `), or
+simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
@@ -419,6 +420,7 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
     ...     'escape_whitespace': '${concat:Hello,\ World}',
+    ...     'quoted': '${concat:"Hello,", " World"}',
     ... })
     >>> c.key1
     'HelloWorld'
@@ -426,6 +428,8 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     'HelloWorld'
     >>> c.escape_whitespace
     'Hello World'
+    >>> c.quoted
+    'Hello, World'
 
 You can take advantage of nested interpolations to perform custom operations over variables:
 
