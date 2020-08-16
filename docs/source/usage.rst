@@ -323,6 +323,23 @@ Example:
     >>> print(type(conf.client.url).__name__)
     str
 
+Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create("""
+    ... plans:
+    ...     A: plan A
+    ...     B: plan B
+    ... selected_plan: A
+    ... plan: ${plans.${selected_plan}}
+    ... """)
+    >>> cfg.plan # default plan
+    'plan A'
+    >>> cfg.selected_plan = "B"
+    >>> cfg.plan # new plan
+    'plan B'
+
 
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -388,6 +405,20 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     'HelloWorld'
     >>> c.escape_whitespace
     'Hello World'
+
+You can take advantage of nested interpolations to perform custom operations over variables:
+
+.. doctest::
+
+    >>> OmegaConf.register_resolver("plus_int",
+    ...                             lambda x, y: x + y,
+    ...                             args_as_strings=False)
+    >>> c = OmegaConf.create({"a": 1,
+    ...                       "b": 2,
+    ...                       "a_plus_b": "${plus_int:${a},${b}}"})
+    >>> c.a_plus_b
+    3
+
 
 
 
