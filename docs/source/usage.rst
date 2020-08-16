@@ -394,11 +394,15 @@ may be evaluated:
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
 You can add additional interpolation types using custom resolvers.
-This example creates a resolver that adds 10 the the given value.
+This example creates a resolver that adds 10 to the given value
+(note the need to specify `args_as_strings=False` when the resolver takes non-string arguments --
+this is to preserve backward compatibility with the old behavior where resolver arguments were always given
+as strings).
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    >>> OmegaConf.register_resolver("plus_10", lambda x: x + 10,
+    ...                             args_as_strings=False)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
