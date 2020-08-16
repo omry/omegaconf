@@ -4,11 +4,11 @@ import re
 import string
 import sys
 from enum import Enum
-from textwrap import dedent
-from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_type_hints
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
 
+from . import grammar_parser
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -313,32 +313,29 @@ class ValueKind(Enum):
     VALUE = 0
     MANDATORY_MISSING = 1
     INTERPOLATION = 2
-    STR_INTERPOLATION = 3
 
 
-def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
+def get_value_kind(value: Any, return_parse_tree: bool = False) -> Any:
     """
     Determine the kind of a value
     Examples:
-    MANDATORY_MISSING : "???
-    VALUE : "10", "20", True,
-    INTERPOLATION: "${foo}", "${foo.bar}"
-    STR_INTERPOLATION: "ftp://${host}/path"
+    VALUE : "10", "20", True
+    MANDATORY_MISSING : "???"
+    INTERPOLATION: "${foo.bar}", "${foo.${bar}}", "${foo:bar}", "[${foo}, ${bar}]",
+                   "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
-    :param value: input string to classify
-    :param return_match_list: True to return the match list as well
-    :return: ValueKind
+    :param value: Input to classify.
+    :param return_parse_tree: Whether to also return the interpolation parse tree.
+    :return: ValueKind (and optionally the associated interpolation parse tree).
     """
-
-    key_prefix = r"\${(\w+:)?"
-    legal_characters = r"([\w\.%_ \\/:,-@]*?)}"
-    match_list: Optional[List[Match[str]]] = None
+    parse_tree = None
 
     def ret(
         value_kind: ValueKind,
-    ) -> Union[ValueKind, Tuple[ValueKind, Optional[List[Match[str]]]]]:
-        if return_match_list:
-            return value_kind, match_list
+    ) -> Any:
+        if return_parse_tree:
+            assert value_kind != ValueKind.INTERPOLATION or parse_tree is not None
+            return value_kind, parse_tree
         else:
             return value_kind
 
@@ -352,22 +349,20 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
 
-    if not isinstance(value, str):
+    # We detect potential interpolations simply by the presence of "${" in the string.
+    # This is much more efficient than systematically calling `grammar_parser.parse()`,
+    # but one must be aware that:
+    #   - invalid interpolations are not detected unless `return_parse_tree` is True
+    #   - escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
+    #     (this is actually required to properly un-escape them during resolution)
+
+    if not isinstance(value, str) or "${" not in value:
         return ret(ValueKind.VALUE)
 
-    match_list = list(re.finditer(key_prefix + legal_characters, value))
-    if len(match_list) == 0:
-        return ret(ValueKind.VALUE)
+    if return_parse_tree:
+        parse_tree = grammar_parser.parse(value)
 
-    if len(match_list) == 1 and value == match_list[0].group(0):
-        return ret(ValueKind.INTERPOLATION)
-    else:
-        return ret(ValueKind.STR_INTERPOLATION)
-
-
-def is_bool(st: str) -> bool:
-    st = str.lower(st)
-    return st == "true" or st == "false"
+    return ret(ValueKind.INTERPOLATION)
 
 
 def is_float(st: str) -> bool:
@@ -384,19 +379,6 @@ def is_int(st: str) -> bool:
         return True
     except ValueError:
         return False
-
-
-def decode_primitive(s: str) -> Any:
-    if is_bool(s):
-        return str.lower(s) == "true"
-
-    if is_int(s):
-        return int(s)
-
-    if is_float(s):
-        return float(s)
-
-    return s
 
 
 def is_primitive_list(obj: Any) -> bool:
@@ -498,12 +480,7 @@ def is_primitive_type(type_: Any) -> bool:
 
 def _is_interpolation(v: Any) -> bool:
     if isinstance(v, str):
-        ret = get_value_kind(v) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
-        )
-        assert isinstance(ret, bool)
-        return ret
+        return bool(get_value_kind(v) == ValueKind.INTERPOLATION)
     return False
 
 

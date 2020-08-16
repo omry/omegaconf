@@ -8,13 +8,19 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
-import codecs
-import os
 import pathlib
-import re
 
 import pkg_resources
 import setuptools
+
+from build_helpers.build_helpers import (
+    ANTLRCommand,
+    BuildPyCommand,
+    CleanCommand,
+    DevelopCommand,
+    SDistCommand,
+    find_version,
+)
 
 with pathlib.Path("requirements/base.txt").open() as requirements_txt:
     install_requires = [
@@ -23,23 +29,16 @@ with pathlib.Path("requirements/base.txt").open() as requirements_txt:
     ]
 
 
-def find_version(*file_paths):
-    here = os.path.abspath(os.path.dirname(__file__))
-
-    def read(*parts):
-        with codecs.open(os.path.join(here, *parts), "r") as fp:
-            return fp.read()
-
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
-
-
 with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setuptools.setup(
+        cmdclass={
+            "antlr": ANTLRCommand,
+            "clean": CleanCommand,
+            "sdist": SDistCommand,
+            "build_py": BuildPyCommand,
+            "develop": DevelopCommand,
+        },
         name="omegaconf",
         version=find_version("omegaconf", "version.py"),
         author="Omry Yadan",
@@ -51,7 +50,7 @@ with open("README.md", "r") as fh:
         tests_require=["pytest"],
         url="https://github.com/omry/omegaconf",
         keywords="yaml configuration config",
-        packages=["omegaconf"],
+        packages=["omegaconf", "omegaconf.grammar", "omegaconf.grammar.gen"],
         python_requires=">=3.6",
         classifiers=[
             "Programming Language :: Python :: 3.6",

@@ -16,7 +16,9 @@ TODO
 .coverage
 .eggs
 .mypy_cache
+/omegaconf/grammar/gen
 /pip-wheel-metadata
 /.pyre
 .dmypy.json
 .python-version
+.vscode

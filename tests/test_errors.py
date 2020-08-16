@@ -198,7 +198,7 @@ params = [
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
             exception_type=InterpolationResolutionError,
-            msg="str interpolation key 'missing' not found",
+            msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
@@ -209,7 +209,7 @@ params = [
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
             exception_type=InterpolationResolutionError,
-            msg="str interpolation key 'missing' not found",
+            msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
@@ -1156,7 +1156,7 @@ def test_assertion_error(restore_resolvers: Any) -> None:
     # The purpose of this test is to cover the case where an `AssertionError`
     # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
     # error is just one way of achieving this goal.
-    OmegaConf.register_resolver("assert_false", assert_false)
+    OmegaConf.new_register_resolver("assert_false", assert_false)
     c = OmegaConf.create({"trigger": "${assert_false:}"})
     with pytest.raises(AssertionError):
         c.trigger

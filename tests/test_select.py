@@ -42,7 +42,7 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
     ],
 )
 def test_select(restore_resolvers: Any, cfg: Any, key: Any, expected: Any) -> None:
-    OmegaConf.register_resolver("func", lambda x: f"_{x}_")
+    OmegaConf.new_register_resolver("func", lambda x: f"_{x}_")
     cfg = _ensure_container(cfg)
     if isinstance(expected, RaisesContext):
         with expected:
