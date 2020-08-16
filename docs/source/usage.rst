@@ -360,19 +360,36 @@ Input YAML file:
     /home/omry
 
 You can specify a default value to use in case the environment variable is not defined.
-The following example sets `12345` as the the default value for the `DB_PASSWORD` environment variable.
+The following example sets `"12345"` as the the default value when `DB_PASSWORD` is not defined.
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,12345}'}
+    ...       'database': {'password': '${env:DB_PASSWORD,"12345"}'}
     ... })
-    >>> print(cfg.database.password)
-    12345
-    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
+    >>> cfg.database.password
+    '12345'
     >>> os.environ["DB_PASSWORD"] = 'secret'
-    >>> print(cfg.database.password)
-    secret
+    >>> cfg.database.password
+    'secret'
+
+Environment variables are parsed when they are recognized as valid quantities that
+may be evaluated:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...       'database': {'password': '${env:DB_PASSWORD,"12345"}',
+    ...                    'user': 'someuser',
+    ...                    'port': '${env:DB_PORT,3306}'}
+    ... })
+    >>> os.environ["DB_PORT"] = '3308'
+    >>> cfg.database.port  # converted to int
+    3308
+    >>> os.environ["DB_PASSWORD"] = '${database.user}_password'
+    >>> cfg.database.password  # interpolation is resolved
+    'someuser_password'
+
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
