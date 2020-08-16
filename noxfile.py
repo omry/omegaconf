@@ -10,20 +10,21 @@ PYTHON_VERSIONS = os.environ.get(
 ).split(",")
 
 
-def deps(session):
+def deps(session, local_install):
     session.install("--upgrade", "setuptools", "pip")
-    session.install("-r", "requirements/dev.txt", ".", silent=True)
+    extra_flags = ["-e"] if local_install else []
+    session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
 
 
 @nox.session(python=PYTHON_VERSIONS)
 def omegaconf(session):
-    deps(session)
+    deps(session, local_install=False)  # ensure we test the installed version
     session.run("pytest")
 
 
 @nox.session
 def docs(session):
-    deps(session)
+    deps(session, local_install=True)
     session.chdir("docs")
     session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
@@ -31,7 +32,10 @@ def docs(session):
 
 @nox.session(python=PYTHON_VERSIONS)
 def coverage(session):
-    deps(session)
+    # For coverage, it is more convenient to use the local installation because
+    # `coverage run -m pytest` prepends `sys.path` with "." (the current folder),
+    # so that the local code will be used anyway by default.
+    deps(session, local_install=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
     session.run("coverage", "report", "--fail-under=100")
@@ -43,7 +47,7 @@ def coverage(session):
 
 @nox.session(python=PYTHON_VERSIONS)
 def lint(session):
-    deps(session)
+    deps(session, local_install=True)
     session.run("mypy", ".", "--strict", silent=True)
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)
@@ -58,6 +62,6 @@ def test_jupyter_notebook(session):
                 session.python, ",".join(DEFAULT_PYTHON_VERSIONS)
             )
         )
-    deps(session)
+    deps(session, local_install=False)
     session.install("jupyter", "nbval")
     session.run("pytest", "--nbval", "docs/notebook/Tutorial.ipynb", silent=True)
