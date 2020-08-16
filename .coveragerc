@@ -13,10 +13,13 @@ exclude_lines =
     raise AssertionError
     raise NotImplementedError
     raise TypeError
+    raise GrammarAmbiguityError
+    raise GrammarAttemptingFullContextError
+    raise GrammarContextSensitivityError
     assert False
     @abstractmethod
     \.\.\.
-
+    if TYPE_CHECKING:
 
 [html]
 directory = docs/build/coverage
