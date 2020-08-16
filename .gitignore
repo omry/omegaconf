@@ -20,3 +20,4 @@ TODO
 /.pyre
 .dmypy.json
 .python-version
+.vscode
