@@ -311,17 +311,17 @@ Example:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/config_interpolation.yaml')
-    >>> # Primitive interpolation types are inherited from the referenced value
-    >>> print(conf.client.server_port)
+    >>> # Primitive interpolation types are inherited from the reference
+    >>> conf.client.server_port
     80
-    >>> print(type(conf.client.server_port).__name__)
-    int
+    >>> type(conf.client.server_port).__name__
+    'int'
 
     >>> # Composite interpolation types are always string
-    >>> print(conf.client.url)
-    http://localhost:80/
-    >>> print(type(conf.client.url).__name__)
-    str
+    >>> conf.client.url
+    'http://localhost:80/'
+    >>> type(conf.client.url).__name__
+    'str'
 
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
 
@@ -354,10 +354,10 @@ Input YAML file:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/env_interpolation.yaml')
-    >>> print(conf.user.name)
-    omry
-    >>> print(conf.user.home)
-    /home/omry
+    >>> conf.user.name
+    'omry'
+    >>> conf.user.home
+    '/home/omry'
 
 You can specify a default value to use in case the environment variable is not defined.
 The following example sets `"12345"` as the the default value when `DB_PASSWORD` is not defined.
@@ -393,6 +393,7 @@ may be evaluated:
 
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
+
 You can add additional interpolation types using custom resolvers.
 This example creates a resolver that adds 10 to the given value
 (note the need to specify `args_as_strings=False` when the resolver takes non-string arguments --
