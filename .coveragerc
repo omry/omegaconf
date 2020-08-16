@@ -3,6 +3,7 @@ omit =
     .nox/*
     *tests*
     docs/*
+    omegaconf/grammar/gen/*
     omegaconf/version.py
     .stubs
 

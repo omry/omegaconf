@@ -1,3 +1,16 @@
+[tool.black]
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.mypy_cache
+    | \omegaconf/grammar/gen
+    | \.nox
+  )
+)
+'''
+
 [tool.pytest.ini_options]
 addopts = "--import-mode=append"
 
