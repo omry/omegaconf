@@ -14,15 +14,11 @@ from typing import (
     Union,
 )
 
-from omegaconf import OmegaConf
-
 from ._utils import (
     ValueKind,
     _get_value,
     format_and_raise,
     get_value_kind,
-    is_attr_class,
-    is_dataclass,
     is_int,
     is_primitive_list,
     type_str,
@@ -77,6 +73,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
 
     def _validate_set(self, key: Any, value: Any) -> None:
+        from omegaconf import OmegaConf
+        from omegaconf._utils import is_attr_class, is_dataclass
 
         self._validate_get(key, value)
 
