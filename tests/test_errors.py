@@ -28,6 +28,7 @@ from . import (
     A,
     Color,
     ConcretePlugin,
+    Config,
     IllegalType,
     Plugin,
     StructuredWithMissing,
@@ -373,6 +374,19 @@ params = [
             parent_node=lambda cfg: cfg.params,
         ),
         id="structured:merge,adding_an_invalid_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(Config),
+            op=lambda cfg: OmegaConf.merge(cfg, {"modules": [{"foo": "var"}]}),
+            exception_type=ValidationError,
+            msg="Invalid type assigned : dict is not a subclass of Module. value: {'foo': 'var'}",
+            key=0,
+            full_key="modules[0]",
+            object_type=list,
+            low_level=True,
+        ),
+        id="structured:merge,wrong_element_type",
     ),
     # merge_with
     pytest.param(
