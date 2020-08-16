@@ -14,11 +14,15 @@ from typing import (
     Union,
 )
 
+from omegaconf import OmegaConf
+
 from ._utils import (
     ValueKind,
     _get_value,
     format_and_raise,
     get_value_kind,
+    is_attr_class,
+    is_dataclass,
     is_int,
     is_primitive_list,
     type_str,
@@ -86,9 +90,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     raise ValidationError(
                         "$FULL_KEY is not optional and cannot be assigned None"
                     )
-
-        from omegaconf import OmegaConf
-        from omegaconf._utils import is_attr_class, is_dataclass
 
         target_type = self._metadata.element_type
         value_type = OmegaConf.get_type(value)
