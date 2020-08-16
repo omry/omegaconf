@@ -444,6 +444,30 @@ You can take advantage of nested interpolations to perform custom operations ove
     >>> c.a_plus_b
     3
 
+By default a custom resolver's output is cached, so that when it is called with the same
+inputs we always return the same value. This behavior may be disabled by setting `use_cache=False`:
+
+.. doctest::
+
+    >>> import random; random.seed(1234)
+    >>> OmegaConf.register_resolver("randint",
+    ...                             lambda a, b: random.randint(a, b),
+    ...                             args_as_strings=False)
+    >>> c = OmegaConf.create({"x": "${randint:0, 1000}"})
+    >>> c.x
+    989
+    >>> c.x  # same as above thanks to the cache
+    989
+    >>> random.seed(1234)
+    >>> OmegaConf.register_resolver("randint_nocache",
+    ...                             lambda a, b: random.randint(a, b),
+    ...                             use_cache=False,
+    ...                             args_as_strings=False)
+    >>> c = OmegaConf.create({"x": "${randint_nocache:0, 1000}"})
+    >>> c.x
+    989
+    >>> c.x  # not the same anymore since the cache is disabled
+    796
 
 
 
