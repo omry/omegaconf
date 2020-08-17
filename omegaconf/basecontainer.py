@@ -51,7 +51,7 @@ class BaseContainer(Container, ABC):
         """returns the value with the specified key, like obj.key and obj['key']"""
 
         def is_mandatory_missing(val: Any) -> bool:
-            return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
+            return get_value_kind(val) == ValueKind.MANDATORY_MISSING
 
         val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
@@ -322,7 +322,9 @@ class BaseContainer(Container, ABC):
 
     def merge_with(
         self,
-        *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
+        *others: Union[
+            "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
+        ],
     ) -> None:
         try:
             self._merge_with(*others)
@@ -331,7 +333,9 @@ class BaseContainer(Container, ABC):
 
     def _merge_with(
         self,
-        *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
+        *others: Union[
+            "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
+        ],
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig

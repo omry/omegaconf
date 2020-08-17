@@ -447,7 +447,7 @@ class OmegaConf:
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
-        ), "resolved {} is already registered".format(name)
+        ), "resolver {} is already registered".format(name)
 
         if use_cache is None:
             if config_arg is not None or parent_arg is not None:
@@ -519,7 +519,13 @@ class OmegaConf:
         BaseContainer._resolvers[name] = resolver_wrapper
 
     @staticmethod
-    def get_resolver(name: str) -> Optional[Callable[[Container, Any], Any]]:
+    def get_resolver(
+        name: str,
+    ) -> Optional[
+        Callable[
+            [Container, Optional[Container], Tuple[Any, ...], Tuple[str, ...]], Any
+        ]
+    ]:
         # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None

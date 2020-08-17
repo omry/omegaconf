@@ -304,7 +304,7 @@ class Container(Node):
             throw_on_type_error=throw_on_resolution_failure,
         )
         if value is None:
-            return root, last_key, value
+            return root, last_key, None
         value = root.resolve_interpolation(
             parent=root,
             key=last_key,

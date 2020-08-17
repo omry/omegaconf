@@ -258,7 +258,7 @@ class Dataclass:
         (Dataclass, _utils.ValueKind.VALUE),
         ("???", _utils.ValueKind.MANDATORY_MISSING),
         ("${foo.bar}", _utils.ValueKind.INTERPOLATION),
-        ("ftp://${host}/path", _utils.ValueKind.STR_INTERPOLATION),
+        ("ftp://${host}/path", _utils.ValueKind.INTERPOLATION),
         ("${func:foo}", _utils.ValueKind.INTERPOLATION),
         ("${func:a/b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),

@@ -362,7 +362,7 @@ def test_illegal_assignment(node: ValueNode, value: Any) -> None:
 def test_legal_assignment_enum(
     node_type: Type[EnumNode],
     enum_type: Type[Enum],
-    values: Tuple[Any],
+    values: Tuple[Any, ...],
     success_map: Dict[Any, Any],
 ) -> None:
     assert isinstance(values, (list, tuple))

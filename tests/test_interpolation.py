@@ -317,7 +317,7 @@ def test_clear_resolvers(restore_resolvers: Any) -> None:
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
-    OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    OmegaConf.register_resolver("plus_10", lambda x: x + 10, args_as_strings=False)
     c = OmegaConf.create({"k": "${plus_10:990}"})
 
     assert type(c.k) == int
