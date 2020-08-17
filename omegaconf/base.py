@@ -363,7 +363,7 @@ class Container(Node):
         self,
         key: Any,
         parent: Optional["Container"],
-        inter_type: str,
+        inter_type: Optional[str],
         inter_key: Tuple[Any, ...],
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
@@ -373,8 +373,7 @@ class Container(Node):
 
         from .nodes import ValueNode
 
-        inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
-        if inter_type == "str":
+        if inter_type is None:
             assert inputs_str is None
             assert len(inter_key) == 1 and isinstance(inter_key[0], str)
             inter_key_str = inter_key[0]
@@ -389,7 +388,7 @@ class Container(Node):
             if parent is None or value is None:
                 if throw_on_resolution_failure:
                     raise ConfigKeyError(
-                        f"{inter_type} interpolation key '{inter_key_str}' not found"
+                        f"Interpolation key '{inter_key_str}' not found"
                     )
                 else:
                     return None

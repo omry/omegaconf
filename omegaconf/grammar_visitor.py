@@ -176,7 +176,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
         assert resolver_name is not None
         return self.container.resolve_simple_interpolation(
-            inter_type=resolver_name + ":",
+            inter_type=resolver_name,
             inter_key=tuple(inter_key),
             inputs_str=tuple(inputs_str),
             **self.resolve_args,
