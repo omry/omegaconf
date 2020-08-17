@@ -315,6 +315,42 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     assert c2.k == c2.k
 
 
+def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
+    """
+    Tests that the resolver cache works as expected with lists and dicts.
+    """
+    OmegaConf.register_resolver(
+        "random", lambda _: random.uniform(0, 1), args_as_strings=False
+    )
+    c = OmegaConf.create(
+        dict(
+            lst1="${random:[0, 1]}",
+            lst2="${random:[0, 1]}",
+            lst3="${random:[]}",
+            dct1="${random:{a: 1, b: 2}}",
+            dct2="${random:{b: 2, a: 1}}",
+            mixed1="${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
+            mixed2="${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
+        )
+    )
+    assert c.lst1 == c.lst1
+    assert c.lst1 == c.lst2
+    assert c.lst1 != c.lst3
+    assert c.dct1 == c.dct1
+    assert c.dct1 == c.dct2
+    assert c.mixed1 == c.mixed1
+    assert c.mixed2 == c.mixed2
+    assert c.mixed1 == c.mixed2
+
+
+def test_resolver_no_cache(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver(
+        "random", lambda _: random.uniform(0, 1), use_cache=False
+    )
+    c = OmegaConf.create(dict(k="${random:_}"))
+    assert c.k != c.k
+
+
 def test_resolver_dot_start(restore_resolvers: Any) -> None:
     """
     Regression test for #373
@@ -352,6 +388,25 @@ def test_resolver_that_allows_a_list_of_arguments(
     OmegaConf.register_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
     assert c[name] == result
+
+
+def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver("my_resolver", lambda *args: args)
+    c = OmegaConf.create(
+        {
+            "int": "${my_resolver:1}",
+            "null": "${my_resolver:null}",
+            "bool": "${my_resolver:TruE,falSE}",
+            "str": "${my_resolver:a,b,c}",
+        }
+    )
+    with pytest.warns(UserWarning):
+        assert c.int == ("1",)
+    with pytest.warns(UserWarning):
+        assert c.null == ("null",)
+    with pytest.warns(UserWarning):
+        assert c.bool == ("TruE", "falSE")
+    assert c.str == ("a", "b", "c")
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:

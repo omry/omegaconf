@@ -362,9 +362,10 @@ class Container(Node):
         self,
         key: Any,
         inter_type: str,
-        inter_key: str,
+        inter_key: Tuple[Any, ...],
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
+        inputs_str: Optional[Tuple[str, ...]] = None,  # text representation of inputs
     ) -> Optional["Node"]:
         from omegaconf import OmegaConf
 
@@ -372,9 +373,12 @@ class Container(Node):
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
-            root_node, inter_key = self._resolve_key_and_root(inter_key)
+            assert inputs_str is None
+            assert len(inter_key) == 1 and isinstance(inter_key[0], str)
+            inter_key_str = inter_key[0]
+            root_node, inter_key_str = self._resolve_key_and_root(inter_key_str)
             parent, last_key, value = root_node._select_impl(
-                inter_key,
+                inter_key_str,
                 throw_on_missing=throw_on_missing,
                 throw_on_resolution_failure=throw_on_resolution_failure,
             )
@@ -383,18 +387,19 @@ class Container(Node):
             if parent is None or value is None:
                 if throw_on_resolution_failure:
                     raise ConfigKeyError(
-                        f"{inter_type} interpolation key '{inter_key}' not found"
+                        f"{inter_type} interpolation key '{inter_key_str}' not found"
                     )
                 else:
                     return None
             assert isinstance(value, Node)
             return value
         else:
+            assert inputs_str is not None
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
                 root_node = self._get_root()
                 try:
-                    value = resolver(root_node, inter_key)
+                    value = resolver(root_node, inter_key, inputs_str)
                     return ValueNode(
                         value=value,
                         parent=self,
