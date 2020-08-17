@@ -1,0 +1,1 @@
+The `env` resolver does not cache its output anymore, i.e. `${env:VAR}` will yield a new value if environment variable `VAR` is modified between consecutive accesses
