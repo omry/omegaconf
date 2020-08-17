@@ -142,5 +142,5 @@ class Module:
 
 
 @dataclass
-class Config:
+class Package:
     modules: List[Module] = MISSING
