@@ -28,8 +28,8 @@ from . import (
     A,
     Color,
     ConcretePlugin,
-    Config,
     IllegalType,
+    Package,
     Plugin,
     StructuredWithMissing,
     UnionError,
@@ -377,7 +377,7 @@ params = [
     ),
     pytest.param(
         Expected(
-            create=lambda: OmegaConf.structured(Config),
+            create=lambda: OmegaConf.structured(Package),
             op=lambda cfg: OmegaConf.merge(cfg, {"modules": [{"foo": "var"}]}),
             exception_type=ValidationError,
             msg="Invalid type assigned : dict is not a subclass of Module. value: {'foo': 'var'}",

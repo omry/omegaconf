@@ -18,11 +18,11 @@ from . import (
     B,
     C,
     ConcretePlugin,
-    Config,
     ConfWithMissingDict,
     Group,
     MissingDict,
     MissingList,
+    Package,
     Plugin,
     User,
     Users,
@@ -315,7 +315,7 @@ def test_merge_list_list() -> None:
         ([], {}, TypeError),
         ([1, 2, 3], None, ValueError),
         ({"a": 10}, None, ValueError),
-        (Config, {"modules": [{"foo": "var"}]}, ValidationError),
+        (Package, {"modules": [{"foo": "var"}]}, ValidationError),
     ],
 )
 def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
