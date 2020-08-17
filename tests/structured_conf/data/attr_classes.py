@@ -485,3 +485,13 @@ class MissingStructuredConfigField:
 class ListClass:
     list: List[int] = []
     tuple: Tuple[int, int] = (1, 2)
+
+
+@attr.s(auto_attribs=True)
+class GenericList:
+    list: Optional[List] = None  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class GenericDict:
+    dict: Optional[Dict] = None  # type: ignore

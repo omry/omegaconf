@@ -497,3 +497,13 @@ class MissingStructuredConfigField:
 class ListClass:
     list: List[int] = field(default_factory=lambda: [])
     tuple: Tuple[int, int] = field(default_factory=lambda: (1, 2))
+
+
+@dataclass
+class GenericList:
+    list: Optional[List] = None  # type: ignore
+
+
+@dataclass
+class GenericDict:
+    dict: Optional[Dict] = None  # type: ignore
