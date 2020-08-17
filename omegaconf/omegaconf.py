@@ -71,8 +71,10 @@ from .nodes import (
 
 MISSING: Any = "???"
 
-# A marker used in OmegaConf.create() to differentiate between creating an empty {} DictConfig
-# and creating a DictConfig with None content.
+# A marker used:
+# -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
+#    and creating a DictConfig with None content
+# - in env() to detect between no default value vs a default value set to None
 _EMPTY_MARKER_ = object()
 
 
@@ -118,16 +120,52 @@ Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
-    def env(key: str, default: Optional[str] = None) -> Any:
+    def env(key: str, default: Any = _EMPTY_MARKER_, *, config: BaseContainer) -> Any:
         try:
-            return decode_primitive(os.environ[key])
+            val_str = os.environ[key]
         except KeyError:
-            if default is not None:
-                return decode_primitive(default)
+            if default is not _EMPTY_MARKER_:
+                return default
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    OmegaConf.register_resolver("env", env)
+        # We obtained a string from the environment variable: we parse it using
+        # the grammar. We first attempt to parse it as if it was a resolver argument
+        # so that expressions like numbers, booleans, lists and dictionaries can be
+        # properly evaluated.
+        try:
+            parse_tree = parse(
+                val_str, parser_rule="singleElement", lexer_mode="VALUE_MODE"
+            )
+        except GrammarParseError:
+            # Un-parsable as a resolver argument: check if it contains an interpolation,
+            # and if yes parse it as a top-level string. Otherwise keep it unchanged.
+            if _is_interpolation(val_str):
+                parse_tree = parse(val_str)
+            else:
+                return val_str
+
+        # Resolve the parse tree.
+        visitor = GrammarVisitor(
+            container=config,
+            resolve_args=dict(
+                key=None,
+                parent=None,
+                throw_on_missing=True,
+                throw_on_resolution_failure=True,
+            ),
+        )
+        val = visitor.visit(parse_tree)
+        return _get_value(val)
+
+    # Note that the `env` resolver does *NOT* use the cache.
+    OmegaConf.register_resolver(
+        "env",
+        env,
+        config_arg="config",
+        args_as_strings=False,
+        use_cache=False,
+    )
 
 
 class OmegaConf:

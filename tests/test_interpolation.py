@@ -233,6 +233,14 @@ def test_env_interpolation(
         assert OmegaConf.select(cfg, key) == expected
 
 
+def test_env_is_not_cached() -> None:
+    os.environ["foobar"] = "1234"
+    c = OmegaConf.create({"foobar": "${env:foobar}"})
+    before = c.foobar
+    os.environ["foobar"] = "3456"
+    assert c.foobar != before
+
+
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
     [
@@ -256,12 +264,36 @@ def test_env_interpolation(
         # yaml strings are not getting parsed by the env resolver
         ("foo: bar", "foo: bar"),
         ("foo: \n - bar\n - baz", "foo: \n - bar\n - baz"),
+        # more advanced uses of the grammar
+        ("${other_key}", 123),
+        ("\\${other_key}", "\\123"),
+        ("'\\${other_key}'", "${other_key}"),
+        ("ab ${other_key} cd", "ab 123 cd"),
+        ("ab{${other_key}}cd", "ab{123}cd"),
+        ("ab \\${other_key} cd", "ab \\123 cd"),
+        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),
+        ("ab \\\\${other_key} cd", "ab \\123 cd"),
+        ("ab \\{foo} cd", "ab \\{foo} cd"),
+        ("ab \\\\{foo} cd", "ab \\\\{foo} cd"),
+        ("[1, 2, 3]", [1, 2, 3]),
+        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
+        (
+            "{a: ${other_key}, b: [0, 1, [2, ${other_key}]]}",
+            {"a": 123, "b": [0, 1, [2, 123]]},
+        ),
+        ("  123  ", "  123  "),
+        ("  1 2 3  ", "  1 2 3  "),
+        ("\t[1, 2, 3]\t", "\t[1, 2, 3]\t"),
+        ("[\t1, 2, 3\t]", [1, 2, 3]),
+        ("   {a: b}\t  ", "   {a: b}\t  "),
+        ("{   a: b\t  }", {"a": "b"}),
+        ("'123'", "123"),
     ],
 )
 def test_env_values_are_typed(value: Any, expected: Any) -> None:
     try:
         os.environ["my_key"] = value
-        c = OmegaConf.create(dict(my_key="${env:my_key}"))
+        c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
         assert c.my_key == expected
     finally:
         del os.environ["my_key"]
