@@ -22,8 +22,18 @@ class StructuredWithInvalidField:
 
 @attr.s(auto_attribs=True)
 class User:
-    name: str
-    age: int
+    name: str = MISSING
+    age: int = MISSING
+
+
+@attr.s(auto_attribs=True)
+class UserList:
+    list: List[User] = MISSING
+
+
+@attr.s(auto_attribs=True)
+class UserDict:
+    dict: Dict[str, User] = MISSING
 
 
 @attr.s(auto_attribs=True)
