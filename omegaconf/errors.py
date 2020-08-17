@@ -109,3 +109,39 @@ class ConfigValueError(OmegaConfBaseException, ValueError):
     """
     Thrown from a config object when a regular access would have caused a ValueError.
     """
+
+
+class GrammarParseError(OmegaConfBaseException):
+    """
+    Base class for grammar parsing errors.
+    """
+
+
+class GrammarSyntaxError(GrammarParseError):
+    """
+    Thrown when a syntax error is detected during parsing.
+    """
+
+
+class GrammarTypeError(GrammarParseError):
+    """
+    Thrown when there is a type mismatch during parsing.
+    """
+
+
+class GrammarAmbiguityError(GrammarParseError):
+    """
+    From ANTLR only.
+    """
+
+
+class GrammarAttemptingFullContextError(GrammarParseError):
+    """
+    From ANTLR only.
+    """
+
+
+class GrammarContextSensitivityError(GrammarParseError):
+    """
+    From ANTLR only.
+    """
