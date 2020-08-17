@@ -336,7 +336,7 @@ class Container(Node):
         )
         return root, last_key, value
 
-    def _resolve_simple_interpolation(
+    def resolve_simple_interpolation(
         self,
         key: Any,
         inter_type: str,
