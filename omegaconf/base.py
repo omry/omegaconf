@@ -123,42 +123,19 @@ class Node(ABC):
     def _dereference_node(
         self, throw_on_missing: bool = False, throw_on_resolution_failure: bool = True
     ) -> Optional["Node"]:
-        from .nodes import StringNode
-
         if self._is_interpolation():
-            value_kind, match_list = get_value_kind(
-                value=self._value(), return_match_list=True
-            )
-            match = match_list[0]
             parent = self._get_parent()
+            assert parent is not None
             key = self._key()
-            if value_kind == ValueKind.INTERPOLATION:
-                assert parent is not None
-                v = parent._resolve_simple_interpolation(
-                    key=key,
-                    inter_type=match.group(1),
-                    inter_key=match.group(2),
-                    throw_on_missing=throw_on_missing,
-                    throw_on_resolution_failure=throw_on_resolution_failure,
-                )
-                return v
-            elif value_kind == ValueKind.STR_INTERPOLATION:
-                assert parent is not None
-                ret = parent._resolve_interpolation(
-                    key=key,
-                    value=self,
-                    throw_on_missing=throw_on_missing,
-                    throw_on_resolution_failure=throw_on_resolution_failure,
-                )
-                if ret is None:
-                    return ret
-                return StringNode(
-                    value=ret,
-                    key=key,
-                    parent=parent,
-                    is_optional=self._metadata.optional,
-                )
-            assert False
+            rval = parent.resolve_interpolation(
+                parent=parent,
+                key=key,
+                value=self,
+                throw_on_missing=throw_on_missing,
+                throw_on_resolution_failure=throw_on_resolution_failure,
+            )
+            assert rval is None or isinstance(rval, Node)
+            return rval
         else:
             # not interpolation, compare directly
             if throw_on_missing:
@@ -336,6 +313,51 @@ class Container(Node):
         )
         return root, last_key, value
 
+    def _resolve_complex_interpolation(
+        self,
+        parent: Optional["Container"],
+        value: "Node",
+        key: Any,
+        parse_tree: OmegaConfGrammarParser.ConfigValueContext,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        """
+        A "complex" interpolation is any interpolation that cannot be handled by
+        `resolve_simple_interpolation()`, i.e. that either contains nested
+        interpolations or is not a single "${..}" block.
+        """
+
+        from .nodes import StringNode
+
+        value_str = value._value()
+        assert isinstance(value_str, str)
+
+        visitor = GrammarVisitor(
+            container=self,
+            resolve_args=dict(
+                key=key,
+                parent=parent,
+                throw_on_missing=throw_on_missing,
+                throw_on_resolution_failure=throw_on_resolution_failure,
+            ),
+        )
+
+        resolved = visitor.visit(parse_tree)
+        if resolved is None:
+            return None
+        elif isinstance(resolved, str):
+            # Result is a string: create a new node to store it.
+            return StringNode(
+                value=resolved,
+                key=key,
+                parent=parent,
+                is_optional=value._metadata.optional,
+            )
+        else:
+            assert isinstance(resolved, Node)
+            return resolved
+
     def resolve_simple_interpolation(
         self,
         key: Any,
@@ -391,53 +413,28 @@ class Container(Node):
                 else:
                     return None
 
-    def _resolve_interpolation(
+    def resolve_interpolation(
         self,
+        parent: Optional["Container"],
         key: Any,
         value: "Node",
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
-        from .nodes import StringNode
+        value_kind, parse_tree = get_value_kind(value=value, return_parse_tree=True)  # type: ignore
 
-        value_kind, match_list = get_value_kind(value=value, return_match_list=True)
-        if value_kind not in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
+        if value_kind != ValueKind.INTERPOLATION:
             return value
 
-        if value_kind == ValueKind.INTERPOLATION:
-            # simple interpolation, inherit type
-            match = match_list[0]
-            return self._resolve_simple_interpolation(
-                key=key,
-                inter_type=match.group(1),
-                inter_key=match.group(2),
-                throw_on_missing=throw_on_missing,
-                throw_on_resolution_failure=throw_on_resolution_failure,
-            )
-        elif value_kind == ValueKind.STR_INTERPOLATION:
-            value = _get_value(value)
-            assert isinstance(value, str)
-            orig = value
-            new = ""
-            last_index = 0
-            for match in match_list:
-                new_val = self._resolve_simple_interpolation(
-                    key=key,
-                    inter_type=match.group(1),
-                    inter_key=match.group(2),
-                    throw_on_missing=throw_on_missing,
-                    throw_on_resolution_failure=throw_on_resolution_failure,
-                )
-                # if failed to resolve, return None for the whole thing.
-                if new_val is None:
-                    return None
-                new += orig[last_index : match.start(0)] + str(new_val)
-                last_index = match.end(0)
-
-            new += orig[last_index:]
-            return StringNode(value=new, key=key)
-        else:
-            assert False
+        assert parse_tree is not None
+        return self._resolve_complex_interpolation(
+            parent=parent,
+            value=value,
+            key=key,
+            parse_tree=parse_tree,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig

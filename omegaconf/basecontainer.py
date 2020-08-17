@@ -53,9 +53,9 @@ class BaseContainer(Container, ABC):
         def is_mandatory_missing(val: Any) -> bool:
             return get_value_kind(val) == ValueKind.MANDATORY_MISSING  # type: ignore
 
-        value = _get_value(value)
+        val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
-        if has_default and (value is None or is_mandatory_missing(value)):
+        if has_default and (val is None or is_mandatory_missing(val)):
             return default_value
 
         resolved = self.resolve_interpolation(

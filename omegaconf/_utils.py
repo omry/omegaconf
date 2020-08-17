@@ -339,32 +339,37 @@ class ValueKind(Enum):
     VALUE = 0
     MANDATORY_MISSING = 1
     INTERPOLATION = 2
-    STR_INTERPOLATION = 3
 
 
-def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
+def get_value_kind(
+    value: Any, return_parse_tree: bool = False
+) -> Union[
+    ValueKind,
+    Tuple[ValueKind, Optional[OmegaConfGrammarParser.ConfigValueContext]],
+]:
     """
     Determine the kind of a value
     Examples:
-    MANDATORY_MISSING : "???
-    VALUE : "10", "20", True,
-    INTERPOLATION: "${foo}", "${foo.bar}"
-    STR_INTERPOLATION: "ftp://${host}/path"
+    VALUE : "10", "20", True
+    MANDATORY_MISSING : "???"
+    INTERPOLATION: "${foo.bar}", "${foo.${bar}}", "${foo:bar}", "[${foo}, ${bar}]",
+                   "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
-    :param value: input string to classify
-    :param return_match_list: True to return the match list as well
-    :return: ValueKind
+    :param value: Input to classify.
+    :param return_parse_tree: Whether to also return the interpolation parse tree.
+    :return: ValueKind (and optionally the associated interpolation parse tree).
     """
-
-    key_prefix = r"\${(\w+:)?"
-    legal_characters = r"([\w\.%_ \\/:,-]*?)}"
-    match_list: Optional[List[Match[str]]] = None
+    parse_tree: Optional[OmegaConfGrammarParser.ConfigValueContext] = None
 
     def ret(
         value_kind: ValueKind,
-    ) -> Union[ValueKind, Tuple[ValueKind, Optional[List[Match[str]]]]]:
-        if return_match_list:
-            return value_kind, match_list
+    ) -> Union[
+        ValueKind,
+        Tuple[ValueKind, Optional[OmegaConfGrammarParser.ConfigValueContext]],
+    ]:
+        if return_parse_tree:
+            assert value_kind != ValueKind.INTERPOLATION or parse_tree is not None
+            return value_kind, parse_tree
         else:
             return value_kind
 
@@ -378,22 +383,13 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
 
-    if not isinstance(value, str):
+    if not isinstance(value, str) or "${" not in value:
         return ret(ValueKind.VALUE)
 
-    match_list = list(re.finditer(key_prefix + legal_characters, value))
-    if len(match_list) == 0:
-        return ret(ValueKind.VALUE)
+    if return_parse_tree:
+        parse_tree = grammar_parser.parse(value)
 
-    if len(match_list) == 1 and value == match_list[0].group(0):
-        return ret(ValueKind.INTERPOLATION)
-    else:
-        return ret(ValueKind.STR_INTERPOLATION)
-
-
-def is_bool(st: str) -> bool:
-    st = str.lower(st)
-    return st == "true" or st == "false"
+    return ret(ValueKind.INTERPOLATION)
 
 
 def is_float(st: str) -> bool:
