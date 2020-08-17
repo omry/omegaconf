@@ -486,9 +486,9 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     # python > 3.6 typing.Dict and typing.List args are TypeVar('~VT') and TypeVar('~KT')
     # instead of None
     if isinstance(element_type, TypeVar):  # type: ignore
-        element_type = None
+        element_type = None  # pragma: no cover
     if isinstance(key_type, TypeVar):  # type: ignore
-        key_type = None
+        key_type = None  # pragma: no cover
     if not valid_value_annotation_type(element_type) and not is_structured_config(
         element_type
     ):
