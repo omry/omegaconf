@@ -4,7 +4,7 @@ import re
 import string
 import sys
 from enum import Enum
-from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_type_hints
+from typing import Any, Dict, List, Match, Optional, Tuple, Type, TypeVar, Union, get_type_hints
 
 import yaml
 
@@ -480,8 +480,19 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
             key_type = args[0]
             element_type = args[1]
         else:
-            key_type = Any
-            element_type = Any
+            key_type = None
+            element_type = None
+
+    # python > 3.6 typing.Dict and typing.List args are TypeVar('~VT') and TypeVar('~KT')
+    # instead of None
+    if isinstance(element_type, TypeVar):  # type: ignore
+        element_type = None
+    if isinstance(key_type, TypeVar):  # type: ignore
+        key_type = None
+    if not valid_value_annotation_type(element_type) and not is_structured_config(
+        element_type
+    ):
+        raise ValidationError(f"Unsupported value type : {element_type}")
 
     return key_type, element_type
 

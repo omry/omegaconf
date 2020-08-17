@@ -71,7 +71,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 metadata=ContainerMetadata(
                     key=key,
                     optional=is_optional,
-                    ref_type=ref_type,
+                    ref_type=self._resolve_generic_ref_type(ref_type),
                     object_type=None,
                     key_type=key_type,
                     element_type=element_type,
@@ -104,6 +104,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 self._set_value(content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+
+    def _resolve_generic_ref_type(self, ref_type: type) -> type:
+        if ref_type == Dict:
+            return Dict[Union[str, Enum], Any]
+        else:
+            return ref_type
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
