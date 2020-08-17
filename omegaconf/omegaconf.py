@@ -376,7 +376,9 @@ class OmegaConf:
         name: str,
         resolver: Resolver,
         args_as_strings: bool = True,
-        use_cache: Optional[bool] = True,
+        config_arg: Optional[str] = None,
+        parent_arg: Optional[str] = None,
+        use_cache: Optional[bool] = None,
     ) -> None:
         """
         The `args_as_strings` flag was introduced to preserve backward compatibility
@@ -386,13 +388,48 @@ class OmegaConf:
               of its inputs), and triggers a warning
             - `False` is the new behavior (the resolver can take non-string inputs), and
               will become the default in the future
+
+        If provided, `config_arg` should be the name of a keyword (typically keyword-only)
+        argument of `resolver` of type `BaseContainer`, that will be bound to the config
+        root when the resolver is called. This allows performing arbitrary operations on
+        the config from within the resolver. See `env()` for an example.
+
+        Similarly, `parent_arg` can be used to bind the corresponding keyword argument
+        of `resolver` (of type `Optional[Container]`) to the parent of the key being
+        processed when the resolver is called. This can be useful for operations involving
+        other config options relative to the current key.
+
+        `use_cache` indicates whether the resolver's outputs should be cached. When not
+            provided, it defaults to `True` unless either `config_arg` or `parent_arg` is
+            used. In such situations it defaults to `False` and the user is warned to
+            explicitly set `use_cache=False` to make it clear that no caching is done
+            (currently caching is not supported when using `config_arg` or `parent_arg`).
         """
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
         ), "resolved {} is already registered".format(name)
-        def caching(
+
+        if use_cache is None:
+            if config_arg is not None or parent_arg is not None:
+                warnings.warn(
+                    f"You are using either `config_arg` or `parent_arg` to register "
+                    f"resolver `{name}`: caching is not supported in such a case, and "
+                    f"you must explicitly set `use_cache=False` to disable this warning.",
+                    stacklevel=2,
+                )
+                use_cache = False
+            else:
+                use_cache = True
+        elif use_cache and (config_arg is not None or parent_arg is not None):
+            raise NotImplementedError(
+                f"Caching is not supported when using either `config_arg` or "
+                f"`parent_arg`, please set `use_cache=False` when registering "
+                f"resolver `{name}`",
+            )
+
+        def resolver_wrapper(
             config: BaseContainer,
             parent: Optional[Container],
             key: Tuple[Any, ...],
@@ -430,12 +467,18 @@ class OmegaConf:
                     pass
 
             # Call resolver.
-            ret = resolver(*inputs)
+            optional_args: Dict[str, Optional[Container]] = {}
+            if config_arg is not None:
+                optional_args[config_arg] = config
+            if parent_arg is not None:
+                optional_args[parent_arg] = parent
+            ret = resolver(*inputs, **optional_args)
             if use_cache:
                 cache[hashable_key] = ret
             return ret
+
         # noinspection PyProtectedMember
-        BaseContainer._resolvers[name] = caching
+        BaseContainer._resolvers[name] = resolver_wrapper
 
     @staticmethod
     def get_resolver(name: str) -> Optional[Callable[[Container, Any], Any]]:

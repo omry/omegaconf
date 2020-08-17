@@ -305,7 +305,8 @@ class Container(Node):
         )
         if value is None:
             return root, last_key, value
-        value = root._resolve_interpolation(
+        value = root.resolve_interpolation(
+            parent=root,
             key=last_key,
             value=value,
             throw_on_missing=False,
@@ -361,6 +362,7 @@ class Container(Node):
     def resolve_simple_interpolation(
         self,
         key: Any,
+        parent: Optional["Container"],
         inter_type: str,
         inter_key: Tuple[Any, ...],
         throw_on_missing: bool,
@@ -399,7 +401,7 @@ class Container(Node):
             if resolver is not None:
                 root_node = self._get_root()
                 try:
-                    value = resolver(root_node, inter_key, inputs_str)
+                    value = resolver(root_node, parent, inter_key, inputs_str)
                     return ValueNode(
                         value=value,
                         parent=self,

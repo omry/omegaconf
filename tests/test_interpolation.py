@@ -292,6 +292,89 @@ def test_register_resolver_1(restore_resolvers: Any) -> None:
     assert c.k == 1000
 
 
+def test_register_resolver_access_config(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver(
+        "len",
+        lambda value, *, root: len(OmegaConf.select(root, value)),
+        config_arg="root",
+        use_cache=False,
+    )
+    c = OmegaConf.create({"list": [1, 2, 3], "list_len": "${len:list}"})
+    assert c.list_len == 3
+
+
+def test_register_resolver_access_parent(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver(
+        "get_sibling",
+        lambda sibling, *, parent: getattr(parent, sibling),
+        parent_arg="parent",
+        use_cache=False,
+    )
+    c = OmegaConf.create(
+        """
+        root:
+            foo:
+                bar:
+                    baz1: "${get_sibling:baz2}"
+                    baz2: useful data
+        """
+    )
+    assert c.root.foo.bar.baz1 == "useful data"
+
+
+def test_register_resolver_access_parent_no_cache(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver(
+        "add_noise_to_sibling",
+        lambda sibling, *, parent: random.uniform(0, 1) + getattr(parent, sibling),
+        parent_arg="parent",
+        use_cache=False,
+    )
+    c = OmegaConf.create(
+        """
+        root:
+            foo:
+                baz1: "${add_noise_to_sibling:baz2}"
+                baz2: 1
+            bar:
+                baz1: "${add_noise_to_sibling:baz2}"
+                baz2: 1
+        """
+    )
+    assert c.root.foo.baz2 == c.root.bar.baz2  # make sure we test what we want to test
+    assert c.root.foo.baz1 != c.root.foo.baz1  # same node (regular "no cache" behavior)
+    assert c.root.foo.baz1 != c.root.bar.baz1  # same args but different parents
+
+
+def test_register_resolver_cache_warnings(restore_resolvers: Any) -> None:
+    with pytest.warns(UserWarning):
+        OmegaConf.register_resolver(
+            "test_warning_parent", lambda *, parent: None, parent_arg="parent"
+        )
+
+    with pytest.warns(UserWarning):
+        OmegaConf.register_resolver(
+            "test_warning_config", lambda *, config: None, config_arg="config"
+        )
+
+
+def test_register_resolver_cache_errors(restore_resolvers: Any) -> None:
+    with pytest.raises(NotImplementedError):
+        OmegaConf.register_resolver(
+            "test_error_parent",
+            lambda *, parent: None,
+            parent_arg="parent",
+            use_cache=True,
+        )
+
+    with pytest.raises(NotImplementedError):
+        OmegaConf.register_resolver(
+            "test_error_config",
+            lambda *, config: None,
+            config_arg="config",
+            use_cache=True,
+        )
+
+
 def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # resolvers are always converted to stateless idempotent functions
     # subsequent calls to the same function with the same argument will always return the same value.

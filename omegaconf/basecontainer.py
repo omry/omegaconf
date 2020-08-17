@@ -59,6 +59,7 @@ class BaseContainer(Container, ABC):
             return default_value
 
         resolved = self.resolve_interpolation(
+            parent=self,
             key=key,
             value=value,
             throw_on_missing=not has_default,
