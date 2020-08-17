@@ -4,16 +4,18 @@ import re
 import string
 import sys
 from enum import Enum
-from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
+from . import grammar_parser
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
     ConfigValueError,
     OmegaConfBaseException,
 )
+from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 
 try:
     import dataclasses

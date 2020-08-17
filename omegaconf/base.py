@@ -4,8 +4,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import ValueKind, format_and_raise, get_value_kind
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
+from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
+from .grammar_visitor import GrammarVisitor
 
 
 @dataclass

@@ -3,7 +3,6 @@ import copy
 import io
 import os
 import pathlib
-import re
 import sys
 import warnings
 from collections import defaultdict
@@ -17,7 +16,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    Match,
     Optional,
     Tuple,
     Type,
@@ -26,13 +24,12 @@ from typing import (
 )
 
 import yaml
-from typing_extensions import Protocol
 
 from . import DictConfig, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
-    decode_primitive,
+    _is_interpolation,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -54,11 +51,14 @@ from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
+    GrammarParseError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
 )
+from .grammar_parser import parse
+from .grammar_visitor import GrammarVisitor
 from .nodes import (
     AnyNode,
     BooleanNode,

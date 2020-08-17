@@ -1,14 +1,29 @@
+import math
 import os
 import random
 import re
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import pytest
 from _pytest.python_api import RaisesContext
 
-from omegaconf import Container, IntegerNode, Node, OmegaConf, Resolver, ValidationError
+from omegaconf import (
+    Container,
+    DictConfig,
+    IntegerNode,
+    ListConfig,
+    Node,
+    OmegaConf,
+    Resolver,
+    ValidationError,
+)
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import (
+    ConfigKeyError,
+    GrammarSyntaxError,
+    GrammarTypeError,
+    UnsupportedInterpolationType,
+)
 
 
 @pytest.mark.parametrize(  # type:ignore
