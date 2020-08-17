@@ -511,10 +511,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = None
         elif get_value_kind(value) == ValueKind.MANDATORY_MISSING:
             self.__dict__["_content"] = "???"
-        elif get_value_kind(value) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
-        ):
+        elif get_value_kind(value) == ValueKind.INTERPOLATION:
             self.__dict__["_content"] = value
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):

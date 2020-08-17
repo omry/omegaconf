@@ -431,26 +431,6 @@ def test_read_write_override(src: Any, func: Any, expectation: Any) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "string, tokenized",
-    [
-        ("dog,cat", ["dog", "cat"]),
-        ("dog\\,cat\\ ", ["dog,cat "]),
-        ("dog,\\ cat", ["dog", " cat"]),
-        ("\\ ,cat", [" ", "cat"]),
-        ("dog, cat", ["dog", "cat"]),
-        ("dog, ca t", ["dog", "ca t"]),
-        ("dog, cat", ["dog", "cat"]),
-        ("whitespace\\ , before comma", ["whitespace ", "before comma"]),
-        (None, []),
-        ("", []),
-        ("no , escape", ["no", "escape"]),
-    ],
-)
-def test_tokenize_with_escapes(string: str, tokenized: List[str]) -> None:
-    assert OmegaConf._tokenize_args(string) == tokenized
-
-
-@pytest.mark.parametrize(  # type: ignore
     "src, func, expectation",
     [({}, lambda c: c.__setattr__("foo", 1), raises(AttributeError))],
 )

@@ -77,6 +77,8 @@ MISSING: Any = "???"
 # - in env() to detect between no default value vs a default value set to None
 _EMPTY_MARKER_ = object()
 
+Resolver = Callable[..., Any]
+
 
 def II(interpolation: str) -> Any:
     """
@@ -94,29 +96,6 @@ def SI(interpolation: str) -> Any:
     :return: input interpolation with type Any
     """
     return interpolation
-
-
-class Resolver0(Protocol):
-    def __call__(self) -> Any:
-        ...
-
-
-class Resolver1(Protocol):
-    def __call__(self, __x1: str) -> Any:
-        ...
-
-
-class Resolver2(Protocol):
-    def __call__(self, __x1: str, __x2: str) -> Any:
-        ...
-
-
-class Resolver3(Protocol):
-    def __call__(self, __x1: str, __x2: str, __x3: str) -> Any:
-        ...
-
-
-Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
 
 
 def register_default_resolvers() -> None:
@@ -394,20 +373,6 @@ class OmegaConf:
             OmegaConf.set_readonly(target, True)
 
         return target
-
-    @staticmethod
-    def _tokenize_args(string: Optional[str]) -> List[str]:
-        if string is None or string == "":
-            return []
-
-        def _unescape_word_boundary(match: Match[str]) -> str:
-            if match.start() == 0 or match.end() == len(match.string):
-                return ""
-            return match.group(0)
-
-        escaped = re.split(r"(?<!\\),", string)
-        escaped = [re.sub(r"(?<!\\) ", _unescape_word_boundary, x) for x in escaped]
-        return [re.sub(r"(\\([ ,]))", lambda x: x.group(2), x) for x in escaped]
 
     @staticmethod
     def register_resolver(

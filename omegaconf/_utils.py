@@ -408,19 +408,6 @@ def is_int(st: str) -> bool:
         return False
 
 
-def decode_primitive(s: str) -> Any:
-    if is_bool(s):
-        return str.lower(s) == "true"
-
-    if is_int(s):
-        return int(s)
-
-    if is_float(s):
-        return float(s)
-
-    return s
-
-
 def is_primitive_list(obj: Any) -> bool:
     from .base import Container
 
@@ -515,12 +502,7 @@ def is_primitive_type(type_: Any) -> bool:
 
 def _is_interpolation(v: Any) -> bool:
     if isinstance(v, str):
-        ret = get_value_kind(v) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
-        )
-        assert isinstance(ret, bool)
-        return ret
+        return bool(get_value_kind(v) == ValueKind.INTERPOLATION)
     return False
 
 

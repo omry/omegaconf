@@ -35,7 +35,6 @@ class ValueNode(Node):
 
         if isinstance(value, str) and get_value_kind(value) in (
             ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
             ValueKind.MANDATORY_MISSING,
         ):
             self._val = value

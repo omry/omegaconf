@@ -153,7 +153,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         from omegaconf import OmegaConf
 
         vk = get_value_kind(value)
-        if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
+        if vk == ValueKind.INTERPOLATION:
             return
 
         if OmegaConf.is_none(value):
