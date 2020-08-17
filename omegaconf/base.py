@@ -307,7 +307,11 @@ class Container(Node):
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
 
-            assert ret is None or isinstance(ret, Container)
+            if ret is not None and not isinstance(ret, Container):
+                raise ConfigKeyError(
+                    f"Error trying to access {key}: node `{'.'.join(split[0:i + 1])}` "
+                    f"is not a container and thus cannot contain `{split[i + 1]}``"
+                )
             root = ret
 
         if root is None:
