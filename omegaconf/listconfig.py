@@ -328,10 +328,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return copy.copy(self)
 
     def _get_node(
-        self,
-        key: Union[int, slice],
-        validate_access: bool = True,
-        disable_warning: bool = False,
+        self, key: Union[int, slice], validate_access: bool = True
     ) -> Optional[Node]:
         try:
             if self._is_none():

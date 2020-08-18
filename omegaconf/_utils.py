@@ -622,11 +622,9 @@ def format_and_raise(
         ref_type_str = None
     else:
         if key is not None and not OmegaConf.is_none(node):
-            child_node = node._get_node(
-                key, validate_access=False, disable_warning=True
-            )
+            child_node = node._get_node(key, validate_access=False)
 
-        full_key = node._get_full_key(key=key, disable_warning=True)
+        full_key = node._get_full_key(key=key)
 
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)

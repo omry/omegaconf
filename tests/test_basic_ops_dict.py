@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import re
 import tempfile
 from typing import Any, Dict, List, Optional, Union
@@ -8,7 +7,6 @@ import pytest
 
 from omegaconf import (
     DictConfig,
-    IntegerNode,
     ListConfig,
     MissingMandatoryValue,
     OmegaConf,
@@ -89,34 +87,6 @@ def test_subscript_set() -> None:
     c = OmegaConf.create()
     c["a"] = "b"
     assert {"a": "b"} == c
-
-
-dot_key_warning = (
-    "Keys with dot (foo.bar) are deprecated and will have different semantic "
-    "meaning the next major version of OmegaConf (2.1)\n"
-    "See the compact keys issue for more details: https://github.com/omry/omegaconf/issues/152\n"
-    "You can disable this warning by setting the environment variable OC_DISABLE_DOT_ACCESS_WARNING=1"
-)
-
-
-def test_subscript_setitem_with_dot_warning() -> None:
-    c = OmegaConf.create()
-    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
-        c.__setitem__("foo.bar", 42)
-
-    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
-        assert c.__getitem__("foo.bar") == 42
-
-    with pytest.warns(expected_warning=UserWarning, match=re.escape(dot_key_warning)):
-        c = OmegaConf.create({"foo.bar": IntegerNode(10)})
-
-
-def test_subscript_set_with_dot_warning_suppressed(recwarn: Any, mocker: Any) -> None:
-    c = OmegaConf.create()
-    mocker.patch.dict(os.environ, {"OC_DISABLE_DOT_ACCESS_WARNING": "1"})
-    c.__setitem__("foo.bar", 42)
-    assert c.__getitem__("foo.bar") == 42
-    assert len(recwarn) == 0
 
 
 def test_default_value() -> None:

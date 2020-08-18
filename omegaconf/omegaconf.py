@@ -726,11 +726,7 @@ def _maybe_wrap(
 
 
 def _select_one(
-    c: Container,
-    key: str,
-    throw_on_missing: bool,
-    throw_on_type_error: bool = True,
-    disable_warning: bool = False,
+    c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True,
 ) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
@@ -739,9 +735,7 @@ def _select_one(
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
-        val: Optional[Node] = c._get_node(
-            ret_key, validate_access=False, disable_warning=disable_warning
-        )
+        val: Optional[Node] = c._get_node(ret_key, validate_access=False)
         if val is not None:
             if val._is_missing():
                 if throw_on_missing:
