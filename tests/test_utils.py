@@ -225,7 +225,6 @@ def test_is_dataclass(mocker: Any) -> None:
     assert not _utils.is_dataclass(10)
 
 
-@pytest.fixture  # type: ignore
 def test_is_attr_class(mocker: Any) -> None:
     @attr.s
     class Foo:
