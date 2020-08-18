@@ -1,6 +1,4 @@
 import copy
-import os
-import warnings
 from enum import Enum
 from typing import (
     AbstractSet,
@@ -212,22 +210,16 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             )
             raise ValidationError(msg)
 
-    def _validate_and_normalize_key(
-        self, key: Any, disable_warning: bool = False
-    ) -> Union[str, Enum]:
-        return self._s_validate_and_normalize_key(
-            self._metadata.key_type, key, disable_warning
-        )
+    def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
+        return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
     def _s_validate_and_normalize_key(
-        self, key_type: Any, key: Any, disable_warning: bool
+        self, key_type: Any, key: Any
     ) -> Union[str, Enum]:
         if key_type is None:
             for t in (str, Enum):
                 try:
-                    return self._s_validate_and_normalize_key(
-                        key_type=t, key=key, disable_warning=disable_warning
-                    )
+                    return self._s_validate_and_normalize_key(key_type=t, key=key)
                 except KeyValidationError:
                     pass
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
@@ -236,20 +228,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
                 )
-
-            if "." in key:
-                env_disabled_warning = (
-                    "OC_DISABLE_DOT_ACCESS_WARNING" in os.environ
-                    and os.environ["OC_DISABLE_DOT_ACCESS_WARNING"] == "1"
-                )
-                msg = (
-                    f"Keys with dot ({key}) are deprecated and will have different semantic "
-                    "meaning the next major version of OmegaConf (2.1)\n"
-                    "See the compact keys issue for more details: https://github.com/omry/omegaconf/issues/152\n"
-                    "You can disable this warning by setting the environment variable OC_DISABLE_DOT_ACCESS_WARNING=1"
-                )
-                if not (disable_warning or env_disabled_warning):
-                    warnings.warn(message=msg, category=UserWarning)
 
             return key
         elif issubclass(key_type, Enum):
@@ -383,13 +361,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
 
     def _get_node(
-        self,
-        key: Union[str, Enum],
-        validate_access: bool = True,
-        disable_warning: bool = False,
+        self, key: Union[str, Enum], validate_access: bool = True
     ) -> Optional[Node]:
         try:
-            key = self._validate_and_normalize_key(key, disable_warning)
+            key = self._validate_and_normalize_key(key)
         except KeyValidationError:
             if validate_access:
                 raise
@@ -426,7 +401,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 if default is not DEFAULT_VALUE_MARKER:
                     return default
                 else:
-                    full = self._get_full_key(key=key, disable_warning=True)
+                    full = self._get_full_key(key=key)
                     if full != key:
                         raise ConfigKeyError(f"Key not found: '{key}' (path: '{full}')")
                     else:

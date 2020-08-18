@@ -524,9 +524,7 @@ class BaseContainer(Container, ABC):
     def _value(self) -> Any:
         return self.__dict__["_content"]
 
-    def _get_full_key(
-        self, key: Union[str, Enum, int, slice, None], disable_warning: bool = False
-    ) -> str:
+    def _get_full_key(self, key: Union[str, Enum, int, slice, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
@@ -566,11 +564,7 @@ class BaseContainer(Container, ABC):
         if key is not None and key != "":
             assert isinstance(self, Container)
             cur, _ = _select_one(
-                c=self,
-                key=str(key),
-                throw_on_missing=False,
-                throw_on_type_error=False,
-                disable_warning=disable_warning,
+                c=self, key=str(key), throw_on_missing=False, throw_on_type_error=False
             )
             if cur is None:
                 cur = self
