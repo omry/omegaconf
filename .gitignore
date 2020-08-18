@@ -18,3 +18,4 @@ TODO
 /pip-wheel-metadata
 /.pyre
 .dmypy.json
+.python-version

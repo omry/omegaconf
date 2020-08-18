@@ -1,5 +1,4 @@
 import copy
-import sys
 from enum import Enum
 from typing import Any, Dict, List, Union
 
@@ -478,11 +477,6 @@ def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
     assert not cfg.foo._get_node_flag(flag_name)
 
 
-# There is an issue in Python <= 3.6.3 related to copying instances of generic classes,
-# that makes many of the copy tests fail.
-@pytest.mark.skipif(
-    sys.version_info <= (3, 6, 3), reason="Requires Python 3.6.4 or newer"
-)
 @pytest.mark.parametrize("copy_method", [lambda x: copy.copy(x), lambda x: x.copy()])
 class TestCopy:
     @pytest.mark.parametrize(  # type: ignore
@@ -521,17 +515,6 @@ class TestCopy:
         cp = copy_method(cfg)
         assert id(cfg) != id(cp)
         assert id(cfg[0]) == id(cp[0])
-
-
-# This test is to ensure 100% coverage with Python <= 3.6.3, even when the
-# above tests are skipped.
-@pytest.mark.skipif(  # type: ignore
-    sys.version_info >= (3, 6, 4), reason="Copy is tested in `TestCopy`"
-)
-def test_enforce_copy_coverage() -> None:
-    cfg = OmegaConf.create([])
-    with raises(TypeError):
-        cfg.copy()
 
 
 def test_not_implemented() -> None:
