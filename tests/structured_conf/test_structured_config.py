@@ -815,11 +815,21 @@ class TestConfigs:
     def test_create_generic_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.GenericDict)
-        assert _utils.get_ref_type(cfg, "dict") == Optional[Dict[Union[str, Enum], Any]]
+        assert _utils.get_ref_type(cfg, "dict") == Dict[Union[str, Enum], Any]
 
     def test_create_generic_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.GenericList)
+        assert _utils.get_ref_type(cfg, "list") == List[Any]
+
+    def test_create_optional_generic_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.OptionalGenericDict)
+        assert _utils.get_ref_type(cfg, "dict") == Optional[Dict[Union[str, Enum], Any]]
+
+    def test_create_optional_generic_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.OptionalGenericList)
         assert _utils.get_ref_type(cfg, "list") == Optional[List[Any]]
 
 

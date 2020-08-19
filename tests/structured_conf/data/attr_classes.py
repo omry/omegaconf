@@ -489,9 +489,19 @@ class ListClass:
 
 @attr.s(auto_attribs=True)
 class GenericList:
-    list: Optional[List] = None  # type: ignore
+    list: List = []  # type: ignore
 
 
 @attr.s(auto_attribs=True)
 class GenericDict:
+    dict: Dict = {}  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class OptionalGenericList:
+    list: Optional[List] = None  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class OptionalGenericDict:
     dict: Optional[Dict] = None  # type: ignore
