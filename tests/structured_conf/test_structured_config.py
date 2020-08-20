@@ -750,6 +750,15 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             cfg.dict1 = value
 
+    def test_assign_container_to_valuenode(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.User)
+        value = [1, 2]
+        with pytest.raises(ValidationError):
+            cfg.name = value
+        with pytest.raises(ValidationError):
+            cfg.age = value
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):

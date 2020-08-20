@@ -364,7 +364,7 @@ class BaseContainer(Container, ABC):
     def _set_item_impl(self, key: Any, value: Any) -> None:
         from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
-        from .nodes import ValueNode
+        from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
             try:
@@ -423,6 +423,9 @@ class BaseContainer(Container, ABC):
             self.__dict__["_content"][value_key] = v
 
         if is_primitive_container(value):
+            should_set_value = should_set_value or (
+                target_node and not isinstance(target_node_ref, AnyNode)
+            )
             if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
             else:

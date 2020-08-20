@@ -305,6 +305,18 @@ params = [
         ),
         id="DictConfig[str,Color]:setitem_bad_value",
     ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(User),
+            op=lambda cfg: cfg.__setitem__("name", [1, 2]),
+            exception_type=ValidationError,
+            msg="Value '[1, 2]' is not a valid string (type list)",
+            full_key="name",
+            key="name",
+            low_level=True,
+        ),
+        id="DictConfig[Union[str, Enum], Any]:setitem_stringnode_bad_value",
+    ),
     # getitem
     pytest.param(
         Expected(
