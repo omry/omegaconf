@@ -87,6 +87,12 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (BooleanNode, "Yup"),
         (StringNode, [1, 2]),
         (StringNode, {"foo": "var"}),
+        (IntegerNode, [1, 2]),
+        (IntegerNode, {"foo": "var"}),
+        (BooleanNode, [1, 2]),
+        (BooleanNode, {"foo": "var"}),
+        (FloatNode, [1, 2]),
+        (FloatNode, {"foo": "var"}),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
