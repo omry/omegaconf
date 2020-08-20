@@ -1,1 +1,1 @@
-Fix bug that allowed containers to replaced when setting a ValueNode value.
+Fix bug that allowed containers to replaced when setting a ValueNode value. Now StringNodes don't support Containers(lists and dicts)
