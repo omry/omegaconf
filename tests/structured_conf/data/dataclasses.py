@@ -502,18 +502,10 @@ class ListClass:
 @dataclass
 class GenericList:
     list: List = field(default_factory=lambda: [])  # type: ignore
+    opt_list: Optional[List] = None  # type: ignore
 
 
 @dataclass
 class GenericDict:
     dict: Dict = field(default_factory=lambda: {})  # type: ignore
-
-
-@dataclass
-class OptionalGenericList:
-    list: Optional[List] = None  # type: ignore
-
-
-@dataclass
-class OptionalGenericDict:
-    dict: Optional[Dict] = None  # type: ignore
+    opt_dict: Optional[Dict] = None  # type: ignore
