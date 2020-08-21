@@ -1,0 +1,1 @@
+Fix merging into an Optional[List[Any]] = None

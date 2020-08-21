@@ -258,6 +258,13 @@ class EnumOptional:
 
 
 @attr.s(auto_attribs=True)
+class DictOptional:
+    with_default: Optional[Dict[str, int]] = {"a": 10}
+    as_none: Optional[Dict[str, int]] = None
+    not_optional: Dict[str, int] = {"a": 10}
+
+
+@attr.s(auto_attribs=True)
 class StructuredOptional:
     with_default: Optional[Nested] = Nested()
     as_none: Optional[Nested] = None
