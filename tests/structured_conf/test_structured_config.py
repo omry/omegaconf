@@ -384,6 +384,7 @@ class TestConfigs:
             "TupleOptional",
             "EnumOptional",
             "StructuredOptional",
+            "DictOptional",
         ],
     )
     def test_optional(self, class_type: str, tested_type: str) -> None:
@@ -921,4 +922,22 @@ class TestDictSubclass:
         assert ret == {
             "x": 20,
             "frozen": {"user": {"name": "Bart", "age": 10}, "x": 10, "list": [1, 2, 3]},
+        }
+
+    def test_merge_into_none_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.ListOptional)
+        assert OmegaConf.merge(cfg, {"as_none": [4, 5, 6]}) == {
+            "with_default": [1, 2, 3],
+            "as_none": [4, 5, 6],
+            "not_optional": [1, 2, 3],
+        }
+
+    def test_merge_into_none_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictOptional)
+        assert OmegaConf.merge(cfg, {"as_none": {"x": 100}}) == {
+            "with_default": {"a": 10},
+            "as_none": {"x": 100},
+            "not_optional": {"a": 10},
         }

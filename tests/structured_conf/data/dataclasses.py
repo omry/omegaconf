@@ -256,6 +256,13 @@ class EnumOptional:
 
 
 @dataclass
+class DictOptional:
+    with_default: Optional[Dict[str, int]] = field(default_factory=lambda: {"a": 10})
+    as_none: Optional[Dict[str, int]] = None
+    not_optional: Dict[str, int] = field(default_factory=lambda: {"a": 10})
+
+
+@dataclass
 class StructuredOptional:
     with_default: Optional[Nested] = Nested()
     as_none: Optional[Nested] = None
