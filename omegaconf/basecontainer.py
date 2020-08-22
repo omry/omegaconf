@@ -382,10 +382,6 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
-        should_set_value = target_node_ref is not None and (
-            isinstance(target_node_ref, Container)
-            and (special_value or target_node_ref._has_ref_type())
-        )
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -395,6 +391,13 @@ class BaseContainer(Container, ABC):
 
         elif isinstance(self.__dict__["_content"], list):
             target_node = isinstance(target_node_ref, ValueNode)
+        should_set_value = target_node_ref is not None and (
+            (
+                isinstance(target_node_ref, Container)
+                and (special_value or target_node_ref._has_ref_type())
+            )
+            or (target_node and not isinstance(target_node_ref, AnyNode))
+        )
 
         def wrap(key: Any, val: Any) -> Node:
             is_optional = True
@@ -423,9 +426,6 @@ class BaseContainer(Container, ABC):
             self.__dict__["_content"][value_key] = v
 
         if is_primitive_container(value):
-            should_set_value = should_set_value or (
-                target_node and not isinstance(target_node_ref, AnyNode)
-            )
             if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
             else:

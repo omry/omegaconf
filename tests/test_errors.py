@@ -315,7 +315,7 @@ params = [
             key="name",
             low_level=True,
         ),
-        id="DictConfig[Union[str, Enum], Any]:setitem_stringnode_bad_value",
+        id="DictConfig[Any,Any]:setitem_stringnode_bad_value",
     ),
     # getitem
     pytest.param(
