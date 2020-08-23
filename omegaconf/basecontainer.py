@@ -433,10 +433,10 @@ class BaseContainer(Container, ABC):
             assign(key, value)
         elif not input_node and target_node:
             # input is not node, can be primitive or config
-            if input_config and not should_set_value:
-                assign(key, value)
-            elif should_set_value:
+            if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
+            elif input_config:
+                assign(key, value)
             else:
                 self.__dict__["_content"][key] = wrap(key, value)
         elif input_node and not target_node:

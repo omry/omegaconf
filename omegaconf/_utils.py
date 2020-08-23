@@ -438,22 +438,6 @@ def is_dict(obj: Any) -> bool:
     return is_primitive_dict(obj) or is_dict_annotation(obj) or is_dict_subclass(obj)
 
 
-def is_container(obj: Any) -> bool:
-    return is_dict_container(obj) or is_list_container(obj)
-
-
-def is_list_container(obj: Any) -> bool:
-    from .base import Container
-
-    return isinstance(obj, Container) or isinstance(obj, (list, tuple))
-
-
-def is_dict_container(obj: Any) -> bool:
-    from .base import Container
-
-    return isinstance(obj, Container) or isinstance(obj, dict)
-
-
 def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 

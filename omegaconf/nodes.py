@@ -4,7 +4,7 @@ import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of, is_container
+from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     MissingMandatoryValue,
@@ -177,7 +177,9 @@ class StringNode(ValueNode):
         )
 
     def validate_and_convert(self, value: Any) -> Optional[str]:
-        if is_container(value):
+        from omegaconf import OmegaConf
+
+        if OmegaConf.is_config(value) or is_primitive_container(value):
             raise ValidationError(
                 "Value '$VALUE' is not a valid string (type $VALUE_TYPE)"
             )
