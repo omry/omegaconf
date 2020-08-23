@@ -19,6 +19,7 @@ from ._utils import (
     is_dict_annotation,
     is_list_annotation,
     is_primitive_dict,
+    is_primitive_type,
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
@@ -361,6 +362,10 @@ class BaseContainer(Container, ABC):
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:
+        """
+        Changes the value of the node key with the desired value. If the node key doesn't
+        exist it creates a new one.
+        """
         from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
         from .nodes import AnyNode, ValueNode
@@ -390,16 +395,18 @@ class BaseContainer(Container, ABC):
 
         elif isinstance(self.__dict__["_content"], list):
             target_node = isinstance(target_node_ref, ValueNode)
+        # We use set_value if:
+        # 1. Target node is a container and the value is MISSING or None
+        # 2. Target node is a container and has an explicit ref_type
+        # 3. Target node is a valuenode. If it's an AnyNode then if the
+        #    value is a primitive type it should set.
         should_set_value = target_node_ref is not None and (
             (
-                # Target node is a container and has an special value or has an
-                # ref_type assigned
                 isinstance(target_node_ref, Container)
                 and (special_value or target_node_ref._has_ref_type())
             )
-            # if target_node is a valuenode and is not an anynode then
-            # it should set value
             or (target_node and not isinstance(target_node_ref, AnyNode))
+            or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
         )
 
         def wrap(key: Any, val: Any) -> Node:
