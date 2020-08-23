@@ -18,7 +18,6 @@ from ._utils import (
     get_yaml_loader,
     is_dict_annotation,
     is_list_annotation,
-    is_primitive_container,
     is_primitive_dict,
     is_structured_config,
 )
@@ -393,9 +392,13 @@ class BaseContainer(Container, ABC):
             target_node = isinstance(target_node_ref, ValueNode)
         should_set_value = target_node_ref is not None and (
             (
+                # Target node is a container and has an special value or has an
+                # ref_type assigned
                 isinstance(target_node_ref, Container)
                 and (special_value or target_node_ref._has_ref_type())
             )
+            # if target_node is a valuenode and is not an anynode then
+            # it should set value
             or (target_node and not isinstance(target_node_ref, AnyNode))
         )
 
@@ -425,20 +428,17 @@ class BaseContainer(Container, ABC):
             v._set_key(value_key)
             self.__dict__["_content"][value_key] = v
 
-        if is_primitive_container(value):
-            if should_set_value:
-                self.__dict__["_content"][key]._set_value(value)
-            else:
-                self.__dict__["_content"][key] = wrap(key, value)
-        elif input_node and target_node:
+        if input_node and target_node:
             # both nodes, replace existing node with new one
             assign(key, value)
         elif not input_node and target_node:
             # input is not node, can be primitive or config
-            if input_config:
+            if input_config and not should_set_value:
                 assign(key, value)
-            else:
+            elif should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
+            else:
+                self.__dict__["_content"][key] = wrap(key, value)
         elif input_node and not target_node:
             # target must be config, replace target with input node
             assign(key, value)
