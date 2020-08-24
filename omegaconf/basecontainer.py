@@ -412,7 +412,6 @@ class BaseContainer(Container, ABC):
         )
 
         def wrap(key: Any, val: Any) -> Node:
-            print(key, val)
             is_optional = True
             if not is_structured_config(val):
                 ref_type = self._metadata.element_type
