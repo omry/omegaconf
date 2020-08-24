@@ -398,8 +398,10 @@ class BaseContainer(Container, ABC):
         # We use set_value if:
         # 1. Target node is a container and the value is MISSING or None
         # 2. Target node is a container and has an explicit ref_type
-        # 3. Target node is a valuenode. If it's an AnyNode then if the
-        #    value is a primitive type it should set.
+        # 3. If the target is a NodeValue then it should set his value.
+        #  Furthermore if it's an AnyNode it should wrap when the input is
+        # a container and set when the input is an compatible type(primitive type).
+
         should_set_value = target_node_ref is not None and (
             (
                 isinstance(target_node_ref, Container)
