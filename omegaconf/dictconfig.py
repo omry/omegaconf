@@ -114,6 +114,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         element_type: Optional[Type[Any]],
     ) -> Optional[Type[Any]]:
         if ref_type == Dict:
+            if key_type is None:
+                key_type = Union[str, Enum]  # type: ignore
+            if element_type is None:
+                element_type = Any  # type: ignore
             return Dict[key_type, element_type]  # type: ignore
         else:
             return ref_type

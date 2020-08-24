@@ -82,6 +82,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self, ref_type: Optional[Type[Any]], element_type: Optional[Type[Any]]
     ) -> Optional[Type[Any]]:
         if ref_type == List:
+            if element_type is None:
+                element_type = Any  # type: ignore
             return List[element_type]  # type: ignore
         else:
             return ref_type
