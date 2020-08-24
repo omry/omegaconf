@@ -530,6 +530,28 @@ def test_set_with_invalid_key() -> None:
         cfg[1] = "a"  # type: ignore
 
 
+def test_set_anynode() -> None:
+    cfg = OmegaConf.create({"a": 5})
+    a_before = cfg._get_node("a")
+    cfg.a = "a"
+    # changing anynode's value with a primitive type should set value
+    assert id(cfg._get_node("a")) == id(a_before)
+    a_before2 = cfg._get_node("a")
+    cfg.a = []
+    # changing anynode's value with a container should wrap a new node
+    assert id(cfg._get_node("a")) != id(a_before2)
+    assert isinstance(cfg.a, ListConfig)
+
+
+def test_set_valuenode() -> None:
+    cfg = OmegaConf.structured(User)
+    a_before = cfg._get_node("age")
+    cfg.age = 12
+    assert id(cfg._get_node("age")) == id(a_before)
+    with pytest.raises(ValidationError):
+        cfg.age = []
+
+
 def test_get_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with pytest.raises(KeyValidationError):
