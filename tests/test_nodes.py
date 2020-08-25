@@ -16,7 +16,7 @@ from omegaconf import (
     StringNode,
     ValueNode,
 )
-from omegaconf.errors import ValidationError
+from omegaconf.errors import UnsupportedValueType, ValidationError
 
 from . import Color
 
@@ -74,6 +74,10 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
     assert str(node) == str(output_)
 
 
+class Person:
+    pass
+
+
 # testing invalid conversions
 @pytest.mark.parametrize(  # type: ignore
     "type_,input_",
@@ -101,15 +105,26 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (FloatNode, ListConfig([1, 2])),
         (FloatNode, {"foo": "var"}),
         (FloatNode, DictConfig({"foo": "var"})),
+        (AnyNode, [1, 2]),
+        (AnyNode, ListConfig([1, 2])),
+        (AnyNode, {"foo": "var"}),
+        (AnyNode, DictConfig({"foo": "var"})),
+        (AnyNode, Person()),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
     empty_node = type_()
-    with pytest.raises(ValidationError):
-        empty_node._set_value(input_)
 
-    with pytest.raises(ValidationError):
-        type_(input_)
+    if type_ == AnyNode:
+        with pytest.raises(UnsupportedValueType):
+            empty_node._set_value(input_)
+        with pytest.raises(UnsupportedValueType):
+            type_(input_)
+    else:
+        with pytest.raises(ValidationError):
+            empty_node._set_value(input_)
+        with pytest.raises(ValidationError):
+            type_(input_)
 
 
 @pytest.mark.parametrize(  # type: ignore
