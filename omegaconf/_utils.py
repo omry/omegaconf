@@ -368,8 +368,7 @@ def is_bool(st: str) -> bool:
 
 def is_float(st: str) -> bool:
     try:
-        float(st)
-        return True
+        return float(st) != float("inf")
     except ValueError:
         return False
 
