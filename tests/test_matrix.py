@@ -221,7 +221,13 @@ class TestNodeTypesMatrix:
             )
 
             verify(
-                cfg, "const", none=False, opt=True, missing=False, inter=False, exp=10,
+                cfg,
+                "const",
+                none=False,
+                opt=True,
+                missing=False,
+                inter=False,
+                exp=10,
             )
 
             verify(

@@ -93,7 +93,11 @@ def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
 
     if isinstance(expected, Node):
         res = _node_wrap(
-            type_=target_type, key="foo", value=value, is_optional=False, parent=None,
+            type_=target_type,
+            key="foo",
+            value=value,
+            is_optional=False,
+            parent=None,
         )
         assert type(res) == type(expected)
         assert res == expected
@@ -291,7 +295,10 @@ def test_get_class() -> None:
     [(int, int), (str, str), (Color, Color), (Any, None), (None, type(None))],
 )
 def test_get_key_value_types(
-    key_type: Any, expected_key_type: Any, value_type: Any, expected_value_type: Any,
+    key_type: Any,
+    expected_key_type: Any,
+    value_type: Any,
+    expected_value_type: Any,
 ) -> None:
     dt = Dict[key_type, value_type]  # type: ignore
     if expected_key_type is not None and issubclass(expected_key_type, Exception):
@@ -489,10 +496,14 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         # ListConfig
         pytest.param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
         pytest.param(
-            ListConfig([], element_type=int), Optional[List[int]], id="ListConfig[int]",
+            ListConfig([], element_type=int),
+            Optional[List[int]],
+            id="ListConfig[int]",
         ),
         pytest.param(
-            ListConfig(content="???"), Optional[List[Any]], id="ListConfig_missing",
+            ListConfig(content="???"),
+            Optional[List[Any]],
+            id="ListConfig_missing",
         ),
         pytest.param(
             ListConfig(content="???", element_type=int),
@@ -500,7 +511,9 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
             id="ListConfig[int]_missing",
         ),
         pytest.param(
-            ListConfig(content=None), Optional[List[Any]], id="ListConfig_none",
+            ListConfig(content=None),
+            Optional[List[Any]],
+            id="ListConfig_none",
         ),
         pytest.param(
             ListConfig(content=None, element_type=int),
