@@ -1039,7 +1039,8 @@ def create_readonly(cfg: Any) -> Any:
 
 
 @pytest.mark.parametrize(  # type:ignore
-    "expected", params,
+    "expected",
+    params,
 )
 def test_errors(expected: Expected, monkeypatch: Any) -> None:
     cfg = expected.create()

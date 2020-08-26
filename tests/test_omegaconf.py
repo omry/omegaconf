@@ -154,9 +154,7 @@ def test_is_dict(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_dict(cfg) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "is_optional", [True, False]
-)
+@pytest.mark.parametrize("is_optional", [True, False])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
     "fac",
     [
@@ -221,9 +219,7 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
     assert OmegaConf.is_optional(cfg, "node") == is_optional
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "is_none", [True, False]
-)
+@pytest.mark.parametrize("is_none", [True, False])  # type: ignore
 @pytest.mark.parametrize(  # type: ignore
     "fac",
     [
@@ -245,7 +241,8 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
         ),
         (
             lambda none: DictConfig(
-                content={"foo": "bar"} if not none else None, is_optional=True,
+                content={"foo": "bar"} if not none else None,
+                is_optional=True,
             )
         ),
         (
@@ -302,7 +299,8 @@ def test_is_none(fac: Any, is_none: bool) -> None:
         ),
         (
             lambda inter: DictConfig(
-                content={"foo": "bar"} if inter is None else inter, is_optional=True,
+                content={"foo": "bar"} if inter is None else inter,
+                is_optional=True,
             )
         ),
         (
