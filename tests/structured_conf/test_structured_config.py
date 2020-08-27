@@ -535,8 +535,7 @@ class TestConfigs:
             OmegaConf.structured(input_)
 
     @pytest.mark.parametrize(  # type: ignore
-        "example",
-        ["ListExamples", "TupleExamples"],
+        "example", ["ListExamples", "TupleExamples"]
     )
     def test_list_examples(self, class_type: str, example: str) -> None:
         module: Any = import_module(class_type)

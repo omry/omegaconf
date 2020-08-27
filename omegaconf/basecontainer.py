@@ -33,10 +33,7 @@ class BaseContainer(Container, ABC):
     _resolvers: Dict[str, Any] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
-        super().__init__(
-            parent=parent,
-            metadata=metadata,
-        )
+        super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
         self._normalize_ref_type()
 
@@ -452,10 +449,7 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _item_eq(
-        c1: Container,
-        k1: Union[str, int],
-        c2: Container,
-        k2: Union[str, int],
+        c1: Container, k1: Union[str, int], c2: Container, k2: Union[str, int]
     ) -> bool:
         v1 = c1._get_node(k1)
         v2 = c2._get_node(k2)

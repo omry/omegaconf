@@ -77,25 +77,17 @@ from . import Group, User
         ),
         # None containers
         pytest.param(
-            {"foo": DictConfig(content=None)},
-            {"foo": None},
-            id="dictconfig_none",
+            {"foo": DictConfig(content=None)}, {"foo": None}, id="dictconfig_none"
         ),
         pytest.param(
-            {"foo": ListConfig(content=None)},
-            {"foo": None},
-            id="listconfig_none",
+            {"foo": ListConfig(content=None)}, {"foo": None}, id="listconfig_none"
         ),
         # Missing containers
         pytest.param(
-            {"foo": DictConfig(content="???")},
-            {"foo": "???"},
-            id="dictconfig_missing",
+            {"foo": DictConfig(content="???")}, {"foo": "???"}, id="dictconfig_missing"
         ),
         pytest.param(
-            {"foo": ListConfig(content="???")},
-            {"foo": "???"},
-            id="listconfig_missing",
+            {"foo": ListConfig(content="???")}, {"foo": "???"}, id="listconfig_missing"
         ),
     ],
 )

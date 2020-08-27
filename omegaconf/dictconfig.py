@@ -341,9 +341,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         del self.__dict__["_content"][key]
 
     def get(
-        self,
-        key: Union[str, Enum],
-        default_value: Any = DEFAULT_VALUE_MARKER,
+        self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER
     ) -> Any:
         try:
             return self._get_impl(key=key, default_value=default_value)
@@ -359,9 +357,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             else:
                 raise
         return self._resolve_with_default(
-            key=key,
-            value=node,
-            default_value=default_value,
+            key=key, value=node, default_value=default_value
         )
 
     def _get_node(
