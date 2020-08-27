@@ -58,6 +58,12 @@ from . import Color
         (BooleanNode, None, None),
         (BooleanNode, "0", False),
         (BooleanNode, 0, False),
+        # any
+        (AnyNode, 3, 3),
+        (AnyNode, 3.14, 3.14),
+        (AnyNode, False, False),
+        (AnyNode, Color.RED, Color.RED),
+        (AnyNode, None, None),
         # Enum node
         (lambda v: EnumNode(enum_type=Color, value=v), Color.RED, Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), "Color.RED", Color.RED),

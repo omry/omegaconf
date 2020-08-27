@@ -540,8 +540,8 @@ def test_set_anynode_with_primitive_type(value: Any) -> None:
     assert cfg.a == value
 
 
-@pytest.mark.parametrize(
-    "value, container_type",  # type: ignore
+@pytest.mark.parametrize(  # type: ignore
+    "value, container_type",
     [
         (ListConfig(content=[1, 2]), ListConfig),
         ([1, 2], ListConfig),
