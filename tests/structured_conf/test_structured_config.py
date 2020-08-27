@@ -1,4 +1,6 @@
+import pickle
 import re
+import tempfile
 from enum import Enum
 from importlib import import_module
 from typing import Any, Dict, List, Optional, Union
@@ -820,6 +822,8 @@ class TestConfigs:
             _utils.get_ref_type(cfg, "opt_dict")
             == Optional[Dict[Union[str, Enum], Any]]
         )
+        assert cfg.dict == {"foo": "var"}
+        assert cfg.opt_dict is None
 
     def test_create_generic_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -836,6 +840,28 @@ class TestConfigs:
         cfg = OmegaConf.structured(module.OptionalGenericList)
         assert _utils.get_ref_type(cfg, "list") == Optional[List[Any]]
         assert _utils.get_ref_type(cfg, "opt_list") == Optional[List[Any]]
+        assert cfg.list == [1, 2]
+        assert cfg.opt_list is None
+
+    def test_pickle_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.GenericList)
+        with tempfile.TemporaryFile() as fp:
+            pickle.dump(cfg, fp)
+            fp.flush()
+            fp.seek(0)
+            cfg2 = pickle.load(fp)
+            assert cfg == cfg2
+
+    def test_pickle_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.GenericDict)
+        with tempfile.TemporaryFile() as fp:
+            pickle.dump(cfg, fp)
+            fp.flush()
+            fp.seek(0)
+            cfg2 = pickle.load(fp)
+            assert cfg == cfg2
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:

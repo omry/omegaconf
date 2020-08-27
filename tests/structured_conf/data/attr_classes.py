@@ -489,11 +489,11 @@ class ListClass:
 
 @attr.s(auto_attribs=True)
 class GenericList:
-    list: List = []  # type: ignore
+    list: List = [1, 2]  # type: ignore
     opt_list: Optional[List] = None  # type: ignore
 
 
 @attr.s(auto_attribs=True)
 class GenericDict:
-    dict: Dict = {}  # type: ignore
+    dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
