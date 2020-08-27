@@ -213,14 +213,10 @@ from . import (
         # merging compatible dict into MISSING structured config expands it
         # to ensure the resulting node follows the protocol set by the underlying type
         pytest.param(
-            [B, {"x": {}}],
-            {"x": {"a": 10}},
-            id="structured_merge_into_missing",
+            [B, {"x": {}}], {"x": {"a": 10}}, id="structured_merge_into_missing"
         ),
         pytest.param(
-            [B, {"x": {"a": 20}}],
-            {"x": {"a": 20}},
-            id="structured_merge_into_missing",
+            [B, {"x": {"a": 20}}], {"x": {"a": 20}}, id="structured_merge_into_missing"
         ),
         pytest.param([C, {"x": A}], {"x": {"a": 10}}, id="structured_merge_into_none"),
         pytest.param([C, C], {"x": None}, id="none_not_expanding"),

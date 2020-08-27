@@ -241,8 +241,7 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
         ),
         (
             lambda none: DictConfig(
-                content={"foo": "bar"} if not none else None,
-                is_optional=True,
+                content={"foo": "bar"} if not none else None, is_optional=True
             )
         ),
         (
@@ -299,8 +298,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
         ),
         (
             lambda inter: DictConfig(
-                content={"foo": "bar"} if inter is None else inter,
-                is_optional=True,
+                content={"foo": "bar"} if inter is None else inter, is_optional=True
             )
         ),
         (

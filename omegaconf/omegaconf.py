@@ -163,8 +163,7 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
-        obj: Union[Dict[str, Any], None] = None,
-        parent: Optional[BaseContainer] = None,
+        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None
     ) -> DictConfig:
         ...
 
@@ -727,10 +726,7 @@ def _maybe_wrap(
 
 
 def _select_one(
-    c: Container,
-    key: str,
-    throw_on_missing: bool,
-    throw_on_type_error: bool = True,
+    c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig

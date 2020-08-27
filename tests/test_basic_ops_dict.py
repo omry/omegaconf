@@ -251,11 +251,7 @@ def test_iterate_dict_with_interpolation() -> None:
             id="enum_key_no_default",
         ),
         pytest.param(
-            {Enum1.FOO: "bar"},
-            Enum1.BAR,
-            None,
-            None,
-            id="enum_key_with_none_default",
+            {Enum1.FOO: "bar"}, Enum1.BAR, None, None, id="enum_key_with_none_default"
         ),
         pytest.param(
             {Enum1.FOO: "bar"},
@@ -319,11 +315,7 @@ def test_dict_structured_mode_pop() -> None:
         ({"a": 1, "b": 2}, "not_found", pytest.raises(KeyError)),
         # Interpolations
         ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
-        (
-            {"a": "${b}", "b": "???"},
-            "a",
-            pytest.raises(MissingMandatoryValue),
-        ),
+        ({"a": "${b}", "b": "???"}, "a", pytest.raises(MissingMandatoryValue)),
         # enum key
         ({Enum1.FOO: "bar"}, Enum1.BAR, pytest.raises(KeyError)),
     ],
@@ -428,8 +420,7 @@ def test_dict_nested_structured_delitem() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "d, expected",
-    [({}, 0), ({"a": 10, "b": 11}, 2)],
+    "d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)]
 )
 def test_dict_len(d: Any, expected: Any) -> None:
     c = OmegaConf.create(d)

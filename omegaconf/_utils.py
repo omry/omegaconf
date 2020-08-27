@@ -206,11 +206,7 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
         d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=None,
+            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None
         )
     return d
 
@@ -246,11 +242,7 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=None,
+            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None
         )
     return d
 
@@ -658,10 +650,7 @@ def format_and_raise(
     s = string.Template(template=template)
 
     message = s.substitute(
-        REF_TYPE=ref_type_str,
-        OBJECT_TYPE=object_type_str,
-        MSG=msg,
-        FULL_KEY=full_key,
+        REF_TYPE=ref_type_str, OBJECT_TYPE=object_type_str, MSG=msg, FULL_KEY=full_key
     )
     exception_type = type(cause) if type_override is None else type_override
     if exception_type == TypeError:
