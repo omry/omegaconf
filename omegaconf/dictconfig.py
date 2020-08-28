@@ -446,6 +446,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def items(self) -> AbstractSet[Tuple[str, Any]]:
         return self.items_ex(resolve=True, keys=None)
 
+    def setdefault(self, key: Union[str, Enum], default: Any = None) -> Any:
+        if key in self:
+            ret = self.__getitem__(key)
+        else:
+            ret = default
+            self.__setitem__(key, default)
+        return ret
+
     def items_ex(
         self, resolve: bool = True, keys: Optional[List[str]] = None
     ) -> AbstractSet[Tuple[str, Any]]:

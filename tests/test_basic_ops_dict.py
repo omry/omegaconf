@@ -16,7 +16,7 @@ from omegaconf import (
     open_dict,
 )
 from omegaconf.basecontainer import BaseContainer
-from omegaconf.errors import ConfigTypeError, KeyValidationError
+from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
 
 from . import (
     ConcretePlugin,
@@ -689,3 +689,24 @@ def test_assign_to_reftype_plugin(
                 cfg2 = OmegaConf.merge(cfg, {"foo": assign})
                 assert isinstance(cfg2, DictConfig)
                 assert cfg2.foo == assign
+
+
+def test_setdefault() -> None:
+    cfg = OmegaConf.create({})
+    assert cfg.setdefault("foo", 10) == 10
+    assert cfg["foo"] == 10
+    assert cfg.setdefault("foo", 20) == 10
+    assert cfg["foo"] == 10
+
+    cfg = OmegaConf.create({})
+    OmegaConf.set_struct(cfg, True)
+    with pytest.raises(ConfigKeyError):
+        assert cfg.setdefault("foo", 10) == 10
+    assert cfg == {}
+    with open_dict(cfg):
+        assert cfg.setdefault("foo", 10) == 10
+
+    assert cfg.setdefault("foo", 20) == 10
+    assert cfg["foo"] == 10
+
+    assert cfg["foo"] == 10
