@@ -252,6 +252,7 @@ class Container(Node):
         :param key:
         :return:
         """
+        from . import ValueNode
         from .omegaconf import _select_one
 
         if key == "":
@@ -262,6 +263,7 @@ class Container(Node):
         for i in range(len(split) - 1):
             if root is None:
                 break
+
             k = split[i]
             ret, _ = _select_one(
                 c=root,
@@ -269,6 +271,15 @@ class Container(Node):
                 throw_on_missing=throw_on_missing,
                 throw_on_type_error=throw_on_resolution_failure,
             )
+            if isinstance(ret, Node):
+                ret = ret._dereference_node(
+                    throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
+                )
+
+            if isinstance(ret, ValueNode):
+                return ret._get_parent(), k, ret
+
             assert ret is None or isinstance(ret, Container)
             root = ret
 

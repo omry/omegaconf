@@ -392,3 +392,36 @@ def test_merge_with_interpolation() -> None:
 
     with pytest.raises(ValidationError):
         OmegaConf.merge(cfg, {"typed_bar": "nope"})
+
+
+def test_indirect_interpolation() -> None:
+    d = {
+        "a": {"aa": 10},
+        "b": "${a}",
+        "c": "${b.aa}",
+    }
+
+    cfg = OmegaConf.create(d)
+    assert cfg.c == 10
+    assert OmegaConf.to_container(cfg, resolve=True) == {
+        "a": {"aa": 10},
+        "b": {"aa": 10},
+        "c": 10,
+    }
+
+
+def test_indirect_interpolation2() -> None:
+    d = {
+        "a": {"aa": 10},
+        "b": "${a.aa}",
+        "c": "${b.aa}",
+    }
+
+    cfg = OmegaConf.create(d)
+    assert cfg.c == 10
+
+    assert OmegaConf.to_container(cfg, resolve=True) == {
+        "a": {"aa": 10},
+        "b": 10,
+        "c": 10,
+    }
