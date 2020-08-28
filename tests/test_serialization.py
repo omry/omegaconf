@@ -2,6 +2,7 @@
 import io
 import os
 import pathlib
+import pickle
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Type
@@ -10,7 +11,7 @@ import pytest
 
 from omegaconf import OmegaConf
 
-from . import PersonA, PersonD
+from . import PersonA, PersonD, SubscriptedDict, SubscriptedList
 
 
 def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
@@ -137,6 +138,31 @@ def test_pickle_list() -> None:
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
+
+
+def test_pickle_structured_list() -> None:
+    cfg = OmegaConf.structured(SubscriptedList)
+    with tempfile.TemporaryFile() as fp:
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
+        assert cfg._metadata.ref_type == cfg2._metadata.ref_type
+        assert cfg._metadata.element_type == cfg2._metadata.element_type
+
+
+def test_pickle_structured_dict() -> None:
+    cfg = OmegaConf.structured(SubscriptedDict)
+    with tempfile.TemporaryFile() as fp:
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
+        assert cfg._metadata.ref_type == cfg2._metadata.ref_type
+        assert cfg._metadata.element_type == cfg2._metadata.element_type
+        assert cfg._metadata.key_type == cfg2._metadata.key_type
 
 
 def test_load_duplicate_keys_top() -> None:

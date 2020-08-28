@@ -144,3 +144,15 @@ class Module:
 @dataclass
 class Package:
     modules: List[Module] = MISSING
+
+
+@dataclass
+class SubscriptedList:
+    list: List[Any] = field(default_factory=lambda: [])
+    opt_list: Optional[List[Any]] = None
+
+
+@dataclass
+class SubscriptedDict:
+    dict: Dict[Any, Any] = field(default_factory=lambda: {})
+    opt_dict: Optional[Dict[Any, Any]] = None
