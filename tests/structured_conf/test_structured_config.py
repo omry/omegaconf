@@ -15,6 +15,7 @@ from omegaconf import (
     ValidationError,
     _utils,
 )
+from omegaconf.errors import ConfigKeyError
 from tests import Color
 
 
@@ -490,10 +491,10 @@ class TestConfigs:
         res = OmegaConf.merge(cfg, {"strings": {"x": "abc"}})
         assert res.strings == {"a": "foo", "b": "bar", "x": "abc"}
 
-    def test_merge_list_with_wrong_type(self, class_type: str) -> None:
+    def test_merge_user_list_with_wrong_key(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UserList)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ConfigKeyError):
             OmegaConf.merge(cfg, {"list": [{"foo": "var"}]})
 
     def test_merge_list_with_correct_type(self, class_type: str) -> None:

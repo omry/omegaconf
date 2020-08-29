@@ -141,9 +141,7 @@ def _get_class(path: str) -> type:
     try:
         klass: type = getattr(mod, class_name)
     except AttributeError:
-        raise ImportError(
-            "Class {} is not in module {}".format(class_name, module_path)
-        )
+        raise ImportError(f"Class {class_name} is not in module {module_path}")
     return klass
 
 
@@ -583,7 +581,9 @@ def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
 def _raise(ex: Exception, cause: Exception) -> None:
     # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
     # causing exception.
-    full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+    env_var = os.environ["OC_CAUSE"] if "OC_CAUSE" in os.environ else None
+    debugging = sys.gettrace() is not None
+    full_backtrace = (debugging and not env_var == "0") or (env_var == "1")
     if full_backtrace:
         ex.__cause__ = cause
     else:
