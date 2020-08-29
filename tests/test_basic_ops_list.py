@@ -15,7 +15,7 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import IntegerNode, StringNode
 
-from . import IllegalType, does_not_raise, Color, User
+from . import Color, IllegalType, User, does_not_raise
 
 
 def test_list_value() -> None:
@@ -187,7 +187,7 @@ def test_list_append() -> None:
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "lc,element,expected",
     [
         pytest.param(
@@ -252,7 +252,7 @@ def test_append_invalid_element_type(
         lc.append(element)
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "lc,element,expected",
     [
         pytest.param(
@@ -275,7 +275,7 @@ def test_append_invalid_element_type(
         ),
     ],
 )
-def test_append_convert(lc: ListConfig, element: Any, expected: Any):
+def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     lc.append(element)
     value = lc[-1]
     assert value == expected

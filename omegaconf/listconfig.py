@@ -21,8 +21,8 @@ from ._utils import (
     get_value_kind,
     is_int,
     is_primitive_list,
-    type_str,
     is_structured_config,
+    type_str,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -75,7 +75,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _validate_set(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
-        from omegaconf._utils import is_attr_class, is_dataclass
 
         self._validate_get(key, value)
 

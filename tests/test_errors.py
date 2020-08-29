@@ -29,12 +29,12 @@ from . import (
     Color,
     ConcretePlugin,
     IllegalType,
+    Module,
     Package,
     Plugin,
     StructuredWithMissing,
     UnionError,
     User,
-    Module,
 )
 
 

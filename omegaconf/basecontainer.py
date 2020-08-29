@@ -328,9 +328,9 @@ class BaseContainer(Container, ABC):
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
     ) -> None:
-        from .omegaconf import OmegaConf
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .omegaconf import OmegaConf
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
