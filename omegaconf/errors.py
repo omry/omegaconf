@@ -33,12 +33,6 @@ class MissingMandatoryValue(OmegaConfBaseException):
     indicate that the value was not set"""
 
 
-class UnsupportedValueType(OmegaConfBaseException, ValueError):
-    """
-    Thrown when an input value is not of supported type
-    """
-
-
 class KeyValidationError(OmegaConfBaseException, ValueError):
     """
     Thrown when an a key of invalid type is used
@@ -48,6 +42,12 @@ class KeyValidationError(OmegaConfBaseException, ValueError):
 class ValidationError(OmegaConfBaseException, ValueError):
     """
     Thrown when a value fails validation
+    """
+
+
+class UnsupportedValueType(ValidationError, ValueError):
+    """
+    Thrown when an input value is not of supported type
     """
 
 

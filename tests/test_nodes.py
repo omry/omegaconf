@@ -18,7 +18,7 @@ from omegaconf import (
 )
 from omegaconf.errors import ValidationError
 
-from . import Color
+from . import Color, IllegalType, User
 
 
 # testing valid conversions
@@ -58,6 +58,12 @@ from . import Color
         (BooleanNode, None, None),
         (BooleanNode, "0", False),
         (BooleanNode, 0, False),
+        # any
+        (AnyNode, 3, 3),
+        (AnyNode, 3.14, 3.14),
+        (AnyNode, False, False),
+        (AnyNode, Color.RED, Color.RED),
+        (AnyNode, None, None),
         # Enum node
         (lambda v: EnumNode(enum_type=Color, value=v), Color.RED, Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), "Color.RED", Color.RED),
@@ -85,13 +91,34 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (IntegerNode, "-abc"),
         (BooleanNode, "Nope"),
         (BooleanNode, "Yup"),
+        (StringNode, [1, 2]),
+        (StringNode, ListConfig([1, 2])),
+        (StringNode, {"foo": "var"}),
+        (FloatNode, DictConfig({"foo": "var"})),
+        (IntegerNode, [1, 2]),
+        (IntegerNode, ListConfig([1, 2])),
+        (IntegerNode, {"foo": "var"}),
+        (IntegerNode, DictConfig({"foo": "var"})),
+        (BooleanNode, [1, 2]),
+        (BooleanNode, ListConfig([1, 2])),
+        (BooleanNode, {"foo": "var"}),
+        (BooleanNode, DictConfig({"foo": "var"})),
+        (FloatNode, [1, 2]),
+        (FloatNode, ListConfig([1, 2])),
+        (FloatNode, {"foo": "var"}),
+        (FloatNode, DictConfig({"foo": "var"})),
+        (AnyNode, [1, 2]),
+        (AnyNode, ListConfig([1, 2])),
+        (AnyNode, {"foo": "var"}),
+        (AnyNode, DictConfig({"foo": "var"})),
+        (AnyNode, IllegalType()),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
     empty_node = type_()
+
     with pytest.raises(ValidationError):
         empty_node._set_value(input_)
-
     with pytest.raises(ValidationError):
         type_(input_)
 
@@ -479,3 +506,47 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (value == node) == expected
     assert (value != node) != expected
     assert (node.__hash__() == value.__hash__()) == expected
+
+
+@pytest.mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])  # type: ignore
+def test_set_anynode_with_primitive_type(value: Any) -> None:
+    cfg = OmegaConf.create({"a": 5})
+    a_before = cfg._get_node("a")
+    cfg.a = value
+    # changing anynode's value with a primitive type should set value
+    assert id(cfg._get_node("a")) == id(a_before)
+    assert cfg.a == value
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "value, container_type",
+    [
+        (ListConfig(content=[1, 2]), ListConfig),
+        ([1, 2], ListConfig),
+        (DictConfig(content={"foo": "var"}), DictConfig),
+        ({"foo": "var"}, DictConfig),
+    ],
+)
+def test_set_anynode_with_container(value: Any, container_type: Any) -> None:
+    cfg = OmegaConf.create({"a": 5})
+    a_before = cfg._get_node("a")
+    cfg.a = value
+    # changing anynode's value with a container should wrap a new node
+    assert id(cfg._get_node("a")) != id(a_before)
+    assert isinstance(cfg.a, container_type)
+    assert cfg.a == value
+
+
+def test_set_anynode_with_illegal_type() -> None:
+    cfg = OmegaConf.create({"a": 5})
+    with pytest.raises(ValidationError):
+        cfg.a = IllegalType()
+
+
+def test_set_valuenode() -> None:
+    cfg = OmegaConf.structured(User)
+    a_before = cfg._get_node("age")
+    cfg.age = 12
+    assert id(cfg._get_node("age")) == id(a_before)
+    with pytest.raises(ValidationError):
+        cfg.age = []

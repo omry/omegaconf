@@ -18,8 +18,8 @@ from ._utils import (
     get_yaml_loader,
     is_dict_annotation,
     is_list_annotation,
-    is_primitive_container,
     is_primitive_dict,
+    is_primitive_type,
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
@@ -362,9 +362,13 @@ class BaseContainer(Container, ABC):
 
     # noinspection PyProtectedMember
     def _set_item_impl(self, key: Any, value: Any) -> None:
+        """
+        Changes the value of the node key with the desired value. If the node key doesn't
+        exist it creates a new one.
+        """
         from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
-        from .nodes import ValueNode
+        from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
             try:
@@ -382,10 +386,6 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
-        should_set_value = target_node_ref is not None and (
-            isinstance(target_node_ref, Container)
-            and (special_value or target_node_ref._has_ref_type())
-        )
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -395,6 +395,21 @@ class BaseContainer(Container, ABC):
 
         elif isinstance(self.__dict__["_content"], list):
             target_node = isinstance(target_node_ref, ValueNode)
+        # We use set_value if:
+        # 1. Target node is a container and the value is MISSING or None
+        # 2. Target node is a container and has an explicit ref_type
+        # 3. If the target is a NodeValue then it should set his value.
+        #  Furthermore if it's an AnyNode it should wrap when the input is
+        # a container and set when the input is an compatible type(primitive type).
+
+        should_set_value = target_node_ref is not None and (
+            (
+                isinstance(target_node_ref, Container)
+                and (special_value or target_node_ref._has_ref_type())
+            )
+            or (target_node and not isinstance(target_node_ref, AnyNode))
+            or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
+        )
 
         def wrap(key: Any, val: Any) -> Node:
             is_optional = True
@@ -422,20 +437,17 @@ class BaseContainer(Container, ABC):
             v._set_key(value_key)
             self.__dict__["_content"][value_key] = v
 
-        if is_primitive_container(value):
-            if should_set_value:
-                self.__dict__["_content"][key]._set_value(value)
-            else:
-                self.__dict__["_content"][key] = wrap(key, value)
-        elif input_node and target_node:
+        if input_node and target_node:
             # both nodes, replace existing node with new one
             assign(key, value)
         elif not input_node and target_node:
             # input is not node, can be primitive or config
-            if input_config:
+            if should_set_value:
+                self.__dict__["_content"][key]._set_value(value)
+            elif input_config:
                 assign(key, value)
             else:
-                self.__dict__["_content"][key]._set_value(value)
+                self.__dict__["_content"][key] = wrap(key, value)
         elif input_node and not target_node:
             # target must be config, replace target with input node
             assign(key, value)

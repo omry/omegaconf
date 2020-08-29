@@ -4,7 +4,7 @@ import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of
+from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     MissingMandatoryValue,
@@ -177,6 +177,10 @@ class StringNode(ValueNode):
         )
 
     def validate_and_convert(self, value: Any) -> Optional[str]:
+        from omegaconf import OmegaConf
+
+        if OmegaConf.is_config(value) or is_primitive_container(value):
+            raise ValidationError("Cannot convert '$VALUE_TYPE' to string : '$VALUE'")
         return str(value) if value is not None else None
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "StringNode":
