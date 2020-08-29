@@ -18,7 +18,7 @@ from omegaconf import (
 )
 from omegaconf.errors import ValidationError
 
-from . import Color, IllegalType
+from . import Color, IllegalType, User
 
 
 # testing valid conversions
@@ -506,3 +506,47 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (value == node) == expected
     assert (value != node) != expected
     assert (node.__hash__() == value.__hash__()) == expected
+
+
+@pytest.mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])  # type: ignore
+def test_set_anynode_with_primitive_type(value: Any) -> None:
+    cfg = OmegaConf.create({"a": 5})
+    a_before = cfg._get_node("a")
+    cfg.a = value
+    # changing anynode's value with a primitive type should set value
+    assert id(cfg._get_node("a")) == id(a_before)
+    assert cfg.a == value
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "value, container_type",
+    [
+        (ListConfig(content=[1, 2]), ListConfig),
+        ([1, 2], ListConfig),
+        (DictConfig(content={"foo": "var"}), DictConfig),
+        ({"foo": "var"}, DictConfig),
+    ],
+)
+def test_set_anynode_with_container(value: Any, container_type: Any) -> None:
+    cfg = OmegaConf.create({"a": 5})
+    a_before = cfg._get_node("a")
+    cfg.a = value
+    # changing anynode's value with a container should wrap a new node
+    assert id(cfg._get_node("a")) != id(a_before)
+    assert isinstance(cfg.a, container_type)
+    assert cfg.a == value
+
+
+def test_set_anynode_with_illegal_type() -> None:
+    cfg = OmegaConf.create({"a": 5})
+    with pytest.raises(ValidationError):
+        cfg.a = IllegalType()
+
+
+def test_set_valuenode() -> None:
+    cfg = OmegaConf.structured(User)
+    a_before = cfg._get_node("age")
+    cfg.age = 12
+    assert id(cfg._get_node("age")) == id(a_before)
+    with pytest.raises(ValidationError):
+        cfg.age = []
