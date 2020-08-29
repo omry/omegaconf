@@ -180,9 +180,7 @@ class StringNode(ValueNode):
         from omegaconf import OmegaConf
 
         if OmegaConf.is_config(value) or is_primitive_container(value):
-            raise ValidationError(
-                "Value '$VALUE' is not a valid string (type $VALUE_TYPE)"
-            )
+            raise ValidationError("Cannot convert '$VALUE_TYPE' to string : '$VALUE'")
         return str(value) if value is not None else None
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "StringNode":

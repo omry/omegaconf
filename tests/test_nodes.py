@@ -16,9 +16,9 @@ from omegaconf import (
     StringNode,
     ValueNode,
 )
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import ValidationError
 
-from . import Color
+from . import Color, IllegalType
 
 
 # testing valid conversions
@@ -80,10 +80,6 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
     assert str(node) == str(output_)
 
 
-class Person:
-    pass
-
-
 # testing invalid conversions
 @pytest.mark.parametrize(  # type: ignore
     "type_,input_",
@@ -115,22 +111,16 @@ class Person:
         (AnyNode, ListConfig([1, 2])),
         (AnyNode, {"foo": "var"}),
         (AnyNode, DictConfig({"foo": "var"})),
-        (AnyNode, Person()),
+        (AnyNode, IllegalType()),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
     empty_node = type_()
 
-    if type_ == AnyNode:
-        with pytest.raises(UnsupportedValueType):
-            empty_node._set_value(input_)
-        with pytest.raises(UnsupportedValueType):
-            type_(input_)
-    else:
-        with pytest.raises(ValidationError):
-            empty_node._set_value(input_)
-        with pytest.raises(ValidationError):
-            type_(input_)
+    with pytest.raises(ValidationError):
+        empty_node._set_value(input_)
+    with pytest.raises(ValidationError):
+        type_(input_)
 
 
 @pytest.mark.parametrize(  # type: ignore
