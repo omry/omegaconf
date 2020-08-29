@@ -12,6 +12,7 @@ from omegaconf import (
     nodes,
 )
 from omegaconf._utils import is_structured_config
+from omegaconf.errors import ConfigKeyError
 
 from . import (
     A,
@@ -186,6 +187,7 @@ from . import (
             {"user": Group},
             id="merge_into_missing_node",
         ),
+        ([{"user": User()}, {"user": {"foo": "bar"}}], pytest.raises(ConfigKeyError)),
         # missing DictConfig
         pytest.param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
@@ -220,6 +222,22 @@ from . import (
         ),
         pytest.param([C, {"x": A}], {"x": {"a": 10}}, id="structured_merge_into_none"),
         pytest.param([C, C], {"x": None}, id="none_not_expanding"),
+        # Merge into list with Structured Config
+        pytest.param(
+            [ListConfig(content=[], element_type=User), [{}]],
+            [User()],
+            id="list_sc_element_merge_dict",
+        ),
+        pytest.param(
+            [ListConfig(content=[], element_type=User), [{"name": "Bond", "age": 7}]],
+            [User(name="Bond", age=7)],
+            id="list_sc_element_merge_dict",
+        ),
+        pytest.param(
+            [ListConfig(content=[], element_type=User), [{"name": "Bond"}]],
+            [User(name="Bond", age=MISSING)],
+            id="list_sc_element_merge_dict",
+        ),
     ],
 )
 def test_merge(inputs: Any, expected: Any) -> None:
@@ -315,7 +333,7 @@ def test_merge_list_list() -> None:
         ([], {}, TypeError),
         ([1, 2, 3], None, ValueError),
         ({"a": 10}, None, ValueError),
-        (Package, {"modules": [{"foo": "var"}]}, ValidationError),
+        (Package, {"modules": [{"foo": "var"}]}, ConfigKeyError),
     ],
 )
 def test_merge_error(base: Any, merge: Any, exception: Any) -> None:

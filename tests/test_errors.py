@@ -34,6 +34,7 @@ from . import (
     StructuredWithMissing,
     UnionError,
     User,
+    Module,
 )
 
 
@@ -391,14 +392,14 @@ params = [
         Expected(
             create=lambda: OmegaConf.structured(Package),
             op=lambda cfg: OmegaConf.merge(cfg, {"modules": [{"foo": "var"}]}),
-            exception_type=ValidationError,
-            msg="Invalid type assigned : dict is not a subclass of Module. value: {'foo': 'var'}",
-            key=0,
-            full_key="modules[0]",
-            object_type=list,
+            exception_type=ConfigKeyError,
+            msg="Key 'foo' not in 'Module'",
+            key="foo",
+            full_key="modules[0].foo",
+            object_type=Module,
             low_level=True,
         ),
-        id="structured:merge,wrong_element_type",
+        id="structured:merge,bad_key_merge",
     ),
     # merge_with
     pytest.param(
@@ -1054,6 +1055,7 @@ def create_readonly(cfg: Any) -> Any:
     "expected", params
 )
 def test_errors(expected: Expected, monkeypatch: Any) -> None:
+    monkeypatch.setenv("OC_CAUSE", "0")
     cfg = expected.create()
     expected.finalize(cfg)
     msg = expected.msg
@@ -1089,7 +1091,7 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
                 assert e.__cause__ is not None
 
         with monkeypatch.context() as m:
-            m.delenv("OC_CAUSE", raising=False)
+            m.setenv("OC_CAUSE", "0")
             try:
                 expected.op(cfg)
             except Exception as e:

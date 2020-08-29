@@ -328,6 +328,7 @@ class BaseContainer(Container, ABC):
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
     ) -> None:
+        from .omegaconf import OmegaConf
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
@@ -347,8 +348,17 @@ class BaseContainer(Container, ABC):
                 if other._is_missing():
                     self._set_value("???")
                 else:
-                    for item in other:
-                        self.append(item)
+                    et = self._metadata.element_type
+                    if is_structured_config(et):
+                        prototype = OmegaConf.structured(et)
+                        for item in other:
+                            if isinstance(item, DictConfig):
+                                item = OmegaConf.merge(prototype, item)
+                            self.append(item)
+
+                    else:
+                        for item in other:
+                            self.append(item)
 
                 # explicit flags on the source config are replacing the flag values in the destination
                 for flag, value in other._metadata.flags.items():

@@ -15,7 +15,7 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import IntegerNode, StringNode
 
-from . import IllegalType, does_not_raise
+from . import IllegalType, does_not_raise, Color, User
 
 
 def test_list_value() -> None:
@@ -185,6 +185,101 @@ def test_list_append() -> None:
     assert c == [1, 2, {}, []]
 
     validate_list_keys(c)
+
+
+@pytest.mark.parametrize(
+    "lc,element,expected",
+    [
+        pytest.param(
+            ListConfig(content=[], element_type=int),
+            "foo",
+            pytest.raises(
+                ValidationError,
+                match=re.escape("Value 'foo' could not be converted to Integer"),
+            ),
+            id="append_str_to_list[int]",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=Color),
+            "foo",
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    "Invalid value 'foo', expected one of [RED, GREEN, BLUE]"
+                ),
+            ),
+            id="append_str_to_list[Color]",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=User),
+            "foo",
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    "Invalid type assigned : str is not a subclass of User. value: foo"
+                ),
+            ),
+            id="append_str_to_list[User]",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=User),
+            {"name": "Bond", "age": 7},
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    "Invalid type assigned : dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}"
+                ),
+            ),
+            id="list:convert_dict_to_user",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=User),
+            {},
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    "Invalid type assigned : dict is not a subclass of User. value: {}"
+                ),
+            ),
+            id="list:convert_empty_dict_to_user",
+        ),
+    ],
+)
+def test_append_invalid_element_type(
+    lc: ListConfig, element: Any, expected: Any
+) -> None:
+    with expected:
+        lc.append(element)
+
+
+@pytest.mark.parametrize(
+    "lc,element,expected",
+    [
+        pytest.param(
+            ListConfig(content=[], element_type=int),
+            "10",
+            10,
+            id="list:convert_str_to_int",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=float),
+            "10",
+            10.0,
+            id="list:convert_str_to_float",
+        ),
+        pytest.param(
+            ListConfig(content=[], element_type=Color),
+            "RED",
+            Color.RED,
+            id="list:convert_str_to_float",
+        ),
+    ],
+)
+def test_append_convert(lc: ListConfig, element: Any, expected: Any):
+    lc.append(element)
+    value = lc[-1]
+    assert value == expected
+    assert type(value) == type(expected)
 
 
 @pytest.mark.parametrize(  # type: ignore

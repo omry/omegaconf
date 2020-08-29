@@ -22,6 +22,7 @@ from ._utils import (
     is_int,
     is_primitive_list,
     type_str,
+    is_structured_config,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -91,7 +92,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         target_type = self._metadata.element_type
         value_type = OmegaConf.get_type(value)
-        if is_attr_class(target_type) or is_dataclass(target_type):
+        if is_structured_config(target_type):
             if (
                 target_type is not None
                 and value_type is not None
