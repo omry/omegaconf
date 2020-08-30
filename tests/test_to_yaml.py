@@ -1,18 +1,19 @@
 import re
+from textwrap import dedent
 from typing import Any
 
 import pytest
 
 from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
 
-from . import Enum1
+from . import Enum1, User
 
 
 @pytest.mark.parametrize(  # type: ignore
     "input_, expected",
     [
-        (["item1", "item2", dict(key3="value3")], "- item1\n- item2\n- key3: value3\n"),
-        (dict(hello="world", list=[1, 2]), "hello: world\nlist:\n- 1\n- 2\n"),
+        (["item1", "item2", {"key3": "value3"}], "- item1\n- item2\n- key3: value3\n"),
+        ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
     ],
 )
 def test_to_yaml(input_: Any, expected: str) -> None:
@@ -137,3 +138,21 @@ def test_pretty_deprecated() -> None:
         ),
     ):
         assert c.pretty() == "foo: bar\n"
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "user",
+    [
+        User(name="Bond", age=7),
+        OmegaConf.structured(User(name="Bond", age=7)),
+        {"name": "Bond", "age": 7},
+    ],
+)
+def test_structured_configs(user: User) -> None:
+    expected = dedent(
+        """\
+                name: Bond
+                age: 7
+                """
+    )
+    assert OmegaConf.to_yaml(user) == expected
