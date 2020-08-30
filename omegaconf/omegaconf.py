@@ -572,16 +572,16 @@ class OmegaConf:
             root[idx] = value
 
     @staticmethod
-    def to_yaml(
-        cfg: Container, *, resolve: bool = False, sort_keys: bool = False
-    ) -> str:
+    def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
         """
         returns a yaml dump of this config object.
+        :param cfg: Config object, Structured Config type or instance
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
         interpolations are preserved
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
+        cfg = _ensure_container(cfg)
         container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
             container,
