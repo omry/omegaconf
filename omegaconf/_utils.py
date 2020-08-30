@@ -62,11 +62,17 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
 
     @staticmethod
     def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-        with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
+        is_key = True if len(data) and data[0] == "_" else False
+        with_quotes = not is_key and (
+            yaml_is_bool(data) or is_int(data) or is_float(data)
+        )
+        if is_key:
+            data = data[1:]
+        style = ""
+        if with_quotes:
+            style = "'"
         return dumper.represent_scalar(
-            yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
-            data,
-            style=("'" if with_quotes else None),
+            yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG, data, style=style
         )
 
 

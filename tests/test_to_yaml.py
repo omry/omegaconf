@@ -56,6 +56,12 @@ def test_to_yaml_string_primitive_types_list(
         assert OmegaConf.to_yaml(c) == expected
 
 
+def test_to_yaml_bool_type_as_key() -> None:
+    for t in _utils.YAML_BOOL_TYPES:
+        c = OmegaConf.create({t: "var"})
+        assert OmegaConf.to_yaml(c) == "%s: var\n" % t
+
+
 @pytest.mark.parametrize(  # type: ignore
     "input_, expected, type_",
     [
