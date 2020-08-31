@@ -80,7 +80,9 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
 
     # Copied method from https://github.com/yaml/pyyaml/blob/master/lib3/yaml/representer.py
     # Added prefix to keys before representing it so we can identify it's a key.
-    def represent_mapping(self, tag: str, mapping: Any, flow_style: bool = None) -> MappingNode:  # type: ignore
+    def represent_mapping(
+        self, tag: str, mapping: Any, flow_style: Optional[bool] = None
+    ) -> MappingNode:  # pragma: no cover
 
         value: List[Any] = []
         node = MappingNode(tag, value, flow_style=flow_style)
