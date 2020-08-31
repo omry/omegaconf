@@ -572,22 +572,6 @@ class OmegaConf:
             root[idx] = value
 
     @staticmethod
-    def _tag_keys(cfg: DictConfig) -> Container:
-        new_cfg = DictConfig(content={})
-        for key in cfg.keys():
-            new_key = key
-            if OmegaConf.is_missing(cfg, key):
-                value = "???"
-            else:
-                value = cfg[key]
-            if isinstance(value, DictConfig):
-                OmegaConf._tag_keys(value)
-            if type(key) == str:
-                new_key = "_" + key
-            new_cfg[new_key] = value
-        return new_cfg
-
-    @staticmethod
     def to_yaml(
         cfg: Container, *, resolve: bool = False, sort_keys: bool = False
     ) -> str:
@@ -598,12 +582,7 @@ class OmegaConf:
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
-        modified_config = cfg
-        if isinstance(cfg, DictConfig):
-            modified_config = OmegaConf._tag_keys(copy.deepcopy(cfg))
-        container = OmegaConf.to_container(
-            modified_config, resolve=resolve, enum_to_str=True
-        )
+        container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
             container,
             default_flow_style=False,

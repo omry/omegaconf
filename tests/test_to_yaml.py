@@ -57,7 +57,7 @@ def test_to_yaml_string_primitive_types_list(
 
 
 def test_to_yaml_bool_type_as_key() -> None:
-    for t in _utils.YAML_BOOL_TYPES:
+    for t in ["y", "n", "Y", "N"]:
         c = OmegaConf.create({t: "var"})
         assert OmegaConf.to_yaml(c) == "%s: var\n" % t
 

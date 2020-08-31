@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
 import yaml
+from yaml.nodes import MappingNode, ScalarNode
 
 from .errors import (
     ConfigIndexError,
@@ -56,13 +57,15 @@ YAML_BOOL_TYPES = [
     "OFF",
 ]
 
+YAML_KEY_PREFIX = "_"
+
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
     str_representer_added = False
 
     @staticmethod
     def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-        is_key = True if len(data) and data[0] == "_" else False
+        is_key = True if len(data) and data[0] == YAML_KEY_PREFIX else False
         with_quotes = not is_key and (
             yaml_is_bool(data) or is_int(data) or is_float(data)
         )
@@ -74,6 +77,38 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
         return dumper.represent_scalar(
             yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG, data, style=style
         )
+
+    # Copied method from https://github.com/yaml/pyyaml/blob/master/lib3/yaml/representer.py
+    # Added prefix to keys before representing it so we can identify it's a key.
+    def represent_mapping(self, tag: str, mapping: Any, flow_style: bool = None) -> MappingNode:  # type: ignore
+
+        value: List[Any] = []
+        node = MappingNode(tag, value, flow_style=flow_style)
+        if self.alias_key is not None:
+            self.represented_objects[self.alias_key] = node
+        best_style = True
+        if hasattr(mapping, "items"):
+            mapping = list(mapping.items())
+            if self.sort_keys:
+                try:
+                    mapping = sorted(mapping)
+                except TypeError:
+                    pass
+        for item_key, item_value in mapping:
+            # item key will have a prefix 'YAML_KEY_PREFIX'
+            node_key = self.represent_data(YAML_KEY_PREFIX + item_key)
+            node_value = self.represent_data(item_value)
+            if not (isinstance(node_key, ScalarNode) and not node_key.style):
+                best_style = False
+            if not (isinstance(node_value, ScalarNode) and not node_value.style):
+                best_style = False
+            value.append((node_key, node_value))
+        if flow_style is None:
+            if self.default_flow_style is not None:
+                node.flow_style = self.default_flow_style
+            else:
+                node.flow_style = best_style
+        return node
 
 
 def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
