@@ -257,7 +257,9 @@ class OmegaConf:
                 return res
         elif getattr(file_, "read", None):
             obj = yaml.load(file_, Loader=get_yaml_loader())
-            assert isinstance(obj, (list, dict, str))
+            assert isinstance(
+                obj, (list, dict, str)
+            ), f"Invalid loaded object type : {type(obj).__name__}"
             return OmegaConf.create(obj)
         else:
             raise TypeError("Unexpected file type")
