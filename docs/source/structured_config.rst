@@ -119,11 +119,11 @@ type using `OmegaConf.get_type()`:
 
 .. doctest::
     
-    >>> type(conf)
-    <class 'omegaconf.dictconfig.DictConfig'>
+    >>> type(conf).__name__
+    'DictConfig'
 
-    >>> OmegaConf.get_type(conf)
-    <class 'SimpleTypes'>
+    >>> OmegaConf.get_type(conf).__name__
+    'SimpleTypes'
 
 
 

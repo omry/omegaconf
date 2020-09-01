@@ -517,13 +517,47 @@ Utility functions
 OmegaConf.is_missing
 ^^^^^^^^^^^^^^^^^^^^
 
-Tests if a key is missing ('???')
+Tests if a value is missing ('???').
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({"foo" : 10, "bar": "???"})
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "???"
+    ...     })
     >>> assert not OmegaConf.is_missing(cfg, "foo")
     >>> assert OmegaConf.is_missing(cfg, "bar")
+
+OmegaConf.is_interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if a value is an interpolation.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "${foo}"
+    ...     })
+    >>> assert not OmegaConf.is_interpolation(cfg, "foo")
+    >>> assert OmegaConf.is_interpolation(cfg, "bar")
+
+OmegaConf.is_none
+^^^^^^^^^^^^^^^^^
+
+Tests if a value is None.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": None,
+    ...     })
+    >>> assert not OmegaConf.is_none(cfg, "foo")
+    >>> assert OmegaConf.is_none(cfg, "bar")
+    >>> # missing keys are interpreted as None
+    >>> assert OmegaConf.is_none(cfg, "no_such_key")
+
 
 OmegaConf.{is_config, is_dict, is_list}
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -532,11 +566,16 @@ Tests if an object is an OmegaConf object, or if it's representing a list or a d
 
 .. doctest::
 
-    >>> list_cfg = OmegaConf.create([1,2,3])
-    >>> dict_cfg = OmegaConf.create({"foo": "bar"})
-    >>> assert OmegaConf.is_config(list_cfg) and OmegaConf.is_config(dict_cfg)
-    >>> assert OmegaConf.is_dict(dict_cfg) and not OmegaConf.is_dict(list_cfg)
-    >>> assert OmegaConf.is_list(list_cfg) and not OmegaConf.is_list(dict_cfg)
+    >>> # dict:
+    >>> d = OmegaConf.create({"foo": "bar"})
+    >>> assert OmegaConf.is_config(d)
+    >>> assert OmegaConf.is_dict(d)
+    >>> assert not OmegaConf.is_list(d)
+    >>> # list:
+    >>> l = OmegaConf.create([1,2,3])
+    >>> assert OmegaConf.is_config(l)
+    >>> assert OmegaConf.is_list(l)
+    >>> assert not OmegaConf.is_dict(l)
 
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -563,12 +602,30 @@ OmegaConf.select() allow you to select a config node or value using a dot-notati
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({"foo" : {"bar": {"zonk" : 10, "missing" : "???"}}})
-    >>> assert OmegaConf.select(cfg, "foo") == {"bar": {"zonk" : 10, "missing" : "???"}}
-    >>> assert OmegaConf.select(cfg, "foo.bar") == {"zonk" : 10, "missing" : "???"}
+    >>> cfg = OmegaConf.create({
+    ...     "foo" : {
+    ...         "bar": {
+    ...             "zonk" : 10,
+    ...             "missing" : "???"
+    ...         }
+    ...     }
+    ... })
+    >>> assert OmegaConf.select(cfg, "foo") == {
+    ...     "bar":  {
+    ...         "zonk" : 10, 
+    ...         "missing" : "???"
+    ...     }
+    ... }
+    >>> assert OmegaConf.select(cfg, "foo.bar") == {
+    ...     "zonk" : 10, 
+    ...     "missing" : "???"
+    ... }
     >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10
     >>> assert OmegaConf.select(cfg, "foo.bar.missing") is None
-    >>> OmegaConf.select(cfg, "foo.bar.missing", throw_on_missing=True)
+    >>> OmegaConf.select(cfg,
+    ...     "foo.bar.missing", 
+    ...     throw_on_missing=True
+    ... )
     Traceback (most recent call last):
     ...
     omegaconf.errors.MissingMandatoryValue: missing node selected
