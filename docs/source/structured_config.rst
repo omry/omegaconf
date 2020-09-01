@@ -114,6 +114,19 @@ Python type annotation can be used by static type checkers like Mypy/Pyre or by 
     >>> with raises(ValidationError):
     ...     conf.num = "foo"
 
+This is duck-typing, the actual object type of `conf` is `DictConfig`. You can access the underlying
+type using `OmegaConf.get_type()`:
+
+.. doctest::
+    
+    >>> type(conf)
+    <class 'omegaconf.dictconfig.DictConfig'>
+
+    >>> OmegaConf.get_type(conf)
+    <class 'SimpleTypes'>
+
+
+
 Runtime type validation and conversion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf supports merging configs together, as well as overriding from the command line.
