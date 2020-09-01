@@ -2,8 +2,10 @@
 import io
 import os
 import pathlib
+import pickle
 import tempfile
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, Dict, Type
 
 import pytest
@@ -52,7 +54,7 @@ def test_load_from_invalid() -> None:
 @pytest.mark.parametrize(
     "input_,resolve,expected,file_class",
     [
-        (dict(a=10), False, None, str),
+        ({"a": 10}, False, None, str),
         ({"foo": 10, "bar": "${foo}"}, False, None, str),
         ({"foo": 10, "bar": "${foo}"}, False, None, pathlib.Path),
         ({"foo": 10, "bar": "${foo}"}, False, {"foo": 10, "bar": 10}, str),
@@ -117,9 +119,7 @@ def test_save_illegal_type() -> None:
 
 def test_pickle_dict() -> None:
     with tempfile.TemporaryFile() as fp:
-        import pickle
-
-        c = OmegaConf.create(dict(a="b"))
+        c = OmegaConf.create({"a": "b"})
         pickle.dump(c, fp)
         fp.flush()
         fp.seek(0)
@@ -129,8 +129,6 @@ def test_pickle_dict() -> None:
 
 def test_pickle_list() -> None:
     with tempfile.TemporaryFile() as fp:
-        import pickle
-
         c = OmegaConf.create([1, 2, 3])
         pickle.dump(c, fp)
         fp.flush()
@@ -144,12 +142,14 @@ def test_load_duplicate_keys_top() -> None:
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            content = """
-a:
-  b: 1
-a:
-  b: 2
-"""
+            content = dedent(
+                """\
+                a:
+                  b: 1
+                a:
+                  b: 2
+                """
+            )
             fp.write(content.encode("utf-8"))
         with pytest.raises(ConstructorError):
             OmegaConf.load(fp.name)
@@ -162,12 +162,14 @@ def test_load_duplicate_keys_sub() -> None:
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            content = """
-a:
-  b: 1
-  c: 2
-  b: 3
-"""
+            content = dedent(
+                """\
+                a:
+                  b: 1
+                  c: 2
+                  b: 3
+                """
+            )
             fp.write(content.encode("utf-8"))
         with pytest.raises(ConstructorError):
             OmegaConf.load(fp.name)

@@ -3,6 +3,8 @@
     from omegaconf import OmegaConf, DictConfig, open_dict, read_write
     import os
     import sys
+    import tempfile
+    import pickle
     os.environ['USER'] = 'omry'
 
 .. testsetup:: loaded
@@ -63,13 +65,13 @@ From a list
 
 Tuples are supported as an valid option too.
 
-From a yaml file
+From a YAML file
 ^^^^^^^^^^^^^^^^
 
 .. doctest::
 
     >>> conf = OmegaConf.load('source/example.yaml')
-    >>> # Output is identical to the yaml file
+    >>> # Output is identical to the YAML file
     >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 80
@@ -82,7 +84,7 @@ From a yaml file
     <BLANKLINE>
 
 
-From a yaml string
+From a YAML string
 ^^^^^^^^^^^^^^^^^^
 
 .. doctest::
@@ -190,7 +192,7 @@ In addition, the config class can be used as type annotation for static type che
 Access and manipulation
 -----------------------
 
-Input yaml file for this section:
+Input YAML file for this section:
 
 .. literalinclude:: example.yaml
    :language: yaml
@@ -250,8 +252,41 @@ Manipulation
     >>> # Adding a new dictionary
     >>> conf.database = {'hostname': 'database01', 'port': 3306}
 
-.. _interpolation:
 
+Serialization
+-------------
+OmegaConf objects can be saved and loaded with OmegaConf.save() and OmegaConf.load().
+The created file is in YAML format.
+Save and load can operate on file-names, Paths and file objects.
+
+Save/Load YAML file
+^^^^^^^^^^^^^^^^^^^
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
+    >>> with tempfile.NamedTemporaryFile() as fp:
+    ...     OmegaConf.save(config=conf, f=fp.name)
+    ...     loaded = OmegaConf.load(fp.name)
+    ...     assert conf == loaded
+
+Note that this does not retain type information.
+
+Save/Load pickle file
+^^^^^^^^^^^^^^^^^^^^^
+Use pickle to save and load while retaining the type information.
+Note that the saved file may be incompatible across different major versions of OmegaConf.
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
+    >>> with tempfile.TemporaryFile() as fp:
+    ...     pickle.dump(conf, fp)
+    ...     fp.flush()
+    ...     assert fp.seek(0) == 0
+    ...     loaded = pickle.load(fp)
+    ...     assert conf == loaded
+
+
+.. _interpolation:
 
 Variable interpolation
 ----------------------
@@ -263,7 +298,7 @@ Config node interpolation
 The interpolated variable can be the dot-path to another node in the configuration, and in that case
 the value will be the value of that node.
 
-Input yaml file:
+Input YAML file:
 
 .. include:: config_interpolation.yaml
    :code: yaml
@@ -292,7 +327,7 @@ Environment variable interpolation
 
 Environment variable interpolation is also supported.
 
-Input yaml file:
+Input YAML file:
 
 .. include:: env_interpolation.yaml
    :code: yaml
