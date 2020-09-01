@@ -1,3 +1,47 @@
+## 2.0.1 (2020-09-01)
+This is mostly a bugfix release.
+The notable change is the config.pretty() is now deprecated in favor of OmegaConf.to_yaml().
+
+### Bug Fixes
+
+- Fixes merging of dict into a Dict[str, str] ([#246](https://github.com/omry/omegaconf/issues/246))
+- Fix DictConfig created from another DictConfig drops node types ([#252](https://github.com/omry/omegaconf/issues/252))
+- Relax save and load APIs to accept IO[Any] ([#253](https://github.com/omry/omegaconf/issues/253))
+- Report errors when loading YAML files with duplicate keys ([#257](https://github.com/omry/omegaconf/issues/257))
+- Fix a bug initializing config with field typed as Any with Structured Config object ([#260](https://github.com/omry/omegaconf/issues/260))
+- Merging into a MISSING Structured config node expands the node first to ensure the result is legal ([#269](https://github.com/omry/omegaconf/issues/269))
+- Fix merging into a config with a read only node if merge is not mutating that node ([#271](https://github.com/omry/omegaconf/issues/271))
+- Fix OmegaConf.to_container() failing in some cases when the config is read-only ([#275](https://github.com/omry/omegaconf/issues/275))
+- Optional[Tuple] types are now supported as type annotation in Structured Configs. ([#279](https://github.com/omry/omegaconf/issues/279))
+- Support indirect interpolation ([#283](https://github.com/omry/omegaconf/issues/283))
+- OmegaConf.save() can now save dataclass and attr classes and instances ([#287](https://github.com/omry/omegaconf/issues/287))
+- OmegaConf.create() doesn't modify yaml.loader.SafeLoader ([#289](https://github.com/omry/omegaconf/issues/289))
+- Fix merging a sublcass Structured Config that adds a field ([#291](https://github.com/omry/omegaconf/issues/291))
+- strings containing valid ints and floats represented are converted to quoted strings instead of the primitives in pretty() ([#296](https://github.com/omry/omegaconf/issues/296))
+- Loading an empty YAML file now returns an empty DictConfig ([#297](https://github.com/omry/omegaconf/issues/297))
+- Fix bug that allowed an annotated List and Dict field in a Structured Config to be assigned a value of a different type. ([#300](https://github.com/omry/omegaconf/issues/300))
+- merge_with() now copied flags (readonly, struct) into target config ([#301](https://github.com/omry/omegaconf/issues/301))
+- Fix DictConfig setdefault method to behave as it should ([#304](https://github.com/omry/omegaconf/issues/304))
+- Merging a missing list onto an existing one makes the target missing ([#306](https://github.com/omry/omegaconf/issues/306))
+- Fix error when merging a structured config into a field with None value ([#310](https://github.com/omry/omegaconf/issues/310))
+- Fix a bug that allowed the assignment of containers onto fields annotated as primitive types ([#324](https://github.com/omry/omegaconf/issues/324))
+- Merging a List of a structured with a different type now raises an error. ([#327](https://github.com/omry/omegaconf/issues/327))
+- Remove dot-keys usage warning ([#332](https://github.com/omry/omegaconf/issues/332))
+- Fix merging into an Optional[List[Any]] = None ([#336](https://github.com/omry/omegaconf/issues/336))
+- Fix to properly merge list of dicts into a list of dataclasses ([#348](https://github.com/omry/omegaconf/issues/348))
+- OmegaConf.to_yaml() now properly support Structured Configs ([#350](https://github.com/omry/omegaconf/issues/350))
+
+### Deprecations and Removals
+
+- cfg.pretty() is deprecated in favor of OmegaConf.to_yaml(config). ([#263](https://github.com/omry/omegaconf/issues/263))
+
+### Improved Documentation
+
+- Document serialization APIs ([#278](https://github.com/omry/omegaconf/issues/278))
+- Document OmegaConf.is_interpolation and OmegaConf.is_none ([#286](https://github.com/omry/omegaconf/issues/286))
+- Document OmegaConf.get_type() ([#343](https://github.com/omry/omegaconf/issues/343))
+
+
 ## 2.0.0 (2020-05-04)
 
 OmegaConf 2.0 is a major release introducing substantial new ### Features, and introducing some incompatible changes.

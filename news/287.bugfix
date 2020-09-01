@@ -1,1 +1,0 @@
-OmegaConf.save() can now save dataclass and attr classes and instances

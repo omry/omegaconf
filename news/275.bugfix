@@ -1,1 +1,0 @@
-Fix OmegaConf.to_container() failing in some cases when the config is read-only

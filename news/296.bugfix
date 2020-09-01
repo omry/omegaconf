@@ -1,1 +1,0 @@
-strings containing valid ints and floats represented are converted to quoted strings instead of the primitives in pretty()
