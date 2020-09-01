@@ -1,1 +1,0 @@
-Fix a bug that allowed the assignment of containers onto fields annotated as primitive types

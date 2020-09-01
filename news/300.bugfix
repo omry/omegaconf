@@ -1,1 +1,0 @@
-Fix bug that allowed an annotated List and Dict field in a Structured Config to be assigned a value of a different type.

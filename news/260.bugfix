@@ -1,1 +1,0 @@
-Fix a bug initializing config with field typed as Any with Structured Config object

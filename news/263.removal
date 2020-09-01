@@ -1,1 +1,0 @@
-cfg.pretty() is deprecated in favor of OmegaConf.to_yaml(config).
