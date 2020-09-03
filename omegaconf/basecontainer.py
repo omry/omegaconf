@@ -3,6 +3,7 @@ import sys
 import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
+from textwrap import dedent
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
@@ -222,11 +223,12 @@ class BaseContainer(Container, ABC):
         from omegaconf import OmegaConf
 
         warnings.warn(
+            dedent(
+                """\
+            cfg.pretty() is deprecated and will be removed in a future version.
+            Use OmegaConf.to_yaml(cfg)
             """
-            pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml. Please note that the default value for
-            resolve has changed to True.
-            """,
+            ),
             category=UserWarning,
         )
 

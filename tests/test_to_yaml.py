@@ -130,11 +130,12 @@ def test_pretty_deprecated() -> None:
     with pytest.warns(
         expected_warning=UserWarning,
         match=re.escape(
-            """
-            pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml. Please note that the default value for
-            resolve has changed to True.
+            dedent(
+                """\
+            cfg.pretty() is deprecated and will be removed in a future version.
+            Use OmegaConf.to_yaml(cfg)
             """,
+            )
         ),
     ):
         assert c.pretty() == "foo: bar\n"
