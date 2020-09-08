@@ -1,4 +1,5 @@
-from typing import Any, MutableMapping, MutableSequence, Tuple
+import sys
+from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Dict
 
 import pytest
 
@@ -429,3 +430,45 @@ def test_parent_maintained() -> None:
     assert id(c1.a._get_parent()) == id(c1)
     assert id(c2.aa._get_parent()) == id(c2)
     assert id(c3.a._get_parent()) == id(c3)
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "cfg,overrides,expected",
+    [
+        ([1, 2, 3], ["0=bar", "2.a=100"], ["bar", 2, dict(a=100)]),
+        ({}, ["foo=bar", "bar=100"], {"foo": "bar", "bar": 100}),
+        ({}, ["foo=bar=10"], {"foo": "bar=10"}),
+    ],
+)
+def test_merge_with_dotlist(
+    cfg: Union[List[Any], Dict[str, Any]],
+    overrides: List[str],
+    expected: Union[List[Any], Dict[str, Any]],
+) -> None:
+    c = OmegaConf.create(cfg)
+    c.merge_with_dotlist(overrides)
+    assert c == expected
+
+
+def test_merge_with_cli() -> None:
+    c = OmegaConf.create([1, 2, 3])
+    sys.argv = ["app.py", "0=bar", "2.a=100"]
+    c.merge_with_cli()
+    assert c == ["bar", 2, dict(a=100)]
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "dotlist, expected",
+    [([], {}), (["foo=1"], {"foo": 1}), (["foo=1", "bar"], {"foo": 1, "bar": None})],
+)
+def test_merge_empty_with_dotlist(dotlist: List[str], expected: Dict[str, Any]) -> None:
+    c = OmegaConf.create()
+    c.merge_with_dotlist(dotlist)
+    assert c == expected
+
+
+@pytest.mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])  # type:ignore
+def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
+    c = OmegaConf.create()
+    with pytest.raises(ValueError):
+        c.merge_with_dotlist(dotlist)
