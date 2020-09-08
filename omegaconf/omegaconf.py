@@ -46,6 +46,7 @@ from ._utils import (
     is_structured_config,
     is_tuple_annotation,
     type_str,
+    is_primitive_container,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -567,11 +568,21 @@ class OmegaConf:
             root, Container
         ), f"Unexpected type for root : {type(root).__name__}"
 
-        if isinstance(root, DictConfig):
-            setattr(root, last, value)
-        elif isinstance(root, ListConfig):
-            idx = int(last)
-            root[idx] = value
+        if OmegaConf.is_config(value) or is_primitive_container(value):
+            assert isinstance(root, BaseContainer)
+            node = root._get_node(last)
+            if OmegaConf.is_config(node):
+                node.merge_with(value)
+            else:
+                setattr(root, last, value)
+        else:
+            if isinstance(root, DictConfig):
+                setattr(root, last, value)
+            elif isinstance(root, ListConfig):
+                idx = int(last)
+                root[idx] = value
+            else:
+                assert False
 
     @staticmethod
     def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:

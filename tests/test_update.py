@@ -35,6 +35,24 @@ from omegaconf._utils import _ensure_container
         pytest.param({"a": "???"}, "a", 123, {"a": 123}, id="update_missing"),
         pytest.param({"a": None}, "a", None, {"a": None}, id="same_value"),
         pytest.param({"a": 123}, "a", 123, {"a": 123}, id="same_value"),
+        pytest.param({}, "a", {}, {"a": {}}, id="dict_value"),
+        pytest.param({}, "a", {"b": 1}, {"a": {"b": 1}}, id="dict_value"),
+        pytest.param({"a": {"b": 2}}, "a", {"b": 1}, {"a": {"b": 1}}, id="dict_value"),
+        # dict value (merge or set)
+        pytest.param(
+            {"a": None},
+            "a",
+            {"c": 2},
+            {"a": {"c": 2}},
+            id="dict_value:merge",
+        ),
+        pytest.param(
+            {"a": {"b": 1}},
+            "a",
+            {"c": 2},
+            {"a": {"b": 1, "c": 2}},
+            id="dict_value:merge",
+        ),
         # list
         pytest.param({"a": [1, 2]}, "a", [2, 3], {"a": [2, 3]}, id="list:replace"),
         pytest.param([1, 2, 3], "1", "abc", [1, "abc", 3], id="list:update"),
@@ -53,6 +71,7 @@ from omegaconf._utils import _ensure_container
             {"a": {"b": [1, 2, "abc"]}},
             id="list:nested:update",
         ),
+        pytest.param([{"a": 1}], "0", {"b": 2}, [{"a": 1, "b": 2}], id="list:merge"),
     ],
 )
 def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
