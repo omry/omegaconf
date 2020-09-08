@@ -1,5 +1,5 @@
 import sys
-from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Dict
+from typing import Any, Dict, List, MutableMapping, MutableSequence, Tuple, Union
 
 import pytest
 

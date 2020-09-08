@@ -41,12 +41,12 @@ from ._utils import (
     is_dict_annotation,
     is_int,
     is_list_annotation,
+    is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
     is_tuple_annotation,
     type_str,
-    is_primitive_container,
 )
 from .base import Container, Node
 from .basecontainer import BaseContainer
@@ -568,7 +568,7 @@ class OmegaConf:
             root, Container
         ), f"Unexpected type for root : {type(root).__name__}"
 
-        last_key = last
+        last_key: Union[str, int] = last
         if isinstance(root, ListConfig):
             last_key = int(last)
 
@@ -576,12 +576,15 @@ class OmegaConf:
             assert isinstance(root, BaseContainer)
             node = root._get_node(last_key)
             if OmegaConf.is_config(node):
+                assert isinstance(node, BaseContainer)
                 node.merge_with(value)
                 return
 
         if OmegaConf.is_dict(root):
+            assert isinstance(last_key, str)
             root.__setattr__(last_key, value)
         elif OmegaConf.is_list(root):
+            assert isinstance(last_key, int)
             root.__setitem__(last_key, value)
         else:
             assert False

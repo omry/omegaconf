@@ -1,15 +1,14 @@
 import re
-import sys
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import pytest
 from pytest import raises
 
-from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
+from omegaconf import ListConfig, OmegaConf
 from omegaconf._utils import _ensure_container
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "cfg,key,value,expected",
     [
         # dict

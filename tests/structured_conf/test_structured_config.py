@@ -943,7 +943,7 @@ class TestDictSubclass:
             "not_optional": {"a": 10},
         }
 
-    @pytest.mark.parametrize(
+    @pytest.mark.parametrize(  # type: ignore
         "update_value,expected",
         [
             pytest.param([], {"list": []}, id="empty"),
