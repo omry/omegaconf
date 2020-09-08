@@ -72,6 +72,13 @@ from omegaconf._utils import _ensure_container
             id="list:nested:update",
         ),
         pytest.param([{"a": 1}], "0", {"b": 2}, [{"a": 1, "b": 2}], id="list:merge"),
+        pytest.param(
+            {"list": [{"a": 1}]},
+            "list",
+            [{"b": 2}],
+            {"list": [{"b": 2}]},
+            id="list:merge",
+        ),
     ],
 )
 def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:

@@ -568,21 +568,23 @@ class OmegaConf:
             root, Container
         ), f"Unexpected type for root : {type(root).__name__}"
 
+        last_key = last
+        if isinstance(root, ListConfig):
+            last_key = int(last)
+
         if OmegaConf.is_config(value) or is_primitive_container(value):
             assert isinstance(root, BaseContainer)
-            node = root._get_node(last)
+            node = root._get_node(last_key)
             if OmegaConf.is_config(node):
                 node.merge_with(value)
-            else:
-                setattr(root, last, value)
+                return
+
+        if OmegaConf.is_dict(root):
+            root.__setattr__(last_key, value)
+        elif OmegaConf.is_list(root):
+            root.__setitem__(last_key, value)
         else:
-            if isinstance(root, DictConfig):
-                setattr(root, last, value)
-            elif isinstance(root, ListConfig):
-                idx = int(last)
-                root[idx] = value
-            else:
-                assert False
+            assert False
 
     @staticmethod
     def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
