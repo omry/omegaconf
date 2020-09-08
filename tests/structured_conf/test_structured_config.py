@@ -942,3 +942,36 @@ class TestDictSubclass:
             "as_none": {"x": 100},
             "not_optional": {"a": 10},
         }
+
+    @pytest.mark.parametrize(  # type: ignore
+        "update_value,expected",
+        [
+            pytest.param([], {"list": []}, id="empty"),
+            pytest.param(
+                [{"name": "Bond"}],
+                {"list": [{"name": "Bond", "age": "???"}]},
+                id="partial",
+            ),
+            pytest.param(
+                [{"name": "Bond", "age": 7}],
+                {"list": [{"name": "Bond", "age": 7}]},
+                id="complete",
+            ),
+            pytest.param(
+                [{"age": "double o seven"}],
+                pytest.raises(ValidationError),
+                id="complete",
+            ),
+        ],
+    )
+    def test_update_userlist(
+        self, class_type: str, update_value: Any, expected: Any
+    ) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UserList)
+        if isinstance(expected, dict):
+            OmegaConf.update(cfg, "list", update_value)
+            assert cfg == expected
+        else:
+            with pytest.raises(ValidationError):
+                OmegaConf.update(cfg, "list", update_value)
