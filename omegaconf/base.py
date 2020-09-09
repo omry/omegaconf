@@ -252,7 +252,6 @@ class Container(Node):
         :param key:
         :return:
         """
-        from . import ValueNode
         from .omegaconf import _select_one
 
         if key == "":
@@ -276,9 +275,6 @@ class Container(Node):
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-
-            if isinstance(ret, ValueNode):
-                return ret._get_parent(), k, ret
 
             assert ret is None or isinstance(ret, Container)
             root = ret
