@@ -394,6 +394,12 @@ def test_merge_with_interpolation() -> None:
         OmegaConf.merge(cfg, {"typed_bar": "nope"})
 
 
+def test_non_container_interpolation() -> None:
+    cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
+    with pytest.raises(AssertionError):
+        cfg.bar
+
+
 def test_indirect_interpolation() -> None:
     d = {
         "a": {"aa": 10},
@@ -414,7 +420,7 @@ def test_indirect_interpolation2() -> None:
     d = {
         "a": {"aa": 10},
         "b": "${a.aa}",
-        "c": "${b.aa}",
+        "c": "${b}",
     }
 
     cfg = OmegaConf.create(d)

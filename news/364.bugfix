@@ -1,0 +1,1 @@
+Properly crash when accessing `${foo.bar}` if `foo` is a value node (instead of silently returning `${foo}`)
