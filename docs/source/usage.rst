@@ -638,13 +638,18 @@ OmegaConf.update
 ^^^^^^^^^^^^^^^^
 OmegaConf.update() allow you to update values in your config using a dot-notation key.
 
+The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
+being assigned.
+
 .. doctest::
 
     >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> OmegaConf.update(cfg, "foo.bar", 20)
+    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True) # merge has no effect because the value is a primitive
     >>> assert cfg.foo.bar == 20
-    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30})
+    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False) # set   
     >>> assert cfg.foo.bar == {"zonk" : 30}
+    >>> OmegaConf.update(cfg, "foo.bar", {"oompa" : 40}, merge=True) # merge
+    >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
 
 
 

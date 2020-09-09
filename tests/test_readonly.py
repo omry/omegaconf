@@ -24,7 +24,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
         ),
         pytest.param(
             {},
-            lambda c: OmegaConf.update(c, "a.b", 10),
+            lambda c: OmegaConf.update(c, "a.b", 10, merge=True),
             raises(ReadonlyConfigError, match="a"),
             id="dict_update",
         ),
@@ -55,7 +55,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
         ),
         pytest.param(
             [],
-            lambda c: OmegaConf.update(c, "0.b", 10),
+            lambda c: OmegaConf.update(c, "0.b", 10, merge=True),
             raises(ReadonlyConfigError, match="[0]"),
             id="list_update",
         ),

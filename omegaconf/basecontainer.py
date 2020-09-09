@@ -128,7 +128,7 @@ class BaseContainer(Container, ABC):
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
 
-            OmegaConf.update(self, key, value)
+            OmegaConf.update(self, key, value, merge=True)
 
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         from omegaconf import OmegaConf
@@ -150,7 +150,7 @@ class BaseContainer(Container, ABC):
             stacklevel=2,
         )
 
-        OmegaConf.update(self, key, value)
+        OmegaConf.update(self, key, value, merge=False)
 
     def is_empty(self) -> bool:
         """return true if config is empty"""

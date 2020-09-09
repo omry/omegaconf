@@ -94,7 +94,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", "hello"),
+            op=lambda cfg: OmegaConf.update(cfg, "num", "hello", merge=True),
             exception_type=ValidationError,
             msg="Value 'hello' could not be converted to Integer",
             parent_node=lambda cfg: cfg,
@@ -108,7 +108,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", None),
+            op=lambda cfg: OmegaConf.update(cfg, "num", None, merge=True),
             exception_type=ValidationError,
             msg="child 'num' is not Optional",
             parent_node=lambda cfg: cfg,
@@ -122,7 +122,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.create({}),
-            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
+            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType(), merge=True),
             key="a",
             exception_type=UnsupportedValueType,
             ref_type=Optional[Dict[Union[str, Enum], Any]],
