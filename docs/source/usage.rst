@@ -261,6 +261,7 @@ Save and load can operate on file-names, Paths and file objects.
 
 Save/Load YAML file
 ^^^^^^^^^^^^^^^^^^^
+
 .. doctest:: loaded
 
     >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
@@ -275,6 +276,7 @@ Save/Load pickle file
 ^^^^^^^^^^^^^^^^^^^^^
 Use pickle to save and load while retaining the type information.
 Note that the saved file may be incompatible across different major versions of OmegaConf.
+
 .. doctest:: loaded
 
     >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
@@ -371,6 +373,7 @@ This example creates a resolver that adds 10 the the given value.
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
 You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
+
 .. doctest::
 
     >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
