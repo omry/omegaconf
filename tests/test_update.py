@@ -1,11 +1,13 @@
 import re
+from textwrap import dedent
 from typing import Any
 
 import pytest
 from pytest import raises
 
-from omegaconf import ListConfig, OmegaConf
-from omegaconf._utils import _ensure_container
+from omegaconf import ListConfig, OmegaConf, ValidationError
+from omegaconf._utils import _ensure_container, is_primitive_container
+from tests import Package
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -82,17 +84,84 @@ from omegaconf._utils import _ensure_container
 )
 def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
     cfg = _ensure_container(cfg)
-    OmegaConf.update(cfg, key, value)
+    OmegaConf.update(cfg, key, value, merge=True)
     assert cfg == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg,key,value,merge,expected",
+    [
+        pytest.param(
+            {"a": {"b": 1}},
+            "a",
+            {"c": 2},
+            True,
+            {"a": {"b": 1, "c": 2}},
+            id="dict_value:merge",
+        ),
+        pytest.param(
+            {"a": {"b": 1}},
+            "a",
+            {"c": 2},
+            False,
+            {"a": {"c": 2}},
+            id="dict_value:set",
+        ),
+        # merging lists is replacing.
+        # this is useful when we mix it Structured Configs
+        pytest.param(
+            {"a": {"b": [1, 2]}},
+            "a.b",
+            [3, 4],
+            True,
+            {"a": {"b": [3, 4]}},
+            id="list:merge",
+        ),
+        pytest.param(
+            {"a": {"b": [1, 2]}},
+            "a.b",
+            [3, 4],
+            False,
+            {"a": {"b": [3, 4]}},
+            id="list:set",
+        ),
+        pytest.param(
+            Package,
+            "modules",
+            [{"name": "foo"}],
+            True,
+            {"modules": [{"name": "foo", "classes": "???"}]},
+            id="structured_list:merge",
+        ),
+        pytest.param(
+            Package,
+            "modules",
+            [{"name": "foo"}],
+            False,
+            pytest.raises(ValidationError),
+            id="structured_list:set",
+        ),
+    ],
+)
+def test_update_merge_set(
+    cfg: Any, key: str, value: Any, merge: bool, expected: Any
+) -> None:
+    cfg = _ensure_container(cfg)
+    if is_primitive_container(expected):
+        OmegaConf.update(cfg, key, value, merge=merge)
+        assert cfg == expected
+    else:
+        with expected:
+            OmegaConf.update(cfg, key, value, merge=merge)
 
 
 def test_update_list_make_dict() -> None:
     c = OmegaConf.create([None, None])
     assert isinstance(c, ListConfig)
-    OmegaConf.update(c, "0.a.a", "aa")
-    OmegaConf.update(c, "0.a.b", "ab")
-    OmegaConf.update(c, "1.b.a", "ba")
-    OmegaConf.update(c, "1.b.b", "bb")
+    OmegaConf.update(c, "0.a.a", "aa", merge=True)
+    OmegaConf.update(c, "0.a.b", "ab", merge=True)
+    OmegaConf.update(c, "1.b.a", "ba", merge=True)
+    OmegaConf.update(c, "1.b.b", "bb", merge=True)
     assert c == [{"a": {"a": "aa", "b": "ab"}}, {"b": {"a": "ba", "b": "bb"}}]
 
 
@@ -112,6 +181,19 @@ def test_update_list_index_error() -> None:
     c = OmegaConf.create([1, 2, 3])
     assert isinstance(c, ListConfig)
     with raises(IndexError):
-        OmegaConf.update(c, "4", "abc")
+        OmegaConf.update(c, "4", "abc", merge=True)
 
     assert c == [1, 2, 3]
+
+
+def test_merge_deprecation() -> None:
+    cfg = OmegaConf.create({"a": {"b": 10}})
+    msg = dedent(
+        """\
+            update() merge flag is is not specified, defaulting to False.
+            For more details, see https://github.com/omry/omegaconf/issues/367"""
+    )
+
+    with pytest.warns(UserWarning, match=re.escape(msg)):
+        OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
+        assert cfg == {"a": {"c": 20}}

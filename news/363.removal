@@ -1,0 +1,1 @@
+OmegaConf.update() now warns if the merge flag is not specified

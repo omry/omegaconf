@@ -5,9 +5,11 @@ import os
 import pathlib
 import re
 import sys
+import warnings
 from collections import defaultdict
 from contextlib import contextmanager
 from enum import Enum
+from textwrap import dedent
 from typing import (
     IO,
     Any,
@@ -550,8 +552,34 @@ class OmegaConf:
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
-    def update(cfg: Container, key: str, value: Any = None) -> None:
-        """Updates a dot separated key sequence to a value"""
+    def update(
+        cfg: Container, key: str, value: Any = None, merge: Optional[bool] = None
+    ) -> None:
+        """
+        Updates a dot separated key sequence to a value
+
+        :param cfg: input config to update
+        :param key: key to update (can be a dot separated path)
+        :param value: value to set, if value if a list or a dict it will be merged or set
+            depending on merge_config_values
+        :param merge: If value is a dict or a list, True for merge, False for set.
+            True to merge
+            False to set
+            None (default) : deprecation warning and default to False
+        """
+
+        if merge is None:
+            warnings.warn(
+                dedent(
+                    """\
+                update() merge flag is is not specified, defaulting to False.
+                For more details, see https://github.com/omry/omegaconf/issues/367"""
+                ),
+                category=UserWarning,
+                stacklevel=1,
+            )
+            merge = False
+
         split = key.split(".")
         root = cfg
         for i in range(len(split) - 1):
@@ -572,7 +600,7 @@ class OmegaConf:
         if isinstance(root, ListConfig):
             last_key = int(last)
 
-        if OmegaConf.is_config(value) or is_primitive_container(value):
+        if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
             assert isinstance(root, BaseContainer)
             node = root._get_node(last_key)
             if OmegaConf.is_config(node):

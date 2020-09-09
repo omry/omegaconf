@@ -970,8 +970,8 @@ class TestDictSubclass:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UserList)
         if isinstance(expected, dict):
-            OmegaConf.update(cfg, "list", update_value)
+            OmegaConf.update(cfg, "list", update_value, merge=True)
             assert cfg == expected
         else:
             with pytest.raises(ValidationError):
-                OmegaConf.update(cfg, "list", update_value)
+                OmegaConf.update(cfg, "list", update_value, merge=True)
