@@ -1,3 +1,20 @@
+## 2.0.2 (2020-09-10)
+
+
+### Features
+
+- OmegaConf.update() now takes a merge flag to indicate merge or set for config values ([#363](https://github.com/omry/omegaconf/issues/363))
+
+### Bug Fixes
+
+- Fix cfg.pretty() deprecation warning ([#358](https://github.com/omry/omegaconf/issues/358))
+- Properly crash when accessing `${foo.bar}` if `foo` is a value node (instead of silently returning `${foo}`) ([#364](https://github.com/omry/omegaconf/issues/364))
+
+### Deprecations and Removals
+
+- OmegaConf.update() now warns if the merge flag is not specified ([#367](https://github.com/omry/omegaconf/issues/367))
+
+
 ## 2.0.1 (2020-09-01)
 This is mostly a bugfix release.
 The notable change is the config.pretty() is now deprecated in favor of OmegaConf.to_yaml().
