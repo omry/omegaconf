@@ -1,170 +1,212 @@
 import os
 import random
 import re
-from typing import Any, Dict
+from typing import Any, Optional
 
 import pytest
+from _pytest.python_api import RaisesContext  # type: ignore
 
-from omegaconf import (
-    DictConfig,
-    IntegerNode,
-    ListConfig,
-    OmegaConf,
-    Resolver,
-    ValidationError,
-)
+from omegaconf import IntegerNode, OmegaConf, Resolver, ValidationError
+from omegaconf._utils import _ensure_container
 
 
-def test_str_interpolation_dict_1() -> None:
-    # Simplest str_interpolation
-    c = OmegaConf.create(dict(a="${referenced}", referenced="bar"))
-    assert c.referenced == "bar"
-    assert c.a == "bar"
-
-
-def test_str_interpolation_key_error_1() -> None:
-    # Test that a KeyError is thrown if an str_interpolation key is not available
-    c = OmegaConf.create(dict(a="${not_found}"))
-
-    with pytest.raises(KeyError):
-        _ = c.a
-
-
-def test_str_interpolation_key_error_2() -> None:
-    # Test that a KeyError is thrown if an str_interpolation key is not available
-    c = OmegaConf.create(dict(a="${not.found}"))
-
-    with pytest.raises(KeyError):
-        c.a
-
-
-def test_str_interpolation_3() -> None:
-    # Test that str_interpolation works with complex strings
-    c = OmegaConf.create(dict(a="the year ${year}", year="of the cat"))
-
-    assert c.a == "the year of the cat"
-
-
-def test_str_interpolation_4() -> None:
-    # Test that a string with multiple str_interpolations works
-    c = OmegaConf.create(
-        dict(a="${ha} ${ha} ${ha}, said Pennywise, ${ha} ${ha}... ${ha}!", ha="HA")
-    )
-
-    assert c.a == "HA HA HA, said Pennywise, HA HA... HA!"
-
-
-def test_deep_str_interpolation_1() -> None:
-    # Test deep str_interpolation works
-    c = OmegaConf.create(
-        dict(
-            a="the answer to the universe and everything is ${nested.value}",
-            nested=dict(value=42),
-        )
-    )
-
-    assert c.a == "the answer to the universe and everything is 42"
-
-
-def test_deep_str_interpolation_2() -> None:
-    # Test that str_interpolation of a key that is nested works
-    c = OmegaConf.create(
-        dict(
-            out=42,
-            deep=dict(inside="the answer to the universe and everything is ${out}"),
-        )
-    )
-
-    assert c.deep.inside == "the answer to the universe and everything is 42"
-
-
-def test_simple_str_interpolation_inherit_type() -> None:
-    # Test that str_interpolation of a key that is nested works
-    c = OmegaConf.create(
-        dict(
-            inter1="${answer1}",
-            inter2="${answer2}",
-            inter3="${answer3}",
-            inter4="${answer4}",
-            answer1=42,
-            answer2=42.0,
-            answer3=False,
-            answer4="string",
-        )
-    )
-
-    assert type(c.inter1) == int
-    assert type(c.inter2) == float
-    assert type(c.inter3) == bool
-    assert type(c.inter4) == str
-
-
-def test_complex_str_interpolation_is_always_str_1() -> None:
-    c = OmegaConf.create(dict(two=2, four=4, inter1="${four}${two}", inter2="4${two}"))
-
-    assert type(c.inter1) == str
-    assert c.inter1 == "42"
-    assert type(c.inter2) == str
-    assert c.inter2 == "42"
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "input_,key,expected",
+@pytest.mark.parametrize(  # type:ignore
+    "cfg,key,expected",
     [
-        (dict(a=10, b="${a}"), "b", 10),
-        (dict(a=10, b=[1, "${a}", 3, 4]), "b.1", 10),
-        (dict(a="${b.1}", b=[1, dict(c=10), 3, 4]), "a", dict(c=10)),
-        (dict(a="${b}", b=[1, 2]), "a", [1, 2]),
-        (dict(a="foo-${b}", b=[1, 2]), "a", "foo-[1, 2]"),
-        (dict(a="foo-${b}", b=dict(c=10)), "a", "foo-{'c': 10}"),
+        pytest.param({"a": "${b}", "b": 10}, "a", 10, id="simple"),
+        pytest.param({"a": "${x}"}, "a", pytest.raises(KeyError), id="not_found"),
+        pytest.param({"a": "${x.y}"}, "a", pytest.raises(KeyError), id="not_found"),
+        pytest.param({"a": "foo_${b}", "b": "bar"}, "a", "foo_bar", id="str_inter"),
+        pytest.param(
+            {"a": "${x}_${y}", "x": "foo", "y": "bar"},
+            "a",
+            "foo_bar",
+            id="multi_str_inter",
+        ),
+        pytest.param(
+            {"a": "foo_${b.c}", "b": {"c": 10}}, "a", "foo_10", id="str_deep_inter"
+        ),
+        pytest.param({"a": 10, "b": [1, "${a}"]}, "b.1", 10, id="from_list"),
+        pytest.param({"a": "${b}", "b": {"c": 10}}, "a", {"c": 10}, id="dict_val"),
+        pytest.param({"a": "${b}", "b": [1, 2]}, "a", [1, 2], id="list_val"),
+        pytest.param({"a": "${b.1}", "b": [1, 2]}, "a", 2, id="list_index"),
+        pytest.param({"a": "X_${b}", "b": [1, 2]}, "a", "X_[1, 2]", id="liststr"),
+        pytest.param({"a": "X_${b}", "b": {"c": 1}}, "a", "X_{'c': 1}", id="dict_str"),
+        pytest.param({"a": "${b}", "b": "${c}", "c": 10}, "a", 10, id="two_steps"),
+        pytest.param({"bar": 10, "foo": ["${bar}"]}, "foo.0", 10, id="inter_in_list"),
+        pytest.param({"foo": None, "bar": "${foo}"}, "bar", None, id="none"),
+        pytest.param({"list": ["bar"], "foo": "${list.0}"}, "foo", "bar", id="list"),
     ],
 )
-def test_interpolation(input_: Dict[str, Any], key: str, expected: str) -> None:
-    c = OmegaConf.create(input_)
-    assert OmegaConf.select(c, key) == expected
+def test_interpolation(cfg: Any, key: str, expected: Any) -> None:
+    cfg = _ensure_container(cfg)
+    if isinstance(expected, RaisesContext):
+        with expected:
+            OmegaConf.select(cfg, key)
+    else:
+        assert OmegaConf.select(cfg, key) == expected
 
 
-def test_2_step_interpolation() -> None:
-    c = OmegaConf.create(dict(src="bar", copy_src="${src}", copy_copy="${copy_src}"))
-    assert c.copy_src == "bar"
-    assert c.copy_copy == "bar"
+def test_interpolation_with_missing() -> None:
+    cfg = OmegaConf.create(
+        {"a": "${x.missing}.txt", "b": "${x.missing}", "x": {"missing": "???"}}
+    )
+    assert OmegaConf.is_missing(cfg, "a")
+    assert OmegaConf.is_missing(cfg, "b")
 
 
-def test_env_interpolation1() -> None:
-    try:
-        os.environ["foobar"] = "1234"
-        c = OmegaConf.create({"path": "/test/${env:foobar}"})
-        assert c.path == "/test/1234"
-    finally:
-        del os.environ["foobar"]
+def test_assign_to_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {"foo": 10, "bar": "${foo}", "typed_bar": IntegerNode("${foo}")}
+    )
+    assert OmegaConf.is_interpolation(cfg, "bar")
+    assert cfg.bar == 10
+    assert cfg.typed_bar == 10
+
+    # assign regular field
+    cfg.bar = 20
+    assert not OmegaConf.is_interpolation(cfg, "bar")
+
+    with pytest.raises(ValidationError):
+        cfg.typed_bar = "nope"
+    cfg.typed_bar = 30
+
+    assert cfg.foo == 10
+    assert cfg.bar == 20
+    assert cfg.typed_bar == 30
 
 
-def test_env_interpolation_not_found() -> None:
-    c = OmegaConf.create({"path": "/test/${env:foobar}"})
-    with pytest.raises(
-        ValidationError, match=re.escape("Environment variable 'foobar' not found")
-    ):
-        c.path
+def test_merge_with_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {
+            "foo": 10,
+            "bar": "${foo}",
+            "typed_bar": IntegerNode("${foo}"),
+        }
+    )
+
+    assert OmegaConf.merge(cfg, {"bar": 20}) == {"foo": 10, "bar": 20, "typed_bar": 10}
+    assert OmegaConf.merge(cfg, {"typed_bar": 30}) == {
+        "foo": 10,
+        "bar": 10,
+        "typed_bar": 30,
+    }
+
+    with pytest.raises(ValidationError):
+        OmegaConf.merge(cfg, {"typed_bar": "nope"})
 
 
-def test_env_default_str_interpolation_missing_env() -> None:
-    if os.getenv("foobar") is not None:
-        del os.environ["foobar"]
-    c = OmegaConf.create({"path": "/test/${env:foobar,abc}"})
-    assert c.path == "/test/abc"
+def test_non_container_interpolation() -> None:
+    cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
+    with pytest.raises(AssertionError):
+        cfg.bar
 
 
-def test_env_default_interpolation_missing_env_default_with_slash() -> None:
-    if os.getenv("foobar") is not None:
-        del os.environ["foobar"]
-    c = OmegaConf.create({"path": "${env:DATA_PATH,a/b}"})
-    assert c.path == "a/b"
+def test_indirect_interpolation() -> None:
+    d = {
+        "a": {"aa": 10},
+        "b": "${a}",
+        "c": "${b.aa}",
+    }
+
+    cfg = OmegaConf.create(d)
+    assert cfg.c == 10
+    assert OmegaConf.to_container(cfg, resolve=True) == {
+        "a": {"aa": 10},
+        "b": {"aa": 10},
+        "c": 10,
+    }
 
 
-def test_env_default_interpolation_env_exist() -> None:
-    os.environ["foobar"] = "1234"
-    c = OmegaConf.create({"path": "/test/${env:foobar,abc}"})
-    assert c.path == "/test/1234"
+def test_indirect_interpolation2() -> None:
+    d = {
+        "a": {"aa": 10},
+        "b": "${a.aa}",
+        "c": "${b}",
+    }
+
+    cfg = OmegaConf.create(d)
+    assert cfg.c == 10
+
+    assert OmegaConf.to_container(cfg, resolve=True) == {
+        "a": {"aa": 10},
+        "b": 10,
+        "c": 10,
+    }
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "cfg",
+    [
+        pytest.param({"a": "${b}", "b": "string", "s": "foo_${b}"}, id="str"),
+        pytest.param({"a": "${b}", "b": True, "s": "foo_${b}"}, id="bool"),
+        pytest.param({"a": "${b}", "b": 10, "s": "foo_${b}"}, id="int"),
+        pytest.param({"a": "${b}", "b": 3.14, "s": "foo_${b}"}, id="float"),
+    ],
+)
+def test_type_inherit_type(cfg: Any) -> None:
+    cfg = _ensure_container(cfg)
+    assert isinstance(cfg.a, type(cfg.b))
+    assert type(cfg.s) == str  # check that string interpolations are always strings
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "cfg,env_name,env_val,key,expected",
+    [
+        pytest.param(
+            {"path": "/test/${env:foo}"},
+            "foo",
+            "1234",
+            "path",
+            "/test/1234",
+            id="simple",
+        ),
+        pytest.param(
+            {"path": "/test/${env:not_found}"},
+            None,
+            None,
+            "path",
+            pytest.raises(
+                ValidationError,
+                match=re.escape("Environment variable 'not_found' not found"),
+            ),
+            id="not_found",
+        ),
+        pytest.param(
+            {"path": "/test/${env:not_found,ZZZ}"},
+            None,
+            None,
+            "path",
+            "/test/ZZZ",
+            id="not_found_with_default",
+        ),
+        pytest.param(
+            {"path": "/test/${env:not_found,a/b}"},
+            None,
+            None,
+            "path",
+            "/test/a/b",
+            id="not_found_with_default",
+        ),
+    ],
+)
+def test_env_interpolation(
+    monkeypatch: Any,
+    cfg: Any,
+    env_name: Optional[str],
+    env_val: str,
+    key: str,
+    expected: Any,
+) -> None:
+    if env_name is not None:
+        monkeypatch.setenv(env_name, env_val)
+
+    cfg = _ensure_container(cfg)
+    if isinstance(expected, RaisesContext):
+        with expected:
+            OmegaConf.select(cfg, key)
+    else:
+        assert OmegaConf.select(cfg, key) == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -220,7 +262,7 @@ def test_clear_resolvers(restore_resolvers: Any) -> None:
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
     OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
-    c = OmegaConf.create(dict(k="${plus_10:990}"))
+    c = OmegaConf.create({"k": "${plus_10:990}"})
 
     assert type(c.k) == int
     assert c.k == 1000
@@ -232,7 +274,7 @@ def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # this is important to allow embedding of functions like time() without having the value change during
     # the program execution.
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    c = OmegaConf.create(dict(k="${random:_}"))
+    c = OmegaConf.create({"k": "${random:_}"})
     assert c.k == c.k
 
 
@@ -241,8 +283,9 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     Tests that resolver cache is not shared between different OmegaConf objects
     """
     OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    c1 = OmegaConf.create(dict(k="${random:_}"))
-    c2 = OmegaConf.create(dict(k="${random:_}"))
+    c1 = OmegaConf.create({"k": "${random:_}"})
+    c2 = OmegaConf.create({"k": "${random:_}"})
+
     assert c1.k != c2.k
     assert c1.k == c1.k
     assert c2.k == c2.k
@@ -272,7 +315,6 @@ def test_resolver_that_allows_a_list_of_arguments(
 ) -> None:
     OmegaConf.register_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
-    assert isinstance(c, DictConfig)
     assert c[name] == result
 
 
@@ -313,121 +355,20 @@ def test_supported_chars() -> None:
 def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
-    assert isinstance(c, ListConfig)
 
     with pytest.raises(KeyError):
         c[0]
 
 
 def test_unsupported_interpolation_type() -> None:
-    c = OmegaConf.create(dict(foo="${wrong_type:ref}"))
-
+    c = OmegaConf.create({"foo": "${wrong_type:ref}"})
     with pytest.raises(ValueError):
         c.foo
 
 
 def test_incremental_dict_with_interpolation() -> None:
     conf = OmegaConf.create()
-    assert isinstance(conf, DictConfig)
     conf.a = 1
     conf.b = OmegaConf.create()
-    assert isinstance(conf.b, DictConfig)
     conf.b.c = "${a}"
-    assert conf.b.c == conf.a  # type: ignore
-
-
-@pytest.mark.parametrize(  # type: ignore
-    "cfg,key,expected",
-    [
-        ({"a": 10, "b": "${a}"}, "b", 10),
-        ({"a": 10, "b": "${a}", "c": "${b}"}, "c", 10),
-        ({"bar": 10, "foo": ["${bar}"]}, "foo.0", 10),
-        ({"foo": None, "bar": "${foo}"}, "bar", None),
-        ({"list": ["bar"], "foo": "${list.0}"}, "foo", "bar"),
-        ({"list": ["${ref}"], "ref": "bar"}, "list.0", "bar"),
-    ],
-)
-def test_interpolations(cfg: DictConfig, key: str, expected: Any) -> None:
-    c = OmegaConf.create(cfg)
-    assert OmegaConf.select(c, key) == expected
-
-
-def test_interpolation_with_missing() -> None:
-    cfg = OmegaConf.create({"out_file": "${x.name}.txt", "x": {"name": "???"}})
-    assert OmegaConf.is_missing(cfg, "out_file")
-
-
-def test_assign_to_interpolation() -> None:
-    cfg = OmegaConf.create(
-        {"foo": 10, "bar": "${foo}", "typed_bar": IntegerNode("${foo}")}
-    )
-    assert OmegaConf.is_interpolation(cfg, "bar")
-    assert cfg.bar == 10
-    assert cfg.typed_bar == 10
-
-    # assign regular field
-    cfg.bar = 20
-    assert not OmegaConf.is_interpolation(cfg, "bar")
-
-    with pytest.raises(ValidationError):
-        cfg.typed_bar = "nope"
-    cfg.typed_bar = 30
-
-    assert cfg.foo == 10
-    assert cfg.bar == 20
-    assert cfg.typed_bar == 30
-
-
-def test_merge_with_interpolation() -> None:
-    cfg = OmegaConf.create(
-        {"foo": 10, "bar": "${foo}", "typed_bar": IntegerNode("${foo}")}
-    )
-
-    assert OmegaConf.merge(cfg, {"bar": 20}) == {"foo": 10, "bar": 20, "typed_bar": 10}
-    assert OmegaConf.merge(cfg, {"typed_bar": 30}) == {
-        "foo": 10,
-        "bar": 10,
-        "typed_bar": 30,
-    }
-
-    with pytest.raises(ValidationError):
-        OmegaConf.merge(cfg, {"typed_bar": "nope"})
-
-
-def test_non_container_interpolation() -> None:
-    cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
-    with pytest.raises(AssertionError):
-        cfg.bar
-
-
-def test_indirect_interpolation() -> None:
-    d = {
-        "a": {"aa": 10},
-        "b": "${a}",
-        "c": "${b.aa}",
-    }
-
-    cfg = OmegaConf.create(d)
-    assert cfg.c == 10
-    assert OmegaConf.to_container(cfg, resolve=True) == {
-        "a": {"aa": 10},
-        "b": {"aa": 10},
-        "c": 10,
-    }
-
-
-def test_indirect_interpolation2() -> None:
-    d = {
-        "a": {"aa": 10},
-        "b": "${a.aa}",
-        "c": "${b}",
-    }
-
-    cfg = OmegaConf.create(d)
-    assert cfg.c == 10
-
-    assert OmegaConf.to_container(cfg, resolve=True) == {
-        "a": {"aa": 10},
-        "b": 10,
-        "c": 10,
-    }
+    assert conf.b.c == conf.a  # type:ignore
