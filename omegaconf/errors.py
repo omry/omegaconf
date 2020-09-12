@@ -63,6 +63,12 @@ class UnsupportedInterpolationType(OmegaConfBaseException, ValueError):
     """
 
 
+class InterpolationResolutionError(OmegaConfBaseException, ValueError):
+    """
+    Thrown an error ocures when resolving an interpolation
+    """
+
+
 class ConfigKeyError(OmegaConfBaseException, KeyError):
     """
     Thrown from DictConfig when a regular dict access would have caused a KeyError.

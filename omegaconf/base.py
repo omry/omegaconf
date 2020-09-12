@@ -153,6 +153,17 @@ class Node(ABC):
                     raise MissingMandatoryValue("Missing mandatory value")
             return self
 
+    def _get_root(self) -> "Container":
+        root: Optional[Container] = self._get_parent()
+        if root is None:
+            assert isinstance(self, Container)
+            return self
+        assert root is not None and isinstance(root, Container)
+        while root._get_parent() is not None:
+            root = root._get_parent()
+            assert root is not None and isinstance(root, Container)
+        return root
+
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
         ...
@@ -234,15 +245,23 @@ class Container(Node):
     def __getitem__(self, key_or_index: Any) -> Any:
         ...
 
-    def _get_root(self) -> "Container":
-        root: Optional[Container] = self._get_parent()
-        if root is None:
-            return self
-        assert root is not None and isinstance(root, Container)
-        while root._get_parent() is not None:
-            root = root._get_parent()
-            assert root is not None and isinstance(root, Container)
-        return root
+    def _resolve_key_and_root(self, key: str) -> Tuple["Container", str]:
+        orig = key
+        if not key.startswith("."):
+            return self._get_root(), key
+        else:
+            root: Optional[Container] = self
+            assert key.startswith(".")
+            while True:
+                assert root is not None
+                key = key[1:]
+                if not key.startswith("."):
+                    break
+                root = root._get_parent()
+                if root is None:
+                    raise ConfigKeyError(f"Error resolving key '{orig}'")
+
+            return root, key
 
     def _select_impl(
         self, key: str, throw_on_missing: bool, throw_on_resolution_failure: bool
@@ -311,7 +330,7 @@ class Container(Node):
 
         from .nodes import ValueNode
 
-        root_node = self._get_root()
+        root_node, inter_key = self._resolve_key_and_root(inter_key)
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
