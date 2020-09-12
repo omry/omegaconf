@@ -1,12 +1,12 @@
 import os
 import random
 import re
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import pytest
-from _pytest.python_api import RaisesContext  # type: ignore
+from _pytest.python_api import RaisesContext
 
-from omegaconf import IntegerNode, OmegaConf, Resolver, ValidationError
+from omegaconf import Container, IntegerNode, Node, OmegaConf, Resolver, ValidationError
 from omegaconf._utils import _ensure_container
 
 
@@ -36,6 +36,14 @@ from omegaconf._utils import _ensure_container
         pytest.param({"bar": 10, "foo": ["${bar}"]}, "foo.0", 10, id="inter_in_list"),
         pytest.param({"foo": None, "bar": "${foo}"}, "bar", None, id="none"),
         pytest.param({"list": ["bar"], "foo": "${list.0}"}, "foo", "bar", id="list"),
+        # relative interpolations
+        pytest.param({"a": "${.b}", "b": 10}, "a", 10, id="relative"),
+        pytest.param({"a": {"z": "${.b}", "b": 10}}, "a.z", 10, id="relative"),
+        pytest.param({"a": {"z": "${..b}"}, "b": 10}, "a.z", 10, id="relative"),
+        pytest.param({"a": {"z": "${..a.b}", "b": 10}}, "a.z", 10, id="relative"),
+        pytest.param(
+            {"a": "${..b}", "b": 10}, "a", pytest.raises(KeyError), id="relative"
+        ),
     ],
 )
 def test_interpolation(cfg: Any, key: str, expected: Any) -> None:
@@ -372,3 +380,29 @@ def test_incremental_dict_with_interpolation() -> None:
     conf.b = OmegaConf.create()
     conf.b.c = "${a}"
     assert conf.b.c == conf.a  # type:ignore
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg,node_key,key,expected",
+    [
+        pytest.param({"a": 10}, "", "", ({"a": 10}, "")),
+        pytest.param({"a": 10}, "", ".", ({"a": 10}, "")),
+        pytest.param({"a": 10}, "", "a", ({"a": 10}, "a")),
+        pytest.param({"a": 10}, "", ".a", ({"a": 10}, "a")),
+        pytest.param({"a": {"b": 10}}, "a", ".", ({"b": 10}, "")),
+        pytest.param({"a": {"b": 10}}, "a", ".b", ({"b": 10}, "b")),
+        pytest.param({"a": {"b": 10}}, "a", "..", ({"a": {"b": 10}}, "")),
+        pytest.param({"a": {"b": 10}}, "a", "..a", ({"a": {"b": 10}}, "a")),
+        pytest.param({"a": {"b": {"c": 10}}}, "a.b", ".", ({"c": 10}, "")),
+        pytest.param({"a": {"b": {"c": 10}}}, "a.b", "..", ({"b": {"c": 10}}, "")),
+        pytest.param(
+            {"a": {"b": {"c": 10}}}, "a.b", "...", ({"a": {"b": {"c": 10}}}, "")
+        ),
+    ],
+)
+def test_resolve_key_and_root(
+    cfg: Any, node_key: str, key: str, expected: Tuple[Node, str]
+) -> None:
+    cfg = _ensure_container(cfg)
+    node: Container = OmegaConf.select(cfg, node_key)
+    assert node._resolve_key_and_root(key) == expected
