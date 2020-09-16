@@ -299,6 +299,18 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     assert c2.k == c2.k
 
 
+def test_resolver_dot_start(restore_resolvers: Any) -> None:
+    """
+    Regression test for #373
+    """
+    OmegaConf.register_resolver("identity", lambda x: x)
+    c = OmegaConf.create(
+        {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
+    )
+    assert c.foo_nodot == "bar"
+    assert c.foo_dot == ".bar"
+
+
 @pytest.mark.parametrize(  # type: ignore
     "resolver,name,key,result",
     [
