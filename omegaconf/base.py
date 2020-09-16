@@ -330,10 +330,9 @@ class Container(Node):
 
         from .nodes import ValueNode
 
-        root_node, inter_key = self._resolve_key_and_root(inter_key)
-
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
+            root_node, inter_key = self._resolve_key_and_root(inter_key)
             parent, last_key, value = root_node._select_impl(
                 inter_key,
                 throw_on_missing=throw_on_missing,
@@ -353,6 +352,7 @@ class Container(Node):
         else:
             resolver = OmegaConf.get_resolver(inter_type)
             if resolver is not None:
+                root_node = self._get_root()
                 try:
                     value = resolver(root_node, inter_key)
                     return ValueNode(
