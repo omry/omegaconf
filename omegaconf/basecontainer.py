@@ -139,7 +139,7 @@ class BaseContainer(Container, ABC):
             stacklevel=2,
         )
 
-        return OmegaConf.select(self, key, throw_on_missing)
+        return OmegaConf.select(self, key, throw_on_missing=throw_on_missing)
 
     def update_node(self, key: str, value: Any = None) -> None:
         from omegaconf import OmegaConf

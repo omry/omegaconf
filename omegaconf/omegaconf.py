@@ -53,6 +53,7 @@ from ._utils import (
 from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -538,13 +539,35 @@ class OmegaConf:
             return get_type_of(c)
 
     @staticmethod
-    def select(cfg: Container, key: str, throw_on_missing: bool = False) -> Any:
+    def select(
+        cfg: Container,
+        key: str,
+        *,
+        default: Any = _EMPTY_MARKER_,
+        throw_on_missing: bool = False,
+    ) -> Any:
         try:
-            _root, _last_key, value = cfg._select_impl(
-                key, throw_on_missing=throw_on_missing, throw_on_resolution_failure=True
-            )
+            try:
+                _root, _last_key, value = cfg._select_impl(
+                    key,
+                    throw_on_missing=throw_on_missing,
+                    throw_on_resolution_failure=True,
+                )
+            except ConfigKeyError:
+                if default is not _EMPTY_MARKER_:
+                    return default
+                else:
+                    raise
+
+            if (
+                _root is not None
+                and _last_key is not None
+                and _last_key not in _root
+                and default is not _EMPTY_MARKER_
+            ):
+                return default
+
             if value is not None and value._is_missing():
-                # throw_on_missing must be False
                 return None
 
             return _get_value(value)

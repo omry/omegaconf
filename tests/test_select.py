@@ -8,8 +8,6 @@ from pytest import raises
 from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._utils import _ensure_container
 
-from . import does_not_raise
-
 
 @pytest.mark.parametrize("struct", [True, False, None])  # type: ignore
 def test_select_key_from_empty(struct: Optional[bool]) -> None:
@@ -51,6 +49,49 @@ def test_select(restore_resolvers: Any, cfg: Any, key: Any, expected: Any) -> No
             OmegaConf.select(cfg, key)
     else:
         assert OmegaConf.select(cfg, key) == expected
+
+
+@pytest.mark.parametrize("struct", [False, True])  # type: ignore
+@pytest.mark.parametrize("default", [10, None])  # type: ignore
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key",
+    [
+        pytest.param({}, "not_found", id="empty"),
+        pytest.param({"missing": "???"}, "missing", id="missing"),
+        pytest.param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
+    ],
+)
+def test_select_default(
+    cfg: Any,
+    struct: bool,
+    key: Any,
+    default: Any,
+) -> None:
+    cfg = _ensure_container(cfg)
+    OmegaConf.set_struct(cfg, struct)
+    assert OmegaConf.select(cfg, key, default=default) == default
+
+
+@pytest.mark.parametrize("struct", [False, True])  # type: ignore
+@pytest.mark.parametrize("default", [10, None])  # type: ignore
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, key",
+    [
+        pytest.param({"missing": "???"}, "missing", id="missing"),
+    ],
+)
+def test_select_default_throw_on_missing(
+    cfg: Any,
+    struct: bool,
+    key: Any,
+    default: Any,
+) -> None:
+    cfg = _ensure_container(cfg)
+    OmegaConf.set_struct(cfg, struct)
+
+    # throw on missing still throws if default is provided
+    with pytest.raises(MissingMandatoryValue):
+        OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
 
 
 def test_select_from_dict() -> None:

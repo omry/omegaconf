@@ -607,32 +607,33 @@ OmegaConf.select() allow you to select a config node or value using a dot-notati
 
     >>> cfg = OmegaConf.create({
     ...     "foo" : {
+    ...         "missing" : "???",
     ...         "bar": {
     ...             "zonk" : 10,
-    ...             "missing" : "???"
     ...         }
     ...     }
     ... })
     >>> assert OmegaConf.select(cfg, "foo") == {
+    ...     "missing" : "???",    
     ...     "bar":  {
     ...         "zonk" : 10, 
-    ...         "missing" : "???"
     ...     }
     ... }
     >>> assert OmegaConf.select(cfg, "foo.bar") == {
     ...     "zonk" : 10, 
-    ...     "missing" : "???"
     ... }
     >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10
-    >>> assert OmegaConf.select(cfg, "foo.bar.missing") is None
+    >>> assert OmegaConf.select(cfg, "no_such_key", default=99) == 99
+    >>> assert OmegaConf.select(cfg, "foo.missing") is None
+    >>> assert OmegaConf.select(cfg, "foo.missing", default=99) == 99
     >>> OmegaConf.select(cfg,
-    ...     "foo.bar.missing", 
+    ...     "foo.missing", 
     ...     throw_on_missing=True
     ... )
     Traceback (most recent call last):
     ...
     omegaconf.errors.MissingMandatoryValue: missing node selected
-        full_key: foo.bar.missing
+        full_key: foo.missing
 
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
