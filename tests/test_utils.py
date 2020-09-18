@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 import attr
 import pytest
@@ -342,6 +342,9 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
         (List[str], "List[str]"),
         (List[Color], "List[Color]"),
         (List[Dict[str, Color]], "List[Dict[str, Color]]"),
+        (Tuple[str], "Tuple[str]"),
+        (Tuple[str, int], "Tuple[str, int]"),
+        (Tuple[float, ...], "Tuple[float, ...]"),
     ],
 )
 def test_type_str(type_: Any, expected: str, optional: bool) -> None:
@@ -349,6 +352,10 @@ def test_type_str(type_: Any, expected: str, optional: bool) -> None:
         assert _utils.type_str(Optional[type_]) == f"Optional[{expected}]"
     else:
         assert _utils.type_str(type_) == expected
+
+
+def test_type_str_ellipsis():
+    assert _utils.type_str(...) == "..."
 
 
 def test_type_str_none() -> None:
