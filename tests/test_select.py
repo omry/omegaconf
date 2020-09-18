@@ -2,9 +2,11 @@ import re
 from typing import Any, Optional
 
 import pytest
+from _pytest.python_api import RaisesContext
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue, OmegaConf
+from omegaconf._utils import _ensure_container
 
 from . import does_not_raise
 
@@ -17,58 +19,38 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "cfg, keys, expected, expectation",
+    "cfg, key, expected",
     [
-        ({}, "nope", None, does_not_raise()),
-        ({}, "not.there", None, does_not_raise()),
-        ({}, "still.not.there", None, does_not_raise()),
-        ({"c": 1}, "c", 1, does_not_raise()),
-        ({"a": {"v": 1}}, "a", {"v": 1}, does_not_raise()),
-        ({"a": {"v": 1}}, "a.v", 1, does_not_raise()),
-        ({"missing": "???"}, "missing", None, does_not_raise()),
-        ([], "0", None, does_not_raise()),
-        ([1, "2"], ("0", "1"), (1, "2"), does_not_raise()),
-        (
-            [1, {"a": 10, "c": ["foo", "bar"]}],
-            ("0", "1.a", "1.b", "1.c.0", "1.c.1"),
-            (1, 10, None, "foo", "bar"),
-            does_not_raise(),
-        ),
-        ([1, 2, 3], "a", None, raises(TypeError)),
-        (
-            {"a": {"v": 1}, "b": {"v": 1}},
-            "",
-            {"a": {"v": 1}, "b": {"v": 1}},
-            does_not_raise(),
-        ),
-        (
-            {"dict": {"one": 1}, "foo": "one=${dict.one}"},
-            "foo",
-            "one=1",
-            does_not_raise(),
-        ),
-        (
-            {"dict": {"foo": "one=${one}"}, "one": 1},
-            "dict.foo",
-            "one=1",
-            does_not_raise(),
-        ),
-        ({"dict": {"foo": "one=${foo:1}"}}, "dict.foo", "one=_1_", does_not_raise()),
+        pytest.param({}, "nope", None, id="dict:none"),
+        pytest.param({}, "not.there", None, id="dict:none"),
+        pytest.param({}, "still.not.there", None, id="dict:none"),
+        pytest.param({"c": 1}, "c", 1, id="dict:int"),
+        pytest.param({"a": {"v": 1}}, "a.v", 1, id="dict:int"),
+        pytest.param({"a": {"v": 1}}, "a", {"v": 1}, id="dict:dict"),
+        pytest.param({"missing": "???"}, "missing", None, id="dict:missing"),
+        pytest.param([], "0", None, id="list:oob"),
+        pytest.param([1, "2"], "0", 1, id="list:int"),
+        pytest.param([1, "2"], "1", "2", id="list:str"),
+        pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "0", 1),
+        pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.a", 10),
+        pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.b", None),
+        pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.0", "foo"),
+        pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.1", "bar"),
+        pytest.param([1, 2, 3], "a", raises(TypeError)),
+        pytest.param({"a": {"v": 1}}, "", {"a": {"v": 1}}, id="select_root"),
+        pytest.param({"a": {"b": 1}, "c": "one=${a.b}"}, "c", "one=1", id="inter"),
+        pytest.param({"a": {"b": "one=${n}"}, "n": 1}, "a.b", "one=1", id="inter"),
+        pytest.param({"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"),
     ],
 )
-def test_select(
-    restore_resolvers: Any, cfg: Any, keys: Any, expected: Any, expectation: Any
-) -> None:
-    if not isinstance(keys, (tuple, list)):
-        keys = [keys]
-    if not isinstance(expected, (tuple, list)):
-        expected = [expected]
-    OmegaConf.register_resolver("foo", lambda x: f"_{x}_")
-
-    c = OmegaConf.create(cfg)
-    with expectation:
-        for idx, key in enumerate(keys):
-            assert OmegaConf.select(c, key) == expected[idx]
+def test_select(restore_resolvers: Any, cfg: Any, key: Any, expected: Any) -> None:
+    OmegaConf.register_resolver("func", lambda x: f"_{x}_")
+    cfg = _ensure_container(cfg)
+    if isinstance(expected, RaisesContext):
+        with expected:
+            OmegaConf.select(cfg, key)
+    else:
+        assert OmegaConf.select(cfg, key) == expected
 
 
 def test_select_from_dict() -> None:
