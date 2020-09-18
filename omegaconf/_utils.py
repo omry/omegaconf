@@ -681,6 +681,9 @@ def type_str(t: Any) -> str:
         return type(t).__name__
     if t is Any:
         return "Any"
+    if t is ...:
+        return "..."
+
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6
         if hasattr(t, "__name__"):
