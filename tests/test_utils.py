@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
 import pytest
@@ -354,7 +354,7 @@ def test_type_str(type_: Any, expected: str, optional: bool) -> None:
         assert _utils.type_str(type_) == expected
 
 
-def test_type_str_ellipsis():
+def test_type_str_ellipsis() -> None:
     assert _utils.type_str(...) == "..."
 
 
