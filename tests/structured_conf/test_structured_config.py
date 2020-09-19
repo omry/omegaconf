@@ -751,6 +751,25 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             cfg.dict1 = value
 
+    def test_recursive_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        rd = module.RecursiveDict
+        o = rd(d={"a": rd(), "b": rd()})
+        cfg = OmegaConf.structured(o)
+        assert cfg == {
+            "d": {
+                "a": {"d": "???"},
+                "b": {"d": "???"},
+            }
+        }
+
+    def test_recursive_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        rl = module.RecursiveList
+        o = rl(d=[rl(), rl()])
+        cfg = OmegaConf.structured(o)
+        assert cfg == {"d": [{"d": "???"}, {"d": "???"}]}
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):

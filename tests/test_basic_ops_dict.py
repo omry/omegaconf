@@ -482,9 +482,10 @@ def test_get_with_default_from_struct_not_throwing(default: Any) -> None:
     assert c.get("z", default) == default
 
 
-def test_members() -> None:
+@pytest.mark.parametrize("cfg", [{"foo": {}}, [1, 2, 3]])  # type: ignore
+def test_members(cfg: Any) -> None:
     # Make sure accessing __members__ does not return None or throw.
-    c = OmegaConf.create({"foo": {}})
+    c = OmegaConf.create(cfg)
     with pytest.raises(AttributeError):
         c.__members__
 

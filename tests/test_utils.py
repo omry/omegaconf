@@ -7,7 +7,7 @@ import pytest
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import is_dict_annotation, is_list_annotation
-from omegaconf.errors import KeyValidationError, ValidationError
+from omegaconf.errors import ValidationError
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -279,30 +279,28 @@ def test_get_class() -> None:
 @pytest.mark.parametrize(  # type: ignore
     "key_type,expected_key_type",
     [
-        (int, KeyValidationError),
         (str, str),
         (Color, Color),
-        (Any, None),
-        (None, KeyValidationError),
+        (Any, Any),
     ],
 )
 @pytest.mark.parametrize(  # type: ignore
     "value_type,expected_value_type",
-    [(int, int), (str, str), (Color, Color), (Any, None), (None, type(None))],
+    [
+        (int, int),
+        (str, str),
+        (Color, Color),
+        (Any, Any),
+    ],
 )
 def test_get_key_value_types(
     key_type: Any, expected_key_type: Any, value_type: Any, expected_value_type: Any
 ) -> None:
     dt = Dict[key_type, value_type]  # type: ignore
-    if expected_key_type is not None and issubclass(expected_key_type, Exception):
-        with pytest.raises(expected_key_type):
-            _utils.get_dict_key_value_types(dt)
-
-    else:
-        assert _utils.get_dict_key_value_types(dt) == (
-            expected_key_type,
-            expected_value_type,
-        )
+    assert _utils.get_dict_key_value_types(dt) == (
+        expected_key_type,
+        expected_value_type,
+    )
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -453,9 +451,9 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         # DictConfig
         pytest.param(DictConfig(content={}), Any, id="DictConfig"),
         pytest.param(
-            DictConfig(key_type=int, element_type=Color, content={}),
-            Optional[Dict[int, Color]],
-            id="DictConfig[int,Color]",
+            DictConfig(key_type=str, element_type=Color, content={}),
+            Optional[Dict[str, Color]],
+            id="DictConfig[str,Color]",
         ),
         pytest.param(
             DictConfig(key_type=Color, element_type=int, content={}),

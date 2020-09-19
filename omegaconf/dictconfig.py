@@ -17,6 +17,8 @@ from typing import (
 from ._utils import (
     ValueKind,
     _is_interpolation,
+    _valid_dict_key_annotation_type,
+    format_and_raise,
     get_structured_config_data,
     get_type_of,
     get_value_kind,
@@ -27,6 +29,7 @@ from ._utils import (
     is_structured_config,
     is_structured_config_frozen,
     type_str,
+    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
@@ -53,39 +56,49 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         content: Union[Dict[str, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
-        ref_type: Union[Type[Any], Any] = Any,
-        key_type: Optional[Type[Any]] = None,
-        element_type: Optional[Type[Any]] = None,
+        ref_type: Union[Any, Type[Any]] = Any,
+        key_type: Union[Any, Type[Any]] = Any,
+        element_type: Union[Any, Type[Any]] = Any,
         is_optional: bool = True,
     ) -> None:
-        super().__init__(
-            parent=parent,
-            metadata=ContainerMetadata(
-                key=key,
-                optional=is_optional,
-                ref_type=ref_type,
-                object_type=None,
-                key_type=key_type,
-                element_type=element_type,
-            ),
-        )
+        try:
+            super().__init__(
+                parent=parent,
+                metadata=ContainerMetadata(
+                    key=key,
+                    optional=is_optional,
+                    ref_type=ref_type,
+                    object_type=None,
+                    key_type=key_type,
+                    element_type=element_type,
+                ),
+            )
+            if not valid_value_annotation_type(
+                element_type
+            ) and not is_structured_config(element_type):
+                raise ValidationError(f"Unsupported value type : {element_type}")
 
-        if is_structured_config(content) or is_structured_config(ref_type):
-            self._set_value(content)
-            if is_structured_config_frozen(content) or is_structured_config_frozen(
-                ref_type
-            ):
-                self._set_flag("readonly", True)
+            if not _valid_dict_key_annotation_type(key_type):
+                raise KeyValidationError(f"Unsupported key type {key_type}")
 
-        else:
-            self._set_value(content)
-            if isinstance(content, DictConfig):
-                metadata = copy.deepcopy(content._metadata)
-                metadata.key = key
-                metadata.optional = is_optional
-                metadata.element_type = element_type
-                metadata.key_type = key_type
-                self.__dict__["_metadata"] = metadata
+            if is_structured_config(content) or is_structured_config(ref_type):
+                self._set_value(content)
+                if is_structured_config_frozen(content) or is_structured_config_frozen(
+                    ref_type
+                ):
+                    self._set_flag("readonly", True)
+
+            else:
+                self._set_value(content)
+                if isinstance(content, DictConfig):
+                    metadata = copy.deepcopy(content._metadata)
+                    metadata.key = key
+                    metadata.optional = is_optional
+                    metadata.element_type = element_type
+                    metadata.key_type = key_type
+                    self.__dict__["_metadata"] = metadata
+        except Exception as ex:
+            format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
         res = DictConfig({})
@@ -216,7 +229,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def _s_validate_and_normalize_key(
         self, key_type: Any, key: Any
     ) -> Union[str, Enum]:
-        if key_type is None:
+        if key_type is Any:
             for t in (str, Enum):
                 try:
                     return self._s_validate_and_normalize_key(key_type=t, key=key)
@@ -241,7 +254,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     f"Key '$KEY' is incompatible with the enum type '{key_type.__name__}', valid: [{valid}]"
                 )
         else:
-            assert False
+            assert False, f"Unsupported key type {key_type}"
 
     def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
         try:
@@ -284,14 +297,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :param key:
         :return:
         """
+        # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
+        if key == "__members__":
+            raise AttributeError()
+
+        if key == "__name__":
+            raise AttributeError()
+
         try:
-            # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
-            if key == "__members__":
-                raise ConfigAttributeError()
-
-            if key == "__name__":
-                raise ConfigAttributeError()
-
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
