@@ -23,6 +23,7 @@ from ._utils import (
     is_primitive_list,
     is_structured_config,
     type_str,
+    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -62,6 +63,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     key_type=int,
                 ),
             )
+            if not (valid_value_annotation_type(self._metadata.element_type)):
+                raise ValidationError(
+                    f"Unsupported value type : {self._metadata.element_type}"
+                )
+
             self.__dict__["_content"] = None
             self._set_value(value=content)
         except Exception as ex:
@@ -133,6 +139,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         assert False
 
     def __getattr__(self, key: str) -> Any:
+        # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
+        if key == "__members__":
+            raise AttributeError()
+
+        if key == "__name__":
+            raise AttributeError()
+
         if is_int(key):
             return self.__getitem__(int(key))
         else:

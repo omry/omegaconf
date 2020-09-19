@@ -12,9 +12,7 @@ from .errors import (
     ConfigIndexError,
     ConfigTypeError,
     ConfigValueError,
-    KeyValidationError,
     OmegaConfBaseException,
-    ValidationError,
 )
 
 try:
@@ -167,6 +165,19 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
     if type(type_) is forward:
         return _get_class(f"{module}.{type_.__forward_arg__}")
     else:
+        if is_dict_annotation(type_):
+            kt, vt = get_dict_key_value_types(type_)
+            if kt is not None:
+                kt = _resolve_forward(kt, module=module)
+            if vt is not None:
+                vt = _resolve_forward(vt, module=module)
+            return Dict[kt, vt]  # type: ignore
+        if is_list_annotation(type_):
+            et = get_list_element_type(type_)
+            if et is not None:
+                et = _resolve_forward(et, module=module)
+            return List[et]  # type: ignore
+
         return type_
 
 
@@ -440,21 +451,16 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def get_list_element_type(ref_type: Optional[Type[Any]]) -> Optional[Type[Any]]:
+def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     args = getattr(ref_type, "__args__", None)
-    if ref_type is not List and args is not None and args[0] is not Any:
+    if ref_type is not List and args is not None and args[0]:
         element_type = args[0]
     else:
-        element_type = None
-
-    if not (valid_value_annotation_type(element_type)):
-        raise ValidationError(f"Unsupported value type : {element_type}")
-    assert element_type is None or isinstance(element_type, type)
+        element_type = Any
     return element_type
 
 
 def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
-
     args = getattr(ref_type, "__args__", None)
     if args is None:
         bases = getattr(ref_type, "__orig_bases__", None)
@@ -464,28 +470,16 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     key_type: Any
     element_type: Any
     if ref_type is None:
-        key_type = None
-        element_type = None
+        key_type = Any
+        element_type = Any
     else:
         if args is not None:
             key_type = args[0]
             element_type = args[1]
-            # None is the sentry for any type
-            if key_type is Any:
-                key_type = None
-            if element_type is Any:
-                element_type = None
         else:
-            key_type = None
-            element_type = None
+            key_type = Any
+            element_type = Any
 
-    if not valid_value_annotation_type(element_type) and not is_structured_config(
-        element_type
-    ):
-        raise ValidationError(f"Unsupported value type : {element_type}")
-
-    if not _valid_dict_key_annotation_type(key_type):
-        raise KeyValidationError(f"Unsupported key type {key_type}")
     return key_type, element_type
 
 
@@ -494,7 +488,7 @@ def valid_value_annotation_type(type_: Any) -> bool:
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:
-    return type_ is None or issubclass(type_, str) or issubclass(type_, Enum)
+    return type_ is Any or issubclass(type_, (str, Enum))
 
 
 def is_primitive_type(type_: Any) -> bool:
@@ -601,6 +595,9 @@ def format_and_raise(
 ) -> None:
     from omegaconf import OmegaConf
     from omegaconf.base import Node
+
+    if isinstance(cause, AssertionError):
+        raise
 
     if isinstance(cause, OmegaConfBaseException) and cause._initialized:
         ex = cause

@@ -265,6 +265,11 @@ class DictOptional:
 
 
 @attr.s(auto_attribs=True)
+class RecursiveDict:
+    d: Dict[str, "RecursiveDict"] = MISSING
+
+
+@attr.s(auto_attribs=True)
 class StructuredOptional:
     with_default: Optional[Nested] = Nested()
     as_none: Optional[Nested] = None
@@ -434,6 +439,11 @@ class PluginHolder:
 class LinkedList:
     next: Optional["LinkedList"] = None
     value: Any = MISSING
+
+
+@attr.s(auto_attribs=True)
+class RecursiveList:
+    d: List["RecursiveList"] = MISSING
 
 
 class MissingTest:

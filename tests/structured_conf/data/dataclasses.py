@@ -263,6 +263,11 @@ class DictOptional:
 
 
 @dataclass
+class RecursiveDict:
+    d: Dict[str, "RecursiveDict"] = MISSING
+
+
+@dataclass
 class StructuredOptional:
     with_default: Optional[Nested] = Nested()
     as_none: Optional[Nested] = None
@@ -446,6 +451,11 @@ class PluginHolder:
 class LinkedList:
     next: Optional["LinkedList"] = None
     value: Any = MISSING
+
+
+@dataclass
+class RecursiveList:
+    d: List["RecursiveList"] = MISSING
 
 
 class MissingTest:
