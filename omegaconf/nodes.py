@@ -234,7 +234,6 @@ class UnionNode(ValueNode):
             return self._value()._value() == other  # type: ignore
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "UnionNode":
-        # TODO missing in case container for self._val
         res = UnionNode(
             ref_type=self._metadata.ref_type,
             value=self._val,
