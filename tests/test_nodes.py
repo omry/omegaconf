@@ -505,6 +505,7 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (UnionNode(element_types=[int, str], value="str"), "str", True),
+        (UnionNode(element_types=[int, str], value="str"), AnyNode(value="str"), True),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:

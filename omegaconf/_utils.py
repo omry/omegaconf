@@ -447,8 +447,7 @@ def get_union_types(ref_type: Optional[Any]) -> List[Any]:
     element_types: List[Any]
     if ref_type is not Union and args is not None and args[0] is not Any:
         element_types = list(args)
-    else:
-        element_types = None  # type: ignore
+    assert element_types is not None
 
     return element_types
 
