@@ -32,12 +32,14 @@ from . import DictConfig, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
+    _is_union,
     decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
     get_omega_conf_dumper,
     get_type_of,
+    get_union_types,
     is_attr_class,
     is_dataclass,
     is_dict_annotation,
@@ -66,6 +68,7 @@ from .nodes import (
     FloatNode,
     IntegerNode,
     StringNode,
+    UnionNode,
     ValueNode,
 )
 
@@ -786,6 +789,16 @@ def _node_wrap(
             is_optional=is_optional,
             element_type=element_type,
             ref_type=ref_type,
+        )
+    elif _is_union(type_):
+        element_types = get_union_types(type_)
+        node = UnionNode(
+            ref_type=type_,
+            element_types=element_types,
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
         )
     elif is_structured_config(type_) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(type_)

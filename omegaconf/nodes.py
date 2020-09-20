@@ -2,7 +2,7 @@ import copy
 import math
 import sys
 from enum import Enum
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
 from omegaconf.base import Container, Metadata, Node
@@ -161,6 +161,90 @@ class AnyNode(ValueNode):
         res = AnyNode()
         self._deepcopy_impl(res, memo)
         return res
+
+
+class UnionNode(ValueNode):
+    def __init__(
+        self,
+        value: Any = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        is_optional: bool = True,
+        ref_type: Any = Union[Any],
+        element_types: List[Any] = [],
+    ):
+        self.element_types = element_types
+        super().__init__(
+            parent=parent,
+            value=self._wrap_node(value, key, is_optional, parent),
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=ref_type,
+                object_type=type(value),
+            ),
+        )
+
+    def _wrap_node(
+        self, value: Any, key: Any, is_optional: bool, parent: Optional[Container]
+    ) -> Optional[Node]:
+        from omegaconf.omegaconf import _maybe_wrap
+
+        if value is None:
+            return None
+        else:
+            return _maybe_wrap(
+                ref_type=type(value),
+                key=key,
+                value=value,
+                is_optional=is_optional,
+                parent=parent,  # type: ignore
+            )
+
+    def validate_and_convert(self, value: Any) -> Optional[Any]:
+        if value is None:
+            return None
+        if not self._validate_value(value):
+            msg = f"invalid value {value} should be {self.element_types}"
+            raise ValidationError(msg)
+        return value
+
+    def _validate_value(self, value: Any) -> bool:
+        from omegaconf import DictConfig, ListConfig
+
+        valid_type = False
+        for element_type in self.element_types:
+            type_: Any = type(value)
+            if isinstance(value, Node):
+                type_ = value._metadata.ref_type
+            if element_type == ListConfig and type_ == list:
+                valid_type = True
+            elif element_type == DictConfig and type_ == dict:
+                valid_type = True
+            elif element_type == type_:
+                valid_type = True
+            if valid_type:
+                break
+        return valid_type
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, AnyNode):
+            return self._value() == other._value()  # type: ignore
+        else:
+            return self._value()._value() == other  # type: ignore
+
+    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "UnionNode":
+        # TODO missing in case container for self._val
+        res = UnionNode(
+            ref_type=self._metadata.ref_type,
+            value=self._val,
+            element_types=self.element_types,
+        )
+        self._deepcopy_impl(res, memo)
+        return res
+
+    def __hash__(self) -> int:
+        return hash(self._val)
 
 
 class StringNode(ValueNode):

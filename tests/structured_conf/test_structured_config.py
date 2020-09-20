@@ -18,6 +18,7 @@ from omegaconf import (
 )
 from omegaconf.errors import ConfigKeyError
 from tests import Color, User
+from omegaconf.nodes import UnionNode
 
 
 class EnumConfigAssignments:
@@ -188,11 +189,6 @@ class TestConfigs:
         assert OmegaConf.is_missing(cfg, "no_default")
 
         OmegaConf.structured(module.NoDefaultValue(no_default=10)) == {"no_default": 10}
-
-    def test_union_errors(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        with pytest.raises(ValueError):
-            OmegaConf.structured(module.UnionError)
 
     def test_config_with_list(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -1051,3 +1047,26 @@ class TestDictSubclass:
         else:
             with pytest.raises(ValidationError):
                 OmegaConf.update(cfg, "list", update_value, merge=True)
+
+    def test_union_set_valid_value(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Book)
+        value = ["dude1", "dude2"]
+        cfg.author = value
+        assert cfg.author == value
+        assert isinstance(cfg._get_node("author"), UnionNode)
+
+    def test_union_set_valid_value_nested(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Shelf)
+        value = module.Book(author="foo")
+        cfg.content = value
+        assert cfg.content == value
+        assert isinstance(cfg._get_node("content"), UnionNode)
+
+    def test_union_set_invalid_value(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Book)
+        value = 1
+        with pytest.raises(ValidationError):
+            cfg.author = value

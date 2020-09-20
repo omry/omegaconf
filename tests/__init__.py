@@ -176,3 +176,7 @@ class InterpolationList:
 @dataclass
 class InterpolationDict:
     dict: Dict[str, int] = II("optimization.lr")
+
+
+class UnionClass:
+    foo: Union[str, int] = 1

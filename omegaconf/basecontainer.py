@@ -449,7 +449,6 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
-
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
             target_node = key in self.__dict__["_content"] and isinstance(

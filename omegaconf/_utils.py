@@ -8,12 +8,7 @@ from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_typ
 
 import yaml
 
-from .errors import (
-    ConfigIndexError,
-    ConfigTypeError,
-    ConfigValueError,
-    OmegaConfBaseException,
-)
+from .errors import ConfigIndexError, ConfigTypeError, OmegaConfBaseException
 
 try:
     import dataclasses
@@ -199,12 +194,10 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         else:
             value = attrib.default
             if value == attr.NOTHING:
-                value = MISSING
-        if _is_union(type_):
-            e = ConfigValueError(
-                f"Union types are not supported:\n{name}: {type_str(type_)}"
-            )
-            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
+                if is_nested:
+                    value = type_
+                else:
+                    value = MISSING
 
         d[name] = _maybe_wrap(
             ref_type=type_,
@@ -241,11 +234,6 @@ def get_dataclass_data(
             else:
                 value = field.default_factory()  # type: ignore
 
-        if _is_union(type_):
-            e = ConfigValueError(
-                f"Union types are not supported:\n{name}: {type_str(type_)}"
-            )
-            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         d[name] = _maybe_wrap(
             ref_type=type_,
             is_optional=is_optional,
@@ -452,6 +440,17 @@ def is_dict(obj: Any) -> bool:
 
 def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
+
+
+def get_union_types(ref_type: Optional[Any]) -> List[Any]:
+    args = getattr(ref_type, "__args__", None)
+    element_types: List[Any]
+    if ref_type is not Union and args is not None and args[0] is not Any:
+        element_types = list(args)
+    else:
+        element_types = None  # type: ignore
+
+    return element_types
 
 
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:

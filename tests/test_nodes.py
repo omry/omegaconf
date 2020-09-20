@@ -1,6 +1,6 @@
 import copy
 from enum import Enum
-from typing import Any, Dict, Tuple, Type
+from typing import Any, Dict, Tuple, Type, Union
 
 import pytest
 
@@ -14,6 +14,7 @@ from omegaconf import (
     ListConfig,
     OmegaConf,
     StringNode,
+    UnionNode,
     ValueNode,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
@@ -498,6 +499,12 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
+        (
+            UnionNode(ref_type=Union[int, str], element_types=[int, str], value=1),
+            1,
+            True,
+        ),
+        (UnionNode(element_types=[int, str], value="str"), "str", True),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
@@ -560,3 +567,33 @@ def test_allow_objects() -> None:
     iv = IllegalType()
     c.foo = iv
     assert c.foo == iv
+@pytest.mark.parametrize(  # type: ignore
+    "node, value, expected",
+    [
+        (UnionNode(ref_type=Union[int, str], element_types=[int, str], value=1), 1, 1),
+        (UnionNode(element_types=[int, str], value="str"), "str", "str"),
+        (UnionNode(element_types=[int, str]), "str", "str"),
+        (UnionNode(element_types=[int, str]), None, None),
+        (UnionNode(element_types=[DictConfig, str]), {"a": 1}, {"a": 1}),
+        (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
+        (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
+    ],
+)
+def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:
+    node._set_value(value)
+    assert node._value() == expected
+    assert isinstance(node, UnionNode)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "node, value",
+    [
+        (UnionNode(element_types=[int, str], value="str"), False),
+        (UnionNode(element_types=[int, ListConfig]), {"foo": "var"}),
+        (UnionNode(element_types=[int, DictConfig]), [1, 2]),
+        (UnionNode(element_types=[DictConfig, str]), 3),
+    ],
+)
+def test_invalid_value_union_node(node: ValueNode, value: Any) -> None:
+    with pytest.raises(ValidationError):
+        node._set_value(value)

@@ -544,3 +544,15 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
     assert _utils.get_ref_type(obj) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj, expected",
+    [
+        pytest.param(Union[int, str], [int, str]),
+        pytest.param(Union[int, str, ListConfig], [int, str, ListConfig]),
+        pytest.param(Union[Plugin, ListConfig], [Plugin, ListConfig]),
+    ],
+)
+def test_get_union_types(obj: Any, expected: Any) -> None:
+    assert _utils.get_union_types(obj) == expected

@@ -21,6 +21,7 @@ from . import (
     SubscriptedList,
     UntypedDict,
     UntypedList,
+    UnionClass
 )
 
 
@@ -146,6 +147,18 @@ def test_pickle(obj: Any, ref_type: Any) -> None:
         assert c1._metadata.optional is True
         if isinstance(c, DictConfig):
             assert c1._metadata.key_type is Any
+
+
+def test_pickle_union() -> None:
+    with tempfile.TemporaryFile() as fp:
+        c = OmegaConf.structured(UnionClass)
+        pickle.dump(c, fp)
+        fp.flush()
+        fp.seek(0)
+        c1 = pickle.load(fp)
+        assert c == c1
+        assert c._get_node("foo")._metadata.ref_type == Union[str, int]
+        assert c._get_node("foo").element_types == [str, int]
 
 
 def test_load_duplicate_keys_top() -> None:

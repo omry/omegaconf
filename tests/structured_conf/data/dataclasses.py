@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
-from omegaconf import II, MISSING, SI
+from omegaconf import II, MISSING, SI, ListConfig
 from tests import Color
 
 # skip test if dataclasses are not available
@@ -479,11 +479,6 @@ class NestedWithNone:
 
 
 @dataclass
-class UnionError:
-    x: Union[int, str] = 10
-
-
-@dataclass
 class WithNativeMISSING:
     num: int = dataclasses.MISSING  # type: ignore
 
@@ -509,3 +504,13 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@dataclass
+class Book:
+    author: Union[str, ListConfig] = "dude"
+
+
+@dataclass
+class Shelf:
+    content: Union[Book, int] = 1
