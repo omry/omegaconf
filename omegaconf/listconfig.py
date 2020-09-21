@@ -50,6 +50,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         element_type: Optional[Type[Any]] = None,
         is_optional: bool = True,
         ref_type: Union[Type[Any], Any] = Any,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> None:
         try:
             super().__init__(
@@ -61,6 +62,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     optional=is_optional,
                     element_type=element_type,
                     key_type=int,
+                    flags=flags,
                 ),
             )
             if not (valid_value_annotation_type(self._metadata.element_type)):

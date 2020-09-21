@@ -60,6 +60,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         key_type: Union[Any, Type[Any]] = Any,
         element_type: Union[Any, Type[Any]] = Any,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> None:
         try:
             super().__init__(
@@ -71,6 +72,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     object_type=None,
                     key_type=key_type,
                     element_type=element_type,
+                    flags=flags,
                 ),
             )
             if not valid_value_annotation_type(
@@ -470,8 +472,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def items_ex(
         self, resolve: bool = True, keys: Optional[List[str]] = None
     ) -> AbstractSet[Tuple[str, Any]]:
-        # Using a dictionary because the keys are ordered
-        items: Dict[Tuple[str, Any], None] = {}
+        items: List[Tuple[str, Any]] = []
         for key in self.keys():
             if resolve:
                 value = self.get(key)
@@ -480,9 +481,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 if isinstance(value, ValueNode):
                     value = value._value()
             if keys is None or key in keys:
-                items[(key, value)] = None
+                items.append((key, value))
 
-        return items.keys()
+        # For some reason items wants to return a Set, but if the values are not
+        # hashable this is a problem. We use a list instead. most use cases should just
+        # be iterating on pairs anyway.
+        return items  # type: ignore
 
     def __eq__(self, other: Any) -> bool:
         if other is None:

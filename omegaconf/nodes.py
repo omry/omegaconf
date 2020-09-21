@@ -147,7 +147,12 @@ class AnyNode(ValueNode):
     def validate_and_convert(self, value: Any) -> Any:
         from ._utils import is_primitive_type
 
-        if not is_primitive_type(value):
+        # _allow_non_primitive_ is internal and not an official API. use at your own risk.
+        # Please be aware that this support is subject to change without notice.
+        # If this is deemed useful and supportable it may become an official API.
+        if self._get_flag(
+            "_allow_non_primitive_"
+        ) is not True and not is_primitive_type(value):
             t = get_type_of(value)
             raise UnsupportedValueType(
                 f"Value '{t.__name__}' is not a supported primitive type"

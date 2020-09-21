@@ -23,8 +23,12 @@ class Metadata:
     #   unset : inherit from parent (None if no parent specifies)
     #   set to true: flag is true
     #   set to false: flag is false
-    flags: Dict[str, bool] = field(default_factory=dict)
+    flags: Optional[Dict[str, bool]] = None
     resolver_cache: Dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
+
+    def __post_init__(self) -> None:
+        if self.flags is None:
+            self.flags = {}
 
 
 @dataclass
@@ -36,6 +40,9 @@ class ContainerMetadata(Metadata):
         assert self.key_type is Any or isinstance(self.key_type, type)
         if self.element_type is not None:
             assert self.element_type is Any or isinstance(self.element_type, type)
+
+        if self.flags is None:
+            self.flags = {}
 
 
 class Node(ABC):
@@ -59,9 +66,11 @@ class Node(ABC):
     def _set_flag(self, flag: str, value: Optional[bool]) -> "Node":
         assert value is None or isinstance(value, bool)
         if value is None:
+            assert self._metadata.flags is not None
             if flag in self._metadata.flags:
                 del self._metadata.flags[flag]
         else:
+            assert self._metadata.flags is not None
             self._metadata.flags[flag] = value
         return self
 
@@ -70,6 +79,7 @@ class Node(ABC):
         :param flag: flag to inspect
         :return: the state of the flag on this node.
         """
+        assert self._metadata.flags is not None
         return self._metadata.flags[flag] if flag in self._metadata.flags else None
 
     def _get_flag(self, flag: str) -> Optional[bool]:
@@ -80,6 +90,7 @@ class Node(ABC):
         :return:
         """
         flags = self._metadata.flags
+        assert flags is not None
         if flag in flags and flags[flag] is not None:
             return flags[flag]
 

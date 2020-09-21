@@ -137,49 +137,75 @@ class OmegaConf:
         raise NotImplementedError("Use one of the static construction functions")
 
     @staticmethod
-    def structured(obj: Any, parent: Optional[BaseContainer] = None) -> Any:
-        return OmegaConf.create(obj, parent)
+    def structured(
+        obj: Any,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> Any:
+        return OmegaConf.create(obj, parent, flags)
 
     @staticmethod
     @overload
     def create(
-        obj: str, parent: Optional[BaseContainer] = None
+        obj: str,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
         ...
 
     @staticmethod
     @overload
     def create(
-        obj: Union[List[Any], Tuple[Any, ...]], parent: Optional[BaseContainer] = None
+        obj: Union[List[Any], Tuple[Any, ...]],
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> ListConfig:
         ...
 
     @staticmethod
     @overload
-    def create(obj: DictConfig, parent: Optional[BaseContainer] = None) -> DictConfig:
-        ...
-
-    @staticmethod
-    @overload
-    def create(obj: ListConfig, parent: Optional[BaseContainer] = None) -> ListConfig:
+    def create(
+        obj: DictConfig,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> DictConfig:
         ...
 
     @staticmethod
     @overload
     def create(
-        obj: Union[Dict[str, Any], None] = None, parent: Optional[BaseContainer] = None
+        obj: ListConfig,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> ListConfig:
+        ...
+
+    @staticmethod
+    @overload
+    def create(
+        obj: Union[Dict[str, Any], None] = None,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> DictConfig:
         ...
 
     @staticmethod
     def create(  # noqa F811
-        obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
+        obj: Any = _EMPTY_MARKER_,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
-        return OmegaConf._create_impl(obj=obj, parent=parent)
+        return OmegaConf._create_impl(
+            obj=obj,
+            parent=parent,
+            flags=flags,
+        )
 
     @staticmethod
     def _create_impl(  # noqa F811
-        obj: Any = _EMPTY_MARKER_, parent: Optional[BaseContainer] = None
+        obj: Any = _EMPTY_MARKER_,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
         try:
             from ._utils import get_yaml_loader
@@ -225,12 +251,16 @@ class OmegaConf:
                         ref_type=ref_type,
                         key_type=key_type,
                         element_type=element_type,
+                        flags=flags,
                     )
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                     ref_type = OmegaConf.get_type(obj)
                     element_type = get_list_element_type(ref_type)
                     return ListConfig(
-                        element_type=element_type, content=obj, parent=parent
+                        element_type=element_type,
+                        content=obj,
+                        parent=parent,
+                        flags=flags,
                     )
                 else:
                     if isinstance(obj, type):
