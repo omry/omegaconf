@@ -1,6 +1,6 @@
 import copy
 from enum import Enum
-from typing import Any, Dict, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import pytest
 
@@ -578,6 +578,26 @@ def test_allow_objects() -> None:
         (UnionNode(element_types=[DictConfig, str]), {"a": 1}, {"a": 1}),
         (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
         (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
+        (UnionNode(element_types=[List[int], int]), [1, 2], [1, 2]),
+        (UnionNode(element_types=[List[bool], bool]), [True, False], [True, False]),
+        (UnionNode(element_types=[List[float], float]), [3.14, 9.67], [3.14, 9.67]),
+        (UnionNode(element_types=[List[str], str]), ["foo", "foo2"], ["foo", "foo2"]),
+        (UnionNode(element_types=[Dict[str, int], int]), {"foo": 1}, {"foo": 1}),
+        (
+            UnionNode(element_types=[Dict[str, str], str]),
+            {"foo": "var"},
+            {"foo": "var"},
+        ),
+        (
+            UnionNode(element_types=[Dict[str, bool], bool]),
+            {"foo": True},
+            {"foo": True},
+        ),
+        (
+            UnionNode(element_types=[Dict[str, float], float]),
+            {"foo": 3.14},
+            {"foo": 3.14},
+        ),
     ],
 )
 def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:

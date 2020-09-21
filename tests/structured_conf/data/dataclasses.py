@@ -514,3 +514,13 @@ class Book:
 @dataclass
 class Shelf:
     content: Union[Book, int] = 1
+
+
+@dataclass
+class Shelf2:
+    content: Union[Book, List[Book]] = Book()
+
+
+@dataclass
+class Shelf3:
+    content: Union[Book, Dict[str, Book]] = Book()

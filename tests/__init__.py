@@ -88,11 +88,6 @@ class StructuredWithMissing:
 
 
 @dataclass
-class UnionError:
-    x: Union[int, str] = 10
-
-
-@dataclass
 class MissingList:
     list: List[str] = MISSING
 

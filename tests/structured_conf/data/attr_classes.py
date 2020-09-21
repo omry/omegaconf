@@ -497,3 +497,13 @@ class Book:
 @attr.s(auto_attribs=True)
 class Shelf:
     content: Union[Book, int] = 1
+
+
+@attr.s(auto_attribs=True)
+class Shelf2:
+    content: Union[Book, List[Book]] = Book()
+
+
+@attr.s(auto_attribs=True)
+class Shelf3:
+    content: Union[Book, Dict[str, Book]] = Book()

@@ -211,13 +211,23 @@ class UnionNode(ValueNode):
 
     def _validate_value(self, value: Any) -> bool:
         from omegaconf import DictConfig, ListConfig
+        from omegaconf._utils import (
+            is_dict_annotation,
+            is_list_annotation,
+            is_valid_value_dict_annotation,
+            is_valid_value_list_annotation,
+        )
 
         valid_type = False
         for element_type in self.element_types:
             type_: Any = type(value)
             if isinstance(value, Node):
                 type_ = value._metadata.ref_type
-            if element_type == ListConfig and type_ == list:
+            if is_list_annotation(element_type):
+                valid_type = is_valid_value_list_annotation(value, element_type)
+            elif is_dict_annotation(element_type):
+                valid_type = is_valid_value_dict_annotation(value, element_type)
+            elif element_type == ListConfig and type_ == list:
                 valid_type = True
             elif element_type == DictConfig and type_ == dict:
                 valid_type = True

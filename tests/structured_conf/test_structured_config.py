@@ -1064,6 +1064,22 @@ class TestDictSubclass:
         assert cfg.content == value
         assert isinstance(cfg._get_node("content"), UnionNode)
 
+    def test_union_set_valid_value_nested_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Shelf2)
+        value = [module.Book(), module.Book()]
+        cfg.content = value
+        assert cfg.content == value
+        assert isinstance(cfg._get_node("content"), UnionNode)
+
+    def test_union_set_valid_value_nested_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Shelf3)
+        value = {"book1": module.Book(), "book2": module.Book()}
+        cfg.content = value
+        assert cfg.content == value
+        assert isinstance(cfg._get_node("content"), UnionNode)
+
     def test_union_set_invalid_value(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.Book)

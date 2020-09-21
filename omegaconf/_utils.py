@@ -452,6 +452,31 @@ def get_union_types(ref_type: Optional[Any]) -> List[Any]:
     return element_types
 
 
+def is_valid_value_list_annotation(value: Any, list_type: List[Any]) -> bool:
+    element_type = get_list_element_type(list_type)  # type: ignore
+    valid_value = True
+    if not isinstance(value, list):
+        return False
+    for item in value:
+        if not isinstance(item, element_type):
+            valid_value = False
+            break
+    return valid_value
+
+
+def is_valid_value_dict_annotation(value: Any, dict_type: Dict[Any, Any]) -> bool:
+    key_type, element_type = get_dict_key_value_types(dict_type)
+    valid_value = True
+    if not isinstance(value, dict):
+        return False
+    for key in value:
+        item = value[key]
+        if not isinstance(key, key_type) or not isinstance(item, element_type):
+            valid_value = False
+            break
+    return valid_value
+
+
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     args = getattr(ref_type, "__args__", None)
     if ref_type is not List and args is not None and args[0]:
