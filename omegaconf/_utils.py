@@ -772,7 +772,6 @@ def validate_value_in_annotation(value: Any, ref_type: Any) -> bool:
 
     valid_type = False
     input_type: Any = type(value)
-    print(value, ref_type, input_type)
     if isinstance(value, Node):
         input_type = value._metadata.ref_type
     if is_list_annotation(ref_type):
@@ -819,10 +818,8 @@ def validate_value_in_dict_annotation(value: Any, dict_type: Dict[Any, Any]) -> 
         return False
     for key in value:
         item = value[key]
-        print(key, key_type, element_type)
         if not isinstance(key, key_type):
             valid_value = False
-            print("xd")
             break
         elif is_nested_type(element_type):
             valid_value = validate_value_in_annotation(item, element_type)
