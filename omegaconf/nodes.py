@@ -202,40 +202,14 @@ class UnionNode(ValueNode):
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
+        from omegaconf._utils import validate_value_in_union_annotation
+
         if value is None:
             return None
-        if not self._validate_value(value):
+        if not validate_value_in_union_annotation(value, self.element_types):
             msg = f"invalid value {value} should be {self.element_types}"
             raise ValidationError(msg)
         return value
-
-    def _validate_value(self, value: Any) -> bool:
-        from omegaconf import DictConfig, ListConfig
-        from omegaconf._utils import (
-            is_dict_annotation,
-            is_list_annotation,
-            is_valid_value_dict_annotation,
-            is_valid_value_list_annotation,
-        )
-
-        valid_type = False
-        for element_type in self.element_types:
-            type_: Any = type(value)
-            if isinstance(value, Node):
-                type_ = value._metadata.ref_type
-            if is_list_annotation(element_type):
-                valid_type = is_valid_value_list_annotation(value, element_type)
-            elif is_dict_annotation(element_type):
-                valid_type = is_valid_value_dict_annotation(value, element_type)
-            elif element_type == ListConfig and type_ == list:
-                valid_type = True
-            elif element_type == DictConfig and type_ == dict:
-                valid_type = True
-            elif element_type == type_:
-                valid_type = True
-            if valid_type:
-                break
-        return valid_type
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, AnyNode):

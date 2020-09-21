@@ -582,6 +582,21 @@ def test_allow_objects() -> None:
         (UnionNode(element_types=[List[bool], bool]), [True, False], [True, False]),
         (UnionNode(element_types=[List[float], float]), [3.14, 9.67], [3.14, 9.67]),
         (UnionNode(element_types=[List[str], str]), ["foo", "foo2"], ["foo", "foo2"]),
+        (
+            UnionNode(element_types=[List[Dict[str, int]], str]),
+            [{"nested2": 2}, {"nested": 1}],
+            [{"nested2": 2}, {"nested": 1}],
+        ),
+        (
+            UnionNode(element_types=[List[User], str]),
+            [User(name="user1", age=21), User(name="user2", age=45)],
+            [User(name="user1", age=21), User(name="user2", age=45)],
+        ),
+        (
+            UnionNode(element_types=[List[int], int]),
+            1,
+            1,
+        ),
         (UnionNode(element_types=[Dict[str, int], int]), {"foo": 1}, {"foo": 1}),
         (
             UnionNode(element_types=[Dict[str, str], str]),
@@ -598,6 +613,21 @@ def test_allow_objects() -> None:
             {"foo": 3.14},
             {"foo": 3.14},
         ),
+        (
+            UnionNode(element_types=[Dict[str, List[int]], float]),
+            {"foo": [1, 2]},
+            {"foo": [1, 2]},
+        ),
+        (
+            UnionNode(element_types=[Dict[str, List[User]], float]),
+            3.14,
+            3.14,
+        ),
+        (
+            UnionNode(element_types=[Dict[str, List[User]], float]),
+            {"foo": [User(), User()]},
+            {"foo": [User(), User()]},
+        ),
     ],
 )
 def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:
@@ -613,6 +643,27 @@ def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> N
         (UnionNode(element_types=[int, ListConfig]), {"foo": "var"}),
         (UnionNode(element_types=[int, DictConfig]), [1, 2]),
         (UnionNode(element_types=[DictConfig, str]), 3),
+        (
+            UnionNode(element_types=[Dict[str, List[int]], float]),
+            {"foo": [1, "invalid_value"]},
+        ),
+        (UnionNode(element_types=[DictConfig, str]), 3),
+        (
+            UnionNode(element_types=[List[Dict[str, int]], str]),
+            [{"nested2": 2}, {"nested": "invalid_value"}],
+        ),
+        (
+            UnionNode(element_types=[List[Dict[str, int]], str]),
+            [{"nested2": 2}, {"nested": User()}],
+        ),
+        (
+            UnionNode(element_types=[Dict[str, List[int]], float]),
+            {"foo": [1, User()]},
+        ),
+        (
+            UnionNode(element_types=[Dict[str, List[User]], str]),
+            {1: [User(), User()]},
+        ),
     ],
 )
 def test_invalid_value_union_node(node: ValueNode, value: Any) -> None:
