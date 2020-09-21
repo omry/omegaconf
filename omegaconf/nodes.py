@@ -217,6 +217,9 @@ class UnionNode(ValueNode):
         else:
             return self._value()._value() == other  # type: ignore
 
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "UnionNode":
         res = UnionNode(
             ref_type=self._metadata.ref_type,
