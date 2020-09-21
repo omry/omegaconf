@@ -313,7 +313,9 @@ class BaseContainer(Container, ABC):
             dest._metadata.object_type = src_type
 
         # explicit flags on the source config are replacing the flag values in the destination
-        for flag, value in src._metadata.flags.items():
+        flags = src._metadata.flags
+        assert flags is not None
+        for flag, value in flags.items():
             if value is not None:
                 dest._set_flag(flag, value)
 
@@ -363,7 +365,9 @@ class BaseContainer(Container, ABC):
                             self.append(item)
 
                 # explicit flags on the source config are replacing the flag values in the destination
-                for flag, value in other._metadata.flags.items():
+                flags = other._metadata.flags
+                assert flags is not None
+                for flag, value in flags.items():
                     if value is not None:
                         self._set_flag(flag, value)
             else:

@@ -207,7 +207,13 @@ def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "input_, is_empty", [([], True), ({}, True), ([1, 2], False), (dict(a=10), False)]
+    "input_, is_empty",
+    [
+        ([], True),
+        ({}, True),
+        ([1, 2], False),
+        (dict(a=10), False),
+    ],
 )
 def test_empty(input_: Any, is_empty: bool) -> None:
     c = OmegaConf.create(input_)
