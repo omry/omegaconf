@@ -234,7 +234,7 @@ def get_dataclass_data(
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
-    dummy_parent = OmegaConf.create(flags=flags)
+    dummy_parent = OmegaConf.create({}, flags=flags)
     d = {}
     for field in dataclasses.fields(obj):
         name = field.name
@@ -614,6 +614,11 @@ def format_and_raise(
 ) -> None:
     from omegaconf import OmegaConf
     from omegaconf.base import Node
+
+    # Uncomment to make debugging easier.
+    # Note that this will cause some tests to fail
+    #
+    # raise cause
 
     if isinstance(cause, AssertionError):
         raise
