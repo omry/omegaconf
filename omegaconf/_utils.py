@@ -188,8 +188,11 @@ def _raise_missing_error(obj: Any, name: str) -> None:
     )
 
 
-def get_attr_data(obj: Any) -> Dict[str, Any]:
-    from omegaconf.omegaconf import _maybe_wrap
+def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
+    from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+
+    flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
+    dummy_parent = OmegaConf.create(flags=flags)
 
     d = {}
     is_type = isinstance(obj, type)
@@ -215,14 +218,23 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
         d[name] = _maybe_wrap(
-            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None
+            ref_type=type_,
+            is_optional=is_optional,
+            key=name,
+            value=value,
+            parent=dummy_parent,
         )
+        d[name]._set_parent(None)
     return d
 
 
-def get_dataclass_data(obj: Any) -> Dict[str, Any]:
-    from omegaconf.omegaconf import _maybe_wrap
+def get_dataclass_data(
+    obj: Any, allow_objects: Optional[bool] = None
+) -> Dict[str, Any]:
+    from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
+    flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
+    dummy_parent = OmegaConf.create(flags=flags)
     d = {}
     for field in dataclasses.fields(obj):
         name = field.name
@@ -251,8 +263,13 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         d[name] = _maybe_wrap(
-            ref_type=type_, is_optional=is_optional, key=name, value=value, parent=None
+            ref_type=type_,
+            is_optional=is_optional,
+            key=name,
+            value=value,
+            parent=dummy_parent,
         )
+        d[name]._set_parent(None)
     return d
 
 
@@ -305,11 +322,13 @@ def is_structured_config_frozen(obj: Any) -> bool:
     return False
 
 
-def get_structured_config_data(obj: Any) -> Dict[str, Any]:
+def get_structured_config_data(
+    obj: Any, allow_objects: Optional[bool] = None
+) -> Dict[str, Any]:
     if is_dataclass(obj):
-        return get_dataclass_data(obj)
+        return get_dataclass_data(obj, allow_objects=allow_objects)
     elif is_attr_class(obj):
-        return get_attr_data(obj)
+        return get_attr_data(obj, allow_objects=allow_objects)
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
 

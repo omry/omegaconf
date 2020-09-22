@@ -492,7 +492,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if other is None:
             return self.__dict__["_content"] is None
         if is_primitive_dict(other) or is_structured_config(other):
-            other = DictConfig(other)
+            other = DictConfig(other, flags={"allow_objects": True})
             return DictConfig._dict_conf_eq(self, other)
         if isinstance(other, DictConfig):
             return DictConfig._dict_conf_eq(self, other)
@@ -548,7 +548,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
-                data = get_structured_config_data(value)
+                data = get_structured_config_data(
+                    value,
+                    allow_objects=self._get_flag("allow_objects"),
+                )
                 for k, v in data.items():
                     self.__setitem__(k, v)
                 self._metadata.object_type = get_type_of(value)

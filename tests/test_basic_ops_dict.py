@@ -13,6 +13,7 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
     _utils,
+    flag_override,
     open_dict,
 )
 from omegaconf.basecontainer import BaseContainer
@@ -429,14 +430,24 @@ def test_dict_len(d: Any, expected: Any) -> None:
 
 def test_dict_assign_illegal_value() -> None:
     c = OmegaConf.create()
+    iv = IllegalType()
     with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
-        c.a = IllegalType()
+        c.a = iv
+
+    with flag_override(c, "allow_objects", True):
+        c.a = iv
+    assert c.a == iv
 
 
 def test_dict_assign_illegal_value_nested() -> None:
     c = OmegaConf.create({"a": {}})
+    iv = IllegalType()
     with pytest.raises(UnsupportedValueType, match=re.escape("key: a.b")):
-        c.a.b = IllegalType()
+        c.a.b = iv
+
+    with flag_override(c, "allow_objects", True):
+        c.a.b = iv
+    assert c.a.b == iv
 
 
 def test_assign_dict_in_dict() -> None:

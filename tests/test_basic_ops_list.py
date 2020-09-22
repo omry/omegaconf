@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf
+from omegaconf import AnyNode, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -461,20 +461,29 @@ def test_sort() -> None:
 
 def test_insert_throws_not_changing_list() -> None:
     c = OmegaConf.create([])
+    iv = IllegalType()
     with pytest.raises(ValueError):
-        c.insert(0, IllegalType())
+        c.insert(0, iv)
     assert len(c) == 0
     assert c == []
+
+    with flag_override(c, "allow_objects", True):
+        c.insert(0, iv)
+    assert c == [iv]
 
 
 def test_append_throws_not_changing_list() -> None:
     c = OmegaConf.create([])
-    v = IllegalType()
+    iv = IllegalType()
     with pytest.raises(ValueError):
-        c.append(v)
+        c.append(iv)
     assert len(c) == 0
     assert c == []
     validate_list_keys(c)
+
+    with flag_override(c, "allow_objects", True):
+        c.append(iv)
+    assert c == [iv]
 
 
 def test_hash() -> None:

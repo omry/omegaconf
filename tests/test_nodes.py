@@ -16,7 +16,7 @@ from omegaconf import (
     StringNode,
     ValueNode,
 )
-from omegaconf.errors import ValidationError
+from omegaconf.errors import UnsupportedValueType, ValidationError
 
 from . import Color, IllegalType, User
 
@@ -550,3 +550,13 @@ def test_set_valuenode() -> None:
     assert id(cfg._get_node("age")) == id(a_before)
     with pytest.raises(ValidationError):
         cfg.age = []
+
+
+def test_allow_objects() -> None:
+    c = OmegaConf.create({"foo": AnyNode()})
+    with pytest.raises(UnsupportedValueType):
+        c.foo = IllegalType()
+    c._set_flag("allow_objects", True)
+    iv = IllegalType()
+    c.foo = iv
+    assert c.foo == iv

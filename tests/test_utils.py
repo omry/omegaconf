@@ -7,7 +7,7 @@ import pytest
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import is_dict_annotation, is_list_annotation
-from omegaconf.errors import ValidationError
+from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -136,6 +136,16 @@ class _TestAttrsClass:
     dict1: Dict[str, int] = {}
 
 
+@dataclass
+class _TestDataclassIllegalValue:
+    x: Any = IllegalType()
+
+
+@attr.s(auto_attribs=True)
+class _TestAttrllegalValue:
+    x: Any = IllegalType()
+
+
 class _TestUserClass:
     pass
 
@@ -181,6 +191,24 @@ def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> N
         assert d["e"] == _TestEnum.A
         assert d["list1"] == []
         assert d["dict1"] == {}
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "test_cls",
+    [
+        _TestDataclassIllegalValue,
+        _TestAttrllegalValue,
+    ],
+)
+def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
+    with pytest.raises(UnsupportedValueType):
+        _utils.get_structured_config_data(test_cls, allow_objects=None)
+
+    with pytest.raises(UnsupportedValueType):
+        _utils.get_structured_config_data(test_cls, allow_objects=False)
+
+    d = _utils.get_structured_config_data(test_cls, allow_objects=True)
+    assert d["x"] == IllegalType()
 
 
 def test_is_dataclass(mocker: Any) -> None:
