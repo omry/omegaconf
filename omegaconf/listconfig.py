@@ -435,7 +435,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, (list, tuple)) or other is None:
-            other = ListConfig(other)
+            other = ListConfig(other, flags={"allow_objects": True})
             return ListConfig._list_eq(self, other)
         if other is None or isinstance(other, ListConfig):
             return ListConfig._list_eq(self, other)

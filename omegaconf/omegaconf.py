@@ -217,12 +217,12 @@ class OmegaConf:
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())
                 if obj is None:
-                    return OmegaConf.create({})
+                    return OmegaConf.create({}, flags=flags)
                 elif isinstance(obj, str):
-                    return OmegaConf.create({obj: None})
+                    return OmegaConf.create({obj: None}, flags=flags)
                 else:
                     assert isinstance(obj, (list, dict))
-                    return OmegaConf.create(obj)
+                    return OmegaConf.create(obj, flags=flags)
 
             else:
                 if (

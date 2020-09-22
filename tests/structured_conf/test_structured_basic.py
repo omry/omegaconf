@@ -4,8 +4,9 @@ from typing import Any, Optional
 
 import pytest
 
-from omegaconf import OmegaConf, ValidationError, _utils
-from omegaconf.errors import ConfigKeyError
+from omegaconf import OmegaConf, ValidationError, _utils, flag_override
+from omegaconf.errors import ConfigKeyError, UnsupportedValueType
+from tests import IllegalType
 
 
 @pytest.mark.parametrize(
@@ -199,3 +200,27 @@ class TestStructured:
                 ),
             ):
                 OmegaConf.create(module.WithNativeMISSING)
+
+        def test_allow_objects(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.structured(module.Plugin)
+            iv = IllegalType()
+            with pytest.raises(UnsupportedValueType):
+                cfg.params = iv
+            cfg = OmegaConf.structured(module.Plugin, flags={"allow_objects": True})
+            cfg.params = iv
+            assert cfg.params == iv
+
+            cfg = OmegaConf.structured(module.Plugin)
+            with flag_override(cfg, "allow_objects", True):
+                cfg.params = iv
+                assert cfg.params == iv
+
+            cfg = OmegaConf.structured({"plugin": module.Plugin})
+            pwo = module.Plugin(name="foo", params=iv)
+            with pytest.raises(UnsupportedValueType):
+                cfg.plugin = pwo
+
+            with flag_override(cfg, "allow_objects", True):
+                cfg.plugin = pwo
+                assert cfg.plugin == pwo
