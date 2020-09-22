@@ -33,6 +33,12 @@ class TestStructured:
             ):
                 OmegaConf.structured(module.StructuredWithInvalidField)
 
+            ret = OmegaConf.structured(
+                module.StructuredWithInvalidField, flags={"allow_objects": True}
+            )
+            assert list(ret.keys()) == ["bar"]
+            assert ret.bar == module.NotStructuredConfig()
+
         def test_assignment_of_subclass(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.create({"plugin": module.Plugin})

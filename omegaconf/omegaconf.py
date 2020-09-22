@@ -796,7 +796,10 @@ def _node_wrap(
     elif type_ == str:
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
-        raise ValidationError(f"Unexpected object type : {type_str(type_)}")
+        if parent is not None and parent._get_flag("allow_objects") is True:
+            node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        else:
+            raise ValidationError(f"Unexpected object type : {type_str(type_)}")
     return node
 
 

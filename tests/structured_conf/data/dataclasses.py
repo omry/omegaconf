@@ -15,6 +15,11 @@ class NotStructuredConfig:
     name: str = "Bond"
     age: int = 7
 
+    def __eq__(self, other: Any) -> Any:
+        if isinstance(other, type(self)):
+            return self.name == other.name and self.age == other.age
+        return False
+
 
 @dataclass
 class StructuredWithInvalidField:
