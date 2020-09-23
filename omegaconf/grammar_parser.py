@@ -3,12 +3,7 @@ from typing import Any
 from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
 from antlr4.error.ErrorListener import ErrorListener
 
-from .errors import (
-    GrammarAmbiguityError,
-    GrammarAttemptingFullContextError,
-    GrammarContextSensitivityError,
-    GrammarSyntaxError,
-)
+from .errors import GrammarParseError, GrammarSyntaxError
 
 # Import from visitor in order to check the presence of generated grammar files
 # files in a single place.
@@ -40,7 +35,7 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
         ambigAlts: Any,
         configs: Any,
     ) -> None:
-        raise GrammarAmbiguityError()
+        raise GrammarParseError("ANTLR error: Ambiguity")  # pragma: no cover
 
     def reportAttemptingFullContext(
         self,
@@ -55,7 +50,9 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
         # performance warning, so in the future this may be relaxed if we need
         # to change the grammar in such a way that this warning cannot be
         # avoided (another option would be to switch to SLL parsing mode).
-        raise GrammarAttemptingFullContextError()
+        raise GrammarParseError(
+            "ANTLR error: Attempting Full Context"
+        )  # pragma: no cover
 
     def reportContextSensitivity(
         self,
@@ -66,7 +63,7 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
         prediction: Any,
         configs: Any,
     ) -> None:
-        raise GrammarContextSensitivityError()
+        raise GrammarParseError("ANTLR error: ContextSensitivity")  # pragma: no cover
 
 
 def parse(

@@ -127,21 +127,3 @@ class GrammarTypeError(GrammarParseError):
     """
     Thrown when there is a type mismatch during parsing.
     """
-
-
-class GrammarAmbiguityError(GrammarParseError):
-    """
-    From ANTLR only.
-    """
-
-
-class GrammarAttemptingFullContextError(GrammarParseError):
-    """
-    From ANTLR only.
-    """
-
-
-class GrammarContextSensitivityError(GrammarParseError):
-    """
-    From ANTLR only.
-    """
