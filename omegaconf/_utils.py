@@ -615,9 +615,7 @@ def format_and_raise(
     from omegaconf import OmegaConf
     from omegaconf.base import Node
 
-    # Uncomment to make debugging easier.
-    # Note that this will cause some tests to fail
-    #
+    # Uncomment to make debugging easier. Note that this will cause some tests to fail
     # raise cause
 
     if isinstance(cause, AssertionError):
@@ -729,7 +727,7 @@ def type_str(t: Any) -> str:
 
     args = getattr(t, "__args__", None)
     if args is not None:
-        args = ", ".join([type_str(t) for t in (list(t.__args__))])
+        args = ", ".join([type_str(t) for t in t.__args__])
         ret = f"{name}[{args}]"
     else:
         ret = name

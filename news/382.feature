@@ -1,1 +1,1 @@
-Experimental support for objects in config
+Experimental support for enabling objects in config via "allow_objects" flag

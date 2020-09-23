@@ -27,7 +27,7 @@ class ValueNode(Node):
     def _value(self) -> Any:
         return self._val
 
-    def _set_value(self, value: Any) -> None:
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         from ._utils import ValueKind, get_value_kind
 
         if self._get_flag("readonly"):

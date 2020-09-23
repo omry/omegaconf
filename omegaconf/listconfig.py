@@ -53,6 +53,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         flags: Optional[Dict[str, bool]] = None,
     ) -> None:
         try:
+            if isinstance(content, ListConfig):
+                if flags is None:
+                    flags = content._metadata.flags
             super().__init__(
                 parent=parent,
                 metadata=ContainerMetadata(
@@ -71,7 +74,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
 
             self.__dict__["_content"] = None
-            self._set_value(value=content)
+            self._set_value(value=content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
@@ -500,8 +503,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 return True
         return False
 
-    def _set_value(self, value: Any) -> None:
-        from omegaconf import OmegaConf
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        from omegaconf import OmegaConf, flag_override
+
+        if flags is None:
+            flags = {}
 
         if OmegaConf.is_none(value):
             if not self._is_optional():
@@ -519,24 +525,22 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
                 type_ = type(value)
-                msg = (
-                    f"Invalid value assigned : {type_.__name__} is not a "
-                    f"subclass of ListConfig or list."
-                )
+                msg = f"Invalid value assigned : {type_.__name__} is not a ListConfig, list or tuple."
                 raise ValidationError(msg)
+
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
-                self.__dict__["_metadata"].flags = {}
-                for item in value._iter_ex(resolve=False):
-                    self.append(item)
-                self.__dict__["_metadata"].flags = copy.deepcopy(value._metadata.flags)
+                self._metadata.flags = copy.deepcopy(flags)
+                # disable struct and readonly for the construction phase
+                # retaining other flags like allow_objects. The real flags are restored at the end of this function
+                with flag_override(self, "struct", False):
+                    with flag_override(self, "readonly", False):
+                        for item in value._iter_ex(resolve=False):
+                            self.append(item)
             elif is_primitive_list(value):
                 for item in value:
                     self.append(item)
-
-            if isinstance(value, ListConfig):
-                self.__dict__["_metadata"].flags = value._metadata.flags
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:
