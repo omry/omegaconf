@@ -325,7 +325,7 @@ class Container(Node):
     ) -> Optional["Node"]:
         """
         A "complex" interpolation is any interpolation that cannot be handled by
-        `resolve_simple_interpolation()`, i.e. that either contains nested
+        `_resolve_simple_interpolation()`, i.e. that either contains nested
         interpolations or is not a single "${..}" block.
         """
 
@@ -359,7 +359,7 @@ class Container(Node):
             assert isinstance(resolved, Node)
             return resolved
 
-    def resolve_simple_interpolation(
+    def _resolve_simple_interpolation(
         self,
         key: Any,
         parent: Optional["Container"],

@@ -46,7 +46,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         :param container: The config container to use when resolving interpolations from
             the visitor.
         :param resolve_args: A dictionary indicating which keyword arguments to use when
-            calling the `resolve_interpolation()` and `resolve_complex_interpolation()`
+            calling the `_resolve_simple_interpolation()` and `resolve_complex_interpolation()`
             methods of `container`. It is expected to contain values for the following
             keyword arguments:
                 `key`, `parent`, `throw_on_missing` and `throw_on_resolution_failure`
@@ -137,7 +137,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 inter_key_tokens.append(self.visitConfigKey(child))
         inter_key = ("".join(inter_key_tokens),)  # must be a 1-element tuple
 
-        return self.container.resolve_simple_interpolation(
+        return self.container._resolve_simple_interpolation(
             inter_type=None, inter_key=inter_key, **self.resolve_args
         )
 
@@ -175,7 +175,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 assert isinstance(child, TerminalNode)
 
         assert resolver_name is not None
-        return self.container.resolve_simple_interpolation(
+        return self.container._resolve_simple_interpolation(
             inter_type=resolver_name,
             inter_key=tuple(inter_key),
             inputs_str=tuple(inputs_str),
