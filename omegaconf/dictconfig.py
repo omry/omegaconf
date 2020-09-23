@@ -63,6 +63,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         flags: Optional[Dict[str, bool]] = None,
     ) -> None:
         try:
+            if isinstance(content, DictConfig):
+                if flags is None:
+                    flags = content._metadata.flags
             super().__init__(
                 parent=parent,
                 metadata=ContainerMetadata(
@@ -84,14 +87,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 raise KeyValidationError(f"Unsupported key type {key_type}")
 
             if is_structured_config(content) or is_structured_config(ref_type):
-                self._set_value(content)
+                self._set_value(content, flags=flags)
                 if is_structured_config_frozen(content) or is_structured_config_frozen(
                     ref_type
                 ):
                     self._set_flag("readonly", True)
 
             else:
-                self._set_value(content)
                 if isinstance(content, DictConfig):
                     metadata = copy.deepcopy(content._metadata)
                     metadata.key = key
@@ -99,6 +101,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     metadata.element_type = element_type
                     metadata.key_type = key_type
                     self.__dict__["_metadata"] = metadata
+                self._set_value(content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
@@ -529,8 +532,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         # restore the type.
         self._metadata.object_type = object_type
 
-    def _set_value(self, value: Any) -> None:
-        from omegaconf import OmegaConf
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        from omegaconf import OmegaConf, flag_override
+
+        if flags is None:
+            flags = {}
 
         assert not isinstance(value, ValueNode)
         self._validate_set(key=None, value=value)
@@ -556,10 +562,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     self.__setitem__(k, v)
                 self._metadata.object_type = get_type_of(value)
             elif isinstance(value, DictConfig):
-                self._metadata.object_type = dict
-                for k, v in value.__dict__["_content"].items():
-                    self.__setitem__(k, v)
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
+                self._metadata.flags = copy.deepcopy(flags)
+                # disable struct and readonly for the construction phase
+                # retaining other flags like allow_objects. The real flags are restored at the end of this function
+                with flag_override(self, "struct", False):
+                    with flag_override(self, "readonly", False):
+                        for k, v in value.__dict__["_content"].items():
+                            self.__setitem__(k, v)
 
             elif isinstance(value, dict):
                 for k, v in value.items():

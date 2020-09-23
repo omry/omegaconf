@@ -53,6 +53,56 @@ def test_create_value(input_: Any, expected: Any) -> None:
     assert OmegaConf.create(input_) == expected
 
 
+@pytest.mark.parametrize(  # type: ignore
+    "input_",
+    [
+        # top level dict
+        {"x": IllegalType()},
+        {"x": {"y": IllegalType()}},
+        {"x": [IllegalType()]},
+        # top level list
+        [IllegalType()],
+        [[IllegalType()]],
+        [{"x": IllegalType()}],
+        [{"x": [IllegalType()]}],
+    ],
+)
+def test_create_allow_objects(input_: Any) -> None:
+    # test creating from a primitive container
+    cfg = OmegaConf.create(input_, flags={"allow_objects": True})
+    assert cfg == input_
+
+    # test creating from an OmegaConf object, inheriting the allow_objects flag
+    cfg = OmegaConf.create(cfg)
+    assert cfg == input_
+
+    # test creating from an OmegaConf object
+    cfg = OmegaConf.create(cfg, flags={"allow_objects": True})
+    assert cfg == input_
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "input_",
+    [
+        pytest.param({"foo": "bar"}, id="dict"),
+        pytest.param([1, 2, 3], id="list"),
+    ],
+)
+def test_create_flags_overriding(input_: Any) -> Any:
+    cfg = OmegaConf.create(input_)
+    OmegaConf.set_struct(cfg, True)
+
+    # by default flags are inherited
+    cfg2 = OmegaConf.create(cfg)
+    assert OmegaConf.is_struct(cfg2)
+    assert not OmegaConf.is_readonly(cfg2)
+
+    # but specified flags are replacing all of the flags (even those that are not specified)
+    cfg2 = OmegaConf.create(cfg, flags={"readonly": True})
+    assert not OmegaConf.is_struct(cfg2)
+    assert OmegaConf.is_readonly(cfg2)
+
+
 def test_create_from_cli() -> None:
     sys.argv = ["program.py", "a=1", "b.c=2"]
     c = OmegaConf.from_cli()

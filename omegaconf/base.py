@@ -193,7 +193,7 @@ class Node(ABC):
         ...
 
     @abstractmethod
-    def _set_value(self, value: Any) -> None:
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         ...
 
     @abstractmethod

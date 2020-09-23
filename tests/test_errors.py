@@ -845,7 +845,7 @@ params = [
             op=lambda cfg: cfg._set_value(True),
             exception_type=ValidationError,
             object_type=None,
-            msg="Invalid value assigned : bool is not a subclass of ListConfig or list",
+            msg="Invalid value assigned : bool is not a ListConfig, list or tuple.",
             ref_type=List[int],
             low_level=True,
         ),
