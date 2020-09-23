@@ -32,9 +32,11 @@ def docs(session):
 
 @nox.session(python=PYTHON_VERSIONS)
 def coverage(session):
-    # For coverage, it is more convenient to use the local installation because
-    # `coverage run -m pytest` prepends `sys.path` with "." (the current folder),
-    # so that the local code will be used anyway by default.
+    # For coverage, we must use the local installation because
+    # `coverage run -m pytest` prepends `sys.path` with "." (the current
+    # folder), so that the local code will be used in tests even if we set
+    # `local_install=False`. This would cause problems due to potentially
+    # missing the generated grammar files.
     deps(session, local_install=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
