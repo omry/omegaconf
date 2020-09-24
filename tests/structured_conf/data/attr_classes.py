@@ -199,7 +199,7 @@ class NestedWithAny:
 
 
 @attr.s(auto_attribs=True)
-class NoDefaultErrors:
+class NoDefaultValue:
     no_default: Any
 
 

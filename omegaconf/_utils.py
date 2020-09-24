@@ -181,18 +181,12 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
         return type_
 
 
-def _raise_missing_error(obj: Any, name: str) -> None:
-    raise ValueError(
-        f"Missing default value for {get_type_of(obj).__name__}.{name}, to indicate "
-        "default must be populated later use OmegaConf.MISSING"
-    )
-
-
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create(flags=flags)
+    from omegaconf import MISSING
 
     d = {}
     is_type = isinstance(obj, type)
@@ -209,8 +203,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                 if is_nested:
                     value = type_
                 else:
-                    _raise_missing_error(obj, name)
-                    assert False
+                    value = MISSING
         if _is_union(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
@@ -231,7 +224,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
-    from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+    from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create({}, flags=flags)
@@ -245,15 +238,13 @@ def get_dataclass_data(
         if hasattr(obj, name):
             value = getattr(obj, name)
             if value == dataclasses.MISSING:
-                _raise_missing_error(obj, name)
-                assert False
+                value = MISSING
         else:
             if field.default_factory == dataclasses.MISSING:  # type: ignore
                 if is_nested:
                     value = type_
                 else:
-                    _raise_missing_error(obj, name)
-                    assert False
+                    value = MISSING
             else:
                 value = field.default_factory()  # type: ignore
 

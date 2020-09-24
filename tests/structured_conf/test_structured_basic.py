@@ -198,14 +198,8 @@ class TestStructured:
 
         def test_native_missing(self, class_type: str) -> None:
             module: Any = import_module(class_type)
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    "Missing default value for WithNativeMISSING.num,"
-                    " to indicate default must be populated later use OmegaConf.MISSING"
-                ),
-            ):
-                OmegaConf.create(module.WithNativeMISSING)
+            cfg = OmegaConf.create(module.WithNativeMISSING)
+            assert OmegaConf.is_missing(cfg, "num")
 
         def test_allow_objects(self, class_type: str) -> None:
             module: Any = import_module(class_type)

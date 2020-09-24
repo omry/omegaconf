@@ -195,7 +195,7 @@ class NestedWithAny:
 
 
 @dataclass
-class NoDefaultErrors:
+class NoDefaultValue:
     no_default: Any
 
 
