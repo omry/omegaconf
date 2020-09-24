@@ -728,14 +728,14 @@ def type_str(t: Any) -> str:
         return ret
 
 
-def _ensure_container(target: Any) -> Any:
+def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> Any:
     from omegaconf import OmegaConf
 
     if is_primitive_container(target):
         assert isinstance(target, (list, dict))
-        target = OmegaConf.create(target)
+        target = OmegaConf.create(target, flags=flags)
     elif is_structured_config(target):
-        target = OmegaConf.structured(target)
+        target = OmegaConf.structured(target, flags=flags)
     assert OmegaConf.is_config(target)
     return target
 

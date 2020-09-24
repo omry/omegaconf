@@ -13,7 +13,7 @@ from omegaconf import (
     nodes,
 )
 from omegaconf._utils import is_structured_config
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 
 from . import (
     A,
@@ -22,6 +22,7 @@ from . import (
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
+    IllegalType,
     MissingDict,
     MissingList,
     Package,
@@ -472,3 +473,14 @@ def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
     c = OmegaConf.create()
     with pytest.raises(ValueError):
         c.merge_with_dotlist(dotlist)
+
+
+def test_merge_allow_objects() -> None:
+    iv = IllegalType()
+    cfg = OmegaConf.create({"a": 10})
+    with pytest.raises(UnsupportedValueType):
+        OmegaConf.merge(cfg, {"foo": iv})
+
+    cfg._set_flag("allow_objects", True)
+    ret = OmegaConf.merge(cfg, {"foo": iv})
+    assert ret == {"a": 10, "foo": iv}
