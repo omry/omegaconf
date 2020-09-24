@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
+from antlr4 import ParserRuleContext
+
 from ._utils import ValueKind, format_and_raise, get_value_kind
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
@@ -331,20 +333,14 @@ class Container(Node):
 
         from .nodes import StringNode
 
-        value_str = value._value()
-        assert isinstance(value_str, str)
-
-        visitor = GrammarVisitor(
-            container=self,
-            resolve_args=dict(
-                key=key,
-                parent=parent,
-                throw_on_missing=throw_on_missing,
-                throw_on_resolution_failure=throw_on_resolution_failure,
-            ),
+        resolved = self.resolve_parse_tree(
+            parse_tree=parse_tree,
+            key=key,
+            parent=parent,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
         )
 
-        resolved = visitor.visit(parse_tree)
         if resolved is None:
             return None
         elif isinstance(resolved, str):
@@ -441,6 +437,61 @@ class Container(Node):
             throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
+
+    def resolve_parse_tree(
+        self,
+        parse_tree: ParserRuleContext,
+        key: Optional[Any] = None,
+        parent: Optional["Container"] = None,
+        throw_on_missing: bool = True,
+        throw_on_resolution_failure: bool = True,
+    ) -> Any:
+        """
+        Resolve a given parse tree into its value.
+
+        We make no assumption here on the type of the tree's root, so that the
+        return value may be of any type.
+        """
+        from .nodes import StringNode
+
+        # Common arguments to all `resolve_*()` methods.
+        resolve_args: Dict[str, Any] = dict(
+            key=key,
+            parent=parent,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
+
+        def node_interpolation_callback(inter_key: str) -> Optional["Node"]:
+            return self._resolve_simple_interpolation(
+                inter_type=None, inter_key=(inter_key,), **resolve_args
+            )
+
+        def resolver_interpolation_callback(
+            name: str, inputs: Tuple[Any, ...], inputs_str: Tuple[str, ...]
+        ) -> Optional["Node"]:
+            return self._resolve_simple_interpolation(
+                inter_type=name, inter_key=inputs, inputs_str=inputs_str, **resolve_args
+            )
+
+        def quoted_string_callback(quoted_str: str) -> str:
+            quoted_val = self.resolve_interpolation(
+                value=StringNode(
+                    value=quoted_str,
+                    key=key,
+                    parent=parent,
+                    is_optional=False,
+                ),
+                **resolve_args,
+            )
+            return str(quoted_val)
+
+        visitor = GrammarVisitor(
+            node_interpolation_callback=node_interpolation_callback,
+            resolver_interpolation_callback=resolver_interpolation_callback,
+            quoted_string_callback=quoted_string_callback,
+        )
+        return visitor.visit(parse_tree)
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig

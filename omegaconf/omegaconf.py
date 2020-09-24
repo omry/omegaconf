@@ -58,7 +58,6 @@ from .errors import (
     ValidationError,
 )
 from .grammar_parser import parse
-from .grammar_visitor import GrammarVisitor
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -125,16 +124,7 @@ def register_default_resolvers() -> None:
                 return val_str
 
         # Resolve the parse tree.
-        visitor = GrammarVisitor(
-            container=config,
-            resolve_args=dict(
-                key=None,
-                parent=None,
-                throw_on_missing=True,
-                throw_on_resolution_failure=True,
-            ),
-        )
-        val = visitor.visit(parse_tree)
+        val = config.resolve_parse_tree(parse_tree)
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.

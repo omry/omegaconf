@@ -2,6 +2,7 @@ import sys
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Generator,
     Iterable,
@@ -16,7 +17,7 @@ from antlr4 import TerminalNode
 from .errors import GrammarTypeError
 
 if TYPE_CHECKING:
-    from .base import Container, Node  # noqa F401
+    from .base import Node  # noqa F401
 
 try:
     from omegaconf.grammar.gen.OmegaConfGrammarLexer import OmegaConfGrammarLexer
@@ -36,25 +37,36 @@ except ModuleNotFoundError:  # pragma: no cover
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def __init__(
         self,
-        container: "Container",
-        resolve_args: Dict[str, Any],
+        node_interpolation_callback: Callable[[str], Optional["Node"]],
+        resolver_interpolation_callback: Callable[..., Optional["Node"]],
+        quoted_string_callback: Callable[[str], str],
         **kw: Dict[Any, Any],
     ):
         """
         Constructor.
 
-        :param container: The config container to use when resolving interpolations from
-            the visitor.
-        :param resolve_args: A dictionary indicating which keyword arguments to use when
-            calling the `_resolve_simple_interpolation()` and `resolve_complex_interpolation()`
-            methods of `container`. It is expected to contain values for the following
-            keyword arguments:
-                `key`, `parent`, `throw_on_missing` and `throw_on_resolution_failure`
+        :param node_interpolation_callback: Callback function that is called when
+            needing to resolve a node interpolation. This function should take a single
+            string input which is the key's dot path (ex: `"foo.bar"`).
+
+        :param resolver_interpolation_callback: Callback function that is called when
+            needing to resolve a resolver interpolation. This function should accept
+            three keyword arguments: `name` (str, the name of the resolver),
+            `inputs` (tuple, the inputs to the resolver), and `inputs_str` (tuple,
+            the string representation of the inputs to the resolver -- for backward
+            compatibility with resolvers registered with `args_as_strings=True`).
+
+        :param quoted_string_callback: Callback function that is called when needing to
+            resolve a quoted string (that may or may not contain interpolations). This
+            function should take a single string input which is the content of the quoted
+            string (without its enclosing quotes).
+
         :param kw: Additional keyword arguments to be forwarded to parent class.
         """
         super().__init__(**kw)
-        self.container = container
-        self.resolve_args = resolve_args
+        self.node_interpolation_callback = node_interpolation_callback
+        self.resolver_interpolation_callback = resolver_interpolation_callback
+        self.quoted_string_callback = quoted_string_callback
 
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
         aggregate.append(nextResult)
@@ -135,11 +147,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             else:
                 assert isinstance(child, OmegaConfGrammarParser.ConfigKeyContext)
                 inter_key_tokens.append(self.visitConfigKey(child))
-        inter_key = ("".join(inter_key_tokens),)  # must be a 1-element tuple
 
-        return self.container._resolve_simple_interpolation(
-            inter_type=None, inter_key=inter_key, **self.resolve_args
-        )
+        inter_key = "".join(inter_key_tokens)
+        return self.node_interpolation_callback(inter_key)
 
     def visitInterpolationResolver(
         self, ctx: OmegaConfGrammarParser.InterpolationResolverContext
@@ -148,7 +158,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
         # INTER_OPEN (interpolation | ID) COLON sequence? BRACE_CLOSE;
         resolver_name = None
-        inter_key = []
+        inputs = []
         inputs_str = []
         for child in ctx.getChildren():
             if (
@@ -169,17 +179,16 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             elif isinstance(child, OmegaConfGrammarParser.SequenceContext):
                 assert resolver_name is not None
                 for val, txt in self.visitSequence(child):
-                    inter_key.append(val)
+                    inputs.append(val)
                     inputs_str.append(txt)
             else:
                 assert isinstance(child, TerminalNode)
 
         assert resolver_name is not None
-        return self.container._resolve_simple_interpolation(
-            inter_type=resolver_name,
-            inter_key=tuple(inter_key),
+        return self.resolver_interpolation_callback(
+            name=resolver_name,
+            inputs=tuple(inputs),
             inputs_str=tuple(inputs_str),
-            **self.resolve_args,
         )
 
     def visitDictKeyValuePair(
@@ -293,8 +302,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         """
         Parse a quoted string.
         """
-        from .nodes import StringNode
-
         # Identify quote type.
         assert len(quoted) >= 2 and quoted[0] == quoted[-1]
         quote_type = quoted[0]
@@ -312,18 +319,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         )
 
         # Parse the string.
-        quoted_val = self.container.resolve_interpolation(
-            value=StringNode(
-                value=quoted_content,
-                key=None,
-                parent=None,
-                is_optional=False,
-            ),
-            **self.resolve_args,
-        )
-
-        # Cast result to string.
-        return str(quoted_val)
+        return self.quoted_string_callback(quoted_content)
 
     def _unescape(
         self,
