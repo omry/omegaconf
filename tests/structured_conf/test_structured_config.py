@@ -1,4 +1,3 @@
-import re
 from importlib import import_module
 from typing import Any, Dict, Optional
 
@@ -147,18 +146,10 @@ class TestConfigs:
 
     def test_value_without_a_default(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                "Missing default value for NoDefaultErrors.no_default,"
-                " to indicate default must be populated later use OmegaConf.MISSING"
-            ),
-        ):
-            OmegaConf.structured(module.NoDefaultErrors)
+        cfg = OmegaConf.structured(module.NoDefaultValue)
+        assert OmegaConf.is_missing(cfg, "no_default")
 
-        OmegaConf.structured(module.NoDefaultErrors(no_default=10)) == {
-            "no_default": 10
-        }
+        OmegaConf.structured(module.NoDefaultValue(no_default=10)) == {"no_default": 10}
 
     def test_union_errors(self, class_type: str) -> None:
         module: Any = import_module(class_type)
