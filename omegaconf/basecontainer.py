@@ -340,7 +340,12 @@ class BaseContainer(Container, ABC):
         for other in others:
             if other is None:
                 raise ValueError("Cannot merge with a None config")
-            other = _ensure_container(other)
+
+            my_flags = {}
+            if self._get_flag("allow_objects") is True:
+                my_flags = {"allow_objects": True}
+            other = _ensure_container(other, flags=my_flags)
+
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
