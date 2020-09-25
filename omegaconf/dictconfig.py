@@ -440,7 +440,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         :return:
         """
 
-        key = self._validate_and_normalize_key(key)
+        try:
+            key = self._validate_and_normalize_key(key)
+        except KeyValidationError:
+            return False
+
         try:
             node: Optional[Node] = self._get_node(key)
         except (KeyError, AttributeError):
