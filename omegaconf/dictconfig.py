@@ -147,7 +147,25 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self._validate_set_merge_impl(key, value, is_assign=False)
 
     def _validate_set(self, key: Any, value: Any) -> None:
+        self._validate_set_value_node(key, value)
         self._validate_set_merge_impl(key, value, is_assign=True)
+
+    def _validate_set_value_node(self, key: Any, value: Any) -> None:
+        from omegaconf.omegaconf import _maybe_wrap
+
+        element_type = self._metadata.element_type
+        dummy_value = copy.deepcopy(value)
+
+        if isinstance(dummy_value, ValueNode) and element_type is not Any:
+            optional = dummy_value._metadata.optional
+            dummy_parent = DictConfig(content={})
+            _maybe_wrap(
+                ref_type=element_type,
+                key=key,
+                value=dummy_value._value(),
+                is_optional=optional,
+                parent=dummy_parent,
+            )
 
     def _validate_set_merge_impl(self, key: Any, value: Any, is_assign: bool) -> None:
         from omegaconf import OmegaConf

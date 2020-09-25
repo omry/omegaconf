@@ -16,7 +16,7 @@ from omegaconf import (
     _utils,
 )
 from omegaconf.errors import ConfigKeyError
-from tests import Color
+from tests import Color, User
 
 
 class EnumConfigAssignments:
@@ -743,7 +743,17 @@ class TestConfigs:
             cfg.tuple = value
 
     @pytest.mark.parametrize(  # type: ignore
-        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], {"foo": True}]
+        "value",
+        [
+            1,
+            True,
+            "str",
+            3.1415,
+            ["foo", True, 1.2],
+            {"foo": True},
+            User(age=1, name="foo"),
+            {"xd": User(age=1, name="foo")},
+        ],
     )
     def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
@@ -897,15 +907,8 @@ class TestDictSubclass:
 
     def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
-        assert cfg.foo == "bar"
-
-        cfg.one = 1
-        assert cfg.one == 1
-
         with pytest.raises(ValidationError):
-            # bad
-            cfg.hello = "world"
+            OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:

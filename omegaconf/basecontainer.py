@@ -435,7 +435,11 @@ class BaseContainer(Container, ABC):
                 target = self._get_node(key)
                 if target is None:
                     if is_structured_config(val):
-                        ref_type = OmegaConf.get_type(val)
+                        element_type = self._metadata.element_type
+                        if element_type is Any:
+                            ref_type = OmegaConf.get_type(val)
+                        else:
+                            ref_type = element_type
                 else:
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type

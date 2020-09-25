@@ -1,0 +1,1 @@
+Fix bug that allowed Structured classes to be assigned to DictConfig with different element type.
