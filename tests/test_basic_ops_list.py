@@ -107,10 +107,10 @@ def test_list_pop_on_unexpected_exception_not_modifying() -> None:
 
 
 def test_in_list() -> None:
-    c = OmegaConf.create([10, 11, dict(a=12)])
+    c = OmegaConf.create([10, 11, {"a": 12}])
     assert 10 in c
     assert 11 in c
-    assert dict(a=12) in c
+    assert {"a": 12} in c
     assert "blah" not in c
 
 

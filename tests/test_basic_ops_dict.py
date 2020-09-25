@@ -342,6 +342,17 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
         ({"a": None, "b": "${a}"}, "b", True),
         ({"a": "cat", "b": "${a}"}, "b", True),
         ({Enum1.FOO: 1, "b": {}}, Enum1.FOO, True),
+        ({Enum1.FOO: 1, "b": {}}, "aaa", False),
+        (
+            DictConfig(content={Enum1.FOO: "foo"}, key_type=Enum1, element_type=str),
+            Enum1.FOO,
+            True,
+        ),
+        (
+            DictConfig(content={Enum1.FOO: "foo"}, key_type=Enum1, element_type=str),
+            "incompatible_key_type",
+            False,
+        ),
     ],
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:
