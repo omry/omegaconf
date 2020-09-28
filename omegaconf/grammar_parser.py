@@ -3,7 +3,7 @@ from typing import Any
 from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
 from antlr4.error.ErrorListener import ErrorListener
 
-from .errors import GrammarParseError, GrammarSyntaxError
+from .errors import GrammarParseError
 
 # Import from visitor in order to check the presence of generated grammar files
 # files in a single place.
@@ -23,7 +23,7 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
         msg: Any,
         e: Any,
     ) -> None:
-        raise GrammarSyntaxError(str(e) if msg is None else msg) from e
+        raise GrammarParseError(str(e) if msg is None else msg) from e
 
     def reportAmbiguity(
         self,
@@ -93,8 +93,8 @@ def parse(
     except Exception as exc:
         if type(exc) is Exception and str(exc) == "Empty Stack":
             # This exception is raised by antlr when trying to pop a mode while
-            # no mode has been pushed. We convert it into an `GrammarSyntaxError`
+            # no mode has been pushed. We convert it into an `GrammarParseError`
             # to facilitate exception handling from the caller.
-            raise GrammarSyntaxError("Empty Stack")
+            raise GrammarParseError("Empty Stack")
         else:
             raise

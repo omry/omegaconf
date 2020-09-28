@@ -113,17 +113,5 @@ class ConfigValueError(OmegaConfBaseException, ValueError):
 
 class GrammarParseError(OmegaConfBaseException):
     """
-    Base class for grammar parsing errors.
-    """
-
-
-class GrammarSyntaxError(GrammarParseError):
-    """
-    Thrown when a syntax error is detected during parsing.
-    """
-
-
-class GrammarTypeError(GrammarParseError):
-    """
-    Thrown when there is a type mismatch during parsing.
+    Thrown when failing to parse an expression according to the ANTLR grammar.
     """
