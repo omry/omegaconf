@@ -16,6 +16,7 @@ from omegaconf import (
     OmegaConf,
     Resolver,
     ValidationError,
+    grammar_parser,
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
@@ -606,6 +607,14 @@ def test_resolve_key_and_root(
     cfg = _ensure_container(cfg)
     node: Container = OmegaConf.select(cfg, node_key)
     assert node._resolve_key_and_root(key) == expected
+
+
+def test_empty_stack() -> None:
+    """
+    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
+    """
+    with pytest.raises(GrammarParseError):
+        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
 
 
 def _maybe_create(definition: str) -> Any:
