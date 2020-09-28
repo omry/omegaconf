@@ -374,6 +374,13 @@ def get_value_kind(value: Any, return_parse_tree: bool = False) -> Any:
     if value == "???":
         return ret(ValueKind.MANDATORY_MISSING)
 
+    # We detect potential interpolations simply by the presence of "${" in the string.
+    # This is much more efficient than systematically calling `grammar_parser.parse()`,
+    # but one must be aware that:
+    #   - invalid interpolations are not detected unless `return_parse_tree` is True
+    #   - escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
+    #     (this is actually required to properly un-escape them during resolution)
+
     if not isinstance(value, str) or "${" not in value:
         return ret(ValueKind.VALUE)
 
