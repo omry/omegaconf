@@ -344,9 +344,8 @@ def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
     :param return_match_list: True to return the match list as well
     :return: ValueKind
     """
-
     key_prefix = r"\${(\w+:)?"
-    legal_characters = r"([\w\.%_ \\/:,-]*?)}"
+    legal_characters = r"([\w\.%_ \\/:,\-\+]*?)}"
     match_list: Optional[List[Match[str]]] = None
 
     def ret(

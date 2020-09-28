@@ -263,6 +263,7 @@ class Dataclass:
         ("${func:a/b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
+        ("${env:VAL,a+b}", _utils.ValueKind.INTERPOLATION),
     ],
 )
 def test_value_kind(value: Any, kind: _utils.ValueKind) -> None:
