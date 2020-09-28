@@ -129,7 +129,7 @@ class Node(ABC):
             parent = self._get_parent()
             assert parent is not None
             key = self._key()
-            rval = parent.resolve_interpolation(
+            rval = parent._resolve_interpolation(
                 parent=parent,
                 key=key,
                 value=self,
@@ -307,7 +307,7 @@ class Container(Node):
         )
         if value is None:
             return root, last_key, None
-        value = root.resolve_interpolation(
+        value = root._resolve_interpolation(
             parent=root,
             key=last_key,
             value=value,
@@ -415,7 +415,7 @@ class Container(Node):
                 else:
                     return None
 
-    def resolve_interpolation(
+    def _resolve_interpolation(
         self,
         parent: Optional["Container"],
         key: Any,
@@ -475,7 +475,7 @@ class Container(Node):
             )
 
         def quoted_string_callback(quoted_str: str) -> str:
-            quoted_val = self.resolve_interpolation(
+            quoted_val = self._resolve_interpolation(
                 value=StringNode(
                     value=quoted_str,
                     key=key,
