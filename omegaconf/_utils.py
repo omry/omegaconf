@@ -15,7 +15,6 @@ from .errors import (
     ConfigValueError,
     OmegaConfBaseException,
 )
-from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 
 try:
     import dataclasses
@@ -341,12 +340,7 @@ class ValueKind(Enum):
     INTERPOLATION = 2
 
 
-def get_value_kind(
-    value: Any, return_parse_tree: bool = False
-) -> Union[
-    ValueKind,
-    Tuple[ValueKind, Optional[OmegaConfGrammarParser.ConfigValueContext]],
-]:
+def get_value_kind(value: Any, return_parse_tree: bool = False) -> Any:
     """
     Determine the kind of a value
     Examples:
@@ -359,14 +353,11 @@ def get_value_kind(
     :param return_parse_tree: Whether to also return the interpolation parse tree.
     :return: ValueKind (and optionally the associated interpolation parse tree).
     """
-    parse_tree: Optional[OmegaConfGrammarParser.ConfigValueContext] = None
+    parse_tree = None
 
     def ret(
         value_kind: ValueKind,
-    ) -> Union[
-        ValueKind,
-        Tuple[ValueKind, Optional[OmegaConfGrammarParser.ConfigValueContext]],
-    ]:
+    ) -> Any:
         if return_parse_tree:
             assert value_kind != ValueKind.INTERPOLATION or parse_tree is not None
             return value_kind, parse_tree

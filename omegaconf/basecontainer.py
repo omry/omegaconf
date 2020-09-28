@@ -51,7 +51,7 @@ class BaseContainer(Container, ABC):
         """returns the value with the specified key, like obj.key and obj['key']"""
 
         def is_mandatory_missing(val: Any) -> bool:
-            return get_value_kind(val) == ValueKind.MANDATORY_MISSING
+            return bool(get_value_kind(val) == ValueKind.MANDATORY_MISSING)
 
         val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER

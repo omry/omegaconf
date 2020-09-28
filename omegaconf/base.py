@@ -423,7 +423,7 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
-        value_kind, parse_tree = get_value_kind(value=value, return_parse_tree=True)  # type: ignore
+        value_kind, parse_tree = get_value_kind(value=value, return_parse_tree=True)
 
         if value_kind != ValueKind.INTERPOLATION:
             return value
