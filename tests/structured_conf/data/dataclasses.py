@@ -405,13 +405,13 @@ class DictSubclass:
     class Str2StrWithField(Dict[str, str]):
         foo: str = "bar"
 
-    @dataclass
-    class Str2IntWithStrField(Dict[str, int]):
-        foo: str = "bar"
-
     class Error:
         @dataclass
         class User2Str(Dict[User, str]):
+            pass
+
+        @dataclass
+        class Str2IntWithStrField(Dict[str, int]):
             pass
 
 

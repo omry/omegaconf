@@ -393,13 +393,13 @@ class DictSubclass:
     class Str2StrWithField(Dict[str, str]):
         foo: str = "bar"
 
-    @attr.s(auto_attribs=True)
-    class Str2IntWithStrField(Dict[str, int]):
-        foo: str = "bar"
-
     class Error:
         @attr.s(auto_attribs=True)
         class User2Str(Dict[User, str]):
+            pass
+
+        @attr.s(auto_attribs=True)
+        class Str2IntWithStrField(Dict[str, int]):
             pass
 
 

@@ -905,16 +905,17 @@ class TestDictSubclass:
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
-    def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        with pytest.raises(ValidationError):
-            OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
-
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             with pytest.raises(KeyValidationError):
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
+
+        def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            cfg = OmegaConf.structured(module.DictSubclass.Error.Str2IntWithStrField())
+            with pytest.raises(ValidationError):
+                cfg.foo = "str"
 
     def test_construct_from_another_retain_node_types(self, class_type: str) -> None:
         module: Any = import_module(class_type)
