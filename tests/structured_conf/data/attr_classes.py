@@ -400,7 +400,7 @@ class DictSubclass:
 
         @attr.s(auto_attribs=True)
         class Str2IntWithStrField(Dict[str, int]):
-            pass
+            foo: int = 1
 
 
 @attr.s(auto_attribs=True)

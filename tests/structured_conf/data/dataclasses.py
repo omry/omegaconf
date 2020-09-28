@@ -412,7 +412,7 @@ class DictSubclass:
 
         @dataclass
         class Str2IntWithStrField(Dict[str, int]):
-            pass
+            foo: int = 1
 
 
 @dataclass

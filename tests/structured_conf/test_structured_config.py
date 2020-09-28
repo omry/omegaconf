@@ -752,7 +752,7 @@ class TestConfigs:
             ["foo", True, 1.2],
             {"foo": True},
             User(age=1, name="foo"),
-            {"xd": User(age=1, name="foo")},
+            {"user": User(age=1, name="foo")},
         ],
     )
     def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
