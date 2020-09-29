@@ -20,7 +20,7 @@ from omegaconf import (
 )
 from omegaconf.errors import ConfigKeyError
 
-from . import Color, StructuredWithMissing, does_not_raise
+from . import Color, StructuredWithMissing, User, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -110,6 +110,35 @@ def test_to_container_returns_primitives(input_: Any) -> None:
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
     assert_container_with_primitives(res)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg,ex_false,ex_true",
+    [
+        pytest.param(
+            {"user": User(age=7, name="Bond")},
+            {"user": {"name": "Bond", "age": 7}},
+            {"user": User(age=7, name="Bond")},
+        ),
+        pytest.param(
+            [1, User(age=7, name="Bond")],
+            [1, {"name": "Bond", "age": 7}],
+            [1, User(age=7, name="Bond")],
+        ),
+        pytest.param(
+            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
+            {"users": [{"age": 1, "name": "a"}, {"age": 2, "name": "b"}]},
+            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
+        ),
+    ],
+)
+def test_exclude_structured_configs(cfg: Any, ex_false: Any, ex_true: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=False)
+    assert ret1 == ex_false
+
+    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=True)
+    assert ret1 == ex_true
 
 
 @pytest.mark.parametrize(  # type: ignore
