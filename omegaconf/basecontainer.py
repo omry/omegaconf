@@ -158,8 +158,11 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _to_content(
-        conf: Container, resolve: bool, enum_to_str: bool = False
-    ) -> Union[None, str, Dict[str, Any], List[Any]]:
+        conf: Container,
+        resolve: bool,
+        enum_to_str: bool = False,
+        exclude_structured_configs: bool = False,
+    ) -> Union[None, Any, str, Dict[str, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
@@ -180,6 +183,9 @@ class BaseContainer(Container, ABC):
         elif conf._is_missing():
             return "???"
         elif isinstance(conf, DictConfig):
+            if conf._metadata.object_type is not None and exclude_structured_configs:
+                return conf
+
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
@@ -192,7 +198,10 @@ class BaseContainer(Container, ABC):
                 assert node is not None
                 if isinstance(node, Container):
                     retdict[key] = BaseContainer._to_content(
-                        node, resolve=resolve, enum_to_str=enum_to_str
+                        node,
+                        resolve=resolve,
+                        enum_to_str=enum_to_str,
+                        exclude_structured_configs=exclude_structured_configs,
                     )
                 else:
                     retdict[key] = convert(node)
@@ -209,7 +218,10 @@ class BaseContainer(Container, ABC):
                 assert node is not None
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(
-                        node, resolve=resolve, enum_to_str=enum_to_str
+                        node,
+                        resolve=resolve,
+                        enum_to_str=enum_to_str,
+                        exclude_structured_configs=exclude_structured_configs,
                     )
                     retlist.append(item)
                 else:
