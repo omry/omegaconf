@@ -178,7 +178,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return
 
         if is_assign and isinstance(value, ValueNode) and self._has_element_type():
-            self._check_assign_with_wrap_value(key, value)
+            self._check_assign_value_node(key, value)
             return
 
         target: Optional[Node]
@@ -230,20 +230,17 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             )
             raise ValidationError(msg)
 
-    def _check_assign_with_wrap_value(self, key: Any, value: Any) -> None:
-        from omegaconf.omegaconf import _maybe_wrap
+    def _check_assign_value_node(self, key: Any, value: Any) -> None:
+        from omegaconf import OmegaConf
 
         element_type = self._metadata.element_type
-        dummy_value = copy.deepcopy(value)
-        optional = dummy_value._metadata.optional
-        dummy_parent = DictConfig(content={})
-        _maybe_wrap(
-            ref_type=element_type,
-            key=key,
-            value=dummy_value._value(),
-            is_optional=optional,
-            parent=dummy_parent,
-        )
+        value_type = OmegaConf.get_type(value)
+        if value_type is not Any and element_type != value_type:
+            msg = (
+                f"Invalid type assigned : {type_str(value_type)} is not a "
+                f"subclass of {type_str(element_type)}. value: {value}"
+            )
+            raise ValidationError(msg)
 
     def _has_element_type(self) -> bool:
         return self._metadata.element_type is not Any
