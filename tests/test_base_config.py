@@ -18,7 +18,7 @@ from omegaconf import (
     open_dict,
     read_write,
 )
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError
 
 from . import Color, StructuredWithMissing, User, does_not_raise
 
@@ -438,6 +438,24 @@ def test_flag_override(
     with does_not_raise():
         with flag_override(c, flag_name, False):
             func(c)
+
+
+def test_multiple_flags_override() -> None:
+    c = OmegaConf.create({"foo": "bar"})
+    with flag_override(c, ["readonly"], True):
+        with pytest.raises(ReadonlyConfigError):
+            c.foo = 10
+
+    with flag_override(c, ["struct"], True):
+        with pytest.raises(ConfigAttributeError):
+            c.x = 10
+
+    with flag_override(c, ["struct", "readonly"], True):
+        with pytest.raises(ConfigAttributeError):
+            c.x = 10
+
+        with pytest.raises(ReadonlyConfigError):
+            c.foo = 20
 
 
 @pytest.mark.parametrize(  # type: ignore
