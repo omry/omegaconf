@@ -708,14 +708,21 @@ register_default_resolvers()
 
 @contextmanager
 def flag_override(
-    config: Node, name: str, value: Optional[bool]
+    config: Node, names: Union[List[str], str], value: Optional[bool]
 ) -> Generator[Node, None, None]:
-    prev_state = config._get_flag(name)
+
+    if isinstance(names, str):
+        names = [names]
+
+    prev_states = [config._get_flag(name) for name in names]
+
     try:
-        config._set_flag(name, value)
+        for idx, name in enumerate(names):
+            config._set_flag(name, value)
         yield config
     finally:
-        config._set_flag(name, prev_state)
+        for idx, name in enumerate(names):
+            config._set_flag(name, prev_states[idx])
 
 
 @contextmanager
