@@ -234,7 +234,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         element_type = self._metadata.element_type
         value_type = OmegaConf.get_type(value)
-        if value_type is not Any and element_type != value_type:
+        if value_type is not Any and not issubclass(value_type, element_type):  # type: ignore
             msg = (
                 f"Invalid type assigned : {type_str(value_type)} is not a "
                 f"subclass of {type_str(element_type)}. value: {value}"
