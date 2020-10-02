@@ -407,7 +407,7 @@ class DictSubclass:
 
     @dataclass
     class Str2IntWithStrField(Dict[str, int]):
-        foo: str = "bar"
+        foo: int = 1
 
     class Error:
         @dataclass

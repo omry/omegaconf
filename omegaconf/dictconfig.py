@@ -179,6 +179,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if value == "???":
             return
 
+        if is_assign and isinstance(value, ValueNode) and self._has_element_type():
+            self._check_assign_value_node(key, value)
+            return
+
         target: Optional[Node]
         if key is None:
             target = self
@@ -227,6 +231,21 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 f"subclass of {type_str(target_type)}. value: {value}"
             )
             raise ValidationError(msg)
+
+    def _check_assign_value_node(self, key: Any, value: Any) -> None:
+        from omegaconf import OmegaConf
+
+        element_type = self._metadata.element_type
+        value_type = OmegaConf.get_type(value)
+        if value_type is not Any and not issubclass(value_type, element_type):  # type: ignore
+            msg = (
+                f"Invalid type assigned : {type_str(value_type)} is not a "
+                f"subclass of {type_str(element_type)}. value: {value}"
+            )
+            raise ValidationError(msg)
+
+    def _has_element_type(self) -> bool:
+        return self._metadata.element_type is not Any
 
     def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
