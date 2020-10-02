@@ -913,7 +913,7 @@ class TestDictSubclass:
 
         def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
             module: Any = import_module(class_type)
-            cfg = OmegaConf.structured(module.DictSubclass.Error.Str2IntWithStrField())
+            cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
             with pytest.raises(ValidationError):
                 cfg.foo = "str"
 
