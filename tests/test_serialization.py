@@ -182,3 +182,6 @@ def test_load_empty_file(tmpdir: str) -> None:
     empty.touch()
 
     assert OmegaConf.load(empty) == {}
+
+    with open(empty) as f:
+        assert OmegaConf.load(f) == {}
