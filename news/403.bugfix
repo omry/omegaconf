@@ -1,0 +1,1 @@
+Fix loading of an empty file via a file-pointer to return an empty dictionary
