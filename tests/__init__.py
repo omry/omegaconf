@@ -144,3 +144,13 @@ class Module:
 @dataclass
 class Package:
     modules: List[Module] = MISSING
+
+
+@dataclass
+class SubscriptedList:
+    list: List[int] = field(default_factory=lambda: [1, 2])
+
+
+@dataclass
+class SubscriptedDict:
+    dict: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
