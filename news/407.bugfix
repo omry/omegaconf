@@ -1,0 +1,1 @@
+Fixes bug where subscripted Dict and List couldn't be pickled on python 3.6.
