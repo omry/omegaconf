@@ -1,1 +1,1 @@
-Fixes bug where subscripted Dict and List couldn't be pickled on python 3.6.
+Fix Structured Configs with subscripted Dict and List fields failed pickling on python 3.6.
