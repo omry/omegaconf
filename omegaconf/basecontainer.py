@@ -89,28 +89,28 @@ class BaseContainer(Container, ABC):
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
-        from omegaconf._utils import is_dict_annotation
-
         dict_ = copy.copy(self.__dict__)
         dict_["_metadata"] = copy.copy(dict_["_metadata"])
         if self._has_ref_type():
-            if is_dict_annotation(self._metadata.ref_type):
+            ref_type = self._metadata.ref_type
+            if is_dict_annotation(ref_type):
                 dict_["_metadata"].ref_type = Dict
-            else:
+            elif is_list_annotation(ref_type):
                 dict_["_metadata"].ref_type = List
         return dict_
 
     # Support pickle
     def __setstate__(self, d: Dict[str, Any]) -> None:
         from omegaconf import DictConfig
-        from omegaconf._utils import is_generic_dict
+        from omegaconf._utils import is_generic_dict, is_generic_list
 
         if isinstance(self, DictConfig):
             key_type = d["_metadata"].key_type
         element_type = d["_metadata"].element_type
-        if is_generic_dict(d["_metadata"].ref_type):
+        ref_type = d["_metadata"].ref_type
+        if is_generic_dict(ref_type):
             d["_metadata"].ref_type = Dict[key_type, element_type]  # type: ignore
-        else:
+        elif is_generic_list(ref_type):
             d["_metadata"].ref_type = List[element_type]  # type: ignore
 
         self.__dict__.update(d)
