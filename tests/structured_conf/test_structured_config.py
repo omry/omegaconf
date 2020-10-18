@@ -140,7 +140,8 @@ class TestConfigs:
             cfg.default_value = module.Nested()
             assert cfg.default_value == module.Nested()
 
-        conf1 = OmegaConf.structured(module.NestedConfig)
+        with pytest.warns(UserWarning):
+            conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
         conf1 = OmegaConf.structured(module.NestedConfig(default_value=module.Nested()))
         validate(conf1)
@@ -183,7 +184,8 @@ class TestConfigs:
 
     def test_assignment_to_nested_structured_config(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        conf = OmegaConf.structured(module.NestedConfig)
+        with pytest.warns(UserWarning):
+            conf = OmegaConf.structured(module.NestedConfig)
         with pytest.raises(ValidationError):
             conf.default_value = 10
 
