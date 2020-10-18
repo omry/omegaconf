@@ -189,7 +189,7 @@ def test_load_empty_file(tmpdir: str) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "input_,node,element_type,key_type,optional,ref_type",
+    "input_,key,element_type,key_type,optional,ref_type",
     [
         (SubscriptedDict, "dict", int, str, False, Dict[str, int]),
         (SubscriptedList, "list", int, None, False, List[int]),
@@ -197,7 +197,7 @@ def test_load_empty_file(tmpdir: str) -> None:
 )
 def test_pickle_generic(
     input_: Any,
-    node: str,
+    key: str,
     optional: bool,
     element_type: Any,
     key_type: Any,
@@ -218,9 +218,10 @@ def test_pickle_generic(
             else:
                 return cfg._get_node(key)
 
+        node = get_node(cfg2, key)
         assert cfg == cfg2
-        assert get_ref_type(get_node(cfg2, node)) == ref_type
-        assert get_node(cfg2, node)._metadata.element_type == element_type
-        assert get_node(cfg2, node)._metadata.optional == optional
+        assert get_ref_type(node) == ref_type
+        assert node._metadata.element_type == element_type
+        assert node._metadata.optional == optional
         if isinstance(input_, DictConfig):
-            assert get_node(cfg2, node)._metadata.key_type == key_type
+            assert node._metadata.key_type == key_type
