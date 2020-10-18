@@ -193,17 +193,13 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     obj_type = obj if is_type else type(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
-        is_nested = is_attr_class(type_)
         type_ = _resolve_forward(type_, obj.__module__)
         if not is_type:
             value = getattr(obj, name)
         else:
             value = attrib.default
             if value == attr.NOTHING:
-                if is_nested:
-                    value = type_
-                else:
-                    value = MISSING
+                value = MISSING
         if _is_union(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
@@ -233,7 +229,6 @@ def get_dataclass_data(
         name = field.name
         is_optional, type_ = _resolve_optional(field.type)
         type_ = _resolve_forward(type_, obj.__module__)
-        is_nested = is_structured_config(type_)
 
         if hasattr(obj, name):
             value = getattr(obj, name)
@@ -241,10 +236,7 @@ def get_dataclass_data(
                 value = MISSING
         else:
             if field.default_factory == dataclasses.MISSING:  # type: ignore
-                if is_nested:
-                    value = type_
-                else:
-                    value = MISSING
+                value = MISSING
             else:
                 value = field.default_factory()  # type: ignore
 
