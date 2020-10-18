@@ -139,9 +139,45 @@ class TestConfigs:
             cfg.default_value = module.Nested()
             assert cfg.default_value == module.Nested()
 
-        conf1 = OmegaConf.structured(module.NestedConfig)
-        validate(conf1)
         conf1 = OmegaConf.structured(module.NestedConfig(default_value=module.Nested()))
+        validate(conf1)
+
+    def test_nested_config2(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+
+        def validate(cfg: DictConfig) -> None:
+            assert cfg == {
+                "default_value": "???",
+                "user_provided_default": {
+                    "with_default": 42,
+                    "null_default": None,
+                    "mandatory_missing": "???",
+                    "interpolation": "${value_at_root}",
+                },
+                "value_at_root": 1000,
+            }
+
+            with pytest.raises(ValidationError):
+                cfg.user_provided_default = 10
+
+            with pytest.raises(ValidationError):
+                cfg.default_value = 10
+
+            # assign subclass
+            cfg.default_value = module.NestedSubclass()
+            assert cfg.default_value == {
+                "additional": 20,
+                "with_default": 10,
+                "null_default": None,
+                "mandatory_missing": "???",
+                "interpolation": "${value_at_root}",
+            }
+
+            # assign original ref type back
+            cfg.default_value = module.Nested()
+            assert cfg.default_value == module.Nested()
+
+        conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
 
     def test_value_without_a_default(self, class_type: str) -> None:
