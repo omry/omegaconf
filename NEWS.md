@@ -1,3 +1,11 @@
+## 2.0.3 (2020-10-19)
+
+
+### Deprecations and Removals
+
+- Automatic expansion of nested dataclasses without a default value is deprecated ([#412](https://github.com/omry/omegaconf/issues/412))
+
+
 ## 2.0.2 (2020-09-10)
 
 
