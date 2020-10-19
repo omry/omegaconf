@@ -3,7 +3,9 @@ import os
 import re
 import string
 import sys
+import warnings
 from enum import Enum
+from textwrap import dedent
 from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
 
 import yaml
@@ -193,6 +195,14 @@ def get_attr_data(obj: Any) -> Dict[str, Any]:
             value = attrib.default
             if value == attr.NOTHING:
                 if is_nested:
+                    msg = dedent(
+                        f"""
+                        The field `{name}` of type '{type_str(type_)}' does not have a default value.
+                        The behavior of OmegaConf for such cases is changing in OmegaConf 2.1.
+                        See https://github.com/omry/omegaconf/issues/412 for more details.
+                        """
+                    )
+                    warnings.warn(category=UserWarning, message=msg, stacklevel=8)
                     value = type_
                 else:
                     _raise_missing_error(obj, name)
@@ -227,6 +237,15 @@ def get_dataclass_data(obj: Any) -> Dict[str, Any]:
         else:
             if field.default_factory == dataclasses.MISSING:  # type: ignore
                 if is_nested:
+                    msg = dedent(
+                        f"""
+                        The field `{name}` of type '{type_str(type_)}' does not have a default value.
+                        The behavior of OmegaConf for such cases is changing in OmegaConf 2.1.
+                        See https://github.com/omry/omegaconf/issues/412 for more details.
+                        """
+                    )
+                    warnings.warn(category=UserWarning, message=msg, stacklevel=8)
+
                     value = type_
                 else:
                     _raise_missing_error(obj, name)
