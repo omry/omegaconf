@@ -764,3 +764,7 @@ def is_generic_dict(type_: Any) -> bool:
     :return: bool
     """
     return is_dict_annotation(type_) and len(get_dict_key_value_types(type_)) > 0
+
+
+def is_container_annotation(type_: Any) -> bool:
+    return is_list_annotation(type_) or is_dict_annotation(type_)
