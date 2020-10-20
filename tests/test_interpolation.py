@@ -554,7 +554,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
 
 
 def test_supported_chars() -> None:
-    supported_chars = "abc123_/:-\\+.$%*"
+    supported_chars = "abc123_/:-\\+.$%*@"
     c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
 
     OmegaConf.register_resolver("copy", lambda x: x)
