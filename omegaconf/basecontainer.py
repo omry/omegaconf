@@ -90,17 +90,17 @@ class BaseContainer(Container, ABC):
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
-        dict_ = copy.copy(self.__dict__)
-        dict_["_metadata"] = copy.copy(dict_["_metadata"])
+        dict_copy = copy.copy(self.__dict__)
+        dict_copy["_metadata"] = copy.copy(dict_copy["_metadata"])
         ref_type = self._metadata.ref_type
         if is_container_annotation(ref_type):
             if is_dict_annotation(ref_type):
-                dict_["_metadata"].ref_type = Dict
+                dict_copy["_metadata"].ref_type = Dict
             elif is_list_annotation(ref_type):
-                dict_["_metadata"].ref_type = List
+                dict_copy["_metadata"].ref_type = List
             else:
                 assert False
-        return dict_
+        return dict_copy
 
     # Support pickle
     def __setstate__(self, d: Dict[str, Any]) -> None:
