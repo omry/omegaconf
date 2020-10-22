@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -8,6 +8,7 @@ from omegaconf import (
     AnyNode,
     DictConfig,
     KeyValidationError,
+    ListConfig,
     MissingMandatoryValue,
     OmegaConf,
     ReadonlyConfigError,
@@ -760,7 +761,7 @@ class TestConfigs:
         assert cfg.list == value
         assert cfg.tuple == value
 
-    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2]])  # type: ignore
+    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()])  # type: ignore
     def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.ListClass)
@@ -780,6 +781,7 @@ class TestConfigs:
             {"foo": True},
             User(age=1, name="foo"),
             {"user": User(age=1, name="foo")},
+            ListConfig(content=[1, 2], ref_type=List[int], element_type=int),
         ],
     )
     def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
