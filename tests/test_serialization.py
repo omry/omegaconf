@@ -6,13 +6,14 @@ import pickle
 import tempfile
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 import pytest
 
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
+from omegaconf._utils import get_ref_type
 
-from . import PersonA, PersonD
+from . import PersonA, PersonD, SubscriptedDict, SubscriptedList
 
 
 def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
@@ -185,3 +186,42 @@ def test_load_empty_file(tmpdir: str) -> None:
 
     with open(empty) as f:
         assert OmegaConf.load(f) == {}
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "input_,key,element_type,key_type,optional,ref_type",
+    [
+        (SubscriptedDict, "dict", int, str, False, Dict[str, int]),
+        (SubscriptedList, "list", int, None, False, List[int]),
+    ],
+)
+def test_pickle_generic(
+    input_: Any,
+    key: str,
+    optional: bool,
+    element_type: Any,
+    key_type: Any,
+    ref_type: Any,
+) -> None:
+    cfg = OmegaConf.structured(input_)
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+
+        def get_node(cfg: Any, key: str) -> Any:
+            if key is None:
+                return cfg
+            else:
+                return cfg._get_node(key)
+
+        node = get_node(cfg2, key)
+        assert cfg == cfg2
+        assert get_ref_type(node) == ref_type
+        assert node._metadata.element_type == element_type
+        assert node._metadata.optional == optional
+        if isinstance(input_, DictConfig):
+            assert node._metadata.key_type == key_type

@@ -17,6 +17,7 @@ from ._utils import (
     get_ref_type,
     get_value_kind,
     get_yaml_loader,
+    is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
     is_primitive_dict,
@@ -89,10 +90,35 @@ class BaseContainer(Container, ABC):
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
-        return self.__dict__
+        dict_copy = copy.copy(self.__dict__)
+        dict_copy["_metadata"] = copy.copy(dict_copy["_metadata"])
+        ref_type = self._metadata.ref_type
+        if is_container_annotation(ref_type):
+            if is_dict_annotation(ref_type):
+                dict_copy["_metadata"].ref_type = Dict
+            elif is_list_annotation(ref_type):
+                dict_copy["_metadata"].ref_type = List
+            else:
+                assert False
+        return dict_copy
 
     # Support pickle
     def __setstate__(self, d: Dict[str, Any]) -> None:
+        from omegaconf import DictConfig
+        from omegaconf._utils import is_generic_dict, is_generic_list
+
+        if isinstance(self, DictConfig):
+            key_type = d["_metadata"].key_type
+        element_type = d["_metadata"].element_type
+        ref_type = d["_metadata"].ref_type
+        if is_container_annotation(ref_type):
+            if is_generic_dict(ref_type):
+                d["_metadata"].ref_type = Dict[key_type, element_type]  # type: ignore
+            elif is_generic_list(ref_type):
+                d["_metadata"].ref_type = List[element_type]  # type: ignore
+            else:
+                assert False
+
         self.__dict__.update(d)
 
     @abstractmethod
