@@ -22,9 +22,8 @@ from ._utils import (
     get_structured_config_data,
     get_type_of,
     get_value_kind,
+    is_container_annotation,
     is_dict,
-    is_generic_dict,
-    is_generic_list,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -208,8 +207,15 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         if is_dict(value_type) and is_dict(target_type):
             return
 
-        if is_generic_list(target_type) or is_generic_dict(target_type):
-            return
+        if (
+            is_assign
+            and is_container_annotation(target_type)
+            and not is_container_annotation(value_type)
+        ):
+            raise ValidationError(
+                f"Cannot assign {type_str(value_type)} to {type_str(target_type)}"
+            )
+
         # TODO: simplify this flow. (if assign validate assign else validate merge)
         # is assignment illegal?
         validation_error = (
