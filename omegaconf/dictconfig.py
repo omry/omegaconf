@@ -574,6 +574,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self.__dict__["_content"] = "???"
             self._metadata.object_type = None
         else:
+            previous_state = copy.copy(self.__dict__["_content"])
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
@@ -596,7 +597,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
             elif isinstance(value, dict):
                 for k, v in value.items():
-                    self.__setitem__(k, v)
+                    try:
+                        self.__setitem__(k, v)
+                    except ValidationError as e:
+                        self.__dict__["_content"] = previous_state
+                        raise e
+
             else:
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)  # pragma: no cover
