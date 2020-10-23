@@ -33,6 +33,7 @@ from . import (
     Package,
     Plugin,
     StructuredWithMissing,
+    SubscriptedDict,
     UnionError,
     User,
 )
@@ -530,6 +531,18 @@ params = [
             ref_type=Optional[Dict[str, int]],
         ),
         id="DictConfig[str,int]:assigned_str_value",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(SubscriptedDict),
+            op=lambda cfg: cfg.__setitem__("dict", 1),
+            exception_type=ValidationError,
+            msg="Unsupported value type : 1",
+            key="dict",
+            ref_type=Optional[Dict[str, int]],
+            low_level=True,
+        ),
+        id="DictConfig[str,int]:assigned_primitive_type",
     ),
     # delete
     pytest.param(
