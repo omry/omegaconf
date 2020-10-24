@@ -599,7 +599,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 for k, v in value.items():
                     try:
                         self.__setitem__(k, v)
-                    except ValidationError as e:
+                    except Exception as e:
                         self.__dict__["_content"] = previous_state
                         raise e
 
