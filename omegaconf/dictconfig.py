@@ -288,6 +288,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 key=key, value=value, type_override=ConfigKeyError, cause=e
             )
         except Exception as e:
+            self._restore_backup()
             self._format_and_raise(key=key, value=value, cause=e)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
@@ -574,7 +575,8 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self.__dict__["_content"] = "???"
             self._metadata.object_type = None
         else:
-            previous_state = copy.copy(self.__dict__["_content"])
+            # shallow copy of content
+            self.__dict__["_previous_content"] = self.__dict__["_content"]
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
@@ -597,15 +599,20 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
             elif isinstance(value, dict):
                 for k, v in value.items():
-                    try:
-                        self.__setitem__(k, v)
-                    except Exception as e:
-                        self.__dict__["_content"] = previous_state
-                        raise e
+                    self.__setitem__(k, v)
 
             else:
+                self._restore_backup()
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)  # pragma: no cover
+
+    def _restore_backup(self) -> None:
+        if (
+            "_previous_content" in self.__dict__
+            and self.__dict__["_previous_content"] is not None
+        ):
+            self.__dict__["_content"] = self.__dict__["_previous_content"]
+            del self.__dict__["_previous_content"]
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
