@@ -958,38 +958,29 @@ def _select_one(
     return val, ret_key
 
 
-def _make_hashable(key: Tuple[Any, ...]) -> Tuple[Any, ...]:
+def _make_hashable(x: Any) -> Any:
     """
-    Ensure `key` is hashable.
+    Obtain a hashable version of `x`.
 
     This is achieved by turning into tuples the lists and dicts that may be
-    stored within `key`.
+    stored within `x`.
     Note that dicts are sorted, so that two dicts ordered differently will
     lead to the same resulting hashable key.
 
-    :return: a hashable version of `key`.
+    :return: a hashable version of `x` (which may be `x` itself if already hashable).
     """
     # Hopefully it is already hashable and we have nothing to do!
     try:
-        hash(key)
+        hash(x)
     except TypeError:
         pass
     else:
-        return key
+        return x
 
-    new_key: List[Any] = []  # will store the new key elements
-    hashable_item: Any
-    for idx, item in enumerate(key):
-        if item is None or isinstance(item, (int, float, bool, str)):
-            hashable_item = item
-        elif isinstance(item, list):
-            hashable_item = _make_hashable(tuple(item))
-        elif isinstance(item, tuple):
-            hashable_item = _make_hashable(item)
-        elif isinstance(item, dict):
-            # We sort the dictionary so that the order of keys does not matter.
-            hashable_item = _make_hashable(tuple(sorted(item.items())))
-        else:
-            raise NotImplementedError(f"type {type(item)} cannot be made hashable")
-        new_key.append(hashable_item)
-    return tuple(new_key)
+    if isinstance(x, (list, tuple)):
+        return tuple(_make_hashable(y) for y in x)
+    elif isinstance(x, dict):
+        # We sort the dictionary so that the order of keys does not matter.
+        return _make_hashable(tuple(sorted(x.items())))
+    else:
+        raise NotImplementedError(f"type {type(x)} cannot be made hashable")
