@@ -396,14 +396,12 @@ Custom interpolations
 
 You can add additional interpolation types using custom resolvers.
 This example creates a resolver that adds 10 to the given value
-(note the need to specify `args_as_strings=False` when the resolver takes non-string arguments --
-this is to preserve backward compatibility with the old behavior where resolver arguments were always given
-as strings).
+(note that the resolver's first argument is ignored here, we will
+see below how it can be used to access the config object itself).
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("plus_10", lambda x: x + 10,
-    ...                             args_as_strings=False)
+    >>> OmegaConf.new_register_resolver("plus_10", lambda _, x: x + 10)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
@@ -416,7 +414,7 @@ simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
+    >>> OmegaConf.new_register_resolver("concat", lambda _, x, y: x+y)
     >>> c = OmegaConf.create({
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
@@ -436,73 +434,85 @@ You can take advantage of nested interpolations to perform custom operations ove
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("plus_int",
-    ...                             lambda x, y: x + y,
-    ...                             args_as_strings=False)
+    >>> OmegaConf.new_register_resolver("plus", lambda _, x, y: x + y)
     >>> c = OmegaConf.create({"a": 1,
     ...                       "b": 2,
-    ...                       "a_plus_b": "${plus_int:${a},${b}}"})
+    ...                       "a_plus_b": "${plus:${a},${b}}"})
     >>> c.a_plus_b
     3
 
 By default a custom resolver's output is cached, so that when it is called with the same
-inputs we always return the same value. This behavior may be disabled by setting `use_cache=False`:
+inputs we always return the same value. This behavior may be disabled by setting ``use_cache=False``:
 
 .. doctest::
 
     >>> import random; random.seed(1234)
-    >>> OmegaConf.register_resolver("randint",
-    ...                             lambda a, b: random.randint(a, b),
-    ...                             args_as_strings=False)
+    >>> OmegaConf.new_register_resolver(
+    ...        "randint",
+    ...        lambda _, a, b: random.randint(a, b))
     >>> c = OmegaConf.create({"x": "${randint:0, 1000}"})
     >>> c.x
     989
     >>> c.x  # same as above thanks to the cache
     989
     >>> random.seed(1234)
-    >>> OmegaConf.register_resolver("randint_nocache",
-    ...                             lambda a, b: random.randint(a, b),
-    ...                             use_cache=False,
-    ...                             args_as_strings=False)
+    >>> OmegaConf.new_register_resolver(
+    ...         "randint_nocache",
+    ...         lambda _, a, b: random.randint(a, b),
+    ...         use_cache=False)
     >>> c = OmegaConf.create({"x": "${randint_nocache:0, 1000}"})
     >>> c.x
     989
     >>> c.x  # not the same anymore since the cache is disabled
     796
 
-For more advanced operations on the config, you can allow a resolver to access the config
-object by setting `config_arg` -- preferably pointing to a keyword-only argument of
-the resolver.
-Note that you cannot use the cache in this case, since the resolver's output may now
-depend on arbitrary components of the config.
+For more advanced operations on the config, resolvers are given access to the parent
+of the node being processed through their first argument (which was not used in the
+examples above).
+Note that the cache ignores this parent argument (it only takes into account the values of the
+other resolver arguments). As a result it may be dangerous to use the cache *and* the parent,
+since the resolver’s output could now depend on arbitrary components of the config.
+
+The following example illustrates how this could be used to access a node's sibling
+(this is for illustration purpose only, a better way would be to use a relative interpolation):
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("key_exists",
-    ...                             lambda key, *, config: key in config,
-    ...                             config_arg="config",
-    ...                             use_cache=False)
-    >>> c = OmegaConf.create({"a": 1,
-    ...                       "can_process_a": "${key_exists:a}",
-    ...                       "can_process_b": "${key_exists:b}"})
-    >>> c.can_process_a
-    True
-    >>> c.can_process_b
-    False
-
-A similar mechanism can be used to access the parent of the current key being processed,
-by declaring a `parent_arg`. This may be useful to access keys in a relative way:
-
-    >>> OmegaConf.register_resolver(
-    ...         "get_sibling",
-    ...         lambda sibling, *, parent: getattr(parent, sibling),
-    ...         parent_arg="parent",
-    ...         use_cache=False)
+    >>> OmegaConf.new_register_resolver(
+    ...     "get_sibling",
+    ...     lambda parent, sibling: getattr(parent, sibling),
+    ...     use_cache=False)  # to always use the latest sibling value
     >>> c = OmegaConf.create(
     ...         {"foo": {"bar": {"baz1": 123,
     ...                          "baz2": "${get_sibling:baz1}"}}})
     >>> c.foo.bar.baz2
     123
+    >>> c.foo.bar.baz1 = 321
+    >>> c.foo.bar.baz2  # would be 123 if we had used `use_cache=True`
+    321
+
+If you would like to access the config's root and not just the parent node,
+use ``OmegaConf.get_root(parent)``.
+The following example shows how to obtain a boolean flag that indicates the
+presence of a specific key in the config:
+
+.. doctest::
+
+    >>> def key_exists(parent, key):
+    ...     root = OmegaConf.get_root(parent)
+    ...     return OmegaConf.select(root, key) is not None
+    >>> # Register with disabled cache (to dynamically adapt to config).
+    >>> OmegaConf.new_register_resolver("key_exists",
+    ...                                 key_exists,
+    ...                                 use_cache=False)
+    >>> c = OmegaConf.create(
+    ...     {"to_process": {"a": 1},
+    ...      "can_process": {"a": "${key_exists:to_process.a}",
+    ...                      "b": "${key_exists:to_process.b}"}})
+    >>> c.can_process.a
+    True
+    >>> c.can_process.b
+    False
 
 
 Merging configurations

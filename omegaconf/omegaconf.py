@@ -98,7 +98,9 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    def env(key: str, default: Any = _EMPTY_MARKER_, *, config: BaseContainer) -> Any:
+    def env(
+        parent: Optional[Container], key: str, default: Any = _EMPTY_MARKER_
+    ) -> Any:
         try:
             val_str = os.environ[key]
         except KeyError:
@@ -124,17 +126,13 @@ def register_default_resolvers() -> None:
                 return val_str
 
         # Resolve the parse tree.
-        val = config.resolve_parse_tree(parse_tree)
+        assert parent is not None
+        root = OmegaConf.get_root(parent)
+        val = root.resolve_parse_tree(parse_tree)
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.
-    OmegaConf.register_resolver(
-        "env",
-        env,
-        config_arg="config",
-        args_as_strings=False,
-        use_cache=False,
-    )
+    OmegaConf.new_register_resolver("env", env, use_cache=False)
 
 
 class OmegaConf:
@@ -365,62 +363,26 @@ class OmegaConf:
         return target
 
     @staticmethod
-    def register_resolver(
-        name: str,
-        resolver: Resolver,
-        args_as_strings: bool = True,
-        config_arg: Optional[str] = None,
-        parent_arg: Optional[str] = None,
-        use_cache: Optional[bool] = None,
-    ) -> None:
-        """
-        The `args_as_strings` flag was introduced to preserve backward compatibility
-        with the older resolver system, which assumed that resolvers took the raw string
-        representation of their inputs:
-            - `True` is the old behavior (the resolver uses the string representation
-              of its inputs), and triggers a warning
-            - `False` is the new behavior (the resolver can take non-string inputs), and
-              will become the default in the future
+    def register_resolver(name: str, resolver: Resolver) -> None:
+        warnings.warn(
+            "`register_resolver()` has been deprecated, please update your resolver and "
+            "call `new_register_resolver()` instead "
+            "(see https://github.com/omry/omegaconf/issues/426 for instructions). "
+            "Alternatively, you may also choose to disable this warning by "
+            "simply calling `legacy_register_resolver()`, but this will be deprecated "
+            "in a future version.",
+            stacklevel=2,
+        )
+        return OmegaConf.legacy_register_resolver(name, resolver)
 
-        If provided, `config_arg` should be the name of a keyword (typically keyword-only)
-        argument of `resolver` of type `BaseContainer`, that will be bound to the config
-        root when the resolver is called. This allows performing arbitrary operations on
-        the config from within the resolver. See `env()` for an example.
-
-        Similarly, `parent_arg` can be used to bind the corresponding keyword argument
-        of `resolver` (of type `Optional[Container]`) to the parent of the key being
-        processed when the resolver is called. This can be useful for operations involving
-        other config options relative to the current key.
-
-        `use_cache` indicates whether the resolver's outputs should be cached. When not
-            provided, it defaults to `True` unless either `config_arg` or `parent_arg` is
-            used. In such situations it defaults to `False` and the user is warned to
-            explicitly set `use_cache=False` to make it clear that no caching is done
-            (currently caching is not supported when using `config_arg` or `parent_arg`).
-        """
+    # This function will eventually be deprecated and removed.
+    @staticmethod
+    def legacy_register_resolver(name: str, resolver: Resolver) -> None:
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
         ), "resolver {} is already registered".format(name)
-
-        if use_cache is None:
-            if config_arg is not None or parent_arg is not None:
-                warnings.warn(
-                    f"You are using either `config_arg` or `parent_arg` to register "
-                    f"resolver `{name}`: caching is not supported in such a case, and "
-                    f"you must explicitly set `use_cache=False` to disable this warning.",
-                    stacklevel=2,
-                )
-                use_cache = False
-            else:
-                use_cache = True
-        elif use_cache and (config_arg is not None or parent_arg is not None):
-            raise NotImplementedError(
-                f"Caching is not supported when using either `config_arg` or "
-                f"`parent_arg`, please set `use_cache=False` when registering "
-                f"resolver `{name}`",
-            )
 
         def resolver_wrapper(
             config: BaseContainer,
@@ -428,29 +390,50 @@ class OmegaConf:
             key: Tuple[Any, ...],
             inputs_str: Tuple[str, ...],
         ) -> Any:
-            # The `args_as_strings` warning is triggered when the resolver is
-            # called instead of when it is defined, so as to limit the amount of
-            # warnings (by skipping warnings when all inputs are strings).
-            if args_as_strings and any(not isinstance(k, str) for k in key):
-                non_str_arg = [k for k in key if not isinstance(k, str)][0]
-                warnings.warn(
-                    f"Resolvers that take non-string arguments should now be registered "
-                    f"with `args_as_strings=False`, and their code should be updated to "
-                    f"ensure it works as expected with non-string arguments. This "
-                    f"warning is raised because resolver '{name}' was registered with "
-                    f"the current default `args_as_strings=True` and received at least "
-                    f"one non-string argument (`{non_str_arg}`). Although we converted "
-                    f"such non-string arguments to strings to preserve backward "
-                    f"compatibility, this behavior is deprecated => please update "
-                    f"resolver '{name}' as described above. Alternatively, you may "
-                    f"ensure that all its arguments are strings, e.g., by enclosing "
-                    f"them within quotes.",
-                    category=UserWarning,
-                )
-                inputs = inputs_str
-            else:
-                inputs = key
+            cache = OmegaConf.get_cache(config)[name]
+            # "Un-escape " spaces and commas.
+            inputs_unesc = [
+                x.replace(r"\ ", " ").replace(r"\,", ",") for x in inputs_str
+            ]
+            val = cache[key] if key in cache else resolver(*inputs_unesc)
+            cache[key] = val
+            return val
 
+        # noinspection PyProtectedMember
+        BaseContainer._resolvers[name] = resolver_wrapper
+
+    @staticmethod
+    def new_register_resolver(
+        name: str,
+        resolver: Resolver,
+        use_cache: Optional[bool] = True,
+    ) -> None:
+        """
+        Register a resolver.
+
+        :param name: Name of the resolver.
+        :param resolver: Callable whose first argument is the parent of the node being
+            processed (of type `Optional[Container]`). Other arguments are obtained from
+            the list of arguments given in the interpolation, e.g. with ${foo:x,0,${y.z}}
+            these arguments are respectively "x" (str), 0 (int) and the value of `y.z`.
+        :param use_cache: Whether the resolver's outputs should be cached. The cache is
+            based only on the list of arguments given in the interpolation, i.e., for a
+            given list of arguments, the same value will always be returned (even if the
+            resolver function is non-deterministic or accesses other config components
+            through the parent node).
+        """
+        assert callable(resolver), "resolver must be callable"
+        # noinspection PyProtectedMember
+        assert (
+            name not in BaseContainer._resolvers
+        ), "resolver {} is already registered".format(name)
+
+        def resolver_wrapper(
+            config: BaseContainer,
+            parent: Optional[Container],
+            key: Tuple[Any, ...],
+            inputs_str: Tuple[str, ...],  # to remove with `legacy_register_resolver()`
+        ) -> Any:
             if use_cache:
                 cache = OmegaConf.get_cache(config)[name]
                 hashable_key = _make_hashable(key)
@@ -460,12 +443,7 @@ class OmegaConf:
                     pass
 
             # Call resolver.
-            optional_args: Dict[str, Optional[Container]] = {}
-            if config_arg is not None:
-                optional_args[config_arg] = config
-            if parent_arg is not None:
-                optional_args[parent_arg] = parent
-            ret = resolver(*inputs, **optional_args)
+            ret = resolver(parent, *key)
             if use_cache:
                 cache[hashable_key] = ret
             return ret
@@ -621,6 +599,10 @@ class OmegaConf:
         from . import Container
 
         return isinstance(obj, Container)
+
+    @staticmethod
+    def get_root(cfg: Node) -> Container:
+        return cfg._get_root()
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:

@@ -54,7 +54,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             three keyword arguments: `name` (str, the name of the resolver),
             `inputs` (tuple, the inputs to the resolver), and `inputs_str` (tuple,
             the string representation of the inputs to the resolver -- for backward
-            compatibility with resolvers registered with `args_as_strings=True`).
+            compatibility with resolvers registered with `legacy_register_resolver()`).
 
         :param quoted_string_callback: Callback function that is called when needing to
             resolve a quoted string (that may or may not contain interpolations). This
@@ -261,7 +261,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 assert isinstance(child, OmegaConfGrammarParser.ElementContext)
                 # Also preserve the original text representation of `child` so
                 # as to allow backward compatibility with old resolvers (registered
-                # with `args_as_strings=True`). Note that we cannot just cast
+                # with `legacy_register_resolver()`). Note that we cannot just cast
                 # the value to string later as for instance `null` would become "None".
                 yield _get_value(self.visitElement(child)), child.getText()
             else:
