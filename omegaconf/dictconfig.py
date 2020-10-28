@@ -597,7 +597,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     self.__setitem__(k, v)
             else:  # pragma: no cover
                 msg = f"Unsupported value type : {value}"
-                raise ValidationError(msg=msg)
+                raise ValidationError(msg)
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
