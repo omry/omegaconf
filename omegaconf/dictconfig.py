@@ -556,6 +556,17 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self._metadata.object_type = object_type
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        try:
+            # shallow copy of content
+            previous_content = copy.copy(self.__dict__["_content"])
+            self._set_value_impl(value, flags)
+        except Exception as e:
+            self.__dict__["_content"] = previous_content
+            raise e
+
+    def _set_value_impl(
+        self, value: Any, flags: Optional[Dict[str, bool]] = None
+    ) -> None:
         from omegaconf import OmegaConf, flag_override
 
         if flags is None:
@@ -597,9 +608,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             elif isinstance(value, dict):
                 for k, v in value.items():
                     self.__setitem__(k, v)
+
             else:
                 msg = f"Unsupported value type : {value}"
-                raise ValidationError(msg=msg)  # pragma: no cover
+                raise ValidationError(msg)  # pragma: no cover
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:

@@ -787,6 +787,7 @@ class TestConfigs:
         cfg = OmegaConf.structured(module.ConfigWithDict2)
         with pytest.raises(ValidationError):
             cfg.dict1 = value
+        assert cfg == OmegaConf.structured(module.ConfigWithDict2)
 
     def test_recursive_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
