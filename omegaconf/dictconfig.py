@@ -288,7 +288,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                 key=key, value=value, type_override=ConfigKeyError, cause=e
             )
         except Exception as e:
-            self._restore_backup()
             self._format_and_raise(key=key, value=value, cause=e)
 
     def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
@@ -576,7 +575,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self._metadata.object_type = None
         else:
             # shallow copy of content
-            self.__dict__["_previous_content"] = self.__dict__["_content"]
+            previous_content = copy.copy(self.__dict__["_content"])
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
@@ -585,7 +584,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     allow_objects=self._get_flag("allow_objects"),
                 )
                 for k, v in data.items():
-                    self.__setitem__(k, v)
+                    try:
+                        self.__setitem__(k, v)
+                    except Exception as e:
+                        self.__dict__["_content"] = previous_content
+                        raise e
                 self._metadata.object_type = get_type_of(value)
             elif isinstance(value, DictConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
@@ -599,10 +602,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
             elif isinstance(value, dict):
                 for k, v in value.items():
-                    self.__setitem__(k, v)
+                    try:
+                        self.__setitem__(k, v)
+                    except Exception as e:
+                        self.__dict__["_content"] = previous_content
+                        raise e
 
             else:
-                self._restore_backup()
+                self.__dict__["_content"] = previous_content
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)  # pragma: no cover
 
