@@ -556,6 +556,17 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         self._metadata.object_type = object_type
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        try:
+            # shallow copy of content
+            previous_content = copy.copy(self.__dict__["_content"])
+            self._set_value_impl(value, flags)
+        except Exception as e:
+            self.__dict__["_content"] = previous_content
+            raise e
+
+    def _set_value_impl(
+        self, value: Any, flags: Optional[Dict[str, bool]] = None
+    ) -> None:
         from omegaconf import OmegaConf, flag_override
 
         if flags is None:
@@ -574,8 +585,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self.__dict__["_content"] = "???"
             self._metadata.object_type = None
         else:
-            # shallow copy of content
-            previous_content = copy.copy(self.__dict__["_content"])
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
@@ -584,11 +593,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     allow_objects=self._get_flag("allow_objects"),
                 )
                 for k, v in data.items():
-                    try:
-                        self.__setitem__(k, v)
-                    except Exception as e:
-                        self.__dict__["_content"] = previous_content
-                        raise e
+                    self.__setitem__(k, v)
                 self._metadata.object_type = get_type_of(value)
             elif isinstance(value, DictConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
@@ -602,24 +607,11 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
             elif isinstance(value, dict):
                 for k, v in value.items():
-                    try:
-                        self.__setitem__(k, v)
-                    except Exception as e:
-                        self.__dict__["_content"] = previous_content
-                        raise e
+                    self.__setitem__(k, v)
 
             else:
-                self.__dict__["_content"] = previous_content
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)  # pragma: no cover
-
-    def _restore_backup(self) -> None:
-        if (
-            "_previous_content" in self.__dict__
-            and self.__dict__["_previous_content"] is not None
-        ):
-            self.__dict__["_content"] = self.__dict__["_previous_content"]
-            del self.__dict__["_previous_content"]
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
