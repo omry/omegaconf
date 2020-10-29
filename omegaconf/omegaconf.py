@@ -365,12 +365,12 @@ class OmegaConf:
     @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
         warnings.warn(
-            "`register_resolver()` has been deprecated, please update your resolver and "
-            "call `new_register_resolver()` instead "
-            "(see https://github.com/omry/omegaconf/issues/426 for instructions). "
-            "Alternatively, you may also choose to disable this warning by "
-            "simply calling `legacy_register_resolver()`, but this will be deprecated "
-            "in a future version.",
+            dedent(
+                """\
+            register_resolver() is deprecated.
+            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            """
+            ),
             stacklevel=2,
         )
         return OmegaConf.legacy_register_resolver(name, resolver)
