@@ -537,12 +537,24 @@ params = [
             create=lambda: OmegaConf.structured(SubscriptedDict),
             op=lambda cfg: cfg.__setitem__("dict", 1),
             exception_type=ValidationError,
-            msg="Unsupported value type : 1",
+            msg="Cannot assign int to Dict[str, int]",
             key="dict",
             ref_type=Optional[Dict[str, int]],
             low_level=True,
         ),
         id="DictConfig[str,int]:assigned_primitive_type",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(SubscriptedDict),
+            op=lambda cfg: cfg.__setitem__("dict", User(age=2, name="bar")),
+            exception_type=ValidationError,
+            msg="Cannot assign User to Dict[str, int]",
+            key="dict",
+            ref_type=Optional[Dict[str, int]],
+            low_level=True,
+        ),
+        id="DictConfig[str,int]:assigned_structured_config",
     ),
     # delete
     pytest.param(
