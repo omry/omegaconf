@@ -559,12 +559,15 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
             "null": "${my_resolver:null}",
             "bool": "${my_resolver:TruE,falSE}",
             "str": "${my_resolver:a,b,c}",
+            "inter": "${my_resolver:${int}}",
         }
     )
     assert c.int == ("1",)
     assert c.null == ("null",)
     assert c.bool == ("TruE", "falSE")
     assert c.str == ("a", "b", "c")
+    with pytest.raises(ValueError):
+        c.inter
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:

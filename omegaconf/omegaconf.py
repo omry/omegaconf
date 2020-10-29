@@ -395,6 +395,26 @@ class OmegaConf:
             inputs_unesc = [
                 x.replace(r"\ ", " ").replace(r"\,", ",") for x in inputs_str
             ]
+
+            # Nested interpolations behave in a potentially surprising way with
+            # legacy resolvers (they remain as strings, e.g., "${foo}"). If any
+            # input looks like an interpolation we thus raise an exception.
+            try:
+                bad_arg = next(i for i in inputs_unesc if "${" in i)
+            except StopIteration:
+                pass
+            else:
+                # Since the error message below will be included in a Template string,
+                # we must "escape" the dollar signs by duplicating them.
+                bad_arg = bad_arg.replace("$", "$$")
+                raise ValueError(
+                    f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
+                    f"to be an interpolation. Nested interpolations are not supported for "
+                    f"resolvers registered with `legacy_register_resolver()`, please use "
+                    f"`new_register_resolver()` instead (see "
+                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
+                )
+
             val = cache[key] if key in cache else resolver(*inputs_unesc)
             cache[key] = val
             return val
