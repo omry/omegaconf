@@ -4,7 +4,7 @@ import re
 import string
 import sys
 from enum import Enum
-from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
 
@@ -225,9 +225,10 @@ def get_dataclass_data(
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create({}, flags=flags)
     d = {}
+    resolved_hints = get_type_hints(get_type_of(obj))
     for field in dataclasses.fields(obj):
         name = field.name
-        is_optional, type_ = _resolve_optional(field.type)
+        is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
 
         if hasattr(obj, name):
