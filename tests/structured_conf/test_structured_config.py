@@ -987,6 +987,8 @@ class TestDictSubclass:
             "not_optional": [1, 2, 3],
         }
 
+        assert OmegaConf.merge(cfg, cfg) == cfg
+
     def test_merge_into_none_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictOptional)
@@ -995,6 +997,8 @@ class TestDictSubclass:
             "as_none": {"x": 100},
             "not_optional": {"a": 10},
         }
+
+        assert OmegaConf.merge(cfg, cfg) == cfg
 
     @pytest.mark.parametrize(  # type: ignore
         "update_value,expected",

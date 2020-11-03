@@ -394,6 +394,8 @@ class BaseContainer(Container, ABC):
 
                 if other._is_missing():
                     self._set_value("???")
+                elif other._is_none():
+                    self._set_value(None)
                 else:
                     et = self._metadata.element_type
                     if is_structured_config(et):
