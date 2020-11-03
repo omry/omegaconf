@@ -1,0 +1,1 @@
+Fix a bug merging into a field annotated as Optional[List[int]] = None
