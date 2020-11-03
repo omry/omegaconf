@@ -1,3 +1,11 @@
+## 2.0.4 (2020-11-03)
+
+
+### Bug Fixes
+
+- Fix a bug merging into a field annotated as Optional[List[int]] = None ([#428](https://github.com/omry/omegaconf/issues/428))
+
+
 ## 2.0.3 (2020-10-19)
 
 
