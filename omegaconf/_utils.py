@@ -761,3 +761,7 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
+
+
+def is_generic_container(type_: Any) -> bool:
+    return is_generic_dict(type_) or is_generic_list(type_)

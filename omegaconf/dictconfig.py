@@ -24,6 +24,7 @@ from ._utils import (
     get_value_kind,
     is_container_annotation,
     is_dict,
+    is_generic_container,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -145,18 +146,76 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                     key=key, value=value, cause=ConfigAttributeError(msg)
                 )
 
-    def _validate_merge(self, key: Any, value: Any) -> None:
-        self._validate_set_merge_impl(key, value, is_assign=False)
-
     def _validate_set(self, key: Any, value: Any) -> None:
-        self._validate_set_merge_impl(key, value, is_assign=True)
-
-    def _validate_set_merge_impl(self, key: Any, value: Any, is_assign: bool) -> None:
         from omegaconf import OmegaConf
 
         vk = get_value_kind(value)
         if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
             return
+        self._validate_non_optional(key, value)
+        if value == "???" or value is None:
+            return
+
+        target = self._get_node(key) if key is not None else self
+
+        target_has_ref_type = isinstance(
+            target, DictConfig
+        ) and target._metadata.ref_type not in (Any, dict)
+        is_valid_target = target is None or not target_has_ref_type
+
+        if is_valid_target:
+            return
+
+        target_type = target._metadata.ref_type  # type: ignore
+        value_type = OmegaConf.get_type(value)
+
+        if is_dict(value_type) and is_dict(target_type):
+            return
+        if is_container_annotation(target_type) and not is_container_annotation(
+            value_type
+        ):
+            raise ValidationError(
+                f"Cannot assign {type_str(value_type)} to {type_str(target_type)}"
+            )
+        validation_error = (
+            target_type is not None
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        )
+        if validation_error:
+            self._raise_invalid_value(value, value_type, target_type)
+
+    def _validate_merge(self, key: Any, value: Any) -> None:
+        from omegaconf import OmegaConf
+
+        self._validate_non_optional(key, value)
+
+        target = self._get_node(key) if key is not None else self
+
+        target_has_ref_type = isinstance(
+            target, DictConfig
+        ) and target._metadata.ref_type not in (Any, dict)
+        is_valid_value = target is None or not target_has_ref_type
+        if is_valid_value:
+            return
+
+        target_type = target._metadata.ref_type  # type: ignore
+        value_type = OmegaConf.get_type(value)
+        if is_generic_container(target_type):
+            return
+        # Merging of a dictionary is allowed even if assignment is illegal (merge would do deeper checks)
+        validation_error = (
+            target_type is not None
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+            and not is_dict(value_type)
+        )
+
+        if validation_error:
+            self._raise_invalid_value(value, value_type, target_type)
+
+    def _validate_non_optional(self, key: Any, value: Any) -> None:
+        from omegaconf import OmegaConf
 
         if OmegaConf.is_none(value):
             if key is not None:
@@ -175,64 +234,16 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
                         cause=ValidationError("field '$FULL_KEY' is not Optional"),
                     )
 
-        if value == "???":
-            return
-
-        target: Optional[Node]
-        if key is None:
-            target = self
-        else:
-            target = self._get_node(key)
-
-        if target is None:
-            return
-
-        def is_typed(c: Any) -> bool:
-            return isinstance(c, DictConfig) and c._metadata.ref_type not in (Any, dict)
-
-        if not is_typed(target):
-            return
-
-        # target must be optional by now. no need to check the type of value if None.
-        if value is None:
-            return
-
-        target_type = target._metadata.ref_type
-        value_type = OmegaConf.get_type(value)
-
-        if is_dict(value_type) and is_dict(target_type):
-            return
-
-        if (
-            is_assign
-            and is_container_annotation(target_type)
-            and not is_container_annotation(value_type)
-        ):
-            raise ValidationError(
-                f"Cannot assign {type_str(value_type)} to {type_str(target_type)}"
-            )
-
-        # TODO: simplify this flow. (if assign validate assign else validate merge)
-        # is assignment illegal?
-        validation_error = (
-            target_type is not None
-            and value_type is not None
-            and not issubclass(value_type, target_type)
+    def _raise_invalid_value(
+        self, value: Any, value_type: Any, target_type: Any
+    ) -> None:
+        assert value_type is not None
+        assert target_type is not None
+        msg = (
+            f"Invalid type assigned : {type_str(value_type)} is not a "
+            f"subclass of {type_str(target_type)}. value: {value}"
         )
-
-        if not is_assign:
-            # merge
-            # Merging of a dictionary is allowed even if assignment is illegal (merge would do deeper checks)
-            validation_error = not is_dict(value_type) and validation_error
-
-        if validation_error:
-            assert value_type is not None
-            assert target_type is not None
-            msg = (
-                f"Invalid type assigned : {type_str(value_type)} is not a "
-                f"subclass of {type_str(target_type)}. value: {value}"
-            )
-            raise ValidationError(msg)
+        raise ValidationError(msg)
 
     def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)

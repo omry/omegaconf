@@ -285,7 +285,7 @@ class BaseContainer(Container, ABC):
         if src._is_missing():
             dest._set_value("???")
             return
-        dest._validate_set_merge_impl(key=None, value=src, is_assign=False)
+        dest._validate_merge(key=None, value=src)
 
         def expand(node: Container) -> None:
             type_ = get_ref_type(node)
