@@ -473,20 +473,15 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     key_type: Any
     element_type: Any
     if ref_type is None or ref_type == Dict:
-        key_type = None
-        element_type = None
+        key_type = Any
+        element_type = Any
     else:
         if args is not None:
             key_type = args[0]
             element_type = args[1]
         else:
-            key_type = None
-            element_type = None
-
-    if not valid_value_annotation_type(element_type) and not is_structured_config(
-        element_type
-    ):
-        raise ValidationError(f"Unsupported value type : {element_type}")
+            key_type = Any
+            element_type = Any
 
     return key_type, element_type
 
@@ -496,7 +491,7 @@ def valid_value_annotation_type(type_: Any) -> bool:
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:
-    return type_ is Any or issubclass(type_, (str, Enum))
+    return type_ is None or type_ is Any or issubclass(type_, (str, Enum))
 
 
 def is_primitive_type(type_: Any) -> bool:

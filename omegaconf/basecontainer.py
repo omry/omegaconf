@@ -118,7 +118,6 @@ class BaseContainer(Container, ABC):
                 d["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
-
         self.__dict__.update(d)
 
     @abstractmethod

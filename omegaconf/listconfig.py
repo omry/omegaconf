@@ -59,7 +59,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             super().__init__(
                 parent=parent,
                 metadata=ContainerMetadata(
-                    ref_type=self._resolve_generic_ref_type(ref_type, element_type),
+                    ref_type=ref_type,
                     object_type=list,
                     key=key,
                     optional=is_optional,
@@ -77,16 +77,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._set_value(value=content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
-
-    def _resolve_generic_ref_type(
-        self, ref_type: Optional[Type[Any]], element_type: Optional[Type[Any]]
-    ) -> Optional[Type[Any]]:
-        if ref_type == List:
-            if element_type is None:
-                element_type = Any  # type: ignore
-            return List[element_type]  # type: ignore
-        else:
-            return ref_type
 
     def _validate_get(self, key: Any, value: Any = None) -> None:
         if not isinstance(key, (int, slice)):

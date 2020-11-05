@@ -2,7 +2,7 @@
 import re
 import sys
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pytest
 import yaml
@@ -202,10 +202,14 @@ def test_create_unmodified_loader() -> None:
 
 
 def test_create_generic_list() -> None:
+    from omegaconf._utils import get_ref_type
+
     cfg = ListConfig(ref_type=List, content=[])
-    assert cfg._metadata.ref_type == List[Any]
+    assert get_ref_type(cfg) == Optional[List[Any]]
 
 
 def test_create_generic_dict() -> None:
+    from omegaconf._utils import get_ref_type
+
     cfg = DictConfig(ref_type=Dict, content={})
-    assert cfg._metadata.ref_type == Dict[Union[str, Enum], Any]
+    assert get_ref_type(cfg) == Optional[Dict[Union[str, Enum], Any]]
