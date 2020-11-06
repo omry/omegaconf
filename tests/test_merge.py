@@ -489,20 +489,43 @@ def test_merge_allow_objects() -> None:
 
 
 @pytest.mark.parametrize(  # type:ignore
-    "dst, other, expected",
+    "dst, other, expected, node, check_missing",
     [
         (
             OmegaConf.structured(InterpolationList),
             OmegaConf.create({"list": [0.1]}),
             {"list": [0.1]},
+            "list",
+            False,
         ),
         (
             OmegaConf.structured(InterpolationDict),
             OmegaConf.create({"dict": {"a": 4}}),
             {"dict": {"a": 4}},
+            "dict",
+            False,
+        ),
+        (
+            OmegaConf.structured(InterpolationDict),
+            OmegaConf.structured(InterpolationDict),
+            None,
+            "dict",
+            True,
+        ),
+        (
+            OmegaConf.structured(InterpolationList),
+            OmegaConf.structured(InterpolationList),
+            None,
+            "list",
+            True,
         ),
     ],
 )
-def test_merge_with_interpolation(dst: Any, other: Any, expected: Any) -> None:
+def test_merge_with_interpolation(
+    dst: Any, other: Any, expected: Any, node: Any, check_missing: bool
+) -> None:
     res = OmegaConf.merge(dst, other)
-    assert res == expected
+    if check_missing:
+        OmegaConf.is_missing(res, node)
+    else:
+        assert res == expected

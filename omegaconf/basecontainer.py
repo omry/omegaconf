@@ -281,8 +281,11 @@ class BaseContainer(Container, ABC):
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
 
+        if src._is_interpolation():
+            dest._set_value(src._value())
+            return
         # if source DictConfig is missing set the DictConfig one to be missing too.
-        if src._is_missing():
+        if src._is_missing(throw_on_resolution_failure=False):
             dest._set_value("???")
             return
         dest._validate_merge(key=None, value=src)
@@ -387,12 +390,11 @@ class BaseContainer(Container, ABC):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                if self._is_none() or self._is_interpolation() or self._is_missing():
-                    self.__dict__["_content"] = []
-                else:
-                    self.__dict__["_content"].clear()
+                self.__dict__["_content"] = []
 
-                if other._is_missing():
+                if other._is_interpolation():
+                    self._set_value(other)
+                elif other._is_missing():
                     self._set_value("???")
                 elif other._is_none():
                     self._set_value(None)
@@ -575,9 +577,12 @@ class BaseContainer(Container, ABC):
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None
 
-    def _is_missing(self) -> bool:
+    def _is_missing(self, throw_on_resolution_failure: bool = True) -> bool:
         try:
-            self._dereference_node(throw_on_missing=True)
+            self._dereference_node(
+                throw_on_resolution_failure=throw_on_resolution_failure,
+                throw_on_missing=True,
+            )
             return False
         except MissingMandatoryValue:
             ret = True

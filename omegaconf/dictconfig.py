@@ -445,7 +445,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             self._format_and_raise(key=key, value=None, cause=e)
 
     def keys(self) -> Any:
-        if self._is_missing() or self._is_interpolation() or self._is_none():
+        if self._is_interpolation() or self._is_missing() or self._is_none():
             return list()
         return self.__dict__["_content"].keys()
 

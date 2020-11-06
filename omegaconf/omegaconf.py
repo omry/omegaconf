@@ -563,6 +563,8 @@ class OmegaConf:
         elif isinstance(c, DictConfig):
             if c._is_none():
                 return None
+            elif c._is_interpolation():
+                return None
             elif c._is_missing():
                 return None
             else:
