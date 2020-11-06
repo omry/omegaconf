@@ -23,6 +23,8 @@ from . import (
     ConfWithMissingDict,
     Group,
     IllegalType,
+    InterpolationDict,
+    InterpolationList,
     MissingDict,
     MissingList,
     Package,
@@ -484,3 +486,23 @@ def test_merge_allow_objects() -> None:
     cfg._set_flag("allow_objects", True)
     ret = OmegaConf.merge(cfg, {"foo": iv})
     assert ret == {"a": 10, "foo": iv}
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "dst, other, expected",
+    [
+        (
+            OmegaConf.structured(InterpolationList),
+            OmegaConf.create({"list": [0.1]}),
+            {"list": [0.1]},
+        ),
+        (
+            OmegaConf.structured(InterpolationDict),
+            OmegaConf.create({"dict": {"a": 4}}),
+            {"dict": {"a": 4}},
+        ),
+    ],
+)
+def test_merge_with_interpolation(dst: Any, other: Any, expected: Any) -> None:
+    res = OmegaConf.merge(dst, other)
+    assert res == expected

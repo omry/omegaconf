@@ -298,7 +298,7 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if dest._is_missing():
+        if dest._is_interpolation() or dest._is_missing():
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
@@ -387,7 +387,7 @@ class BaseContainer(Container, ABC):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                if self._is_none() or self._is_missing() or self._is_interpolation():
+                if self._is_none() or self._is_interpolation() or self._is_missing():
                     self.__dict__["_content"] = []
                 else:
                     self.__dict__["_content"].clear()
