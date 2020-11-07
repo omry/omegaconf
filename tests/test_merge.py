@@ -491,33 +491,37 @@ def test_merge_allow_objects() -> None:
 @pytest.mark.parametrize(  # type:ignore
     "dst, other, expected, node, check_missing",
     [
-        (
+        pytest.param(
             OmegaConf.structured(InterpolationList),
             OmegaConf.create({"list": [0.1]}),
             {"list": [0.1]},
             "list",
             False,
+            id="merge_interpolation_list_with_list",
         ),
-        (
+        pytest.param(
             OmegaConf.structured(InterpolationDict),
             OmegaConf.create({"dict": {"a": 4}}),
             {"dict": {"a": 4}},
             "dict",
             False,
+            id="merge_interpolation_dict_with_dict",
         ),
-        (
+        pytest.param(
             OmegaConf.structured(InterpolationDict),
             OmegaConf.structured(InterpolationDict),
             None,
             "dict",
             True,
+            id="merge_interpolation_dict_with_interpolation_dict",
         ),
-        (
+        pytest.param(
             OmegaConf.structured(InterpolationList),
             OmegaConf.structured(InterpolationList),
             None,
             "list",
             True,
+            id="merge_interpolation_list_with_interpolation_list",
         ),
     ],
 )

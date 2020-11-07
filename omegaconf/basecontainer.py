@@ -285,7 +285,7 @@ class BaseContainer(Container, ABC):
             dest._set_value(src._value())
             return
         # if source DictConfig is missing set the DictConfig one to be missing too.
-        if src._is_missing(throw_on_resolution_failure=False):
+        if src._is_missing():
             dest._set_value("???")
             return
         dest._validate_merge(key=None, value=src)
@@ -577,11 +577,10 @@ class BaseContainer(Container, ABC):
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None
 
-    def _is_missing(self, throw_on_resolution_failure: bool = True) -> bool:
+    def _is_missing(self) -> bool:
         try:
             self._dereference_node(
-                throw_on_resolution_failure=throw_on_resolution_failure,
-                throw_on_missing=True,
+                throw_on_resolution_failure=False, throw_on_missing=True
             )
             return False
         except MissingMandatoryValue:
