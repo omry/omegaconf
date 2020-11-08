@@ -504,6 +504,16 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return False
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        try:
+            previous_content = self.__dict__["_content"]
+            self._set_value_impl(value, flags)
+        except Exception as e:
+            self.__dict__["_content"] = previous_content
+            raise e
+
+    def _set_value_impl(
+        self, value: Any, flags: Optional[Dict[str, bool]] = None
+    ) -> None:
         from omegaconf import OmegaConf, flag_override
 
         if flags is None:
