@@ -393,7 +393,7 @@ class BaseContainer(Container, ABC):
                 self.__dict__["_content"] = []
 
                 if other._is_interpolation():
-                    self._set_value(other)
+                    self._set_value(other._value())
                 elif other._is_missing():
                     self._set_value("???")
                 elif other._is_none():
