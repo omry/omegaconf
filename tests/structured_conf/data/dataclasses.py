@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
-from omegaconf import II, MISSING, SI, ListConfig
+from omegaconf import II, MISSING, SI
 from tests import Color
 
 # skip test if dataclasses are not available
@@ -508,7 +508,7 @@ class UntypedDict:
 
 @dataclass
 class Book:
-    author: Union[str, ListConfig] = "dude"
+    author: Union[str, List[str]] = "dude"
 
 
 @dataclass
@@ -519,8 +519,3 @@ class Shelf:
 @dataclass
 class Shelf2:
     content: Union[Book, List[Book]] = Book()
-
-
-@dataclass
-class Shelf3:
-    content: Union[Book, Dict[str, Book]] = Book()

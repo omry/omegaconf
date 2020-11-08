@@ -176,7 +176,7 @@ class UnionNode(ValueNode):
         self.element_types = element_types
         super().__init__(
             parent=parent,
-            value=self._wrap_node(value, key, is_optional, parent),
+            value=value,
             metadata=Metadata(
                 key=key,
                 optional=is_optional,
@@ -186,30 +186,52 @@ class UnionNode(ValueNode):
         )
 
     def _wrap_node(
-        self, value: Any, key: Any, is_optional: bool, parent: Optional[Container]
+        self,
+        value: Any,
+        key: Any = None,
+        is_optional: bool = True,
+        parent: Optional[Container] = None,
+        ref_type: Any = None,
+        use_type: bool = False,
     ) -> Optional[Node]:
         from omegaconf.omegaconf import _maybe_wrap
+
+        if ref_type is None:
+            type_ = type(value)
+        else:
+            type_ = ref_type
 
         if value is None:
             return None
         else:
             return _maybe_wrap(
-                ref_type=type(value),
+                ref_type=type_,
                 key=key,
                 value=value,
                 is_optional=is_optional,
                 parent=parent,  # type: ignore
+                use_type=use_type,
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
-        from omegaconf._utils import validate_value_in_union_annotation
-
         if value is None:
             return None
-        if not validate_value_in_union_annotation(value, self.element_types):
-            msg = f"invalid value {value} should be {self.element_types}"
-            raise ValidationError(msg)
-        return value
+        value_node = None
+        valid_value = False
+        for union_type in self.element_types:
+            try:
+                value_node = self._wrap_node(
+                    value=value, ref_type=union_type, use_type=True
+                )
+                valid_value = True
+                break
+            except Exception:
+                pass
+        if not valid_value:
+            raise ValidationError(
+                "Value '{}' type is not in '{}'".format(value, self.element_types)
+            )
+        return value_node
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, AnyNode):

@@ -568,6 +568,8 @@ def test_allow_objects() -> None:
     iv = IllegalType()
     c.foo = iv
     assert c.foo == iv
+
+
 @pytest.mark.parametrize(  # type: ignore
     "node, value, expected",
     [
@@ -575,18 +577,20 @@ def test_allow_objects() -> None:
         (UnionNode(element_types=[int, str], value="str"), "str", "str"),
         (UnionNode(element_types=[int, str]), "str", "str"),
         (UnionNode(element_types=[int, str]), None, None),
-        (UnionNode(element_types=[DictConfig, str]), {"a": 1}, {"a": 1}),
-        (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
-        (UnionNode(element_types=[ListConfig, int]), [1, 2], [1, 2]),
+        (
+            UnionNode(element_types=[DictConfig, str]),
+            DictConfig({"a": 1}),
+            DictConfig({"a": 1}),
+        ),
+        (
+            UnionNode(element_types=[ListConfig, int]),
+            ListConfig([1, 2]),
+            ListConfig([1, 2]),
+        ),
         (UnionNode(element_types=[List[int], int]), [1, 2], [1, 2]),
         (UnionNode(element_types=[List[bool], bool]), [True, False], [True, False]),
         (UnionNode(element_types=[List[float], float]), [3.14, 9.67], [3.14, 9.67]),
         (UnionNode(element_types=[List[str], str]), ["foo", "foo2"], ["foo", "foo2"]),
-        (
-            UnionNode(element_types=[List[Dict[str, int]], str]),
-            [{"nested2": 2}, {"nested": 1}],
-            [{"nested2": 2}, {"nested": 1}],
-        ),
         (
             UnionNode(element_types=[List[User], str]),
             [User(name="user1", age=21), User(name="user2", age=45)],
@@ -613,21 +617,6 @@ def test_allow_objects() -> None:
             {"foo": 3.14},
             {"foo": 3.14},
         ),
-        (
-            UnionNode(element_types=[Dict[str, List[int]], float]),
-            {"foo": [1, 2]},
-            {"foo": [1, 2]},
-        ),
-        (
-            UnionNode(element_types=[Dict[str, List[User]], float]),
-            3.14,
-            3.14,
-        ),
-        (
-            UnionNode(element_types=[Dict[str, List[User]], float]),
-            {"foo": [User(), User()]},
-            {"foo": [User(), User()]},
-        ),
     ],
 )
 def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:
@@ -639,30 +628,18 @@ def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> N
 @pytest.mark.parametrize(  # type: ignore
     "node, value",
     [
-        (UnionNode(element_types=[int, str], value="str"), False),
+        (UnionNode(element_types=[int, str], value="str"), User()),
+        (UnionNode(element_types=[int, ListConfig]), [1, 2]),
         (UnionNode(element_types=[int, ListConfig]), {"foo": "var"}),
+        (UnionNode(element_types=[int, DictConfig]), {"foo": "var"}),
         (UnionNode(element_types=[int, DictConfig]), [1, 2]),
-        (UnionNode(element_types=[DictConfig, str]), 3),
         (
             UnionNode(element_types=[Dict[str, List[int]], float]),
             {"foo": [1, "invalid_value"]},
         ),
-        (UnionNode(element_types=[DictConfig, str]), 3),
-        (
-            UnionNode(element_types=[List[Dict[str, int]], str]),
-            [{"nested2": 2}, {"nested": "invalid_value"}],
-        ),
-        (
-            UnionNode(element_types=[List[Dict[str, int]], str]),
-            [{"nested2": 2}, {"nested": User()}],
-        ),
         (
             UnionNode(element_types=[Dict[str, List[int]], float]),
             {"foo": [1, User()]},
-        ),
-        (
-            UnionNode(element_types=[Dict[str, List[User]], str]),
-            {1: [User(), User()]},
         ),
     ],
 )

@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf, flag_override
+from omegaconf import AnyNode, ListConfig, OmegaConf, UnionNode, flag_override
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -15,7 +15,7 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import IntegerNode, StringNode
 
-from . import Color, IllegalType, User, does_not_raise
+from . import Color, IllegalType, ListUnion, User, does_not_raise
 
 
 def test_list_value() -> None:
@@ -598,3 +598,23 @@ def test_getattr() -> None:
     assert getattr(cfg, "0") == src[0]
     assert getattr(cfg, "1") == src[1]
     assert getattr(cfg, "2") == src[2]
+
+
+def test_set_valid_union_value() -> None:
+    cfg = OmegaConf.structured(ListUnion)
+    cfg.list = [4, True]
+    assert isinstance(cfg.list._get_node(0), UnionNode)  # type: ignore
+    assert cfg.list == [4, True]
+    assert isinstance(cfg.list._get_node(0), UnionNode)  # type: ignore
+    assert isinstance(cfg.list._get_node(1), UnionNode)  # type: ignore
+    assert cfg.list[0] == 4
+    assert cfg.list[1] is True
+
+
+def test_set_invalid_union_value() -> None:
+    cfg = OmegaConf.structured(ListUnion)
+    with pytest.raises(ValidationError):
+        cfg.list = [1, True, "foo"]
+    assert cfg == OmegaConf.structured(ListUnion)
+    assert isinstance(cfg.list._get_node(0), UnionNode)  # type: ignore
+    assert cfg.list[0] == 1

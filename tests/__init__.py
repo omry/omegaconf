@@ -175,3 +175,13 @@ class InterpolationDict:
 
 class UnionClass:
     foo: Union[str, int] = 1
+
+
+@dataclass
+class DictUnion:
+    dict: Dict[str, Union[int, bool]] = field(default_factory=lambda: {"a": 1})
+
+
+@dataclass
+class ListUnion:
+    list: List[Union[int, bool]] = field(default_factory=lambda: [1])

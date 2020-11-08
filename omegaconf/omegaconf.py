@@ -761,14 +761,14 @@ def _node_wrap(
     value: Any,
     key: Any,
     ref_type: Any = None,
+    use_type: bool = False,
 ) -> Node:
     node: Node
-    is_dict = type(value) is dict or is_dict_annotation(type_)
-    is_list = (
-        type(value) in (list, tuple)
-        or is_list_annotation(type_)
-        or is_tuple_annotation(type_)
-    )
+    is_dict = is_dict_annotation(type_)
+    is_list = is_list_annotation(type_) or is_tuple_annotation(type_)
+    if not use_type:
+        is_dict = is_dict or type(value) is dict
+        is_list = is_list or type(value) in (list, tuple)
     if is_dict:
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
@@ -843,6 +843,7 @@ def _maybe_wrap(
     value: Any,
     is_optional: bool,
     parent: Optional[BaseContainer],
+    use_type: bool = False,
 ) -> Node:
     # if already a node, update key and parent and return as is.
     # NOTE: that this mutate the input node!
@@ -858,6 +859,7 @@ def _maybe_wrap(
             value=value,
             key=key,
             ref_type=ref_type,
+            use_type=use_type,
         )
 
 

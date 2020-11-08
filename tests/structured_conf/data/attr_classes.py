@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import attr
 import pytest
 
-from omegaconf import II, MISSING, SI, ListConfig
+from omegaconf import II, MISSING, SI
 from tests import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
@@ -491,7 +491,7 @@ class UntypedDict:
 
 @attr.s(auto_attribs=True)
 class Book:
-    author: Union[str, ListConfig] = "dude"
+    author: Union[str, List[str]] = "dude"
 
 
 @attr.s(auto_attribs=True)
@@ -502,8 +502,3 @@ class Shelf:
 @attr.s(auto_attribs=True)
 class Shelf2:
     content: Union[Book, List[Book]] = Book()
-
-
-@attr.s(auto_attribs=True)
-class Shelf3:
-    content: Union[Book, Dict[str, Book]] = Book()
