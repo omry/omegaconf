@@ -769,6 +769,7 @@ class TestConfigs:
             cfg.list = value
         with pytest.raises(ValidationError):
             cfg.tuple = value
+        assert cfg == OmegaConf.structured(module.ListClass)
 
     @pytest.mark.parametrize(  # type: ignore
         "value",
