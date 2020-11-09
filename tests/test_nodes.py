@@ -576,7 +576,7 @@ def test_allow_objects() -> None:
         (UnionNode(ref_type=Union[int, str], element_types=[int, str], value=1), 1, 1),
         (UnionNode(element_types=[int, str], value="str"), "str", "str"),
         (UnionNode(element_types=[int, str]), "str", "str"),
-        (UnionNode(element_types=[int, str]), None, None),
+        (UnionNode(element_types=[int, str, type(None)]), None, None),
         (
             UnionNode(element_types=[DictConfig, str]),
             DictConfig({"a": 1}),
@@ -617,6 +617,11 @@ def test_allow_objects() -> None:
             {"foo": 3.14},
             {"foo": 3.14},
         ),
+        (
+            UnionNode(element_types=[bool, float], is_optional=True),
+            None,
+            None,
+        ),
     ],
 )
 def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:
@@ -633,6 +638,7 @@ def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> N
         (UnionNode(element_types=[int, ListConfig]), {"foo": "var"}),
         (UnionNode(element_types=[int, DictConfig]), {"foo": "var"}),
         (UnionNode(element_types=[int, DictConfig]), [1, 2]),
+        (UnionNode(element_types=[int, str], is_optional=False, value="foo"), None),
         (
             UnionNode(element_types=[Dict[str, List[int]], float]),
             {"foo": [1, "invalid_value"]},

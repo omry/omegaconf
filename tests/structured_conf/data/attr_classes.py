@@ -502,3 +502,8 @@ class Shelf:
 @attr.s(auto_attribs=True)
 class Shelf2:
     content: Union[Book, List[Book]] = Book()
+
+
+@attr.s(auto_attribs=True)
+class OptionalBook:
+    author: Optional[Union[str, int]] = "author"

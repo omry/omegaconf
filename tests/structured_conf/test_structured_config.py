@@ -1078,3 +1078,23 @@ class TestDictSubclass:
         value = module.Book()
         with pytest.raises(ValidationError):
             cfg.author = value
+
+    def test_optional_union_create(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        OmegaConf.structured(module.OptionalBook(author=None))
+
+    def test_non_optional_union_create(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        with pytest.raises(ValidationError):
+            OmegaConf.structured(module.Book(author=None))
+
+    def test_optional_union_set_none(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.OptionalBook)
+        cfg.author = None
+
+    def test_non_optional_union_set_none(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.Book)
+        with pytest.raises(ValidationError):
+            cfg.author = None

@@ -792,6 +792,11 @@ def _node_wrap(
         )
     elif _is_union(type_):
         element_types = get_union_types(type_)
+        if type(None) in element_types:
+            is_optional = True
+            element_types.pop()
+        else:
+            is_optional = False
         node = UnionNode(
             ref_type=type_,
             element_types=element_types,

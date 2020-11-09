@@ -214,8 +214,6 @@ class UnionNode(ValueNode):
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
-        if value is None:
-            return None
         value_node = None
         valid_value = False
         for union_type in self.element_types:
@@ -234,10 +232,10 @@ class UnionNode(ValueNode):
         return value_node
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, AnyNode):
-            return self._value() == other._value()  # type: ignore
-        else:
+        if isinstance(other, ValueNode):
             return self._value()._value() == other  # type: ignore
+        else:
+            return self._value() == other  # type: ignore
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

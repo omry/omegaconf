@@ -519,3 +519,8 @@ class Shelf:
 @dataclass
 class Shelf2:
     content: Union[Book, List[Book]] = Book()
+
+
+@dataclass
+class OptionalBook:
+    author: Optional[Union[str, List[str]]] = "foo"
