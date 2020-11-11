@@ -154,3 +154,13 @@ class SubscriptedList:
 @dataclass
 class SubscriptedDict:
     dict: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
+
+
+@dataclass
+class InterpolationList:
+    list: List[float] = II("optimization.lr")
+
+
+@dataclass
+class InterpolationDict:
+    dict: Dict[str, int] = II("optimization.lr")
