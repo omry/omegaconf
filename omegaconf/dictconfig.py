@@ -555,8 +555,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         try:
-            # shallow copy of content
-            previous_content = copy.copy(self.__dict__["_content"])
+            previous_content = self.__dict__["_content"]
             self._set_value_impl(value, flags)
         except Exception as e:
             self.__dict__["_content"] = previous_content
