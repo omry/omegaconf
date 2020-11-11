@@ -1,3 +1,11 @@
+## 2.0.5 (2020-11-11)
+
+
+### Bug Fixes
+
+- Fix bug where interpolations were unnecessarily resolved during merge ([#431](https://github.com/omry/omegaconf/issues/431))
+
+
 ## 2.0.4 (2020-11-03)
 
 
