@@ -22,6 +22,8 @@ from . import (
     ConcretePlugin,
     ConfWithMissingDict,
     Group,
+    InterpolationDict,
+    InterpolationList,
     MissingDict,
     MissingList,
     Package,
@@ -472,3 +474,51 @@ def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
     c = OmegaConf.create()
     with pytest.raises(ValueError):
         c.merge_with_dotlist(dotlist)
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "dst, other, expected, node",
+    [
+        pytest.param(
+            OmegaConf.structured(InterpolationList),
+            OmegaConf.create({"list": [0.1]}),
+            {"list": [0.1]},
+            "list",
+            id="merge_interpolation_list_with_list",
+        ),
+        pytest.param(
+            OmegaConf.structured(InterpolationDict),
+            OmegaConf.create({"dict": {"a": 4}}),
+            {"dict": {"a": 4}},
+            "dict",
+            id="merge_interpolation_dict_with_dict",
+        ),
+    ],
+)
+def test_merge_with_src_as_interpolation(
+    dst: Any, other: Any, expected: Any, node: Any
+) -> None:
+    res = OmegaConf.merge(dst, other)
+    assert res == expected
+
+
+@pytest.mark.parametrize(  # type:ignore
+    "dst, other, node",
+    [
+        pytest.param(
+            OmegaConf.structured(InterpolationDict),
+            OmegaConf.structured(InterpolationDict),
+            "dict",
+            id="merge_interpolation_dict_with_interpolation_dict",
+        ),
+        pytest.param(
+            OmegaConf.structured(InterpolationList),
+            OmegaConf.structured(InterpolationList),
+            "list",
+            id="merge_interpolation_list_with_interpolation_list",
+        ),
+    ],
+)
+def test_merge_with_other_as_interpolation(dst: Any, other: Any, node: Any) -> None:
+    res = OmegaConf.merge(dst, other)
+    assert OmegaConf.is_interpolation(res, node)
