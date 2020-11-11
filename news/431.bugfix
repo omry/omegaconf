@@ -1,0 +1,1 @@
+Fix bug where interpolations were unnecessarily resolved during merge
