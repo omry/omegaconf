@@ -196,15 +196,11 @@ class UnionNode(ValueNode):
     ) -> Optional[Node]:
         from omegaconf.omegaconf import _maybe_wrap
 
-        if ref_type is None:
-            type_ = type(value)
-        else:
-            type_ = ref_type
         if value is None:
             return None
         else:
             return _maybe_wrap(
-                ref_type=type_,
+                ref_type=ref_type,
                 key=key,
                 value=value,
                 is_optional=is_optional,
