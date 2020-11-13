@@ -200,7 +200,6 @@ class UnionNode(ValueNode):
             type_ = type(value)
         else:
             type_ = ref_type
-
         if value is None:
             return None
         else:
@@ -214,8 +213,21 @@ class UnionNode(ValueNode):
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
+        from omegaconf._utils import is_structured_config
+        from omegaconf.basecontainer import BaseContainer
+
         value_node = None
         valid_value = False
+        value_type = type(value)
+        if isinstance(value, BaseContainer) and is_structured_config(
+            value._metadata.ref_type
+        ):
+            if value._metadata.ref_type in self.element_types:
+                return value
+            else:
+                self._raise_invalid_value(value)
+        if value_type in self.element_types:
+            self._bring_type_to_front(value_type)
         for union_type in self.element_types:
             try:
                 value_node = self._wrap_node(
@@ -226,10 +238,18 @@ class UnionNode(ValueNode):
             except Exception:
                 pass
         if not valid_value:
-            raise ValidationError(
-                "Value '{}' type is not in '{}'".format(value, self.element_types)
-            )
+            self._raise_invalid_value(value)
         return value_node
+
+    def _raise_invalid_value(self, value: Any) -> None:
+        raise ValidationError(
+            "Value '{}' type is not in '{}'".format(value, self.element_types)
+        )
+
+    def _bring_type_to_front(self, type_: Any) -> None:
+        self.element_types.insert(
+            0, self.element_types.pop(self.element_types.index(type_))
+        )
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
