@@ -90,6 +90,8 @@ class BaseContainer(Container, ABC):
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
+        from omegaconf._utils import _is_union, get_union_types
+
         dict_copy = copy.copy(self.__dict__)
         dict_copy["_metadata"] = copy.copy(dict_copy["_metadata"])
         ref_type = self._metadata.ref_type
@@ -100,6 +102,10 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
+        element_type = self._metadata.element_type
+        if _is_union(element_type):
+            element_types = get_union_types(element_type)
+            dict_copy["_metadata"].element_type = element_types
         return dict_copy
 
     # Support pickle
@@ -118,6 +124,13 @@ class BaseContainer(Container, ABC):
                 d["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
+
+        if isinstance(element_type, list):
+            union = Union[element_type[0]]  # type: ignore
+            for type_ in element_type:
+                union = Union[union, type_]  # type: ignore
+            d["_metadata"].element_type = union
+
         self.__dict__.update(d)
 
     @abstractmethod
