@@ -211,7 +211,6 @@ def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
     assert d["x"] == IllegalType()
 
 
-@pytest.fixture  # type: ignore
 def test_is_dataclass(mocker: Any) -> None:
     @dataclass
     class Foo:

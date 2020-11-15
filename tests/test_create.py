@@ -201,14 +201,14 @@ def test_create_unmodified_loader() -> None:
     assert yaml_cfg["gitrev"] == "100e100"
 
 
-def test_create_generic_list() -> None:
+def test_create_untyped_list() -> None:
     from omegaconf._utils import get_ref_type
 
     cfg = ListConfig(ref_type=List, content=[])
     assert get_ref_type(cfg) == Optional[List[Any]]
 
 
-def test_create_generic_dict() -> None:
+def test_create_untyped_dict() -> None:
     from omegaconf._utils import get_ref_type
 
     cfg = DictConfig(ref_type=Dict, content={})
