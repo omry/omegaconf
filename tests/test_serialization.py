@@ -15,14 +15,14 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
 from . import (
-    GenericDict,
-    GenericList,
-    OptGenericDict,
-    OptGenericList,
+    OptUntypedDict,
+    OptUntypedList,
     PersonA,
     PersonD,
     SubscriptedDict,
     SubscriptedList,
+    UntypedDict,
+    UntypedList,
 )
 
 
@@ -128,29 +128,26 @@ def test_save_illegal_type() -> None:
         OmegaConf.save(OmegaConf.create(), 1000)  # type: ignore
 
 
-def test_pickle_dict() -> None:
+@pytest.mark.parametrize(  # type: ignore
+    "obj,ref_type",
+    [
+        ({"a": "b"}, Dict[Union[str, Enum], Any]),
+        ([1, 2, 3], List[Any]),
+    ],
+)
+def test_pickle(obj: Any, ref_type: Any) -> None:
     with tempfile.TemporaryFile() as fp:
-        c = OmegaConf.create({"a": "b"})
+        c = OmegaConf.create(obj)
         pickle.dump(c, fp)
         fp.flush()
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
-        assert get_ref_type(c1) == Optional[Dict[Union[str, Enum], Any]]
-        assert c1._get_node("a")._metadata.optional is True
-
-
-def test_pickle_list() -> None:
-    with tempfile.TemporaryFile() as fp:
-        c = OmegaConf.create([1, 2, 3])
-        pickle.dump(c, fp)
-        fp.flush()
-        fp.seek(0)
-        c1 = pickle.load(fp)
-        assert c == c1
-        assert get_ref_type(c1) == Optional[List[Any]]
+        assert get_ref_type(c1) == Optional[ref_type]
         assert c1._metadata.element_type is Any
         assert c1._metadata.optional is True
+        if isinstance(c, DictConfig):
+            assert c1._metadata.key_type is Any
 
 
 def test_load_duplicate_keys_top() -> None:
@@ -206,11 +203,11 @@ def test_load_empty_file(tmpdir: str) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "input_,node,element_type,key_type,optional,ref_type",
     [
-        (GenericList, "list", Any, Any, False, List[Any]),
-        (OptGenericList, "opt_list", Any, Any, True, Optional[List[Any]]),
-        (GenericDict, "dict", Any, Any, False, Dict[Union[str, Enum], Any]),
+        (UntypedList, "list", Any, Any, False, List[Any]),
+        (OptUntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
+        (UntypedDict, "dict", Any, Any, False, Dict[Union[str, Enum], Any]),
         (
-            OptGenericDict,
+            OptUntypedDict,
             "opt_dict",
             Any,
             Any,
@@ -242,7 +239,7 @@ def test_load_empty_file(tmpdir: str) -> None:
         ),
     ],
 )
-def test_pickle_generic(
+def test_pickle_untyped(
     input_: Any,
     node: str,
     optional: bool,

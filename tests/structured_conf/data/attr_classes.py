@@ -66,7 +66,6 @@ class AnyTypeConfig:
 
 @attr.s(auto_attribs=True)
 class BoolConfig:
-
     # with default value
     with_default: bool = True
 
@@ -82,7 +81,6 @@ class BoolConfig:
 
 @attr.s(auto_attribs=True)
 class IntegersConfig:
-
     # with default value
     with_default: int = 10
 
@@ -98,7 +96,6 @@ class IntegersConfig:
 
 @attr.s(auto_attribs=True)
 class StringConfig:
-
     # with default value
     with_default: str = "foo"
 
@@ -114,7 +111,6 @@ class StringConfig:
 
 @attr.s(auto_attribs=True)
 class FloatConfig:
-
     # with default value
     with_default: float = 0.10
 
@@ -130,7 +126,6 @@ class FloatConfig:
 
 @attr.s(auto_attribs=True)
 class EnumConfig:
-
     # with default value
     with_default: Color = Color.BLUE
 
@@ -488,12 +483,12 @@ class ListClass:
 
 
 @attr.s(auto_attribs=True)
-class GenericList:
+class UntypedList:
     list: List = [1, 2]  # type: ignore
     opt_list: Optional[List] = None  # type: ignore
 
 
 @attr.s(auto_attribs=True)
-class GenericDict:
+class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
