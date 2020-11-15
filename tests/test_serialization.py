@@ -15,8 +15,6 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
 from . import (
-    OptUntypedDict,
-    OptUntypedList,
     PersonA,
     PersonD,
     SubscriptedDict,
@@ -204,10 +202,10 @@ def test_load_empty_file(tmpdir: str) -> None:
     "input_,node,element_type,key_type,optional,ref_type",
     [
         (UntypedList, "list", Any, Any, False, List[Any]),
-        (OptUntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
+        (UntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
         (UntypedDict, "dict", Any, Any, False, Dict[Union[str, Enum], Any]),
         (
-            OptUntypedDict,
+            UntypedDict,
             "opt_dict",
             Any,
             Any,
