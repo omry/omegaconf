@@ -815,10 +815,11 @@ class TestConfigs:
     def test_create_generic_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.GenericDict)
-        assert _utils.get_ref_type(cfg, "dict") == Dict[Union[str, Enum], Any]
+        dt = Dict[Union[str, Enum], Any]
+        assert _utils.get_ref_type(cfg, "dict") == dt
         assert (
             _utils.get_ref_type(cfg, "opt_dict")
-            == Optional[Dict[Union[str, Enum], Any]]
+            == Optional[dt]
         )
         assert cfg.dict == {"foo": "var"}
         assert cfg.opt_dict is None
