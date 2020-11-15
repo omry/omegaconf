@@ -180,9 +180,9 @@ class UnionClass:
 
 @dataclass
 class DictUnion:
-    dict: Dict[str, Union[int, bool]] = field(default_factory=lambda: {"a": 1})
+    dict: Dict[str, Union[int, float]] = field(default_factory=lambda: {"a": 1})
 
 
 @dataclass
 class ListUnion:
-    list: List[Union[int, bool]] = field(default_factory=lambda: [1])
+    list: List[Union[int, float]] = field(default_factory=lambda: [1])

@@ -553,20 +553,22 @@ def test_merge_union_node_with_valid_value(obj: Any, expected: Any) -> None:
     [
         (OmegaConf.structured(UnionClass), {"foo": User()}),
         (
-            DictConfig(
-                ref_type=Dict[str, Union[int, bool]],
-                element_type=Union[int, bool],
-                key_type=str,
-                content={"foo": True},
+            OmegaConf.create(
+                DictConfig(
+                    ref_type=Dict[str, Union[int, float]],
+                    element_type=Union[int, float],
+                    key_type=str,
+                    content={"foo": 3.1415},
+                )
             ),
             {"foo": User()},
         ),
         (
             DictConfig(
-                ref_type=Dict[str, Union[int, bool]],
-                element_type=Union[int, bool],
+                ref_type=Dict[str, Union[int, float]],
+                element_type=Union[int, float],
                 key_type=str,
-                content={"foo": True},
+                content={"foo": 3.1415},
             ),
             {"foo": "var"},
         ),

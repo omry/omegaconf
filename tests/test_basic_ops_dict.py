@@ -739,13 +739,13 @@ def test_setdefault() -> None:
 
 def test_set_valid_union_value() -> None:
     cfg = OmegaConf.structured(DictUnion)
-    cfg.dict = {"a": 4, "b": True}
+    cfg.dict = {"a": 4, "b": 3.14}
     assert isinstance(cfg.dict._get_node("a"), UnionNode)  # type: ignore
-    assert cfg.dict == {"a": 4, "b": True}
+    assert cfg.dict == {"a": 4, "b": 3.14}
     assert isinstance(cfg.dict._get_node("a"), UnionNode)  # type: ignore
     assert isinstance(cfg.dict._get_node("b"), UnionNode)  # type: ignore
     assert cfg.dict.a == 4  # type: ignore
-    assert cfg.dict.b is True  # type: ignore
+    assert cfg.dict.b == 3.14  # type: ignore
 
 
 def test_set_invalid_union_value() -> None:
