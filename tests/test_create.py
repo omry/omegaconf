@@ -1,7 +1,8 @@
 """Testing for OmegaConf"""
 import re
 import sys
-from typing import Any, Dict, List
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 import pytest
 import yaml
@@ -198,3 +199,17 @@ def test_create_unmodified_loader() -> None:
     yaml_cfg = yaml.load("gitrev: 100e100", Loader=yaml.loader.SafeLoader)
     assert cfg.gitrev == 1e102
     assert yaml_cfg["gitrev"] == "100e100"
+
+
+def test_create_untyped_list() -> None:
+    from omegaconf._utils import get_ref_type
+
+    cfg = ListConfig(ref_type=List, content=[])
+    assert get_ref_type(cfg) == Optional[List[Any]]
+
+
+def test_create_untyped_dict() -> None:
+    from omegaconf._utils import get_ref_type
+
+    cfg = DictConfig(ref_type=Dict, content={})
+    assert get_ref_type(cfg) == Optional[Dict[Union[str, Enum], Any]]

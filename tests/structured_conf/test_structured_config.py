@@ -1,5 +1,6 @@
+from enum import Enum
 from importlib import import_module
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pytest
 
@@ -810,6 +811,23 @@ class TestConfigs:
         o = rl(d=[rl(), rl()])
         cfg = OmegaConf.structured(o)
         assert cfg == {"d": [{"d": "???"}, {"d": "???"}]}
+
+    def test_create_untyped_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UntypedDict)
+        dt = Dict[Union[str, Enum], Any]
+        assert _utils.get_ref_type(cfg, "dict") == dt
+        assert _utils.get_ref_type(cfg, "opt_dict") == Optional[dt]
+        assert cfg.dict == {"foo": "var"}
+        assert cfg.opt_dict is None
+
+    def test_create_untyped_list(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UntypedList)
+        assert _utils.get_ref_type(cfg, "list") == List[Any]
+        assert _utils.get_ref_type(cfg, "opt_list") == Optional[List[Any]]
+        assert cfg.list == [1, 2]
+        assert cfg.opt_list is None
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:

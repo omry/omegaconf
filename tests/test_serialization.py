@@ -4,16 +4,24 @@ import os
 import pathlib
 import pickle
 import tempfile
+from enum import Enum
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 import pytest
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
-from . import PersonA, PersonD, SubscriptedDict, SubscriptedList
+from . import (
+    PersonA,
+    PersonD,
+    SubscriptedDict,
+    SubscriptedList,
+    UntypedDict,
+    UntypedList,
+)
 
 
 def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
@@ -118,24 +126,26 @@ def test_save_illegal_type() -> None:
         OmegaConf.save(OmegaConf.create(), 1000)  # type: ignore
 
 
-def test_pickle_dict() -> None:
+@pytest.mark.parametrize(  # type: ignore
+    "obj,ref_type",
+    [
+        ({"a": "b"}, Dict[Union[str, Enum], Any]),
+        ([1, 2, 3], List[Any]),
+    ],
+)
+def test_pickle(obj: Any, ref_type: Any) -> None:
     with tempfile.TemporaryFile() as fp:
-        c = OmegaConf.create({"a": "b"})
+        c = OmegaConf.create(obj)
         pickle.dump(c, fp)
         fp.flush()
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
-
-
-def test_pickle_list() -> None:
-    with tempfile.TemporaryFile() as fp:
-        c = OmegaConf.create([1, 2, 3])
-        pickle.dump(c, fp)
-        fp.flush()
-        fp.seek(0)
-        c1 = pickle.load(fp)
-        assert c == c1
+        assert get_ref_type(c1) == Optional[ref_type]
+        assert c1._metadata.element_type is Any
+        assert c1._metadata.optional is True
+        if isinstance(c, DictConfig):
+            assert c1._metadata.key_type is Any
 
 
 def test_load_duplicate_keys_top() -> None:
@@ -189,15 +199,47 @@ def test_load_empty_file(tmpdir: str) -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "input_,key,element_type,key_type,optional,ref_type",
+    "input_,node,element_type,key_type,optional,ref_type",
     [
+        (UntypedList, "list", Any, Any, False, List[Any]),
+        (UntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
+        (UntypedDict, "dict", Any, Any, False, Dict[Union[str, Enum], Any]),
+        (
+            UntypedDict,
+            "opt_dict",
+            Any,
+            Any,
+            True,
+            Optional[Dict[Union[str, Enum], Any]],
+        ),
         (SubscriptedDict, "dict", int, str, False, Dict[str, int]),
-        (SubscriptedList, "list", int, None, False, List[int]),
+        (SubscriptedList, "list", int, Any, False, List[int]),
+        (
+            DictConfig(
+                content={"a": "foo"},
+                ref_type=Dict[str, str],
+                element_type=str,
+                key_type=str,
+            ),
+            None,
+            str,
+            str,
+            True,
+            Optional[Dict[str, str]],
+        ),
+        (
+            ListConfig(content=[1, 2], ref_type=List[int], element_type=int),
+            None,
+            int,
+            Any,
+            True,
+            Optional[List[int]],
+        ),
     ],
 )
-def test_pickle_generic(
+def test_pickle_untyped(
     input_: Any,
-    key: str,
+    node: str,
     optional: bool,
     element_type: Any,
     key_type: Any,
@@ -218,10 +260,9 @@ def test_pickle_generic(
             else:
                 return cfg._get_node(key)
 
-        node = get_node(cfg2, key)
         assert cfg == cfg2
-        assert get_ref_type(node) == ref_type
-        assert node._metadata.element_type == element_type
-        assert node._metadata.optional == optional
+        assert get_ref_type(get_node(cfg2, node)) == ref_type
+        assert get_node(cfg2, node)._metadata.element_type == element_type
+        assert get_node(cfg2, node)._metadata.optional == optional
         if isinstance(input_, DictConfig):
-            assert node._metadata.key_type == key_type
+            assert get_node(cfg2, node)._metadata.key_type == key_type

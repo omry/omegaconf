@@ -472,7 +472,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
 
     key_type: Any
     element_type: Any
-    if ref_type is None:
+    if ref_type is None or ref_type == Dict:
         key_type = Any
         element_type = Any
     else:
@@ -491,7 +491,7 @@ def valid_value_annotation_type(type_: Any) -> bool:
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:
-    return type_ is Any or issubclass(type_, (str, Enum))
+    return type_ is None or type_ is Any or issubclass(type_, (str, Enum))
 
 
 def is_primitive_type(type_: Any) -> bool:

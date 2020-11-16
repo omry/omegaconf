@@ -147,8 +147,20 @@ class Package:
 
 
 @dataclass
+class UntypedList:
+    list: List = field(default_factory=lambda: [1, 2])  # type: ignore
+    opt_list: Optional[List] = None  # type: ignore
+
+
+@dataclass
 class SubscriptedList:
     list: List[int] = field(default_factory=lambda: [1, 2])
+
+
+@dataclass
+class UntypedDict:
+    dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
+    opt_dict: Optional[Dict] = None  # type: ignore
 
 
 @dataclass

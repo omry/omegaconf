@@ -258,6 +258,7 @@ class OmegaConf:
                     element_type = get_list_element_type(ref_type)
                     return ListConfig(
                         element_type=element_type,
+                        ref_type=ref_type,
                         content=obj,
                         parent=parent,
                         flags=flags,
