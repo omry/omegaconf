@@ -487,7 +487,7 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
-    
+
 
 @attr.s(auto_attribs=True)
 class Book:
