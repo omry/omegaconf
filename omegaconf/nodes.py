@@ -268,6 +268,19 @@ class UnionNode(ValueNode):
     def __hash__(self) -> int:
         return hash(self._val)
 
+    def __getstate__(self) -> Dict[str, Any]:
+        node = copy.copy(self.__dict__)
+        node["_metadata"].ref_type = Union
+        return node
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        element_types = state["element_types"]
+        union = Union[element_types[0]]  # type: ignore
+        for element_type in element_types:
+            union = Union[union, element_type]  # type: ignore
+        state["_metadata"].ref_type = union
+        self.__dict__.update(state)
+
 
 class StringNode(ValueNode):
     def __init__(

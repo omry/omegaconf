@@ -15,13 +15,15 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
 from . import (
+    DictUnion,
+    ListUnion,
     PersonA,
     PersonD,
     SubscriptedDict,
     SubscriptedList,
+    UnionClass,
     UntypedDict,
     UntypedList,
-    UnionClass
 )
 
 
@@ -149,20 +151,33 @@ def test_pickle(obj: Any, ref_type: Any) -> None:
             assert c1._metadata.key_type is Any
 
 
-def test_pickle_union() -> None:
+@pytest.mark.parametrize(  # type: ignore
+    "obj,ref_type,key",
+    [
+        (OmegaConf.structured(DictUnion), Union[int, float], "dict"),
+        (OmegaConf.structured(ListUnion), Union[int, float], "list"),
+        (OmegaConf.structured(UnionClass), Union[int, str], "foo"),
+    ],
+)
+def test_pickle_union(obj: Any, ref_type: Any, key: str) -> None:
     import collections
 
+    from omegaconf._utils import get_union_types
+
     with tempfile.TemporaryFile() as fp:
-        c = OmegaConf.structured(UnionClass)
-        pickle.dump(c, fp)
+        pickle.dump(obj, fp)
         fp.flush()
         fp.seek(0)
-        c1 = pickle.load(fp)
-        assert c == c1
-        assert c._get_node("foo")._metadata.ref_type == Union[str, int]
-        assert collections.Counter(
-            c._get_node("foo").element_types
-        ) == collections.Counter([str, int])
+        c = pickle.load(fp)
+        node = c._get_node(key)
+        assert obj == c
+        if isinstance(node, (DictConfig, ListConfig)):
+            assert node._metadata.element_type == ref_type
+        else:
+            assert node._metadata.ref_type == ref_type
+            assert collections.Counter(node.element_types) == collections.Counter(
+                get_union_types(ref_type)
+            )
 
 
 def test_load_duplicate_keys_top() -> None:

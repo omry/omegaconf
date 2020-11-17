@@ -116,6 +116,13 @@ class BaseContainer(Container, ABC):
         if isinstance(self, DictConfig):
             key_type = d["_metadata"].key_type
         element_type = d["_metadata"].element_type
+        if isinstance(element_type, list):
+            union = Union[element_type[0]]  # type: ignore
+            for type_ in element_type:
+                union = Union[union, type_]  # type: ignore
+            d["_metadata"].element_type = union
+
+        element_type = d["_metadata"].element_type
         ref_type = d["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
@@ -124,12 +131,6 @@ class BaseContainer(Container, ABC):
                 d["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
-
-        if isinstance(element_type, list):
-            union = Union[element_type[0]]  # type: ignore
-            for type_ in element_type:
-                union = Union[union, type_]  # type: ignore
-            d["_metadata"].element_type = union
 
         self.__dict__.update(d)
 
