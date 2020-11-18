@@ -395,9 +395,9 @@ Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
 
 You can add additional interpolation types using custom resolvers.
-This example creates a resolver that adds 10 to the given value
-(note that the resolver's first argument is ignored here, we will
-see below how it can be used to access the config object itself).
+The example below creates a resolver that adds 10 to the given value.
+The first argument of the resolver is the parent of the node containing the interpolation,
+it is not used in this example (later examples will demonstrate how to use it).
 
 .. doctest::
 
