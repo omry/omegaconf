@@ -554,8 +554,13 @@ def test_resolver_that_allows_a_list_of_arguments_legacy(
 
 
 def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
+    # Ensure that resolvers registered with the old "register_resolver()" function
+    # behave as expected.
+
+    # The registration should trigger a deprecation warning.
     with pytest.warns(UserWarning):
         OmegaConf.register_resolver("my_resolver", lambda *args: args)
+
     c = OmegaConf.create(
         {
             "int": "${my_resolver:1}",
@@ -565,10 +570,15 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
             "inter": "${my_resolver:${int}}",
         }
     )
+
+    # All resolver arguments should be provided as strings (with no modification).
     assert c.int == ("1",)
     assert c.null == ("null",)
     assert c.bool == ("TruE", "falSE")
     assert c.str == ("a", "b", "c")
+
+    # Trying to nest interpolations should trigger an error (users should switch to
+    # `new_register_resolver()` in order to use nested interpolations).
     with pytest.raises(ValueError):
         c.inter
 
