@@ -338,10 +338,13 @@ def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
     OmegaConf.new_register_resolver("plus_10", lambda _, x: x + 10)
-    c = OmegaConf.create({"k": "${plus_10:990}"})
+    c = OmegaConf.create(
+        {"k": "${plus_10:990}", "node": {"bar": 10, "foo": "${plus_10:${.bar}}"}}
+    )
 
     assert type(c.k) == int
     assert c.k == 1000
+    assert c.node.foo == 20  # this also tests relative interpolations with resolvers
 
 
 def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
