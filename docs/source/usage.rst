@@ -493,26 +493,37 @@ The following example illustrates how this could be used to access a node's sibl
 
 If you would like to access the config's root and not just the parent node,
 use ``OmegaConf.get_root(parent)``.
-The following example shows how to obtain a boolean flag that indicates the
-presence of a specific key in the config:
+In the following example, we use this feature to dump the full config in a save directory
+that is created "on demand" (i.e., only when accessed for the first time):
 
 .. doctest::
 
-    >>> def key_exists(parent, key):
-    ...     root = OmegaConf.get_root(parent)
-    ...     return OmegaConf.select(root, key) is not None
-    >>> # Register with disabled cache (to dynamically adapt to config).
-    >>> OmegaConf.new_register_resolver("key_exists",
-    ...                                 key_exists,
-    ...                                 use_cache=False)
+    >>> def make_save_dir(parent, path):
+    ...     os.makedirs(path, exist_ok=True)  # create directory
+    ...     root = OmegaConf.get_root(parent)  # access config root
+    ...     with open(os.path.join(path, "config.yaml"), "w") as f:
+    ...         f.write(OmegaConf.to_yaml(root))  # dump config
+    ...     return path
+    >>> OmegaConf.new_register_resolver(
+    ...         "make_save_dir",
+    ...         make_save_dir,
+    ...         use_cache=True)  # use cache to create dir only once
     >>> c = OmegaConf.create(
-    ...     {"to_process": {"a": 1},
-    ...      "can_process": {"a": "${key_exists:to_process.a}",
-    ...                      "b": "${key_exists:to_process.b}"}})
-    >>> c.can_process.a
-    True
-    >>> c.can_process.b
-    False
+    ...         {"foo": "bar",
+    ...          "exp": {"id": "my_exp",
+    ...                  "save_dir": "${make_save_dir:dir_${exp.id}}"}})
+    >>> print(f"The save dir is '{c.exp.save_dir}'")
+    The save dir is 'dir_my_exp'
+    >>> with open(os.path.join(c.exp.save_dir, "config.yaml")) as f:
+    ...     print(f.read())  # print the dumped config file
+    foo: bar
+    exp:
+      id: my_exp
+      save_dir: ${make_save_dir:dir_${exp.id}}
+    <BLANKLINE>
+    >>> # Cleanup.
+    >>> os.remove(os.path.join(c.exp.save_dir, "config.yaml"))
+    >>> os.rmdir(c.exp.save_dir)
 
 
 Merging configurations
