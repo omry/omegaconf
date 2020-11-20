@@ -552,6 +552,8 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
         pytest.param(Union[int, str], [int, str]),
         pytest.param(Union[int, str, ListConfig], [int, str, ListConfig]),
         pytest.param(Union[Plugin, ListConfig], [Plugin, ListConfig]),
+        pytest.param(Union[str, List[str]], [str, List[str]]),
+        pytest.param(Union[str, Dict[str, Any]], [str, Dict[str, Any]]),
     ],
 )
 def test_get_union_types(obj: Any, expected: Any) -> None:

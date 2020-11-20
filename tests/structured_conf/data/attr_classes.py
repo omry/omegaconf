@@ -506,7 +506,7 @@ class Shelf2:
 
 @attr.s(auto_attribs=True)
 class OptionalBook:
-    author: Optional[Union[str, int]] = "author"
+    author: Optional[Union[str, List[str]]] = "author"
 
 
 @attr.s(auto_attribs=True)

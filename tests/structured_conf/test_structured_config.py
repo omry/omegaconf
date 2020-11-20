@@ -1081,7 +1081,13 @@ class TestDictSubclass:
 
     def test_optional_union_create(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        OmegaConf.structured(module.OptionalBook(author=None))
+        cfg = OmegaConf.structured(module.OptionalBook(author=None))
+        assert isinstance(cfg._get_node("author"), UnionNode)
+        assert (
+            cfg._get_node("author")._metadata.ref_type
+            == Union[str, List[str], type(None)]
+        )
+        assert cfg._get_node("author")._metadata.optional is True
 
     def test_non_optional_union_create(self, class_type: str) -> None:
         module: Any = import_module(class_type)
