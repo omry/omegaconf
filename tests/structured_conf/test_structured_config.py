@@ -1098,3 +1098,43 @@ class TestDictSubclass:
         cfg = OmegaConf.structured(module.Book)
         with pytest.raises(ValidationError):
             cfg.author = None
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,value,node",
+        [
+            ("DictUnion", {"foo": 0.33, "foo2": 10}, "dict"),
+            ("ListUnion", [1, 2, 0.33], "list"),
+        ],
+    )
+    def test_cfg_set_valid_union_value(
+        self, class_type: str, obj: str, value: Any, node: str
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.structured(class_)
+        cfg[node] = value
+        assert cfg[node] == value
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,value,node",
+        [
+            ("DictUnion", {"foo": False}, "dict"),
+            ("DictUnion", {"foo": "invalid"}, "dict"),
+            ("DictUnion", {"foo": Color.BLUE}, "dict"),
+            ("DictUnion", {"foo": User()}, "dict"),
+            ("DictUnion", {"foo": None}, "dict"),
+            ("ListUnion", [1, 2, False], "list"),
+            ("ListUnion", [1, 2, "invalid"], "list"),
+            ("ListUnion", [1, 2, Color.BLUE], "list"),
+            ("ListUnion", [1, 2, User()], "list"),
+            ("ListUnion", [1, 2, None], "list"),
+        ],
+    )
+    def test_cfg_set_invalid_union_value(
+        self, class_type: str, obj: str, value: Any, node: str
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.structured(class_)
+        with pytest.raises(ValidationError):
+            cfg[node] = value

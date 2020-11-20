@@ -507,3 +507,13 @@ class Shelf2:
 @attr.s(auto_attribs=True)
 class OptionalBook:
     author: Optional[Union[str, int]] = "author"
+
+
+@attr.s(auto_attribs=True)
+class ListUnion:
+    list: List[Union[float, int]] = [1, 3.14]
+
+
+@attr.s(auto_attribs=True)
+class DictUnion:
+    dict: Dict[str, Union[float, int]] = {"foo": 1}

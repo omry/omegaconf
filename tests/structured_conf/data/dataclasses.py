@@ -524,3 +524,13 @@ class Shelf2:
 @dataclass
 class OptionalBook:
     author: Optional[Union[str, List[str]]] = "foo"
+
+
+@dataclass
+class ListUnion:
+    list: List[Union[float, int]] = field(default_factory=lambda: [1, 3.14])
+
+
+@dataclass
+class DictUnion:
+    dict: Dict[str, Union[float, int]] = field(default_factory=lambda: {"foo": 1})

@@ -226,6 +226,7 @@ class UnionNode(ValueNode):
             self._bring_type_to_front(value_type)
         for union_type in self.element_types:
             try:
+                print(union_type, value)
                 value_node = self._wrap_node(
                     value=value, ref_type=union_type, use_type=True
                 )
