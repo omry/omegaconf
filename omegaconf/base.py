@@ -396,7 +396,7 @@ class Container(Node):
             if resolver is not None:
                 root_node = self._get_root()
                 try:
-                    value = resolver(root_node, parent, inter_key, inputs_str)
+                    value = resolver(root_node, inter_key, inputs_str)
                     return ValueNode(
                         value=value,
                         parent=self,

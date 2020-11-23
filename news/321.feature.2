@@ -1,1 +1,1 @@
-New custom resolver options: using non-string arguments / disabling the cache / accessing the whole config / accessing the parent of the key being computed
+`register_resolver()` is deprecated and custom resolvers should now be registered with `new_register_resolver()` instead (see #426). This allows resolvers to use non-string arguments and decide whether or not to use the cache.

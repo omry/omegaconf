@@ -369,26 +369,31 @@ The following example sets `"12345"` as the the default value when `DB_PASSWORD`
     ... })
     >>> cfg.database.password
     '12345'
+    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
     >>> os.environ["DB_PASSWORD"] = 'secret'
     >>> cfg.database.password
     'secret'
 
 Environment variables are parsed when they are recognized as valid quantities that
-may be evaluated:
+may be evaluated (e.g., int, float, dict, list):
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({
     ...       'database': {'password': '${env:DB_PASSWORD,"12345"}',
     ...                    'user': 'someuser',
-    ...                    'port': '${env:DB_PORT,3306}'}
+    ...                    'port': '${env:DB_PORT,3306}',
+    ...                    'nodes': '${env:DB_NODES,[]}'}
     ... })
     >>> os.environ["DB_PORT"] = '3308'
     >>> cfg.database.port  # converted to int
     3308
-    >>> os.environ["DB_PASSWORD"] = '${database.user}_password'
-    >>> cfg.database.password  # interpolation is resolved
-    'someuser_password'
+    >>> os.environ["DB_NODES"] = '[host1, host2, host3]'
+    >>> cfg.database.nodes  # converted to list
+    ['host1', 'host2', 'host3']
+    >>> os.environ["DB_PASSWORD"] = 'a%#@~{}$*&^?/<'
+    >>> cfg.database.password  # kept as a string
+    'a%#@~{}$*&^?/<'
 
 
 Custom interpolations
@@ -396,12 +401,10 @@ Custom interpolations
 
 You can add additional interpolation types using custom resolvers.
 The example below creates a resolver that adds 10 to the given value.
-The first argument of the resolver is the parent of the node containing the interpolation,
-it is not used in this example (later examples will demonstrate how to use it).
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("plus_10", lambda _, x: x + 10)
+    >>> OmegaConf.new_register_resolver("plus_10", lambda x: x + 10)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
@@ -414,7 +417,7 @@ simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("concat", lambda _, x, y: x+y)
+    >>> OmegaConf.new_register_resolver("concat", lambda x, y: x+y)
     >>> c = OmegaConf.create({
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
@@ -434,7 +437,7 @@ You can take advantage of nested interpolations to perform custom operations ove
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("plus", lambda _, x, y: x + y)
+    >>> OmegaConf.new_register_resolver("plus", lambda x, y: x + y)
     >>> c = OmegaConf.create({"a": 1,
     ...                       "b": 2,
     ...                       "a_plus_b": "${plus:${a},${b}}"})
@@ -449,7 +452,7 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> import random; random.seed(1234)
     >>> OmegaConf.new_register_resolver(
     ...        "randint",
-    ...        lambda _, a, b: random.randint(a, b))
+    ...        lambda a, b: random.randint(a, b))
     >>> c = OmegaConf.create({"x": "${randint:0, 1000}"})
     >>> c.x
     989
@@ -458,7 +461,7 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> random.seed(1234)
     >>> OmegaConf.new_register_resolver(
     ...         "randint_nocache",
-    ...         lambda _, a, b: random.randint(a, b),
+    ...         lambda a, b: random.randint(a, b),
     ...         use_cache=False)
     >>> c = OmegaConf.create({"x": "${randint_nocache:0, 1000}"})
     >>> c.x
@@ -466,64 +469,15 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> c.x  # not the same anymore since the cache is disabled
     796
 
-For more advanced operations on the config, resolvers are given access to the parent
-of the node being processed through their first argument (which was not used in the
-examples above).
-Note that the cache ignores this parent argument (it only takes into account the values of the
-other resolver arguments). As a result it may be dangerous to use the cache *and* the parent,
-since the resolver’s output could now depend on arbitrary components of the config.
-
-The following example illustrates how this could be used to access a node's sibling
-(this is for illustration purpose only, a better way would be to use a relative interpolation):
+Custom resolvers can be called from within environment variables:
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver(
-    ...     "get_sibling",
-    ...     lambda parent, sibling: getattr(parent, sibling),
-    ...     use_cache=False)  # to always use the latest sibling value
-    >>> c = OmegaConf.create(
-    ...         {"foo": {"bar": {"baz1": 123,
-    ...                          "baz2": "${get_sibling:baz1}"}}})
-    >>> c.foo.bar.baz2
-    123
-    >>> c.foo.bar.baz1 = 321
-    >>> c.foo.bar.baz2  # would be 123 if we had used `use_cache=True`
-    321
-
-If you would like to access the config's root and not just the parent node,
-use ``OmegaConf.get_root(parent)``.
-In the following example, we use this feature to dump the full config in a save directory
-that is created "on demand" (i.e., only when accessed for the first time):
-
-.. doctest::
-
-    >>> def make_save_dir(parent, path):
-    ...     os.makedirs(path, exist_ok=True)  # create directory
-    ...     root = OmegaConf.get_root(parent)  # access config root
-    ...     with open(os.path.join(path, "config.yaml"), "w") as f:
-    ...         f.write(OmegaConf.to_yaml(root))  # dump config
-    ...     return path
-    >>> OmegaConf.new_register_resolver(
-    ...         "make_save_dir",
-    ...         make_save_dir,
-    ...         use_cache=True)  # use cache to create dir only once
-    >>> c = OmegaConf.create(
-    ...         {"foo": "bar",
-    ...          "exp": {"id": "my_exp",
-    ...                  "save_dir": "${make_save_dir:dir_${exp.id}}"}})
-    >>> print(f"The save dir is '{c.exp.save_dir}'")
-    The save dir is 'dir_my_exp'
-    >>> with open(os.path.join(c.exp.save_dir, "config.yaml")) as f:
-    ...     print(f.read())  # print the dumped config file
-    foo: bar
-    exp:
-      id: my_exp
-      save_dir: ${make_save_dir:dir_${exp.id}}
-    <BLANKLINE>
-    >>> # Cleanup.
-    >>> os.remove(os.path.join(c.exp.save_dir, "config.yaml"))
-    >>> os.rmdir(c.exp.save_dir)
+    >>> c = OmegaConf.create({"revenue": "${env:REVENUE}"})
+    >>> # The "plus" resolver was previously registered above.
+    >>> os.environ["REVENUE"] = "${plus:1000,2000}"
+    >>> c.revenue
+    3000
 
 
 Merging configurations

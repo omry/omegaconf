@@ -29,7 +29,6 @@ from . import DictConfig, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
-    _is_interpolation,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -98,9 +97,7 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    def env(
-        parent: Optional[Container], key: str, default: Any = _EMPTY_MARKER_
-    ) -> Any:
+    def env(key: str, default: Any = _EMPTY_MARKER_) -> Any:
         try:
             val_str = os.environ[key]
         except KeyError:
@@ -109,26 +106,29 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-        # We obtained a string from the environment variable: we parse it using
-        # the grammar. We first attempt to parse it as if it was a resolver argument
-        # so that expressions like numbers, booleans, lists and dictionaries can be
-        # properly evaluated.
+        # We obtained a string from the environment variable: we try to parse it
+        # using the grammar (as if it was a resolver argument), so that expressions
+        # like numbers, booleans, lists and dictionaries can be properly evaluated.
         try:
             parse_tree = parse(
                 val_str, parser_rule="singleElement", lexer_mode="VALUE_MODE"
             )
         except GrammarParseError:
-            # Un-parsable as a resolver argument: check if it contains an interpolation,
-            # and if yes parse it as a top-level string. Otherwise keep it unchanged.
-            if _is_interpolation(val_str):
-                parse_tree = parse(val_str)
-            else:
-                return val_str
+            # Un-parsable as a resolver argument: keep the string unchanged.
+            return val_str
 
-        # Resolve the parse tree.
-        assert parent is not None
-        root = OmegaConf.get_root(parent)
-        val = root.resolve_parse_tree(parse_tree)
+        # Resolve the parse tree. We use an empty config for this, which means that
+        # interpolations referring to other nodes will fail.
+        empty_config = DictConfig({})
+        try:
+            val = empty_config.resolve_parse_tree(parse_tree)
+        except ConfigKeyError as exc:
+            raise ConfigKeyError(
+                f"When attempting to resolve env variable '{key}', a node interpolation "
+                f"caused the following exception: {exc}. Node interpolations are not "
+                f"supported in environment variables: either remove them, or escape "
+                f"them to keep them as a strings."
+            )
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.
@@ -386,7 +386,6 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
-            parent: Optional[Container],
             key: Tuple[Any, ...],
             inputs_str: Tuple[str, ...],
         ) -> Any:
@@ -432,15 +431,12 @@ class OmegaConf:
         Register a resolver.
 
         :param name: Name of the resolver.
-        :param resolver: Callable whose first argument is the parent of the node being
-            processed (of type `Optional[Container]`). Other arguments are obtained from
-            the list of arguments given in the interpolation, e.g. with ${foo:x,0,${y.z}}
-            these arguments are respectively "x" (str), 0 (int) and the value of `y.z`.
+        :param resolver: Callable whose arguments are provided in the interpolation,
+            e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
+            0 (int) and the value of `y.z`.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
             based only on the list of arguments given in the interpolation, i.e., for a
-            given list of arguments, the same value will always be returned (even if the
-            resolver function is non-deterministic or accesses other config components
-            through the parent node).
+            given list of arguments, the same value will always be returned.
         """
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
@@ -450,7 +446,6 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
-            parent: Optional[Container],
             key: Tuple[Any, ...],
             inputs_str: Tuple[str, ...],  # to remove with `legacy_register_resolver()`
         ) -> Any:
@@ -463,7 +458,7 @@ class OmegaConf:
                     pass
 
             # Call resolver.
-            ret = resolver(parent, *key)
+            ret = resolver(*key)
             if use_cache:
                 cache[hashable_key] = ret
             return ret
@@ -474,11 +469,7 @@ class OmegaConf:
     @staticmethod
     def get_resolver(
         name: str,
-    ) -> Optional[
-        Callable[
-            [Container, Optional[Container], Tuple[Any, ...], Tuple[str, ...]], Any
-        ]
-    ]:
+    ) -> Optional[Callable[[Container, Tuple[Any, ...], Tuple[str, ...]], Any]]:
         # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
@@ -619,10 +610,6 @@ class OmegaConf:
         from . import Container
 
         return isinstance(obj, Container)
-
-    @staticmethod
-    def get_root(cfg: Node) -> Container:
-        return cfg._get_root()
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:

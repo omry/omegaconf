@@ -268,22 +268,12 @@ def test_env_is_not_cached() -> None:
         ("foo: bar", "foo: bar"),
         ("foo: \n - bar\n - baz", "foo: \n - bar\n - baz"),
         # more advanced uses of the grammar
-        ("${other_key}", 123),
-        ("\\${other_key}", "\\123"),
-        ("'\\${other_key}'", "${other_key}"),
-        ("ab ${other_key} cd", "ab 123 cd"),
-        ("ab{${other_key}}cd", "ab{123}cd"),
-        ("ab \\${other_key} cd", "ab \\123 cd"),
-        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),
-        ("ab \\\\${other_key} cd", "ab \\123 cd"),
         ("ab \\{foo} cd", "ab \\{foo} cd"),
         ("ab \\\\{foo} cd", "ab \\\\{foo} cd"),
+        ("'\\${other_key}'", "${other_key}"),  # escaped interpolation
+        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),  # escaped interpolation
         ("[1, 2, 3]", [1, 2, 3]),
         ("{a: 0, b: 1}", {"a": 0, "b": 1}),
-        (
-            "{a: ${other_key}, b: [0, 1, [2, ${other_key}]]}",
-            {"a": 123, "b": [0, 1, [2, 123]]},
-        ),
         ("  123  ", "  123  "),
         ("  1 2 3  ", "  1 2 3  "),
         ("\t[1, 2, 3]\t", "\t[1, 2, 3]\t"),
@@ -291,13 +281,27 @@ def test_env_is_not_cached() -> None:
         ("   {a: b}\t  ", "   {a: b}\t  "),
         ("{   a: b\t  }", {"a": "b"}),
         ("'123'", "123"),
+        ("${env:my_key_2}", 456),  # can call another resolver
     ],
 )
 def test_env_values_are_typed(value: Any, expected: Any) -> None:
     try:
         os.environ["my_key"] = value
-        c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
+        os.environ["my_key_2"] = "456"
+        c = OmegaConf.create(dict(my_key="${env:my_key}"))
         assert c.my_key == expected
+    finally:
+        del os.environ["my_key"]
+        del os.environ["my_key_2"]
+
+
+def test_env_node_interpolation() -> None:
+    # Test that node interpolations are not supported in env variables.
+    try:
+        os.environ["my_key"] = "${other_key}"
+        c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
+        with pytest.raises(ConfigKeyError):
+            c.my_key
     finally:
         del os.environ["my_key"]
 
@@ -322,7 +326,7 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
 
 def test_clear_resolvers(restore_resolvers: Any) -> None:
     assert OmegaConf.get_resolver("foo") is None
-    OmegaConf.new_register_resolver("foo", lambda _, x: x + 10)
+    OmegaConf.new_register_resolver("foo", lambda x: x + 10)
     assert OmegaConf.get_resolver("foo") is not None
     OmegaConf.clear_resolvers()
     assert OmegaConf.get_resolver("foo") is None
@@ -337,7 +341,7 @@ def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("plus_10", lambda _, x: x + 10)
+    OmegaConf.new_register_resolver("plus_10", lambda x: x + 10)
     c = OmegaConf.create(
         {"k": "${plus_10:990}", "node": {"bar": 10, "foo": "${plus_10:${.bar}}"}}
     )
@@ -355,62 +359,12 @@ def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
     assert c.k == 1000
 
 
-def test_register_resolver_access_config(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver(
-        "len",
-        lambda parent, value: len(OmegaConf.select(OmegaConf.get_root(parent), value)),
-        use_cache=False,
-    )
-    c = OmegaConf.create({"list": [1, 2, 3], "list_len": "${len:list}"})
-    assert c.list_len == 3
-
-
-def test_register_resolver_access_parent(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver(
-        "get_sibling",
-        lambda parent, sibling: getattr(parent, sibling),
-        use_cache=False,
-    )
-    c = OmegaConf.create(
-        """
-        root:
-            foo:
-                bar:
-                    baz1: "${get_sibling:baz2}"
-                    baz2: useful data
-        """
-    )
-    assert c.root.foo.bar.baz1 == "useful data"
-
-
-def test_register_resolver_access_parent_no_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver(
-        "add_noise_to_sibling",
-        lambda parent, sibling: random.uniform(0, 1) + getattr(parent, sibling),
-        use_cache=False,
-    )
-    c = OmegaConf.create(
-        """
-        root:
-            foo:
-                baz1: "${add_noise_to_sibling:baz2}"
-                baz2: 1
-            bar:
-                baz1: "${add_noise_to_sibling:baz2}"
-                baz2: 1
-        """
-    )
-    assert c.root.foo.baz2 == c.root.bar.baz2  # make sure we test what we want to test
-    assert c.root.foo.baz1 != c.root.foo.baz1  # same node (regular "no cache" behavior)
-    assert c.root.foo.baz1 != c.root.bar.baz1  # same args but different parents
-
-
 def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # resolvers are always converted to stateless idempotent functions
     # subsequent calls to the same function with the same argument will always return the same value.
     # this is important to allow embedding of functions like time() without having the value change during
     # the program execution.
-    OmegaConf.new_register_resolver("random", lambda _, __: random.randint(0, 10000000))
+    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:__}"})
     assert c.k == c.k
 
@@ -425,7 +379,7 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    OmegaConf.new_register_resolver("random", lambda _, __: random.randint(0, 10000000))
+    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
     c1 = OmegaConf.create({"k": "${random:__}"})
     c2 = OmegaConf.create({"k": "${random:__}"})
 
@@ -448,7 +402,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     """
     Tests that the resolver cache works as expected with lists and dicts.
     """
-    OmegaConf.new_register_resolver("random", lambda _, __: random.uniform(0, 1))
+    OmegaConf.new_register_resolver("random", lambda _: random.uniform(0, 1))
     c = OmegaConf.create(
         dict(
             lst1="${random:[0, 1]}",
@@ -472,7 +426,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
 
 def test_resolver_no_cache(restore_resolvers: Any) -> None:
     OmegaConf.new_register_resolver(
-        "random", lambda _, __: random.uniform(0, 1), use_cache=False
+        "random", lambda _: random.uniform(0, 1), use_cache=False
     )
     c = OmegaConf.create(dict(k="${random:__}"))
     assert c.k != c.k
@@ -482,7 +436,7 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
     """
     Regression test for #373
     """
-    OmegaConf.new_register_resolver("identity", lambda _, x: x)
+    OmegaConf.new_register_resolver("identity", lambda x: x)
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -502,20 +456,20 @@ def test_resolver_dot_start_legacy(restore_resolvers: Any) -> None:
 @pytest.mark.parametrize(  # type: ignore
     "resolver,name,key,result",
     [
-        (lambda _, *args: args, "arg_list", "${my_resolver:cat, dog}", ("cat", "dog")),
+        (lambda *args: args, "arg_list", "${my_resolver:cat, dog}", ("cat", "dog")),
         (
-            lambda _, *args: args,
+            lambda *args: args,
             "escape_comma",
             "${my_resolver:cat\\, do g}",
             ("cat, do g",),
         ),
         (
-            lambda _, *args: args,
+            lambda *args: args,
             "escape_whitespace",
             "${my_resolver:cat,\\ do g}",
             ("cat", " do g"),
         ),
-        (lambda _: "zero", "zero_arg", "${my_resolver:}", "zero"),
+        (lambda: "zero", "zero_arg", "${my_resolver:}", "zero"),
     ],
 )
 def test_resolver_that_allows_a_list_of_arguments(
@@ -584,7 +538,7 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("random", lambda _, __: random.randint(0, 10000000))
+    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
     d = {"k": "${random:__}"}
     c1 = OmegaConf.create(d)
     assert c1.k == c1.k
@@ -602,7 +556,7 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 
 def test_clear_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("random", lambda _, __: random.randint(0, 10000000))
+    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create(dict(k="${random:__}"))
     old = c.k
     OmegaConf.clear_cache(c)
@@ -613,7 +567,7 @@ def test_supported_chars() -> None:
     supported_chars = "abc123_/:-\\+.$%*@"
     c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
 
-    OmegaConf.new_register_resolver("copy", lambda _, x: x)
+    OmegaConf.new_register_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
 
 
@@ -980,12 +934,12 @@ def test_all_interpolations(restore_resolvers: Any, key: str, expected: Any) -> 
     os.environ["OMEGACONF_TEST_ENV_INT"] = "123"
     os.environ.pop("OMEGACONF_TEST_MISSING", None)
     OmegaConf.new_register_resolver(
-        "test", lambda _, *args: args[0] if len(args) == 1 else list(args)
+        "test", lambda *args: args[0] if len(args) == 1 else list(args)
     )
-    OmegaConf.new_register_resolver("null", lambda _, *args: ["null"] + list(args))
-    OmegaConf.new_register_resolver("FALSE", lambda _, *args: ["FALSE"] + list(args))
-    OmegaConf.new_register_resolver("True", lambda _, *args: ["True"] + list(args))
-    OmegaConf.new_register_resolver("infnannulltruefalse", lambda _: "ok")
+    OmegaConf.new_register_resolver("null", lambda *args: ["null"] + list(args))
+    OmegaConf.new_register_resolver("FALSE", lambda *args: ["FALSE"] + list(args))
+    OmegaConf.new_register_resolver("True", lambda *args: ["True"] + list(args))
+    OmegaConf.new_register_resolver("infnannulltruefalse", lambda: "ok")
 
     cfg_dict = {}
     for cfg_key, definition, exp in TEST_CONFIG_DATA:

@@ -1099,7 +1099,7 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
 
 
 def test_assertion_error(restore_resolvers: Any) -> None:
-    def assert_false(_: Any) -> None:
+    def assert_false() -> None:
         assert False
 
     # The purpose of this test is to cover the case where an `AssertionError`
