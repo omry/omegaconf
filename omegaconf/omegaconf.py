@@ -132,7 +132,7 @@ def register_default_resolvers() -> None:
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.
-    OmegaConf.new_register_resolver("env", env, use_cache=False)
+    OmegaConf.new_register_resolver("env", env, use_cache=True)
 
 
 class OmegaConf:

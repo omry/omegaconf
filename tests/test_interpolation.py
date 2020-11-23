@@ -236,12 +236,12 @@ def test_env_interpolation(
         assert OmegaConf.select(cfg, key) == expected
 
 
-def test_env_is_not_cached() -> None:
+def test_env_is_cached() -> None:
     os.environ["foobar"] = "1234"
     c = OmegaConf.create({"foobar": "${env:foobar}"})
     before = c.foobar
     os.environ["foobar"] = "3456"
-    assert c.foobar != before
+    assert c.foobar == before
 
 
 @pytest.mark.parametrize(  # type: ignore
