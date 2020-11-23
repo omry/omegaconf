@@ -469,16 +469,6 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> c.x  # not the same anymore since the cache is disabled
     796
 
-Custom resolvers can be called from within environment variables:
-
-.. doctest::
-
-    >>> c = OmegaConf.create({"revenue": "${env:REVENUE}"})
-    >>> # The "plus" resolver was previously registered above.
-    >>> os.environ["REVENUE"] = "${plus:1000,2000}"
-    >>> c.revenue
-    3000
-
 
 Merging configurations
 ----------------------
