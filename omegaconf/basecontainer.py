@@ -497,6 +497,8 @@ class BaseContainer(Container, ABC):
 
         from .nodes import AnyNode, ValueNode
 
+        if isinstance(value, AnyNode):
+            value = value._value()
         if isinstance(value, Node):
             do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
             if not do_deepcopy and isinstance(value, Container):

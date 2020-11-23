@@ -553,3 +553,21 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@dataclass
+class ContainerInDict:
+    dict_with_list: Dict[str, List[int]] = field(
+        default_factory=lambda: {"foo": [1, 2]}
+    )
+    dict_with_dict: Dict[str, Dict[str, int]] = field(
+        default_factory=lambda: {"foo": {"var": 1}}
+    )
+
+
+@dataclass
+class ContainerInList:
+    list_with_list: List[List[int]] = field(default_factory=lambda: [[0, 1], [2, 3]])
+    list_with_dict: List[Dict[str, int]] = field(
+        default_factory=lambda: [{"foo": 1, "foo2": 2}]
+    )

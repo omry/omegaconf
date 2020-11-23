@@ -1144,3 +1144,165 @@ class TestDictSubclass:
         c3 = OmegaConf.merge(c1, c2)
         with pytest.raises(ValidationError):
             c3.missing.append("xx")
+
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,value,node",
+        [
+            ("ContainerInList", [{"user": 20}], "list_with_dict"),
+            ("ContainerInList", [{"user": 20}], "list_with_dict"),
+            ("ContainerInList", [[1, 2], [3, 4]], "list_with_list"),
+            ("ContainerInList", [MISSING], "list_with_list"),
+            ("ContainerInDict", {"users": {"default": 1}}, "dict_with_dict"),
+            ("ContainerInDict", {"users": MISSING}, "dict_with_dict"),
+            ("ContainerInDict", {"users": [1, 2]}, "dict_with_list"),
+            ("ContainerInDict", {"users": MISSING}, "dict_with_list"),
+        ],
+    )
+    def test_container_as_element_type_valid(
+        self, class_type: str, obj: str, value: Any, node: str
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.structured(class_)
+        cfg[node] = value
+        assert cfg[node] == value
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,value,node",
+        [
+            ("ContainerInList", [{"user": True}], "list_with_dict"),
+            ("ContainerInList", [{"user": User()}], "list_with_dict"),
+            ("ContainerInList", [[1, 2], [True, 4]], "list_with_list"),
+            ("ContainerInList", [[1, 2], [User(), 4]], "list_with_list"),
+            ("ContainerInDict", {"users": {"default": True}}, "dict_with_dict"),
+            ("ContainerInDict", {"users": {"default": User()}}, "dict_with_dict"),
+            ("ContainerInDict", {"users": [1, True]}, "dict_with_list"),
+            ("ContainerInDict", {"users": [1, User()]}, "dict_with_list"),
+        ],
+    )
+    def test_container_as_element_type_invalid(
+        self, class_type: str, obj: str, value: Any, node: str
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.structured(class_)
+        with pytest.raises(ValidationError):
+            cfg[node] = value
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,cfg2,expected",
+        [
+            (
+                "ContainerInList",
+                OmegaConf.create(
+                    {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": 4}]}
+                ),
+                {
+                    "list_with_list": [[4, 5]],
+                    "list_with_dict": [{"foo": 4}],
+                },
+            ),
+            (
+                "ContainerInDict",
+                OmegaConf.create(
+                    {
+                        "dict_with_list": {"foo": [3, 4]},
+                        "dict_with_dict": {"foo": {"var": 4}},
+                    }
+                ),
+                {
+                    "dict_with_list": {"foo": [3, 4]},
+                    "dict_with_dict": {"foo": {"var": 4}},
+                },
+            ),
+        ],
+    )
+    def test_container_as_element_type_merge(
+        self, class_type: str, obj: str, cfg2: Any, expected: Any
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.merge(class_)
+        res = OmegaConf.merge(cfg, cfg2)
+        assert res == expected
+
+    @pytest.mark.parametrize(  # type: ignore
+        "obj,cfg2",
+        [
+            (
+                "ContainerInList",
+                OmegaConf.create(
+                    {
+                        "list_with_list": [[4, "invalid_value"]],
+                        "list_with_dict": [{"foo": 4}],
+                    }
+                ),
+            ),
+            (
+                "ContainerInList",
+                OmegaConf.create(
+                    {"list_with_list": [[4, User()]], "list_with_dict": [{"foo": 4}]}
+                ),
+            ),
+            (
+                "ContainerInList",
+                OmegaConf.create(
+                    {
+                        "list_with_list": [[4, 5]],
+                        "list_with_dict": [{"foo": "invalid_value"}],
+                    }
+                ),
+            ),
+            (
+                "ContainerInList",
+                OmegaConf.create(
+                    {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": User()}]}
+                ),
+            ),
+            (
+                "ContainerInDict",
+                OmegaConf.create(
+                    {
+                        "dict_with_list": {"foo": [3, "invalid_value"]},
+                        "dict_with_dict": {"foo": {"var": 4}},
+                    }
+                ),
+            ),
+            (
+                "ContainerInDict",
+                OmegaConf.create(
+                    {
+                        "dict_with_list": {"foo": [3, User()]},
+                        "dict_with_dict": {"foo": {"var": 4}},
+                    }
+                ),
+            ),
+            (
+                "ContainerInDict",
+                OmegaConf.create(
+                    {
+                        "dict_with_list": {"foo": [3, 4]},
+                        "dict_with_dict": {"foo": {"var": "invalid_value"}},
+                    }
+                ),
+            ),
+            (
+                "ContainerInDict",
+                OmegaConf.create(
+                    {
+                        "dict_with_list": {"foo": [3, 4]},
+                        "dict_with_dict": {"foo": {"var": User()}},
+                    }
+                ),
+            ),
+        ],
+    )
+    def test_container_as_element_type_invalid_merge(
+        self, class_type: str, obj: str, cfg2: Any
+    ) -> None:
+        module: Any = import_module(class_type)
+        class_ = getattr(module, obj)
+        cfg = OmegaConf.merge(class_)
+        with pytest.raises(ValidationError):
+            OmegaConf.merge(cfg, cfg2)

@@ -177,12 +177,21 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         target_has_ref_type = isinstance(
             target, DictConfig
         ) and target._metadata.ref_type not in (Any, dict)
-        is_valid_target = target is None or not target_has_ref_type
+
+        is_valid_target = not target_has_ref_type and not (
+            isinstance(value, BaseContainer)
+            and is_structured_config(value._metadata.ref_type)
+            and self._metadata.element_type is not Any
+        )
 
         if is_valid_target:
             return
 
-        target_type = target._metadata.ref_type  # type: ignore
+        target_type = (
+            target._metadata.ref_type
+            if target is not None
+            else self._metadata.element_type
+        )
         value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):

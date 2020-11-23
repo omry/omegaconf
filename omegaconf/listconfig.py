@@ -19,6 +19,7 @@ from ._utils import (
     _get_value,
     format_and_raise,
     get_value_kind,
+    is_container_annotation,
     is_int,
     is_primitive_list,
     is_structured_config,
@@ -85,7 +86,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
 
     def _validate_set(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
+        from omegaconf import OmegaConf, ValueNode
 
         self._validate_get(key, value)
 
@@ -102,17 +103,32 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         target_type = self._metadata.element_type
         value_type = OmegaConf.get_type(value)
-        if is_structured_config(target_type):
+
+        def raise_validation_error(
+            value_type: Any, target_type: Any, value: Any
+        ) -> None:
+            msg = (
+                f"Invalid type assigned : {type_str(value_type)} is not a "
+                f"subclass of {type_str(target_type)}. value: {value}"
+            )
+
+            raise ValidationError(msg)
+
+        if is_structured_config(target_type) or (
+            target_type is not Any and isinstance(value, ValueNode)
+        ):
             if (
                 target_type is not None
                 and value_type is not None
                 and not issubclass(value_type, target_type)
             ):
-                msg = (
-                    f"Invalid type assigned : {type_str(value_type)} is not a "
-                    f"subclass of {type_str(target_type)}. value: {value}"
-                )
-                raise ValidationError(msg)
+                raise_validation_error(value_type, target_type, value)
+        if (
+            is_structured_config(value_type)
+            and not is_structured_config(target_type)
+            and target_type not in (Any, None)
+        ):
+            raise_validation_error(value_type, target_type, value)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
@@ -258,10 +274,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             index = len(self)
             self._validate_set(key=index, value=item)
 
+            element_type = self.__dict__["_metadata"].element_type
+            value = item
+            if is_container_annotation(element_type) and isinstance(item, Node):
+                value = item._value()
+
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
-                value=item,
+                value=value,
                 is_optional=OmegaConf.is_optional(item),
                 parent=self,
             )

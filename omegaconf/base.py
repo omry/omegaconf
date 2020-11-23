@@ -5,7 +5,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import (
+    ValueKind,
+    _get_value,
+    format_and_raise,
+    get_value_kind,
+    is_container_annotation,
+)
 from .errors import (
     ConfigKeyError,
     MissingMandatoryValue,
@@ -51,7 +57,11 @@ class ContainerMetadata(Metadata):
             self.ref_type = Any
         assert self.key_type is Any or isinstance(self.key_type, type)
         if self.element_type is not None:
-            assert self.element_type is Any or isinstance(self.element_type, type)
+            assert (
+                self.element_type is Any
+                or isinstance(self.element_type, type)
+                or is_container_annotation(self.element_type)
+            )
 
         if self.flags is None:
             self.flags = {}

@@ -534,3 +534,15 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class ContainerInDict:
+    dict_with_list: Dict[str, List[int]] = {"foo": [1, 2]}
+    dict_with_dict: Dict[str, Dict[str, int]] = {"foo": {"var": 1}}
+
+
+@attr.s(auto_attribs=True)
+class ContainerInList:
+    list_with_list: List[List[int]] = [[0, 1], [2, 3]]
+    list_with_dict: List[Dict[str, int]] = [{"foo": 1, "foo2": 2}]
