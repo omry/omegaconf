@@ -546,3 +546,13 @@ class ContainerInDict:
 class ContainerInList:
     list_with_list: List[List[int]] = [[0, 1], [2, 3]]
     list_with_dict: List[Dict[str, int]] = [{"foo": 1, "foo2": 2}]
+
+
+@attr.s(auto_attribs=True)
+class ComplexList:
+    list: List[List[Dict[str, int]]] = [[{"foo": 1}]]
+
+
+@attr.s(auto_attribs=True)
+class ComplexDict:
+    dict: Dict[str, Dict[str, List[int]]] = {"foo": {"var": [1, 2]}}

@@ -400,7 +400,8 @@ class BaseContainer(Container, ABC):
                     with open_dict(dest):
                         dest[key] = src._get_node(key)
                 else:
-                    dest[key] = src._get_node(key)
+                    src_node = src._get_node(key)
+                    dest[key] = src_node
 
         _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
@@ -525,6 +526,7 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
+        expect_nested_container = is_container_annotation(self._metadata.element_type)
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -562,6 +564,8 @@ class BaseContainer(Container, ABC):
                 else:
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type
+            if input_config:
+                val = val._value()
             return _maybe_wrap(
                 ref_type=ref_type,
                 key=key,
@@ -594,7 +598,7 @@ class BaseContainer(Container, ABC):
         elif not input_node and not target_node:
             if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
-            elif input_config:
+            elif input_config and not expect_nested_container:
                 assign(key, value)
             else:
                 self.__dict__["_content"][key] = wrap(key, value)

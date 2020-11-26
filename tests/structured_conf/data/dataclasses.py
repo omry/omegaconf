@@ -571,3 +571,15 @@ class ContainerInList:
     list_with_dict: List[Dict[str, int]] = field(
         default_factory=lambda: [{"foo": 1, "foo2": 2}]
     )
+
+
+@dataclass
+class ComplexList:
+    list: List[List[Dict[str, int]]] = field(default_factory=lambda: [[{"foo": 1}]])
+
+
+@dataclass
+class ComplexDict:
+    dict: Dict[str, Dict[str, List[int]]] = field(
+        default_factory=lambda: {"foo": {"var": [1, 2]}}
+    )

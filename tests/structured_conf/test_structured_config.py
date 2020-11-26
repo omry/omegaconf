@@ -1157,6 +1157,8 @@ class TestDictSubclass:
             ("ContainerInDict", {"users": MISSING}, "dict_with_dict"),
             ("ContainerInDict", {"users": [1, 2]}, "dict_with_list"),
             ("ContainerInDict", {"users": MISSING}, "dict_with_list"),
+            ("ComplexList", [[{"number": 1}]], "list"),
+            ("ComplexDict", {"users": {"data": [1, 2]}}, "dict"),
         ],
     )
     def test_container_as_element_type_valid(
@@ -1179,6 +1181,10 @@ class TestDictSubclass:
             ("ContainerInDict", {"users": {"default": User()}}, "dict_with_dict"),
             ("ContainerInDict", {"users": [1, True]}, "dict_with_list"),
             ("ContainerInDict", {"users": [1, User()]}, "dict_with_list"),
+            ("ComplexList", [[{"number": True}]], "list"),
+            ("ComplexList", [[{"number": User()}]], "list"),
+            ("ComplexDict", {"users": {"data": True}}, "dict"),
+            ("ComplexDict", {"users": {"data": User()}}, "dict"),
         ],
     )
     def test_container_as_element_type_invalid(
@@ -1214,6 +1220,28 @@ class TestDictSubclass:
                 {
                     "dict_with_list": {"foo": [3, 4]},
                     "dict_with_dict": {"foo": {"var": 4}},
+                },
+            ),
+            (
+                "ComplexList",
+                OmegaConf.create(
+                    {
+                        "list": [[{"foo": 13}]],
+                    }
+                ),
+                {
+                    "list": [[{"foo": 13}]],
+                },
+            ),
+            (
+                "ComplexDict",
+                OmegaConf.create(
+                    {
+                        "dict": {"foo2": {"var2": [3, 4]}},
+                    }
+                ),
+                {
+                    "dict": {"foo": {"var": [1, 2]}, "foo2": {"var2": [3, 4]}},
                 },
             ),
         ],
@@ -1293,6 +1321,30 @@ class TestDictSubclass:
                     {
                         "dict_with_list": {"foo": [3, 4]},
                         "dict_with_dict": {"foo": {"var": User()}},
+                    }
+                ),
+            ),
+            (
+                "ComplexList",
+                OmegaConf.create(
+                    {
+                        "list": [[{"foo": "invalid"}]],
+                    }
+                ),
+            ),
+            (
+                "ComplexList",
+                OmegaConf.create(
+                    {
+                        "list": [[{"foo": User()}]],
+                    }
+                ),
+            ),
+            (
+                "ComplexDict",
+                OmegaConf.create(
+                    {
+                        "dict": {"foo2": {"var2": ["invalid", 4]}},
                     }
                 ),
             ),
