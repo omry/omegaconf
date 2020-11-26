@@ -276,7 +276,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
             element_type = self.__dict__["_metadata"].element_type
             value = item
-            if is_container_annotation(element_type) and isinstance(item, Node):
+            expect_container = is_container_annotation(element_type)
+            if expect_container and isinstance(item, BaseContainer):
                 value = item._value()
 
             node = _maybe_wrap(
