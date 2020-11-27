@@ -447,14 +447,20 @@ def is_primitive_container(obj: Any) -> bool:
 def get_union_types(ref_type: Optional[Any]) -> Union[List[Any], Any]:
     args = getattr(ref_type, "__args__", None)
     element_types: Union[List[Any], Any]
+    error_msg = ""
+    if args is None:
+        error_msg = "{} is not a valid Union type, it should include more than 1 type."
+    elif Any in args:
+        error_msg = (
+            "{} is not a valid Union type, Any is not a valid union element type."
+        )
+    elif type(None) in args and len(args) == 2:
+        error_msg = "{} is not a valid Union type, we recomend using Optional instead."
+    if error_msg:
+        raise UnsupportedValueType(error_msg.format(ref_type))
+
     if args is not None and Any not in args:
         element_types = list(args)
-    else:
-        if args is None:
-            msg = "{} is not a valid Union type, it should include more than 1 type."
-        elif Any in args:
-            msg = "{} is not a valid Union type, Any is not a valid union element type."
-        raise UnsupportedValueType(msg.format(ref_type))
 
     return element_types
 

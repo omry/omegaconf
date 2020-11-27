@@ -172,7 +172,8 @@ class UnionNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
         ref_type: Any = Union[Any],
-        element_types: List[Any] = None,  # type: ignore
+        *,
+        element_types: List[Any],
     ):
         self.element_types = element_types
         super().__init__(

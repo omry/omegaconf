@@ -565,6 +565,7 @@ def test_get_union_types(obj: Any, expected: Any) -> None:
     [
         Union[int, Any, str],
         Union[int],
+        Union[type(None), str],
     ],
 )
 def test_get_invalid_union_types(obj: Any) -> None:
