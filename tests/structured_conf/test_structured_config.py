@@ -1197,26 +1197,19 @@ class TestDictSubclass:
             cfg[node] = value
 
     @pytest.mark.parametrize(  # type: ignore
-        "obj,cfg2,expected",
+        "obj,obj2,expected",
         [
             (
                 "ContainerInList",
-                OmegaConf.create(
-                    {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": 4}]}
-                ),
-                {
-                    "list_with_list": [[4, 5]],
-                    "list_with_dict": [{"foo": 4}],
-                },
+                {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": 4}]},
+                {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": 4}]},
             ),
             (
                 "ContainerInDict",
-                OmegaConf.create(
-                    {
-                        "dict_with_list": {"foo": [3, 4]},
-                        "dict_with_dict": {"foo": {"var": 4}},
-                    }
-                ),
+                {
+                    "dict_with_list": {"foo": [3, 4]},
+                    "dict_with_dict": {"foo": {"var": 4}},
+                },
                 {
                     "dict_with_list": {"foo": [3, 4]},
                     "dict_with_dict": {"foo": {"var": 4}},
@@ -1224,137 +1217,105 @@ class TestDictSubclass:
             ),
             (
                 "ComplexList",
-                OmegaConf.create(
-                    {
-                        "list": [[{"foo": 13}]],
-                    }
-                ),
-                {
-                    "list": [[{"foo": 13}]],
-                },
+                {"list": [[{"foo": 13}]]},
+                {"list": [[{"foo": 13}]]},
             ),
             (
                 "ComplexDict",
-                OmegaConf.create(
-                    {
-                        "dict": {"foo2": {"var2": [3, 4]}},
-                    }
-                ),
-                {
-                    "dict": {"foo": {"var": [1, 2]}, "foo2": {"var2": [3, 4]}},
-                },
+                {"dict": {"foo2": {"var2": [3, 4]}}},
+                {"dict": {"foo": {"var": [1, 2]}, "foo2": {"var2": [3, 4]}}},
             ),
         ],
     )
     def test_container_as_element_type_merge(
-        self, class_type: str, obj: str, cfg2: Any, expected: Any
+        self, class_type: str, obj: str, obj2: Any, expected: Any
     ) -> None:
         module: Any = import_module(class_type)
         class_ = getattr(module, obj)
         cfg = OmegaConf.merge(class_)
+        cfg2 = OmegaConf.create(obj2)
         res = OmegaConf.merge(cfg, cfg2)
         assert res == expected
 
     @pytest.mark.parametrize(  # type: ignore
-        "obj,cfg2",
+        "obj,obj2",
         [
             (
                 "ContainerInList",
-                OmegaConf.create(
-                    {
-                        "list_with_list": [[4, "invalid_value"]],
-                        "list_with_dict": [{"foo": 4}],
-                    }
-                ),
+                {
+                    "list_with_list": [[4, "invalid_value"]],
+                    "list_with_dict": [{"foo": 4}],
+                },
             ),
             (
                 "ContainerInList",
-                OmegaConf.create(
-                    {"list_with_list": [[4, User()]], "list_with_dict": [{"foo": 4}]}
-                ),
+                {"list_with_list": [[4, User()]], "list_with_dict": [{"foo": 4}]},
             ),
             (
                 "ContainerInList",
-                OmegaConf.create(
-                    {
-                        "list_with_list": [[4, 5]],
-                        "list_with_dict": [{"foo": "invalid_value"}],
-                    }
-                ),
+                {
+                    "list_with_list": [[4, 5]],
+                    "list_with_dict": [{"foo": "invalid_value"}],
+                },
             ),
             (
                 "ContainerInList",
-                OmegaConf.create(
-                    {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": User()}]}
-                ),
+                {"list_with_list": [[4, 5]], "list_with_dict": [{"foo": User()}]},
             ),
             (
                 "ContainerInDict",
-                OmegaConf.create(
-                    {
-                        "dict_with_list": {"foo": [3, "invalid_value"]},
-                        "dict_with_dict": {"foo": {"var": 4}},
-                    }
-                ),
+                {
+                    "dict_with_list": {"foo": [3, "invalid_value"]},
+                    "dict_with_dict": {"foo": {"var": 4}},
+                },
             ),
             (
                 "ContainerInDict",
-                OmegaConf.create(
-                    {
-                        "dict_with_list": {"foo": [3, User()]},
-                        "dict_with_dict": {"foo": {"var": 4}},
-                    }
-                ),
+                {
+                    "dict_with_list": {"foo": [3, User()]},
+                    "dict_with_dict": {"foo": {"var": 4}},
+                },
             ),
             (
                 "ContainerInDict",
-                OmegaConf.create(
-                    {
-                        "dict_with_list": {"foo": [3, 4]},
-                        "dict_with_dict": {"foo": {"var": "invalid_value"}},
-                    }
-                ),
+                {
+                    "dict_with_list": {"foo": [3, 4]},
+                    "dict_with_dict": {"foo": {"var": "invalid_value"}},
+                },
             ),
             (
                 "ContainerInDict",
-                OmegaConf.create(
-                    {
-                        "dict_with_list": {"foo": [3, 4]},
-                        "dict_with_dict": {"foo": {"var": User()}},
-                    }
-                ),
+                {
+                    "dict_with_list": {"foo": [3, 4]},
+                    "dict_with_dict": {"foo": {"var": User()}},
+                },
             ),
             (
                 "ComplexList",
-                OmegaConf.create(
-                    {
-                        "list": [[{"foo": "invalid"}]],
-                    }
-                ),
+                {
+                    "list": [[{"foo": "invalid"}]],
+                },
             ),
             (
                 "ComplexList",
-                OmegaConf.create(
-                    {
-                        "list": [[{"foo": User()}]],
-                    }
-                ),
+                {
+                    "list": [[{"foo": User()}]],
+                },
             ),
             (
                 "ComplexDict",
-                OmegaConf.create(
-                    {
-                        "dict": {"foo2": {"var2": ["invalid", 4]}},
-                    }
-                ),
+                {
+                    "dict": {"foo2": {"var2": ["invalid", 4]}},
+                },
             ),
         ],
     )
     def test_container_as_element_type_invalid_merge(
-        self, class_type: str, obj: str, cfg2: Any
+        self, class_type: str, obj: str, obj2: Any
     ) -> None:
         module: Any = import_module(class_type)
         class_ = getattr(module, obj)
         cfg = OmegaConf.merge(class_)
+        cfg2 = OmegaConf.create(obj2)
         with pytest.raises(ValidationError):
             OmegaConf.merge(cfg, cfg2)

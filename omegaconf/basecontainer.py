@@ -400,8 +400,7 @@ class BaseContainer(Container, ABC):
                     with open_dict(dest):
                         dest[key] = src._get_node(key)
                 else:
-                    src_node = src._get_node(key)
-                    dest[key] = src_node
+                    dest[key] = src._get_node(key)
 
         _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
@@ -498,8 +497,6 @@ class BaseContainer(Container, ABC):
 
         from .nodes import AnyNode, ValueNode
 
-        if isinstance(value, AnyNode):
-            value = value._value()
         if isinstance(value, Node):
             do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
             if not do_deepcopy and isinstance(value, Container):

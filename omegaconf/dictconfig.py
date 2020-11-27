@@ -163,7 +163,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 )
 
     def _validate_set(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
+        from omegaconf import AnyNode, OmegaConf
 
         vk = get_value_kind(value)
         if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
@@ -174,25 +174,27 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         target = self._get_node(key) if key is not None else self
 
-        target_has_ref_type = isinstance(
-            target, DictConfig
-        ) and target._metadata.ref_type not in (Any, dict)
-
-        is_valid_target = not target_has_ref_type and not (
-            isinstance(value, BaseContainer)
-            and is_structured_config(value._metadata.ref_type)
-            and self._metadata.element_type is not Any
-        )
-
-        if is_valid_target:
-            return
-
         target_type = (
             target._metadata.ref_type
             if target is not None
             else self._metadata.element_type
         )
+        target_has_ref_type = isinstance(target, DictConfig) and target_type not in (
+            Any,
+            dict,
+        )
         value_type = OmegaConf.get_type(value)
+
+        is_valid_target = not target_has_ref_type and not (
+            (
+                is_structured_config(value_type)
+                and self._metadata.element_type is not Any
+            )
+            or (isinstance(value, AnyNode) and target_type is not Any)
+        )
+
+        if is_valid_target:
+            return
 
         if is_dict(value_type) and is_dict(target_type):
             return
