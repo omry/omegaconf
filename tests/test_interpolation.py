@@ -8,6 +8,7 @@ from _pytest.python_api import RaisesContext
 
 from omegaconf import Container, IntegerNode, Node, OmegaConf, Resolver, ValidationError
 from omegaconf._utils import _ensure_container
+from omegaconf.errors import ConfigKeyError
 
 
 @pytest.mark.parametrize(  # type:ignore
@@ -106,7 +107,7 @@ def test_merge_with_interpolation() -> None:
 
 def test_non_container_interpolation() -> None:
     cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
-    with pytest.raises(AssertionError):
+    with pytest.raises(ConfigKeyError):
         cfg.bar
 
 
