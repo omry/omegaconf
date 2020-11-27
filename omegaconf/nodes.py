@@ -251,8 +251,11 @@ class UnionNode(ValueNode):
         )
 
     def _get_element_types_lead_by(self, type_: Any) -> List[Any]:
+        pos = self.element_types.index(type_)
+        if pos == 0:
+            return self.element_types
         element_types = copy.copy(self.element_types)
-        element_types.insert(0, element_types.pop(element_types.index(type_)))
+        element_types[0], element_types[pos] = element_types[pos], element_types[0]
         return element_types
 
     def __eq__(self, other: Any) -> bool:

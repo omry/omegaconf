@@ -603,7 +603,6 @@ def test_getattr() -> None:
 def test_set_valid_union_value() -> None:
     cfg = OmegaConf.structured(ListUnion)
     cfg.list = [4, 3.14]
-    assert isinstance(cfg.list._get_node(0), UnionNode)  # type: ignore
     assert cfg.list == [4, 3.14]
     assert isinstance(cfg.list._get_node(0), UnionNode)  # type: ignore
     assert isinstance(cfg.list._get_node(1), UnionNode)  # type: ignore
