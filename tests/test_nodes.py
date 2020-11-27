@@ -571,60 +571,32 @@ def test_allow_objects() -> None:
 
 
 @pytest.mark.parametrize(  # type: ignore
-    "node, value, expected",
+    "node, value",
     [
-        (UnionNode(ref_type=Union[int, str], element_types=[int, str], value=1), 1, 1),
-        (UnionNode(element_types=[int, str], value="str"), "str", "str"),
-        (UnionNode(element_types=[int, str]), "str", "str"),
-        (UnionNode(element_types=[int, str, type(None)]), None, None),
-        (
-            UnionNode(element_types=[DictConfig, str]),
-            DictConfig({"a": 1}),
-            DictConfig({"a": 1}),
-        ),
-        (
-            UnionNode(element_types=[ListConfig, int]),
-            ListConfig([1, 2]),
-            ListConfig([1, 2]),
-        ),
-        (UnionNode(element_types=[List[int], int]), [1, 2], [1, 2]),
-        (UnionNode(element_types=[List[bool], bool]), [True, False], [True, False]),
-        (UnionNode(element_types=[List[float], float]), [3.14, 9.67], [3.14, 9.67]),
-        (UnionNode(element_types=[List[str], str]), ["foo", "foo2"], ["foo", "foo2"]),
+        (UnionNode(ref_type=Union[int, str], element_types=[int, str], value=1), 1),
+        (UnionNode(element_types=[int, str], value="str"), "str"),
+        (UnionNode(element_types=[int, str]), "str"),
+        (UnionNode(element_types=[int, str, type(None)]), None),
+        (UnionNode(element_types=[DictConfig, str]), DictConfig({"a": 1})),
+        (UnionNode(element_types=[ListConfig, int]), ListConfig([1, 2])),
+        (UnionNode(element_types=[List[int], int]), [1, 2]),
+        (UnionNode(element_types=[List[bool], bool]), [True, False]),
+        (UnionNode(element_types=[List[float], float]), [3.14, 9.67]),
+        (UnionNode(element_types=[List[str], str]), ["foo", "foo2"]),
         (
             UnionNode(element_types=[List[User], str]),
             [User(name="user1", age=21), User(name="user2", age=45)],
-            [User(name="user1", age=21), User(name="user2", age=45)],
         ),
-        (
-            UnionNode(element_types=[List[int], int]),
-            1,
-            1,
-        ),
-        (UnionNode(element_types=[Dict[str, int], int]), {"foo": 1}, {"foo": 1}),
-        (
-            UnionNode(element_types=[Dict[str, str], str]),
-            {"foo": "var"},
-            {"foo": "var"},
-        ),
-        (
-            UnionNode(element_types=[Dict[str, bool], bool]),
-            {"foo": True},
-            {"foo": True},
-        ),
-        (
-            UnionNode(element_types=[Dict[str, float], float]),
-            {"foo": 3.14},
-            {"foo": 3.14},
-        ),
-        (
-            UnionNode(element_types=[bool, float], is_optional=True),
-            None,
-            None,
-        ),
+        (UnionNode(element_types=[List[int], int]), 1),
+        (UnionNode(element_types=[Dict[str, int], int]), {"foo": 1}),
+        (UnionNode(element_types=[Dict[str, str], str]), {"foo": "var"}),
+        (UnionNode(element_types=[Dict[str, bool], bool]), {"foo": True}),
+        (UnionNode(element_types=[Dict[str, float], float]), {"foo": 3.14}),
+        (UnionNode(element_types=[bool, float], is_optional=True), None),
     ],
 )
-def test_valid_value_union_node(node: ValueNode, value: Any, expected: Any) -> None:
+def test_valid_value_union_node(node: ValueNode, value: Any) -> None:
+    expected = copy.deepcopy(value)
     node._set_value(value)
     assert node._value() == expected
     assert isinstance(node, UnionNode)

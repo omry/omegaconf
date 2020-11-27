@@ -550,6 +550,7 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
     "obj, expected",
     [
         pytest.param(Union[int, str], [int, str]),
+        pytest.param(Union[int, Any, str], Any),
         pytest.param(Union[int, str, ListConfig], [int, str, ListConfig]),
         pytest.param(Union[Plugin, ListConfig], [Plugin, ListConfig]),
         pytest.param(Union[str, List[str]], [str, List[str]]),

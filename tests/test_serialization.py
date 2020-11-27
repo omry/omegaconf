@@ -156,28 +156,21 @@ def test_pickle(obj: Any, ref_type: Any) -> None:
     [
         (OmegaConf.structured(DictUnion), Union[int, float], "dict"),
         (OmegaConf.structured(ListUnion), Union[int, float], "list"),
-        (OmegaConf.structured(UnionClass), Union[int, str], "foo"),
+        (OmegaConf.structured(UnionClass), Union[str, int], "foo"),
     ],
 )
 def test_pickle_union(obj: Any, ref_type: Any, key: str) -> None:
-    import collections
-
     from omegaconf._utils import get_union_types
 
-    with tempfile.TemporaryFile() as fp:
-        pickle.dump(obj, fp)
-        fp.flush()
-        fp.seek(0)
-        c = pickle.load(fp)
-        node = c._get_node(key)
-        assert obj == c
-        if isinstance(node, (DictConfig, ListConfig)):
-            assert node._metadata.element_type == ref_type
-        else:
-            assert node._metadata.ref_type == ref_type
-            assert collections.Counter(node.element_types) == collections.Counter(
-                get_union_types(ref_type)
-            )
+    obj_dump = pickle.dumps(obj)
+    c = pickle.loads(obj_dump)
+    node = c._get_node(key)
+    assert obj == c
+    if isinstance(node, (DictConfig, ListConfig)):
+        assert node._metadata.element_type == ref_type
+    else:
+        assert node._metadata.ref_type == ref_type
+        assert node.element_types == get_union_types(ref_type)
 
 
 def test_load_duplicate_keys_top() -> None:

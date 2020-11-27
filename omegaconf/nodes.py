@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Type, Union
 
 from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
 from omegaconf.base import Container, Metadata, Node
+from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import (
     MissingMandatoryValue,
     ReadonlyConfigError,
@@ -190,7 +191,7 @@ class UnionNode(ValueNode):
         value: Any,
         key: Any = None,
         is_optional: bool = True,
-        parent: Optional[Container] = None,
+        parent: Optional[BaseContainer] = None,
         ref_type: Any = None,
         use_type: bool = False,
     ) -> Optional[Node]:
@@ -204,7 +205,7 @@ class UnionNode(ValueNode):
                 key=key,
                 value=value,
                 is_optional=is_optional,
-                parent=parent,  # type: ignore
+                parent=parent,
                 use_type=use_type,
             )
 
@@ -214,19 +215,22 @@ class UnionNode(ValueNode):
 
         value_node = None
         valid_value = False
-        value_type = type(value)
+        value_type: Any = type(value)
         if isinstance(value, BaseContainer) and is_structured_config(
             value._metadata.ref_type
         ):
-            if value._metadata.ref_type in self.element_types:
+            value_type = value._metadata.ref_type
+            if any(
+                issubclass(value_type, union_type) for union_type in self.element_types
+            ):
                 return value
             else:
-                self._raise_invalid_value(value)
+                self._raise_invalid_value(value, value._metadata.ref_type)
+        element_types = self.element_types
         if value_type in self.element_types:
-            self._bring_type_to_front(value_type)
-        for union_type in self.element_types:
+            element_types = self._get_element_types_lead_by(value_type)
+        for union_type in element_types:
             try:
-                print(union_type, value)
                 value_node = self._wrap_node(
                     value=value, ref_type=union_type, use_type=True
                 )
@@ -235,24 +239,23 @@ class UnionNode(ValueNode):
             except Exception:
                 pass
         if not valid_value:
-            self._raise_invalid_value(value)
+            self._raise_invalid_value(value, type(value))
         return value_node
 
-    def _raise_invalid_value(self, value: Any) -> None:
+    def _raise_invalid_value(self, value: Any, value_type: Any) -> None:
         raise ValidationError(
-            "Value '{}' type is not in '{}'".format(value, self.element_types)
+            "Value '{}' with value_type '{}' is not in '{}'".format(
+                value, value_type, self.element_types
+            )
         )
 
-    def _bring_type_to_front(self, type_: Any) -> None:
-        self.element_types.insert(
-            0, self.element_types.pop(self.element_types.index(type_))
-        )
+    def _get_element_types_lead_by(self, type_: Any) -> List[Any]:
+        element_types = copy.copy(self.element_types)
+        element_types.insert(0, element_types.pop(element_types.index(type_)))
+        return element_types
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, ValueNode):
-            return self._value()._value() == other  # type: ignore
-        else:
-            return self._value() == other  # type: ignore
+        return self._value() == other  # type: ignore
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -271,15 +274,13 @@ class UnionNode(ValueNode):
 
     def __getstate__(self) -> Dict[str, Any]:
         node = copy.copy(self.__dict__)
+        node["_metadata"] = copy.copy(self.__dict__["_metadata"])
         node["_metadata"].ref_type = Union
         return node
 
     def __setstate__(self, state: Dict[str, Any]) -> None:
         element_types = state["element_types"]
-        union = Union[element_types[0]]  # type: ignore
-        for element_type in element_types:
-            union = Union[union, element_type]  # type: ignore
-        state["_metadata"].ref_type = union
+        state["_metadata"].ref_type = Union[tuple(element_types)]
         self.__dict__.update(state)
 
 

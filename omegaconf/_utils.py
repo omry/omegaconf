@@ -439,12 +439,13 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def get_union_types(ref_type: Optional[Any]) -> List[Any]:
+def get_union_types(ref_type: Optional[Any]) -> Union[List[Any], Any]:
     args = getattr(ref_type, "__args__", None)
-    element_types: List[Any]
-    if ref_type is not Union and args is not None and args[0] is not Any:
+    element_types: Union[List[Any], Any]
+    if args is not None and Any not in args:
         element_types = list(args)
-    assert element_types is not None
+    else:
+        element_types = Any
 
     return element_types
 
