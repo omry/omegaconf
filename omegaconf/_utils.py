@@ -8,7 +8,12 @@ from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_typ
 
 import yaml
 
-from .errors import ConfigIndexError, ConfigTypeError, OmegaConfBaseException
+from .errors import (
+    ConfigIndexError,
+    ConfigTypeError,
+    OmegaConfBaseException,
+    UnsupportedValueType,
+)
 
 try:
     import dataclasses
@@ -445,7 +450,11 @@ def get_union_types(ref_type: Optional[Any]) -> Union[List[Any], Any]:
     if args is not None and Any not in args:
         element_types = list(args)
     else:
-        element_types = Any
+        if args is None:
+            msg = "{} is not a valid Union type, it should include more than 1 type."
+        elif Any in args:
+            msg = "{} is not a valid Union type, Any is not a valid union element type."
+        raise UnsupportedValueType(msg.format(ref_type))
 
     return element_types
 

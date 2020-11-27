@@ -550,7 +550,6 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
     "obj, expected",
     [
         pytest.param(Union[int, str], [int, str]),
-        pytest.param(Union[int, Any, str], Any),
         pytest.param(Union[int, str, ListConfig], [int, str, ListConfig]),
         pytest.param(Union[Plugin, ListConfig], [Plugin, ListConfig]),
         pytest.param(Union[str, List[str]], [str, List[str]]),
@@ -559,3 +558,15 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
 )
 def test_get_union_types(obj: Any, expected: Any) -> None:
     assert _utils.get_union_types(obj) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj",
+    [
+        Union[int, Any, str],
+        Union[int],
+    ],
+)
+def test_get_invalid_union_types(obj: Any) -> None:
+    with pytest.raises(UnsupportedValueType):
+        _utils.get_union_types(obj)
