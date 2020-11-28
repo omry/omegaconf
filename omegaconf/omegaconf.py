@@ -852,7 +852,7 @@ def _maybe_wrap(
 ) -> Node:
     # if already a node, update key and parent and return as is.
     # NOTE: that this mutate the input node!
-    if isinstance(value, Node):
+    if isinstance(value, Node) and ref_type is Any:
         value._set_key(key)
         value._set_parent(parent)
         return value

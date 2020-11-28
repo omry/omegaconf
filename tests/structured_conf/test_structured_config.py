@@ -1144,3 +1144,19 @@ class TestDictSubclass:
         cfg = OmegaConf.structured(class_)
         with pytest.raises(ValidationError):
             cfg[node] = value
+
+    @pytest.mark.parametrize(  # type: ignore
+        "value,node",
+        [
+            (DictConfig({"foo": False}), "union_dict"),
+            (ListConfig([1, 2, False]), "union_list"),
+        ],
+    )
+    def test_cfg_set_container_in_union(
+        self, class_type: str, node: str, value: Any
+    ) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UnionWithContainer)
+        cfg[node] = value
+        assert cfg[node] == value
+        assert isinstance(cfg._get_node(node), UnionNode)

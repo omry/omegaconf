@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
-from omegaconf import II, MISSING, SI
+from omegaconf import II, MISSING, SI, DictConfig, ListConfig
 from tests import Color
 
 # skip test if dataclasses are not available
@@ -534,3 +534,13 @@ class ListUnion:
 @dataclass
 class DictUnion:
     dict: Dict[str, Union[float, int]] = field(default_factory=lambda: {"foo": 1})
+
+
+@dataclass
+class UnionWithContainer:
+    union_dict: Union[DictConfig, int] = field(
+        default_factory=lambda: DictConfig({"foo": 1})
+    )
+    union_list: Union[ListConfig, int] = field(
+        default_factory=lambda: ListConfig([1, 2])
+    )

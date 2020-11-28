@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import attr
 import pytest
 
-from omegaconf import II, MISSING, SI
+from omegaconf import II, MISSING, SI, DictConfig, ListConfig
 from tests import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
@@ -517,3 +517,9 @@ class ListUnion:
 @attr.s(auto_attribs=True)
 class DictUnion:
     dict: Dict[str, Union[float, int]] = {"foo": 1}
+
+
+@attr.s(auto_attribs=True)
+class UnionWithContainer:
+    union_dict: Union[DictConfig, int] = DictConfig({"foo": 1})
+    union_list: Union[ListConfig, int] = ListConfig([1, 2])

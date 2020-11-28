@@ -235,7 +235,6 @@ def get_dataclass_data(
                 value = MISSING
             else:
                 value = field.default_factory()  # type: ignore
-
         d[name] = _maybe_wrap(
             ref_type=type_,
             is_optional=is_optional,

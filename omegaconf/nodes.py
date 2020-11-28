@@ -217,16 +217,20 @@ class UnionNode(ValueNode):
         value_node = None
         valid_value = False
         value_type: Any = type(value)
-        if isinstance(value, BaseContainer) and is_structured_config(
-            value._metadata.ref_type
-        ):
-            value_type = value._metadata.ref_type
+        if isinstance(value, BaseContainer):
+            ref_type = value._metadata.ref_type
+            if is_structured_config(ref_type):
+                value_type = ref_type
+            else:
+                value_type = type(value)
             if any(
                 issubclass(value_type, union_type) for union_type in self.element_types
             ):
                 return value
             else:
                 self._raise_invalid_value(value, value._metadata.ref_type)
+        if isinstance(value, ValueNode):
+            value = value._value()
         element_types = self.element_types
         if value_type in self.element_types:
             element_types = self._get_element_types_lead_by(value_type)
