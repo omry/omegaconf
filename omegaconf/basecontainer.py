@@ -117,12 +117,9 @@ class BaseContainer(Container, ABC):
             key_type = d["_metadata"].key_type
         element_type = d["_metadata"].element_type
         if isinstance(element_type, list):
-            union = Union[element_type[0]]  # type: ignore
-            for type_ in element_type:
-                union = Union[union, type_]  # type: ignore
-            d["_metadata"].element_type = union
+            d["_metadata"].element_type = Union[tuple(element_type)]
+            element_type = d["_metadata"].element_type
 
-        element_type = d["_metadata"].element_type
         ref_type = d["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
