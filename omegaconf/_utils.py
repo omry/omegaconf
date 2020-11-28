@@ -444,10 +444,10 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def get_union_types(ref_type: Optional[Any]) -> Union[List[Any], Any]:
-    args = getattr(ref_type, "__args__", None)
+def get_union_types(ref_type: Optional[Any]) -> List[Any]:
     args = getattr(ref_type, "__args__", None)
     error_msg = ""
+    element_types: List[Any]
     if args is None or len(args) < 2:
         error_msg = "{} is not a valid Union type, it should include more than 1 type."
     elif Any in args:
@@ -458,6 +458,8 @@ def get_union_types(ref_type: Optional[Any]) -> Union[List[Any], Any]:
         error_msg = "{} is not a valid Union type, we recommend using Optional instead."
     if error_msg:
         raise UnsupportedValueType(error_msg.format(ref_type))
+    element_types = list(args)
+    return element_types
 
 
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
