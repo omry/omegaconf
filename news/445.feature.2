@@ -1,1 +1,1 @@
-`register_resolver()` is deprecated and custom resolvers should now be registered with `new_register_resolver()` instead (see #426). This allows resolvers to use non-string arguments and decide whether or not to use the cache.
+The `env` resolver now attempts to parse the string representation of environment variables in a way that is consistent with the interpolation grammar. This enables more advanced use cases (e.g. setting environment variables that represent lists or dictionaries).
