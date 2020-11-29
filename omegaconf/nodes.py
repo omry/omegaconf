@@ -221,8 +221,6 @@ class UnionNode(ValueNode):
             ref_type = value._metadata.ref_type
             if is_structured_config(ref_type):
                 value_type = ref_type
-            else:
-                value_type = type(value)
             if any(
                 issubclass(value_type, union_type) for union_type in self.element_types
             ):
