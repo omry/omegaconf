@@ -464,7 +464,8 @@ inputs we always return the same value. This behavior may be disabled by setting
 
 .. doctest::
 
-    >>> import random; random.seed(1234)
+    >>> import random
+    >>> random.seed(1234)
     >>> OmegaConf.new_register_resolver(
     ...        "randint",
     ...        lambda a, b: random.randint(a, b))
