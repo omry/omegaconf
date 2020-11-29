@@ -361,9 +361,11 @@ class Container(Node):
                 )
 
             if ret is not None and not isinstance(ret, Container):
+                parent_key = ".".join(split[0 : i + 1])
+                child_key = split[i + 1]
                 raise ConfigKeyError(
-                    f"Error trying to access {key}: node `{'.'.join(split[0:i + 1])}` "
-                    f"is not a container and thus cannot contain `{split[i + 1]}``"
+                    f"Error trying to access {key}: node `{parent_key}` "
+                    f"is not a container and thus cannot contain `{child_key}`"
                 )
             root = ret
 
