@@ -183,7 +183,9 @@ class Node(ABC):
         ...
 
     def _dereference_node(
-        self, throw_on_missing: bool = False, throw_on_resolution_failure: bool = True
+        self,
+        throw_on_missing: bool = False,
+        throw_on_resolution_failure: bool = True,
     ) -> Optional["Node"]:
         if self._is_interpolation():
             parent = self._get_parent()
