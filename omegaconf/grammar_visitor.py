@@ -96,13 +96,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             )
             return child.symbol.text
 
-    def visitConfigValue(
-        self, ctx: OmegaConfGrammarParser.ConfigValueContext
-    ) -> Union[str, Optional["Node"]]:
-        assert ctx.getChildCount() == 2  # toplevel EOF
-        assert isinstance(ctx.getChild(0), OmegaConfGrammarParser.ToplevelContext)
-        return self.visitToplevel(ctx.getChild(0))
-
     def visitDictValue(
         self, ctx: OmegaConfGrammarParser.DictValueContext
     ) -> Dict[Any, Any]:
@@ -277,11 +270,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() == 2
         return self.visit(ctx.getChild(0))
 
-    def visitToplevel(
-        self, ctx: OmegaConfGrammarParser.ToplevelContext
+    def visitConfigValue(
+        self, ctx: OmegaConfGrammarParser.ConfigValueContext
     ) -> Union[str, Optional["Node"]]:
-        # toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)
-        vals = self.visitChildren(ctx)
+        # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
+        # Visit all children (except last one which is EOF)
+        vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
+        assert vals
         if len(vals) == 1 and isinstance(
             ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
         ):
