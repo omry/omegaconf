@@ -6,7 +6,7 @@ import attr
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
-from omegaconf._utils import is_dict_annotation, is_list_annotation
+from omegaconf._utils import _get_value, is_dict_annotation, is_list_annotation
 from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
@@ -550,3 +550,29 @@ def test_get_node_ref_type(obj: Any, key: str, expected: Any) -> None:
 def test_get_ref_type_error() -> None:
     with raises(ValueError):
         _utils.get_ref_type(AnyNode(), "foo")
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "value",
+    [
+        1,
+        None,
+        {"a": 0},
+        [1, 2, 3],
+    ],
+)
+def test_get_value_basic(value: Any) -> None:
+    val_node = _node_wrap(
+        value=value, type_=Any, parent=None, is_optional=True, key=None
+    )
+    assert _get_value(val_node) == value
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "content",
+    [{"a": 0, "b": 1}, "???", None, "${bar}"],
+)
+def test_get_value_container(content: Any) -> None:
+    cfg = DictConfig({})
+    cfg._set_value(content)
+    assert _get_value(cfg) == content

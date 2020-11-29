@@ -488,8 +488,10 @@ def _get_value(value: Any) -> Any:
     from .base import Container
     from .nodes import ValueNode
 
-    if isinstance(value, Container) and value._is_none():
-        return None
+    if isinstance(value, Container) and (
+        value._is_none() or value._is_interpolation() or value._is_missing()
+    ):
+        return value._value()
     if isinstance(value, ValueNode):
         value = value._value()
     return value
