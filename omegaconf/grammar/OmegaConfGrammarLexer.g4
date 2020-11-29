@@ -1,5 +1,5 @@
 // Regenerate lexer and parser by running 'python setup.py antlr' at project root.
-// See `InterpolationParser.g4` for some important information regarding how to
+// See `OmegaConfGrammarParser.g4` for some important information regarding how to
 // properly maintain this grammar.
 
 lexer grammar OmegaConfGrammarLexer;
