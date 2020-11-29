@@ -974,10 +974,12 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
         for key, definition, expected in TEST_CONFIG_DATA
     ],
 )
-def test_all_interpolations(restore_resolvers: Any, key: str, expected: Any) -> None:
+def test_all_interpolations(
+    restore_resolvers: Any, monkeypatch: Any, key: str, expected: Any
+) -> None:
     dbg_test_access_only = False  # debug flag to not test against expected value
-    os.environ["OMEGACONF_TEST_ENV_INT"] = "123"
-    os.environ.pop("OMEGACONF_TEST_MISSING", None)
+    monkeypatch.setenv("OMEGACONF_TEST_ENV_INT", "123")
+    monkeypatch.delenv("OMEGACONF_TEST_MISSING", raising=False)
     OmegaConf.new_register_resolver(
         "test", lambda *args: args[0] if len(args) == 1 else list(args)
     )
