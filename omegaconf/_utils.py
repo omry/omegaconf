@@ -688,3 +688,31 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
+
+
+def _make_hashable(x: Any) -> Any:
+    """
+    Obtain a hashable version of `x`.
+
+    This is achieved by turning into tuples the lists and dicts that may be
+    stored within `x`.
+    Note that dicts are sorted, so that two dicts ordered differently will
+    lead to the same resulting hashable key.
+
+    :return: a hashable version of `x` (which may be `x` itself if already hashable).
+    """
+    # Hopefully it is already hashable and we have nothing to do!
+    try:
+        hash(x)
+    except TypeError:
+        pass
+    else:
+        return x
+
+    if isinstance(x, (list, tuple)):
+        return tuple(_make_hashable(y) for y in x)
+    elif isinstance(x, dict):
+        # We sort the dictionary so that the order of keys does not matter.
+        return _make_hashable(tuple(sorted(x.items())))
+    else:
+        raise NotImplementedError(f"type {type(x)} cannot be made hashable")
