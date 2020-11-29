@@ -69,11 +69,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         self.quoted_string_callback = quoted_string_callback
 
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
-        aggregate.append(nextResult)
-        return aggregate
+        raise NotImplementedError
 
     def defaultResult(self) -> List[Any]:
-        return []
+        # Raising an exception because not currently used (like `aggregateResult()`).
+        raise NotImplementedError
 
     def visitConfigKey(self, ctx: OmegaConfGrammarParser.ConfigKeyContext) -> str:
         from ._utils import _get_value
