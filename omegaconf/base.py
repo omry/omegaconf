@@ -17,6 +17,7 @@ from .errors import (
 )
 
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
+from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 
 DictKeyType = Union[str, int, Enum]
@@ -494,12 +495,11 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
-        value_kind, parse_tree = get_value_kind(value=value, return_parse_tree=True)
-
+        value_kind = get_value_kind(value)
         if value_kind != ValueKind.INTERPOLATION:
             return value
 
-        assert parse_tree is not None
+        parse_tree = parse(_get_value(value))
         return self._resolve_complex_interpolation(
             parent=parent,
             value=value,

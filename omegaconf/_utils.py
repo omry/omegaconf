@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
 
-from . import grammar_parser
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -315,7 +314,7 @@ class ValueKind(Enum):
     INTERPOLATION = 2
 
 
-def get_value_kind(value: Any, return_parse_tree: bool = False) -> Any:
+def get_value_kind(value: Any) -> ValueKind:
     """
     Determine the kind of a value
     Examples:
@@ -325,44 +324,23 @@ def get_value_kind(value: Any, return_parse_tree: bool = False) -> Any:
                    "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
     :param value: Input to classify.
-    :param return_parse_tree: Whether to also return the interpolation parse tree.
-    :return: ValueKind (and optionally the associated interpolation parse tree).
     """
-    parse_tree = None
-
-    def ret(
-        value_kind: ValueKind,
-    ) -> Any:
-        if return_parse_tree:
-            assert value_kind != ValueKind.INTERPOLATION or parse_tree is not None
-            return value_kind, parse_tree
-        else:
-            return value_kind
-
-    from .base import Container
-
-    if isinstance(value, Container):
-        if value._is_interpolation() or value._is_missing():
-            value = value._value()
 
     value = _get_value(value)
+
     if value == "???":
-        return ret(ValueKind.MANDATORY_MISSING)
+        return ValueKind.MANDATORY_MISSING
 
     # We detect potential interpolations simply by the presence of "${" in the string.
-    # This is much more efficient than systematically calling `grammar_parser.parse()`,
-    # but one must be aware that:
-    #   - invalid interpolations are not detected unless `return_parse_tree` is True
+    # This is much more efficient than calling `grammar_parser.parse()`, but one must
+    # be aware that:
+    #   - invalid interpolations are not detected here
     #   - escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
     #     (this is actually required to properly un-escape them during resolution)
-
-    if not isinstance(value, str) or "${" not in value:
-        return ret(ValueKind.VALUE)
-
-    if return_parse_tree:
-        parse_tree = grammar_parser.parse(value)
-
-    return ret(ValueKind.INTERPOLATION)
+    if isinstance(value, str) and "${" in value:
+        return ValueKind.INTERPOLATION
+    else:
+        return ValueKind.VALUE
 
 
 def is_float(st: str) -> bool:
