@@ -86,6 +86,9 @@ from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
         ),
         # ListConfig
         pytest.param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
+        pytest.param(
+            tuple, (1, 2, 3), ListConfig(content=(1, 2, 3)), id="ListConfig_from_tuple"
+        ),
     ],
 )
 def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:

@@ -12,6 +12,7 @@ from omegaconf import (
     FloatNode,
     IntegerNode,
     ListConfig,
+    Node,
     OmegaConf,
     StringNode,
     UnionNode,
@@ -593,12 +594,15 @@ def test_allow_objects() -> None:
         (UnionNode(element_types=[Dict[str, bool], bool]), {"foo": True}),
         (UnionNode(element_types=[Dict[str, float], float]), {"foo": 3.14}),
         (UnionNode(element_types=[bool, float], is_optional=True), None),
+        (UnionNode(element_types=[float, int]), IntegerNode(0)),
     ],
 )
 def test_valid_value_union_node(node: ValueNode, value: Any) -> None:
     expected = copy.deepcopy(value)
     node._set_value(value)
     assert node._value() == expected
+    if isinstance(expected, Node):
+        assert type(node._value()) == type(expected)
     assert isinstance(node, UnionNode)
 
 
