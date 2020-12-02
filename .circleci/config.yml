@@ -27,6 +27,15 @@ jobs:
       - run: echo 'export NOX_PYTHON_VERSIONS=3.8' >> $BASH_ENV
       - run: sudo pip install nox
       - run: nox
+  
+  py39_linux:
+    docker:
+      - image: circleci/python:3.9
+    steps:
+      - checkout
+      - run: echo 'export NOX_PYTHON_VERSIONS=3.9' >> $BASH_ENV
+      - run: sudo pip install nox
+      - run: nox
 
 workflows:
   version: 2
@@ -35,3 +44,4 @@ workflows:
       - py36_linux
       - py37_linux
       - py38_linux
+      - py39_linux
