@@ -28,7 +28,7 @@ jobs:
       - run: sudo pip install nox
       - run: nox
   
-  py38_linux:
+  py39_linux:
     docker:
       - image: circleci/python:3.9
     steps:
