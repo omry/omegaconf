@@ -3,7 +3,7 @@ import os
 
 import nox
 
-DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8"]
+DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8", "3.9"]
 
 PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
