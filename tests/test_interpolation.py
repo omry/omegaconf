@@ -37,6 +37,9 @@ from omegaconf.errors import ConfigKeyError
         pytest.param({"bar": 10, "foo": ["${bar}"]}, "foo.0", 10, id="inter_in_list"),
         pytest.param({"foo": None, "bar": "${foo}"}, "bar", None, id="none"),
         pytest.param({"list": ["bar"], "foo": "${list.0}"}, "foo", "bar", id="list"),
+        pytest.param(
+            {"user@domain": 10, "foo": "${user@domain}"}, "foo", 10, id="user@domain"
+        ),
         # relative interpolations
         pytest.param({"a": "${.b}", "b": 10}, "a", 10, id="relative"),
         pytest.param({"a": {"z": "${.b}", "b": 10}}, "a.z", 10, id="relative"),
