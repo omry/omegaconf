@@ -185,12 +185,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         )
         value_type = OmegaConf.get_type(value)
 
-        is_valid_target = not target_has_ref_type and not (
-            (
-                is_structured_config(value_type)
-                and self._metadata.element_type is not Any
-            )
-            or (isinstance(value, AnyNode) and target_type is not Any)
+        input_container = (
+            is_structured_config(value_type) and self._metadata.element_type is not Any
+        )
+        input_any_node = isinstance(value, AnyNode) and target_type is not Any
+        is_valid_target = (
+            not target_has_ref_type and not input_container and not input_any_node
         )
 
         if is_valid_target:

@@ -1233,8 +1233,7 @@ class TestDictSubclass:
         module: Any = import_module(class_type)
         class_ = getattr(module, obj)
         cfg = OmegaConf.merge(class_)
-        cfg2 = OmegaConf.create(obj2)
-        res = OmegaConf.merge(cfg, cfg2)
+        res = OmegaConf.merge(cfg, obj2)
         assert res == expected
 
     @pytest.mark.parametrize(  # type: ignore
