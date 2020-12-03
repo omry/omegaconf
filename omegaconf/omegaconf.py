@@ -761,15 +761,36 @@ def _node_wrap(
     value: Any,
     key: Any,
     ref_type: Any = None,
-    use_type: bool = False,
 ) -> Node:
     node: Node
-    is_dict = is_dict_annotation(type_)
-    is_list = is_list_annotation(type_) or is_tuple_annotation(type_)
-    if not use_type:
-        is_dict = is_dict or type(value) is dict
-        is_list = is_list or type(value) in (list, tuple)
-    if is_dict:
+    is_dict = (
+        is_dict_annotation(type_)
+        or type_ is dict
+        or (type_ is Any and type(value) is dict)
+    )
+    is_list = (
+        is_list_annotation(type_)
+        or is_tuple_annotation(type_)
+        or type_ is list
+        or type_ is tuple
+        or (type_ is Any and type(value) in (list, tuple))
+    )
+    if _is_union(type_):
+        element_types = get_union_types(type_)
+        if type(None) in element_types:
+            is_optional = True
+            element_types.remove(type(None))
+        else:
+            is_optional = False
+        node = UnionNode(
+            ref_type=type_,
+            element_types=element_types,
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+        )
+    elif is_dict:
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
             content=value,
@@ -789,21 +810,6 @@ def _node_wrap(
             is_optional=is_optional,
             element_type=element_type,
             ref_type=ref_type,
-        )
-    elif _is_union(type_):
-        element_types = get_union_types(type_)
-        if type(None) in element_types:
-            is_optional = True
-            element_types.remove(type(None))
-        else:
-            is_optional = False
-        node = UnionNode(
-            ref_type=type_,
-            element_types=element_types,
-            value=value,
-            key=key,
-            parent=parent,
-            is_optional=is_optional,
         )
     elif is_structured_config(type_) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(type_)
@@ -848,11 +854,11 @@ def _maybe_wrap(
     value: Any,
     is_optional: bool,
     parent: Optional[BaseContainer],
-    use_type: bool = False,
 ) -> Node:
-    # if already a node, update key and parent and return as is.
-    # NOTE: that this mutate the input node!
-    if isinstance(value, Node) and ref_type is Any:
+    # If already a node, update key and parent and return as is.
+    # NOTE: that this mutates the input node!
+    # If `ref_type` is a union we still need to wrap the node into a `UnionNode`.
+    if isinstance(value, Node) and not _is_union(ref_type):
         value._set_key(key)
         value._set_parent(parent)
         return value
@@ -864,7 +870,6 @@ def _maybe_wrap(
             value=value,
             key=key,
             ref_type=ref_type,
-            use_type=use_type,
         )
 
 

@@ -4,7 +4,12 @@ import sys
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
+from omegaconf._utils import (
+    _get_value,
+    _is_interpolation,
+    get_type_of,
+    is_primitive_container,
+)
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import (
@@ -194,7 +199,6 @@ class UnionNode(ValueNode):
         is_optional: bool = True,
         parent: Optional[BaseContainer] = None,
         ref_type: Any = None,
-        use_type: bool = False,
     ) -> Optional[Node]:
         from omegaconf.omegaconf import _maybe_wrap
 
@@ -207,7 +211,6 @@ class UnionNode(ValueNode):
                 value=value,
                 is_optional=is_optional,
                 parent=parent,
-                use_type=use_type,
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
@@ -216,27 +219,24 @@ class UnionNode(ValueNode):
 
         value_node = None
         valid_value = False
-        value_type: Any = type(value)
         if isinstance(value, BaseContainer):
             ref_type = value._metadata.ref_type
-            if is_structured_config(ref_type):
-                value_type = ref_type
+            value_type = ref_type if is_structured_config(ref_type) else type(value)
+            assert value_type is not None
             if any(
                 issubclass(value_type, union_type) for union_type in self.element_types
             ):
                 return value
             else:
                 self._raise_invalid_value(value, value._metadata.ref_type)
-        if isinstance(value, ValueNode):
-            value = value._value()
+        value = _get_value(value)
+        value_type = type(value)
         element_types = self.element_types
         if value_type in self.element_types:
             element_types = self._get_element_types_lead_by(value_type)
         for union_type in element_types:
             try:
-                value_node = self._wrap_node(
-                    value=value, ref_type=union_type, use_type=True
-                )
+                value_node = self._wrap_node(value=value, ref_type=union_type)
                 valid_value = True
                 break
             except Exception:
