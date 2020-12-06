@@ -840,7 +840,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("str_quoted_too_many_2", "${test:'a''}", GrammarParseError),
     ("str_quoted_too_many_3", "${test:''a''}", GrammarParseError),
     # Unquoted strings (within interpolations).
-    ("str_legal", "${test:a/-\\+.$*, \\\\}", ["a/-\\+.$*", "\\"]),
+    ("str_legal", "${test:a/-\\+.$*@, \\\\}", ["a/-\\+.$*@", "\\"]),
     ("str_illegal_1", "${test:a,=b}", GrammarParseError),
     ("str_illegal_2", f"${{test:{chr(200)}}}", GrammarParseError),
     ("str_illegal_3", f"${{test:{chr(129299)}}}", GrammarParseError),
