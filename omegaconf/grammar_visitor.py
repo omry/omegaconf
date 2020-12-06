@@ -78,7 +78,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitConfigKey(self, ctx: OmegaConfGrammarParser.ConfigKeyContext) -> str:
         from ._utils import _get_value
 
-        # interpolation | ID | LIST_INDEX
+        # interpolation | ID | INTER_KEY
         assert ctx.getChildCount() == 1
         child = ctx.getChild(0)
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):

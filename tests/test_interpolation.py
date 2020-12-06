@@ -593,6 +593,32 @@ def test_supported_chars() -> None:
     assert c.dir1 == supported_chars
 
 
+def test_valid_key_names() -> None:
+    invalid_chars = "\\${}()[].: '\""
+    valid_chars = "".join(chr(i) for i in range(33, 128) if chr(i) not in invalid_chars)
+    cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
+    cfg = OmegaConf.create(cfg_dict)
+    # Test that we can access the node made of all valid characters, both
+    # directly and through interpolations.
+    assert cfg[valid_chars] == 123
+    assert cfg.inter == 123
+    # Test that all invalid characters trigger errors in interpolations.
+    for c in invalid_chars:
+        cfg_dict["invalid"] = f"${{ab{c}de}}"
+        cfg = OmegaConf.create(cfg_dict)
+        error: type
+        if c in [".", "}"]:
+            # With '.', we try to access `${ab.de}`.
+            # With "}", we try to access `${ab}`.
+            error = ConfigKeyError
+        elif c == ":":
+            error = UnsupportedInterpolationType  # `${ab:de}`
+        else:
+            error = GrammarParseError  # other cases are all parse errors
+        with pytest.raises(error):
+            cfg.invalid
+
+
 def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
@@ -700,6 +726,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("None", {"True": 1}, ...),  # used to test keys with null-like names
     ("0", 42, ...),  # used to test keys with int names
     ("1", {"2": 1337}, ...),  # used to test dot-path with int keys
+    ("x@y", 123, ...),
     # Special keywords.
     ("null", "${test:null}", None),
     ("true", "${test:TrUe}", True),
@@ -742,7 +769,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("list_access_1", "${prim_list.0}", -1),
     ("list_access_2", "${test:${prim_list.1},${prim_list.2}}", ["a", 1.1]),
     ("list_access_underscore", "${prim_list.1_000}", ConfigKeyError),  # "working"
-    ("list_access_bad_negative", "${prim_list.-1}", GrammarParseError),
+    ("list_access_bad_negative", "${prim_list.-1}", ConfigKeyError),
     ("dict_access_list_like_1", "${0}", 42),
     ("dict_access_list_like_2", "${1.2}", 1337),
     ("bool_like_keys", "${FalsE.TruE}", True),
@@ -751,6 +778,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("null_like_key_quoted_1", "${'None'.'True'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.True'}", GrammarParseError),
     ("dotpath_bad_type", "${prim_dict.${float}}", GrammarParseError),
+    ("at_in_key", "${x@y}", 123),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
@@ -761,6 +789,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("dict_list_as_key", "${test:{[0]: 1}}", GrammarParseError),
     ("missing_resolver", "${MiSsInG_ReSoLvEr:0}", UnsupportedInterpolationType),
     ("non_str_resolver", "${${bool}:}", GrammarParseError),
+    ("at_in_resolver", "${y@z:}", GrammarParseError),
     # Env resolver (limited: more tests in `test_env_values_are_typed()`).
     ("env_int", "${env:OMEGACONF_TEST_ENV_INT}", 123),
     ("env_missing_str", "${env:OMEGACONF_TEST_MISSING,miss}", "miss"),

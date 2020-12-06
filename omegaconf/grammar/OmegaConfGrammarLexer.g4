@@ -76,5 +76,5 @@ INTER_CLOSE: '}' -> popMode;
 
 DOT: '.';
 INTER_ID: ID -> type(ID);
-LIST_INDEX: INT_UNSIGNED;
+INTER_KEY: ~[\\${}()[\]:. \t'"]+;  // interpolation key, may contain any non special character
 INTER_WS: WS -> skip;

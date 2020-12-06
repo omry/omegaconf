@@ -49,7 +49,7 @@ sequence: element (COMMA element)*;
 interpolation: interpolationNode | interpolationResolver;
 interpolationNode: INTER_OPEN DOT* configKey (DOT configKey)* INTER_CLOSE;
 interpolationResolver: INTER_OPEN (interpolation | ID) COLON sequence? BRACE_CLOSE;
-configKey: interpolation | ID | LIST_INDEX;
+configKey: interpolation | ID | INTER_KEY;
 
 // Primitive types.
 
