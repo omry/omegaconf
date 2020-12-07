@@ -214,21 +214,26 @@ class UnionNode(ValueNode):
             )
 
     def validate_and_convert(self, value: Any) -> Optional[Any]:
-        from omegaconf._utils import is_structured_config
+        from omegaconf._utils import is_container_annotation, is_structured_config
         from omegaconf.basecontainer import BaseContainer
 
-        value_node = None
-        valid_value = False
         if isinstance(value, BaseContainer):
             ref_type = value._metadata.ref_type
             value_type = ref_type if is_structured_config(ref_type) else type(value)
             assert value_type is not None
-            if any(
-                issubclass(value_type, union_type) for union_type in self.element_types
-            ):
-                return value
-            else:
-                self._raise_invalid_value(value, value._metadata.ref_type)
+            for union_type in self.element_types:
+                if is_container_annotation(value_type) or is_container_annotation(
+                    union_type
+                ):
+                    try:
+                        return self._wrap_node(
+                            value=value._value(), ref_type=union_type
+                        )
+                    except Exception:
+                        pass
+                elif issubclass(value_type, union_type):
+                    return value
+            self._raise_invalid_value(value, value._metadata.ref_type)
         value = _get_value(value)
         value_type = type(value)
         element_types = self.element_types
@@ -236,20 +241,16 @@ class UnionNode(ValueNode):
             element_types = self._get_element_types_lead_by(value_type)
         for union_type in element_types:
             try:
-                value_node = self._wrap_node(value=value, ref_type=union_type)
-                valid_value = True
-                break
+                return self._wrap_node(value=value, ref_type=union_type)
             except Exception:
                 pass
-        if not valid_value:
-            self._raise_invalid_value(value, type(value))
-        return value_node
+        self._raise_invalid_value(value, type(value))
+        return None
 
     def _raise_invalid_value(self, value: Any, value_type: Any) -> None:
         raise ValidationError(
-            "Value '{}' with value_type '{}' is not in '{}'".format(
-                value, value_type, self.element_types
-            )
+            "Value '%s' with value_type '%s' is not in '%s'"
+            % (value, value_type, self.element_types)
         )
 
     def _get_element_types_lead_by(self, type_: Any) -> List[Any]:
@@ -260,8 +261,8 @@ class UnionNode(ValueNode):
         element_types[0], element_types[pos] = element_types[pos], element_types[0]
         return element_types
 
-    def __eq__(self, other: Any) -> bool:
-        return self._value() == other  # type: ignore
+    def __eq__(self, other: Any) -> Any:
+        return self._value() == other
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

@@ -1160,3 +1160,17 @@ class TestDictSubclass:
         cfg[node] = value
         assert cfg[node] == value
         assert isinstance(cfg._get_node(node), UnionNode)
+
+    def test_union_with_baseclass(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UnionWithBaseclass)
+        cfg.foo = module.Subclass1()
+        assert cfg.foo == module.Subclass1()
+        assert isinstance(cfg._get_node("foo"), UnionNode)
+
+    def test_union_with_subclasses(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.UnionOfSubclasses)
+        cfg.foo = module.Subclass1
+        assert cfg.foo == module.Subclass1()
+        assert isinstance(cfg._get_node("foo"), UnionNode)

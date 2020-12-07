@@ -523,3 +523,28 @@ class DictUnion:
 class UnionWithContainer:
     union_dict: Union[DictConfig, int] = DictConfig({"foo": 1})
     union_list: Union[ListConfig, int] = ListConfig([1, 2])
+
+
+@attr.s(auto_attribs=True)
+class Base:
+    foo: int = 1
+
+
+@attr.s(auto_attribs=True)
+class Subclass1(Base):
+    pass
+
+
+@attr.s(auto_attribs=True)
+class Subclass2(Base):
+    pass
+
+
+@attr.s(auto_attribs=True)
+class UnionWithBaseclass:
+    foo: Union[Base, int]
+
+
+@attr.s(auto_attribs=True)
+class UnionOfSubclasses:
+    foo: Union[Subclass1, Subclass2]

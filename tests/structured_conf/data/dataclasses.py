@@ -544,3 +544,28 @@ class UnionWithContainer:
     union_list: Union[ListConfig, int] = field(
         default_factory=lambda: ListConfig([1, 2])
     )
+
+
+@dataclass
+class Base:
+    foo: int = 1
+
+
+@dataclass
+class Subclass1(Base):
+    pass
+
+
+@dataclass
+class Subclass2(Base):
+    pass
+
+
+@dataclass
+class UnionWithBaseclass:
+    foo: Union[Base, int]
+
+
+@dataclass
+class UnionOfSubclasses:
+    foo: Union[Subclass1, Subclass2]
