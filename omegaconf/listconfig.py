@@ -107,16 +107,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         value_type = OmegaConf.get_type(value)
 
-        def raise_validation_error(
-            value_type: Any, target_type: Any, value: Any
-        ) -> None:
-            msg = (
-                f"Invalid type assigned : {type_str(value_type)} is not a "
-                f"subclass of {type_str(target_type)}. value: {value}"
-            )
-
-            raise ValidationError(msg)
-
         if (
             (
                 is_structured_config(value_type)
@@ -126,7 +116,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             and value_type is not None
             and not issubclass(value_type, target_type)
         ):
-            raise_validation_error(value_type, target_type, value)
+            msg = (
+                f"Invalid type assigned : {type_str(value_type)} is not a "
+                f"subclass of {type_str(target_type)}. value: {value}"
+            )
+
+            raise ValidationError(msg)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
