@@ -249,8 +249,7 @@ class UnionNode(ValueNode):
 
     def _raise_invalid_value(self, value: Any, value_type: Any) -> None:
         raise ValidationError(
-            "Value '%s' with value_type '%s' is not in '%s'"
-            % (value, value_type, self.element_types)
+            f"Value '{value}' with value_type '{value_type}' is not in '{self.element_types}'"
         )
 
     def _get_element_types_lead_by(self, type_: Any) -> List[Any]:
