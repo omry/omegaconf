@@ -6,7 +6,12 @@ import attr
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
-from omegaconf._utils import _get_value, is_dict_annotation, is_list_annotation
+from omegaconf._utils import (
+    _get_value,
+    _make_hashable,
+    is_dict_annotation,
+    is_list_annotation,
+)
 from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
@@ -576,3 +581,29 @@ def test_get_value_container(content: Any) -> None:
     cfg = DictConfig({})
     cfg._set_value(content)
     assert _get_value(cfg) == content
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "input_1,input_2",
+    [
+        (0, 0),
+        ([0, 1], (0, 1)),
+        ([0, (1, 2)], (0, [1, 2])),
+        ({0: 1, 1: 2}, {1: 2, 0: 1}),
+        ({"": 1, 0: 2}, {0: 2, "": 1}),
+        (
+            {1: 0, 1.1: 2.0, "1": "0", True: False, None: None},
+            {None: None, 1.1: 2.0, True: False, "1": "0", 1: 0},
+        ),
+    ],
+)
+def test_make_hashable(input_1: Any, input_2: Any) -> None:
+    out_1, out_2 = _make_hashable(input_1), _make_hashable(input_2)
+    assert out_1 == out_2
+    hash_1, hash_2 = hash(out_1), hash(out_2)
+    assert hash_1 == hash_2
+
+
+def test_make_hashable_type_error() -> None:
+    with pytest.raises(TypeError):
+        _make_hashable({...: 0, None: 0})

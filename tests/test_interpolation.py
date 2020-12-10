@@ -784,7 +784,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
     ("list_as_input", "${test:[a, b], 0, [1.1]}", [["a", "b"], 0, [1.1]]),
     ("dict_as_input", "${test:{a: 1.1, b: b}}", {"a": 1.1, "b": "b"}),
-    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", GrammarParseError),
+    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", {"a": 1.1, "b": "b"}),
     ("dict_typo_colons", "${test:{a: 1.1, b:: b}}", {"a": 1.1, "b": ": b"}),
     ("dict_list_as_key", "${test:{[0]: 1}}", GrammarParseError),
     ("missing_resolver", "${MiSsInG_ReSoLvEr:0}", UnsupportedInterpolationType),
@@ -915,21 +915,31 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
         {"x": 1, "a": "b", "y": 100.0, "null2": 0.1, "true3": False, "inf4": True},
     ),
     (
-        "dict_interpolation_key_forbidden",
+        "dict_interpolation_key",
         "${test:{${prim_str}: 0, ${null}: 1, ${int}: 2}}",
-        GrammarParseError,
+        {"hi": 0, None: 1, 123: 2},
     ),
     (
         "dict_quoted_key",
         "${test:{0: 1, 'a': 'b', 1.1: 1e2, null: 0.1, true: false, -inf: true}}",
-        GrammarParseError,
+        {0: 1, "a": "b", 1.1: 100.0, None: 0.1, True: False, -math.inf: True},
     ),
-    ("dict_int_key", "${test:{0: 0}}", GrammarParseError),
-    ("dict_float_key", "${test:{1.1: 0}}", GrammarParseError),
-    ("dict_nan_key_1", "${test:{nan: 0}}", GrammarParseError),
-    ("dict_nan_key_2", "${test:{${test:nan}: 0}}", GrammarParseError),
-    ("dict_null_key", "${test:{null: 0}}", GrammarParseError),
-    ("dict_bool_key", "${test:{true: true, false: 'false'}}", GrammarParseError),
+    (
+        "dict_unquoted_key",
+        "${test:{a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@\\(\\)\\[\\]\\{\\}\\:\\=\\ \\\t\\,:0}}",
+        {"a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@()[]{}:= \t,": 0},
+    ),
+    ("dict_int_key", "${test:{0: 0}}", {0: 0}),
+    ("dict_float_key", "${test:{1.1: 0}}", {1.1: 0}),
+    ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
+    ("dict_nan_key_2", "${first:{${test:nan}: 0}}", math.nan),
+    ("dict_nan_key_3", "${test:{'nan': 0}}", {"nan": 0}),
+    ("dict_null_key", "${test:{null: 0}}", {None: 0}),
+    (
+        "dict_bool_key",
+        "${test:{true: true, false: 'false'}}",
+        {True: True, False: "false"},
+    ),
     ("empty_dict_list", "${test:[],{}}", [[], {}]),
     (
         "structured_mixed",
@@ -1012,6 +1022,7 @@ def test_all_interpolations(
     OmegaConf.new_register_resolver(
         "test", lambda *args: args[0] if len(args) == 1 else list(args)
     )
+    OmegaConf.new_register_resolver("first", lambda d: next(iter(d)))
     OmegaConf.new_register_resolver("null", lambda *args: ["null"] + list(args))
     OmegaConf.new_register_resolver("FALSE", lambda *args: ["FALSE"] + list(args))
     OmegaConf.new_register_resolver("True", lambda *args: ["True"] + list(args))

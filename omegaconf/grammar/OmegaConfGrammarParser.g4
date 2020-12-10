@@ -33,15 +33,15 @@ toplevelStr: (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+;
 
 element:
       primitive
-    | listValue
-    | dictValue
+    | listContainer
+    | dictContainer
 ;
 
 // Data structures.
 
-listValue: BRACKET_OPEN sequence? BRACKET_CLOSE;                          // [], [1,2,3], [a,b,[1,2]]
-dictValue: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
-dictKeyValuePair: ID COLON element;
+listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                          // [], [1,2,3], [a,b,[1,2]]
+dictContainer: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
+dictKeyValuePair: dictKey COLON element;
 sequence: element (COMMA element)*;
 
 // Interpolations.
@@ -62,6 +62,20 @@ primitive:
         | BOOL                                   // true, TrUe, false, False
         | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
         | COLON                                  // :
+        | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
+        | WS                                     // whitespaces
+        | interpolation
+      )+;
+
+// Same as `primitive` except that `COLON` is not allowed.
+dictKey:
+      QUOTED_VALUE                               // 'hello world', "hello world"
+    | (   ID                                     // foo_10
+        | NULL                                   // null, NULL
+        | INT                                    // 0, 10, -20, 1_000_000
+        | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
+        | BOOL                                   // true, TrUe, false, False
+        | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
         | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
         | WS                                     // whitespaces
         | interpolation

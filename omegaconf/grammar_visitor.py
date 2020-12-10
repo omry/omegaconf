@@ -115,8 +115,14 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         # Concatenation of multiple components.
         return "".join(map(str, vals))
 
-    def visitDictValue(
-        self, ctx: OmegaConfGrammarParser.DictValueContext
+    def visitDictKey(self, ctx: OmegaConfGrammarParser.DictKeyContext) -> Any:
+        from ._utils import _get_value
+
+        # Dictionary keys are a subset of primitives, they may thus be parsed as such.
+        return _get_value(self.visitPrimitive(ctx))
+
+    def visitDictContainer(
+        self, ctx: OmegaConfGrammarParser.DictContainerContext
     ) -> Dict[Any, Any]:
         # BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE
         assert ctx.getChildCount() >= 2
@@ -126,7 +132,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         )
 
     def visitElement(self, ctx: OmegaConfGrammarParser.ElementContext) -> Any:
-        # primitive | listValue | dictValue
+        # primitive | listContainer | dictContainer
         assert ctx.getChildCount() == 1
         return self.visit(ctx.getChild(0))
 
@@ -208,17 +214,19 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     ) -> Tuple[Any, Any]:
         from ._utils import _get_value
 
-        assert ctx.getChildCount() == 3  # ID COLON element
-        key_node = ctx.getChild(0)
+        assert ctx.getChildCount() == 3  # dictKey COLON element
+        key = self.visit(ctx.getChild(0))
+        colon = ctx.getChild(1)
         assert (
-            isinstance(key_node, TerminalNode)
-            and key_node.symbol.type == OmegaConfGrammarLexer.ID
+            isinstance(colon, TerminalNode)
+            and colon.symbol.type == OmegaConfGrammarLexer.COLON
         )
-        key = key_node.symbol.text
         value = _get_value(self.visitElement(ctx.getChild(2)))
         return key, value
 
-    def visitListValue(self, ctx: OmegaConfGrammarParser.ListValueContext) -> List[Any]:
+    def visitListContainer(
+        self, ctx: OmegaConfGrammarParser.ListContainerContext
+    ) -> List[Any]:
         # BRACKET_OPEN sequence? BRACKET_CLOSE;
         assert ctx.getChildCount() in (2, 3)
         if ctx.getChildCount() == 2:
@@ -227,7 +235,14 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert isinstance(sequence, OmegaConfGrammarParser.SequenceContext)
         return list(val for val, _ in self.visitSequence(sequence))  # ignore raw text
 
-    def visitPrimitive(self, ctx: OmegaConfGrammarParser.PrimitiveContext) -> Any:
+    def visitPrimitive(
+        self,
+        # We also allow the `DictKey` context since dict keys are a subset of primitives.
+        ctx: Union[
+            OmegaConfGrammarParser.PrimitiveContext,
+            OmegaConfGrammarParser.DictKeyContext,
+        ],
+    ) -> Any:
         # QUOTED_VALUE |
         # (ID | NULL | INT | FLOAT | BOOL | UNQUOTED_CHAR | COLON | ESC | WS | interpolation)+
         if ctx.getChildCount() == 1:

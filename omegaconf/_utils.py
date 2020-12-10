@@ -4,6 +4,7 @@ import re
 import string
 import sys
 from enum import Enum
+from functools import cmp_to_key
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
@@ -53,6 +54,10 @@ YAML_BOOL_TYPES = [
     "Off",
     "OFF",
 ]
+
+# Define an arbitrary (but fixed) ordering over the types of dictionary keys
+# that may be encountered when calling `_make_hashable()` on a dict.
+_CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
@@ -713,6 +718,33 @@ def _make_hashable(x: Any) -> Any:
         return tuple(_make_hashable(y) for y in x)
     elif isinstance(x, dict):
         # We sort the dictionary so that the order of keys does not matter.
-        return _make_hashable(tuple(sorted(x.items())))
+        # Note that since keys might be of different types, and comparisons
+        # between different types are not always allowed, we use a custom
+        # `_safe_cmp()` function to order keys.
+        key_func = cmp_to_key(_safe_cmp)
+        return _make_hashable(tuple(sorted(x.items(), key=lambda kv: key_func(kv[0]))))
     else:
         raise NotImplementedError(f"type {type(x)} cannot be made hashable")
+
+
+def _safe_cmp(x: Any, y: Any) -> int:
+    """
+    Compare two elements `x` and `y` in a "safe" way.
+
+    By default, this function uses regular comparison operators (== and <), but
+    if an exception is raised (due to not being able to compare x and y), we instead
+    use `_CMP_TYPES` to decide which order to use.
+    """
+    try:
+        return 0 if x == y else -1 if x < y else 1
+    except Exception:
+        type_x, type_y = type(x), type(y)
+        try:
+            idx_x = _CMP_TYPES[type_x]
+            idx_y = _CMP_TYPES[type_y]
+        except KeyError:
+            bad_type = type_x if type_y in _CMP_TYPES else type_y
+            raise TypeError(f"Invalid data type: `{bad_type}`")
+        if idx_x == idx_y:  # cannot compare two elements of the same type?!
+            raise  # pragma: no cover
+        return -1 if idx_x < idx_y else 1
