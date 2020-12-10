@@ -117,6 +117,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         for k, v in self.__dict__.items():
             res.__dict__[k] = copy.copy(v)
         res._re_parent()
+        for k, v in self.__dict__["_content"].items():
+            if isinstance(v, ValueNode):
+                res.__dict__["_content"][k] = copy.copy(v)
         return res
 
     def copy(self) -> "DictConfig":

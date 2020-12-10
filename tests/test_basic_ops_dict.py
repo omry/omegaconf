@@ -542,6 +542,14 @@ def test_masked_copy_is_deep() -> None:
         OmegaConf.masked_copy("fail", [])  # type: ignore
 
 
+def test_shallow_copy() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2})
+    c = cfg.copy()
+    cfg.a = 42
+    assert cfg.a == 42
+    assert c.a == 1
+
+
 def test_creation_with_invalid_key() -> None:
     with pytest.raises(KeyValidationError):
         OmegaConf.create({1: "a"})  # type: ignore
