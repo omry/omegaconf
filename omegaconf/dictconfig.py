@@ -245,14 +245,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
         raise ValidationError(msg)
 
-    def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
+    def _validate_and_normalize_key(self, key: Any) -> Union[str, int, Enum]:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
     def _s_validate_and_normalize_key(
         self, key_type: Any, key: Any
-    ) -> Union[str, Enum]:
+    ) -> Union[str, int, Enum]:
         if key_type is Any:
-            for t in (str, Enum):
+            for t in (str, int, Enum):
                 try:
                     return self._s_validate_and_normalize_key(key_type=t, key=key)
                 except KeyValidationError:
@@ -260,6 +260,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
         elif key_type == str:
             if not isinstance(key, str):
+                raise KeyValidationError(
+                    f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
+                )
+
+            return key
+        elif key_type == int:
+            if not isinstance(key, int):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
                 )
@@ -278,7 +285,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         else:
             assert False, f"Unsupported key type {key_type}"
 
-    def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
+    def __setitem__(self, key: Union[str, int, Enum], value: Any) -> None:
         try:
             self.__set_impl(key=key, value=value)
         except AttributeError as e:
@@ -288,7 +295,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=value, cause=e)
 
-    def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
+    def __set_impl(self, key: Union[str, int, Enum], value: Any) -> None:
         key = self._validate_and_normalize_key(key)
         self._set_item_impl(key, value)
 
@@ -331,7 +338,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def __getitem__(self, key: Union[str, Enum]) -> Any:
+    def __getitem__(self, key: Union[str, int, Enum]) -> Any:
         """
         Allow map style access
         :param key:
@@ -376,14 +383,14 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         del self.__dict__["_content"][key]
 
     def get(
-        self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER
+        self, key: Union[str, int, Enum], default_value: Any = DEFAULT_VALUE_MARKER
     ) -> Any:
         try:
             return self._get_impl(key=key, default_value=default_value)
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def _get_impl(self, key: Union[str, Enum], default_value: Any) -> Any:
+    def _get_impl(self, key: Union[str, int, Enum], default_value: Any) -> Any:
         try:
             node = self._get_node(key=key)
         except ConfigAttributeError:
@@ -396,7 +403,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
 
     def _get_node(
-        self, key: Union[str, Enum], validate_access: bool = True
+        self, key: Union[str, int, Enum], validate_access: bool = True
     ) -> Optional[Node]:
         try:
             key = self._validate_and_normalize_key(key)
@@ -413,7 +420,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         return value
 
-    def pop(self, key: Union[str, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def pop(self, key: Union[str, int, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
@@ -485,7 +492,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def items(self) -> AbstractSet[Tuple[str, Any]]:
         return self.items_ex(resolve=True, keys=None)
 
-    def setdefault(self, key: Union[str, Enum], default: Any = None) -> Any:
+    def setdefault(self, key: Union[str, int, Enum], default: Any = None) -> Any:
         if key in self:
             ret = self.__getitem__(key)
         else:

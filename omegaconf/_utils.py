@@ -491,7 +491,7 @@ def valid_value_annotation_type(type_: Any) -> bool:
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:
-    return type_ is None or type_ is Any or issubclass(type_, (str, Enum))
+    return type_ is None or type_ is Any or issubclass(type_, (str, int, Enum))
 
 
 def is_primitive_type(type_: Any) -> bool:
