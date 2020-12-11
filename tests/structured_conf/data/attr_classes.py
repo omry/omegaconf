@@ -299,10 +299,10 @@ class WithTypedDict:
     dict: Dict[str, int] = {"foo": 10, "bar": 20}
 
 
-@attr.s(auto_attribs=True)
-class ErrorDictIntKey:
-    # invalid dict key, must be str
-    dict: Dict[int, str] = {10: "foo", 20: "bar"}
+# @attr.s(auto_attribs=True)
+# class ErrorDictIntKey:
+#     # invalid dict key, must be str
+#     dict: Dict[int, str] = {10: "foo", 20: "bar"}
 
 
 class RegularClass:

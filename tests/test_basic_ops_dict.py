@@ -83,6 +83,11 @@ def test_subscript_get() -> None:
     assert isinstance(c, DictConfig)
     assert "b" == c["a"]
 
+def test_subscript_get_int_key() -> None:
+    c = OmegaConf.create("1: b")
+    assert isinstance(c, DictConfig)
+    assert "b" == c[1]
+
 
 def test_subscript_set() -> None:
     c = OmegaConf.create()
@@ -542,21 +547,21 @@ def test_masked_copy_is_deep() -> None:
         OmegaConf.masked_copy("fail", [])  # type: ignore
 
 
-def test_creation_with_invalid_key() -> None:
-    with pytest.raises(KeyValidationError):
-        OmegaConf.create({1: "a"})  # type: ignore
+# def test_creation_with_invalid_key() -> None:
+#     with pytest.raises(KeyValidationError):
+#         OmegaConf.create({1: "a"})  # type: ignore
 
 
-def test_set_with_invalid_key() -> None:
-    cfg = OmegaConf.create()
-    with pytest.raises(KeyValidationError):
-        cfg[1] = "a"  # type: ignore
+# def test_set_with_invalid_key() -> None:
+#     cfg = OmegaConf.create()
+#     with pytest.raises(KeyValidationError):
+#         cfg[1] = "a"  # type: ignore
 
 
-def test_get_with_invalid_key() -> None:
-    cfg = OmegaConf.create()
-    with pytest.raises(KeyValidationError):
-        cfg[1]  # type: ignore
+# def test_get_with_invalid_key() -> None:
+#     cfg = OmegaConf.create()
+#     with pytest.raises(KeyValidationError):
+#         cfg[1]  # type: ignore
 
 
 def test_hasattr() -> None:

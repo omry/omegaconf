@@ -546,11 +546,11 @@ class TestConfigs:
         res = OmegaConf.merge(cfg, {"dict": {"foo": user}})
         assert res.dict == {"foo": user}
 
-    def test_typed_dict_key_error(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        input_ = module.ErrorDictIntKey
-        with pytest.raises(KeyValidationError):
-            OmegaConf.structured(input_)
+    # def test_typed_dict_key_error(self, class_type: str) -> None:
+    #     module: Any = import_module(class_type)
+    #     input_ = module.ErrorDictIntKey
+    #     with pytest.raises(KeyValidationError):
+    #         OmegaConf.structured(input_)
 
     def test_typed_dict_value_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
