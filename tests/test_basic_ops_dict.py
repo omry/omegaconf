@@ -83,6 +83,7 @@ def test_subscript_get() -> None:
     assert isinstance(c, DictConfig)
     assert "b" == c["a"]
 
+
 def test_subscript_get_int_key() -> None:
     c = OmegaConf.create("1: b")
     assert isinstance(c, DictConfig)

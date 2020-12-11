@@ -420,7 +420,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         return value
 
-    def pop(self, key: Union[str, int, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def pop(
+        self, key: Union[str, int, Enum], default: Any = DEFAULT_VALUE_MARKER
+    ) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
