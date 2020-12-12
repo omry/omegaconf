@@ -48,7 +48,7 @@ class ContainerMetadata(Metadata):
 class Node(ABC):
     _metadata: Metadata
 
-    parent: Optional["Container"]
+    _parent: Optional["Container"]
 
     def __init__(self, parent: Optional["Container"], metadata: Metadata):
         self.__dict__["_metadata"] = metadata
