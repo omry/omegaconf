@@ -10,7 +10,7 @@ import yaml
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType
 
-from . import ConcretePlugin, IllegalType, Plugin
+from . import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -69,6 +69,34 @@ def test_create_value(input_: Any, expected: Any) -> None:
     ],
 )
 def test_create_allow_objects(input_: Any) -> None:
+    # test creating from a primitive container
+    cfg = OmegaConf.create(input_, flags={"allow_objects": True})
+    assert cfg == input_
+
+    # test creating from an OmegaConf object, inheriting the allow_objects flag
+    cfg = OmegaConf.create(cfg)
+    assert cfg == input_
+
+    # test creating from an OmegaConf object
+    cfg = OmegaConf.create(cfg, flags={"allow_objects": True})
+    assert cfg == input_
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "input_",
+    [
+        # top level dict
+        {"x": NonCopyableIllegalType()},
+        {"x": {"y": NonCopyableIllegalType()}},
+        {"x": [NonCopyableIllegalType()]},
+        # top level list
+        [NonCopyableIllegalType()],
+        [[NonCopyableIllegalType()]],
+        [{"x": NonCopyableIllegalType()}],
+        [{"x": [NonCopyableIllegalType()]}],
+    ],
+)
+def test_create_allow_objects_non_copyable(input_: Any) -> None:
     # test creating from a primitive container
     cfg = OmegaConf.create(input_, flags={"allow_objects": True})
     assert cfg == input_

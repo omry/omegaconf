@@ -73,7 +73,10 @@ class ValueNode(Node):
         return hash(self._val)
 
     def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]] = {}) -> None:
-        res.__dict__ = copy.deepcopy(self.__dict__, memo=memo)
+        res.__dict__["_metadata"] = copy.deepcopy(self._metadata, memo=memo)
+        res.__dict__["_parent"] = copy.deepcopy(self._parent, memo=memo)
+        # shallow copy for value to support non-copyable value
+        res.__dict__["_val"] = self._val
 
     def _is_none(self) -> bool:
         if self._is_interpolation():

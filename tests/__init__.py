@@ -18,6 +18,22 @@ class IllegalType:
         return False
 
 
+class NonCopyableIllegalType:
+    def __init__(self) -> None:
+        pass
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, NonCopyableIllegalType):
+            return True
+        return False
+
+    def __copy__(self) -> Any:
+        raise NotImplementedError()
+
+    def __deepcopy__(self, memodict: Any = {}) -> Any:
+        raise NotImplementedError()
+
+
 @contextmanager
 def does_not_raise(enter_result: Any = None) -> Iterator[Any]:
     yield enter_result
