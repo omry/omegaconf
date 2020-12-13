@@ -10,7 +10,7 @@ from typing import Any, Dict, Type
 
 import pytest
 
-from omegaconf import OmegaConf
+from omegaconf import MISSING, DictConfig, OmegaConf
 
 from . import PersonA, PersonD
 
@@ -182,3 +182,27 @@ def test_load_empty_file(tmpdir: str) -> None:
     empty.touch()
 
     assert OmegaConf.load(empty) == {}
+
+
+def test_pickle_missing() -> None:
+    cfg = DictConfig(content=MISSING)
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
+
+
+def test_pickle_none() -> None:
+    cfg = DictConfig(content=None)
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
