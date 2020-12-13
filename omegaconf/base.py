@@ -250,7 +250,7 @@ class Container(Node):
         ...
 
     @abstractmethod
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[Any]:
         ...
 
     @abstractmethod

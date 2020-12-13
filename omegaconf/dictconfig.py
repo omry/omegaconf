@@ -9,6 +9,7 @@ from typing import (
     List,
     MutableMapping,
     Optional,
+    Sequence,
     Tuple,
     Type,
     Union,
@@ -32,7 +33,7 @@ from ._utils import (
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
-from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
+from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer, DictKeyType
 from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -46,16 +47,14 @@ from .errors import (
 )
 from .nodes import EnumNode, ValueNode
 
-DictKeyType = Union[str, int, Enum]
 
-
-class DictConfig(BaseContainer, MutableMapping[str, Any]):
+class DictConfig(BaseContainer, MutableMapping[DictKeyType, Any]):
 
     _metadata: ContainerMetadata
 
     def __init__(
         self,
-        content: Union[Dict[str, Any], Any],
+        content: Union[Dict[DictKeyType, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
         ref_type: Union[Any, Type[Any]] = Any,
@@ -484,10 +483,10 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             except (MissingMandatoryValue, KeyError):
                 return False
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[DictKeyType]:
         return iter(self.keys())
 
-    def items(self) -> AbstractSet[Tuple[str, Any]]:
+    def items(self) -> AbstractSet[Tuple[DictKeyType, Any]]:
         return self.items_ex(resolve=True, keys=None)
 
     def setdefault(self, key: DictKeyType, default: Any = None) -> Any:
@@ -499,9 +498,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return ret
 
     def items_ex(
-        self, resolve: bool = True, keys: Optional[List[str]] = None
-    ) -> AbstractSet[Tuple[str, Any]]:
-        items: List[Tuple[str, Any]] = []
+        self, resolve: bool = True, keys: Optional[Sequence[DictKeyType]] = None
+    ) -> AbstractSet[Tuple[DictKeyType, Any]]:
+        items: List[Tuple[DictKeyType, Any]] = []
         for key in self.keys():
             if resolve:
                 value = self.get(key)

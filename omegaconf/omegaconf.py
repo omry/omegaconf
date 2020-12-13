@@ -28,7 +28,7 @@ from typing import (
 import yaml
 from typing_extensions import Protocol
 
-from . import DictConfig, ListConfig
+from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
@@ -183,7 +183,7 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
-        obj: Union[Dict[str, Any], None] = None,
+        obj: Optional[Dict[DictKeyType, Any]] = None,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> DictConfig:
@@ -467,7 +467,7 @@ class OmegaConf:
         resolve: bool = False,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
-    ) -> Union[Dict[str, Any], List[Any], None, str]:
+    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
@@ -508,7 +508,7 @@ class OmegaConf:
             return True
 
     @staticmethod
-    def is_none(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+    def is_none(obj: Any, key: Optional[Union[int, DictKeyType]] = None) -> bool:
         if key is not None:
             assert isinstance(obj, Container)
             obj = obj._get_node(key)

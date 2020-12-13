@@ -1,5 +1,6 @@
 from .base import Container, Node
-from .dictconfig import DictConfig, DictKeyType
+from .basecontainer import DictKeyType
+from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
     MissingMandatoryValue,
