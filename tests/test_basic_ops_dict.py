@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 import pytest
 
 from omegaconf import (
+    MISSING,
     DictConfig,
     ListConfig,
     MissingMandatoryValue,
@@ -540,6 +541,30 @@ def test_masked_copy_is_deep() -> None:
 
     with pytest.raises(ValueError):
         OmegaConf.masked_copy("fail", [])  # type: ignore
+
+
+def test_shallow_copy() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2})
+    c = cfg.copy()
+    cfg.a = 42
+    assert cfg.a == 42
+    assert c.a == 1
+
+
+def test_shallow_copy_missing() -> None:
+    cfg = DictConfig(content=MISSING)
+    c = cfg.copy()
+    c._set_value({"foo": 1})
+    assert c.foo == 1
+    assert cfg._is_missing()
+
+
+def test_shallow_copy_none() -> None:
+    cfg = DictConfig(content=None)
+    c = cfg.copy()
+    c._set_value({"foo": 1})
+    assert c.foo == 1
+    assert cfg._is_none()
 
 
 def test_creation_with_invalid_key() -> None:
