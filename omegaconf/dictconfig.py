@@ -121,7 +121,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         res._re_parent()
         content = self.__dict__["_content"]
         if content != MISSING and content is not None:
-            print(content)
             for k, v in content.items():
                 if isinstance(v, ValueNode):
                     res.__dict__["_content"][k] = copy.copy(v)
