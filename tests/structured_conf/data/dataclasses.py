@@ -303,9 +303,11 @@ class WithTypedDict:
 
 
 @dataclass
-class ErrorDictIntKey:
+class ErrorDictObjectKey:
     # invalid dict key, must be str
-    dict: Dict[int, str] = field(default_factory=lambda: {10: "foo", 20: "bar"})
+    dict: Dict[object, str] = field(
+        default_factory=lambda: {object(): "foo", object(): "bar"}
+    )
 
 
 class RegularClass:
