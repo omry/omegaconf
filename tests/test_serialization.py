@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Type, Union
 
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
 from . import (
@@ -266,3 +266,27 @@ def test_pickle_untyped(
         assert get_node(cfg2, node)._metadata.optional == optional
         if isinstance(input_, DictConfig):
             assert get_node(cfg2, node)._metadata.key_type == key_type
+
+
+def test_pickle_missing() -> None:
+    cfg = DictConfig(content=MISSING)
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
+
+
+def test_pickle_none() -> None:
+    cfg = DictConfig(content=None)
+    with tempfile.TemporaryFile() as fp:
+        import pickle
+
+        pickle.dump(cfg, fp)
+        fp.flush()
+        fp.seek(0)
+        cfg2 = pickle.load(fp)
+        assert cfg == cfg2
