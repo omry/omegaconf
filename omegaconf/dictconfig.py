@@ -250,9 +250,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
     def _validate_and_normalize_key(self, key: Any) -> DictKeyType:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
-    def _s_validate_and_normalize_key(
-        self, key_type: Any, key: Any
-    ) -> DictKeyType:
+    def _s_validate_and_normalize_key(self, key_type: Any, key: Any) -> DictKeyType:
         if key_type is Any:
             for t in DictKeyType.__args__:  # type: ignore
                 try:
@@ -384,9 +382,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         del self.__dict__["_content"][key]
 
-    def get(
-        self, key: DictKeyType, default_value: Any = DEFAULT_VALUE_MARKER
-    ) -> Any:
+    def get(self, key: DictKeyType, default_value: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             return self._get_impl(key=key, default_value=default_value)
         except Exception as e:
@@ -422,9 +418,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         return value
 
-    def pop(
-        self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER
-    ) -> Any:
+    def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
