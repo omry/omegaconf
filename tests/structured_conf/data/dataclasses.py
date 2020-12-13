@@ -365,6 +365,7 @@ class DictExamples:
             "blue": Color.BLUE,
         }
     )
+    int_keys: Dict[int, str] = field(default_factory=lambda: {1: "one", 2: "two"})
 
 
 @dataclass

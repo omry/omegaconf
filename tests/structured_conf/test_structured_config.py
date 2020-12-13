@@ -675,6 +675,16 @@ class TestConfigs:
             "f": Color.BLUE,
         }
 
+        # test int_keys
+        with pytest.raises(KeyValidationError):
+            conf.int_keys.foo_key = "foo_value"
+        conf.int_keys[3] = "three"
+        assert conf.int_keys == {
+            1: "one",
+            2: "two",
+            3: "three",
+        }
+
     def test_enum_key(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictWithEnumKeys)

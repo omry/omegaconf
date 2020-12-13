@@ -350,6 +350,7 @@ class DictExamples:
         "green": Color.GREEN,
         "blue": Color.BLUE,
     }
+    int_keys: Dict[int, str] = {1: "one", 2: "two"}
 
 
 @attr.s(auto_attribs=True)
