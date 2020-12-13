@@ -72,10 +72,25 @@ def test_mandatory_value() -> None:
         c.a
 
 
+def test_mandatory_value_int_key() -> None:
+    c = OmegaConf.create({1: "???"})
+    with pytest.raises(MissingMandatoryValue, match="1"):
+        c[1]
+
+
 def test_nested_dict_mandatory_value() -> None:
     c = OmegaConf.create(dict(a=dict(b="???")))
     with pytest.raises(MissingMandatoryValue):
         c.a.b
+
+
+def test_nested_dict_mandatory_value_int_key() -> None:
+    c = OmegaConf.create({1: dict(b="???")})
+    with pytest.raises(MissingMandatoryValue):
+        c[1].b
+    c2 = OmegaConf.create(dict(a={2: "???"}))
+    with pytest.raises(MissingMandatoryValue):
+        c2.a[2]
 
 
 def test_subscript_get() -> None:
@@ -94,6 +109,12 @@ def test_subscript_set() -> None:
     c = OmegaConf.create()
     c["a"] = "b"
     assert {"a": "b"} == c
+
+
+def test_subscript_set_int_key() -> None:
+    c = OmegaConf.create()
+    c[1] = "b"
+    assert {1: "b"} == c
 
 
 def test_default_value() -> None:
@@ -359,6 +380,10 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
             "incompatible_key_type",
             False,
         ),
+        ({1: "a", 2: {}}, 1, True),
+        ({1: "a", 2: {}}, 2, True),
+        ({1: "a", 2: {}}, 3, False),
+        ({1: "a", 2: "???"}, 2, False),
     ],
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:
@@ -400,6 +425,18 @@ def test_dict_delitem() -> None:
         del c["not_found"]
 
 
+def test_dict_delitem_int_key() -> None:
+    src = {1: "a", 2: "b"}
+    c = OmegaConf.create(src)
+    assert c == src
+    del c[1]
+    assert c == {2: "b"}
+    with pytest.raises(KeyError):
+        del c["not_found"]
+    with pytest.raises(KeyError):
+        del c[3]
+
+
 def test_dict_struct_delitem() -> None:
     src = {"a": 10, "b": 11}
     c = OmegaConf.create(src)
@@ -409,6 +446,17 @@ def test_dict_struct_delitem() -> None:
     with open_dict(c):
         del c["a"]
     assert "a" not in c
+
+
+def test_dict_struct_delitem_int_key() -> None:
+    src = {1: "a", 2: "b"}
+    c = OmegaConf.create(src)
+    OmegaConf.set_struct(c, True)
+    with pytest.raises(ConfigTypeError):
+        del c[1]
+    with open_dict(c):
+        del c[1]
+    assert 1 not in c
 
 
 def test_dict_structured_delitem() -> None:
