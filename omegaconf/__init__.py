@@ -39,6 +39,7 @@ __all__ = [
     "Container",
     "ListConfig",
     "DictConfig",
+    "DictKeyType",
     "OmegaConf",
     "Resolver",
     "flag_override",
