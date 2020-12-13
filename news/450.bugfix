@@ -1,1 +1,1 @@
-Fix bug where DictConfig's copy didn't properly copy primitive types.
+Fix bug where DictConfig's shallow copy didn't work properly in some cases.
