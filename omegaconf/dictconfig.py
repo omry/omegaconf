@@ -48,7 +48,7 @@ from .errors import (
 from .nodes import EnumNode, ValueNode
 
 
-class DictConfig(BaseContainer, MutableMapping[DictKeyType, Any]):
+class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     _metadata: ContainerMetadata
 
