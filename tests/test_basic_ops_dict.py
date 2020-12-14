@@ -598,7 +598,7 @@ def test_masked_copy_is_deep() -> None:
 
 def test_creation_with_invalid_key() -> None:
     with pytest.raises(KeyValidationError):
-        OmegaConf.create({object(): "a"})  # type: ignore
+        OmegaConf.create({object(): "a"})
 
 
 def test_set_with_invalid_key() -> None:

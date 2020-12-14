@@ -183,7 +183,7 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
-        obj: Optional[Dict[DictKeyType, Any]] = None,
+        obj: Optional[Dict[Any, Any]] = None,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> DictConfig:
