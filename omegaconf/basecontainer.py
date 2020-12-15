@@ -193,9 +193,15 @@ class BaseContainer(Container, ABC):
         resolve: bool,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
+        instantiate_structured_configs: bool = False,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+
+        if exclude_structured_configs and instantiate_structured_configs:
+            raise ValueError(
+                "Cannot both exclude and and instantiate structured configs"
+            )
 
         def convert(val: Node) -> Any:
             value = val._value()
@@ -233,9 +239,15 @@ class BaseContainer(Container, ABC):
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         exclude_structured_configs=exclude_structured_configs,
+                        instantiate_structured_configs=instantiate_structured_configs,
                     )
                 else:
                     retdict[key] = convert(node)
+            if (
+                conf._metadata.object_type is not None
+                and instantiate_structured_configs
+            ):
+                return conf._metadata.object_type(**retdict)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
@@ -253,6 +265,7 @@ class BaseContainer(Container, ABC):
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         exclude_structured_configs=exclude_structured_configs,
+                        instantiate_structured_configs=instantiate_structured_configs,
                     )
                     retlist.append(item)
                 else:

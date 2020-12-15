@@ -580,6 +580,7 @@ class OmegaConf:
         resolve: bool = False,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
+        instantiate_structured_configs: bool = False,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
@@ -600,6 +601,7 @@ class OmegaConf:
             resolve=resolve,
             enum_to_str=enum_to_str,
             exclude_structured_configs=exclude_structured_configs,
+            instantiate_structured_configs=instantiate_structured_configs,
         )
 
     @staticmethod
