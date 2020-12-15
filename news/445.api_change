@@ -1,1 +1,1 @@
-`register_resolver()` is deprecated and custom resolvers should now be registered with `new_register_resolver()` instead (see #426). This allows resolvers to use non-string arguments and decide whether or not to use the cache.
+`register_resolver()` is deprecated in favor of `new_register_resolver()` (see #426 for details and migration instructions).
