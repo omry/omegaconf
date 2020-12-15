@@ -325,6 +325,38 @@ Example:
     >>> type(conf.client.url).__name__
     'str'
 
+
+Interpolated nodes can be any node in the config, not just leaf nodes:
+
+.. doctest::
+
+    >>> from textwrap import dedent
+    >>> cfg = OmegaConf.create(
+    ...     dedent(
+    ...         """\
+    ...         john:
+    ...             height: 180
+    ...             weight: 75
+    ...
+    ...         fred:
+    ...             height: 195
+    ...             weight: 90
+    ...
+    ...         player: ${john}
+    ...         """
+    ...     )
+    ... )
+    >>> cfg.player.height
+    180
+    >>> cfg.player.weight
+    75
+    >>> cfg.player = "${fred}"
+    >>> cfg.player.height
+    195
+    >>> cfg.player.weight
+    90
+
+
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
 
 .. doctest::
