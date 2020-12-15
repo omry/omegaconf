@@ -463,7 +463,9 @@ def is_primitive_type(type_: Any) -> bool:
 
 def _is_interpolation(v: Any) -> bool:
     if isinstance(v, str):
-        return bool(get_value_kind(v) == ValueKind.INTERPOLATION)
+        ret = get_value_kind(v) == ValueKind.INTERPOLATION
+        assert isinstance(ret, bool)
+        return ret
     return False
 
 
