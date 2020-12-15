@@ -361,13 +361,17 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create("""
-    ... plans:
-    ...     A: plan A
-    ...     B: plan B
-    ... selected_plan: A
-    ... plan: ${plans.${selected_plan}}
-    ... """)
+    >>> cfg = OmegaConf.create(
+    ...     dedent(
+    ...         """\
+    ...         plans:
+    ...             A: plan A
+    ...             B: plan B
+    ...         selected_plan: A
+    ...         plan: ${plans.${selected_plan}}
+    ...         """
+    ...     )
+    ... )
     >>> cfg.plan # default plan
     'plan A'
     >>> cfg.selected_plan = "B"
@@ -416,10 +420,6 @@ The following example sets `abc123` as the the default value when `DB_PASSWORD` 
     ... })
     >>> cfg.database.password
     'abc123'
-    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
-    >>> os.environ["DB_PASSWORD"] = 'secret'
-    >>> cfg.database.password
-    'secret'
 
 Environment variables are parsed when they are recognized as valid quantities that
 may be evaluated (e.g., int, float, dict, list):
@@ -498,24 +498,19 @@ inputs we always return the same value. This behavior may be disabled by setting
 
     >>> import random
     >>> random.seed(1234)
+    >>> OmegaConf.new_register_resolver("cached", random.random)
     >>> OmegaConf.new_register_resolver(
-    ...        "randint",
-    ...        lambda a, b: random.randint(a, b))
-    >>> c = OmegaConf.create({"x": "${randint:0, 1000}"})
-    >>> c.x
-    989
-    >>> c.x  # same as above thanks to the cache
-    989
-    >>> random.seed(1234)
-    >>> OmegaConf.new_register_resolver(
-    ...         "randint_nocache",
-    ...         lambda a, b: random.randint(a, b),
-    ...         use_cache=False)
-    >>> c = OmegaConf.create({"x": "${randint_nocache:0, 1000}"})
-    >>> c.x
-    989
-    >>> c.x  # not the same anymore since the cache is disabled
-    796
+    ...              "uncached", random.random, use_cache=False)
+    >>> c = OmegaConf.create({"cached": "${cached:}",
+    ...                       "uncached": "${uncached:}"})
+    >>> c.cached
+    0.9664535356921388
+    >>> c.cached  # same as above thanks to the cache
+    0.9664535356921388
+    >>> c.uncached
+    0.4407325991753527
+    >>> c.uncached  # not the same since the cache is disabled
+    0.007491470058587191
 
 
 Merging configurations
