@@ -393,6 +393,10 @@ class DictSubclass:
         pass
 
     @dataclass
+    class Int2Str(Dict[int, str]):
+        pass
+
+    @dataclass
     class Color2Str(Dict[Color, str]):
         pass
 

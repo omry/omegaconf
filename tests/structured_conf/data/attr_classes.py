@@ -374,6 +374,10 @@ class DictSubclass:
         pass
 
     @attr.s(auto_attribs=True)
+    class Int2Str(Dict[int, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
     class Color2Str(Dict[Color, str]):
         pass
 
