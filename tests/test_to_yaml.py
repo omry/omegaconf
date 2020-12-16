@@ -14,6 +14,8 @@ from . import Enum1, User
     [
         (["item1", "item2", {"key3": "value3"}], "- item1\n- item2\n- key3: value3\n"),
         ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
+        ({"abc": "str key"}, "abc: str key\n"),
+        ({123: "int key"}, "123: int key\n"),
     ],
 )
 def test_to_yaml(input_: Any, expected: str) -> None:
