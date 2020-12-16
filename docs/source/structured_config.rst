@@ -257,8 +257,9 @@ OmegaConf verifies at runtime that your Lists contains only values of the correc
 
 Dictionaries
 ^^^^^^^^^^^^
-Dictionaries are supported as well. Keys must be strings or enums, and values can be any of any type supported by OmegaConf
-(Any, int, float, bool, str and Enums as well as arbitrary Structured configs)
+Dictionaries are supported as well. Keys must be strings, ints or enums, and values can
+be any of any type supported by OmegaConf (Any, int, float, bool, str and Enums as well
+as arbitrary Structured configs)
 
 Misc
 ----
