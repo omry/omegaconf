@@ -1039,6 +1039,11 @@ class TestDictSubclass:
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
+        data = OmegaConf.to_container(cfg, instantiate_structured_configs)
+        assert type(data) == module.DictSubclass.Str2StrWithField
+        assert data.foo == "bar"
+        assert data["hello"] == "world"
+
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:
             module: Any = import_module(class_type)
