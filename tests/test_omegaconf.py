@@ -15,7 +15,7 @@ from omegaconf import (
     OmegaConf,
     StringNode,
 )
-from omegaconf.errors import UnsupportedInterpolationType
+from omegaconf.errors import ConfigKeyError, UnsupportedInterpolationType
 
 from . import Color, ConcretePlugin, IllegalType, StructuredWithMissing, does_not_raise
 
@@ -25,13 +25,9 @@ from . import Color, ConcretePlugin, IllegalType, StructuredWithMissing, does_no
     [
         ({}, "foo", False, does_not_raise()),
         ({"foo": True}, "foo", False, does_not_raise()),
+        ({"foo": "${no_such_key}"}, "foo", False, raises(ConfigKeyError)),
         ({"foo": MISSING}, "foo", True, raises(MissingMandatoryValue)),
-        (
-            {"foo": "${bar}", "bar": MISSING},
-            "foo",
-            True,
-            raises(MissingMandatoryValue),
-        ),
+        ({"foo": "${bar}", "bar": MISSING}, "foo", True, raises(MissingMandatoryValue)),
         (
             {"foo": "${unknown_resolver:foo}"},
             "foo",

@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Type, Union
 from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
+    ConfigKeyError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     UnsupportedValueType,
@@ -98,11 +99,15 @@ class ValueNode(Node):
     def _is_missing(self) -> bool:
         try:
             if self._is_interpolation():
-                node = self._dereference_node(
-                    throw_on_resolution_failure=False, throw_on_missing=True
-                )
-                if node is None:
-                    # resolution failure
+                try:
+                    node = self._dereference_node(
+                        throw_on_resolution_failure=False, throw_on_missing=True
+                    )
+                    if node is None:
+                        # resolution failure
+                        return False
+                except ConfigKeyError:
+                    # Will happen if interpolation is accessing keys that does not exist.
                     return False
             else:
                 node = self
