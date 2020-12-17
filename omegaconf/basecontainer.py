@@ -370,7 +370,9 @@ class BaseContainer(Container, ABC):
         assert isinstance(src, ListConfig)
 
         if src._is_missing():
+            # do not change dest if src is MISSING.
             return
+
         dest.__dict__["_content"] = []
 
         if src._is_interpolation():
