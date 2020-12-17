@@ -305,15 +305,16 @@ class BaseContainer(Container, ABC):
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
-            if src_value == MISSING:
-                continue
-
             dest_node = dest._get_node(key, validate_access=False)
             if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
                 if not OmegaConf.is_none(src_value):
                     expand(dest_node)
 
             if dest_node is not None:
+                if src_value == MISSING:
+                    # Do not overwrite existing dest nodes with MISSING
+                    continue
+
                 if dest_node._is_interpolation():
                     target_node = dest_node._dereference_node(
                         throw_on_resolution_failure=False

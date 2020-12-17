@@ -63,6 +63,11 @@ from . import (
             {"a": {"b": 10}},
             id="dict_merge_missing_onto",
         ),
+        pytest.param(
+            ({}, {"a": "???"}),
+            {"a": "???"},
+            id="dict_merge_missing_onto_no_node",
+        ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
