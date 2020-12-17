@@ -365,7 +365,7 @@ class TestNodeTypesMatrix:
                 "str_int_with_primitive_missing",
                 none=False,
                 opt=False,
-                missing=True,
+                missing=False,
                 inter=True,
             )
 
@@ -374,6 +374,6 @@ class TestNodeTypesMatrix:
                 "opt_str_int_with_primitive_missing",
                 none=False,
                 opt=True,
-                missing=True,
+                missing=False,
                 inter=True,
             )
