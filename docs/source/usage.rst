@@ -41,13 +41,14 @@ From a dictionary
 
 .. doctest::
 
-    >>> conf = OmegaConf.create({"k" : "v", "list" : [1, {"a": "1", "b": "2"}]})
+    >>> conf = OmegaConf.create({"k" : "v", "list" : [1, {"a": "1", "b": "2", 3: "c"}]})
     >>> print(OmegaConf.to_yaml(conf))
     k: v
     list:
     - 1
     - a: '1'
       b: '2'
+      3: c
     <BLANKLINE>
 
 From a list
@@ -55,12 +56,13 @@ From a list
 
 .. doctest::
 
-    >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10}}])
+    >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10, 123: 456}}])
     >>> print(OmegaConf.to_yaml(conf))
     - 1
     - a: 10
       b:
         a: 10
+        123: 456
     <BLANKLINE>
 
 Tuples are supported as an valid option too.
@@ -95,6 +97,7 @@ From a YAML string
     ... list:
     ... - item1
     ... - item2
+    ... 123: 456
     ... """
     >>> conf = OmegaConf.create(s)
     >>> print(OmegaConf.to_yaml(conf))
@@ -103,6 +106,7 @@ From a YAML string
     list:
     - item1
     - item2
+    123: 456
     <BLANKLINE>
 
 From a dot-list
@@ -264,7 +268,7 @@ Save/Load YAML file
 
 .. doctest:: loaded
 
-    >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
+    >>> conf = OmegaConf.create({"foo": 10, "bar": 20, 123: 456})
     >>> with tempfile.NamedTemporaryFile() as fp:
     ...     OmegaConf.save(config=conf, f=fp.name)
     ...     loaded = OmegaConf.load(fp.name)
@@ -279,7 +283,7 @@ Note that the saved file may be incompatible across different major versions of 
 
 .. doctest:: loaded
 
-    >>> conf = OmegaConf.create({"foo": 10, "bar": 20})
+    >>> conf = OmegaConf.create({"foo": 10, "bar": 20, 123: 456})
     >>> with tempfile.TemporaryFile() as fp:
     ...     pickle.dump(conf, fp)
     ...     fp.flush()
