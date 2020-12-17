@@ -71,7 +71,7 @@ def test_getattr_dict() -> None:
     ["a", 1],
 )
 class TestDictKeyTypes:
-    def test_mandatory_value(self, key) -> None:
+    def test_mandatory_value(self, key: Any) -> None:
         c = OmegaConf.create({key: "???"})
         with pytest.raises(MissingMandatoryValue, match=str(key)):
             c[key]
@@ -79,7 +79,7 @@ class TestDictKeyTypes:
             with pytest.raises(MissingMandatoryValue, match=key):
                 getattr(c, key)
 
-    def test_nested_dict_mandatory_value(self, key) -> None:
+    def test_nested_dict_mandatory_value(self, key: Any) -> None:
         c = OmegaConf.create({"b": {key: "???"}})
         with pytest.raises(MissingMandatoryValue):
             c.b[key]
@@ -94,12 +94,12 @@ class TestDictKeyTypes:
             with pytest.raises(MissingMandatoryValue):
                 getattr(c, key).b
 
-    def test_subscript_get(self, key) -> None:
+    def test_subscript_get(self, key: Any) -> None:
         c = OmegaConf.create({key: "b"})
         assert isinstance(c, DictConfig)
         assert "b" == c[key]
 
-    def test_subscript_set(self, key) -> None:
+    def test_subscript_set(self, key: Any) -> None:
         c = OmegaConf.create()
         c[key] = "b"
         assert {key: "b"} == c
@@ -113,7 +113,7 @@ class TestDictKeyTypes:
     ],
 )
 class TestDelitemKeyTypes:
-    def test_dict_delitem(self, src, key, expected) -> None:
+    def test_dict_delitem(self, src: Any, key: Any, expected: Any) -> None:
         c = OmegaConf.create(src)
         assert c == src
         del c[key]
@@ -121,7 +121,7 @@ class TestDelitemKeyTypes:
         with pytest.raises(KeyError):
             del c["not_found"]
 
-    def test_dict_struct_delitem(self, src, key, expected) -> None:
+    def test_dict_struct_delitem(self, src: Any, key: Any, expected: Any) -> None:
         c = OmegaConf.create(src)
         OmegaConf.set_struct(c, True)
         with pytest.raises(ConfigTypeError):
