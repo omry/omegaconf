@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 import pytest
 
-from omegaconf import OmegaConf, ValidationError, _utils, flag_override
+from omegaconf import IntegerNode, OmegaConf, ValidationError, _utils, flag_override
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
@@ -153,6 +153,14 @@ class TestStructured:
         assert c1 == {"user": {"name": 7}}
         # type of name becomes str
         assert c2 == {"user": {"name": "7", "age": "???"}}
+
+    def test_merge_structured_onto_dict_nested2(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"user": {"name": IntegerNode(value=7)}})
+        c2 = OmegaConf.merge(c1, module.MissingUserField)
+        assert c1 == {"user": {"name": 7}}
+        # type of name remains int
+        assert c2 == {"user": {"name": 7, "age": "???"}}
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:

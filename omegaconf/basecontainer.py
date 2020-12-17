@@ -343,10 +343,13 @@ class BaseContainer(Container, ABC):
                             if isinstance(dest_node, AnyNode):
                                 node: ValueNode = copy.copy(src_node)
                                 if node._is_missing():
+                                    # if src node is missing, use the value from the dest_node,
+                                    # but validate it against the type of the src node before assigment
                                     node._set_value(dest_node._value())
                                 dest.__setitem__(key, node)
                             else:
-                                dest_node._set_value(src_value)
+                                if not src_node._is_missing():
+                                    dest_node._set_value(src_value)
 
                         except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
