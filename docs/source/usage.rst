@@ -51,6 +51,9 @@ From a dictionary
       3: c
     <BLANKLINE>
 
+Currently, OmegaConf supports the following primitive key types for dictionaries: `str`,
+`int`, and subclasses of `Enum`.
+
 From a list
 ^^^^^^^^^^^
 
