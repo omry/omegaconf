@@ -149,7 +149,7 @@ class TestStructured:
     def test_merge_structured_onto_dict_nested(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         c1 = OmegaConf.create({"user": {"name": 7}})
-        c2 = OmegaConf.merge(c1, {"user": module.User})
+        c2 = OmegaConf.merge(c1, module.MissingUserField)
         assert c1 == {"user": {"name": 7}}
         # type of name becomes str
         assert c2 == {"user": {"name": "7", "age": "???"}}

@@ -481,11 +481,22 @@ class TestConfigs:
         res = OmegaConf.merge(c1, c2)
         assert OmegaConf.get_type(res) == module.ConcretePlugin
 
-    def test_merge_missing_structured_config_is_missing(self, class_type: str) -> None:
-        # Test that the merged type is that of the last merged config
+    def test_merge_missing_structured_on_self(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c1, "plugin")
+        c2 = OmegaConf.merge(c1, module.MissingStructuredConfigField)
+        assert OmegaConf.is_missing(c2, "plugin")
+
+    def test_merge_missing_structured_config_is_missing(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.structured(module.MissingStructuredConfigField)
+        assert OmegaConf.is_missing(c1, "plugin")
+
+    def test_merge_missing_structured(self, class_type: str) -> None:
+        # Test that the merged type is that of the last merged config
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"plugin": "???"})
         c2 = OmegaConf.merge(c1, module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c2, "plugin")
 

@@ -284,9 +284,6 @@ class BaseContainer(Container, ABC):
         if src._is_interpolation():
             dest._set_value(src._value())
             return
-        # if source DictConfig is missing do not change the target
-        if src._is_missing():
-            return
 
         dest._validate_merge(key=None, value=src)
 
@@ -301,7 +298,10 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if dest._is_interpolation() or dest._is_missing():
+        if src._is_missing() and not dest._is_missing():
+            expand(src)
+
+        if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):

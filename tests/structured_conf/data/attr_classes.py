@@ -42,6 +42,11 @@ class UserDict:
 
 
 @attr.s(auto_attribs=True)
+class MissingUserField:
+    user: User = MISSING
+
+
+@attr.s(auto_attribs=True)
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None
