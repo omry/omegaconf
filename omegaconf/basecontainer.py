@@ -274,7 +274,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import MISSING, DictConfig, OmegaConf, ValueNode
+        from omegaconf import MISSING, AnyNode, DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -305,16 +305,13 @@ class BaseContainer(Container, ABC):
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
+            src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
             if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
                 if not OmegaConf.is_none(src_value):
                     expand(dest_node)
 
             if dest_node is not None:
-                if src_value == MISSING:
-                    # Do not overwrite existing dest nodes with MISSING
-                    continue
-
                 if dest_node._is_interpolation():
                     target_node = dest_node._dereference_node(
                         throw_on_resolution_failure=False
@@ -333,14 +330,24 @@ class BaseContainer(Container, ABC):
                         dest._validate_merge(key=key, value=src_value)
                         dest_node._merge_with(src_value)
                     else:
-                        dest.__setitem__(key, src_value)
+                        if src_value != MISSING:
+                            dest.__setitem__(key, src_value)
                 else:
                     if isinstance(src_value, BaseContainer):
-                        dest.__setitem__(key, src_value)
+                        if src_value != MISSING:
+                            dest.__setitem__(key, src_value)
                     else:
                         assert isinstance(dest_node, ValueNode)
+                        assert isinstance(src_node, ValueNode)
                         try:
-                            dest_node._set_value(src_value)
+                            if isinstance(dest_node, AnyNode):
+                                node: ValueNode = copy.copy(src_node)
+                                if node._is_missing():
+                                    node._set_value(dest_node._value())
+                                dest.__setitem__(key, node)
+                            else:
+                                dest_node._set_value(src_value)
+
                         except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
             else:
