@@ -7,8 +7,8 @@ import pytest
 
 from omegaconf import (
     DictConfig,
-    ListConfig,
     DictKeyType,
+    ListConfig,
     MissingMandatoryValue,
     OmegaConf,
     UnsupportedValueType,
