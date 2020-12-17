@@ -274,7 +274,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import DictConfig, OmegaConf, ValueNode
+        from omegaconf import MISSING, DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -284,10 +284,10 @@ class BaseContainer(Container, ABC):
         if src._is_interpolation():
             dest._set_value(src._value())
             return
-        # if source DictConfig is missing set the DictConfig one to be missing too.
+        # if source DictConfig is missing do not change the target
         if src._is_missing():
-            dest._set_value("???")
             return
+
         dest._validate_merge(key=None, value=src)
 
         def expand(node: Container) -> None:
@@ -305,6 +305,8 @@ class BaseContainer(Container, ABC):
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
+            if src_value == MISSING:
+                continue
 
             dest_node = dest._get_node(key, validate_access=False)
             if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
@@ -360,6 +362,41 @@ class BaseContainer(Container, ABC):
             if value is not None:
                 dest._set_flag(flag, value)
 
+    @staticmethod
+    def _list_merge(dest: Any, src: Any) -> None:
+        from omegaconf import DictConfig, ListConfig, OmegaConf
+
+        assert isinstance(dest, ListConfig)
+        assert isinstance(src, ListConfig)
+
+        if src._is_missing():
+            return
+        dest.__dict__["_content"] = []
+
+        if src._is_interpolation():
+            dest._set_value(src._value())
+        elif src._is_none():
+            dest._set_value(None)
+        else:
+            et = dest._metadata.element_type
+            if is_structured_config(et):
+                prototype = OmegaConf.structured(et)
+                for item in src:
+                    if isinstance(item, DictConfig):
+                        item = OmegaConf.merge(prototype, item)
+                    dest.append(item)
+
+            else:
+                for item in src:
+                    dest.append(item)
+
+        # explicit flags on the source config are replacing the flag values in the destination
+        flags = src._metadata.flags
+        assert flags is not None
+        for flag, value in flags.items():
+            if value is not None:
+                dest._set_flag(flag, value)
+
     def merge_with(
         self,
         *others: Union["BaseContainer", Dict[str, Any], List[Any], Tuple[Any], Any],
@@ -375,7 +412,6 @@ class BaseContainer(Container, ABC):
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from .omegaconf import OmegaConf
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
@@ -390,33 +426,7 @@ class BaseContainer(Container, ABC):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                self.__dict__["_content"] = []
-
-                if other._is_interpolation():
-                    self._set_value(other._value())
-                elif other._is_missing():
-                    self._set_value("???")
-                elif other._is_none():
-                    self._set_value(None)
-                else:
-                    et = self._metadata.element_type
-                    if is_structured_config(et):
-                        prototype = OmegaConf.structured(et)
-                        for item in other:
-                            if isinstance(item, DictConfig):
-                                item = OmegaConf.merge(prototype, item)
-                            self.append(item)
-
-                    else:
-                        for item in other:
-                            self.append(item)
-
-                # explicit flags on the source config are replacing the flag values in the destination
-                flags = other._metadata.flags
-                assert flags is not None
-                for flag, value in flags.items():
-                    if value is not None:
-                        self._set_flag(flag, value)
+                BaseContainer._list_merge(self, other)
             else:
                 raise TypeError("Cannot merge DictConfig with ListConfig")
 

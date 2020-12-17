@@ -60,7 +60,7 @@ from . import (
         ),
         pytest.param(
             ({"a": {"b": 10}}, {"a": "???"}),
-            {"a": "???"},
+            {"a": {"b": 10}},
             id="dict_merge_missing_onto",
         ),
         # lists
@@ -77,13 +77,13 @@ from . import (
         ),
         pytest.param(
             ({"a": [1, 2, 3]}, {"a": "???"}),
-            {"a": "???"},
+            {"a": [1, 2, 3]},
             id="list_merge_missing_onto",
         ),
         pytest.param(
             ([1, 2, 3], ListConfig(content=MISSING)),
-            ListConfig(content=MISSING),
-            id="list_merge_missing_onto2",
+            ListConfig(content=[1, 2, 3]),
+            id="list_merge_missing_onto",
         ),
         # Interpolations
         # value interpolation
