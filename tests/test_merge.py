@@ -64,6 +64,11 @@ from . import (
             id="dict_merge_missing_onto",
         ),
         pytest.param(
+            ({"a": {"b": 10}}, {"a": DictConfig(content="???")}),
+            {"a": {"b": 10}},
+            id="dict_merge_missing_onto",
+        ),
+        pytest.param(
             ({}, {"a": "???"}),
             {"a": "???"},
             id="dict_merge_missing_onto_no_node",

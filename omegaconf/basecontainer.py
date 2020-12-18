@@ -299,7 +299,8 @@ class BaseContainer(Container, ABC):
                     node._set_value(type_)
 
         if src._is_missing() and not dest._is_missing():
-            expand(src)
+            if is_structured_config(get_ref_type(src)):
+                expand(src)
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
@@ -334,8 +335,7 @@ class BaseContainer(Container, ABC):
                             dest.__setitem__(key, src_value)
                 else:
                     if isinstance(src_value, BaseContainer):
-                        if src_value != MISSING:
-                            dest.__setitem__(key, src_value)
+                        dest.__setitem__(key, src_value)
                     else:
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
