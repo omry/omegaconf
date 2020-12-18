@@ -298,9 +298,15 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if src._is_missing() and not dest._is_missing():
-            if is_structured_config(get_ref_type(src)):
-                expand(src)
+        if (
+            src._is_missing()
+            and not dest._is_missing()
+            and is_structured_config(get_ref_type(src))
+        ):
+            expand(src)
+            # Ensure all fields of `src` are missing to avoid overwriting `dest`.
+            for k in src:
+                src[k] = MISSING
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)

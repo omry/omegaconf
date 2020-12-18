@@ -43,8 +43,18 @@ class UserDict:
 
 
 @dataclass
+class UserWithDefaultName(User):
+    name: str = "bob"
+
+
+@dataclass
 class MissingUserField:
     user: User = MISSING
+
+
+@dataclass
+class MissingUserWithDefaultNameField:
+    user: UserWithDefaultName = MISSING
 
 
 @dataclass

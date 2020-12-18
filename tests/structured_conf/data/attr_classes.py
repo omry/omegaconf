@@ -42,8 +42,18 @@ class UserDict:
 
 
 @attr.s(auto_attribs=True)
+class UserWithDefaultName(User):
+    name: str = "bob"
+
+
+@attr.s(auto_attribs=True)
 class MissingUserField:
     user: User = MISSING
+
+
+@attr.s(auto_attribs=True)
+class MissingUserWithDefaultNameField:
+    user: UserWithDefaultName = MISSING
 
 
 @attr.s(auto_attribs=True)

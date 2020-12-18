@@ -162,6 +162,14 @@ class TestStructured:
         # type of name remains int
         assert c2 == {"user": {"name": 7, "age": "???"}}
 
+    def test_merge_structured_onto_dict_nested3(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"user": {"name": "alice"}})
+        c2 = OmegaConf.merge(c1, module.MissingUserWithDefaultNameField)
+        assert c1 == {"user": {"name": "alice"}}
+        # name is not changed
+        assert c2 == {"user": {"name": "alice", "age": "???"}}
+
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:
             module: Any = import_module(class_type)
