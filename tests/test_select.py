@@ -94,6 +94,31 @@ def test_select_default_throw_on_missing(
         OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
 
 
+@pytest.mark.parametrize(  # type: ignore
+    ("cfg", "node_key", "expected"),
+    [
+        pytest.param({"foo": "${bar}", "bar": 10}, "foo", 10, id="simple"),
+        pytest.param({"foo": "${bar}"}, "foo", None, id="no_key"),
+        pytest.param({"foo": "${bar}", "bar": "???"}, "foo", None, id="key_missing"),
+        pytest.param(
+            {"foo": "${bar}", "bar": "${zoo}", "zoo": "???"},
+            "foo",
+            None,
+            id="key_missing_indirect",
+        ),
+    ],
+)
+def test_select_invalid_interpolation(cfg: Any, node_key: str, expected: Any) -> None:
+    cfg = _ensure_container(cfg)
+    resolved = OmegaConf.select(
+        cfg,
+        node_key,
+        throw_on_missing=False,
+        throw_on_resolution_failure=False,
+    )
+    assert resolved == expected
+
+
 def test_select_from_dict() -> None:
     c = OmegaConf.create({"missing": "???"})
     with pytest.raises(MissingMandatoryValue):
