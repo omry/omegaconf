@@ -340,7 +340,7 @@ class BaseContainer(Container, ABC):
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
                         # Compare to literal missing, ignoring interpolation
-                        src_node_missing = src_node._value() == "???"
+                        src_node_missing = src_value == "???"
                         try:
                             if isinstance(dest_node, AnyNode):
                                 if src_node_missing:
