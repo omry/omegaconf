@@ -329,8 +329,8 @@ class Container(Node):
         value = root._resolve_interpolation(
             key=last_key,
             value=value,
-            throw_on_missing=False,
-            throw_on_resolution_failure=True,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
         )
         return root, last_key, value
 

@@ -61,9 +61,13 @@ def test_interpolation(cfg: Any, key: str, expected: Any) -> None:
 
 def test_interpolation_with_missing() -> None:
     cfg = OmegaConf.create(
-        {"a": "${x.missing}.txt", "b": "${x.missing}", "x": {"missing": "???"}}
+        {
+            "a": "${x.missing}.txt",
+            "b": "${x.missing}",
+            "x": {"missing": "???"},
+        }
     )
-    assert OmegaConf.is_missing(cfg, "a")
+    assert not OmegaConf.is_missing(cfg, "a")
     assert OmegaConf.is_missing(cfg, "b")
 
 

@@ -588,6 +588,7 @@ class OmegaConf:
         key: str,
         *,
         default: Any = _EMPTY_MARKER_,
+        throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
     ) -> Any:
         try:
@@ -595,7 +596,7 @@ class OmegaConf:
                 _root, _last_key, value = cfg._select_impl(
                     key,
                     throw_on_missing=throw_on_missing,
-                    throw_on_resolution_failure=True,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
                 )
             except ConfigKeyError:
                 if default is not _EMPTY_MARKER_:

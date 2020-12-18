@@ -43,6 +43,11 @@ class UserDict:
 
 
 @dataclass
+class MissingUserField:
+    user: User = MISSING
+
+
+@dataclass
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None

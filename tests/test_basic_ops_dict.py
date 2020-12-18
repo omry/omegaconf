@@ -668,7 +668,7 @@ def test_is_missing() -> None:
     )
     assert cfg._get_node("foo")._is_missing()  # type:ignore
     assert cfg._get_node("inter")._is_missing()  # type:ignore
-    assert cfg._get_node("str_inter")._is_missing()  # type:ignore
+    assert not cfg._get_node("str_inter")._is_missing()  # type:ignore
     assert cfg._get_node("missing_node")._is_missing()  # type:ignore
     assert cfg._get_node("missing_node_inter")._is_missing()  # type:ignore
 

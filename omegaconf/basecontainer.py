@@ -274,7 +274,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import DictConfig, OmegaConf, ValueNode
+        from omegaconf import MISSING, AnyNode, DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -284,10 +284,7 @@ class BaseContainer(Container, ABC):
         if src._is_interpolation():
             dest._set_value(src._value())
             return
-        # if source DictConfig is missing set the DictConfig one to be missing too.
-        if src._is_missing():
-            dest._set_value("???")
-            return
+
         dest._validate_merge(key=None, value=src)
 
         def expand(node: Container) -> None:
@@ -301,11 +298,15 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if dest._is_interpolation() or dest._is_missing():
+        if src._is_missing() and not dest._is_missing():
+            if is_structured_config(get_ref_type(src)):
+                expand(src)
+
+        if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
 
         for key, src_value in src.items_ex(resolve=False):
-
+            src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
             if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
                 if not OmegaConf.is_none(src_value):
@@ -330,14 +331,28 @@ class BaseContainer(Container, ABC):
                         dest._validate_merge(key=key, value=src_value)
                         dest_node._merge_with(src_value)
                     else:
-                        dest.__setitem__(key, src_value)
+                        if src_value != MISSING:
+                            dest.__setitem__(key, src_value)
                 else:
                     if isinstance(src_value, BaseContainer):
                         dest.__setitem__(key, src_value)
                     else:
                         assert isinstance(dest_node, ValueNode)
+                        assert isinstance(src_node, ValueNode)
                         try:
-                            dest_node._set_value(src_value)
+                            if isinstance(dest_node, AnyNode):
+                                if src_node._is_missing():
+                                    node = copy.copy(src_node)
+                                    # if src node is missing, use the value from the dest_node,
+                                    # but validate it against the type of the src node before assigment
+                                    node._set_value(dest_node._value())
+                                else:
+                                    node = src_node
+                                dest.__setitem__(key, node)
+                            else:
+                                if not src_node._is_missing():
+                                    dest_node._set_value(src_value)
+
                         except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
             else:
@@ -352,6 +367,43 @@ class BaseContainer(Container, ABC):
 
         if src_type is not None and not is_primitive_dict(src_type):
             dest._metadata.object_type = src_type
+
+        # explicit flags on the source config are replacing the flag values in the destination
+        flags = src._metadata.flags
+        assert flags is not None
+        for flag, value in flags.items():
+            if value is not None:
+                dest._set_flag(flag, value)
+
+    @staticmethod
+    def _list_merge(dest: Any, src: Any) -> None:
+        from omegaconf import DictConfig, ListConfig, OmegaConf
+
+        assert isinstance(dest, ListConfig)
+        assert isinstance(src, ListConfig)
+
+        if src._is_missing():
+            # do not change dest if src is MISSING.
+            return
+
+        dest.__dict__["_content"] = []
+
+        if src._is_interpolation():
+            dest._set_value(src._value())
+        elif src._is_none():
+            dest._set_value(None)
+        else:
+            et = dest._metadata.element_type
+            if is_structured_config(et):
+                prototype = OmegaConf.structured(et)
+                for item in src:
+                    if isinstance(item, DictConfig):
+                        item = OmegaConf.merge(prototype, item)
+                    dest.append(item)
+
+            else:
+                for item in src:
+                    dest.append(item)
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -375,7 +427,6 @@ class BaseContainer(Container, ABC):
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
-        from .omegaconf import OmegaConf
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
@@ -390,33 +441,7 @@ class BaseContainer(Container, ABC):
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
                 BaseContainer._map_merge(self, other)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                self.__dict__["_content"] = []
-
-                if other._is_interpolation():
-                    self._set_value(other._value())
-                elif other._is_missing():
-                    self._set_value("???")
-                elif other._is_none():
-                    self._set_value(None)
-                else:
-                    et = self._metadata.element_type
-                    if is_structured_config(et):
-                        prototype = OmegaConf.structured(et)
-                        for item in other:
-                            if isinstance(item, DictConfig):
-                                item = OmegaConf.merge(prototype, item)
-                            self.append(item)
-
-                    else:
-                        for item in other:
-                            self.append(item)
-
-                # explicit flags on the source config are replacing the flag values in the destination
-                flags = other._metadata.flags
-                assert flags is not None
-                for flag, value in flags.items():
-                    if value is not None:
-                        self._set_flag(flag, value)
+                BaseContainer._list_merge(self, other)
             else:
                 raise TypeError("Cannot merge DictConfig with ListConfig")
 
