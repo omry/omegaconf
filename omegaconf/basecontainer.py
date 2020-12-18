@@ -339,9 +339,11 @@ class BaseContainer(Container, ABC):
                     else:
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
+                        # Compare to literal missing, ignoring interpolation
+                        src_node_missing = src_node._value() == "???"
                         try:
                             if isinstance(dest_node, AnyNode):
-                                if src_node._is_missing():
+                                if src_node_missing:
                                     node = copy.copy(src_node)
                                     # if src node is missing, use the value from the dest_node,
                                     # but validate it against the type of the src node before assigment
@@ -350,7 +352,7 @@ class BaseContainer(Container, ABC):
                                     node = src_node
                                 dest.__setitem__(key, node)
                             else:
-                                if not src_node._is_missing():
+                                if not src_node_missing:
                                     dest_node._set_value(src_value)
 
                         except (ValidationError, ReadonlyConfigError) as e:
