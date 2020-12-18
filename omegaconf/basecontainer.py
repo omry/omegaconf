@@ -90,6 +90,8 @@ class BaseContainer(Container, ABC):
 
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
+        from omegaconf._utils import _is_union, get_union_types
+
         dict_copy = copy.copy(self.__dict__)
         dict_copy["_metadata"] = copy.copy(dict_copy["_metadata"])
         ref_type = self._metadata.ref_type
@@ -100,6 +102,10 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
+        element_type = self._metadata.element_type
+        if _is_union(element_type):
+            element_types = get_union_types(element_type)
+            dict_copy["_metadata"].element_type = element_types
         return dict_copy
 
     # Support pickle
@@ -110,6 +116,10 @@ class BaseContainer(Container, ABC):
         if isinstance(self, DictConfig):
             key_type = d["_metadata"].key_type
         element_type = d["_metadata"].element_type
+        if isinstance(element_type, list):
+            d["_metadata"].element_type = Union[tuple(element_type)]
+            element_type = d["_metadata"].element_type
+
         ref_type = d["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
@@ -118,6 +128,7 @@ class BaseContainer(Container, ABC):
                 d["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
+
         self.__dict__.update(d)
 
     @abstractmethod
@@ -474,7 +485,6 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
-
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
             target_node = key in self.__dict__["_content"] and isinstance(

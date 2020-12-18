@@ -104,11 +104,6 @@ class StructuredWithMissing:
 
 
 @dataclass
-class UnionError:
-    x: Union[int, str] = 10
-
-
-@dataclass
 class MissingList:
     list: List[str] = MISSING
 
@@ -192,3 +187,18 @@ class InterpolationList:
 @dataclass
 class InterpolationDict:
     dict: Dict[str, int] = II("optimization.lr")
+
+
+@dataclass
+class UnionClass:
+    foo: Union[str, int] = 1
+
+
+@dataclass
+class DictUnion:
+    dict: Dict[str, Union[int, float]] = field(default_factory=lambda: {"a": 1})
+
+
+@dataclass
+class ListUnion:
+    list: List[Union[int, float]] = field(default_factory=lambda: [1])

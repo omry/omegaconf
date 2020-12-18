@@ -15,10 +15,13 @@ from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 
 from . import (
+    DictUnion,
+    ListUnion,
     PersonA,
     PersonD,
     SubscriptedDict,
     SubscriptedList,
+    UnionClass,
     UntypedDict,
     UntypedList,
 )
@@ -146,6 +149,28 @@ def test_pickle(obj: Any, ref_type: Any) -> None:
         assert c1._metadata.optional is True
         if isinstance(c, DictConfig):
             assert c1._metadata.key_type is Any
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj,ref_type,key",
+    [
+        (OmegaConf.structured(DictUnion), Union[int, float], "dict"),
+        (OmegaConf.structured(ListUnion), Union[int, float], "list"),
+        (OmegaConf.structured(UnionClass), Union[str, int], "foo"),
+    ],
+)
+def test_pickle_union(obj: Any, ref_type: Any, key: str) -> None:
+    from omegaconf._utils import get_union_types
+
+    obj_dump = pickle.dumps(obj)
+    c = pickle.loads(obj_dump)
+    node = c._get_node(key)
+    assert obj == c
+    if isinstance(node, (DictConfig, ListConfig)):
+        assert node._metadata.element_type == ref_type
+    else:
+        assert node._metadata.ref_type == ref_type
+        assert node.element_types == get_union_types(ref_type)
 
 
 def test_load_duplicate_keys_top() -> None:

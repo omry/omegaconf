@@ -15,6 +15,7 @@ from .nodes import (
     FloatNode,
     IntegerNode,
     StringNode,
+    UnionNode,
     ValueNode,
 )
 from .omegaconf import (
@@ -46,6 +47,7 @@ __all__ = [
     "open_dict",
     "Node",
     "ValueNode",
+    "UnionNode",
     "AnyNode",
     "IntegerNode",
     "StringNode",

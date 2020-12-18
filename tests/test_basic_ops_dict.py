@@ -11,6 +11,7 @@ from omegaconf import (
     ListConfig,
     MissingMandatoryValue,
     OmegaConf,
+    UnionNode,
     UnsupportedValueType,
     ValidationError,
     _utils,
@@ -22,6 +23,7 @@ from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
 
 from . import (
     ConcretePlugin,
+    DictUnion,
     Enum1,
     IllegalType,
     Plugin,
@@ -758,3 +760,22 @@ def test_setdefault() -> None:
     assert cfg["foo"] == 10
 
     assert cfg["foo"] == 10
+
+
+def test_set_valid_union_value() -> None:
+    cfg = OmegaConf.structured(DictUnion)
+    cfg.dict = {"a": 4, "b": 3.14}
+    assert cfg.dict == {"a": 4, "b": 3.14}
+    assert isinstance(cfg.dict._get_node("a"), UnionNode)  # type: ignore
+    assert isinstance(cfg.dict._get_node("b"), UnionNode)  # type: ignore
+    assert cfg.dict.a == 4  # type: ignore
+    assert cfg.dict.b == 3.14  # type: ignore
+
+
+def test_set_invalid_union_value() -> None:
+    cfg = OmegaConf.structured(DictUnion)
+    with pytest.raises(ValidationError):
+        cfg.dict = {"a": 4, "b": True, "c": "foo"}
+    assert cfg == OmegaConf.structured(DictUnion)
+    assert isinstance(cfg.dict._get_node("a"), UnionNode)  # type: ignore
+    assert cfg.dict.a == 1  # type: ignore

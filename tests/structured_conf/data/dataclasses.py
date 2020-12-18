@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
-from omegaconf import II, MISSING, SI
+from omegaconf import II, MISSING, SI, DictConfig, ListConfig
 from tests import Color
 
 # skip test if dataclasses are not available
@@ -484,11 +484,6 @@ class NestedWithNone:
 
 
 @dataclass
-class UnionError:
-    x: Union[int, str] = 10
-
-
-@dataclass
 class WithNativeMISSING:
     num: int = dataclasses.MISSING  # type: ignore
 
@@ -514,3 +509,68 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@dataclass
+class Book:
+    author: Union[str, List[str]] = "dude"
+
+
+@dataclass
+class Shelf:
+    content: Union[Book, int] = 1
+
+
+@dataclass
+class Shelf2:
+    content: Union[Book, List[Book]] = Book()
+
+
+@dataclass
+class OptionalBook:
+    author: Optional[Union[str, List[str]]] = "foo"
+
+
+@dataclass
+class ListUnion:
+    list: List[Union[float, int]] = field(default_factory=lambda: [1, 3.14])
+
+
+@dataclass
+class DictUnion:
+    dict: Dict[str, Union[float, int]] = field(default_factory=lambda: {"foo": 1})
+
+
+@dataclass
+class UnionWithContainer:
+    union_dict: Union[DictConfig, int] = field(
+        default_factory=lambda: DictConfig({"foo": 1})
+    )
+    union_list: Union[ListConfig, int] = field(
+        default_factory=lambda: ListConfig([1, 2])
+    )
+
+
+@dataclass
+class Base:
+    foo: int = 1
+
+
+@dataclass
+class Subclass1(Base):
+    pass
+
+
+@dataclass
+class Subclass2(Base):
+    pass
+
+
+@dataclass
+class UnionWithBaseclass:
+    foo: Union[Base, int]
+
+
+@dataclass
+class UnionOfSubclasses:
+    foo: Union[Subclass1, Subclass2]

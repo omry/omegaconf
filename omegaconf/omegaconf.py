@@ -32,12 +32,14 @@ from . import DictConfig, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
+    _is_union,
     decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
     get_omega_conf_dumper,
     get_type_of,
+    get_union_types,
     is_attr_class,
     is_dataclass,
     is_dict_annotation,
@@ -66,6 +68,7 @@ from .nodes import (
     FloatNode,
     IntegerNode,
     StringNode,
+    UnionNode,
     ValueNode,
 )
 
@@ -761,13 +764,34 @@ def _node_wrap(
     ref_type: Any = None,
 ) -> Node:
     node: Node
-    is_dict = type(value) is dict or is_dict_annotation(type_)
-    is_list = (
-        type(value) in (list, tuple)
-        or is_list_annotation(type_)
-        or is_tuple_annotation(type_)
+    is_dict = (
+        is_dict_annotation(type_)
+        or type_ is dict
+        or (type_ is Any and type(value) is dict)
     )
-    if is_dict:
+    is_list = (
+        is_list_annotation(type_)
+        or is_tuple_annotation(type_)
+        or type_ is list
+        or type_ is tuple
+        or (type_ is Any and type(value) in (list, tuple))
+    )
+    if _is_union(type_):
+        element_types = get_union_types(type_)
+        if type(None) in element_types:
+            is_optional = True
+            element_types.remove(type(None))
+        else:
+            is_optional = False
+        node = UnionNode(
+            ref_type=type_,
+            element_types=element_types,
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+        )
+    elif is_dict:
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
             content=value,
@@ -832,9 +856,10 @@ def _maybe_wrap(
     is_optional: bool,
     parent: Optional[BaseContainer],
 ) -> Node:
-    # if already a node, update key and parent and return as is.
-    # NOTE: that this mutate the input node!
-    if isinstance(value, Node):
+    # If already a node, update key and parent and return as is.
+    # NOTE: that this mutates the input node!
+    # If `ref_type` is a union we still need to wrap the node into a `UnionNode`.
+    if isinstance(value, Node) and not _is_union(ref_type):
         value._set_key(key)
         value._set_parent(parent)
         return value

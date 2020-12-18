@@ -11,8 +11,8 @@ import yaml
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
-    ConfigValueError,
     OmegaConfBaseException,
+    UnsupportedValueType,
 )
 
 try:
@@ -200,11 +200,6 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             value = attrib.default
             if value == attr.NOTHING:
                 value = MISSING
-        if _is_union(type_):
-            e = ConfigValueError(
-                f"Union types are not supported:\n{name}: {type_str(type_)}"
-            )
-            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
         d[name] = _maybe_wrap(
             ref_type=type_,
@@ -240,12 +235,6 @@ def get_dataclass_data(
                 value = MISSING
             else:
                 value = field.default_factory()  # type: ignore
-
-        if _is_union(type_):
-            e = ConfigValueError(
-                f"Union types are not supported:\n{name}: {type_str(type_)}"
-            )
-            format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         d[name] = _maybe_wrap(
             ref_type=type_,
             is_optional=is_optional,
@@ -454,6 +443,24 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
+def get_union_types(ref_type: Optional[Any]) -> List[Any]:
+    args = getattr(ref_type, "__args__", None)
+    error_msg = ""
+    element_types: List[Any]
+    if args is None or len(args) < 2:
+        error_msg = "{} is not a valid Union type, it should include more than 1 type."
+    elif Any in args:
+        error_msg = (
+            "{} is not a valid Union type, Any is not a valid union element type."
+        )
+    elif type(None) in args and len(args) == 2:
+        error_msg = "{} is not a valid Union type, we recommend using Optional instead."
+    if error_msg:
+        raise UnsupportedValueType(error_msg.format(ref_type))
+    element_types = list(args)
+    return element_types
+
+
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     args = getattr(ref_type, "__args__", None)
     if ref_type is not List and args is not None and args[0]:
@@ -487,7 +494,12 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
 
 
 def valid_value_annotation_type(type_: Any) -> bool:
-    return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
+    return (
+        type_ is Any
+        or is_primitive_type(type_)
+        or is_structured_config(type_)
+        or _is_union(type_)
+    )
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:

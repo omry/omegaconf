@@ -86,6 +86,9 @@ from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
         ),
         # ListConfig
         pytest.param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
+        pytest.param(
+            tuple, (1, 2, 3), ListConfig(content=(1, 2, 3)), id="ListConfig_from_tuple"
+        ),
     ],
 )
 def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
@@ -544,3 +547,30 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
     assert _utils.get_ref_type(obj) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj, expected",
+    [
+        pytest.param(Union[int, str], [int, str]),
+        pytest.param(Union[int, str, ListConfig], [int, str, ListConfig]),
+        pytest.param(Union[Plugin, ListConfig], [Plugin, ListConfig]),
+        pytest.param(Union[str, List[str]], [str, List[str]]),
+        pytest.param(Union[str, Dict[str, Any]], [str, Dict[str, Any]]),
+    ],
+)
+def test_get_union_types(obj: Any, expected: Any) -> None:
+    assert _utils.get_union_types(obj) == expected
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj",
+    [
+        Union[int, Any, str],
+        Union[int],
+        Union[type(None), str],
+    ],
+)
+def test_get_invalid_union_types(obj: Any) -> None:
+    with pytest.raises(UnsupportedValueType):
+        _utils.get_union_types(obj)

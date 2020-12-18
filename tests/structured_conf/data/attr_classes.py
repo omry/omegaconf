@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import attr
 import pytest
 
-from omegaconf import II, MISSING, SI
+from omegaconf import II, MISSING, SI, DictConfig, ListConfig
 from tests import Color
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
@@ -467,11 +467,6 @@ class NestedWithNone:
 
 
 @attr.s(auto_attribs=True)
-class UnionError:
-    x: Union[int, str] = 10
-
-
-@attr.s(auto_attribs=True)
 class WithNativeMISSING:
     num: int = attr.NOTHING  # type: ignore
 
@@ -497,3 +492,64 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class Book:
+    author: Union[str, List[str]] = "dude"
+
+
+@attr.s(auto_attribs=True)
+class Shelf:
+    content: Union[Book, int] = 1
+
+
+@attr.s(auto_attribs=True)
+class Shelf2:
+    content: Union[Book, List[Book]] = Book()
+
+
+@attr.s(auto_attribs=True)
+class OptionalBook:
+    author: Optional[Union[str, List[str]]] = "author"
+
+
+@attr.s(auto_attribs=True)
+class ListUnion:
+    list: List[Union[float, int]] = [1, 3.14]
+
+
+@attr.s(auto_attribs=True)
+class DictUnion:
+    dict: Dict[str, Union[float, int]] = {"foo": 1}
+
+
+@attr.s(auto_attribs=True)
+class UnionWithContainer:
+    union_dict: Union[DictConfig, int] = DictConfig({"foo": 1})
+    union_list: Union[ListConfig, int] = ListConfig([1, 2])
+
+
+@attr.s(auto_attribs=True)
+class Base:
+    foo: int = 1
+
+
+@attr.s(auto_attribs=True)
+class Subclass1(Base):
+    pass
+
+
+@attr.s(auto_attribs=True)
+class Subclass2(Base):
+    pass
+
+
+@attr.s(auto_attribs=True)
+class UnionWithBaseclass:
+    foo: Union[Base, int]
+
+
+@attr.s(auto_attribs=True)
+class UnionOfSubclasses:
+    foo: Union[Subclass1, Subclass2]

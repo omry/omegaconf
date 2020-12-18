@@ -165,7 +165,6 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             return
 
         target = self._get_node(key) if key is not None else self
-
         target_has_ref_type = isinstance(
             target, DictConfig
         ) and target._metadata.ref_type not in (Any, dict)

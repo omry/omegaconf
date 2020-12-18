@@ -9,6 +9,7 @@ from omegaconf import (
     ListConfig,
     OmegaConf,
     ReadonlyConfigError,
+    UnionNode,
     ValidationError,
     nodes,
 )
@@ -29,6 +30,7 @@ from . import (
     MissingList,
     Package,
     Plugin,
+    UnionClass,
     User,
     Users,
 )
@@ -544,3 +546,44 @@ def test_merge_with_src_as_interpolation(
 def test_merge_with_other_as_interpolation(dst: Any, other: Any, node: Any) -> None:
     res = OmegaConf.merge(dst, other)
     assert OmegaConf.is_interpolation(res, node)
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "obj, expected", [({"foo": 4}, 4), ({"foo": "var"}, "var")]
+)
+def test_merge_union_node_with_valid_value(obj: Any, expected: Any) -> None:
+    cfg = OmegaConf.structured(UnionClass)
+    res = OmegaConf.merge(cfg, obj)
+    assert res.foo == expected
+    assert isinstance(res._get_node("foo"), UnionNode)  # type: ignore
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "cfg, obj",
+    [
+        (OmegaConf.structured(UnionClass), {"foo": User()}),
+        (
+            OmegaConf.create(
+                DictConfig(
+                    ref_type=Dict[str, Union[int, float]],
+                    element_type=Union[int, float],
+                    key_type=str,
+                    content={"foo": 3.1415},
+                )
+            ),
+            {"foo": User()},
+        ),
+        (
+            DictConfig(
+                ref_type=Dict[str, Union[int, float]],
+                element_type=Union[int, float],
+                key_type=str,
+                content={"foo": 3.1415},
+            ),
+            {"foo": "var"},
+        ),
+    ],
+)
+def test_merge_union_node_with_invalid_value(cfg: Any, obj: Any) -> None:
+    with pytest.raises(ValidationError):
+        OmegaConf.merge(cfg, obj)

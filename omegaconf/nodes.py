@@ -2,10 +2,16 @@ import copy
 import math
 import sys
 from enum import Enum
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
+from omegaconf._utils import (
+    _get_value,
+    _is_interpolation,
+    get_type_of,
+    is_primitive_container,
+)
 from omegaconf.base import Container, Metadata, Node
+from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import (
     ConfigKeyError,
     ReadonlyConfigError,
@@ -161,6 +167,127 @@ class AnyNode(ValueNode):
         res = AnyNode()
         self._deepcopy_impl(res, memo)
         return res
+
+
+class UnionNode(ValueNode):
+    def __init__(
+        self,
+        value: Any = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        is_optional: bool = True,
+        ref_type: Any = Union[Any],
+        *,
+        element_types: List[Any],
+    ):
+        self.element_types = element_types
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=ref_type,
+                object_type=type(value),
+            ),
+        )
+
+    def _wrap_node(
+        self,
+        value: Any,
+        key: Any = None,
+        is_optional: bool = True,
+        parent: Optional[BaseContainer] = None,
+        ref_type: Any = None,
+    ) -> Optional[Node]:
+        from omegaconf.omegaconf import _maybe_wrap
+
+        if value is None:
+            return None
+        else:
+            return _maybe_wrap(
+                ref_type=ref_type,
+                key=key,
+                value=value,
+                is_optional=is_optional,
+                parent=parent,
+            )
+
+    def validate_and_convert(self, value: Any) -> Optional[Any]:
+        from omegaconf._utils import is_container_annotation, is_structured_config
+        from omegaconf.basecontainer import BaseContainer
+
+        if isinstance(value, BaseContainer):
+            ref_type = value._metadata.ref_type
+            value_type = ref_type if is_structured_config(ref_type) else type(value)
+            assert value_type is not None
+            for union_type in self.element_types:
+                if is_container_annotation(value_type) or is_container_annotation(
+                    union_type
+                ):
+                    try:
+                        return self._wrap_node(
+                            value=value._value(), ref_type=union_type
+                        )
+                    except Exception:
+                        pass
+                elif issubclass(value_type, union_type):
+                    return value
+            self._raise_invalid_value(value, value._metadata.ref_type)
+        value = _get_value(value)
+        value_type = type(value)
+        element_types = self.element_types
+        if value_type in self.element_types:
+            element_types = self._get_element_types_lead_by(value_type)
+        for union_type in element_types:
+            try:
+                return self._wrap_node(value=value, ref_type=union_type)
+            except Exception:
+                pass
+        self._raise_invalid_value(value, type(value))
+        return None
+
+    def _raise_invalid_value(self, value: Any, value_type: Any) -> None:
+        raise ValidationError(
+            f"Value '{value}' with value_type '{value_type}' is not in '{self.element_types}'"
+        )
+
+    def _get_element_types_lead_by(self, type_: Any) -> List[Any]:
+        pos = self.element_types.index(type_)
+        if pos == 0:
+            return self.element_types
+        element_types = copy.copy(self.element_types)
+        element_types[0], element_types[pos] = element_types[pos], element_types[0]
+        return element_types
+
+    def __eq__(self, other: Any) -> Any:
+        return self._value() == other
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "UnionNode":
+        res = UnionNode(
+            ref_type=self._metadata.ref_type,
+            value=self._val,
+            element_types=self.element_types,
+        )
+        self._deepcopy_impl(res, memo)
+        return res
+
+    def __hash__(self) -> int:
+        return hash(self._val)
+
+    def __getstate__(self) -> Dict[str, Any]:
+        node = copy.copy(self.__dict__)
+        node["_metadata"] = copy.copy(self.__dict__["_metadata"])
+        node["_metadata"].ref_type = Union
+        return node
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        element_types = state["element_types"]
+        state["_metadata"].ref_type = Union[tuple(element_types)]
+        self.__dict__.update(state)
 
 
 class StringNode(ValueNode):

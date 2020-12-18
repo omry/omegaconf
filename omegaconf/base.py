@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import ValueKind, _get_value, _is_union, format_and_raise, get_value_kind
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
 
 
@@ -39,7 +39,11 @@ class ContainerMetadata(Metadata):
     def __post_init__(self) -> None:
         assert self.key_type is Any or isinstance(self.key_type, type)
         if self.element_type is not None:
-            assert self.element_type is Any or isinstance(self.element_type, type)
+            assert (
+                self.element_type is Any
+                or isinstance(self.element_type, type)
+                or _is_union(self.element_type)
+            )
 
         if self.flags is None:
             self.flags = {}
