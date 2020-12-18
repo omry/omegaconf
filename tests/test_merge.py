@@ -74,9 +74,20 @@ from . import (
             id="dict_merge_missing_onto_no_node",
         ),
         pytest.param(
-            ({"a": 0, "b": 1}, {"a": "${b}", "b": "???"}),
+            (
+                {"a": 0, "b": 1},
+                {"a": "${b}", "b": "???"},
+            ),
             {"a": "${b}", "b": 1},
             id="dict_merge_inter_to_missing",
+        ),
+        pytest.param(
+            (
+                {"a": [0], "b": [1]},
+                {"a": ListConfig(content="${b}"), "b": "???"},
+            ),
+            {"a": ListConfig(content="${b}"), "b": [1]},
+            id="dict_with_list_merge_inter_to_missing",
         ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),

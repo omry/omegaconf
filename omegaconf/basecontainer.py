@@ -384,17 +384,15 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, ListConfig)
         assert isinstance(src, ListConfig)
 
-        if src._is_missing():
-            # do not change dest if src is MISSING.
-            return
-
-        dest.__dict__["_content"] = []
-
         if src._is_interpolation():
             dest._set_value(src._value())
         elif src._is_none():
             dest._set_value(None)
+        elif src._is_missing():
+            # do not change dest if src is MISSING.
+            pass
         else:
+            dest.__dict__["_content"] = []
             et = dest._metadata.element_type
             if is_structured_config(et):
                 prototype = OmegaConf.structured(et)
