@@ -339,9 +339,11 @@ class BaseContainer(Container, ABC):
                     else:
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
+                        # Compare to literal missing, ignoring interpolation
+                        src_node_missing = src_value == "???"
                         try:
                             if isinstance(dest_node, AnyNode):
-                                if src_node._is_missing():
+                                if src_node_missing:
                                     node = copy.copy(src_node)
                                     # if src node is missing, use the value from the dest_node,
                                     # but validate it against the type of the src node before assigment
@@ -350,7 +352,7 @@ class BaseContainer(Container, ABC):
                                     node = src_node
                                 dest.__setitem__(key, node)
                             else:
-                                if not src_node._is_missing():
+                                if not src_node_missing:
                                     dest_node._set_value(src_value)
 
                         except (ValidationError, ReadonlyConfigError) as e:
@@ -382,28 +384,31 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, ListConfig)
         assert isinstance(src, ListConfig)
 
-        if src._is_missing():
-            # do not change dest if src is MISSING.
-            return
-
-        dest.__dict__["_content"] = []
-
         if src._is_interpolation():
             dest._set_value(src._value())
         elif src._is_none():
             dest._set_value(None)
+        elif src._is_missing():
+            # do not change dest if src is MISSING.
+            if dest._metadata.element_type is Any:
+                dest._metadata.element_type = src._metadata.element_type
         else:
+            temp_target = ListConfig(content=[], parent=dest._get_parent())
+            temp_target.__dict__["_metadata"] = copy.deepcopy(
+                dest.__dict__["_metadata"]
+            )
             et = dest._metadata.element_type
             if is_structured_config(et):
                 prototype = OmegaConf.structured(et)
                 for item in src:
                     if isinstance(item, DictConfig):
                         item = OmegaConf.merge(prototype, item)
-                    dest.append(item)
-
+                    temp_target.append(item)
             else:
                 for item in src:
-                    dest.append(item)
+                    temp_target.append(item)
+
+            dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
