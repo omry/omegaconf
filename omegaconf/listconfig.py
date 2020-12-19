@@ -268,15 +268,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._validate_set(key=index, value=item)
 
             element_type = self.__dict__["_metadata"].element_type
-            value = item
             expect_container = is_container_annotation(element_type)
             if expect_container and isinstance(item, BaseContainer):
-                value = item._value()
+                item = item._value()
 
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
-                value=value,
+                value=item,
                 is_optional=OmegaConf.is_optional(item),
                 parent=self,
             )
