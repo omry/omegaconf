@@ -1062,3 +1062,11 @@ class TestDictSubclass:
         else:
             with pytest.raises(ValidationError):
                 OmegaConf.update(cfg, "list", update_value, merge=True)
+
+    def test_merge_missing_list_promotes_target_type(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"missing": []})
+        c2 = OmegaConf.structured(module.ConfigWithList)
+        c3 = OmegaConf.merge(c1, c2)
+        with pytest.raises(ValidationError):
+            c3.missing.append("xx")

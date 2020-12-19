@@ -1,3 +1,4 @@
+import copy
 import sys
 from typing import Any, Dict, List, MutableMapping, MutableSequence, Tuple, Union
 
@@ -72,6 +73,22 @@ from . import (
             ({}, {"a": "???"}),
             {"a": "???"},
             id="dict_merge_missing_onto_no_node",
+        ),
+        pytest.param(
+            (
+                {"a": 0, "b": 1},
+                {"a": "${b}", "b": "???"},
+            ),
+            {"a": "${b}", "b": 1},
+            id="dict_merge_inter_to_missing",
+        ),
+        pytest.param(
+            (
+                {"a": [0], "b": [1]},
+                {"a": ListConfig(content="${b}"), "b": "???"},
+            ),
+            {"a": ListConfig(content="${b}"), "b": [1]},
+            id="dict_with_list_merge_inter_to_missing",
         ),
         # lists
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
@@ -544,3 +561,20 @@ def test_merge_with_src_as_interpolation(
 def test_merge_with_other_as_interpolation(dst: Any, other: Any, node: Any) -> None:
     res = OmegaConf.merge(dst, other)
     assert OmegaConf.is_interpolation(res, node)
+
+
+@pytest.mark.parametrize(  # type:ignore
+    ("c1", "c2"),
+    [
+        pytest.param(
+            ListConfig(content=[1, 2, 3], element_type=int),
+            ["a", "b", "c"],
+            id="merge_with_list",
+        ),
+    ],
+)
+def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
+    backup = copy.deepcopy(c1)
+    with pytest.raises(ValidationError):
+        c1.merge_with(c2)
+    assert c1 == backup
