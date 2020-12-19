@@ -392,18 +392,22 @@ class BaseContainer(Container, ABC):
             # do not change dest if src is MISSING.
             pass
         else:
-            dest.__dict__["_content"] = []
+            temp_target = ListConfig(content=[], parent=dest._get_parent())
+            temp_target.__dict__["_metadata"] = copy.deepcopy(
+                dest.__dict__["_metadata"]
+            )
             et = dest._metadata.element_type
             if is_structured_config(et):
                 prototype = OmegaConf.structured(et)
                 for item in src:
                     if isinstance(item, DictConfig):
                         item = OmegaConf.merge(prototype, item)
-                    dest.append(item)
-
+                    temp_target.append(item)
             else:
                 for item in src:
-                    dest.append(item)
+                    temp_target.append(item)
+
+            dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
