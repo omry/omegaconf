@@ -390,7 +390,8 @@ class BaseContainer(Container, ABC):
             dest._set_value(None)
         elif src._is_missing():
             # do not change dest if src is MISSING.
-            pass
+            if dest._metadata.element_type is Any:
+                dest._metadata.element_type = src._metadata.element_type
         else:
             temp_target = ListConfig(content=[], parent=dest._get_parent())
             temp_target.__dict__["_metadata"] = copy.deepcopy(
