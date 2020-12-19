@@ -15,6 +15,7 @@ from ._utils import (
     _is_interpolation,
     _resolve_optional,
     get_ref_type,
+    get_structured_config_data,
     get_value_kind,
     get_yaml_loader,
     is_container_annotation,
@@ -298,15 +299,16 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if (
-            src._is_missing()
-            and not dest._is_missing()
-            and is_structured_config(get_ref_type(src))
-        ):
-            expand(src)
-            # Ensure all fields of `src` are missing to avoid overwriting `dest`.
-            for k in src:
-                src[k] = MISSING
+        if src._is_missing() and not dest._is_missing():
+            src_ref_type = get_ref_type(src)
+            if is_structured_config(src_ref_type):
+                assert src_ref_type is not None
+                # Replace `src` with a prototype of its corresponding structured config
+                # whose fields are all missing (to avoid overwriting fields in `dest`).
+                src_data = get_structured_config_data(src_ref_type)
+                for v in src_data.values():
+                    v._set_value(MISSING)
+                src = DictConfig(src_ref_type(**src_data), ref_type=src_ref_type)
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
