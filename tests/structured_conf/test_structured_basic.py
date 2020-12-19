@@ -4,7 +4,14 @@ from typing import Any, Optional
 
 import pytest
 
-from omegaconf import IntegerNode, OmegaConf, ValidationError, _utils, flag_override
+from omegaconf import (
+    DictConfig,
+    IntegerNode,
+    OmegaConf,
+    ValidationError,
+    _utils,
+    flag_override,
+)
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
@@ -169,6 +176,29 @@ class TestStructured:
         assert c1 == {"user": {"name": "alice"}}
         # name is not changed
         assert c2 == {"user": {"name": "alice", "age": "???"}}
+
+    def test_merge_missing_structured_onto_typed_dictconfig(
+        self, class_type: str
+    ) -> None:
+        module: Any = import_module(class_type)
+        c1 = DictConfig({}, element_type=module.UserWithDefaultName)
+        c2 = OmegaConf.merge(
+            c1, OmegaConf.structured(module.MissingUserWithDefaultNameField)
+        )
+        assert isinstance(c2, DictConfig)
+        c2_user = c2._get_node("user")
+        assert c2_user is not None
+        assert c2_user._is_missing()
+
+    def test_merge_missing_key_onto_structured_none(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create(
+            {"foo": OmegaConf.structured(module.OptionalUserWithDefaultNameField)}
+        )
+        src = OmegaConf.create({"foo": {"user": "???"}})
+        c2 = OmegaConf.merge(c1, src)
+        assert c1.foo.user is None
+        assert c2.foo.user is None
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:

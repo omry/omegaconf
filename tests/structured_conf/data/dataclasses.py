@@ -58,6 +58,11 @@ class MissingUserWithDefaultNameField:
 
 
 @dataclass
+class OptionalUserWithDefaultNameField:
+    user: Optional[UserWithDefaultName] = None
+
+
+@dataclass
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None

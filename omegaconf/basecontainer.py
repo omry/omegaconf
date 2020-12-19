@@ -316,9 +316,21 @@ class BaseContainer(Container, ABC):
         for key, src_value in src.items_ex(resolve=False):
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
-            if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
-                if not OmegaConf.is_none(src_value):
-                    expand(dest_node)
+
+            if isinstance(src_value, Container):
+                missing_src_value = (
+                    not src_value._is_interpolation() and src_value._is_missing()
+                )
+            else:
+                missing_src_value = src_value == MISSING
+
+            if (
+                isinstance(dest_node, Container)
+                and OmegaConf.is_none(dest, key)
+                and not missing_src_value
+                and not OmegaConf.is_none(src_value)
+            ):
+                expand(dest_node)
 
             if dest_node is not None:
                 if dest_node._is_interpolation():
@@ -329,7 +341,10 @@ class BaseContainer(Container, ABC):
                         dest[key] = target_node
                         dest_node = dest._get_node(key)
 
-            if is_structured_config(dest._metadata.element_type):
+            if (
+                is_structured_config(dest._metadata.element_type)
+                and not missing_src_value
+            ):
                 dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
                 dest_node = dest._get_node(key)
 
@@ -338,9 +353,8 @@ class BaseContainer(Container, ABC):
                     if isinstance(src_value, BaseContainer):
                         dest._validate_merge(key=key, value=src_value)
                         dest_node._merge_with(src_value)
-                    else:
-                        if src_value != MISSING:
-                            dest.__setitem__(key, src_value)
+                    elif not missing_src_value:
+                        dest.__setitem__(key, src_value)
                 else:
                     if isinstance(src_value, BaseContainer):
                         dest.__setitem__(key, src_value)

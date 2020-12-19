@@ -57,6 +57,11 @@ class MissingUserWithDefaultNameField:
 
 
 @attr.s(auto_attribs=True)
+class OptionalUserWithDefaultNameField:
+    user: Optional[UserWithDefaultName] = None
+
+
+@attr.s(auto_attribs=True)
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None
