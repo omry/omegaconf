@@ -758,3 +758,16 @@ def test_setdefault() -> None:
     assert cfg["foo"] == 10
 
     assert cfg["foo"] == 10
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "c",
+    [
+        pytest.param({"a": ListConfig([1, 2, 3], ref_type=list)}, id="list_value"),
+        pytest.param({"a": DictConfig({"b": 10}, ref_type=dict)}, id="dict_value"),
+    ],
+)
+def test_self_assign_list_value_with_ref_type(c: Any) -> None:
+    cfg = OmegaConf.create(c)
+    cfg.a = cfg.a
+    assert cfg == c
