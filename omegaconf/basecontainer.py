@@ -300,17 +300,20 @@ class BaseContainer(Container, ABC):
                     node._set_value(type_)
 
         src_ref_type = get_ref_type(src)
-        if src._is_missing() and not dest._is_missing():
-            if is_structured_config(src_ref_type):
-                assert src_ref_type is not None
-                # Replace `src` with a prototype of its corresponding structured config
-                # whose fields are all missing (to avoid overwriting fields in `dest`).
-                src_data = get_structured_config_data(src_ref_type)
-                for v in src_data.values():
-                    v._set_value(MISSING)
-                src = DictConfig(src_data)
-                src._metadata.ref_type = src_ref_type
-                src._metadata.object_type = src_type
+        if (
+            src._is_missing()
+            and not dest._is_missing()
+            and is_structured_config(src_ref_type)
+        ):
+            assert src_ref_type is not None
+            # Replace `src` with a prototype of its corresponding structured config
+            # whose fields are all missing (to avoid overwriting fields in `dest`).
+            src_data = get_structured_config_data(src_ref_type)
+            for v in src_data.values():
+                v._set_value(MISSING)
+            src = DictConfig(src_data)
+            src._metadata.ref_type = src_ref_type
+            src._metadata.object_type = src_type
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
