@@ -1,0 +1,1 @@
+Fix assignment of a Container to itself causing it to clear it's content

@@ -516,6 +516,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     ) -> None:
         from omegaconf import OmegaConf, flag_override
 
+        if id(self) == id(value):
+            return
+
         if flags is None:
             flags = {}
 
