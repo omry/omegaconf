@@ -1145,7 +1145,6 @@ class TestDictSubclass:
         with pytest.raises(ValidationError):
             c3.missing.append("xx")
 
-
     @pytest.mark.parametrize(  # type: ignore
         "obj,value,node",
         [
