@@ -189,19 +189,12 @@ class TestStructured:
         assert c2_user is not None
         assert c2_user._metadata.ref_type == module.UserWithDefaultName
 
-    def test_merge_missing_structured_onto_typed_dictconfig(
-        self, class_type: str
-    ) -> None:
+    def test_merge_missing_object_onto_typed_dictconfig(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        c1 = DictConfig({}, element_type=module.UserWithDefaultName)
-        c2 = OmegaConf.merge(
-            c1, OmegaConf.structured(module.MissingUserWithDefaultNameField)
-        )
+        c1 = OmegaConf.structured(module.DictOfObjects)
+        c2 = OmegaConf.merge(c1, {"users": {"bob": "???"}})
         assert isinstance(c2, DictConfig)
-        c2_user = c2._get_node("user")
-        assert c2_user is not None
-        assert c2_user._is_missing()
-        assert c2_user._metadata.ref_type == module.UserWithDefaultName
+        assert OmegaConf.is_missing(c2.users, "bob")
 
     def test_merge_missing_key_onto_structured_none(self, class_type: str) -> None:
         module: Any = import_module(class_type)
