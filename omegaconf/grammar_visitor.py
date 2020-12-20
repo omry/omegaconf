@@ -235,6 +235,37 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitPrimitive(self, ctx: OmegaConfGrammarParser.PrimitiveContext) -> Any:
         return self._createPrimitive(ctx)
 
+    def visitSequence(
+        self, ctx: OmegaConfGrammarParser.SequenceContext
+    ) -> Generator[Any, None, None]:
+        from ._utils import _get_value
+
+        assert ctx.getChildCount() >= 1  # element (COMMA element)*
+        for i, child in enumerate(ctx.getChildren()):
+            if i % 2 == 0:
+                assert isinstance(child, OmegaConfGrammarParser.ElementContext)
+                # Also preserve the original text representation of `child` so
+                # as to allow backward compatibility with old resolvers (registered
+                # with `legacy_register_resolver()`). Note that we cannot just cast
+                # the value to string later as for instance `null` would become "None".
+                yield _get_value(self.visitElement(child)), child.getText()
+            else:
+                assert (
+                    isinstance(child, TerminalNode)
+                    and child.symbol.type == OmegaConfGrammarLexer.COMMA
+                )
+
+    def visitSingleElement(
+        self, ctx: OmegaConfGrammarParser.SingleElementContext
+    ) -> Any:
+        # element EOF
+        assert ctx.getChildCount() == 2
+        return self.visit(ctx.getChild(0))
+
+    def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
+        # (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+
+        return self._unescape(ctx.getChildren())
+
     def _createPrimitive(
         self,
         ctx: Union[
@@ -274,37 +305,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 raise AssertionError("WS should never be reached")
             assert False, symbol.type
         # Concatenation of multiple items ==> un-escape the concatenation.
-        return self._unescape(ctx.getChildren())
-
-    def visitSequence(
-        self, ctx: OmegaConfGrammarParser.SequenceContext
-    ) -> Generator[Any, None, None]:
-        from ._utils import _get_value
-
-        assert ctx.getChildCount() >= 1  # element (COMMA element)*
-        for i, child in enumerate(ctx.getChildren()):
-            if i % 2 == 0:
-                assert isinstance(child, OmegaConfGrammarParser.ElementContext)
-                # Also preserve the original text representation of `child` so
-                # as to allow backward compatibility with old resolvers (registered
-                # with `legacy_register_resolver()`). Note that we cannot just cast
-                # the value to string later as for instance `null` would become "None".
-                yield _get_value(self.visitElement(child)), child.getText()
-            else:
-                assert (
-                    isinstance(child, TerminalNode)
-                    and child.symbol.type == OmegaConfGrammarLexer.COMMA
-                )
-
-    def visitSingleElement(
-        self, ctx: OmegaConfGrammarParser.SingleElementContext
-    ) -> Any:
-        # element EOF
-        assert ctx.getChildCount() == 2
-        return self.visit(ctx.getChild(0))
-
-    def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
-        # (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+
         return self._unescape(ctx.getChildren())
 
     def _resolve_quoted_string(self, quoted: str) -> str:
