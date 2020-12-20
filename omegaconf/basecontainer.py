@@ -323,9 +323,7 @@ class BaseContainer(Container, ABC):
             dest_node = dest._get_node(key, validate_access=False)
 
             if isinstance(src_value, Container):
-                missing_src_value = (
-                    not src_value._is_interpolation() and src_value._is_missing()
-                )
+                missing_src_value = src_value._value() == MISSING
             else:
                 missing_src_value = src_value == MISSING
 
