@@ -917,7 +917,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     (
         "dict_interpolation_key",
         "${test:{${prim_str}: 0, ${null}: 1, ${int}: 2}}",
-        {"hi": 0, None: 1, 123: 2},
+        GrammarParseError,
     ),
     (
         "dict_quoted_key",
@@ -932,7 +932,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("dict_int_key", "${test:{0: 0}}", {0: 0}),
     ("dict_float_key", "${test:{1.1: 0}}", {1.1: 0}),
     ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
-    ("dict_nan_key_2", "${first:{${test:nan}: 0}}", math.nan),
+    ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
     ("dict_nan_key_3", "${test:{'nan': 0}}", {"nan": 0}),
     ("dict_null_key", "${test:{null: 0}}", {None: 0}),
     (

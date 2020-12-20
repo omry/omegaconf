@@ -39,7 +39,7 @@ element:
 
 // Data structures.
 
-listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                          // [], [1,2,3], [a,b,[1,2]]
+listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                         // [], [1,2,3], [a,b,[1,2]]
 dictContainer: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
 dictKeyValuePair: dictKey COLON element;
 sequence: element (COMMA element)*;
@@ -67,7 +67,7 @@ primitive:
         | interpolation
       )+;
 
-// Same as `primitive` except that `COLON` is not allowed.
+// Same as `primitive` except that `COLON` and interpolations are not allowed.
 dictKey:
       QUOTED_VALUE                               // 'hello world', "hello world"
     | (   ID                                     // foo_10
@@ -78,5 +78,4 @@ dictKey:
         | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
         | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
         | WS                                     // whitespaces
-        | interpolation
       )+;

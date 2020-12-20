@@ -116,10 +116,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return "".join(map(str, vals))
 
     def visitDictKey(self, ctx: OmegaConfGrammarParser.DictKeyContext) -> Any:
-        from ._utils import _get_value
-
-        # Dictionary keys are a subset of primitives, they may thus be parsed as such.
-        return _get_value(self.visitPrimitive(ctx))
+        return self._createPrimitive(ctx)
 
     def visitDictContainer(
         self, ctx: OmegaConfGrammarParser.DictContainerContext
@@ -235,9 +232,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert isinstance(sequence, OmegaConfGrammarParser.SequenceContext)
         return list(val for val, _ in self.visitSequence(sequence))  # ignore raw text
 
-    def visitPrimitive(
+    def visitPrimitive(self, ctx: OmegaConfGrammarParser.PrimitiveContext) -> Any:
+        return self._createPrimitive(ctx)
+
+    def _createPrimitive(
         self,
-        # We also allow the `DictKey` context since dict keys are a subset of primitives.
         ctx: Union[
             OmegaConfGrammarParser.PrimitiveContext,
             OmegaConfGrammarParser.DictKeyContext,
