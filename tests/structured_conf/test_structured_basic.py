@@ -162,7 +162,7 @@ class TestStructured:
         # type of name becomes str
         assert c2 == {"user": {"name": "7", "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == Optional[module.User]
+        assert get_ref_type(c2, "user") == module.User
 
     def test_merge_structured_onto_dict_nested2(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -172,7 +172,7 @@ class TestStructured:
         # type of name remains int
         assert c2 == {"user": {"name": 7, "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == Optional[module.User]
+        assert get_ref_type(c2, "user") == module.User
 
     def test_merge_structured_onto_dict_nested3(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -182,7 +182,7 @@ class TestStructured:
         # name is not changed
         assert c2 == {"user": {"name": "alice", "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == Optional[module.UserWithDefaultName]
+        assert get_ref_type(c2, "user") == module.UserWithDefaultName
 
     def test_merge_missing_object_onto_typed_dictconfig(self, class_type: str) -> None:
         module: Any = import_module(class_type)

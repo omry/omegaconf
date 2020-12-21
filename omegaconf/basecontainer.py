@@ -391,6 +391,7 @@ class BaseContainer(Container, ABC):
 
         if dest._metadata.ref_type is Any:
             dest._metadata.ref_type = src_ref_type
+            dest._metadata.optional = src._metadata.optional
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -735,7 +736,7 @@ def _create_structured_with_missing_fields(
         v._set_value("???")
 
     cfg = DictConfig(cfg_data)
-    cfg._metadata.ref_type = ref_type
+    cfg._metadata.optional, cfg._metadata.ref_type = _resolve_optional(ref_type)
     cfg._metadata.object_type = object_type
 
     return cfg
