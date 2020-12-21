@@ -4,7 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -27,6 +27,9 @@ from ._utils import (
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
+
+if TYPE_CHECKING:
+    from .dictconfig import DictConfig
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
@@ -308,12 +311,9 @@ class BaseContainer(Container, ABC):
             assert src_ref_type is not None
             # Replace `src` with a prototype of its corresponding structured config
             # whose fields are all missing (to avoid overwriting fields in `dest`).
-            src_data = get_structured_config_data(src_ref_type)
-            for v in src_data.values():
-                v._set_value(MISSING)
-            src = DictConfig(src_data)
-            src._metadata.ref_type = src_ref_type
-            src._metadata.object_type = src_type
+            src = _create_structured_with_missing_fields(
+                ref_type=src_ref_type, object_type=src_type
+            )
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
@@ -727,3 +727,19 @@ class BaseContainer(Container, ABC):
                 )
 
         return full_key
+
+
+def _create_structured_with_missing_fields(
+    ref_type: type, object_type: Optional[type] = None
+) -> "DictConfig":
+    from .dictconfig import DictConfig
+
+    cfg_data = get_structured_config_data(ref_type)
+    for v in cfg_data.values():
+        v._set_value("???")
+
+    cfg = DictConfig(cfg_data)
+    cfg._metadata.ref_type = ref_type
+    cfg._metadata.object_type = object_type
+
+    return cfg
