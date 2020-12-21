@@ -284,8 +284,10 @@ class BaseContainer(Container, ABC):
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
 
-        # if source DictConfig is an interpolation set the DictConfig one to be the same interpolation.
-        if src._is_interpolation():
+        # If source DictConfig is:
+        #  - an interpolation => set the destination DictConfig to be the same interpolation
+        #  - None => set the destination DictConfig to None
+        if src._is_interpolation() or src._is_none():
             dest._set_value(src._value())
             return
 
