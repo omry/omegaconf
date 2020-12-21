@@ -193,14 +193,12 @@ class TestStructured:
 
     def test_merge_missing_key_onto_structured_none(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        c1 = OmegaConf.create(
-            {"foo": OmegaConf.structured(module.OptionalUserWithDefaultNameField)}
-        )
+        c1 = OmegaConf.create({"foo": OmegaConf.structured(module.OptionalUser)})
         src = OmegaConf.create({"foo": {"user": "???"}})
         c2 = OmegaConf.merge(c1, src)
         assert c1.foo.user is None
         assert c2.foo.user is None
-        assert c2.foo._get_node("user")._metadata.ref_type == module.UserWithDefaultName
+        assert c2.foo._get_node("user")._metadata.ref_type == module.User
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:

@@ -57,8 +57,8 @@ class MissingUserWithDefaultNameField:
 
 
 @attr.s(auto_attribs=True)
-class OptionalUserWithDefaultNameField:
-    user: Optional[UserWithDefaultName] = None
+class OptionalUser:
+    user: Optional[User] = None
 
 
 @attr.s(auto_attribs=True)

@@ -58,8 +58,8 @@ class MissingUserWithDefaultNameField:
 
 
 @dataclass
-class OptionalUserWithDefaultNameField:
-    user: Optional[UserWithDefaultName] = None
+class OptionalUser:
+    user: Optional[User] = None
 
 
 @dataclass
