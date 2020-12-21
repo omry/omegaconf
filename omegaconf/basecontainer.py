@@ -29,7 +29,7 @@ from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 if TYPE_CHECKING:
-    from .dictconfig import DictConfig
+    from .dictconfig import DictConfig  # pragma: no cover
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
