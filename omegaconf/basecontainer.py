@@ -24,12 +24,10 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
 )
-from .base import Container, ContainerMetadata, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
-
-DictKeyType = Union[str, int, Enum]
 
 
 class BaseContainer(Container, ABC):

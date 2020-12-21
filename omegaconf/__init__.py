@@ -1,5 +1,4 @@
-from .base import Container, Node
-from .basecontainer import DictKeyType
+from .base import Container, DictKeyType, Node
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,

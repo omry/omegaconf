@@ -32,8 +32,8 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, Node
-from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer, DictKeyType
+from .base import Container, ContainerMetadata, DictKeyType, Node
+from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
