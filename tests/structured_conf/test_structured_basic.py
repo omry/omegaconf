@@ -200,6 +200,17 @@ class TestStructured:
         assert c2.foo.user is None
         assert c2.foo._get_node("user")._metadata.ref_type == module.User
 
+    def test_merge_optional_structured_onto_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"user": {"name": "bob"}})
+        c2 = OmegaConf.merge(c1, module.OptionalUser(module.User(name="alice")))
+        assert c2.user.name == "alice"
+        assert get_ref_type(c2, "user") == Optional[module.User]
+        assert isinstance(c2, DictConfig)
+        c2_user = c2._get_node("user")
+        assert c2_user is not None
+        assert c2_user._metadata.ref_type == module.User
+
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:
             module: Any = import_module(class_type)

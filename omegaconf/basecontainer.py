@@ -391,8 +391,10 @@ class BaseContainer(Container, ABC):
             dest._metadata.object_type = src_type
 
         if dest._metadata.ref_type is Any:
-            dest._metadata.ref_type = src_ref_type
-            dest._metadata.optional = src._metadata.optional
+            new_is_optional, new_ref_type = _resolve_optional(src_ref_type)
+            if new_ref_type is not Any:
+                dest._metadata.ref_type = new_ref_type
+                dest._metadata.optional = new_is_optional
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
