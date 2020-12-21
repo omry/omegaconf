@@ -278,7 +278,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import MISSING, AnyNode, DictConfig, OmegaConf, ValueNode
+        from omegaconf import AnyNode, DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -321,11 +321,7 @@ class BaseContainer(Container, ABC):
         for key, src_value in src.items_ex(resolve=False):
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
-
-            if isinstance(src_value, Container):
-                missing_src_value = src_value._value() == MISSING
-            else:
-                missing_src_value = src_value == MISSING
+            missing_src_value = _is_missing_value(src_value)
 
             if (
                 isinstance(dest_node, Container)
@@ -743,3 +739,11 @@ def _create_structured_with_missing_fields(
     cfg._metadata.object_type = object_type
 
     return cfg
+
+
+def _is_missing_value(value: Any) -> bool:
+    if isinstance(value, Container):
+        value = value._value()
+    ret = value == "???"
+    assert isinstance(ret, bool)
+    return ret
