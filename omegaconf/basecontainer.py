@@ -305,12 +305,12 @@ class BaseContainer(Container, ABC):
                     node._set_value(type_)
 
         src_ref_type = get_ref_type(src)
+        assert src_ref_type is not None
         if (
             src._is_missing()
             and not dest._is_missing()
             and is_structured_config(src_ref_type)
         ):
-            assert src_ref_type is not None
             # Replace `src` with a prototype of its corresponding structured config
             # whose fields are all missing (to avoid overwriting fields in `dest`).
             src = _create_structured_with_missing_fields(
@@ -387,14 +387,7 @@ class BaseContainer(Container, ABC):
                 else:
                     dest[key] = src._get_node(key)
 
-        if src_type is not None and not is_primitive_dict(src_type):
-            dest._metadata.object_type = src_type
-
-        if dest._metadata.ref_type is Any:
-            new_is_optional, new_ref_type = _resolve_optional(src_ref_type)
-            if new_ref_type is not Any:
-                dest._metadata.ref_type = new_ref_type
-                dest._metadata.optional = new_is_optional
+        _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -751,3 +744,14 @@ def _is_missing_value(value: Any) -> bool:
     ret = value == "???"
     assert isinstance(ret, bool)
     return ret
+
+
+def _udpate_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
+    if object_type is not None and not is_primitive_dict(object_type):
+        node._metadata.object_type = object_type
+
+    if node._metadata.ref_type is Any:
+        new_is_optional, new_ref_type = _resolve_optional(ref_type)
+        if new_ref_type is not Any:
+            node._metadata.ref_type = new_ref_type
+            node._metadata.optional = new_is_optional
