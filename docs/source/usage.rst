@@ -64,7 +64,7 @@ From a list
     - a: 10
       b:
         a: 10
-        123: 456
+        123: int_key
     <BLANKLINE>
 
 Tuples are supported as an valid option too.
