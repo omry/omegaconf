@@ -333,14 +333,13 @@ class BaseContainer(Container, ABC):
             ):
                 expand(dest_node)
 
-            if dest_node is not None:
-                if dest_node._is_interpolation():
-                    target_node = dest_node._dereference_node(
-                        throw_on_resolution_failure=False
-                    )
-                    if isinstance(target_node, Container):
-                        dest[key] = target_node
-                        dest_node = dest._get_node(key)
+            if dest_node is not None and dest_node._is_interpolation():
+                target_node = dest_node._dereference_node(
+                    throw_on_resolution_failure=False
+                )
+                if isinstance(target_node, Container):
+                    dest[key] = target_node
+                    dest_node = dest._get_node(key)
 
             if (
                 is_structured_config(dest._metadata.element_type)
