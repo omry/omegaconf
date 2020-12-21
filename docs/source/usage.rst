@@ -58,7 +58,7 @@ From a list
 
 .. doctest::
 
-    >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10, 123: 456}}])
+    >>> conf = OmegaConf.create([1, {"a":10, "b": {"a":10, 123: "int_key"}}])
     >>> print(OmegaConf.to_yaml(conf))
     - 1
     - a: 10
