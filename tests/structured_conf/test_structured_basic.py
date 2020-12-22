@@ -4,7 +4,15 @@ from typing import Any, Optional
 
 import pytest
 
-from omegaconf import IntegerNode, OmegaConf, ValidationError, _utils, flag_override
+from omegaconf import (
+    DictConfig,
+    IntegerNode,
+    OmegaConf,
+    ValidationError,
+    _utils,
+    flag_override,
+)
+from omegaconf._utils import get_ref_type
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
@@ -153,6 +161,8 @@ class TestStructured:
         assert c1 == {"user": {"name": 7}}
         # type of name becomes str
         assert c2 == {"user": {"name": "7", "age": "???"}}
+        assert isinstance(c2, DictConfig)
+        assert get_ref_type(c2, "user") == module.User
 
     def test_merge_structured_onto_dict_nested2(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -161,6 +171,66 @@ class TestStructured:
         assert c1 == {"user": {"name": 7}}
         # type of name remains int
         assert c2 == {"user": {"name": 7, "age": "???"}}
+        assert isinstance(c2, DictConfig)
+        assert get_ref_type(c2, "user") == module.User
+
+    def test_merge_structured_onto_dict_nested3(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"user": {"name": "alice"}})
+        c2 = OmegaConf.merge(c1, module.MissingUserWithDefaultNameField)
+        assert c1 == {"user": {"name": "alice"}}
+        # name is not changed
+        assert c2 == {"user": {"name": "alice", "age": "???"}}
+        assert isinstance(c2, DictConfig)
+        assert get_ref_type(c2, "user") == module.UserWithDefaultName
+
+    def test_merge_missing_object_onto_typed_dictconfig(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.structured(module.DictOfObjects)
+        c2 = OmegaConf.merge(c1, {"users": {"bob": "???"}})
+        assert isinstance(c2, DictConfig)
+        assert OmegaConf.is_missing(c2.users, "bob")
+
+    def test_merge_missing_key_onto_structured_none(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"foo": OmegaConf.structured(module.OptionalUser)})
+        src = OmegaConf.create({"foo": {"user": "???"}})
+        c2 = OmegaConf.merge(c1, src)
+        assert c1.foo.user is None
+        assert c2.foo.user is None
+        assert c2.foo._get_node("user")._metadata.ref_type == module.User
+
+    def test_merge_optional_structured_onto_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create({"user": {"name": "bob"}})
+        c2 = OmegaConf.merge(c1, module.OptionalUser(module.User(name="alice")))
+        assert c2.user.name == "alice"
+        assert get_ref_type(c2, "user") == Optional[module.User]
+        assert isinstance(c2, DictConfig)
+        c2_user = c2._get_node("user")
+        assert c2_user is not None
+        # Compared to the previous assert, here we verify that the `ref_type` found
+        # in the metadata is *not* optional: instead, the `optional` flag must be set.
+        assert c2_user._metadata.ref_type == module.User
+        assert c2_user._metadata.optional
+
+    def test_merge_structured_interpolation_onto_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create(
+            {
+                "user_1": {"name": "bob"},
+                "user_2": {"name": "alice"},
+                "user_3": {"name": "joe"},
+            }
+        )
+        src = OmegaConf.create({"user_2": module.User(), "user_3": module.User()})
+        src.user_2 = "${user_1}"
+        src.user_3 = None
+        c2 = OmegaConf.merge(c1, src)
+        assert c2.user_2.name == "bob"
+        assert get_ref_type(c2, "user_2") == Optional[module.User]
+        assert c2.user_3 is None
+        assert get_ref_type(c2, "user_3") == Optional[module.User]
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:

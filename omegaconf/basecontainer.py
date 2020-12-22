@@ -4,7 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -15,6 +15,7 @@ from ._utils import (
     _is_interpolation,
     _resolve_optional,
     get_ref_type,
+    get_structured_config_data,
     get_value_kind,
     get_yaml_loader,
     is_container_annotation,
@@ -26,6 +27,9 @@ from ._utils import (
 )
 from .base import Container, ContainerMetadata, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
+
+if TYPE_CHECKING:
+    from .dictconfig import DictConfig  # pragma: no cover
 
 DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
@@ -274,15 +278,20 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import MISSING, AnyNode, DictConfig, OmegaConf, ValueNode
+        from omegaconf import AnyNode, DictConfig, OmegaConf, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
+        src_ref_type = get_ref_type(src)
+        assert src_ref_type is not None
 
-        # if source DictConfig is an interpolation set the DictConfig one to be the same interpolation.
-        if src._is_interpolation():
+        # If source DictConfig is:
+        #  - an interpolation => set the destination DictConfig to be the same interpolation
+        #  - None => set the destination DictConfig to None
+        if src._is_interpolation() or src._is_none():
             dest._set_value(src._value())
+            _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
 
         dest._validate_merge(key=None, value=src)
@@ -298,9 +307,16 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        if src._is_missing() and not dest._is_missing():
-            if is_structured_config(get_ref_type(src)):
-                expand(src)
+        if (
+            src._is_missing()
+            and not dest._is_missing()
+            and is_structured_config(src_ref_type)
+        ):
+            # Replace `src` with a prototype of its corresponding structured config
+            # whose fields are all missing (to avoid overwriting fields in `dest`).
+            src = _create_structured_with_missing_fields(
+                ref_type=src_ref_type, object_type=src_type
+            )
 
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
@@ -308,20 +324,28 @@ class BaseContainer(Container, ABC):
         for key, src_value in src.items_ex(resolve=False):
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
-            if isinstance(dest_node, Container) and OmegaConf.is_none(dest, key):
-                if not OmegaConf.is_none(src_value):
-                    expand(dest_node)
+            missing_src_value = _is_missing_value(src_value)
 
-            if dest_node is not None:
-                if dest_node._is_interpolation():
-                    target_node = dest_node._dereference_node(
-                        throw_on_resolution_failure=False
-                    )
-                    if isinstance(target_node, Container):
-                        dest[key] = target_node
-                        dest_node = dest._get_node(key)
+            if (
+                isinstance(dest_node, Container)
+                and OmegaConf.is_none(dest, key)
+                and not missing_src_value
+                and not OmegaConf.is_none(src_value)
+            ):
+                expand(dest_node)
 
-            if is_structured_config(dest._metadata.element_type):
+            if dest_node is not None and dest_node._is_interpolation():
+                target_node = dest_node._dereference_node(
+                    throw_on_resolution_failure=False
+                )
+                if isinstance(target_node, Container):
+                    dest[key] = target_node
+                    dest_node = dest._get_node(key)
+
+            if (
+                is_structured_config(dest._metadata.element_type)
+                and not missing_src_value
+            ):
                 dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
                 dest_node = dest._get_node(key)
 
@@ -330,9 +354,8 @@ class BaseContainer(Container, ABC):
                     if isinstance(src_value, BaseContainer):
                         dest._validate_merge(key=key, value=src_value)
                         dest_node._merge_with(src_value)
-                    else:
-                        if src_value != MISSING:
-                            dest.__setitem__(key, src_value)
+                    elif not missing_src_value:
+                        dest.__setitem__(key, src_value)
                 else:
                     if isinstance(src_value, BaseContainer):
                         dest.__setitem__(key, src_value)
@@ -367,8 +390,7 @@ class BaseContainer(Container, ABC):
                 else:
                     dest[key] = src._get_node(key)
 
-        if src_type is not None and not is_primitive_dict(src_type):
-            dest._metadata.object_type = src_type
+        _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -704,3 +726,38 @@ class BaseContainer(Container, ABC):
                 )
 
         return full_key
+
+
+def _create_structured_with_missing_fields(
+    ref_type: type, object_type: Optional[type] = None
+) -> "DictConfig":
+    from .dictconfig import DictConfig
+
+    cfg_data = get_structured_config_data(ref_type)
+    for v in cfg_data.values():
+        v._set_value("???")
+
+    cfg = DictConfig(cfg_data)
+    cfg._metadata.optional, cfg._metadata.ref_type = _resolve_optional(ref_type)
+    cfg._metadata.object_type = object_type
+
+    return cfg
+
+
+def _is_missing_value(value: Any) -> bool:
+    if isinstance(value, Container):
+        value = value._value()
+    ret = value == "???"
+    assert isinstance(ret, bool)
+    return ret
+
+
+def _udpate_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
+    if object_type is not None and not is_primitive_dict(object_type):
+        node._metadata.object_type = object_type
+
+    if node._metadata.ref_type is Any:
+        new_is_optional, new_ref_type = _resolve_optional(ref_type)
+        if new_ref_type is not Any:
+            node._metadata.ref_type = new_ref_type
+            node._metadata.optional = new_is_optional

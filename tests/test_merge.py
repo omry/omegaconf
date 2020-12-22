@@ -218,6 +218,11 @@ from . import (
             {"user": Group},
             id="merge_into_missing_node",
         ),
+        pytest.param(
+            [{"admin": {"name": "joe", "age": 42}}, Group(admin=None)],
+            {"admin": None},
+            id="merge_none_into_existing_node",
+        ),
         ([{"user": User()}, {"user": {"foo": "bar"}}], pytest.raises(ConfigKeyError)),
         # missing DictConfig
         pytest.param(
