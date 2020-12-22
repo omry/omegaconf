@@ -214,6 +214,24 @@ class TestStructured:
         assert c2_user._metadata.ref_type == module.User
         assert c2_user._metadata.optional
 
+    def test_merge_structured_interpolation_onto_dict(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.create(
+            {
+                "user_1": {"name": "bob"},
+                "user_2": {"name": "alice"},
+                "user_3": {"name": "joe"},
+            }
+        )
+        src = OmegaConf.create({"user_2": module.User(), "user_3": module.User()})
+        src.user_2 = "${user_1}"
+        src.user_3 = None
+        c2 = OmegaConf.merge(c1, src)
+        assert c2.user_2.name == "bob"
+        assert get_ref_type(c2, "user_2") == Optional[module.User]
+        assert c2.user_3 is None
+        assert get_ref_type(c2, "user_3") == Optional[module.User]
+
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:
             module: Any = import_module(class_type)

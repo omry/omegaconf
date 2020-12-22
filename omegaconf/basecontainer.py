@@ -283,12 +283,15 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
+        src_ref_type = get_ref_type(src)
+        assert src_ref_type is not None
 
         # If source DictConfig is:
         #  - an interpolation => set the destination DictConfig to be the same interpolation
         #  - None => set the destination DictConfig to None
         if src._is_interpolation() or src._is_none():
             dest._set_value(src._value())
+            _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
 
         dest._validate_merge(key=None, value=src)
@@ -304,8 +307,6 @@ class BaseContainer(Container, ABC):
                 else:
                     node._set_value(type_)
 
-        src_ref_type = get_ref_type(src)
-        assert src_ref_type is not None
         if (
             src._is_missing()
             and not dest._is_missing()
