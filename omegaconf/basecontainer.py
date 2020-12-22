@@ -243,11 +243,11 @@ class BaseContainer(Container, ABC):
                     )
                 else:
                     retdict[key] = convert(node)
-            if (
-                conf._metadata.object_type is not None
-                and instantiate_structured_configs
+            if instantiate_structured_configs and is_structured_config(
+                conf._metadata.ref_type
             ):
-                return conf._metadata.object_type(**retdict)
+                assert callable(conf._metadata.ref_type)
+                retdict = conf._metadata.ref_type(**retdict)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
