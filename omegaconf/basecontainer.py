@@ -291,7 +291,7 @@ class BaseContainer(Container, ABC):
         #  - None => set the destination DictConfig to None
         if src._is_interpolation() or src._is_none():
             dest._set_value(src._value())
-            _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
+            _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
 
         dest._validate_merge(key=None, value=src)
@@ -390,7 +390,7 @@ class BaseContainer(Container, ABC):
                 else:
                     dest[key] = src._get_node(key)
 
-        _udpate_types(node=dest, ref_type=src_ref_type, object_type=src_type)
+        _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -752,7 +752,7 @@ def _is_missing_value(value: Any) -> bool:
     return ret
 
 
-def _udpate_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
+def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
     if object_type is not None and not is_primitive_dict(object_type):
         node._metadata.object_type = object_type
 
