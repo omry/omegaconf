@@ -254,6 +254,14 @@ class BaseContainer(Container, ABC):
                 assert callable(conf._metadata.object_type)
                 assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
                 retdict = conf._metadata.object_type(**retdict)
+            elif instantiate_structured_configs and is_structured_config(
+                conf._metadata.object_type
+            ):
+                # This is the case where the type annotation is NOT a dataclass, but the
+                # object passed in IS a dataclass.
+                assert callable(conf._metadata.object_type)
+                assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
+                retdict = conf._metadata.object_type(**retdict)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
