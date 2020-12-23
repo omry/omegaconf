@@ -944,7 +944,6 @@ class TestConfigs:
             assert user.age == 7
 
 
-
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
         conf.x = 20
@@ -1114,6 +1113,34 @@ class TestDictSubclass:
         assert type(data["bond"]) is module.User
         assert data["bond"] == module.User("James Bond", 7)
 
+    def test_str2user_with_field(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+
+        assert cfg.foo.name == "Bond"
+        assert cfg.foo.age == 7
+        assert isinstance(cfg.foo, DictConfig)
+
+        cfg.mp = module.User(name="Moneypenny", age=11)
+        assert cfg.mp.name == "Moneypenny"
+        assert cfg.mp.age == 11
+        assert isinstance(cfg.mp, DictConfig)
+
+        with pytest.raises(ValidationError):
+            # bad value
+            cfg.hello = "world"
+
+        with pytest.raises(KeyValidationError):
+            # bad key
+            cfg[Color.BLUE] = "nope"
+
+        data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        assert type(data) is module.DictSubclass.Str2UserWithField
+        assert type(data.foo) is module.User
+        assert data.foo == module.User("Bond", 7)
+        assert type(data["mp"]) is module.User
+        assert data["mp"] == module.User("Moneypenny", 11)
+
     def test_str2str_with_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
@@ -1129,7 +1156,6 @@ class TestDictSubclass:
         assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
         assert data["hello"] == "world"
-
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:

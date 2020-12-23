@@ -434,6 +434,10 @@ class DictSubclass:
     class Str2IntWithStrField(Dict[str, int]):
         foo: int = 1
 
+    @attr.s(auto_attribs=True)
+    class Str2UserWithField(Dict[str, User]):
+        foo: User = User("Bond", 7)
+
     class Error:
         @attr.s(auto_attribs=True)
         class User2Str(Dict[User, str]):
