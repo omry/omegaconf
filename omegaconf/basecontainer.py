@@ -259,6 +259,7 @@ class BaseContainer(Container, ABC):
             ):
                 # This is the case where the type annotation is NOT a dataclass, but the
                 # object passed in IS a dataclass.
+                assert conf._metadata.ref_type is not None
                 assert callable(conf._metadata.object_type)
                 assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
                 retdict = conf._metadata.object_type(**retdict)
