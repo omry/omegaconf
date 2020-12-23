@@ -864,6 +864,86 @@ class TestConfigs:
         assert cfg.list == [1, 2]
         assert cfg.opt_list is None
 
+    class TestInstantiateStructuredConfigs:
+        @pytest.fixture
+        def module(self, class_type: str) -> Any:
+            module: Any = import_module(class_type)
+            return module
+
+        def round_trip_to_container(self, input_data: Any) -> Any:
+            serialized = OmegaConf.create(input_data)
+            round_tripped = OmegaConf.to_container(
+                serialized, instantiate_structured_configs=True
+            )
+            return round_tripped
+
+        def test_basic(self, module: Any) -> None:
+            user = self.round_trip_to_container(module.User())
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name is MISSING
+            assert user.age is MISSING
+
+            user = self.round_trip_to_container(module.User("Bond", 7))
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name == "Bond"
+            assert user.age == 7
+
+        def test_nested(self, module: Any) -> None:
+            data = self.round_trip_to_container({1: module.User()})
+            user = data[1]
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name is MISSING
+            assert user.age is MISSING
+
+            data = self.round_trip_to_container({1: module.User("Bond", 7)})
+            user = data[1]
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name == "Bond"
+            assert user.age == 7
+
+        def test_list(self, module: Any) -> None:
+            lst = self.round_trip_to_container(module.UserList)
+            assert isinstance(lst, module.UserList)
+            assert type(lst) is module.UserList
+            # assert lst.list is MISSING  # fails: lst.list is "???"
+            assert lst.list == MISSING
+
+            lst = self.round_trip_to_container(
+                module.UserList([module.User("Bond", 7)])
+            )
+            assert isinstance(lst, module.UserList)
+            assert type(lst) is module.UserList
+            assert len(lst.list) == 1
+            user = lst.list[0]
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name == "Bond"
+            assert user.age == 7
+
+        def test_dict(self, module: Any) -> None:
+            user_dict = self.round_trip_to_container(module.UserDict)
+            assert isinstance(user_dict, module.UserDict)
+            assert type(user_dict) is module.UserDict
+            # assert user_dict.dict is MISSING  # fails: dct.dict is "???"
+            assert user_dict.dict == MISSING
+
+            user_dict = self.round_trip_to_container(
+                module.UserDict({"user007": module.User("Bond", 7)})
+            )
+            assert isinstance(user_dict, module.UserDict)
+            assert type(user_dict) is module.UserDict
+            assert len(user_dict.dict) == 1
+            user = user_dict.dict["user007"]
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name == "Bond"
+            assert user.age == 7
+
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
@@ -1040,9 +1120,11 @@ class TestDictSubclass:
             cfg[Color.RED] = "fail"
 
         data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
-        assert type(data) == module.DictSubclass.Str2StrWithField
+        assert isinstance(data, module.DictSubclass.Str2StrWithField)
+        assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
         assert data["hello"] == "world"
+
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:

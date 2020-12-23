@@ -243,26 +243,49 @@ class BaseContainer(Container, ABC):
                     )
                 else:
                     retdict[key] = convert(node)
-            if instantiate_structured_configs and is_structured_config(
-                conf._metadata.ref_type
+
+            def _instantiate_structured_config_impl(retdict, object_type):
+                from ._utils import get_structured_config_data
+
+                object_type_field_names = get_structured_config_data(object_type).keys()
+                if issubclass(object_type, dict):
+                    # Extending dict as a subclass
+
+                    retdict_field_items = {
+                        k: v for k, v in retdict.items() if k in object_type_field_names
+                    }
+                    retdict_nonfield_items = {
+                        k: v
+                        for k, v in retdict.items()
+                        if k not in object_type_field_names
+                    }
+                    result = object_type(**retdict_field_items)
+                    result.update(retdict_nonfield_items)
+                else:
+                    assert set(retdict.keys()) <= set(object_type_field_names)
+                    result = object_type(**retdict)
+                return result
+
+            ref_type = conf._metadata.ref_type
+            object_type = conf._metadata.object_type
+            # I think that:
+            #  ref_type should be either the type annotation for the value (set by e.g.
+            #    a dataclass field type annotation or a typing.Dict type annotation) or,
+            #    if annotation is available, the type of the value.
+            #  object_type (set in dictconfig.DictConfig._set_value_impl) is the type of
+            #    the value, used, possibly a subclass of ref_type.
+            if is_structured_config(ref_type):
+                assert is_structured_config(object_type)
+            if is_structured_config(ref_type) or is_structured_config(object_type):
+                assert ref_type is not None
+                assert object_type is not None
+                if ref_type is not Any:
+                    assert issubclass(object_type, ref_type)
+            if instantiate_structured_configs and (
+                is_structured_config(ref_type) or is_structured_config(object_type)
             ):
-                # I think that:
-                #  _metadata.ref_type is from the type annotation in the data class,
-                #  _metadata.object_type is the type of the actual object that was
-                #      passed in to omegaconf
-                assert callable(conf._metadata.ref_type)
-                assert callable(conf._metadata.object_type)
-                assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
-                retdict = conf._metadata.object_type(**retdict)
-            elif instantiate_structured_configs and is_structured_config(
-                conf._metadata.object_type
-            ):
-                # This is the case where the type annotation is NOT a dataclass, but the
-                # object passed in IS a dataclass.
-                assert conf._metadata.ref_type is not None
-                assert callable(conf._metadata.object_type)
-                assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
-                retdict = conf._metadata.object_type(**retdict)
+                retdict = _instantiate_structured_config_impl(retdict, object_type)
+
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
