@@ -1,3 +1,9 @@
+## 2.0.6 (2020-12-22)
+
+### Features
+
+- OmegaConf now supports `int` for dictionary key types ([#149](https://github.com/omry/omegaconf/issues/149)) 
+
 ## 2.0.5 (2020-11-11)
 
 
