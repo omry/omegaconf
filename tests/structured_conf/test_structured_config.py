@@ -1109,6 +1109,11 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
+        data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        assert type(data) is module.DictSubclass.Str2User
+        assert type(data["bond"]) is module.User
+        assert data["bond"] == module.User("James Bond", 7)
+
     def test_str2str_with_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
