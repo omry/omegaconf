@@ -246,8 +246,14 @@ class BaseContainer(Container, ABC):
             if instantiate_structured_configs and is_structured_config(
                 conf._metadata.ref_type
             ):
+                # I think that:
+                #  _metadata.ref_type is from the type annotation in the data class,
+                #  _metadata.object_type is the type of the actual object that was
+                #      passed in to omegaconf
                 assert callable(conf._metadata.ref_type)
-                retdict = conf._metadata.ref_type(**retdict)
+                assert callable(conf._metadata.object_type)
+                assert issubclass(conf._metadata.object_type, conf._metadata.ref_type)
+                retdict = conf._metadata.object_type(**retdict)
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
