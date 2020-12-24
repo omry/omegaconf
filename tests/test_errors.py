@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type, Union
 
 import pytest
@@ -434,6 +435,23 @@ params = [
             key=IllegalType(),
         ),
         id="dict:get_object_of_illegal_type",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig({}, key_type=int),
+            op=lambda cfg: cfg.get("foo"),
+            exception_type=KeyValidationError,
+            msg=dedent(
+                """\
+                Key foo (str) is incompatible with (int)
+                \tfull_key: foo
+                \treference_type=Optional[Dict[int, Any]]
+                \tobject_type=dict"""
+            ),
+            key="foo",
+            full_key="foo",
+        ),
+        id="dict[int,Any]:mistyped_key",
     ),
     # dict:create
     pytest.param(

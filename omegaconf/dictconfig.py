@@ -9,6 +9,7 @@ from typing import (
     List,
     MutableMapping,
     Optional,
+    Sequence,
     Tuple,
     Type,
     Union,
@@ -31,7 +32,7 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -47,13 +48,13 @@ from .errors import (
 from .nodes import EnumNode, ValueNode
 
 
-class DictConfig(BaseContainer, MutableMapping[str, Any]):
+class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     _metadata: ContainerMetadata
 
     def __init__(
         self,
-        content: Union[Dict[str, Any], Any],
+        content: Union[Dict[DictKeyType, Any], Any],
         key: Any = None,
         parent: Optional[Container] = None,
         ref_type: Union[Any, Type[Any]] = Any,
@@ -253,14 +254,12 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
         raise ValidationError(msg)
 
-    def _validate_and_normalize_key(self, key: Any) -> Union[str, Enum]:
+    def _validate_and_normalize_key(self, key: Any) -> DictKeyType:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
-    def _s_validate_and_normalize_key(
-        self, key_type: Any, key: Any
-    ) -> Union[str, Enum]:
+    def _s_validate_and_normalize_key(self, key_type: Any, key: Any) -> DictKeyType:
         if key_type is Any:
-            for t in (str, Enum):
+            for t in DictKeyType.__args__:  # type: ignore
                 try:
                     return self._s_validate_and_normalize_key(key_type=t, key=key)
                 except KeyValidationError:
@@ -268,6 +267,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
         elif key_type == str:
             if not isinstance(key, str):
+                raise KeyValidationError(
+                    f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
+                )
+
+            return key
+        elif key_type == int:
+            if not isinstance(key, int):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
                 )
@@ -286,7 +292,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         else:
             assert False, f"Unsupported key type {key_type}"
 
-    def __setitem__(self, key: Union[str, Enum], value: Any) -> None:
+    def __setitem__(self, key: DictKeyType, value: Any) -> None:
         try:
             self.__set_impl(key=key, value=value)
         except AttributeError as e:
@@ -296,7 +302,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=value, cause=e)
 
-    def __set_impl(self, key: Union[str, Enum], value: Any) -> None:
+    def __set_impl(self, key: DictKeyType, value: Any) -> None:
         key = self._validate_and_normalize_key(key)
         self._set_item_impl(key, value)
 
@@ -339,7 +345,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def __getitem__(self, key: Union[str, Enum]) -> Any:
+    def __getitem__(self, key: DictKeyType) -> Any:
         """
         Allow map style access
         :param key:
@@ -355,7 +361,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def __delitem__(self, key: Union[str, int, Enum]) -> None:
+    def __delitem__(self, key: DictKeyType) -> None:
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -383,15 +389,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         del self.__dict__["_content"][key]
 
-    def get(
-        self, key: Union[str, Enum], default_value: Any = DEFAULT_VALUE_MARKER
-    ) -> Any:
+    def get(self, key: DictKeyType, default_value: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             return self._get_impl(key=key, default_value=default_value)
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def _get_impl(self, key: Union[str, Enum], default_value: Any) -> Any:
+    def _get_impl(self, key: DictKeyType, default_value: Any) -> Any:
         try:
             node = self._get_node(key=key)
         except ConfigAttributeError:
@@ -404,7 +408,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         )
 
     def _get_node(
-        self, key: Union[str, Enum], validate_access: bool = True
+        self, key: DictKeyType, validate_access: bool = True
     ) -> Optional[Node]:
         try:
             key = self._validate_and_normalize_key(key)
@@ -421,7 +425,7 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
 
         return value
 
-    def pop(self, key: Union[str, Enum], default: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
@@ -487,13 +491,13 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
             except (MissingMandatoryValue, KeyError):
                 return False
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[DictKeyType]:
         return iter(self.keys())
 
-    def items(self) -> AbstractSet[Tuple[str, Any]]:
+    def items(self) -> AbstractSet[Tuple[DictKeyType, Any]]:
         return self.items_ex(resolve=True, keys=None)
 
-    def setdefault(self, key: Union[str, Enum], default: Any = None) -> Any:
+    def setdefault(self, key: DictKeyType, default: Any = None) -> Any:
         if key in self:
             ret = self.__getitem__(key)
         else:
@@ -502,9 +506,9 @@ class DictConfig(BaseContainer, MutableMapping[str, Any]):
         return ret
 
     def items_ex(
-        self, resolve: bool = True, keys: Optional[List[str]] = None
-    ) -> AbstractSet[Tuple[str, Any]]:
-        items: List[Tuple[str, Any]] = []
+        self, resolve: bool = True, keys: Optional[Sequence[DictKeyType]] = None
+    ) -> AbstractSet[Tuple[DictKeyType, Any]]:
+        items: List[Tuple[DictKeyType, Any]] = []
         for key in self.keys():
             if resolve:
                 value = self.get(key)

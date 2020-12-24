@@ -25,7 +25,7 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
 )
-from .base import Container, ContainerMetadata, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 if TYPE_CHECKING:
@@ -191,7 +191,7 @@ class BaseContainer(Container, ABC):
         resolve: bool,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
-    ) -> Union[None, Any, str, Dict[str, Any], List[Any]]:
+    ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
@@ -580,7 +580,10 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _item_eq(
-        c1: Container, k1: Union[str, int], c2: Container, k2: Union[str, int]
+        c1: Container,
+        k1: Union[DictKeyType, int],
+        c2: Container,
+        k2: Union[DictKeyType, int],
     ) -> bool:
         v1 = c1._get_node(k1)
         v2 = c2._get_node(k2)

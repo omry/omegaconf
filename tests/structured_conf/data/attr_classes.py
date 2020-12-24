@@ -320,9 +320,9 @@ class WithTypedDict:
 
 
 @attr.s(auto_attribs=True)
-class ErrorDictIntKey:
+class ErrorDictObjectKey:
     # invalid dict key, must be str
-    dict: Dict[int, str] = {10: "foo", 20: "bar"}
+    dict: Dict[object, str] = {object(): "foo", object(): "bar"}
 
 
 class RegularClass:
@@ -370,6 +370,7 @@ class DictExamples:
         "green": Color.GREEN,
         "blue": Color.BLUE,
     }
+    int_keys: Dict[int, str] = {1: "one", 2: "two"}
 
 
 @attr.s(auto_attribs=True)
@@ -390,6 +391,10 @@ class ListOfObjects:
 class DictSubclass:
     @attr.s(auto_attribs=True)
     class Str2Str(Dict[str, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Int2Str(Dict[int, str]):
         pass
 
     @attr.s(auto_attribs=True)

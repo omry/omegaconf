@@ -7,6 +7,8 @@ from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
 
+DictKeyType = Union[str, int, Enum]
+
 
 @dataclass
 class Metadata:
@@ -250,7 +252,7 @@ class Container(Node):
         ...
 
     @abstractmethod
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[Any]:
         ...
 
     @abstractmethod

@@ -1,4 +1,4 @@
-from .base import Container, Node
+from .base import Container, DictKeyType, Node
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
@@ -39,6 +39,7 @@ __all__ = [
     "Container",
     "ListConfig",
     "DictConfig",
+    "DictKeyType",
     "OmegaConf",
     "Resolver",
     "flag_override",

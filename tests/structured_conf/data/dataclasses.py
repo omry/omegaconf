@@ -323,9 +323,11 @@ class WithTypedDict:
 
 
 @dataclass
-class ErrorDictIntKey:
+class ErrorDictObjectKey:
     # invalid dict key, must be str
-    dict: Dict[int, str] = field(default_factory=lambda: {10: "foo", 20: "bar"})
+    dict: Dict[object, str] = field(
+        default_factory=lambda: {object(): "foo", object(): "bar"}
+    )
 
 
 class RegularClass:
@@ -383,6 +385,7 @@ class DictExamples:
             "blue": Color.BLUE,
         }
     )
+    int_keys: Dict[int, str] = field(default_factory=lambda: {1: "one", 2: "two"})
 
 
 @dataclass
@@ -407,6 +410,10 @@ class ListOfObjects:
 class DictSubclass:
     @dataclass
     class Str2Str(Dict[str, str]):
+        pass
+
+    @dataclass
+    class Int2Str(Dict[int, str]):
         pass
 
     @dataclass

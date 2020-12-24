@@ -559,7 +559,7 @@ class TestConfigs:
 
     def test_typed_dict_key_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        input_ = module.ErrorDictIntKey
+        input_ = module.ErrorDictObjectKey
         with pytest.raises(KeyValidationError):
             OmegaConf.structured(input_)
 
@@ -684,6 +684,16 @@ class TestConfigs:
             "d": Color.RED,
             "e": Color.GREEN,
             "f": Color.BLUE,
+        }
+
+        # test int_keys
+        with pytest.raises(KeyValidationError):
+            conf.int_keys.foo_key = "foo_value"
+        conf.int_keys[3] = "three"
+        assert conf.int_keys == {
+            1: "one",
+            2: "two",
+            3: "three",
         }
 
     def test_enum_key(self, class_type: str) -> None:
@@ -905,6 +915,49 @@ class TestDictSubclass:
         with pytest.raises(KeyValidationError):
             cfg.foo[Color.RED] = "fail"
 
+        with pytest.raises(KeyValidationError):
+            cfg.foo[123] = "fail"
+
+    def test_int2str(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictSubclass.Int2Str())
+
+        cfg[10] = "ten"  # okay
+        assert cfg[10] == "ten"
+
+        with pytest.raises(KeyValidationError):
+            cfg[10.0] = "float"  # fail
+
+        with pytest.raises(KeyValidationError):
+            cfg["10"] = "string"  # fail
+
+        with pytest.raises(KeyValidationError):
+            cfg.hello = "fail"
+
+        with pytest.raises(KeyValidationError):
+            cfg[Color.RED] = "fail"
+
+    def test_int2str_as_sub_node(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
+        assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
+        assert _utils.get_ref_type(cfg.foo) == Optional[module.DictSubclass.Int2Str]
+
+        cfg.foo[10] = "ten"
+        assert cfg.foo[10] == "ten"
+
+        with pytest.raises(KeyValidationError):
+            cfg.foo[10.0] = "float"  # fail
+
+        with pytest.raises(KeyValidationError):
+            cfg.foo["10"] = "string"  # fail
+
+        with pytest.raises(KeyValidationError):
+            cfg.foo.hello = "fail"
+
+        with pytest.raises(KeyValidationError):
+            cfg.foo[Color.RED] = "fail"
+
     def test_color2str(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
@@ -912,6 +965,9 @@ class TestDictSubclass:
 
         with pytest.raises(KeyValidationError):
             cfg.greeen = "nope"
+
+        with pytest.raises(KeyValidationError):
+            cfg[123] = "nope"
 
     def test_color2color(self, class_type: str) -> None:
         module: Any = import_module(class_type)
@@ -934,6 +990,10 @@ class TestDictSubclass:
         with pytest.raises(ValidationError):
             # bad value
             cfg[Color.GREEN] = 10
+
+        with pytest.raises(ValidationError):
+            # bad value
+            cfg[Color.GREEN] = "this string is not a color"
 
         with pytest.raises(KeyValidationError):
             # bad key

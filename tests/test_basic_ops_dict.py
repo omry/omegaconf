@@ -8,6 +8,7 @@ import pytest
 from omegaconf import (
     MISSING,
     DictConfig,
+    DictKeyType,
     ListConfig,
     MissingMandatoryValue,
     OmegaConf,
@@ -67,28 +68,71 @@ def test_getattr_dict() -> None:
     assert {"b": 1} == c.a
 
 
-def test_mandatory_value() -> None:
-    c = OmegaConf.create({"a": "???"})
-    with pytest.raises(MissingMandatoryValue, match="a"):
-        c.a
+@pytest.mark.parametrize(
+    "key",
+    ["a", 1],
+)
+class TestDictKeyTypes:
+    def test_mandatory_value(self, key: DictKeyType) -> None:
+        c = OmegaConf.create({key: "???"})
+        with pytest.raises(MissingMandatoryValue, match=str(key)):
+            c[key]
+        if isinstance(key, str):
+            with pytest.raises(MissingMandatoryValue, match=key):
+                getattr(c, key)
+
+    def test_nested_dict_mandatory_value(self, key: DictKeyType) -> None:
+        c = OmegaConf.create({"b": {key: "???"}})
+        with pytest.raises(MissingMandatoryValue):
+            c.b[key]
+        if isinstance(key, str):
+            with pytest.raises(MissingMandatoryValue):
+                getattr(c.b, key)
+
+        c = OmegaConf.create({key: {"b": "???"}})
+        with pytest.raises(MissingMandatoryValue):
+            c[key].b
+        if isinstance(key, str):
+            with pytest.raises(MissingMandatoryValue):
+                getattr(c, key).b
+
+    def test_subscript_get(self, key: DictKeyType) -> None:
+        c = OmegaConf.create({key: "b"})
+        assert isinstance(c, DictConfig)
+        assert "b" == c[key]
+
+    def test_subscript_set(self, key: DictKeyType) -> None:
+        c = OmegaConf.create()
+        c[key] = "b"
+        assert {key: "b"} == c
 
 
-def test_nested_dict_mandatory_value() -> None:
-    c = OmegaConf.create(dict(a=dict(b="???")))
-    with pytest.raises(MissingMandatoryValue):
-        c.a.b
+@pytest.mark.parametrize(
+    "src,key,expected",
+    [
+        ({"a": 10, "b": 11}, "a", {"b": 11}),
+        ({1: "a", 2: "b"}, 1, {2: "b"}),
+    ],
+)
+class TestDelitemKeyTypes:
+    def test_dict_delitem(self, src: Any, key: DictKeyType, expected: Any) -> None:
+        c = OmegaConf.create(src)
+        assert c == src
+        del c[key]
+        assert c == expected
+        with pytest.raises(KeyError):
+            del c["not_found"]
 
-
-def test_subscript_get() -> None:
-    c = OmegaConf.create("a: b")
-    assert isinstance(c, DictConfig)
-    assert "b" == c["a"]
-
-
-def test_subscript_set() -> None:
-    c = OmegaConf.create()
-    c["a"] = "b"
-    assert {"a": "b"} == c
+    def test_dict_struct_delitem(
+        self, src: Any, key: DictKeyType, expected: Any
+    ) -> None:
+        c = OmegaConf.create(src)
+        OmegaConf.set_struct(c, True)
+        with pytest.raises(ConfigTypeError):
+            del c[key]
+        with open_dict(c):
+            del c[key]
+        assert key not in c
 
 
 def test_default_value() -> None:
@@ -354,6 +398,10 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
             "incompatible_key_type",
             False,
         ),
+        ({1: "a", 2: {}}, 1, True),
+        ({1: "a", 2: {}}, 2, True),
+        ({1: "a", 2: {}}, 3, False),
+        ({1: "a", 2: "???"}, 2, False),
     ],
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:
@@ -383,27 +431,6 @@ def test_get_root_of_merged() -> None:
 def test_dict_config() -> None:
     c = OmegaConf.create(dict())
     assert isinstance(c, DictConfig)
-
-
-def test_dict_delitem() -> None:
-    src = {"a": 10, "b": 11}
-    c = OmegaConf.create(src)
-    assert c == src
-    del c["a"]
-    assert c == {"b": 11}
-    with pytest.raises(KeyError):
-        del c["not_found"]
-
-
-def test_dict_struct_delitem() -> None:
-    src = {"a": 10, "b": 11}
-    c = OmegaConf.create(src)
-    OmegaConf.set_struct(c, True)
-    with pytest.raises(ConfigTypeError):
-        del c["a"]
-    with open_dict(c):
-        del c["a"]
-    assert "a" not in c
 
 
 def test_dict_structured_delitem() -> None:
@@ -569,19 +596,19 @@ def test_shallow_copy_none() -> None:
 
 def test_creation_with_invalid_key() -> None:
     with pytest.raises(KeyValidationError):
-        OmegaConf.create({1: "a"})  # type: ignore
+        OmegaConf.create({object(): "a"})
 
 
 def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with pytest.raises(KeyValidationError):
-        cfg[1] = "a"  # type: ignore
+        cfg[object()] = "a"  # type: ignore
 
 
 def test_get_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with pytest.raises(KeyValidationError):
-        cfg[1]  # type: ignore
+        cfg[object()]  # type: ignore
 
 
 def test_hasattr() -> None:
