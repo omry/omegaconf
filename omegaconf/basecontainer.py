@@ -244,10 +244,14 @@ class BaseContainer(Container, ABC):
                 else:
                     retdict[key] = convert(node)
 
-            def _instantiate_structured_config_impl(retdict, object_type):
+            def _instantiate_structured_config_impl(
+                retdict, object_type, allow_objects
+            ):
                 from ._utils import get_structured_config_data
 
-                object_type_field_names = get_structured_config_data(object_type).keys()
+                object_type_field_names = get_structured_config_data(
+                    object_type, allow_objects=allow_objects
+                ).keys()
                 if issubclass(object_type, dict):
                     # Extending dict as a subclass
 
@@ -284,7 +288,9 @@ class BaseContainer(Container, ABC):
             if instantiate_structured_configs and (
                 is_structured_config(ref_type) or is_structured_config(object_type)
             ):
-                retdict = _instantiate_structured_config_impl(retdict, object_type)
+                retdict = _instantiate_structured_config_impl(
+                    retdict, object_type, conf._get_flag("allow_objects")
+                )
 
             return retdict
         elif isinstance(conf, ListConfig):
