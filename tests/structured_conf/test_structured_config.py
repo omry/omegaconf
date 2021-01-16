@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 from importlib import import_module
 from typing import Any, Dict, List, Optional, Union
@@ -433,9 +434,9 @@ class TestConfigs:
         conf.with_default = None
         assert conf.with_default is None
 
-    def test_typed_list(self, class_type: str) -> None:
+    def test_list_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        input_ = module.WithTypedList
+        input_ = module.WithListField
         conf = OmegaConf.structured(input_)
         with pytest.raises(ValidationError):
             conf.list[0] = "fail"
@@ -447,9 +448,9 @@ class TestConfigs:
             cfg2 = OmegaConf.create({"list": ["fail"]})
             OmegaConf.merge(conf, cfg2)
 
-    def test_typed_dict(self, class_type: str) -> None:
+    def test_dict_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        input_ = module.WithTypedDict
+        input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         with pytest.raises(ValidationError):
             conf.dict["foo"] = "fail"
@@ -457,10 +458,17 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="requires Python 3.8 or newer")  # type: ignore
+    def test_typed_dict_field(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        input_ = module.WithTypedDictField
+        conf = OmegaConf.structured(input_(dict={"foo": "bar"}))
+        assert conf.dict["foo"] == "bar"
+
     def test_merged_type1(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
         module: Any = import_module(class_type)
-        input_ = module.WithTypedDict
+        input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(OmegaConf.create(), conf)
         assert OmegaConf.get_type(res) == input_
@@ -468,7 +476,7 @@ class TestConfigs:
     def test_merged_type2(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config
         module: Any = import_module(class_type)
-        input_ = module.WithTypedDict
+        input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
         assert OmegaConf.get_type(res) == input_
@@ -557,19 +565,19 @@ class TestConfigs:
         res = OmegaConf.merge(cfg, {"dict": {"foo": user}})
         assert res.dict == {"foo": user}
 
-    def test_typed_dict_key_error(self, class_type: str) -> None:
+    def test_dict_field_key_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictObjectKey
         with pytest.raises(KeyValidationError):
             OmegaConf.structured(input_)
 
-    def test_typed_dict_value_error(self, class_type: str) -> None:
+    def test_dict_field_value_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictUnsupportedValue
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
-    def test_typed_list_value_error(self, class_type: str) -> None:
+    def test_list_field_value_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorListUnsupportedValue
         with pytest.raises(ValidationError):

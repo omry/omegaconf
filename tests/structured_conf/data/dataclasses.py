@@ -1,4 +1,5 @@
 import dataclasses
+import sys
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -6,6 +7,9 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 from tests import Color
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import TypedDict
 
 # skip test if dataclasses are not available
 pytest.importorskip("dataclasses")
@@ -19,6 +23,12 @@ class NotStructuredConfig:
         if isinstance(other, type(self)):
             return self.name == other.name and self.age == other.age
         return False
+
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+
+    class TypedDictSubclass(TypedDict):
+        foo: str
 
 
 @dataclass
@@ -313,13 +323,20 @@ class ContainsFrozen:
 
 
 @dataclass
-class WithTypedList:
+class WithListField:
     list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
 
 @dataclass
-class WithTypedDict:
+class WithDictField:
     dict: Dict[str, int] = field(default_factory=lambda: {"foo": 10, "bar": 20})
+
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+
+    @dataclass
+    class WithTypedDictField:
+        dict: TypedDictSubclass
 
 
 @dataclass

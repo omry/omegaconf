@@ -422,8 +422,11 @@ def is_dict_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
     if sys.version_info < (3, 7, 0):
         return origin is Dict or type_ is Dict  # pragma: no cover
-    else:
-        return origin is dict  # pragma: no cover
+    else:  # pragma: no cover
+        # type_dict is a bit hard to detect.
+        # this support is tentative, if it eventually causes issues in other areas it may be dropped.
+        typed_dict = hasattr(type_, "__base__") and type_.__base__ == dict
+        return origin is dict or typed_dict
 
 
 def is_list_annotation(type_: Any) -> bool:
