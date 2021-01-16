@@ -761,7 +761,7 @@ def _node_wrap(
     ref_type: Any = None,
 ) -> Node:
     node: Node
-    is_dict = type(value) is dict or is_dict_annotation(type_)
+    is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
     is_list = (
         type(value) in (list, tuple)
         or is_list_annotation(type_)

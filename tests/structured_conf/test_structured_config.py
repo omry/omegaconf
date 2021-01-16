@@ -462,8 +462,12 @@ class TestConfigs:
     def test_typed_dict_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.WithTypedDictField
-        conf = OmegaConf.structured(input_(dict={"foo": "bar"}))
-        assert conf.dict["foo"] == "bar"
+        conf = OmegaConf.structured(input_(dict={"foo": 10}))
+        assert conf.dict["foo"] == 10
+
+        # typed dicts does not currently runtime type safety.
+        conf = OmegaConf.merge(conf, {"dict": {"foo": "not_failed"}})
+        assert conf.dict["foo"] == "not_failed"
 
     def test_merged_type1(self, class_type: str) -> None:
         # Test that the merged type is that of the last merged config

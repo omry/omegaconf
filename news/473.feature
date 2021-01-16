@@ -1,1 +1,1 @@
-Add tentative support for typing.TypedDict
+Add minimal support for typing.TypedDict

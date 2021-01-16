@@ -27,7 +27,7 @@ class NotStructuredConfig:
 if sys.version_info >= (3, 8):  # pragma: no cover
 
     class TypedDictSubclass(TypedDict):
-        foo: str
+        foo: int
 
 
 @attr.s(auto_attribs=True)
