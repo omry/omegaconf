@@ -259,7 +259,7 @@ class TestConfigs:
         conf = OmegaConf.structured(module.ConfigWithDict())
         validate(conf)
 
-    @pytest.mark.parametrize(  # type:ignore
+    @pytest.mark.parametrize(
         "tested_type,assignment_data, init_dict",
         [
             # Use class to build config
@@ -331,7 +331,7 @@ class TestConfigs:
         validate(input_class, input_class())
         validate(input_class(**init_dict), input_class(**init_dict))
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "input_init, expected_init",
         [
             # attr class as class
@@ -403,7 +403,7 @@ class TestConfigs:
         assert type(conf.z1) == int
         assert type(conf.z2) == str
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "tested_type",
         [
             "BoolOptional",
@@ -575,9 +575,7 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.structured(input_)
 
-    @pytest.mark.parametrize(  # type: ignore
-        "example", ["ListExamples", "TupleExamples"]
-    )
+    @pytest.mark.parametrize("example", ["ListExamples", "TupleExamples"])
     def test_list_examples(self, class_type: str, example: str) -> None:
         module: Any = import_module(class_type)
         input_ = getattr(module, example)
@@ -783,7 +781,9 @@ class TestConfigs:
         assert cfg.list == value
         assert cfg.tuple == value
 
-    @pytest.mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()])  # type: ignore
+    @pytest.mark.parametrize(
+        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()]
+    )
     def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.ListClass)
@@ -793,7 +793,7 @@ class TestConfigs:
             cfg.tuple = value
         assert cfg == OmegaConf.structured(module.ListClass)
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "value",
         [
             1,
@@ -1090,7 +1090,7 @@ class TestDictSubclass:
 
         assert OmegaConf.merge(cfg, cfg) == cfg
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "update_value,expected",
         [
             pytest.param([], {"list": []}, id="empty"),

@@ -7,7 +7,7 @@ from pytest import raises
 from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, func, expectation",
     [
         pytest.param(
@@ -80,7 +80,7 @@ def test_readonly(
     assert c == src
 
 
-@pytest.mark.parametrize("src", [{}, []])  # type: ignore
+@pytest.mark.parametrize("src", [{}, []])
 def test_readonly_flag(src: Union[Dict[str, Any], List[Any]]) -> None:
     c = OmegaConf.create(src)
     assert not OmegaConf.is_readonly(c)
@@ -183,7 +183,7 @@ def test_readonly_from_cli() -> None:
     assert OmegaConf.is_readonly(cfg2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg1, cfg2",
     [
         pytest.param({"foo": {"bar": 10}}, {"foo": {"bar": 20}}, id="override_value"),
@@ -199,7 +199,7 @@ def test_merge_with_readonly(cfg1: Dict[str, Any], cfg2: Dict[str, Any]) -> None
         c.merge_with(cfg2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "readonly_key, cfg1, cfg2, expected",
     [
         pytest.param(

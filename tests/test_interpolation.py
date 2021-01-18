@@ -11,7 +11,7 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigKeyError
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "cfg,key,expected",
     [
         pytest.param({"a": "${b}", "b": 10}, "a", 10, id="simple"),
@@ -151,7 +151,7 @@ def test_indirect_interpolation2() -> None:
     }
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "cfg",
     [
         pytest.param({"a": "${b}", "b": "string", "s": "foo_${b}"}, id="str"),
@@ -166,7 +166,7 @@ def test_type_inherit_type(cfg: Any) -> None:
     assert type(cfg.s) == str  # check that string interpolations are always strings
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "cfg,env_name,env_val,key,expected",
     [
         pytest.param(
@@ -225,7 +225,7 @@ def test_env_interpolation(
         assert OmegaConf.select(cfg, key) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "value,expected",
     [
         # bool
@@ -319,7 +319,7 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
     assert c.foo_dot == ".bar"
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "resolver,name,key,result",
     [
         (lambda *args: args, "arg_list", "${my_resolver:cat, dog}", ("cat", "dog")),
@@ -402,7 +402,7 @@ def test_incremental_dict_with_interpolation() -> None:
     assert conf.b.c == conf.a  # type:ignore
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg,node_key,key,expected",
     [
         pytest.param({"a": 10}, "", "", ({"a": 10}, "")),

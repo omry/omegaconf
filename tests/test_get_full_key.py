@@ -7,7 +7,7 @@ from omegaconf import DictConfig, IntegerNode, OmegaConf
 from . import Color
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, select, key, expected",
     [
         ({}, "", "a", "a"),

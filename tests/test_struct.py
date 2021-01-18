@@ -43,7 +43,7 @@ def test_merge_dotlist_into_struct() -> None:
         c.merge_with_dotlist(["foo=1"])
 
 
-@pytest.mark.parametrize("in_base, in_merged", [(dict(), dict(a=10))])  # type: ignore
+@pytest.mark.parametrize("in_base, in_merged", [(dict(), dict(a=10))])
 def test_merge_config_with_struct(
     in_base: Dict[str, Any], in_merged: Dict[str, Any]
 ) -> None:
