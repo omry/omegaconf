@@ -6,7 +6,7 @@ import pytest
 from omegaconf.basecontainer import BaseContainer
 
 
-@pytest.fixture(scope="function")  # type: ignore
+@pytest.fixture(scope="function")
 def restore_resolvers() -> Any:
     """
     A fixture to restore singletons state after this the function.

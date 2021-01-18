@@ -23,7 +23,7 @@ from omegaconf.errors import ConfigAttributeError, ConfigKeyError
 from . import Color, StructuredWithMissing, User, does_not_raise
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, key, value, expected",
     [
         # dict
@@ -49,7 +49,7 @@ def test_set_value(
     assert c == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, key, value",
     [
         # dict
@@ -64,7 +64,7 @@ def test_set_value_validation_fail(input_: Any, key: Any, value: Any) -> None:
         c[key] = value
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, key, value",
     [
         # dict
@@ -82,7 +82,7 @@ def test_replace_value_node_type_with_another(
     assert c[key] == value._value()
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_",
     [
         pytest.param([1, 2, 3], id="list"),
@@ -112,7 +112,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
     assert_container_with_primitives(res)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg,ex_false,ex_true",
     [
         pytest.param(
@@ -141,7 +141,7 @@ def test_exclude_structured_configs(cfg: Any, ex_false: Any, ex_true: Any) -> No
     assert ret1 == ex_true
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, expected, expected_with_resolve",
     [
         pytest.param([], None, None, id="empty_list"),
@@ -219,7 +219,7 @@ def test_string_interpolation_with_readonly_parent() -> None:
     }
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src,expected",
     [
         pytest.param(DictConfig(content="${bar}"), "${bar}", id="DictConfig"),
@@ -235,7 +235,7 @@ def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     assert res == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, is_empty",
     [
         ([], True),
@@ -249,8 +249,8 @@ def test_empty(input_: Any, is_empty: bool) -> None:
     assert c.is_empty() == is_empty
 
 
-@pytest.mark.parametrize("func", [str, repr])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("func", [str, repr])
+@pytest.mark.parametrize(
     "input_, expected",
     [
         pytest.param([], "[]", id="list"),
@@ -277,7 +277,7 @@ def test_str(func: Any, input_: Any, expected: str) -> None:
     assert string == expected
 
 
-@pytest.mark.parametrize("flag", ["readonly", "struct"])  # type: ignore
+@pytest.mark.parametrize("flag", ["readonly", "struct"])
 def test_flag_dict(flag: str) -> None:
     c = OmegaConf.create()
     assert c._get_flag(flag) is None
@@ -289,7 +289,7 @@ def test_flag_dict(flag: str) -> None:
     assert c._get_flag(flag) is None
 
 
-@pytest.mark.parametrize("flag", ["readonly", "struct"])  # type: ignore
+@pytest.mark.parametrize("flag", ["readonly", "struct"])
 def test_freeze_nested_dict(flag: str) -> None:
     c = OmegaConf.create(dict(a=dict(b=2)))
     assert not c._get_flag(flag)
@@ -393,7 +393,7 @@ def test_deepcopy_and_merge_and_flags() -> None:
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg", [ListConfig(element_type=int, content=[]), DictConfig(content={})]
 )
 def test_deepcopy_preserves_container_type(cfg: Container) -> None:
@@ -401,7 +401,7 @@ def test_deepcopy_preserves_container_type(cfg: Container) -> None:
     assert cp._metadata.element_type == cfg._metadata.element_type
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, flag_name, func, expectation",
     [
         pytest.param(
@@ -458,7 +458,7 @@ def test_multiple_flags_override() -> None:
             c.foo = 20
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, func, expectation",
     [
         ({}, lambda c: c.__setitem__("foo", 1), raises(ReadonlyConfigError)),
@@ -477,7 +477,7 @@ def test_read_write_override(src: Any, func: Any, expectation: Any) -> None:
             func(c)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "string, tokenized",
     [
         ("dog,cat", ["dog", "cat"]),
@@ -497,7 +497,7 @@ def test_tokenize_with_escapes(string: str, tokenized: List[str]) -> None:
     assert OmegaConf._tokenize_args(string) == tokenized
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, func, expectation",
     [({}, lambda c: c.__setattr__("foo", 1), raises(AttributeError))],
 )
@@ -513,7 +513,7 @@ def test_struct_override(src: Any, func: Any, expectation: Any) -> None:
             func(c)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "flag_name,ctx", [("struct", open_dict), ("readonly", read_write)]
 )
 def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
@@ -532,7 +532,7 @@ def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
 
 @pytest.mark.parametrize("copy_method", [lambda x: copy.copy(x), lambda x: x.copy()])
 class TestCopy:
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "src", [[], [1, 2], ["a", "b", "c"], {}, {"a": "b"}, {"a": {"b": []}}]
     )
     def test_copy(self, copy_method: Any, src: Any) -> None:
@@ -541,7 +541,7 @@ class TestCopy:
         assert id(src) != id(cp)
         assert src == cp
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "src,interpolating_key,interpolated_key",
         [([1, 2, "${0}"], 2, 0), ({"a": 10, "b": "${a}"}, "b", "a")],
     )
@@ -575,7 +575,7 @@ def test_not_implemented() -> None:
         OmegaConf()
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "query, result",
     [
         ("a", "a"),
@@ -605,7 +605,7 @@ def test_omegaconf_create() -> None:
         assert OmegaConf.create(10)  # type: ignore
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "parent, key, value, expected",
     [
         ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
@@ -622,7 +622,7 @@ def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) ->
     assert c == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, expected",
     [
         # dict

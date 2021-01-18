@@ -1094,9 +1094,7 @@ def create_readonly(cfg: Any) -> Any:
     return cfg
 
 
-@pytest.mark.parametrize(  # type:ignore
-    "expected", params
-)
+@pytest.mark.parametrize("expected", params)
 def test_errors(expected: Expected, monkeypatch: Any) -> None:
     monkeypatch.setenv("OC_CAUSE", "0")
     cfg = expected.create()
@@ -1109,6 +1107,7 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
             # helps in debugging
             raise e
     ex = einfo.value
+    assert isinstance(ex, OmegaConfBaseException)
 
     assert ex.object_type == expected.object_type
     assert ex.key == expected.key

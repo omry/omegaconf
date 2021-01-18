@@ -10,7 +10,7 @@ from omegaconf._utils import _ensure_container, is_primitive_container
 from tests import Package
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg,key,value,expected",
     [
         # dict
@@ -88,7 +88,7 @@ def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
     assert cfg == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg,key,value,merge,expected",
     [
         pytest.param(

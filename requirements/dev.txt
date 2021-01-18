@@ -3,7 +3,7 @@ black
 coveralls
 flake8
 isort~=5.0
-mypy==0.781
+mypy==0.790
 nox
 pre-commit
 pyflakes

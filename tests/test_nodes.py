@@ -22,7 +22,7 @@ from . import Color, IllegalType, User
 
 
 # testing valid conversions
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_,input_,output_",
     [
         # string
@@ -81,7 +81,7 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
 
 
 # testing invalid conversions
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_,input_",
     [
         (IntegerNode, "abc"),
@@ -123,7 +123,7 @@ def test_invalid_inputs(type_: type, input_: Any) -> None:
         type_(input_)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, expected_type",
     [
         ({}, DictConfig),
@@ -199,7 +199,7 @@ def test_list_integer_rejects_string() -> None:
 
 
 # Test merge raises validation error
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2",
     [
         (dict(a=IntegerNode(10)), dict(a="str")),
@@ -218,7 +218,7 @@ def test_merge_validation_error(c1: Dict[str, Any], c2: Dict[str, Any]) -> None:
     assert conf2 == OmegaConf.create(c2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_,valid_value, invalid_value",
     [
         (IntegerNode, 1, "invalid"),
@@ -261,10 +261,10 @@ class Enum2(Enum):
     NOT_BAR = 2
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_", [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode]
 )
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "values, success_map",
     [
         (
@@ -332,7 +332,7 @@ def test_legal_assignment(
                 type_(value)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "node,value",
     [
         (IntegerNode(), "foo"),
@@ -346,10 +346,10 @@ def test_illegal_assignment(node: ValueNode, value: Any) -> None:
         node._set_value(value)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "node_type", [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode]
 )
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "enum_type, values, success_map",
     [
         (
@@ -384,8 +384,8 @@ class DummyEnum(Enum):
     FOO = 1
 
 
-@pytest.mark.parametrize("is_optional", [True, False])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("is_optional", [True, False])
+@pytest.mark.parametrize(
     "ref_type, type_, value, expected_type",
     [
         (Any, Any, 10, AnyNode),
@@ -439,7 +439,7 @@ def test_node_wrap_illegal_type() -> None:
         )
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "obj",
     [
         StringNode(),
@@ -462,7 +462,7 @@ def test_deepcopy(obj: Any) -> None:
         assert obj.__dict__[k] == cp.__dict__[k]
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "node, value, expected",
     [
         (StringNode(), None, True),
@@ -508,7 +508,7 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (node.__hash__() == value.__hash__()) == expected
 
 
-@pytest.mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])  # type: ignore
+@pytest.mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])
 def test_set_anynode_with_primitive_type(value: Any) -> None:
     cfg = OmegaConf.create({"a": 5})
     a_before = cfg._get_node("a")
@@ -518,7 +518,7 @@ def test_set_anynode_with_primitive_type(value: Any) -> None:
     assert cfg.a == value
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "value, container_type",
     [
         (ListConfig(content=[1, 2]), ListConfig),

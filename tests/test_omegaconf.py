@@ -20,7 +20,7 @@ from omegaconf.errors import ConfigKeyError, UnsupportedInterpolationType
 from . import Color, ConcretePlugin, IllegalType, StructuredWithMissing, does_not_raise
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, expected_is_missing, expectation",
     [
         ({}, "foo", False, does_not_raise()),
@@ -108,7 +108,7 @@ def test_is_missing_resets() -> None:
     assert OmegaConf.is_missing(cfg, "list")
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -131,7 +131,7 @@ def test_is_config(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_config(cfg) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -154,7 +154,7 @@ def test_is_list(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_list(cfg) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -177,8 +177,8 @@ def test_is_dict(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_dict(cfg) == expected
 
 
-@pytest.mark.parametrize("is_optional", [True, False])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("is_optional", [True, False])
+@pytest.mark.parametrize(
     "fac",
     [
         (
@@ -242,8 +242,8 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
     assert OmegaConf.is_optional(cfg, "node") == is_optional
 
 
-@pytest.mark.parametrize("is_none", [True, False])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("is_none", [True, False])
+@pytest.mark.parametrize(
     "fac",
     [
         (lambda none: StringNode(value="foo" if not none else None, is_optional=True)),
@@ -285,7 +285,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
 
 
 @pytest.mark.parametrize(
-    "fac",  # type: ignore
+    "fac",
     [
         (
             lambda inter: StringNode(
@@ -343,7 +343,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
         "ConcretePlugin",
     ],
 )
-def test_is_interpolation(fac):
+def test_is_interpolation(fac: Any) -> Any:
     obj = fac(inter=None)
     assert not OmegaConf.is_interpolation(obj)
     cfg = OmegaConf.create({"node": obj})
@@ -358,7 +358,7 @@ def test_is_interpolation(fac):
         assert OmegaConf.is_interpolation(cfg, "node")
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, type_",
     [
         ({"foo": 10}, int),
@@ -379,7 +379,7 @@ def test_get_type(cfg: Any, type_: Any) -> None:
     assert OmegaConf.get_type(cfg, "foo") == type_
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "obj, type_",
     [
         (10, int),

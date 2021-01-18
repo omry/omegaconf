@@ -21,7 +21,7 @@ from omegaconf.omegaconf import _node_wrap
 from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "target_type, value, expected",
     [
         # Any
@@ -150,7 +150,7 @@ class _TestUserClass:
     pass
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_, expected",
     [
         (int, True),
@@ -171,7 +171,7 @@ def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
     assert valid_value_annotation_type(type_) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "test_cls_or_obj, expectation",
     [
         (_TestDataclass, does_not_raise()),
@@ -193,7 +193,7 @@ def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> N
         assert d["dict1"] == {}
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "test_cls",
     [
         _TestDataclassIllegalValue,
@@ -246,7 +246,7 @@ class Dataclass:
     pass
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "value,kind",
     [
         ("foo", _utils.ValueKind.VALUE),
@@ -285,7 +285,7 @@ def test_re_parent() -> None:
 
     cfg._get_node("str")._set_parent(None)  # type:ignore
     cfg._get_node("list")._set_parent(None)  # type:ignore
-    cfg.list._get_node(0)._set_parent(None)  # type: ignore
+    cfg.list._get_node(0)._set_parent(None)  # type:ignore
     # noinspection PyProtectedMember
     cfg._re_parent()
     validate(cfg)
@@ -304,7 +304,7 @@ def test_get_class() -> None:
         _utils._get_class("tests.examples.test_dataclass_example.not_found")
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "key_type,expected_key_type",
     [
         (str, str),
@@ -312,7 +312,7 @@ def test_get_class() -> None:
         (Any, Any),
     ],
 )
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "value_type,expected_value_type",
     [
         (int, int),
@@ -324,14 +324,14 @@ def test_get_class() -> None:
 def test_get_key_value_types(
     key_type: Any, expected_key_type: Any, value_type: Any, expected_value_type: Any
 ) -> None:
-    dt = Dict[key_type, value_type]  # type: ignore
+    dt = Dict[key_type, value_type]  # type:ignore
     assert _utils.get_dict_key_value_types(dt) == (
         expected_key_type,
         expected_value_type,
     )
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_, is_primitive",
     [
         (int, True),
@@ -350,8 +350,8 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
     assert _utils.is_primitive_type(type_) == is_primitive
 
 
-@pytest.mark.parametrize("optional", [False, True])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("optional", [False, True])
+@pytest.mark.parametrize(
     "type_, expected",
     [
         (int, "int"),
@@ -388,7 +388,7 @@ def test_type_str_none() -> None:
     assert _utils.type_str(None) == "NoneType"
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_, expected",
     [
         (Optional[int], "Optional[int]"),
@@ -401,7 +401,7 @@ def test_type_str_union(type_: Any, expected: str) -> None:
     assert _utils.type_str(type_) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_, expected",
     [
         (Dict[str, int], True),
@@ -421,7 +421,7 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
     assert is_dict_annotation(type_=type_) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "type_, expected",
     [
         (List[int], True),
@@ -442,7 +442,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
     assert is_list_annotation(type_=type_) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "obj, expected",
     [
         # Unwrapped values

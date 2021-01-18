@@ -35,7 +35,7 @@ from . import (
 )
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "inputs, expected",
     [
         # dictionaries
@@ -310,9 +310,7 @@ def test_primitive_dicts() -> None:
     assert merged == {"a": 10, "b": 20}
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])]
-)
+@pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
 def test_merge_no_eq_verify(
     a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
 ) -> None:
@@ -323,7 +321,7 @@ def test_merge_no_eq_verify(
     assert expected == c
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1,c2,expected",
     [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
 )
@@ -334,7 +332,7 @@ def test_merge_with(c1: Any, c2: Any, expected: Any) -> None:
     assert a == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1,c2,expected",
     [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
 )
@@ -362,7 +360,7 @@ def test_merge_list_list() -> None:
     assert a == b
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "base, merge, exception",
     [
         ({}, [], TypeError),
@@ -379,7 +377,7 @@ def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
         OmegaConf.merge(base, merge)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2",
     [
         pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
@@ -394,7 +392,7 @@ def test_with_readonly_c1(c1: Any, c2: Any) -> None:
     assert OmegaConf.is_readonly(cfg3)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2",
     [
         pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
@@ -409,7 +407,7 @@ def test_with_readonly_c2(c1: Any, c2: Any) -> None:
     assert OmegaConf.is_readonly(cfg3)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])]
 )
 def test_into_readonly(c1: Any, c2: Any) -> None:
@@ -419,7 +417,7 @@ def test_into_readonly(c1: Any, c2: Any) -> None:
         cfg.merge_with(c2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2, expected",
     [
         (
@@ -440,7 +438,7 @@ def test_dict_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> 
     assert c1 == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c1, c2, expected",
     [({"node": [1, 2, 3]}, {"node": [4, 5, 6]}, {"node": [4, 5, 6]})],
 )
@@ -467,7 +465,7 @@ def test_parent_maintained() -> None:
     assert id(c3.a._get_parent()) == id(c3)
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "cfg,overrides,expected",
     [
         ([1, 2, 3], ["0=bar", "2.a=100"], ["bar", 2, dict(a=100)]),
@@ -492,7 +490,7 @@ def test_merge_with_cli() -> None:
     assert c == ["bar", 2, dict(a=100)]
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "dotlist, expected",
     [([], {}), (["foo=1"], {"foo": 1}), (["foo=1", "bar"], {"foo": 1, "bar": None})],
 )
@@ -502,7 +500,7 @@ def test_merge_empty_with_dotlist(dotlist: List[str], expected: Dict[str, Any]) 
     assert c == expected
 
 
-@pytest.mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])  # type:ignore
+@pytest.mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])
 def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
     c = OmegaConf.create()
     with pytest.raises(ValueError):
@@ -520,7 +518,7 @@ def test_merge_allow_objects() -> None:
     assert ret == {"a": 10, "foo": iv}
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "dst, other, expected, node",
     [
         pytest.param(
@@ -546,7 +544,7 @@ def test_merge_with_src_as_interpolation(
     assert res == expected
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     "dst, other, node",
     [
         pytest.param(
@@ -568,7 +566,7 @@ def test_merge_with_other_as_interpolation(dst: Any, other: Any, node: Any) -> N
     assert OmegaConf.is_interpolation(res, node)
 
 
-@pytest.mark.parametrize(  # type:ignore
+@pytest.mark.parametrize(
     ("c1", "c2"),
     [
         pytest.param(

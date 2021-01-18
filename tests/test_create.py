@@ -13,7 +13,7 @@ from omegaconf.errors import UnsupportedValueType
 from . import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_,expected",
     [
         # No content
@@ -47,14 +47,14 @@ from . import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
         (OmegaConf.create({}), {}),
         (OmegaConf.create([]), []),
         (OmegaConf.create({"foo": OmegaConf.create([])}), {"foo": []}),
-        (OmegaConf.create([OmegaConf.create({})]), [{}]),  # type: ignore
+        (OmegaConf.create([OmegaConf.create({})]), [{}]),
     ],
 )
 def test_create_value(input_: Any, expected: Any) -> None:
     assert OmegaConf.create(input_) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_",
     [
         # top level dict
@@ -82,7 +82,7 @@ def test_create_allow_objects(input_: Any) -> None:
     assert cfg == input_
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_",
     [
         # top level dict
@@ -110,7 +110,7 @@ def test_create_allow_objects_non_copyable(input_: Any) -> None:
     assert cfg == input_
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_",
     [
         pytest.param({"foo": "bar"}, id="dict"),
@@ -144,7 +144,7 @@ def test_cli_passing() -> None:
     assert {"a": 1, "b": {"c": 2}} == c
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_,expected",
     [
         # simple
@@ -214,7 +214,7 @@ def test_create_from_listconfig_preserves_metadata() -> None:
     assert cfg1._metadata == cfg2._metadata
 
 
-@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])  # type: ignore
+@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
 def test_create_node_parent_retained_on_create(node: Any) -> None:
     cfg1 = OmegaConf.create({"foo": node})
     cfg2 = OmegaConf.create({"zonk": cfg1.foo})

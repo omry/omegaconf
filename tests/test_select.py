@@ -9,14 +9,14 @@ from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._utils import _ensure_container
 
 
-@pytest.mark.parametrize("struct", [True, False, None])  # type: ignore
+@pytest.mark.parametrize("struct", [True, False, None])
 def test_select_key_from_empty(struct: Optional[bool]) -> None:
     c = OmegaConf.create()
     OmegaConf.set_struct(c, struct)
     assert OmegaConf.select(c, "not_there") is None
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, expected",
     [
         pytest.param({}, "nope", None, id="dict:none"),
@@ -51,9 +51,9 @@ def test_select(restore_resolvers: Any, cfg: Any, key: Any, expected: Any) -> No
         assert OmegaConf.select(cfg, key) == expected
 
 
-@pytest.mark.parametrize("struct", [False, True])  # type: ignore
-@pytest.mark.parametrize("default", [10, None])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("struct", [False, True])
+@pytest.mark.parametrize("default", [10, None])
+@pytest.mark.parametrize(
     "cfg, key",
     [
         pytest.param({}, "not_found", id="empty"),
@@ -72,9 +72,9 @@ def test_select_default(
     assert OmegaConf.select(cfg, key, default=default) == default
 
 
-@pytest.mark.parametrize("struct", [False, True])  # type: ignore
-@pytest.mark.parametrize("default", [10, None])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("struct", [False, True])
+@pytest.mark.parametrize("default", [10, None])
+@pytest.mark.parametrize(
     "cfg, key",
     [
         pytest.param({"missing": "???"}, "missing", id="missing"),
@@ -94,7 +94,7 @@ def test_select_default_throw_on_missing(
         OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     ("cfg", "node_key", "expected"),
     [
         pytest.param({"foo": "${bar}", "bar": 10}, "foo", 10, id="simple"),

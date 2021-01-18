@@ -151,9 +151,9 @@ def test_scientific_notation_float() -> None:
     assert 10e-3 == c.a
 
 
-@pytest.mark.parametrize("struct", [None, True, False])  # type: ignore
-@pytest.mark.parametrize("default_val", [4, True, False, None])  # type: ignore
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize("struct", [None, True, False])
+@pytest.mark.parametrize("default_val", [4, True, False, None])
+@pytest.mark.parametrize(
     "d,select,key",
     [
         ({"hello": {"a": 2}}, "", "missing"),
@@ -273,7 +273,7 @@ def test_iterate_dict_with_interpolation() -> None:
         i = i + 1
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, default_, expected",
     [
         pytest.param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
@@ -355,7 +355,7 @@ def test_dict_structured_mode_pop() -> None:
     assert "name" not in cfg.user
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, expectation",
     [
         ({"a": 1, "b": 2}, "not_found", pytest.raises(KeyError)),
@@ -373,7 +373,7 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
     assert c == cfg
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "conf,key,expected",
     [
         ({"a": 1, "b": {}}, "a", True),
@@ -459,9 +459,7 @@ def test_dict_nested_structured_delitem() -> None:
     assert "name" not in c.user
 
 
-@pytest.mark.parametrize(  # type: ignore
-    "d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)]
-)
+@pytest.mark.parametrize("d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)])
 def test_dict_len(d: Any, expected: Any) -> None:
     c = OmegaConf.create(d)
     assert len(c) == expected
@@ -501,7 +499,7 @@ def test_instantiate_config_fails() -> None:
         BaseContainer()  # type: ignore
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, key, expected",
     [
         ({"a": 1, "b": 2, "c": 3}, None, ["a", "b", "c"]),
@@ -525,14 +523,14 @@ def test_hash() -> None:
     assert hash(c1) != hash(c2)
 
 
-@pytest.mark.parametrize("default", ["default", 0, None])  # type: ignore
+@pytest.mark.parametrize("default", ["default", 0, None])
 def test_get_with_default_from_struct_not_throwing(default: Any) -> None:
     c = OmegaConf.create({"a": 10, "b": 20})
     OmegaConf.set_struct(c, True)
     assert c.get("z", default) == default
 
 
-@pytest.mark.parametrize("cfg", [{"foo": {}}, [1, 2, 3]])  # type: ignore
+@pytest.mark.parametrize("cfg", [{"foo": {}}, [1, 2, 3]])
 def test_members(cfg: Any) -> None:
     # Make sure accessing __members__ does not return None or throw.
     c = OmegaConf.create(cfg)
@@ -540,7 +538,7 @@ def test_members(cfg: Any) -> None:
         c.__members__
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "in_cfg, mask_keys, expected",
     [
         ({}, [], {}),
@@ -645,7 +643,7 @@ def test_get_type() -> None:
     assert OmegaConf.get_type(cfg.inter) == User
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, expected_ref_type",
     [
         (
@@ -700,15 +698,15 @@ def test_is_missing() -> None:
     assert cfg._get_node("missing_node_inter")._is_missing()  # type:ignore
 
 
-@pytest.mark.parametrize("ref_type", [None, Any])  # type: ignore
-@pytest.mark.parametrize("assign", [None, {}, {"foo": "bar"}, [1, 2, 3]])  # type: ignore
+@pytest.mark.parametrize("ref_type", [None, Any])
+@pytest.mark.parametrize("assign", [None, {}, {"foo": "bar"}, [1, 2, 3]])
 def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
     cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content={})})
     cfg.foo = assign
     assert cfg.foo == assign
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "ref_type,values,assign,expectation",
     [
         (Plugin, [None, "???", Plugin], None, does_not_raise),
@@ -787,7 +785,7 @@ def test_setdefault() -> None:
     assert cfg["foo"] == 10
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "c",
     [
         pytest.param({"a": ListConfig([1, 2, 3], ref_type=list)}, id="list_value"),

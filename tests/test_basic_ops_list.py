@@ -37,7 +37,7 @@ def test_list_get_with_default() -> None:
     assert c.get(2, "default_value") == "found"
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, expected, list_key",
     [
         pytest.param([1, 2], [1, 2], None, id="simple"),
@@ -153,7 +153,7 @@ def test_list_delitem() -> None:
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lst,expected",
     [
         (OmegaConf.create([1, 2]), 2),
@@ -187,7 +187,7 @@ def test_list_append() -> None:
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lc,element,expected",
     [
         pytest.param(
@@ -252,7 +252,7 @@ def test_append_invalid_element_type(
         lc.append(element)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lc,element,expected",
     [
         pytest.param(
@@ -282,7 +282,7 @@ def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     assert type(value) == type(expected)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "index, expected", [(slice(1, 3), [11, 12]), (slice(0, 3, 2), [10, 12]), (-1, 13)]
 )
 def test_list_index(index: Any, expected: Any) -> None:
@@ -290,7 +290,7 @@ def test_list_index(index: Any, expected: Any) -> None:
     assert c[index] == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "cfg, expected",
     [
         (OmegaConf.create([1, 2, 3]), ["0", "1", "2"]),
@@ -308,7 +308,7 @@ def validate_list_keys(c: Any) -> None:
         assert c._get_node(i)._metadata.key == i
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_, index, value, expected, expected_node_type, expectation",
     [
         (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode, None),
@@ -358,7 +358,7 @@ def test_insert(
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lst,idx,value,expectation",
     [
         (ListConfig(content=None), 0, 10, pytest.raises(TypeError)),
@@ -370,7 +370,7 @@ def test_insert_special_list(lst: Any, idx: Any, value: Any, expectation: Any) -
         lst.insert(idx, value)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, append, result",
     [
         ([], [], []),
@@ -384,7 +384,7 @@ def test_extend(src: List[Any], append: List[Any], result: List[Any]) -> None:
     assert lst == result
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, remove, result, expectation",
     [
         ([10], 10, [], does_not_raise()),
@@ -401,8 +401,8 @@ def test_remove(src: List[Any], remove: Any, result: Any, expectation: Any) -> N
         assert lst == result
 
 
-@pytest.mark.parametrize("src", [[], [1, 2, 3], [None, dict(foo="bar")]])  # type: ignore
-@pytest.mark.parametrize("num_clears", [1, 2])  # type: ignore
+@pytest.mark.parametrize("src", [[], [1, 2, 3], [None, dict(foo="bar")]])
+@pytest.mark.parametrize("num_clears", [1, 2])
 def test_clear(src: List[Any], num_clears: int) -> None:
     lst = OmegaConf.create(src)
     for i in range(num_clears):
@@ -410,7 +410,7 @@ def test_clear(src: List[Any], num_clears: int) -> None:
     assert lst == []
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, item, expected_index, expectation",
     [
         ([], 20, -1, pytest.raises(ValueError)),
@@ -438,7 +438,7 @@ def test_index_with_range() -> None:
         lst.index(x=30, end=2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "src, item, count",
     [([], 10, 0), ([10], 10, 1), ([10, 2, 10], 10, 2), ([10, 2, 10], None, 0)],
 )
@@ -534,7 +534,7 @@ def test_set_with_invalid_key() -> None:
         cfg["foo"] = 4  # type: ignore
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lst,idx,expected",
     [
         (OmegaConf.create([1, 2]), 0, 1),
@@ -550,7 +550,7 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
         assert lst.__getitem__(idx) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "sli",
     [
         (slice(None, None, None)),
@@ -573,7 +573,7 @@ def test_getitem_slice(sli: slice) -> None:
     assert olst.__getitem__(sli) == expected
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "lst,idx,expected",
     [
         (OmegaConf.create([1, 2]), 0, 1),

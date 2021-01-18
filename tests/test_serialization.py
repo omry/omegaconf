@@ -126,7 +126,7 @@ def test_save_illegal_type() -> None:
         OmegaConf.save(OmegaConf.create(), 1000)  # type: ignore
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "obj,ref_type",
     [
         ({"a": "b"}, Dict[Union[str, Enum], Any]),
@@ -198,7 +198,7 @@ def test_load_empty_file(tmpdir: str) -> None:
         assert OmegaConf.load(f) == {}
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input_,node,element_type,key_type,optional,ref_type",
     [
         (UntypedList, "list", Any, Any, False, List[Any]),

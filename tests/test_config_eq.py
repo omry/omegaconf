@@ -7,7 +7,7 @@ from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
 from . import Group, User
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "i1,i2",
     [
         # === LISTS ===
@@ -106,7 +106,7 @@ def test_eq(i1: Any, i2: Any) -> None:
     eq(c2, i2)
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "input1, input2",
     [
         # Dicts
