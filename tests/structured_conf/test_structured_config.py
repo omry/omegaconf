@@ -458,7 +458,9 @@ class TestConfigs:
         with pytest.raises(ValidationError):
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="requires Python 3.8 or newer")  # type: ignore
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8), reason="requires Python 3.8 or newer"
+    )
     def test_typed_dict_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.WithTypedDictField
