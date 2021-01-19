@@ -551,7 +551,11 @@ class BaseContainer(Container, ABC):
             )
 
         def assign(value_key: Any, val: ValueNode) -> None:
-            v = copy.deepcopy(val)
+            if val._parent is not None:
+                # only deepcopy if the node is a part of an existing config.
+                v = copy.deepcopy(val)
+            else:
+                v = val
             v._set_parent(self)
             v._set_key(value_key)
             self.__dict__["_content"][value_key] = v

@@ -220,6 +220,17 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     cfg2 = OmegaConf.create({"zonk": cfg1.foo})
     assert cfg2 == {"zonk": node}
     assert cfg1.foo._get_parent() == cfg1
+    assert id(cfg1.foo._get_parent()) == id(cfg1)
+
+
+def test_assign_does_not_modify_src_config() -> None:
+    cfg1 = OmegaConf.create({"foo": {"bar": 10}})
+    cfg2 = OmegaConf.create({})
+    cfg2.foo = cfg1.foo
+    assert cfg1 == {"foo": {"bar": 10}}
+    assert cfg2 == {"foo": {"bar": 10}}
+    assert id(cfg1.foo._get_parent()) == id(cfg1)
+    assert id(cfg2.foo._get_parent()) == id(cfg2)
 
 
 def test_create_unmodified_loader() -> None:
