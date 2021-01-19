@@ -232,6 +232,34 @@ def test_create_node_parent_retained_on_assign(node: Any) -> None:
     assert cfg2.zonk._get_parent() is cfg2
 
 
+@pytest.mark.parametrize(
+    "node",
+    [
+        {"a": 0},
+        DictConfig({"a": 0}),
+    ],
+)
+def test_dict_assignment_deepcopy_semantics(node: Any) -> None:
+    cfg = OmegaConf.create()
+    cfg.foo = node
+    node["a"] = 1
+    assert cfg.foo.a == 0
+
+
+@pytest.mark.parametrize(
+    "node",
+    [
+        [1, 2],
+        ListConfig([1, 2]),
+    ],
+)
+def test_list_assignment_deepcopy_semantics(node: Any) -> None:
+    cfg = OmegaConf.create()
+    cfg.foo = node
+    node[1] = 10
+    assert cfg.foo[1] == 2
+
+
 def test_assign_does_not_modify_src_config() -> None:
     cfg1 = OmegaConf.create({"foo": {"bar": 10}})
     cfg2 = OmegaConf.create({})
