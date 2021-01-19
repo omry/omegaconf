@@ -121,6 +121,31 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         res._re_parent()
         return res
 
+    def __copy__(self) -> "ListConfig":
+        from omegaconf import ValueNode
+
+        res = ListConfig(content=None)
+
+        for k, v in self.__dict__.items():
+            if k != "_content":
+                res.__dict__[k] = copy.copy(v)
+        content = self.__dict__["_content"]
+        if isinstance(content, list):
+            content_copy = []
+            for v in content:
+                if isinstance(v, ValueNode):
+                    vc = copy.copy(v)
+                    vc._set_parent(res)
+                    content_copy.append(vc)
+                else:
+                    content_copy.append(v)
+        else:
+            content_copy = copy.copy(content)
+
+        res.__dict__["_content"] = content_copy
+
+        return res
+
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
         if self._is_missing() or self._is_none():
@@ -515,9 +540,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
         from omegaconf import OmegaConf, flag_override
-
-        if id(self) == id(value):
-            return
 
         if flags is None:
             flags = {}

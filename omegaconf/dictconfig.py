@@ -114,18 +114,24 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         return res
 
     def __copy__(self) -> "DictConfig":
-        from .omegaconf import MISSING
-
         res = DictConfig(content=None)
         for k, v in self.__dict__.items():
-            res.__dict__[k] = copy.copy(v)
-        res._re_parent()
+            if k != "_content":
+                res.__dict__[k] = copy.copy(v)
         content = self.__dict__["_content"]
-        if content != MISSING and content is not None:
+        if isinstance(content, dict):
+            content_copy = {}
             for k, v in content.items():
                 if isinstance(v, ValueNode):
-                    res.__dict__["_content"][k] = copy.copy(v)
+                    content_copy[k] = copy.copy(v)
+                else:
+                    content_copy[k] = v
+        else:
+            content_copy = copy.copy(content)
 
+        res.__dict__["_content"] = content_copy
+
+        res._re_parent()
         return res
 
     def copy(self) -> "DictConfig":
