@@ -1,29 +1,26 @@
+## 2.0.6 (2021-01-19)
+### Bug Fixes
+
+- Fix bug where DictConfig's shallow copy didn't work properly in some cases. ([#450](https://github.com/omry/omegaconf/issues/450))
+
 ## 2.0.5 (2020-11-11)
-
-
 ### Bug Fixes
 
 - Fix bug where interpolations were unnecessarily resolved during merge ([#431](https://github.com/omry/omegaconf/issues/431))
 
 ## 2.0.4 (2020-11-03)
-
-
 ### Bug Fixes
 
 - Fix a bug merging into a field annotated as Optional[List[int]] = None ([#428](https://github.com/omry/omegaconf/issues/428))
 
 
 ## 2.0.3 (2020-10-19)
-
-
 ### Deprecations and Removals
 
 - Automatic expansion of nested dataclasses without a default value is deprecated ([#412](https://github.com/omry/omegaconf/issues/412))
 
 
 ## 2.0.2 (2020-09-10)
-
-
 ### Features
 
 - OmegaConf.update() now takes a merge flag to indicate merge or set for config values ([#363](https://github.com/omry/omegaconf/issues/363))
