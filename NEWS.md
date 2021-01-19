@@ -1,3 +1,11 @@
+## 2.0.6 (2021-01-19)
+
+
+### Bug Fixes
+
+- Fix bug where DictConfig's shallow copy didn't work properly in some cases. ([#450](https://github.com/omry/omegaconf/issues/450))
+
+
 ## 2.0.5 (2020-11-11)
 
 
