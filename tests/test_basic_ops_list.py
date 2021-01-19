@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf, flag_override
+from omegaconf import AnyNode, ListConfig, OmegaConf, flag_override, MISSING
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -598,3 +598,28 @@ def test_getattr() -> None:
     assert getattr(cfg, "0") == src[0]
     assert getattr(cfg, "1") == src[1]
     assert getattr(cfg, "2") == src[2]
+
+
+def test_shallow_copy() -> None:
+    cfg = OmegaConf.create([1, 2])
+    c = cfg.copy()
+    assert cfg == c
+    cfg[0] = 42
+    assert cfg[0] == 42
+    assert c[0] == 1
+
+
+def test_shallow_copy_missing() -> None:
+    cfg = ListConfig(content=MISSING)
+    c = cfg.copy()
+    c._set_value([1])
+    assert c[0] == 1
+    assert cfg._is_missing()
+
+
+def test_shallow_copy_none() -> None:
+    cfg = ListConfig(content=None)
+    c = cfg.copy()
+    c._set_value([1])
+    assert c[0] == 1
+    assert cfg._is_none()
