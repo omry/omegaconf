@@ -220,6 +220,73 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     cfg2 = OmegaConf.create({"zonk": cfg1.foo})
     assert cfg2 == {"zonk": node}
     assert cfg1.foo._get_parent() == cfg1
+    assert cfg1.foo._get_parent() is cfg1
+
+
+@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
+def test_create_node_parent_retained_on_assign(node: Any) -> None:
+    cfg1 = OmegaConf.create({"foo": node})
+    cfg2 = OmegaConf.create()
+    cfg2.zonk = cfg1.foo
+    assert cfg1.foo._get_parent() is cfg1
+    assert cfg2.zonk._get_parent() is cfg2
+
+
+@pytest.mark.parametrize(
+    "node",
+    [
+        {"a": 0},
+        DictConfig({"a": 0}),
+    ],
+)
+def test_dict_assignment_deepcopy_semantics(node: Any) -> None:
+    cfg = OmegaConf.create()
+    cfg.foo = node
+    node["a"] = 1
+    assert cfg.foo.a == 0
+
+
+@pytest.mark.parametrize(
+    "node",
+    [
+        [1, 2],
+        ListConfig([1, 2]),
+    ],
+)
+def test_list_assignment_deepcopy_semantics(node: Any) -> None:
+    cfg = OmegaConf.create()
+    cfg.foo = node
+    node[1] = 10
+    assert cfg.foo[1] == 2
+
+
+def test_assign_does_not_modify_src_config_lv2() -> None:
+    cfg1 = OmegaConf.create({"a": {"b": 10}})
+    cfg2 = OmegaConf.create({})
+    cfg2.a = cfg1.a
+    assert cfg1 == {"a": {"b": 10}}
+    assert cfg2 == {"a": {"b": 10}}
+
+    assert cfg1.a._get_parent() is cfg1
+    assert cfg1.a._get_node("b")._get_parent() is cfg1.a
+
+    assert cfg2.a._get_parent() is cfg2
+    assert cfg2.a._get_node("b")._get_parent() is cfg2.a
+
+
+def test_assign_does_not_modify_src_config_lv3() -> None:
+    d = {"a": {"b": {"c": 10}}}
+    cfg1 = OmegaConf.create(d)
+    cfg2 = OmegaConf.create({})
+    cfg2.a = cfg1.a
+    assert cfg1 == d
+    assert cfg2 == d
+
+    assert cfg1.a._get_parent() is cfg1
+    assert cfg1.a._get_node("b")._get_parent() is cfg1.a
+
+    assert cfg2.a._get_parent() is cfg2
+    assert cfg2.a._get_node("b")._get_parent() is cfg2.a
 
 
 def test_create_unmodified_loader() -> None:
