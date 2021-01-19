@@ -223,6 +223,15 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     assert cfg1.foo._get_parent() is cfg1
 
 
+@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
+def test_create_node_parent_retained_on_assign(node: Any) -> None:
+    cfg1 = OmegaConf.create({"foo": node})
+    cfg2 = OmegaConf.create()
+    cfg2.zonk = cfg1.foo
+    assert cfg1.foo._get_parent() is cfg1
+    assert cfg2.zonk._get_parent() is cfg2
+
+
 def test_assign_does_not_modify_src_config() -> None:
     cfg1 = OmegaConf.create({"foo": {"bar": 10}})
     cfg2 = OmegaConf.create({})

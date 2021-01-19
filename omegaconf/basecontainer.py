@@ -510,6 +510,12 @@ class BaseContainer(Container, ABC):
 
         elif isinstance(self.__dict__["_content"], list):
             target_node = isinstance(target_node_ref, ValueNode)
+
+        if isinstance(value, Node):
+            # deepcopy input OmegaConf nodes.
+            # this prevents changing their parent if they are already a part of a config.
+            value = copy.deepcopy(value)
+
         # We use set_value if:
         # 1. Target node is a container and the value is MISSING or None
         # 2. Target node is a container and has an explicit ref_type
@@ -551,14 +557,9 @@ class BaseContainer(Container, ABC):
             )
 
         def assign(value_key: Any, val: ValueNode) -> None:
-            if val._parent is not None:
-                # only deepcopy if the node is a part of an existing config.
-                v = copy.deepcopy(val)
-            else:
-                v = val
-            v._set_parent(self)
-            v._set_key(value_key)
-            self.__dict__["_content"][value_key] = v
+            val._set_parent(self)
+            val._set_key(value_key)
+            self.__dict__["_content"][value_key] = val
 
         if input_node and target_node:
             # both nodes, replace existing node with new one
