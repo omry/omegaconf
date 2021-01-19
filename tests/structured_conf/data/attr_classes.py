@@ -1,3 +1,4 @@
+import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
@@ -5,6 +6,9 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 from tests import Color
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import TypedDict
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
 pytest.importorskip("attr")
@@ -18,6 +22,12 @@ class NotStructuredConfig:
         if isinstance(other, type(self)):
             return self.name == other.name and self.age == other.age
         return False
+
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+
+    class TypedDictSubclass(TypedDict):
+        foo: int
 
 
 @attr.s(auto_attribs=True)
@@ -310,13 +320,20 @@ class ContainsFrozen:
 
 
 @attr.s(auto_attribs=True)
-class WithTypedList:
+class WithListField:
     list: List[int] = [1, 2, 3]
 
 
 @attr.s(auto_attribs=True)
-class WithTypedDict:
+class WithDictField:
     dict: Dict[str, int] = {"foo": 10, "bar": 20}
+
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+
+    @attr.s(auto_attribs=True)
+    class WithTypedDictField:
+        dict: TypedDictSubclass
 
 
 @attr.s(auto_attribs=True)
