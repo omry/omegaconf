@@ -530,16 +530,55 @@ def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
     assert not cfg.foo._get_node_flag(flag_name)
 
 
-@pytest.mark.parametrize("copy_method", [lambda x: copy.copy(x), lambda x: x.copy()])
+@pytest.mark.parametrize(
+    "copy_method",
+    [
+        pytest.param(lambda x: copy.copy(x), id="copy.copy"),
+        pytest.param(lambda x: x.copy(), id="obj.copy"),
+    ],
+)
 class TestCopy:
     @pytest.mark.parametrize(
-        "src", [[], [1, 2], ["a", "b", "c"], {}, {"a": "b"}, {"a": {"b": []}}]
+        "src",
+        [
+            # lists
+            pytest.param(OmegaConf.create([]), id="list_empty"),
+            pytest.param(OmegaConf.create([1, 2]), id="list"),
+            pytest.param(OmegaConf.create(["a", "b", "c"]), id="list"),
+            pytest.param(ListConfig(content=None), id="list_none"),
+            pytest.param(ListConfig(content="???"), id="list_missing"),
+            # dicts
+            pytest.param(OmegaConf.create({}), id="dict_empty"),
+            pytest.param(OmegaConf.create({"a": "b"}), id="dict"),
+            pytest.param(OmegaConf.create({"a": {"b": []}}), id="dict"),
+            pytest.param(DictConfig(content=None), id="dict_none"),
+        ],
     )
     def test_copy(self, copy_method: Any, src: Any) -> None:
-        src = OmegaConf.create(src)
         cp = copy_method(src)
-        assert id(src) != id(cp)
+        assert src is not cp
         assert src == cp
+
+    @pytest.mark.parametrize(
+        "src",
+        [
+            pytest.param(
+                DictConfig(content={"a": {"c": 10}, "b": DictConfig(content="${a}")}),
+                id="dict_inter",
+            )
+        ],
+    )
+    def test_copy_dict_inter(self, copy_method: Any, src: Any) -> None:
+        # test direct copying of the b node (without de-referencing by accessing)
+        cp = copy_method(src._get_node("b"))
+        assert src.b is not cp
+        assert OmegaConf.is_interpolation(src, "b")
+        assert OmegaConf.is_interpolation(cp)
+        assert src._get_node("b")._value() == cp._value()
+
+        # test copy of src and ensure interpolation is copied as interpolation
+        cp2 = copy_method(src)
+        assert OmegaConf.is_interpolation(cp2, "b")
 
     @pytest.mark.parametrize(
         "src,interpolating_key,interpolated_key",
