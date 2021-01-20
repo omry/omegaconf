@@ -1,3 +1,4 @@
+.benchmarks
 .cache
 *.pyc
 .pytest_cache
