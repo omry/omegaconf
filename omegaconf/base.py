@@ -9,6 +9,8 @@ from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolat
 
 DictKeyType = Union[str, int, Enum]
 
+_MARKER_ = object()
+
 
 @dataclass
 class Metadata:
@@ -51,14 +53,20 @@ class Node(ABC):
     _metadata: Metadata
 
     _parent: Optional["Container"]
+    _flags_cache: Optional[Dict[str, Optional[bool]]]
 
     def __init__(self, parent: Optional["Container"], metadata: Metadata):
         self.__dict__["_metadata"] = metadata
         self.__dict__["_parent"] = parent
+        self.__dict__["_flags_cache"] = None
 
     def _set_parent(self, parent: Optional["Container"]) -> None:
         assert parent is None or isinstance(parent, Container)
         self.__dict__["_parent"] = parent
+        self._invalidate_flags_cache()
+
+    def _invalidate_flags_cache(self) -> None:
+        self.__dict__["_flags_cache"] = None
 
     def _get_parent(self) -> Optional["Container"]:
         parent = self.__dict__["_parent"]
@@ -74,6 +82,7 @@ class Node(ABC):
         else:
             assert self._metadata.flags is not None
             self._metadata.flags[flag] = value
+        self._invalidate_flags_cache()
         return self
 
     def _get_node_flag(self, flag: str) -> Optional[bool]:
@@ -85,6 +94,18 @@ class Node(ABC):
         return self._metadata.flags[flag] if flag in self._metadata.flags else None
 
     def _get_flag(self, flag: str) -> Optional[bool]:
+        cache = self.__dict__["_flags_cache"]
+        if cache is None:
+            cache = self.__dict__["_flags_cache"] = {}
+
+        ret = cache.get(flag, _MARKER_)
+        if ret == _MARKER_:
+            ret = self._get_flag_no_cache(flag)
+            cache[flag] = ret
+        assert ret is None or isinstance(ret, bool)
+        return ret
+
+    def _get_flag_no_cache(self, flag: str) -> Optional[bool]:
         """
         Returns True if this config node flag is set
         A flag is set if node.set_flag(True) was called
@@ -462,6 +483,26 @@ class Container(Node):
                             item._set_parent(self)
                         if isinstance(item, Container):
                             item._re_parent()
+
+    def _invalidate_flags_cache(self) -> None:
+        from .dictconfig import DictConfig
+        from .listconfig import ListConfig
+
+        # invalidate subtree cache only if the cache is initialized in this node.
+        if self.__dict__["_flags_cache"] is not None:
+            self.__dict__["_flags_cache"] = None
+            if isinstance(self, DictConfig):
+                content = self.__dict__["_content"]
+                if isinstance(content, dict):
+                    for _key, value in self.__dict__["_content"].items():
+                        if value is not None:
+                            value._invalidate_flags_cache()
+            elif isinstance(self, ListConfig):
+                content = self.__dict__["_content"]
+                if isinstance(content, list):
+                    for item in self.__dict__["_content"]:
+                        if item is not None:
+                            item._invalidate_flags_cache()
 
     def _has_ref_type(self) -> bool:
         return self._metadata.ref_type is not Any
