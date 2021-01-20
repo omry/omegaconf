@@ -21,6 +21,12 @@ def omegaconf(session):
     session.run("pytest")
 
 
+@nox.session(python=PYTHON_VERSIONS)
+def benchmark(session):
+    deps(session)
+    session.run("pytest", "benchmark/benchmark.py")
+
+
 @nox.session
 def docs(session):
     deps(session)

@@ -9,6 +9,7 @@ pre-commit
 pyflakes
 pytest
 pytest-mock
+pytest-benchmark
 sphinx
 towncrier
 twine
