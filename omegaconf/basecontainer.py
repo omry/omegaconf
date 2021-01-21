@@ -273,13 +273,14 @@ class BaseContainer(Container, ABC):
 
             object_type = conf._metadata.object_type
             if instantiate_structured_configs and is_structured_config(object_type):
-                retdict = _instantiate_structured_config_impl(
+                retstruct = _instantiate_structured_config_impl(
                     retdict=retdict,
                     object_type=object_type,
                     allow_objects=conf._get_flag("allow_objects"),
                 )
-
-            return retdict
+                return retstruct
+            else:
+                return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
