@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import AnyNode, ListConfig, OmegaConf, flag_override, MISSING
+from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,

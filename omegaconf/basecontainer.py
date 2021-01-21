@@ -486,6 +486,9 @@ class BaseContainer(Container, ABC):
         from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
+            value = copy.deepcopy(value)
+            value._set_parent(None)
+
             try:
                 old = value._key()
                 value._set_key(key)
@@ -551,7 +554,8 @@ class BaseContainer(Container, ABC):
             )
 
         def assign(value_key: Any, val: ValueNode) -> None:
-            v = copy.deepcopy(val)
+            assert val._get_parent() is None
+            v = val
             v._set_parent(self)
             v._set_key(value_key)
             self.__dict__["_content"][value_key] = v

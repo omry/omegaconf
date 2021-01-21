@@ -107,10 +107,30 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
-        res = DictConfig({})
-        for k, v in self.__dict__.items():
-            res.__dict__[k] = copy.deepcopy(v, memo=memo)
-        res._re_parent()
+        res = DictConfig(None)
+        res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
+        res.__dict__["_flags_cache"] = copy.deepcopy(
+            self.__dict__["_flags_cache"], memo=memo
+        )
+
+        src_content = self.__dict__["_content"]
+        if isinstance(src_content, dict):
+            content_copy = {}
+            for k, v in src_content.items():
+                try:
+                    old_parent = v.__dict__["_parent"]
+                    v.__dict__["_parent"] = None
+                    vc = copy.deepcopy(v, memo=memo)
+                    vc.__dict__["_parent"] = res
+                    content_copy[k] = vc
+                finally:
+                    v.__dict__["_parent"] = old_parent
+        else:
+            # None and strings can be assigned as is
+            content_copy = src_content
+
+        res.__dict__["_content"] = content_copy
+
         return res
 
     def __copy__(self) -> "DictConfig":
@@ -123,7 +143,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             content_copy = {}
             for k, v in content.items():
                 if isinstance(v, ValueNode):
-                    content_copy[k] = copy.copy(v)
+                    vc = copy.copy(v)
+                    vc._set_parent(res)
+                    content_copy[k] = vc
                 else:
                     content_copy[k] = v
         else:
@@ -131,7 +153,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         res.__dict__["_content"] = content_copy
 
-        res._re_parent()
         return res
 
     def copy(self) -> "DictConfig":
@@ -583,9 +604,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
         from omegaconf import OmegaConf, flag_override
-
-        if id(self) == id(value):
-            return
 
         if flags is None:
             flags = {}
