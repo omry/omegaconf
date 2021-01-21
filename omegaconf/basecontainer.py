@@ -271,24 +271,8 @@ class BaseContainer(Container, ABC):
                     result = object_type(**retdict)
                 return result
 
-            ref_type = conf._metadata.ref_type
             object_type = conf._metadata.object_type
-            # I think that:
-            #  ref_type should be either the type annotation for the value (set by e.g.
-            #    a dataclass field type annotation or a typing.Dict type annotation) or,
-            #    if annotation is available, the type of the value.
-            #  object_type (set in dictconfig.DictConfig._set_value_impl) is the type of
-            #    the value, used, possibly a subclass of ref_type.
-            if is_structured_config(ref_type):
-                assert is_structured_config(object_type)
-            if is_structured_config(ref_type) or is_structured_config(object_type):
-                assert ref_type is not None
-                assert object_type is not None
-                if ref_type is not Any:
-                    assert issubclass(object_type, ref_type)
-            if instantiate_structured_configs and (
-                is_structured_config(ref_type) or is_structured_config(object_type)
-            ):
+            if instantiate_structured_configs and is_structured_config(object_type):
                 retdict = _instantiate_structured_config_impl(
                     retdict, object_type, conf._get_flag("allow_objects")
                 )
