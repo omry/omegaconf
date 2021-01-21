@@ -266,6 +266,7 @@ class BaseContainer(Container, ABC):
                     result = object_type(**retdict_field_items)
                     result.update(retdict_nonfield_items)
                 else:
+                    # normal structured config
                     assert set(retdict.keys()) <= set(object_type_field_names)
                     result = object_type(**retdict)
                 return result
