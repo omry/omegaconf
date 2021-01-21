@@ -274,7 +274,9 @@ class BaseContainer(Container, ABC):
             object_type = conf._metadata.object_type
             if instantiate_structured_configs and is_structured_config(object_type):
                 retdict = _instantiate_structured_config_impl(
-                    retdict, object_type, conf._get_flag("allow_objects")
+                    retdict=retdict,
+                    object_type=object_type,
+                    allow_objects=conf._get_flag("allow_objects"),
                 )
 
             return retdict
