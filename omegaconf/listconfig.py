@@ -115,10 +115,33 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise ValidationError(msg)
 
     def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "ListConfig":
-        res = ListConfig(content=[])
-        for k, v in self.__dict__.items():
-            res.__dict__[k] = copy.deepcopy(v, memo=memo)
-        res._re_parent()
+        res = ListConfig(None)
+        res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
+        res.__dict__["_flags_cache"] = copy.deepcopy(
+            self.__dict__["_flags_cache"], memo=memo
+        )
+
+        src_content = self.__dict__["_content"]
+        if isinstance(src_content, list):
+            content_copy: List[Optional[Node]] = []
+            for v in src_content:
+                if v is None:
+                    content_copy.append(v)
+                else:
+                    try:
+                        old_parent = v.__dict__["_parent"]
+                        v.__dict__["_parent"] = None
+                        vc = copy.deepcopy(v, memo=memo)
+                        vc.__dict__["_parent"] = res
+                        content_copy.append(vc)
+                    finally:
+                        v.__dict__["_parent"] = old_parent
+        else:
+            # None and strings can be assigned as is
+            content_copy = src_content
+
+        res.__dict__["_content"] = content_copy
+
         return res
 
     def __copy__(self) -> "ListConfig":
