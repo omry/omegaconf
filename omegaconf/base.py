@@ -419,8 +419,11 @@ class Container(Node):
                         ),
                     )
                 except Exception as e:
-                    self._format_and_raise(key=inter_key, value=None, cause=e)
-                    assert False
+                    if throw_on_resolution_failure:
+                        self._format_and_raise(key=inter_key, value=None, cause=e)
+                        assert False
+                    else:
+                        return None
             else:
                 if throw_on_resolution_failure:
                     raise UnsupportedInterpolationType(
