@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
@@ -73,15 +73,32 @@ class Node(ABC):
         assert parent is None or isinstance(parent, Container)
         return parent
 
-    def _set_flag(self, flag: str, value: Optional[bool]) -> "Node":
-        assert value is None or isinstance(value, bool)
-        if value is None:
-            assert self._metadata.flags is not None
-            if flag in self._metadata.flags:
-                del self._metadata.flags[flag]
-        else:
-            assert self._metadata.flags is not None
-            self._metadata.flags[flag] = value
+    def _set_flag(
+        self,
+        flags: Union[List[str], str],
+        values: Union[List[Optional[bool]], Optional[bool]],
+    ) -> "Node":
+        if isinstance(flags, str):
+            flags = [flags]
+
+        if values is None or isinstance(values, bool):
+            values = [values]
+
+        if len(values) == 1:
+            values = len(flags) * values
+
+        if len(flags) != len(values):
+            raise ValueError("Inconsistent lengths of input flag names and values")
+
+        for idx, flag in enumerate(flags):
+            value = values[idx]
+            if value is None:
+                assert self._metadata.flags is not None
+                if flag in self._metadata.flags:
+                    del self._metadata.flags[flag]
+            else:
+                assert self._metadata.flags is not None
+                self._metadata.flags[flag] = value
         self._invalidate_flags_cache()
         return self
 

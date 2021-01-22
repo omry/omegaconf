@@ -402,6 +402,9 @@ Merging configurations
 Merging configurations enables the creation of reusable configuration files for each logical component
 instead of a single config file for each variation of your task.
 
+OmegaConf.merge()
+^^^^^^^^^^^^^^^^^
+
 Machine learning experiment example:
 
 .. code-block:: python
@@ -451,6 +454,18 @@ Note how the port changes to 82, and how the users lists are combined.
     log:
       file: log.txt
     <BLANKLINE>
+
+OmegaConf.unsafe_merge()
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+OmegaConf offers a second faster function to merge config objects:
+
+.. code-block:: python
+
+   conf = OmegaConf.unsafe_merge(base_cfg, model_cfg, optimizer_cfg, dataset_cfg)
+   
+Unlike OmegaConf.merge(), unsafe_merge() is destroying the input configs and they should no longer be used 
+after this call. The upside is that it's substantially faster.
 
 Configuration flags
 -------------------

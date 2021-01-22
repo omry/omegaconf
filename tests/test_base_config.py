@@ -291,7 +291,7 @@ def test_flag_dict(flag: str) -> None:
 
 @pytest.mark.parametrize("flag", ["readonly", "struct"])
 def test_freeze_nested_dict(flag: str) -> None:
-    c = OmegaConf.create(dict(a=dict(b=2)))
+    c = OmegaConf.create({"a": {"b": 2}})
     assert not c._get_flag(flag)
     assert not c.a._get_flag(flag)
     c._set_flag(flag, True)
@@ -306,6 +306,22 @@ def test_freeze_nested_dict(flag: str) -> None:
     c.a._set_flag(flag, True)
     assert not c._get_flag(flag)
     assert c.a._get_flag(flag)
+
+
+def test_set_flags() -> None:
+    c = OmegaConf.create({"a": {"b": 2}})
+    assert not c._get_flag("readonly")
+    assert not c._get_flag("struct")
+    c._set_flag(["readonly", "struct"], True)
+    assert c._get_flag("readonly")
+    assert c._get_flag("struct")
+
+    c._set_flag(["readonly", "struct"], [False, True])
+    assert not c._get_flag("readonly")
+    assert c._get_flag("struct")
+
+    with pytest.raises(ValueError):
+        c._set_flag(["readonly", "struct"], [True, False, False])
 
 
 @pytest.mark.parametrize(

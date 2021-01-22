@@ -343,16 +343,61 @@ class OmegaConf:
 
     @staticmethod
     def merge(
-        *others: Union[BaseContainer, Dict[str, Any], List[Any], Tuple[Any, ...], Any]
+        *configs: Union[
+            DictConfig,
+            ListConfig,
+            Dict[DictKeyType, Any],
+            List[Any],
+            Tuple[Any, ...],
+            Any,
+        ],
     ) -> Union[ListConfig, DictConfig]:
-        """Merge a list of previously created configs into a single one"""
-        assert len(others) > 0
-        target = copy.deepcopy(others[0])
+        """
+        Merge a list of previously created configs into a single one
+        :param configs: Input configs
+        :return: the merged config object.
+        """
+        assert len(configs) > 0
+        target = copy.deepcopy(configs[0])
         target = _ensure_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(*others[1:])
+            target.merge_with(*configs[1:])
+            turned_readonly = target._get_flag("readonly") is True
+
+        if turned_readonly:
+            OmegaConf.set_readonly(target, True)
+
+        return target
+
+    @staticmethod
+    def unsafe_merge(
+        *configs: Union[
+            DictConfig,
+            ListConfig,
+            Dict[DictKeyType, Any],
+            List[Any],
+            Tuple[Any, ...],
+            Any,
+        ],
+    ) -> Union[ListConfig, DictConfig]:
+        """
+        Merge a list of previously created configs into a single one
+        This is much faster than OmegaConf.merge() as the input configs are not copied.
+        However, the input configs must not be used after this operation as will become inconsistent.
+        :param configs: Input configs
+        :return: the merged config object.
+        """
+        assert len(configs) > 0
+        target = configs[0]
+        target = _ensure_container(target)
+        assert isinstance(target, (DictConfig, ListConfig))
+
+        with flag_override(
+            target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
+        ):
+            target.merge_with(*configs[1:])
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -712,21 +757,23 @@ register_default_resolvers()
 
 @contextmanager
 def flag_override(
-    config: Node, names: Union[List[str], str], value: Optional[bool]
+    config: Node,
+    names: Union[List[str], str],
+    values: Union[List[Optional[bool]], Optional[bool]],
 ) -> Generator[Node, None, None]:
 
     if isinstance(names, str):
         names = [names]
+    if values is None or isinstance(values, bool):
+        values = [values]
 
     prev_states = [config._get_flag(name) for name in names]
 
     try:
-        for idx, name in enumerate(names):
-            config._set_flag(name, value)
+        config._set_flag(names, values)
         yield config
     finally:
-        for idx, name in enumerate(names):
-            config._set_flag(name, prev_states[idx])
+        config._set_flag(names, prev_states)
 
 
 @contextmanager

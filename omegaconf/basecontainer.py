@@ -486,7 +486,14 @@ class BaseContainer(Container, ABC):
         from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
-            value = copy.deepcopy(value)
+            do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
+            if not do_deepcopy and isinstance(value, Container):
+                # if value is from the same config, perform a deepcopy no matter what.
+                if self._get_root() is value._get_root():
+                    do_deepcopy = True
+
+            if do_deepcopy:
+                value = copy.deepcopy(value)
             value._set_parent(None)
 
             try:
