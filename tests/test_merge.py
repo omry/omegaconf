@@ -581,3 +581,17 @@ def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
     with pytest.raises(ValidationError):
         c1.merge_with(c2)
     assert c1 == backup
+
+
+def test_into_custom_resolver_that_throws(restore_resolvers: Any) -> None:
+    def fail() -> None:
+        raise ValueError()
+
+    OmegaConf.register_resolver("fail", fail)
+
+    configs = (
+        {"d": 20, "i": "${fail:}"},
+        {"i": "zzz"},
+    )
+    expected = {"d": 20, "i": "zzz"}
+    assert OmegaConf.merge(*configs) == expected
