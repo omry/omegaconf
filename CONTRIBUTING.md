@@ -65,7 +65,7 @@ Change the cell you want and then, execute it so the expected output is shown.
 Note that the output after you execute the cell is saved as expected ouput for further 
 testing.
 
-In case that the in [number] of cells aren't in order you should go to the 
+In case that the in[number] of cells aren't in order you should go to the 
 kernel in the toolbar and restart it.
 
 
