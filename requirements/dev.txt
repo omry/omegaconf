@@ -10,6 +10,7 @@ pyflakes
 pytest
 pytest-mock
 pytest-benchmark
+pytest-lazy-fixture
 sphinx
 towncrier
 twine

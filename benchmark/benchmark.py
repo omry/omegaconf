@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
-from pytest import fixture
+from pytest import lazy_fixture  # type: ignore
+from pytest import fixture, mark
 
 from omegaconf import OmegaConf
 
@@ -50,27 +51,15 @@ def large_dict_config(large_dict: Any) -> Any:
     return OmegaConf.create(large_dict)
 
 
-def test_create_large_dict(large_dict: Any, benchmark: Any) -> None:
-    benchmark(OmegaConf.create, large_dict)
-
-
-def test_create_large_dictconfig(large_dict_config: Any, benchmark: Any) -> None:
-    benchmark(OmegaConf.create, large_dict_config)
-
-
-def test_create_small_dict(small_dict: Any, benchmark: Any) -> None:
-    benchmark(OmegaConf.create, small_dict)
-
-
-def test_create_small_dictconfig(small_dict_config: Any, benchmark: Any) -> None:
-    benchmark(OmegaConf.create, small_dict_config)
-
-
-def test_create_dict_with_list_leaves(dict_with_list_leaf: Any, benchmark: Any) -> None:
-    benchmark(OmegaConf.create, dict_with_list_leaf)
-
-
-def test_create_dict_config_with_list_leaves(
-    dict_config_with_list_leaf: Any, benchmark: Any
-) -> None:
-    benchmark(OmegaConf.create, dict_config_with_list_leaf)
+@mark.parametrize(
+    "data",
+    [
+        lazy_fixture("small_dict"),
+        lazy_fixture("large_dict"),
+        lazy_fixture("small_dict_config"),
+        lazy_fixture("large_dict_config"),
+        lazy_fixture("dict_config_with_list_leaf"),
+    ],
+)
+def test_omegaconf_create(data: Any, benchmark: Any) -> None:
+    benchmark(OmegaConf.create, data)
