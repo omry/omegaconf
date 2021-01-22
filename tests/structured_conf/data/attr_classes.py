@@ -388,10 +388,8 @@ class DictExamples:
         "blue": Color.BLUE,
     }
     int_keys: Dict[int, str] = {1: "one", 2: "two"}
-
-
-@attr.s(auto_attribs=True)
-class DictWithEnumKeys:
+    float_keys: Dict[float, str] = {1.1: "one", 2.2: "two"}
+    bool_keys: Dict[bool, str] = {True: "T", False: "F"}
     enum_key: Dict[Color, str] = {Color.RED: "red", Color.GREEN: "green"}
 
 
@@ -412,6 +410,14 @@ class DictSubclass:
 
     @attr.s(auto_attribs=True)
     class Int2Str(Dict[int, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Float2Str(Dict[float, str]):
+        pass
+
+    @attr.s(auto_attribs=True)
+    class Bool2Str(Dict[bool, str]):
         pass
 
     @attr.s(auto_attribs=True)

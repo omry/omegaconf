@@ -44,7 +44,7 @@ class BaseContainer(Container, ABC):
 
     def _resolve_with_default(
         self,
-        key: Union[str, int, Enum],
+        key: Union[DictKeyType, int],
         value: Any,
         default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
@@ -695,11 +695,11 @@ class BaseContainer(Container, ABC):
     def _value(self) -> Any:
         return self.__dict__["_content"]
 
-    def _get_full_key(self, key: Union[str, Enum, int, slice, None]) -> str:
+    def _get_full_key(self, key: Union[DictKeyType, int, slice, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
-        if not isinstance(key, (int, str, Enum, slice, type(None))):
+        if not isinstance(key, (int, str, Enum, float, bool, slice, type(None))):
             return ""
 
         def _slice_to_str(x: slice) -> str:
@@ -713,6 +713,8 @@ class BaseContainer(Container, ABC):
                 key = _slice_to_str(key)
             elif isinstance(key, Enum):
                 key = key.name
+            elif isinstance(key, (int, float, bool)):
+                key = str(key)
 
             if issubclass(parent_type, ListConfig):
                 if full_key != "":

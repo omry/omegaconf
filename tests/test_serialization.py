@@ -12,6 +12,7 @@ import pytest
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
 from tests import (
+    Color,
     PersonA,
     PersonD,
     SubscriptedDict,
@@ -165,7 +166,11 @@ def test_load_empty_file(tmpdir: str) -> None:
             True,
             Optional[Dict[Any, Any]],
         ),
-        (SubscriptedDict, "dict", int, str, False, Dict[str, int]),
+        (SubscriptedDict, "dict_str", int, str, False, Dict[str, int]),
+        (SubscriptedDict, "dict_int", int, int, False, Dict[int, int]),
+        (SubscriptedDict, "dict_bool", int, bool, False, Dict[bool, int]),
+        (SubscriptedDict, "dict_float", int, float, False, Dict[float, int]),
+        (SubscriptedDict, "dict_enum", int, Color, False, Dict[Color, int]),
         (SubscriptedList, "list", int, Any, False, List[int]),
         (
             DictConfig(
