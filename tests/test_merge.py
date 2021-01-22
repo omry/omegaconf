@@ -36,6 +36,13 @@ from . import (
 
 
 @pytest.mark.parametrize(
+    ("merge_function", "input_unchanged"),
+    [
+        (OmegaConf.merge, True),
+        (OmegaConf.unsafe_merge, False),
+    ],
+)
+@pytest.mark.parametrize(
     "inputs, expected",
     [
         # dictionaries
@@ -166,7 +173,10 @@ from . import (
             id="inter:node_inter_over_data",
         ),
         pytest.param(
-            ({"n": {"a": 10}, "i": "${n}"}, {"i": {"b": 20}}),
+            (
+                {"n": {"a": 10}, "i": "${n}"},
+                {"i": {"b": 20}},
+            ),
             {"n": {"a": 10}, "i": {"a": 10, "b": 20}},
             id="inter:node_over_node_interpolation",
         ),
@@ -276,24 +286,30 @@ from . import (
         ),
     ],
 )
-def test_merge(inputs: Any, expected: Any) -> None:
+def test_merge(
+    inputs: Any,
+    expected: Any,
+    merge_function: Any,
+    input_unchanged: bool,
+) -> None:
     configs = [OmegaConf.create(c) for c in inputs]
 
     if isinstance(expected, (MutableMapping, MutableSequence)) or is_structured_config(
         expected
     ):
-        merged = OmegaConf.merge(*configs)
+        merged = merge_function(*configs)
         assert merged == expected
-        # test input configs are not changed.
-        # Note that converting to container without resolving to avoid resolution errors while comparing
-        for i in range(len(inputs)):
-            input_i = OmegaConf.create(inputs[i])
-            orig = OmegaConf.to_container(input_i, resolve=False)
-            merged2 = OmegaConf.to_container(configs[i], resolve=False)
-            assert orig == merged2
+        if input_unchanged:
+            # test input configs are not changed.
+            # Note that converting to container without resolving to avoid resolution errors while comparing
+            for i in range(len(inputs)):
+                input_i = OmegaConf.create(inputs[i])
+                orig = OmegaConf.to_container(input_i, resolve=False)
+                merged2 = OmegaConf.to_container(configs[i], resolve=False)
+                assert orig == merged2
     else:
         with expected:
-            OmegaConf.merge(*configs)
+            merge_function(*configs)
 
 
 def test_merge_error_retains_type() -> None:
@@ -303,20 +319,22 @@ def test_merge_error_retains_type() -> None:
     assert OmegaConf.get_type(cfg) == ConcretePlugin
 
 
-def test_primitive_dicts() -> None:
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_primitive_dicts(merge: Any) -> None:
     c1 = {"a": 10}
     c2 = {"b": 20}
-    merged = OmegaConf.merge(c1, c2)
+    merged = merge(c1, c2)
     assert merged == {"a": 10, "b": 20}
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
 def test_merge_no_eq_verify(
-    a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
+    merge: Any, a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
 ) -> None:
     a = OmegaConf.create(a_)
     b = OmegaConf.create(b_)
-    c = OmegaConf.merge(a, b)
+    c = merge(a, b)
     # verify merge result is expected
     assert expected == c
 
@@ -345,11 +363,12 @@ def test_merge_with_c2_readonly(c1: Any, c2: Any, expected: Any) -> None:
     assert OmegaConf.is_readonly(a)
 
 
-def test_3way_dict_merge() -> None:
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_3way_dict_merge(merge: Any) -> None:
     c1 = OmegaConf.create("{a: 1, b: 2}")
     c2 = OmegaConf.create("{b: 3}")
     c3 = OmegaConf.create("{a: 2, c: 3}")
-    c4 = OmegaConf.merge(c1, c2, c3)
+    c4 = merge(c1, c2, c3)
     assert {"a": 2, "b": 3, "c": 3} == c4
 
 
@@ -360,6 +379,7 @@ def test_merge_list_list() -> None:
     assert a == b
 
 
+@pytest.mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "base, merge, exception",
     [
@@ -370,13 +390,14 @@ def test_merge_list_list() -> None:
         (Package, {"modules": [{"foo": "var"}]}, ConfigKeyError),
     ],
 )
-def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
+def test_merge_error(merge_func: Any, base: Any, merge: Any, exception: Any) -> None:
     base = OmegaConf.create(base)
     merge = None if merge is None else OmegaConf.create(merge)
     with pytest.raises(exception):
-        OmegaConf.merge(base, merge)
+        merge_func(base, merge)
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "c1, c2",
     [
@@ -384,14 +405,15 @@ def test_merge_error(base: Any, merge: Any, exception: Any) -> None:
         pytest.param([1, 2, 3], [4, 5, 6], id="list"),
     ],
 )
-def test_with_readonly_c1(c1: Any, c2: Any) -> None:
+def test_with_readonly_c1(merge: Any, c1: Any, c2: Any) -> None:
     cfg1 = OmegaConf.create(c1)
     cfg2 = OmegaConf.create(c2)
     OmegaConf.set_readonly(cfg1, True)
-    cfg3 = OmegaConf.merge(cfg1, cfg2)
+    cfg3 = merge(cfg1, cfg2)
     assert OmegaConf.is_readonly(cfg3)
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "c1, c2",
     [
@@ -399,11 +421,11 @@ def test_with_readonly_c1(c1: Any, c2: Any) -> None:
         pytest.param([1, 2, 3], [4, 5, 6], id="list"),
     ],
 )
-def test_with_readonly_c2(c1: Any, c2: Any) -> None:
+def test_with_readonly_c2(merge: Any, c1: Any, c2: Any) -> None:
     cfg1 = OmegaConf.create(c1)
     cfg2 = OmegaConf.create(c1)
     OmegaConf.set_readonly(cfg2, True)
-    cfg3 = OmegaConf.merge(cfg1, cfg2)
+    cfg3 = merge(cfg1, cfg2)
     assert OmegaConf.is_readonly(cfg3)
 
 
@@ -417,6 +439,7 @@ def test_into_readonly(c1: Any, c2: Any) -> None:
         cfg.merge_with(c2)
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "c1, c2, expected",
     [
@@ -427,7 +450,9 @@ def test_into_readonly(c1: Any, c2: Any) -> None:
         ),
     ],
 )
-def test_dict_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> None:
+def test_dict_merge_readonly_into_readwrite(
+    merge: Any, c1: Any, c2: Any, expected: Any
+) -> None:
     c1 = OmegaConf.create(c1)
     c2 = OmegaConf.create(c2)
     OmegaConf.set_readonly(c2.node, True)
@@ -456,13 +481,14 @@ def test_list_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> 
 def test_parent_maintained() -> None:
     c1 = OmegaConf.create({"a": {"b": 10}})
     c2 = OmegaConf.create({"aa": {"bb": 100}})
+    # only test OmegaConf.merge. unsafe_merge is failing this test by design
     c3 = OmegaConf.merge(c1, c2)
     assert isinstance(c1, DictConfig)
     assert isinstance(c2, DictConfig)
     assert isinstance(c3, DictConfig)
-    assert id(c1.a._get_parent()) == id(c1)
-    assert id(c2.aa._get_parent()) == id(c2)
-    assert id(c3.a._get_parent()) == id(c3)
+    assert c1.a._get_parent() is c1
+    assert c2.aa._get_parent() is c2
+    assert c3.a._get_parent() is c3
 
 
 @pytest.mark.parametrize(
@@ -507,17 +533,19 @@ def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
         c.merge_with_dotlist(dotlist)
 
 
-def test_merge_allow_objects() -> None:
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_allow_objects(merge: Any) -> None:
     iv = IllegalType()
     cfg = OmegaConf.create({"a": 10})
     with pytest.raises(UnsupportedValueType):
-        OmegaConf.merge(cfg, {"foo": iv})
+        merge(cfg, {"foo": iv})
 
     cfg._set_flag("allow_objects", True)
-    ret = OmegaConf.merge(cfg, {"foo": iv})
+    ret = merge(cfg, {"foo": iv})
     assert ret == {"a": 10, "foo": iv}
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "dst, other, expected, node",
     [
@@ -538,12 +566,13 @@ def test_merge_allow_objects() -> None:
     ],
 )
 def test_merge_with_src_as_interpolation(
-    dst: Any, other: Any, expected: Any, node: Any
+    merge: Any, dst: Any, other: Any, expected: Any, node: Any
 ) -> None:
-    res = OmegaConf.merge(dst, other)
+    res = merge(dst, other)
     assert res == expected
 
 
+@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @pytest.mark.parametrize(
     "dst, other, node",
     [
@@ -561,8 +590,10 @@ def test_merge_with_src_as_interpolation(
         ),
     ],
 )
-def test_merge_with_other_as_interpolation(dst: Any, other: Any, node: Any) -> None:
-    res = OmegaConf.merge(dst, other)
+def test_merge_with_other_as_interpolation(
+    merge: Any, dst: Any, other: Any, node: Any
+) -> None:
+    res = merge(dst, other)
     assert OmegaConf.is_interpolation(res, node)
 
 

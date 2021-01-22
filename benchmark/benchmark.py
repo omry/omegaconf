@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from pytest import lazy_fixture  # type: ignore
-from pytest import fixture, mark
+from pytest import fixture, mark, param
 
 from omegaconf import OmegaConf
 
@@ -51,6 +51,11 @@ def large_dict_config(large_dict: Any) -> Any:
     return OmegaConf.create(large_dict)
 
 
+@fixture(scope="module")
+def merge_data(small_dict: Any) -> Any:
+    return [OmegaConf.create(small_dict) for _ in range(5)]
+
+
 @mark.parametrize(
     "data",
     [
@@ -63,3 +68,14 @@ def large_dict_config(large_dict: Any) -> Any:
 )
 def test_omegaconf_create(data: Any, benchmark: Any) -> None:
     benchmark(OmegaConf.create, data)
+
+
+@mark.parametrize(
+    "merge_function",
+    [
+        param(OmegaConf.merge, id="merge"),
+        param(OmegaConf.unsafe_merge, id="unsafe_merge"),
+    ],
+)
+def test_omegaconf_merge(merge_function: Any, merge_data: Any, benchmark: Any) -> None:
+    benchmark(merge_function, merge_data)
