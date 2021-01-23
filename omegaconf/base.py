@@ -116,7 +116,7 @@ class Node(ABC):
             cache = self.__dict__["_flags_cache"] = {}
 
         ret = cache.get(flag, _MARKER_)
-        if ret == _MARKER_:
+        if ret is _MARKER_:
             ret = self._get_flag_no_cache(flag)
             cache[flag] = ret
         assert ret is None or isinstance(ret, bool)
@@ -514,15 +514,13 @@ class Container(Node):
             if isinstance(self, DictConfig):
                 content = self.__dict__["_content"]
                 if isinstance(content, dict):
-                    for _key, value in self.__dict__["_content"].items():
-                        if value is not None:
-                            value._invalidate_flags_cache()
+                    for value in self.__dict__["_content"].values():
+                        value._invalidate_flags_cache()
             elif isinstance(self, ListConfig):
                 content = self.__dict__["_content"]
                 if isinstance(content, list):
                     for item in self.__dict__["_content"]:
-                        if item is not None:
-                            item._invalidate_flags_cache()
+                        item._invalidate_flags_cache()
 
     def _has_ref_type(self) -> bool:
         return self._metadata.ref_type is not Any

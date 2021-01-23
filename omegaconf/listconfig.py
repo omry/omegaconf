@@ -40,7 +40,7 @@ from .errors import (
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
 
-    _content: Union[List[Optional[Node]], None, str]
+    _content: Union[List[Node], None, str]
 
     def __init__(
         self,

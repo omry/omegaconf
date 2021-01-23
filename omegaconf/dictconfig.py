@@ -51,6 +51,7 @@ from .nodes import EnumNode, ValueNode
 class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     _metadata: ContainerMetadata
+    _content: Union[Dict[DictKeyType, Node], None, str]
 
     def __init__(
         self,
