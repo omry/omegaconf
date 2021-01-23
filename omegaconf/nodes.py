@@ -72,7 +72,7 @@ class ValueNode(Node):
     def __hash__(self) -> int:
         return hash(self._val)
 
-    def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]] = {}) -> None:
+    def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]]) -> None:
         res.__dict__["_metadata"] = copy.deepcopy(self._metadata, memo=memo)
         res.__dict__["_parent"] = copy.deepcopy(self._parent, memo=memo)
         # shallow copy for value to support non-copyable value
@@ -157,7 +157,7 @@ class AnyNode(ValueNode):
             )
         return value
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "AnyNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "AnyNode":
         res = AnyNode()
         self._deepcopy_impl(res, memo)
         return res
@@ -186,7 +186,7 @@ class StringNode(ValueNode):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string : '$VALUE'")
         return str(value) if value is not None else None
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "StringNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "StringNode":
         res = StringNode()
         self._deepcopy_impl(res, memo)
         return res
@@ -220,7 +220,7 @@ class IntegerNode(ValueNode):
             raise ValidationError("Value '$VALUE' could not be converted to Integer")
         return val
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "IntegerNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "IntegerNode":
         res = IntegerNode()
         self._deepcopy_impl(res, memo)
         return res
@@ -271,7 +271,7 @@ class FloatNode(ValueNode):
     def __hash__(self) -> int:
         return hash(self._val)
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "FloatNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "FloatNode":
         res = FloatNode()
         self._deepcopy_impl(res, memo)
         return res
@@ -317,7 +317,7 @@ class BooleanNode(ValueNode):
                 "Value '$VALUE' is not a valid bool (type $VALUE_TYPE)"
             )
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "BooleanNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "BooleanNode":
         res = BooleanNode()
         self._deepcopy_impl(res, memo)
         return res
@@ -394,7 +394,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                 f"Invalid value '$VALUE', expected one of [{valid}]"
             ).with_traceback(sys.exc_info()[2]) from e
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "EnumNode":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res

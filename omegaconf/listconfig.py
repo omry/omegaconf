@@ -114,7 +114,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
                 raise ValidationError(msg)
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "ListConfig":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
         res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
         res.__dict__["_flags_cache"] = copy.deepcopy(

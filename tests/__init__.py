@@ -30,7 +30,7 @@ class NonCopyableIllegalType:
     def __copy__(self) -> Any:
         raise NotImplementedError()
 
-    def __deepcopy__(self, memodict: Any = {}) -> Any:
+    def __deepcopy__(self, memo: Any) -> Any:
         raise NotImplementedError()
 
 
