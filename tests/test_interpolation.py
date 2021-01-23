@@ -1,3 +1,4 @@
+import copy
 import os
 import random
 import re
@@ -6,9 +7,17 @@ from typing import Any, Optional, Tuple
 import pytest
 from _pytest.python_api import RaisesContext
 
-from omegaconf import Container, IntegerNode, Node, OmegaConf, Resolver, ValidationError
+from omegaconf import (
+    Container,
+    DictConfig,
+    IntegerNode,
+    Node,
+    OmegaConf,
+    Resolver,
+    ValidationError,
+)
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import ConfigKeyError, OmegaConfBaseException
 
 
 @pytest.mark.parametrize(
@@ -426,3 +435,21 @@ def test_resolve_key_and_root(
     cfg = _ensure_container(cfg)
     node: Container = OmegaConf.select(cfg, node_key)
     assert node._resolve_key_and_root(key) == expected
+
+
+@pytest.mark.parametrize("copy_func", [copy.copy, copy.deepcopy])
+@pytest.mark.parametrize(
+    "data,key",
+    [
+        pytest.param({"a": 10, "b": "${a}"}, "b", id="dict"),
+        pytest.param([10, "${0}"], 1, id="list"),
+    ],
+)
+def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
+    dict_cfg = OmegaConf.create(data)
+    assert copy_func(dict_cfg._get_node(key))._dereference_node() == 10
+
+
+def test_resolve_interpolation_without_parent() -> None:
+    with pytest.raises(OmegaConfBaseException):
+        DictConfig(content="${foo}")._dereference_node()

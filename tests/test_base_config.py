@@ -644,7 +644,27 @@ class TestCopy:
         assert id(cfg[0]) == id(cp[0])
 
 
-def test_not_implemented() -> None:
+@pytest.mark.parametrize("copy_func", [copy.copy, copy.deepcopy])
+class TestParentAfterCopy:
+    def test_dict_copy(self, copy_func: Any) -> None:
+        cfg = OmegaConf.create({"a": {"b": 10}})
+        nc = copy_func(cfg._get_node("a"))
+        assert nc._get_parent() is cfg
+        assert nc._get_node("b")._get_parent() is nc
+
+    def test_node_copy(self, copy_func: Any) -> None:
+        cfg = OmegaConf.create({"a": {"b": 10}})
+        nc = copy_func(cfg.a._get_node("b"))
+        assert nc._get_parent() is cfg.a
+
+    def test_list_copy(self, copy_func: Any) -> None:
+        cfg = OmegaConf.create({"a": [10]})
+        nc = copy_func(cfg._get_node("a"))
+        assert nc._get_parent() is cfg
+        assert nc._get_node(0)._get_parent() is nc
+
+
+def test_omegaconf_init_not_implemented() -> None:
     with raises(NotImplementedError):
         OmegaConf()
 

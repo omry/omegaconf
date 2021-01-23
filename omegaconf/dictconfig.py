@@ -118,8 +118,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if isinstance(src_content, dict):
             content_copy = {}
             for k, v in src_content.items():
+                old_parent = v.__dict__["_parent"]
                 try:
-                    old_parent = v.__dict__["_parent"]
                     v.__dict__["_parent"] = None
                     vc = copy.deepcopy(v, memo=memo)
                     vc.__dict__["_parent"] = res
@@ -131,13 +131,14 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             content_copy = src_content
 
         res.__dict__["_content"] = content_copy
-
+        # parent is retained, but not copied
+        res.__dict__["_parent"] = self.__dict__["_parent"]
         return res
 
     def __copy__(self) -> "DictConfig":
         res = DictConfig(content=None)
         for k, v in self.__dict__.items():
-            if k != "_content":
+            if k not in ("_content", "_parent"):
                 res.__dict__[k] = copy.copy(v)
         content = self.__dict__["_content"]
         if isinstance(content, dict):
@@ -152,6 +153,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         else:
             content_copy = copy.copy(content)
 
+        res.__dict__["_parent"] = self.__dict__["_parent"]
         res.__dict__["_content"] = content_copy
 
         return res

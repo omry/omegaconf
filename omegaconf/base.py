@@ -5,7 +5,12 @@ from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
-from .errors import ConfigKeyError, MissingMandatoryValue, UnsupportedInterpolationType
+from .errors import (
+    ConfigKeyError,
+    MissingMandatoryValue,
+    OmegaConfBaseException,
+    UnsupportedInterpolationType,
+)
 
 DictKeyType = Union[str, int, Enum]
 
@@ -171,7 +176,10 @@ class Node(ABC):
             parent = self._get_parent()
             key = self._key()
             if value_kind == ValueKind.INTERPOLATION:
-                assert parent is not None
+                if parent is None:
+                    raise OmegaConfBaseException(
+                        "Cannot resolve interpolation for a node without a parent"
+                    )
                 v = parent._resolve_simple_interpolation(
                     key=key,
                     inter_type=match.group(1),
