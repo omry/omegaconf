@@ -260,22 +260,8 @@ def test_list_assignment_deepcopy_semantics(node: Any) -> None:
     assert cfg.foo[1] == 2
 
 
-def test_assign_does_not_modify_src_config_lv2() -> None:
-    cfg1 = OmegaConf.create({"a": {"b": 10}})
-    cfg2 = OmegaConf.create({})
-    cfg2.a = cfg1.a
-    assert cfg1 == {"a": {"b": 10}}
-    assert cfg2 == {"a": {"b": 10}}
-
-    assert cfg1.a._get_parent() is cfg1
-    assert cfg1.a._get_node("b")._get_parent() is cfg1.a
-
-    assert cfg2.a._get_parent() is cfg2
-    assert cfg2.a._get_node("b")._get_parent() is cfg2.a
-
-
-def test_assign_does_not_modify_src_config_lv3() -> None:
-    d = {"a": {"b": {"c": 10}}}
+@pytest.mark.parametrize("d", [{"a": {"b": 10}}, {"a": {"b": {"c": 10}}}])
+def test_assign_does_not_modify_src_config(d: Any) -> None:
     cfg1 = OmegaConf.create(d)
     cfg2 = OmegaConf.create({})
     cfg2.a = cfg1.a

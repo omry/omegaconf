@@ -8,9 +8,9 @@ nox
 pre-commit
 pyflakes
 pytest
-pytest-mock
 pytest-benchmark
 pytest-lazy-fixture
+pytest-mock
 sphinx
 towncrier
 twine
