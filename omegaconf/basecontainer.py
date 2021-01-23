@@ -95,6 +95,10 @@ class BaseContainer(Container, ABC):
     # Support pickle
     def __getstate__(self) -> Dict[str, Any]:
         dict_copy = copy.copy(self.__dict__)
+
+        # no need to serialize the flags cache, it can be re-constructed later
+        dict_copy.pop("_flags_cache", None)
+
         dict_copy["_metadata"] = copy.copy(dict_copy["_metadata"])
         ref_type = self._metadata.ref_type
         if is_container_annotation(ref_type):
@@ -122,6 +126,8 @@ class BaseContainer(Container, ABC):
                 d["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
+
+        d["_flags_cache"] = None
         self.__dict__.update(d)
 
     @abstractmethod
