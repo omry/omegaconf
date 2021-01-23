@@ -324,6 +324,25 @@ def test_set_flags() -> None:
         c._set_flag(["readonly", "struct"], [True, False, False])
 
 
+@pytest.mark.parametrize("no_deepcopy_set_nodes", [True, False])
+@pytest.mark.parametrize("node", [20, {"b": 10}, [1, 2]])
+def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) -> None:
+    cfg = OmegaConf.create({"c": node})
+    cfg._set_flag("foo", True)
+    nc = cfg._get_node("c")
+    assert nc is not None
+    assert nc._flags_cache is None
+    assert nc._get_flag("foo")
+    assert nc._flags_cache == {"foo": True}
+
+    cfg2 = OmegaConf.create(flags={"no_deepcopy_set_nodes": no_deepcopy_set_nodes})
+    cfg2._set_flag("foo", False)
+    cfg2.c = cfg._get_node("c")
+    nc = cfg2._get_node("c")
+    assert nc is not None
+    assert not nc._get_flag("foo")
+
+
 @pytest.mark.parametrize(
     "src", [[], [1, 2, 3], dict(), dict(a=10), StructuredWithMissing]
 )
