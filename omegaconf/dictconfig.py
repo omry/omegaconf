@@ -107,7 +107,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as ex:
             format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
 
-    def __deepcopy__(self, memo: Dict[int, Any] = {}) -> "DictConfig":
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "DictConfig":
         res = DictConfig(None)
         res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
         res.__dict__["_flags_cache"] = copy.deepcopy(
