@@ -125,22 +125,20 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if isinstance(src_content, list):
             content_copy: List[Optional[Node]] = []
             for v in src_content:
-                if v is None:
-                    content_copy.append(v)
-                else:
-                    try:
-                        old_parent = v.__dict__["_parent"]
-                        v.__dict__["_parent"] = None
-                        vc = copy.deepcopy(v, memo=memo)
-                        vc.__dict__["_parent"] = res
-                        content_copy.append(vc)
-                    finally:
-                        v.__dict__["_parent"] = old_parent
+                old_parent = v.__dict__["_parent"]
+                try:
+                    v.__dict__["_parent"] = None
+                    vc = copy.deepcopy(v, memo=memo)
+                    vc.__dict__["_parent"] = res
+                    content_copy.append(vc)
+                finally:
+                    v.__dict__["_parent"] = old_parent
         else:
             # None and strings can be assigned as is
             content_copy = src_content
 
         res.__dict__["_content"] = content_copy
+        res.__dict__["_parent"] = self.__dict__["_parent"]
 
         return res
 
@@ -166,6 +164,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             content_copy = copy.copy(content)
 
         res.__dict__["_content"] = content_copy
+        res.__dict__["_parent"] = self.__dict__["_parent"]
 
         return res
 

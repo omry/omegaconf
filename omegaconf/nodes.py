@@ -74,9 +74,12 @@ class ValueNode(Node):
 
     def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]]) -> None:
         res.__dict__["_metadata"] = copy.deepcopy(self._metadata, memo=memo)
-        res.__dict__["_parent"] = copy.deepcopy(self._parent, memo=memo)
+        # TODO retain parent without copying
         # shallow copy for value to support non-copyable value
         res.__dict__["_val"] = self._val
+
+        # parent is retained, but not copied
+        res.__dict__["_parent"] = self._parent
 
     def _is_none(self) -> bool:
         if self._is_interpolation():
