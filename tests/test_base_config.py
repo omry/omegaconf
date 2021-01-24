@@ -332,7 +332,7 @@ def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) 
     nc = cfg._get_node("c")
     assert nc is not None
     assert nc._flags_cache is None
-    assert nc._get_flag("foo")
+    assert nc._get_flag("foo") is True
     assert nc._flags_cache == {"foo": True}
 
     cfg2 = OmegaConf.create(flags={"no_deepcopy_set_nodes": no_deepcopy_set_nodes})
@@ -340,7 +340,7 @@ def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) 
     cfg2.c = cfg._get_node("c")
     nc = cfg2._get_node("c")
     assert nc is not None
-    assert not nc._get_flag("foo")
+    assert nc._get_flag("foo") is False
 
 
 @pytest.mark.parametrize(
@@ -637,11 +637,11 @@ class TestCopy:
         cp[interpolated_key] = "XXX"
         assert cp[interpolated_key] == cp[interpolating_key]
 
-    def test_list_copy_is_shallow(self, copy_method: Any) -> None:
+    def test_list_shallow_copy_is_deepcopy(self, copy_method: Any) -> None:
         cfg = OmegaConf.create([[10, 20]])
         cp = copy_method(cfg)
-        assert id(cfg) != id(cp)
-        assert id(cfg[0]) == id(cp[0])
+        assert cfg is not cp
+        assert cfg[0] is not cp[0]
 
 
 @pytest.mark.parametrize("copy_func", [copy.copy, copy.deepcopy])

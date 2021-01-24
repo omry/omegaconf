@@ -142,31 +142,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         return res
 
-    def __copy__(self) -> "ListConfig":
-        from omegaconf import ValueNode
-
-        res = ListConfig(content=None)
-
-        for k, v in self.__dict__.items():
-            if k != "_content":
-                res.__dict__[k] = copy.copy(v)
-        content = self.__dict__["_content"]
-        if isinstance(content, list):
-            content_copy = []
-            for v in content:
-                if isinstance(v, ValueNode):
-                    vc = copy.copy(v)
-                    vc._set_parent(res)
-                    content_copy.append(vc)
-                else:
-                    content_copy.append(v)
-        else:
-            content_copy = copy.copy(content)
-
-        res.__dict__["_content"] = content_copy
-        res.__dict__["_parent"] = self.__dict__["_parent"]
-
-        return res
+    def copy(self) -> "ListConfig":
+        return copy.copy(self)
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
@@ -388,9 +365,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if item == x:
                 c = c + 1
         return c
-
-    def copy(self) -> "ListConfig":
-        return copy.copy(self)
 
     def _get_node(
         self, key: Union[int, slice], validate_access: bool = True

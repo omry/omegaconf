@@ -135,29 +135,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         res.__dict__["_parent"] = self.__dict__["_parent"]
         return res
 
-    def __copy__(self) -> "DictConfig":
-        res = DictConfig(content=None)
-        for k, v in self.__dict__.items():
-            if k not in ("_content", "_parent"):
-                res.__dict__[k] = copy.copy(v)
-        content = self.__dict__["_content"]
-        if isinstance(content, dict):
-            content_copy = {}
-            for k, v in content.items():
-                if isinstance(v, ValueNode):
-                    vc = copy.copy(v)
-                    vc._set_parent(res)
-                    content_copy[k] = vc
-                else:
-                    content_copy[k] = v
-        else:
-            content_copy = copy.copy(content)
-
-        res.__dict__["_parent"] = self.__dict__["_parent"]
-        res.__dict__["_content"] = content_copy
-
-        return res
-
     def copy(self) -> "DictConfig":
         return copy.copy(self)
 
