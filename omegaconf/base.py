@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -304,6 +305,10 @@ class Container(Node):
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any:
         ...
+
+    def __copy__(self) -> Any:
+        # real shallow copy is impossible because of the reference to the parent.
+        return copy.deepcopy(self)
 
     def _resolve_key_and_root(self, key: str) -> Tuple["Container", str]:
         orig = key

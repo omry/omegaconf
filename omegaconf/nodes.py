@@ -72,9 +72,8 @@ class ValueNode(Node):
     def __hash__(self) -> int:
         return hash(self._val)
 
-    def _deepcopy_impl(self, res: Any, memo: Optional[Dict[int, Any]]) -> None:
+    def _deepcopy_impl(self, res: Any, memo: Dict[int, Any]) -> None:
         res.__dict__["_metadata"] = copy.deepcopy(self._metadata, memo=memo)
-        # TODO retain parent without copying
         # shallow copy for value to support non-copyable value
         res.__dict__["_val"] = self._val
 

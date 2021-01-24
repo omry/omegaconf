@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import re
 import tempfile
 from typing import Any, Dict, List, Optional, Union
@@ -590,6 +591,20 @@ def test_shallow_copy_none() -> None:
     c._set_value({"foo": 1})
     assert c.foo == 1
     assert cfg._is_none()
+
+
+@pytest.mark.parametrize(
+    "copy_method",
+    [
+        pytest.param(copy.copy),
+        pytest.param(lambda x: x.copy(), id="obj.copy"),
+    ],
+)
+def test_dict_shallow_copy_is_deepcopy(copy_method: Any) -> None:
+    cfg = OmegaConf.create({"a": {"b": 10}})
+    cp = copy_method(cfg)
+    assert cfg is not cp
+    assert cfg._get_node("a") is not cp._get_node("a")
 
 
 def test_creation_with_invalid_key() -> None:
