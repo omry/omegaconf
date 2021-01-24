@@ -244,33 +244,6 @@ class BaseContainer(Container, ABC):
                 else:
                     retdict[key] = convert(node)
 
-            def _instantiate_structured_config_impl(
-                retdict, object_type, allow_objects
-            ):
-                from ._utils import get_structured_config_data
-
-                object_type_field_names = get_structured_config_data(
-                    object_type, allow_objects=allow_objects
-                ).keys()
-                if issubclass(object_type, dict):
-                    # Extending dict as a subclass
-
-                    retdict_field_items = {
-                        k: v for k, v in retdict.items() if k in object_type_field_names
-                    }
-                    retdict_nonfield_items = {
-                        k: v
-                        for k, v in retdict.items()
-                        if k not in object_type_field_names
-                    }
-                    result = object_type(**retdict_field_items)
-                    result.update(retdict_nonfield_items)
-                else:
-                    # normal structured config
-                    assert set(retdict.keys()) <= set(object_type_field_names)
-                    result = object_type(**retdict)
-                return result
-
             object_type = conf._metadata.object_type
             if instantiate_structured_configs and is_structured_config(object_type):
                 retstruct = _instantiate_structured_config_impl(
@@ -843,3 +816,30 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
         if new_ref_type is not Any:
             node._metadata.ref_type = new_ref_type
             node._metadata.optional = new_is_optional
+
+def _instantiate_structured_config_impl(
+    retdict, object_type, allow_objects
+):
+    from ._utils import get_structured_config_data
+
+    object_type_field_names = get_structured_config_data(
+        object_type, allow_objects=allow_objects
+    ).keys()
+    if issubclass(object_type, dict):
+        # Extending dict as a subclass
+
+        retdict_field_items = {
+            k: v for k, v in retdict.items() if k in object_type_field_names
+        }
+        retdict_nonfield_items = {
+            k: v
+            for k, v in retdict.items()
+            if k not in object_type_field_names
+        }
+        result = object_type(**retdict_field_items)
+        result.update(retdict_nonfield_items)
+    else:
+        # normal structured config
+        assert set(retdict.keys()) <= set(object_type_field_names)
+        result = object_type(**retdict)
+    return result
