@@ -290,3 +290,14 @@ def test_pickle_none() -> None:
         fp.seek(0)
         cfg2 = pickle.load(fp)
         assert cfg == cfg2
+
+
+def test_pickle_flags_consistency() -> None:
+    cfg = DictConfig({"a": 0})
+    cfg._set_flag("test", True)
+    assert cfg._get_node("a")._get_flag("test")  # type: ignore
+
+    cfg2 = pickle.loads(pickle.dumps(cfg))
+    cfg2._set_flag("test", None)
+    assert cfg2._get_flag("test") is None
+    assert cfg2._get_node("a")._get_flag("test") is None
