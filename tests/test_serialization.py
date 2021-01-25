@@ -293,7 +293,7 @@ def test_pickle_none() -> None:
 
 
 def test_pickle_flags_consistency() -> None:
-    cfg = DictConfig({"a": 0})
+    cfg = OmegaConf.create({"a": 0})
     cfg._set_flag("test", True)
     assert cfg._get_node("a")._get_flag("test")  # type: ignore
 
