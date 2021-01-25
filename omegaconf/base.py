@@ -66,6 +66,16 @@ class Node(ABC):
         self.__dict__["_parent"] = parent
         self.__dict__["_flags_cache"] = None
 
+    def __getstate__(self) -> Dict[str, Any]:
+        # Overridden to ensure that the flags cache is cleared on serialization.
+        state_dict = copy.copy(self.__dict__)
+        del state_dict["_flags_cache"]
+        return state_dict
+
+    def __setstate__(self, state_dict: Dict[str, Any]) -> None:
+        self.__dict__.update(state_dict)
+        self.__dict__["_flags_cache"] = None
+
     def _set_parent(self, parent: Optional["Container"]) -> None:
         assert parent is None or isinstance(parent, Container)
         self.__dict__["_parent"] = parent
