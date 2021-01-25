@@ -181,6 +181,13 @@ from . import (
             id="inter:node_over_node_interpolation",
         ),
         # Structured configs
+        (
+            (
+                DictConfig({"user007": User("bond", 7)}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "bond", "age": 99}},
+        ),
         (({"user": User}, {}), {"user": User(name=MISSING, age=MISSING)}),
         (({"user": User}, {"user": {}}), {"user": User(name=MISSING, age=MISSING)}),
         (
