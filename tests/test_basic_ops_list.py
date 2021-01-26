@@ -16,7 +16,7 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import IntegerNode, StringNode
 
-from . import Color, IllegalType, User, does_not_raise
+from . import Color, ContainerInList, IllegalType, User, does_not_raise
 
 
 def test_list_value() -> None:
@@ -628,3 +628,20 @@ def test_shallow_copy_none() -> None:
     c._set_value([1])
     assert c[0] == 1
     assert cfg._is_none()
+
+
+@pytest.mark.parametrize(
+    "node, value",
+    [
+        pytest.param("list_with_dict", {"a": 2}, id="copy_list_with_dict"),
+        pytest.param("list_with_list", [3, 4], id="copy_list_with_list"),
+    ],
+)
+def test_copy_container_in_dict(node: str, value: Any) -> None:
+    cfg = OmegaConf.structured(ContainerInList)
+    cfg1 = cfg[node].copy()
+    cfg1[0] = value
+    assert id(cfg1) != id(cfg[node])
+    assert id(cfg1[0]) != id(cfg[node][0])
+    assert cfg[node][0] != cfg1[0]
+    assert cfg1[0] == value

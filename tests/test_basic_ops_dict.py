@@ -22,7 +22,15 @@ from omegaconf import (
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
 
-from . import ConcretePlugin, Enum1, IllegalType, Plugin, StructuredWithMissing, User
+from . import (
+    ConcretePlugin,
+    ContainerInDict,
+    Enum1,
+    IllegalType,
+    Plugin,
+    StructuredWithMissing,
+    User,
+)
 
 
 def test_setattr_deep_value() -> None:
@@ -859,6 +867,7 @@ def test_self_assign_list_value_with_ref_type(c: Any) -> None:
     assert cfg == c
 
 
+<<<<<<< HEAD
 def test_assign_to_sc_field_without_ref_type() -> None:
     cfg = OmegaConf.create({"plugin": ConcretePlugin})
     with pytest.raises(ValidationError):
@@ -866,3 +875,20 @@ def test_assign_to_sc_field_without_ref_type() -> None:
 
     cfg.plugin = 10
     assert cfg.plugin == 10
+=======
+@pytest.mark.parametrize(
+    "node, value",
+    [
+        pytest.param("dict_with_dict", {"a": 2}, id="copy_dict_with_dict"),
+        pytest.param("dict_with_list", [3, 4], id="copy_dict_with_list"),
+    ],
+)
+def test_copy_container_in_dict(node: str, value: Any) -> None:
+    cfg = OmegaConf.structured(ContainerInDict)
+    cfg1 = copy.copy(cfg[node])
+    cfg1.foo = value
+    assert id(cfg1) != id(cfg[node])
+    assert id(cfg1.foo) != id(cfg[node].foo)
+    assert cfg[node].foo != cfg1.foo
+    assert cfg1.foo == value
+>>>>>>> b280230... test copy
