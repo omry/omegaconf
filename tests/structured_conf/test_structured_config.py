@@ -1145,7 +1145,7 @@ class TestDictSubclass:
         with pytest.raises(ValidationError):
             c3.missing.append("xx")
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "obj,value,node",
         [
             ("ContainerInList", [{"user": 20}], "list_with_dict"),
@@ -1169,7 +1169,7 @@ class TestDictSubclass:
         cfg[node] = value
         assert cfg[node] == value
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "obj,value,node",
         [
             ("ContainerInList", [{"user": True}], "list_with_dict"),
@@ -1195,7 +1195,7 @@ class TestDictSubclass:
         with pytest.raises(ValidationError):
             cfg[node] = value
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "obj,obj2,expected",
         [
             (
@@ -1235,7 +1235,7 @@ class TestDictSubclass:
         res = OmegaConf.merge(cfg, obj2)
         assert res == expected
 
-    @pytest.mark.parametrize(  # type: ignore
+    @pytest.mark.parametrize(
         "obj,obj2",
         [
             (
@@ -1290,21 +1290,15 @@ class TestDictSubclass:
             ),
             (
                 "ComplexList",
-                {
-                    "list": [[{"foo": "invalid"}]],
-                },
+                {"list": [[{"foo": "invalid"}]]},
             ),
             (
                 "ComplexList",
-                {
-                    "list": [[{"foo": User()}]],
-                },
+                {"list": [[{"foo": User()}]]},
             ),
             (
                 "ComplexDict",
-                {
-                    "dict": {"foo2": {"var2": ["invalid", 4]}},
-                },
+                {"dict": {"foo2": {"var2": ["invalid", 4]}}},
             ),
         ],
     )
