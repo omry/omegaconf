@@ -182,6 +182,17 @@ from . import (
         ),
         # Structured configs
         (
+            (DictConfig({}, element_type=User), {"user007": {"age": 99}}),
+            {"user007": {"name": "???", "age": 99}},
+        ),
+        (
+            (
+                DictConfig({"user007": "???"}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "???", "age": 99}},
+        ),
+        (
             (
                 DictConfig({"user007": User("bond", 7)}, element_type=User),
                 {"user007": {"age": 99}},

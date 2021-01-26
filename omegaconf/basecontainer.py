@@ -352,7 +352,7 @@ class BaseContainer(Container, ABC):
                 is_structured_config(dest._metadata.element_type)
                 and not missing_src_value
             ):
-                if OmegaConf.is_none(dest, key):
+                if OmegaConf.is_none(dest, key) or OmegaConf.is_missing(dest, key):
                     dest[key] = DictConfig(
                         content=dest._metadata.element_type, parent=dest
                     )

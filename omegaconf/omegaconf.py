@@ -532,7 +532,7 @@ class OmegaConf:
         )
 
     @staticmethod
-    def is_missing(cfg: Any, key: Union[int, str]) -> bool:
+    def is_missing(cfg: Any, key: DictKeyType) -> bool:
         assert isinstance(cfg, Container)
         try:
             node = cfg._get_node(key)
