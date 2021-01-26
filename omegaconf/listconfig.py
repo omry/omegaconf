@@ -107,12 +107,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         value_type = OmegaConf.get_type(value)
 
+        needs_type_validation = is_structured_config(value_type) or isinstance(
+            value, ValueNode
+        )
         if (
-            (
-                is_structured_config(value_type)
-                or is_structured_config(target_type)
-                or isinstance(value, ValueNode)
-            )
+            needs_type_validation
             and value_type is not None
             and not issubclass(value_type, target_type)
         ):
