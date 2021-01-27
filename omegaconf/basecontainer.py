@@ -349,9 +349,11 @@ class BaseContainer(Container, ABC):
                     dest_node = dest._get_node(key)
 
             if (
-                is_structured_config(dest._metadata.element_type)
+                dest_node is None
+                and is_structured_config(dest._metadata.element_type)
                 and not missing_src_value
             ):
+                # merging into a new node. Use element_type as a base
                 dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
                 dest_node = dest._get_node(key)
 

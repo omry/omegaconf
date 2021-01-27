@@ -38,8 +38,8 @@ from . import (
 @pytest.mark.parametrize(
     ("merge_function", "input_unchanged"),
     [
-        (OmegaConf.merge, True),
-        (OmegaConf.unsafe_merge, False),
+        pytest.param(OmegaConf.merge, True, id="merge"),
+        pytest.param(OmegaConf.unsafe_merge, False, id="unsafe_merge"),
     ],
 )
 @pytest.mark.parametrize(
@@ -234,6 +234,39 @@ from . import (
             id="merge_none_into_existing_node",
         ),
         ([{"user": User()}, {"user": {"foo": "bar"}}], pytest.raises(ConfigKeyError)),
+        # DictConfig with element_type of Structured Config
+        pytest.param(
+            (
+                DictConfig({}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "???", "age": 99}},
+            id="dict:merge_into_sc_element_type:expanding_new_element",
+        ),
+        pytest.param(
+            (
+                DictConfig({"user007": "???"}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "???", "age": 99}},
+            id="dict:merge_into_sc_element_type:into_missing_element",
+        ),
+        pytest.param(
+            (
+                DictConfig({"user007": User("bond", 7)}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "bond", "age": 99}},
+            id="dict:merge_into_sc_element_type:merging_with_existing_element",
+        ),
+        pytest.param(
+            (
+                DictConfig({"user007": None}, element_type=User),
+                {"user007": {"age": 99}},
+            ),
+            {"user007": {"name": "???", "age": 99}},
+            id="dict:merge_into_sc_element_type:merging_into_none",
+        ),
         # missing DictConfig
         pytest.param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
