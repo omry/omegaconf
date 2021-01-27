@@ -20,7 +20,6 @@ from ._utils import (
     _raise_invalid_assignment,
     format_and_raise,
     get_value_kind,
-    is_container_annotation,
     is_int,
     is_primitive_list,
     is_structured_config,
@@ -255,7 +254,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
-        from omegaconf._utils import is_legal_assignment
 
         try:
             from omegaconf.omegaconf import OmegaConf, _maybe_wrap
@@ -263,18 +261,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             index = len(self)
             self._validate_set(key=index, value=item)
 
-            element_type = self.__dict__["_metadata"].element_type
-            if is_container_annotation(element_type) and isinstance(
-                item, BaseContainer
-            ):
-                item_ref_type = item._metadata.ref_type
-                if is_container_annotation(item_ref_type) and not is_legal_assignment(
-                    element_type, item_ref_type
-                ):
-                    _raise_invalid_assignment(element_type, item_ref_type, item)
-                else:
-                    # regular dict without annotation
-                    item = item._value()
+            item = self._resolve_container_assignment(item)
 
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,

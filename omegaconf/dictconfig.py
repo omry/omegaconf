@@ -19,6 +19,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _raise_invalid_assignment,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -210,7 +211,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             and not issubclass(value_type, target_type)
         )
         if validation_error:
-            self._raise_invalid_value(value, value_type, target_type)
+            _raise_invalid_assignment(target_type, value_type, value)
 
     def _validate_merge(self, value: Any) -> None:
         from omegaconf import OmegaConf
@@ -238,11 +239,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             and not issubclass(src_obj_type, dest_obj_type)
         )
         if validation_error:
-            msg = (
-                f"Merge error : {type_str(src_obj_type)} is not a "
-                f"subclass of {type_str(dest_obj_type)}. value: {src}"
-            )
-            raise ValidationError(msg)
+            _raise_invalid_assignment(target_type, value_type, value)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
@@ -263,17 +260,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         value=value,
                         cause=ValidationError("field '$FULL_KEY' is not Optional"),
                     )
-
-    def _raise_invalid_value(
-        self, value: Any, value_type: Any, target_type: Any
-    ) -> None:
-        assert value_type is not None
-        assert target_type is not None
-        msg = (
-            f"Invalid type assigned : {type_str(value_type)} is not a "
-            f"subclass of {type_str(target_type)}. value: {value}"
-        )
-        raise ValidationError(msg)
 
     def _validate_and_normalize_key(self, key: Any) -> DictKeyType:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)

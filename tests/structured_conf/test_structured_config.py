@@ -1310,6 +1310,17 @@ class TestDictSubclass:
                 "ComplexDict",
                 {"dict": {"foo2": {"var2": ["invalid", 4]}}},
             ),
+            (
+                "ComplexDict",
+                {
+                    "dict": DictConfig(
+                        content={"foo2": {"var2": ["invalid"]}},
+                        ref_type=Dict[str, Dict[str, List[str]]],
+                        key_type=str,
+                        element_type=Dict[str, List[str]],
+                    )
+                },
+            ),
         ],
     )
     def test_container_as_element_type_invalid_merge(
@@ -1317,7 +1328,7 @@ class TestDictSubclass:
     ) -> None:
         module: Any = import_module(class_type)
         class_ = getattr(module, obj)
-        cfg = OmegaConf.merge(class_)
+        cfg = OmegaConf.structured(class_)
         cfg2 = OmegaConf.create(obj2)
         with pytest.raises(ValidationError):
             OmegaConf.merge(cfg, cfg2)
