@@ -17,13 +17,13 @@ from typing import (
 from ._utils import (
     ValueKind,
     _get_value,
+    _raise_invalid_assignment,
     format_and_raise,
     get_value_kind,
     is_container_annotation,
     is_int,
     is_primitive_list,
     is_structured_config,
-    type_str,
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
@@ -115,12 +115,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             and value_type is not None
             and not issubclass(value_type, target_type)
         ):
-            msg = (
-                f"Invalid type assigned : {type_str(value_type)} is not a "
-                f"subclass of {type_str(target_type)}. value: {value}"
-            )
-
-            raise ValidationError(msg)
+            _raise_invalid_assignment(target_type, value_type, value)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
@@ -260,6 +255,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
+        from omegaconf._utils import is_legal_assignment
+
         try:
             from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -267,9 +264,17 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._validate_set(key=index, value=item)
 
             element_type = self.__dict__["_metadata"].element_type
-            expect_container = is_container_annotation(element_type)
-            if expect_container and isinstance(item, BaseContainer):
-                item = item._value()
+            if is_container_annotation(element_type) and isinstance(
+                item, BaseContainer
+            ):
+                item_ref_type = item._metadata.ref_type
+                if is_container_annotation(item_ref_type) and not is_legal_assignment(
+                    element_type, item_ref_type
+                ):
+                    _raise_invalid_assignment(element_type, item_ref_type, item)
+                else:
+                    # regular dict without annotation
+                    item = item._value()
 
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,

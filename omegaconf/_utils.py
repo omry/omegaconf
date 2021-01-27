@@ -14,6 +14,7 @@ from .errors import (
     ConfigTypeError,
     ConfigValueError,
     OmegaConfBaseException,
+    ValidationError,
 )
 
 try:
@@ -745,3 +746,36 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
+
+
+def is_generic_container(type_: Any) -> bool:
+    return is_generic_dict(type_) or is_generic_list(type_)
+
+
+def is_legal_assignment(dest_type: Any, src_type: Any) -> bool:
+    is_legal = False
+    if is_list_annotation(dest_type) and is_list_annotation(src_type):
+        is_legal = is_legal_list_assignment(dest_type, src_type)
+    elif is_dict_annotation(dest_type) and is_dict_annotation(src_type):
+        is_legal = is_legal_dict_assignment(dest_type, src_type)
+    return is_legal
+
+
+def is_legal_dict_assignment(dest_type: Any, src_type: Any) -> bool:
+    key_values_pair_dest = get_dict_key_value_types(dest_type)
+    key_values_pair_src = get_dict_key_value_types(src_type)
+    return key_values_pair_dest == key_values_pair_src
+
+
+def is_legal_list_assignment(dest_type: Any, src_type: Any) -> Any:
+    element_types_dest = get_list_element_type(dest_type)
+    element_types_src = get_list_element_type(src_type)
+    return element_types_dest == element_types_src
+
+
+def _raise_invalid_assignment(target_type: Any, value_type: Any, value: Any) -> None:
+    msg = (
+        f"Invalid type assigned : {type_str(value_type)} is not a "
+        f"subclass of {type_str(target_type)}. value: {value}"
+    )
+    raise ValidationError(msg)
