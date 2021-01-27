@@ -1297,6 +1297,16 @@ class TestDictSubclass:
                 {"list": [[{"foo": User()}]]},
             ),
             (
+                "ComplexList",
+                {
+                    "list": ListConfig(
+                        content=[[{"foo": "var"}]],
+                        ref_type=List[List[Dict[str, str]]],
+                        element_type=List[Dict[str, str]],
+                    )
+                },
+            ),
+            (
                 "ComplexDict",
                 {"dict": {"foo2": {"var2": ["invalid", 4]}}},
             ),
