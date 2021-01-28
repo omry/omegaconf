@@ -631,17 +631,17 @@ def test_shallow_copy_none() -> None:
 
 
 @pytest.mark.parametrize(
-    "node, value",
+    "key, value",
     [
         pytest.param("list_with_dict", {"a": 2}, id="copy_list_with_dict"),
         pytest.param("list_with_list", [3, 4], id="copy_list_with_list"),
     ],
 )
-def test_copy_container_in_dict(node: str, value: Any) -> None:
+def test_copy_container_in_dict(key: str, value: Any) -> None:
     cfg = OmegaConf.structured(ContainerInList)
-    cfg1 = cfg[node].copy()
+    cfg1 = cfg[key].copy()
     cfg1[0] = value
-    assert id(cfg1) != id(cfg[node])
-    assert id(cfg1[0]) != id(cfg[node][0])
-    assert cfg[node][0] != cfg1[0]
+    assert id(cfg1) != id(cfg[key])
+    assert id(cfg1[0]) != id(cfg[key][0])
+    assert cfg[key][0] != cfg1[0]
     assert cfg1[0] == value
