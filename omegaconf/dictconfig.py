@@ -17,6 +17,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
+    _get_value,
     _is_interpolation,
     _valid_dict_key_annotation_type,
     format_and_raise,
@@ -25,7 +26,6 @@ from ._utils import (
     get_value_kind,
     is_container_annotation,
     is_dict,
-    is_generic_container,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -201,34 +201,37 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if validation_error:
             self._raise_invalid_value(value, value_type, target_type)
 
-    def _validate_merge(self, key: Any, value: Any) -> None:
+    def _validate_merge(self, value: Any) -> None:
         from omegaconf import OmegaConf
 
-        self._validate_non_optional(key, value)
+        dest = self
+        src = value
 
-        target = self._get_node(key) if key is not None else self
+        self._validate_non_optional(None, src)
 
-        target_has_ref_type = isinstance(
-            target, DictConfig
-        ) and target._metadata.ref_type not in (Any, dict)
-        is_valid_value = target is None or not target_has_ref_type
-        if is_valid_value:
+        dest_obj_type = OmegaConf.get_type(dest)
+        src_obj_type = OmegaConf.get_type(src)
+
+        if dest._is_missing() and src._metadata.object_type is not None:
+            self._validate_set(key=None, value=_get_value(src))
+
+        if src._is_missing():
             return
 
-        target_type = target._metadata.ref_type  # type: ignore
-        value_type = OmegaConf.get_type(value)
-        if is_generic_container(target_type):
-            return
-        # Merging of a dictionary is allowed even if assignment is illegal (merge would do deeper checks)
         validation_error = (
-            target_type is not None
-            and value_type is not None
-            and not issubclass(value_type, target_type)
-            and not is_dict(value_type)
+            dest_obj_type is not None
+            and src_obj_type is not None
+            and is_structured_config(dest_obj_type)
+            and not OmegaConf.is_none(src)
+            and not is_dict(src_obj_type)
+            and not issubclass(src_obj_type, dest_obj_type)
         )
-
         if validation_error:
-            self._raise_invalid_value(value, value_type, target_type)
+            msg = (
+                f"Merge error : {type_str(src_obj_type)} is not a "
+                f"subclass of {type_str(dest_obj_type)}. value: {src}"
+            )
+            raise ValidationError(msg)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf

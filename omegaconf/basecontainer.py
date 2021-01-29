@@ -41,11 +41,6 @@ class BaseContainer(Container, ABC):
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
-        self._normalize_ref_type()
-
-    def _normalize_ref_type(self) -> None:
-        if self._metadata.ref_type is None:
-            self._metadata.ref_type = Any  # type: ignore
 
     def _resolve_with_default(
         self,
@@ -300,18 +295,24 @@ class BaseContainer(Container, ABC):
             _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
 
-        dest._validate_merge(key=None, value=src)
+        dest._validate_merge(value=src)
 
         def expand(node: Container) -> None:
-            type_ = get_ref_type(node)
-            if type_ is not None:
-                _is_optional, type_ = _resolve_optional(type_)
-                if is_dict_annotation(type_):
-                    node._set_value({})
-                elif is_list_annotation(type_):
-                    node._set_value([])
+            rt = node._metadata.ref_type
+            val: Any
+            if rt is not Any:
+                if is_dict_annotation(rt):
+                    val = {}
+                elif is_list_annotation(rt):
+                    val = []
                 else:
-                    node._set_value(type_)
+                    val = rt
+            elif isinstance(node, DictConfig):
+                val = {}
+            else:
+                assert False
+
+            node._set_value(val)
 
         if (
             src._is_missing()
@@ -330,6 +331,10 @@ class BaseContainer(Container, ABC):
         for key, src_value in src.items_ex(resolve=False):
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
+
+            if isinstance(dest_node, DictConfig):
+                dest_node._validate_merge(value=src_node)
+
             missing_src_value = _is_missing_value(src_value)
 
             if (
@@ -360,7 +365,6 @@ class BaseContainer(Container, ABC):
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_value, BaseContainer):
-                        dest._validate_merge(key=key, value=src_value)
                         dest_node._merge_with(src_value)
                     elif not missing_src_value:
                         dest.__setitem__(key, src_value)
@@ -392,7 +396,7 @@ class BaseContainer(Container, ABC):
                 from omegaconf import open_dict
 
                 if is_structured_config(src_type):
-                    # verified to be compatible above in _validate_set_merge_impl
+                    # verified to be compatible above in _validate_merge
                     with open_dict(dest):
                         dest[key] = src._get_node(key)
                 else:
@@ -489,7 +493,7 @@ class BaseContainer(Container, ABC):
         Changes the value of the node key with the desired value. If the node key doesn't
         exist it creates a new one.
         """
-        from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+        from omegaconf.omegaconf import _maybe_wrap
 
         from .nodes import AnyNode, ValueNode
 
@@ -552,11 +556,7 @@ class BaseContainer(Container, ABC):
                 target = self._get_node(key)
                 if target is None:
                     if is_structured_config(val):
-                        element_type = self._metadata.element_type
-                        if element_type is Any:
-                            ref_type = OmegaConf.get_type(val)
-                        else:
-                            ref_type = element_type
+                        ref_type = self._metadata.element_type
                 else:
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type

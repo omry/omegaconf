@@ -1,7 +1,6 @@
 import sys
-from enum import Enum
 from importlib import import_module
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -221,7 +220,9 @@ class TestConfigs:
 
     def test_assignment_to_structured_inside_dict_config(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        conf = OmegaConf.create({"val": module.Nested})
+        conf = OmegaConf.create(
+            {"val": DictConfig(module.Nested, ref_type=module.Nested)}
+        )
         with pytest.raises(ValidationError):
             conf.val = 10
 
@@ -850,9 +851,8 @@ class TestConfigs:
     def test_create_untyped_dict(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UntypedDict)
-        dt = Dict[Union[str, Enum], Any]
-        assert _utils.get_ref_type(cfg, "dict") == dt
-        assert _utils.get_ref_type(cfg, "opt_dict") == Optional[dt]
+        assert _utils.get_ref_type(cfg, "dict") == Dict[Any, Any]
+        assert _utils.get_ref_type(cfg, "opt_dict") == Optional[Dict[Any, Any]]
         assert cfg.dict == {"foo": "var"}
         assert cfg.opt_dict is None
 
@@ -915,13 +915,13 @@ class TestDictSubclass:
         assert cfg.hello == "world"
 
         with pytest.raises(KeyValidationError):
-            cfg[Color.RED] = "fail"
+            cfg[Color.RED]
 
     def test_str2str_as_sub_node(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
-        assert _utils.get_ref_type(cfg.foo) == Optional[module.DictSubclass.Str2Str]
+        assert _utils.get_ref_type(cfg.foo) == Any
 
         cfg.foo.hello = "world"
         assert cfg.foo.hello == "world"
@@ -955,7 +955,7 @@ class TestDictSubclass:
         module: Any = import_module(class_type)
         cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
-        assert _utils.get_ref_type(cfg.foo) == Optional[module.DictSubclass.Int2Str]
+        assert _utils.get_ref_type(cfg.foo) == Any
 
         cfg.foo[10] = "ten"
         assert cfg.foo[10] == "ten"

@@ -142,7 +142,7 @@ class AnyNode(ValueNode):
             parent=parent,
             value=value,
             metadata=Metadata(
-                ref_type=Any, object_type=None, key=key, optional=is_optional  # type: ignore
+                ref_type=Any, object_type=None, key=key, optional=is_optional
             ),
         )
 

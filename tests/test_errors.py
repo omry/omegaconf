@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -102,7 +102,6 @@ params = [
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
-            ref_type=Optional[StructuredWithMissing],
             key="num",
         ),
         id="structured:update_with_invalid_value",
@@ -116,7 +115,6 @@ params = [
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
-            ref_type=Optional[StructuredWithMissing],
             key="num",
         ),
         id="structured:update:none_to_non_optional",
@@ -127,7 +125,6 @@ params = [
             op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType(), merge=True),
             key="a",
             exception_type=UnsupportedValueType,
-            ref_type=Optional[Dict[Union[str, Enum], Any]],
             msg="Value 'IllegalType' is not a supported primitive type",
         ),
         id="dict:update:object_of_illegal_type",
@@ -140,7 +137,6 @@ params = [
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
             exception_type=ReadonlyConfigError,
-            ref_type=Optional[Dict[Union[str, Enum], Any]],
             msg="Cannot pop from read-only node",
         ),
         id="dict,readonly:pop",
@@ -175,7 +171,6 @@ params = [
             msg="Key 'fail' not in 'ConcretePlugin'",
             key="fail",
             object_type=ConcretePlugin,
-            ref_type=Optional[ConcretePlugin],
         ),
         id="structured:access_invalid_attribute",
     ),
@@ -231,7 +226,6 @@ params = [
             msg="Invalid type assigned : int is not a subclass of FoobarParams. value: 20",
             key="params",
             object_type=ConcretePlugin,
-            ref_type=Optional[ConcretePlugin],
             child_node=lambda cfg: cfg.params,
         ),
         id="structured:setattr,invalid_type_assigned_to_structured",
@@ -445,7 +439,7 @@ params = [
                 """\
                 Key foo (str) is incompatible with (int)
                 \tfull_key: foo
-                \treference_type=Optional[Dict[int, Any]]
+                \treference_type=Any
                 \tobject_type=dict"""
             ),
             key="foo",
@@ -546,7 +540,6 @@ params = [
             exception_type=ValidationError,
             msg="Value 'fail' could not be converted to Integer",
             key="baz",
-            ref_type=Optional[Dict[str, int]],
         ),
         id="DictConfig[str,int]:assigned_str_value",
     ),
@@ -645,7 +638,6 @@ params = [
             key="foo",
             full_key="[foo]",
             msg="ListConfig indices must be integers or slices, not str",
-            ref_type=Optional[List[Any]],
         ),
         id="list:get_nox_ex:invalid_index_type",
     ),
@@ -668,7 +660,6 @@ params = [
             msg="Cannot get_node from a ListConfig object representing None",
             key=20,
             full_key="[20]",
-            ref_type=Optional[List[Any]],
         ),
         id="list:get_node_none",
     ),
@@ -877,7 +868,6 @@ params = [
             exception_type=ValidationError,
             object_type=None,
             msg="Non optional ListConfig cannot be constructed from None",
-            ref_type=List[int],
             low_level=True,
         ),
         id="list:create_not_optional:_set_value(None)",
@@ -904,7 +894,6 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
-            ref_type=Optional[List[int]],
         ),
         id="list,int_elements:assigned_str_element",
     ),
@@ -920,7 +909,6 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
-            ref_type=Optional[List[int]],
         ),
         id="list,int_elements:assigned_str_element",
     ),
@@ -935,7 +923,6 @@ params = [
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
-            ref_type=Optional[List[Any]],
         ),
         id="list,not_optional:null_assignment",
     ),
@@ -982,7 +969,6 @@ params = [
             key=1,
             full_key="[1]",
             child_node=lambda _cfg: None,
-            ref_type=Optional[List[Any]],
         ),
         id="list:insert_into_missing",
     ),
@@ -995,7 +981,6 @@ params = [
             msg="Cannot get from a ListConfig object representing None",
             key=0,
             full_key="[0]",
-            ref_type=Optional[List[Any]],
         ),
         id="list:get_from_none",
     ),

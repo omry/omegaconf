@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
-from pytest import param, raises, mark
+from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import is_dict_annotation, is_list_annotation
@@ -18,7 +18,7 @@ from omegaconf.nodes import (
 )
 from omegaconf.omegaconf import _node_wrap
 
-from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
+from . import Color, ConcretePlugin, IllegalType, Plugin, User, does_not_raise
 
 
 @mark.parametrize(
@@ -440,16 +440,16 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
     "obj, expected",
     [
         # Unwrapped values
-        param(10, Optional[int], id="int"),
-        param(10.0, Optional[float], id="float"),
-        param(True, Optional[bool], id="bool"),
-        param("bar", Optional[str], id="str"),
-        param(None, type(None), id="NoneType"),
-        param({}, Optional[Dict[Union[str, Enum], Any]], id="dict"),
-        param([], Optional[List[Any]], id="List[Any]"),
-        param(tuple(), Optional[List[Any]], id="List[Any]"),
-        param(ConcretePlugin(), Optional[ConcretePlugin], id="ConcretePlugin"),
-        param(ConcretePlugin, Optional[ConcretePlugin], id="ConcretePlugin"),
+        param(10, Any, id="int"),
+        param(10.0, Any, id="float"),
+        param(True, Any, id="bool"),
+        param("bar", Any, id="str"),
+        param(None, Any, id="NoneType"),
+        param({}, Any, id="dict"),
+        param([], Any, id="List[Any]"),
+        param(tuple(), Any, id="List[Any]"),
+        param(ConcretePlugin(), Any, id="ConcretePlugin"),
+        param(ConcretePlugin, Any, id="ConcretePlugin"),
         # Optional value nodes
         param(IntegerNode(10), Optional[int], id="IntegerNode"),
         param(FloatNode(10.0), Optional[float], id="FloatNode"),
@@ -474,12 +474,12 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         param(DictConfig(content={}), Any, id="DictConfig"),
         param(
             DictConfig(key_type=str, element_type=Color, content={}),
-            Optional[Dict[str, Color]],
+            Any,
             id="DictConfig[str,Color]",
         ),
         param(
             DictConfig(key_type=Color, element_type=int, content={}),
-            Optional[Dict[Color, int]],
+            Any,
             id="DictConfig[Color,int]",
         ),
         param(
@@ -489,12 +489,12 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         ),
         param(
             DictConfig(content="???"),
-            Optional[Dict[Union[str, Enum], Any]],
+            Any,
             id="DictConfig[Union[str, Enum], Any]_missing",
         ),
         param(
             DictConfig(content="???", element_type=int, key_type=str),
-            Optional[Dict[str, int]],
+            Any,
             id="DictConfig[str, int]_missing",
         ),
         param(
@@ -514,23 +514,40 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
             id="Plugin",
         ),
         # ListConfig
-        param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
-        param(
-            ListConfig([], element_type=int), Optional[List[int]], id="ListConfig[int]"
-        ),
-        param(ListConfig(content="???"), Optional[List[Any]], id="ListConfig_missing"),
+        param(ListConfig([]), Any, id="ListConfig[Any]"),
+        param(ListConfig([], element_type=int), Any, id="ListConfig[int]"),
+        param(ListConfig(content="???"), Any, id="ListConfig_missing"),
         param(
             ListConfig(content="???", element_type=int),
-            Optional[List[int]],
+            Any,
             id="ListConfig[int]_missing",
         ),
-        param(ListConfig(content=None), Optional[List[Any]], id="ListConfig_none"),
+        param(ListConfig(content=None), Any, id="ListConfig_none"),
         param(
             ListConfig(content=None, element_type=int),
-            Optional[List[int]],
+            Any,
             id="ListConfig[int]_none",
         ),
     ],
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
     assert _utils.get_ref_type(obj) == expected
+
+
+@mark.parametrize(
+    "obj, key, expected",
+    [
+        param({"foo": 10}, "foo", Any, id="dict"),
+        param(User, "name", str, id="User.name"),
+        param(User, "age", int, id="User.age"),
+        param({"user": User}, "user", Any, id="user"),
+    ],
+)
+def test_get_node_ref_type(obj: Any, key: str, expected: Any) -> None:
+    cfg = OmegaConf.create(obj)
+    assert _utils.get_ref_type(cfg, key) == expected
+
+
+def test_get_ref_type_error() -> None:
+    with raises(ValueError):
+        _utils.get_ref_type(AnyNode(), "foo")

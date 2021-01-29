@@ -527,57 +527,23 @@ def _get_value(value: Any) -> Any:
 
 
 def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
-    from omegaconf import DictConfig, ListConfig
-    from omegaconf.base import Container, Node
-    from omegaconf.nodes import ValueNode
+    from omegaconf import Container, Node
 
-    def none_as_any(t: Optional[Type[Any]]) -> Union[Type[Any], Any]:
-        if t is None:
-            return Any
-        else:
-            return t
-
-    if isinstance(obj, Container) and key is not None:
-        obj = obj._get_node(key)
-
-    is_optional = True
-    ref_type = None
-    if isinstance(obj, ValueNode):
-        is_optional = obj._is_optional()
-        ref_type = obj._metadata.ref_type
-    elif isinstance(obj, Container):
-        if isinstance(obj, Node):
-            ref_type = obj._metadata.ref_type
-        is_optional = obj._is_optional()
-        kt = none_as_any(obj._metadata.key_type)
-        vt = none_as_any(obj._metadata.element_type)
-        if (
-            ref_type is Any
-            and kt is Any
-            and vt is Any
-            and not obj._is_missing()
-            and not obj._is_none()
-        ):
-            ref_type = Any  # type: ignore
-        elif not is_structured_config(ref_type):
-            if kt is Any:
-                kt = Union[str, Enum]
-            if isinstance(obj, DictConfig):
-                ref_type = Dict[kt, vt]  # type: ignore
-            elif isinstance(obj, ListConfig):
-                ref_type = List[vt]  # type: ignore
+    if isinstance(obj, Container):
+        if key is not None:
+            obj = obj._get_node(key)
     else:
-        if isinstance(obj, dict):
-            ref_type = Dict[Union[str, Enum], Any]
-        elif isinstance(obj, (list, tuple)):
-            ref_type = List[Any]
-        else:
-            ref_type = get_type_of(obj)
+        if key is not None:
+            raise ValueError("Key must only be provided when obj is a container")
 
-    ref_type = none_as_any(ref_type)
-    if is_optional and ref_type is not Any:
-        ref_type = Optional[ref_type]  # type: ignore
-    return ref_type
+    if isinstance(obj, Node):
+        ref_type = obj._metadata.ref_type
+        if obj._is_optional() and ref_type is not Any:
+            return Optional[ref_type]  # type: ignore
+        else:
+            return ref_type
+    else:
+        return Any  # type: ignore
 
 
 def _raise(ex: Exception, cause: Exception) -> None:
@@ -590,7 +556,7 @@ def _raise(ex: Exception, cause: Exception) -> None:
         ex.__cause__ = cause
     else:
         ex.__cause__ = None
-    raise ex  # set end OC_CAUSE=1 for full backtrace
+    raise ex.with_traceback(sys.exc_info()[2])  # set end OC_CAUSE=1 for full backtrace
 
 
 def format_and_raise(
@@ -603,9 +569,6 @@ def format_and_raise(
 ) -> None:
     from omegaconf import OmegaConf
     from omegaconf.base import Node
-
-    # Uncomment to make debugging easier. Note that this will cause some tests to fail
-    # raise cause
 
     if isinstance(cause, AssertionError):
         raise
@@ -766,7 +729,3 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
-
-
-def is_generic_container(type_: Any) -> bool:
-    return is_generic_dict(type_) or is_generic_list(type_)

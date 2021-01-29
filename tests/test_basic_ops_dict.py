@@ -22,15 +22,7 @@ from omegaconf import (
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
 
-from . import (
-    ConcretePlugin,
-    Enum1,
-    IllegalType,
-    Plugin,
-    StructuredWithMissing,
-    User,
-    does_not_raise,
-)
+from . import ConcretePlugin, Enum1, IllegalType, Plugin, StructuredWithMissing, User
 
 
 def test_setattr_deep_value() -> None:
@@ -689,11 +681,11 @@ def test_get_ref_type_with_conflict() -> None:
     )
 
     assert OmegaConf.get_type(cfg.user) == User
-    assert _utils.get_ref_type(cfg.user) == Optional[User]
+    assert _utils.get_ref_type(cfg.user) == Any
 
     # Interpolation inherits both type and ref type from the target
     assert OmegaConf.get_type(cfg.inter) == User
-    assert _utils.get_ref_type(cfg.inter) == Optional[User]
+    assert _utils.get_ref_type(cfg.inter) == Any
 
 
 def test_is_missing() -> None:
@@ -722,61 +714,115 @@ def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
 
 
 @pytest.mark.parametrize(
-    "ref_type,values,assign,expectation",
+    "ref_type,assign",
     [
-        (Plugin, [None, "???", Plugin], None, does_not_raise),
-        (Plugin, [None, "???", Plugin], Plugin, does_not_raise),
-        (Plugin, [None, "???", Plugin], Plugin(), does_not_raise),
-        (Plugin, [None, "???", Plugin], ConcretePlugin, does_not_raise),
-        (Plugin, [None, "???", Plugin], ConcretePlugin(), does_not_raise),
-        (Plugin, [None, "???", Plugin], 10, lambda: pytest.raises(ValidationError)),
-        (ConcretePlugin, [None, "???", ConcretePlugin], None, does_not_raise),
-        (
-            ConcretePlugin,
-            [None, "???", ConcretePlugin],
+        (Plugin, None),
+        (Plugin, Plugin),
+        (Plugin, Plugin()),
+        (Plugin, ConcretePlugin),
+        (Plugin, ConcretePlugin()),
+        (ConcretePlugin, None),
+        pytest.param(ConcretePlugin, ConcretePlugin, id="subclass=subclass_obj"),
+        pytest.param(ConcretePlugin, ConcretePlugin(), id="subclass=subclass_obj"),
+    ],
+)
+class TestAssignAndMergeIntoReftypePlugin:
+    def _test_assign(self, ref_type: Any, value: Any, assign: Any) -> None:
+        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
+        assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
+        cfg.foo = assign
+        assert cfg.foo == assign
+        assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
+
+    def _test_merge(self, ref_type: Any, value: Any, assign: Any) -> None:
+        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
+        cfg2 = OmegaConf.merge(cfg, {"foo": assign})
+        assert isinstance(cfg2, DictConfig)
+        assert cfg2.foo == assign
+        assert _utils.get_ref_type(cfg2, "foo") == Optional[ref_type]
+
+    def test_assign_to_reftype_plugin1(self, ref_type: Any, assign: Any) -> None:
+        self._test_assign(ref_type, ref_type, assign)
+        self._test_assign(ref_type, ref_type(), assign)
+
+    @pytest.mark.parametrize("value", [None, "???"])
+    def test_assign_to_reftype_plugin(
+        self, ref_type: Any, value: Any, assign: Any
+    ) -> None:
+        self._test_assign(ref_type, value, assign)
+
+    def test_merge_into_reftype_plugin_(self, ref_type: Any, assign: Any) -> None:
+        self._test_merge(ref_type, ref_type, assign)
+        self._test_merge(ref_type, ref_type(), assign)
+
+    @pytest.mark.parametrize("value", [None, "???"])
+    def test_merge_into_reftype_plugin(
+        self, ref_type: Any, value: Any, assign: Any
+    ) -> None:
+        self._test_merge(ref_type, value, assign)
+
+
+@pytest.mark.parametrize(
+    "ref_type,assign,expectation",
+    [
+        pytest.param(
             Plugin,
-            lambda: pytest.raises(ValidationError),
+            10,
+            pytest.raises(ValidationError),
+            id="assign_primitive_to_typed",
         ),
-        (
+        pytest.param(
             ConcretePlugin,
-            [None, "???", ConcretePlugin],
+            Plugin,
+            pytest.raises(ValidationError),
+            id="assign_base_type_to_subclass",
+        ),
+        pytest.param(
+            ConcretePlugin,
             Plugin(),
-            lambda: pytest.raises(ValidationError),
-        ),
-        (
-            ConcretePlugin,
-            [None, "???", ConcretePlugin],
-            ConcretePlugin,
-            does_not_raise,
-        ),
-        (
-            ConcretePlugin,
-            [None, "???", ConcretePlugin],
-            ConcretePlugin(),
-            does_not_raise,
+            pytest.raises(ValidationError),
+            id="assign_base_instance_to_subclass",
         ),
     ],
 )
-def test_assign_to_reftype_plugin(
-    ref_type: Any, values: List[Any], assign: Any, expectation: Any
-) -> None:
-    for value in values:
+class TestAssignAndMergeIntoReftypePlugin_Errors:
+    def _test_assign(
+        self, ref_type: Any, value: Any, assign: Any, expectation: Any
+    ) -> None:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
-        with expectation():
-            assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
+        with expectation:
             cfg.foo = assign
-            assert cfg.foo == assign
-            # validate assignment does not change ref type.
-            assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
 
-        if value is not None:
-            cfg = OmegaConf.create(
-                {"foo": DictConfig(ref_type=ref_type, content=value)}
-            )
-            with expectation():
-                cfg2 = OmegaConf.merge(cfg, {"foo": assign})
-                assert isinstance(cfg2, DictConfig)
-                assert cfg2.foo == assign
+    def _test_merge(
+        self, ref_type: Any, value: Any, assign: Any, expectation: Any
+    ) -> None:
+        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
+        with expectation:
+            OmegaConf.merge(cfg, {"foo": assign})
+
+    def test_assign_to_reftype_plugin_(
+        self, ref_type: Any, assign: Any, expectation: Any
+    ) -> None:
+        self._test_assign(ref_type, ref_type, assign, expectation)
+        self._test_assign(ref_type, ref_type(), assign, expectation)
+
+    @pytest.mark.parametrize("value", [None, "???"])
+    def test_assign_to_reftype_plugin(
+        self, ref_type: Any, value: Any, assign: Any, expectation: Any
+    ) -> None:
+        self._test_assign(ref_type, value, assign, expectation)
+
+    def test_merge_into_reftype_plugin1(
+        self, ref_type: Any, assign: Any, expectation: Any
+    ) -> None:
+        self._test_merge(ref_type, ref_type, assign, expectation)
+        self._test_merge(ref_type, ref_type(), assign, expectation)
+
+    @pytest.mark.parametrize("value", [None, "???"])
+    def test_merge_into_reftype_plugin(
+        self, ref_type: Any, value: Any, assign: Any, expectation: Any
+    ) -> None:
+        self._test_merge(ref_type, value, assign, expectation)
 
 
 def test_setdefault() -> None:
@@ -813,7 +859,7 @@ def test_self_assign_list_value_with_ref_type(c: Any) -> None:
     assert cfg == c
 
 
-def test_assign_to_sc_field_without_ref_type():
+def test_assign_to_sc_field_without_ref_type() -> None:
     cfg = OmegaConf.create({"plugin": ConcretePlugin})
     with pytest.raises(ValidationError):
         cfg.plugin.params.foo = "bar"
