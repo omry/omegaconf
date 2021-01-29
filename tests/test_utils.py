@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
-import pytest
+from pytest import param, raises, mark
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import is_dict_annotation, is_list_annotation
@@ -21,71 +21,65 @@ from omegaconf.omegaconf import _node_wrap
 from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "target_type, value, expected",
     [
         # Any
-        pytest.param(Any, "foo", AnyNode("foo"), id="any"),
-        pytest.param(Any, True, AnyNode(True), id="any"),
-        pytest.param(Any, 1, AnyNode(1), id="any"),
-        pytest.param(Any, 1.0, AnyNode(1.0), id="any"),
-        pytest.param(Any, Color.RED, AnyNode(Color.RED), id="any"),
-        pytest.param(Any, {}, DictConfig(content={}), id="any_as_dict"),
-        pytest.param(Any, [], ListConfig(content=[]), id="any_as_list"),
+        param(Any, "foo", AnyNode("foo"), id="any"),
+        param(Any, True, AnyNode(True), id="any"),
+        param(Any, 1, AnyNode(1), id="any"),
+        param(Any, 1.0, AnyNode(1.0), id="any"),
+        param(Any, Color.RED, AnyNode(Color.RED), id="any"),
+        param(Any, {}, DictConfig(content={}), id="any_as_dict"),
+        param(Any, [], ListConfig(content=[]), id="any_as_list"),
         # int
-        pytest.param(int, "foo", ValidationError, id="int"),
-        pytest.param(int, True, ValidationError, id="int"),
-        pytest.param(int, 1, IntegerNode(1), id="int"),
-        pytest.param(int, 1.0, ValidationError, id="int"),
-        pytest.param(int, Color.RED, ValidationError, id="int"),
+        param(int, "foo", ValidationError, id="int"),
+        param(int, True, ValidationError, id="int"),
+        param(int, 1, IntegerNode(1), id="int"),
+        param(int, 1.0, ValidationError, id="int"),
+        param(int, Color.RED, ValidationError, id="int"),
         # float
-        pytest.param(float, "foo", ValidationError, id="float"),
-        pytest.param(float, True, ValidationError, id="float"),
-        pytest.param(float, 1, FloatNode(1), id="float"),
-        pytest.param(float, 1.0, FloatNode(1.0), id="float"),
-        pytest.param(float, Color.RED, ValidationError, id="float"),
+        param(float, "foo", ValidationError, id="float"),
+        param(float, True, ValidationError, id="float"),
+        param(float, 1, FloatNode(1), id="float"),
+        param(float, 1.0, FloatNode(1.0), id="float"),
+        param(float, Color.RED, ValidationError, id="float"),
         # # bool
-        pytest.param(bool, "foo", ValidationError, id="bool"),
-        pytest.param(bool, True, BooleanNode(True), id="bool"),
-        pytest.param(bool, 1, BooleanNode(True), id="bool"),
-        pytest.param(bool, 0, BooleanNode(False), id="bool"),
-        pytest.param(bool, 1.0, ValidationError, id="bool"),
-        pytest.param(bool, Color.RED, ValidationError, id="bool"),
-        pytest.param(bool, "true", BooleanNode(True), id="bool"),
-        pytest.param(bool, "false", BooleanNode(False), id="bool"),
-        pytest.param(bool, "on", BooleanNode(True), id="bool"),
-        pytest.param(bool, "off", BooleanNode(False), id="bool"),
+        param(bool, "foo", ValidationError, id="bool"),
+        param(bool, True, BooleanNode(True), id="bool"),
+        param(bool, 1, BooleanNode(True), id="bool"),
+        param(bool, 0, BooleanNode(False), id="bool"),
+        param(bool, 1.0, ValidationError, id="bool"),
+        param(bool, Color.RED, ValidationError, id="bool"),
+        param(bool, "true", BooleanNode(True), id="bool"),
+        param(bool, "false", BooleanNode(False), id="bool"),
+        param(bool, "on", BooleanNode(True), id="bool"),
+        param(bool, "off", BooleanNode(False), id="bool"),
         # str
-        pytest.param(str, "foo", StringNode("foo"), id="str"),
-        pytest.param(str, True, StringNode("True"), id="str"),
-        pytest.param(str, 1, StringNode("1"), id="str"),
-        pytest.param(str, 1.0, StringNode("1.0"), id="str"),
-        pytest.param(str, Color.RED, StringNode("Color.RED"), id="str"),
+        param(str, "foo", StringNode("foo"), id="str"),
+        param(str, True, StringNode("True"), id="str"),
+        param(str, 1, StringNode("1"), id="str"),
+        param(str, 1.0, StringNode("1.0"), id="str"),
+        param(str, Color.RED, StringNode("Color.RED"), id="str"),
         # Color
-        pytest.param(Color, "foo", ValidationError, id="Color"),
-        pytest.param(Color, True, ValidationError, id="Color"),
-        pytest.param(Color, 1, EnumNode(enum_type=Color, value=Color.RED), id="Color"),
-        pytest.param(Color, 1.0, ValidationError, id="Color"),
-        pytest.param(
-            Color, Color.RED, EnumNode(enum_type=Color, value=Color.RED), id="Color"
-        ),
-        pytest.param(
-            Color, "RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
-        ),
-        pytest.param(
+        param(Color, "foo", ValidationError, id="Color"),
+        param(Color, True, ValidationError, id="Color"),
+        param(Color, 1, EnumNode(enum_type=Color, value=Color.RED), id="Color"),
+        param(Color, 1.0, ValidationError, id="Color"),
+        param(Color, Color.RED, EnumNode(enum_type=Color, value=Color.RED), id="Color"),
+        param(Color, "RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"),
+        param(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
         # bad type
-        pytest.param(IllegalType, "nope", ValidationError, id="bad_type"),
+        param(IllegalType, "nope", ValidationError, id="bad_type"),
         # DictConfig
-        pytest.param(
+        param(
             dict, {"foo": "bar"}, DictConfig(content={"foo": "bar"}), id="DictConfig"
         ),
-        pytest.param(
-            Plugin, Plugin(), DictConfig(content=Plugin()), id="DictConfig[Plugin]"
-        ),
+        param(Plugin, Plugin(), DictConfig(content=Plugin()), id="DictConfig[Plugin]"),
         # ListConfig
-        pytest.param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
+        param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
     ],
 )
 def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
@@ -99,7 +93,7 @@ def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
         assert res == expected
         assert res._key() == "foo"
     else:
-        with pytest.raises(expected):
+        with raises(expected):
             _maybe_wrap(
                 ref_type=target_type,
                 key=None,
@@ -150,7 +144,7 @@ class _TestUserClass:
     pass
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "type_, expected",
     [
         (int, True),
@@ -171,14 +165,14 @@ def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
     assert valid_value_annotation_type(type_) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "test_cls_or_obj, expectation",
     [
         (_TestDataclass, does_not_raise()),
         (_TestDataclass(), does_not_raise()),
         (_TestAttrsClass, does_not_raise()),
         (_TestAttrsClass(), does_not_raise()),
-        ("invalid", pytest.raises(ValueError)),
+        ("invalid", raises(ValueError)),
     ],
 )
 def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> None:
@@ -193,7 +187,7 @@ def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> N
         assert d["dict1"] == {}
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "test_cls",
     [
         _TestDataclassIllegalValue,
@@ -201,10 +195,10 @@ def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> N
     ],
 )
 def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
-    with pytest.raises(UnsupportedValueType):
+    with raises(UnsupportedValueType):
         _utils.get_structured_config_data(test_cls, allow_objects=None)
 
-    with pytest.raises(UnsupportedValueType):
+    with raises(UnsupportedValueType):
         _utils.get_structured_config_data(test_cls, allow_objects=False)
 
     d = _utils.get_structured_config_data(test_cls, allow_objects=True)
@@ -246,7 +240,7 @@ class Dataclass:
     pass
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "value,kind",
     [
         ("foo", _utils.ValueKind.VALUE),
@@ -294,17 +288,17 @@ def test_re_parent() -> None:
 def test_get_class() -> None:
     name = "tests.examples.test_dataclass_example.SimpleTypes"
     assert _utils._get_class(name).__name__ == "SimpleTypes"
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         _utils._get_class("not_found")
 
-    with pytest.raises(ModuleNotFoundError):
+    with raises(ModuleNotFoundError):
         _utils._get_class("foo.not_found")
 
-    with pytest.raises(ImportError):
+    with raises(ImportError):
         _utils._get_class("tests.examples.test_dataclass_example.not_found")
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "key_type,expected_key_type",
     [
         (str, str),
@@ -312,7 +306,7 @@ def test_get_class() -> None:
         (Any, Any),
     ],
 )
-@pytest.mark.parametrize(
+@mark.parametrize(
     "value_type,expected_value_type",
     [
         (int, int),
@@ -331,7 +325,7 @@ def test_get_key_value_types(
     )
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "type_, is_primitive",
     [
         (int, True),
@@ -350,8 +344,8 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
     assert _utils.is_primitive_type(type_) == is_primitive
 
 
-@pytest.mark.parametrize("optional", [False, True])
-@pytest.mark.parametrize(
+@mark.parametrize("optional", [False, True])
+@mark.parametrize(
     "type_, expected",
     [
         (int, "int"),
@@ -388,7 +382,7 @@ def test_type_str_none() -> None:
     assert _utils.type_str(None) == "NoneType"
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "type_, expected",
     [
         (Optional[int], "Optional[int]"),
@@ -401,7 +395,7 @@ def test_type_str_union(type_: Any, expected: str) -> None:
     assert _utils.type_str(type_) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "type_, expected",
     [
         (Dict[str, int], True),
@@ -421,7 +415,7 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
     assert is_dict_annotation(type_=type_) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "type_, expected",
     [
         (List[int], True),
@@ -442,100 +436,96 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
     assert is_list_annotation(type_=type_) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "obj, expected",
     [
         # Unwrapped values
-        pytest.param(10, Optional[int], id="int"),
-        pytest.param(10.0, Optional[float], id="float"),
-        pytest.param(True, Optional[bool], id="bool"),
-        pytest.param("bar", Optional[str], id="str"),
-        pytest.param(None, type(None), id="NoneType"),
-        pytest.param({}, Optional[Dict[Union[str, Enum], Any]], id="dict"),
-        pytest.param([], Optional[List[Any]], id="List[Any]"),
-        pytest.param(tuple(), Optional[List[Any]], id="List[Any]"),
-        pytest.param(ConcretePlugin(), Optional[ConcretePlugin], id="ConcretePlugin"),
-        pytest.param(ConcretePlugin, Optional[ConcretePlugin], id="ConcretePlugin"),
+        param(10, Optional[int], id="int"),
+        param(10.0, Optional[float], id="float"),
+        param(True, Optional[bool], id="bool"),
+        param("bar", Optional[str], id="str"),
+        param(None, type(None), id="NoneType"),
+        param({}, Optional[Dict[Union[str, Enum], Any]], id="dict"),
+        param([], Optional[List[Any]], id="List[Any]"),
+        param(tuple(), Optional[List[Any]], id="List[Any]"),
+        param(ConcretePlugin(), Optional[ConcretePlugin], id="ConcretePlugin"),
+        param(ConcretePlugin, Optional[ConcretePlugin], id="ConcretePlugin"),
         # Optional value nodes
-        pytest.param(IntegerNode(10), Optional[int], id="IntegerNode"),
-        pytest.param(FloatNode(10.0), Optional[float], id="FloatNode"),
-        pytest.param(BooleanNode(True), Optional[bool], id="BooleanNode"),
-        pytest.param(StringNode("bar"), Optional[str], id="StringNode"),
-        pytest.param(
+        param(IntegerNode(10), Optional[int], id="IntegerNode"),
+        param(FloatNode(10.0), Optional[float], id="FloatNode"),
+        param(BooleanNode(True), Optional[bool], id="BooleanNode"),
+        param(StringNode("bar"), Optional[str], id="StringNode"),
+        param(
             EnumNode(enum_type=Color, value=Color.RED),
             Optional[Color],
             id="EnumNode[Color]",
         ),
         # Non-optional value nodes:
-        pytest.param(IntegerNode(10, is_optional=False), int, id="IntegerNode"),
-        pytest.param(FloatNode(10.0, is_optional=False), float, id="FloatNode"),
-        pytest.param(BooleanNode(True, is_optional=False), bool, id="BooleanNode"),
-        pytest.param(StringNode("bar", is_optional=False), str, id="StringNode"),
-        pytest.param(
+        param(IntegerNode(10, is_optional=False), int, id="IntegerNode"),
+        param(FloatNode(10.0, is_optional=False), float, id="FloatNode"),
+        param(BooleanNode(True, is_optional=False), bool, id="BooleanNode"),
+        param(StringNode("bar", is_optional=False), str, id="StringNode"),
+        param(
             EnumNode(enum_type=Color, value=Color.RED, is_optional=False),
             Color,
             id="EnumNode[Color]",
         ),
         # DictConfig
-        pytest.param(DictConfig(content={}), Any, id="DictConfig"),
-        pytest.param(
+        param(DictConfig(content={}), Any, id="DictConfig"),
+        param(
             DictConfig(key_type=str, element_type=Color, content={}),
             Optional[Dict[str, Color]],
             id="DictConfig[str,Color]",
         ),
-        pytest.param(
+        param(
             DictConfig(key_type=Color, element_type=int, content={}),
             Optional[Dict[Color, int]],
             id="DictConfig[Color,int]",
         ),
-        pytest.param(
+        param(
             DictConfig(ref_type=Any, content=ConcretePlugin),
             Any,
             id="DictConfig[ConcretePlugin]_Any_reftype",
         ),
-        pytest.param(
+        param(
             DictConfig(content="???"),
             Optional[Dict[Union[str, Enum], Any]],
             id="DictConfig[Union[str, Enum], Any]_missing",
         ),
-        pytest.param(
+        param(
             DictConfig(content="???", element_type=int, key_type=str),
             Optional[Dict[str, int]],
             id="DictConfig[str, int]_missing",
         ),
-        pytest.param(
+        param(
             DictConfig(ref_type=Plugin, content=ConcretePlugin),
             Optional[Plugin],
             id="DictConfig[Plugin]",
         ),
-        pytest.param(
+        param(
             DictConfig(ref_type=Plugin, content=ConcretePlugin),
             Optional[Plugin],
             id="Plugin",
         ),
         # Non optional DictConfig
-        pytest.param(
+        param(
             DictConfig(ref_type=Plugin, content=ConcretePlugin, is_optional=False),
             Plugin,
             id="Plugin",
         ),
         # ListConfig
-        pytest.param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
-        pytest.param(
+        param(ListConfig([]), Optional[List[Any]], id="ListConfig[Any]"),
+        param(
             ListConfig([], element_type=int), Optional[List[int]], id="ListConfig[int]"
         ),
-        pytest.param(
-            ListConfig(content="???"), Optional[List[Any]], id="ListConfig_missing"
-        ),
-        pytest.param(
+        param(ListConfig(content="???"), Optional[List[Any]], id="ListConfig_missing"),
+        param(
             ListConfig(content="???", element_type=int),
             Optional[List[int]],
             id="ListConfig[int]_missing",
         ),
-        pytest.param(
-            ListConfig(content=None), Optional[List[Any]], id="ListConfig_none"
-        ),
-        pytest.param(
+        param(ListConfig(content=None), Optional[List[Any]], id="ListConfig_none"),
+        param(
             ListConfig(content=None, element_type=int),
             Optional[List[int]],
             id="ListConfig[int]_none",
