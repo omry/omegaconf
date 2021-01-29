@@ -11,10 +11,10 @@ from omegaconf import (
     OmegaConf,
     ReadonlyConfigError,
     ValidationError,
-    nodes,
 )
 from omegaconf._utils import is_structured_config
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
+from omegaconf.nodes import IntegerNode
 
 from . import (
     A,
@@ -46,18 +46,29 @@ from . import (
     "inputs, expected",
     [
         # dictionaries
-        ([{}, {"a": 1}], {"a": 1}),
-        ([{"a": None}, {"b": None}], {"a": None, "b": None}),
-        ([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}),
-        ([{"a": {"a1": 1, "a2": 2}}, {"a": {"a1": 2}}], {"a": {"a1": 2, "a2": 2}}),
-        ([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}),
-        (({"a": 1, "b": 2}, {"b": {"c": 3}}), {"a": 1, "b": {"c": 3}}),
-        (({"b": {"c": 1}}, {"b": 1}), {"b": 1}),
-        (({"list": [1, 2, 3]}, {"list": [4, 5, 6]}), {"list": [4, 5, 6]}),
-        (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": 10}),
-        (({"a": 1}, {"a": nodes.IntegerNode(10)}), {"a": nodes.IntegerNode(10)}),
-        (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": 1}),
-        (({"a": nodes.IntegerNode(10)}, {"a": 1}), {"a": nodes.IntegerNode(1)}),
+        pytest.param([{}, {"a": 1}], {"a": 1}, id="dict"),
+        pytest.param(
+            [{"a": None}, {"b": None}], {"a": None, "b": None}, id="dict:none"
+        ),
+        pytest.param([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}, id="dict"),
+        pytest.param(
+            [
+                {"a": {"a1": 1, "a2": 2}},
+                {"a": {"a1": 2}},
+            ],
+            {"a": {"a1": 2, "a2": 2}},
+            id="dict",
+        ),
+        pytest.param([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}, id="dict"),
+        pytest.param(
+            ({"a": 1}, {"a": {"b": 3}}), {"a": {"b": 3}}, id="dict:merge_dict_into_int"
+        ),
+        pytest.param(({"b": {"c": 1}}, {"b": 1}), {"b": 1}, id="dict:merge_int_dict"),
+        pytest.param(({"list": [1, 2, 3]}, {"list": [4, 5, 6]}), {"list": [4, 5, 6]}),
+        pytest.param(({"a": 1}, {"a": IntegerNode(10)}), {"a": 10}),
+        pytest.param(({"a": 1}, {"a": IntegerNode(10)}), {"a": IntegerNode(10)}),
+        pytest.param(({"a": IntegerNode(10)}, {"a": 1}), {"a": 1}),
+        pytest.param(({"a": IntegerNode(10)}, {"a": 1}), {"a": IntegerNode(1)}),
         pytest.param(
             ({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"
         ),
@@ -217,12 +228,14 @@ from . import (
             {"dict": "???"},
             id="merge_missing_dict_into_missing_dict",
         ),
-        ([{"user": User}, {"user": Group}], pytest.raises(ValidationError)),
-        (
-            [{"user": DictConfig(ref_type=User, content=User)}, {"user": Group}],
+        pytest.param(
+            [{"user": User}, {"user": Group}],
             pytest.raises(ValidationError),
+            id="merge_group_onto_user_error",
         ),
-        ([Plugin, ConcretePlugin], ConcretePlugin),
+        pytest.param(
+            [Plugin, ConcretePlugin], ConcretePlugin, id="merge_subclass_on_superclass"
+        ),
         pytest.param(
             [{"user": "???"}, {"user": Group}],
             {"user": Group},
@@ -233,7 +246,11 @@ from . import (
             {"admin": None},
             id="merge_none_into_existing_node",
         ),
-        ([{"user": User()}, {"user": {"foo": "bar"}}], pytest.raises(ConfigKeyError)),
+        pytest.param(
+            [{"user": User()}, {"user": {"foo": "bar"}}],
+            pytest.raises(ConfigKeyError),
+            id="merge_unknown_key_into_structured_node",
+        ),
         # DictConfig with element_type of Structured Config
         pytest.param(
             (

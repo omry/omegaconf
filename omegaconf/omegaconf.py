@@ -231,34 +231,26 @@ class OmegaConf:
                     or is_structured_config(obj)
                     or obj is None
                 ):
-                    ref_type = None
-                    if is_structured_config(obj):
-                        ref_type = get_type_of(obj)
-                    elif OmegaConf.is_dict(obj):
-                        ref_type = obj._metadata.ref_type
-
-                    if ref_type is None:
-                        ref_type = OmegaConf.get_type(obj)
-
                     if isinstance(obj, DictConfig):
                         key_type = obj._metadata.key_type
                         element_type = obj._metadata.element_type
                     else:
-                        key_type, element_type = get_dict_key_value_types(ref_type)
+                        obj_type = OmegaConf.get_type(obj)
+                        key_type, element_type = get_dict_key_value_types(obj_type)
                     return DictConfig(
                         content=obj,
                         parent=parent,
-                        ref_type=ref_type,
+                        ref_type=Any,
                         key_type=key_type,
                         element_type=element_type,
                         flags=flags,
                     )
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
-                    ref_type = OmegaConf.get_type(obj)
-                    element_type = get_list_element_type(ref_type)
+                    obj_type = OmegaConf.get_type(obj)
+                    element_type = get_list_element_type(obj_type)
                     return ListConfig(
                         element_type=element_type,
-                        ref_type=ref_type,
+                        ref_type=Any,
                         content=obj,
                         parent=parent,
                         flags=flags,
@@ -805,7 +797,7 @@ def _node_wrap(
     is_optional: bool,
     value: Any,
     key: Any,
-    ref_type: Any = None,
+    ref_type: Any = Any,
 ) -> Node:
     node: Node
     is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
@@ -836,7 +828,7 @@ def _node_wrap(
             ref_type=ref_type,
         )
     elif is_structured_config(type_) or is_structured_config(value):
-        key_type, element_type = get_dict_key_value_types(type_)
+        key_type, element_type = get_dict_key_value_types(value)
         node = DictConfig(
             ref_type=type_,
             is_optional=is_optional,

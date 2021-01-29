@@ -21,9 +21,9 @@ _MARKER_ = object()
 @dataclass
 class Metadata:
 
-    ref_type: Optional[Type[Any]]
+    ref_type: Union[Type[Any], Any]
 
-    object_type: Optional[Type[Any]]
+    object_type: Union[Type[Any], Any]
 
     optional: bool
 
@@ -47,6 +47,8 @@ class ContainerMetadata(Metadata):
     element_type: Any = None
 
     def __post_init__(self) -> None:
+        if self.ref_type is None:
+            self.ref_type = Any
         assert self.key_type is Any or isinstance(self.key_type, type)
         if self.element_type is not None:
             assert self.element_type is Any or isinstance(self.element_type, type)
@@ -438,7 +440,7 @@ class Container(Node):
                         value=value,
                         parent=self,
                         metadata=Metadata(
-                            ref_type=None, object_type=None, key=key, optional=True
+                            ref_type=Any, object_type=Any, key=key, optional=True
                         ),
                     )
                 except Exception as e:

@@ -1,8 +1,7 @@
 """Testing for OmegaConf"""
 import re
 import sys
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import pytest
 import yaml
@@ -286,11 +285,11 @@ def test_create_untyped_list() -> None:
     from omegaconf._utils import get_ref_type
 
     cfg = ListConfig(ref_type=List, content=[])
-    assert get_ref_type(cfg) == Optional[List[Any]]
+    assert get_ref_type(cfg) == Optional[List]
 
 
 def test_create_untyped_dict() -> None:
     from omegaconf._utils import get_ref_type
 
     cfg = DictConfig(ref_type=Dict, content={})
-    assert get_ref_type(cfg) == Optional[Dict[Union[str, Enum], Any]]
+    assert get_ref_type(cfg) == Optional[Dict]

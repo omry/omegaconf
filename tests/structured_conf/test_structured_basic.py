@@ -59,7 +59,9 @@ class TestStructured:
 
         def test_assignment_of_non_subclass_1(self, class_type: str) -> None:
             module: Any = import_module(class_type)
-            cfg = OmegaConf.create({"plugin": module.Plugin})
+            cfg = OmegaConf.create(
+                {"plugin": DictConfig(module.Plugin, ref_type=module.Plugin)}
+            )
             with pytest.raises(ValidationError):
                 cfg.plugin = OmegaConf.structured(module.FaultyPlugin)
 
@@ -120,7 +122,9 @@ class TestStructured:
     class TestFailedAssignmentOrMerges:
         def test_assignment_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
             module: Any = import_module(class_type)
-            cfg = OmegaConf.create({"plugin": module.Plugin})
+            cfg = OmegaConf.create(
+                {"plugin": DictConfig(module.Plugin, ref_type=module.Plugin)}
+            )
             with pytest.raises(ValidationError):
                 cfg.plugin = rhs
 
@@ -191,6 +195,12 @@ class TestStructured:
         assert isinstance(c2, DictConfig)
         assert OmegaConf.is_missing(c2.users, "bob")
 
+    def test_merge_into_missing_sc(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        c1 = OmegaConf.structured(module.PluginHolder)
+        c2 = OmegaConf.merge(c1, {"plugin": "???"})
+        assert c2.plugin == module.Plugin()
+
     def test_merge_missing_key_onto_structured_none(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         c1 = OmegaConf.create({"foo": OmegaConf.structured(module.OptionalUser)})
@@ -228,9 +238,9 @@ class TestStructured:
         src.user_3 = None
         c2 = OmegaConf.merge(c1, src)
         assert c2.user_2.name == "bob"
-        assert get_ref_type(c2, "user_2") == Optional[module.User]
+        assert get_ref_type(c2, "user_2") == Any
         assert c2.user_3 is None
-        assert get_ref_type(c2, "user_3") == Optional[module.User]
+        assert get_ref_type(c2, "user_3") == Any
 
     class TestMissing:
         def test_missing1(self, class_type: str) -> None:
@@ -285,6 +295,9 @@ class TestStructured:
             assert ret == concrete
             assert OmegaConf.get_type(ret) == module.ConcretePlugin
 
+        def test_plugin_merge_2(self, class_type: str) -> None:
+            module: Any = import_module(class_type)
+            plugin = OmegaConf.structured(module.Plugin)
             more_fields = OmegaConf.structured(module.PluginWithAdditionalField)
             ret = OmegaConf.merge(plugin, more_fields)
             assert ret == more_fields

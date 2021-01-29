@@ -47,7 +47,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         content: Union[List[Any], Tuple[Any, ...], str, None],
         key: Any = None,
         parent: Optional[Container] = None,
-        element_type: Optional[Type[Any]] = None,
+        element_type: Union[Type[Any], Any] = Any,
         is_optional: bool = True,
         ref_type: Union[Type[Any], Any] = Any,
         flags: Optional[Dict[str, bool]] = None,

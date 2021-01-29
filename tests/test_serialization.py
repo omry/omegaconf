@@ -4,10 +4,9 @@ import os
 import pathlib
 import pickle
 import tempfile
-from enum import Enum
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -127,13 +126,9 @@ def test_save_illegal_type() -> None:
 
 
 @pytest.mark.parametrize(
-    "obj,ref_type",
-    [
-        ({"a": "b"}, Dict[Union[str, Enum], Any]),
-        ([1, 2, 3], List[Any]),
-    ],
+    "obj", [pytest.param({"a": "b"}, id="dict"), pytest.param([1, 2, 3], id="list")]
 )
-def test_pickle(obj: Any, ref_type: Any) -> None:
+def test_pickle(obj: Any) -> None:
     with tempfile.TemporaryFile() as fp:
         c = OmegaConf.create(obj)
         pickle.dump(c, fp)
@@ -141,7 +136,7 @@ def test_pickle(obj: Any, ref_type: Any) -> None:
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
-        assert get_ref_type(c1) == Optional[ref_type]
+        assert get_ref_type(c1) == Any
         assert c1._metadata.element_type is Any
         assert c1._metadata.optional is True
         if isinstance(c, DictConfig):
@@ -203,14 +198,14 @@ def test_load_empty_file(tmpdir: str) -> None:
     [
         (UntypedList, "list", Any, Any, False, List[Any]),
         (UntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
-        (UntypedDict, "dict", Any, Any, False, Dict[Union[str, Enum], Any]),
+        (UntypedDict, "dict", Any, Any, False, Dict[Any, Any]),
         (
             UntypedDict,
             "opt_dict",
             Any,
             Any,
             True,
-            Optional[Dict[Union[str, Enum], Any]],
+            Optional[Dict[Any, Any]],
         ),
         (SubscriptedDict, "dict", int, str, False, Dict[str, int]),
         (SubscriptedList, "list", int, Any, False, List[int]),
