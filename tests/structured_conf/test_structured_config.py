@@ -1109,6 +1109,7 @@ class TestDictSubclass:
             cfg[Color.BLUE] = "nope"
 
         data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        assert isinstance(data, module.DictSubclass.Str2User)
         assert type(data) is module.DictSubclass.Str2User
         assert type(data["bond"]) is module.User
         assert data["bond"] == module.User("James Bond", 7)
@@ -1135,6 +1136,7 @@ class TestDictSubclass:
             cfg[Color.BLUE] = "nope"
 
         data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        assert isinstance(data, module.DictSubclass.Str2UserWithField)
         assert type(data) is module.DictSubclass.Str2UserWithField
         assert type(data.foo) is module.User
         assert data.foo == module.User("Bond", 7)

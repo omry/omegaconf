@@ -4,7 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
@@ -246,6 +246,7 @@ class BaseContainer(Container, ABC):
 
             object_type = conf._metadata.object_type
             if instantiate_structured_configs and is_structured_config(object_type):
+                assert object_type is not None
                 retstruct = _instantiate_structured_config_impl(
                     retdict=retdict,
                     object_type=object_type,
@@ -817,9 +818,10 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
             node._metadata.ref_type = new_ref_type
             node._metadata.optional = new_is_optional
 
+
 def _instantiate_structured_config_impl(
-    retdict, object_type, allow_objects
-):
+    retdict: Dict[str, Any], object_type: Type[Any], allow_objects: Optional[bool]
+) -> Any:
     from ._utils import get_structured_config_data
 
     object_type_field_names = get_structured_config_data(
@@ -832,9 +834,7 @@ def _instantiate_structured_config_impl(
             k: v for k, v in retdict.items() if k in object_type_field_names
         }
         retdict_nonfield_items = {
-            k: v
-            for k, v in retdict.items()
-            if k not in object_type_field_names
+            k: v for k, v in retdict.items() if k not in object_type_field_names
         }
         result = object_type(**retdict_field_items)
         result.update(retdict_nonfield_items)
