@@ -29,7 +29,7 @@ in the input class.
 
 Simple types
 ^^^^^^^^^^^^
-Simple types includes
+Simple types include
  - int : numeric integers
  - float : numeric floating point values
  - bool : boolean values (True, False, On, Off etc)
@@ -53,7 +53,7 @@ The following class defines fields with all simple types:
     ...     description: str = "text"
 
 You can create a config based on the SimpleTypes class itself or instances of it.
-Those would be equivalent by default, but the Object variant allow you to set the values of specific
+Those would be equivalent by default, but the Object variant allows you to set the values of specific
 fields during construction.
 
 .. doctest::
@@ -332,6 +332,19 @@ To work around it, use SI and II described below.
     >>> assert conf.b == 100
     >>> assert conf.c == 100
 
+
+Type validation is performed on assignment, but not on values returned by interpolation, e.g:
+
+.. doctest::
+
+    >>> from omegaconf import SI
+    >>> @dataclass
+    ... class Interpolation:
+    ...     int_key: int = II("str_key")
+    ...     str_key: str = "string"
+
+    >>> cfg = OmegaConf.structured(Interpolation)
+    >>> assert cfg.int_key == "string"
 
 Frozen
 ^^^^^^
