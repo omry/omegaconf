@@ -332,21 +332,19 @@ To work around it, use SI and II described below.
     >>> assert conf.b == 100
     >>> assert conf.c == 100
 
-Runtime type validation is not performed on interpolated variables, see below.
+
+Type validation is performed on assignment, but not on values returned by interpolation, e.g:
 
 .. doctest::
+
     >>> from omegaconf import SI
-
-    >>> OmegaConf.register_resolver("foo", lambda: "Not an int")
-
     >>> @dataclass
     ... class Interpolation:
-    ...     bar: int = SI("${foo:}")
+    ...     int_key: int = II("str_key")
+    ...     str_key: str = "string"
 
-    >>> interpolation = OmegaConf.structured(Interpolation)
-
-    >>> # This does not trigger a runtime type check
-    >>> assert interpolation.bar == "Not an int"
+    >>> cfg = OmegaConf.structured(Interpolation)
+    >>> assert cfg.int_key == "string"
 
 Frozen
 ^^^^^^
