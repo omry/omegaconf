@@ -248,9 +248,7 @@ class BaseContainer(Container, ABC):
             if instantiate_structured_configs and is_structured_config(object_type):
                 assert object_type is not None
                 retstruct = _instantiate_structured_config_impl(
-                    retdict=retdict,
-                    object_type=object_type,
-                    allow_objects=conf._get_flag("allow_objects"),
+                    retdict=retdict, object_type=object_type
                 )
                 return retstruct
             else:
@@ -820,13 +818,11 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
 
 
 def _instantiate_structured_config_impl(
-    retdict: Dict[str, Any], object_type: Type[Any], allow_objects: Optional[bool]
+    retdict: Dict[str, Any], object_type: Type[Any]
 ) -> Any:
     from ._utils import get_structured_config_data
 
-    object_type_field_names = get_structured_config_data(
-        object_type, allow_objects=allow_objects
-    ).keys()
+    object_type_field_names = get_structured_config_data(object_type).keys()
     if issubclass(object_type, dict):
         # Extending dict as a subclass
 
