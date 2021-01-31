@@ -447,7 +447,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if throw_on_missing_key:
                 raise ConfigKeyError(f"Missing key {key}")
         elif throw_on_missing_value and value._is_missing():
-            raise MissingMandatoryValue("Missing mandatory value")
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=MissingMandatoryValue("Missing mandatory value"),
+            )
         return value
 
     def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:

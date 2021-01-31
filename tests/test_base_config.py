@@ -560,16 +560,21 @@ def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
 
 
 @pytest.mark.parametrize(
-    "cfg, key",
+    "cfg, key, missing_key",  # it might be that key != missing_key in the case of slice
     [
         # dict
-        pytest.param({"foo": "???"}, "foo", id="dict"),
+        pytest.param({"foo": "???"}, "foo", "foo", id="dict"),
         # list
-        pytest.param([10, "???", 30], 1, id="list_int"),
-        pytest.param([10, "???", 30], slice(1, 2), id="list_slice"),
+        pytest.param([10, "???", 30], 1, 1, id="list_int"),
+        pytest.param([10, "???", 30], slice(1, 2), 1, id="list_slice"),
     ],
 )
-def test_get_node_throw_on_missing_value(cfg: Any, key: Any) -> None:
+def test_get_node_throw_on_missing_value(cfg: Any, key: Any, missing_key: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
+    with pytest.raises(
+        MissingMandatoryValue, match="Missing mandatory value"
+    ) as excinfo:
         cfg._get_node(key, throw_on_missing_value=True)
+    ex: MissingMandatoryValue = excinfo.value
+    assert ex.key == missing_key
+    assert ex.parent_node == cfg

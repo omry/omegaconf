@@ -193,6 +193,7 @@ class BaseContainer(Container, ABC):
         resolve: bool,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
+        throw_on_missing: bool = False,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -212,6 +213,12 @@ class BaseContainer(Container, ABC):
             assert isinstance(inter, str)
             return inter
         elif conf._is_missing():
+            if throw_on_missing:
+                conf._format_and_raise(
+                    key=None,
+                    value="???",
+                    cause=MissingMandatoryValue("Missing mandatory value"),
+                )
             return "???"
         elif isinstance(conf, DictConfig):
             if conf._metadata.object_type is not None and exclude_structured_configs:
@@ -219,7 +226,7 @@ class BaseContainer(Container, ABC):
 
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
-                node = conf._get_node(key)
+                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(
@@ -233,6 +240,7 @@ class BaseContainer(Container, ABC):
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         exclude_structured_configs=exclude_structured_configs,
+                        throw_on_missing=throw_on_missing,
                     )
                 else:
                     retdict[key] = convert(node)
@@ -240,7 +248,7 @@ class BaseContainer(Container, ABC):
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
-                node = conf._get_node(index)
+                node = conf._get_node(index, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(
@@ -253,6 +261,7 @@ class BaseContainer(Container, ABC):
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         exclude_structured_configs=exclude_structured_configs,
+                        throw_on_missing=throw_on_missing,
                     )
                     retlist.append(item)
                 else:
