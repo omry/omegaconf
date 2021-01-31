@@ -811,3 +811,12 @@ def test_self_assign_list_value_with_ref_type(c: Any) -> None:
     cfg = OmegaConf.create(c)
     cfg.a = cfg.a
     assert cfg == c
+
+
+def test_assign_to_sc_field_without_ref_type():
+    cfg = OmegaConf.create({"plugin": ConcretePlugin})
+    with pytest.raises(ValidationError):
+        cfg.plugin.params.foo = "bar"
+
+    cfg.plugin = 10
+    assert cfg.plugin == 10
