@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
+import tests
 from omegaconf import (
     DictConfig,
     IntegerNode,
@@ -15,6 +16,7 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
 )
+from omegaconf._utils import type_str
 from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -72,11 +74,17 @@ class Expected:
 
     object_type_str: Optional[str] = "AUTO"
     ref_type_str: Optional[str] = "AUTO"
-    num_lines: int = 3
+    num_lines: int = 2
 
     def finalize(self, cfg: Any) -> None:
         if self.object_type == "AUTO":
             self.object_type = OmegaConf.get_type(cfg)
+
+        if self.object_type_str == "AUTO":
+            self.object_type_str = type_str(self.object_type)
+        if self.ref_type_str == "AUTO" and self.ref_type is not None:
+            self.ref_type_str = type_str(self.ref_type)
+            self.num_lines = self.num_lines + 1
 
         if self.full_key == "AUTO":
             if self.key is None:
@@ -264,6 +272,7 @@ params = [
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
+            ref_type=ConcretePlugin.FoobarParams,
             child_node=lambda cfg: cfg.params.foo,
             parent_node=lambda cfg: cfg.params,
         ),
@@ -332,7 +341,6 @@ params = [
             exception_type=KeyValidationError,
             msg="Key 'foo' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
             key="foo",
-            num_lines=3,
         ),
         id="DictConfig[Color,str]:getitem_str_key",
     ),
@@ -366,6 +374,7 @@ params = [
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
+            ref_type=tests.ConcretePlugin.FoobarParams,
             child_node=lambda cfg: cfg.params.foo,
             parent_node=lambda cfg: cfg.params,
         ),
@@ -380,6 +389,7 @@ params = [
             key="zlonk",
             full_key="params.zlonk",
             object_type=ConcretePlugin.FoobarParams,
+            ref_type=ConcretePlugin.FoobarParams,
             parent_node=lambda cfg: cfg.params,
         ),
         id="structured:merge,adding_an_invalid_key",
@@ -438,9 +448,8 @@ params = [
             msg=dedent(
                 """\
                 Key foo (str) is incompatible with (int)
-                \tfull_key: foo
-                \treference_type=Any
-                \tobject_type=dict"""
+                    full_key: foo
+                    object_type=dict"""
             ),
             key="foo",
             full_key="foo",
@@ -481,7 +490,7 @@ params = [
             full_key="x",
             msg="field 'x' is not Optional",
             object_type_str="NotOptionalInt",
-            ref_type_str=None,
+            ref_type=A,
         ),
         id="dict:create:not_optional_A_field_with_none",
     ),
@@ -513,9 +522,7 @@ params = [
             op=lambda cfg: OmegaConf.structured(UnionError),
             exception_type=ValueError,
             msg="Union types are not supported:\nx: Union[int, str]",
-            object_type_str=None,
-            ref_type_str=None,
-            num_lines=4,
+            num_lines=3,
         ),
         id="structured:create_with_union_error",
     ),
@@ -1097,8 +1104,6 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
     assert ex.object_type == expected.object_type
     assert ex.key == expected.key
     if not expected.low_level:
-        if isinstance(ex, OmegaConfBaseException):
-            assert str(ex).count("\n") == expected.num_lines
         assert ex.parent_node == expected.parent_node(cfg)
         assert ex.child_node == expected.child_node(cfg)
         assert ex.full_key == expected.full_key
@@ -1109,6 +1114,15 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
 
         if expected.object_type is not None:
             assert ex.object_type == expected.object_type
+
+        if expected.ref_type is not None:
+            assert ex.ref_type_str == expected.ref_type_str
+
+        if expected.object_type is not None:
+            assert ex.object_type_str == expected.object_type_str
+
+        if isinstance(ex, OmegaConfBaseException):
+            assert str(ex).count("\n") == expected.num_lines
 
         with monkeypatch.context() as m:
             m.setenv("OC_CAUSE", "1")

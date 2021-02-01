@@ -4,6 +4,7 @@ import re
 import string
 import sys
 from enum import Enum
+from textwrap import dedent
 from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
@@ -613,11 +614,21 @@ def format_and_raise(
         KEY_TYPE=f"{type(key).__name__}",
     )
 
-    template = """$MSG
-\tfull_key: $FULL_KEY
-\treference_type=$REF_TYPE
-\tobject_type=$OBJECT_TYPE"""
-
+    if ref_type not in (None, Any):
+        template = dedent(
+            """\
+            $MSG
+                full_key: $FULL_KEY
+                reference_type=$REF_TYPE
+                object_type=$OBJECT_TYPE"""
+        )
+    else:
+        template = dedent(
+            """\
+            $MSG
+                full_key: $FULL_KEY
+                object_type=$OBJECT_TYPE"""
+        )
     s = string.Template(template=template)
 
     message = s.substitute(
