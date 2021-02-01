@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from textwrap import dedent
 from typing import Any, List, Optional
 
 import pytest
@@ -170,7 +171,11 @@ def test_nested_list_assign_illegal_value() -> None:
     with pytest.raises(
         UnsupportedValueType,
         match=re.escape(
-            "Value 'IllegalType' is not a supported primitive type\n\tfull_key: a[0]"
+            dedent(
+                """\
+                Value 'IllegalType' is not a supported primitive type
+                    full_key: a[0]"""
+            )
         ),
     ):
         c.a[0] = IllegalType()
