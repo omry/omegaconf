@@ -8,6 +8,7 @@ import pytest
 from _pytest.python_api import RaisesContext
 
 from omegaconf import (
+    SI,
     Container,
     DictConfig,
     IntegerNode,
@@ -18,6 +19,7 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigKeyError, OmegaConfBaseException
+from tests import User
 
 
 @pytest.mark.parametrize(
@@ -453,3 +455,24 @@ def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
 def test_resolve_interpolation_without_parent() -> None:
     with pytest.raises(OmegaConfBaseException):
         DictConfig(content="${foo}")._dereference_node()
+
+
+def test_custom_resolver_return_validated(restore_resolvers: Any) -> Any:
+    def cast(t: Any, v: Any) -> Any:
+        if t == "str":
+            return str(v)
+        if t == "int":
+            return int(v)
+        assert False
+
+    OmegaConf.register_resolver("cast", cast)
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:int,7}")))
+    assert cfg.age == 7
+
+    # converted to int per the dataclass age field
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:str,7}")))
+    assert cfg.age == 7
+
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:str,seven}")))
+    with pytest.raises(ValidationError):
+        cfg.age

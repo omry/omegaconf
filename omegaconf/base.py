@@ -409,7 +409,7 @@ class Container(Node):
     ) -> Optional["Node"]:
         from omegaconf import OmegaConf
 
-        from .nodes import ValueNode
+        from .nodes import AnyNode, ValueNode
 
         inter_type = ("str:" if inter_type is None else inter_type)[0:-1]
         if inter_type == "str":
@@ -436,6 +436,10 @@ class Container(Node):
                 root_node = self._get_root()
                 try:
                     value = resolver(root_node, inter_key)
+                    node = self._get_node(key)
+                    if isinstance(node, ValueNode) and not isinstance(node, AnyNode):
+                        value = node.validate_and_convert(value)
+
                     return ValueNode(
                         value=value,
                         parent=self,
