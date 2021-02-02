@@ -748,10 +748,6 @@ def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
 
 
-def is_generic_container(type_: Any) -> bool:
-    return is_generic_dict(type_) or is_generic_list(type_)
-
-
 def is_legal_assignment(dest_type: Any, src_type: Any) -> bool:
     is_legal = False
     if is_list_annotation(dest_type) and is_list_annotation(src_type):

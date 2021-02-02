@@ -101,7 +101,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     )
 
         target_type = self._metadata.element_type
-        if target_type in (Any, None):
+        if target_type is Any:
             return
 
         value_type = OmegaConf.get_type(value)
