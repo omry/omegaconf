@@ -81,27 +81,21 @@ def yaml_is_bool(b: str) -> bool:
 
 
 def get_yaml_loader() -> Any:
-    # Custom constructor that checks for duplicate keys
-    # (from https://gist.github.com/pypt/94d747fe5180851196eb)
-    def no_duplicates_constructor(
-        loader: yaml.Loader, node: yaml.Node, deep: bool = False
-    ) -> Any:
-        mapping: Dict[str, Any] = {}
-        for key_node, value_node in node.value:
-            key = loader.construct_object(key_node, deep=deep)
-            value = loader.construct_object(value_node, deep=deep)
-            if key in mapping:
-                raise yaml.constructor.ConstructorError(
-                    "while constructing a mapping",
-                    node.start_mark,
-                    f"found duplicate key {key}",
-                    key_node.start_mark,
-                )
-            mapping[key] = value
-        return loader.construct_mapping(node, deep)
-
     class OmegaConfLoader(yaml.SafeLoader):  # type: ignore
-        pass
+        def construct_mapping(self, node: yaml.Node, deep: bool = False) -> Any:
+            keys = set()
+            for key_node, value_node in node.value:
+                if key_node.tag != yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG:
+                    continue
+                if key_node.value in keys:
+                    raise yaml.constructor.ConstructorError(
+                        "while constructing a mapping",
+                        node.start_mark,
+                        f"found duplicate key {key_node.value}",
+                        key_node.start_mark,
+                    )
+                keys.add(key_node.value)
+            return super().construct_mapping(node, deep=deep)
 
     loader = OmegaConfLoader
     loader.add_implicit_resolver(
@@ -126,9 +120,6 @@ def get_yaml_loader() -> Any:
         ]
         for key, resolvers in loader.yaml_implicit_resolvers.items()
     }
-    loader.add_constructor(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, no_duplicates_constructor
-    )
     return loader
 
 

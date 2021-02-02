@@ -183,6 +183,29 @@ def test_load_duplicate_keys_sub() -> None:
         os.unlink(fp.name)
 
 
+def test_load_merge_duplicates() -> None:
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            content = dedent(
+                """\
+                a: &A
+                    x: 1
+                b: &B
+                    y: 2
+                c:
+                    <<: *A
+                    <<: *B
+                    x: 3
+                    z: 1
+                """
+            )
+            fp.write(content.encode("utf-8"))
+        cfg = OmegaConf.load(fp.name)
+        assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
+    finally:
+        os.unlink(fp.name)
+
+
 def test_load_empty_file(tmpdir: str) -> None:
     empty = Path(tmpdir) / "test.yaml"
     empty.touch()
