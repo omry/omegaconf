@@ -867,7 +867,6 @@ def test_self_assign_list_value_with_ref_type(c: Any) -> None:
     assert cfg == c
 
 
-<<<<<<< HEAD
 def test_assign_to_sc_field_without_ref_type() -> None:
     cfg = OmegaConf.create({"plugin": ConcretePlugin})
     with pytest.raises(ValidationError):
@@ -875,7 +874,8 @@ def test_assign_to_sc_field_without_ref_type() -> None:
 
     cfg.plugin = 10
     assert cfg.plugin == 10
-=======
+
+
 @pytest.mark.parametrize(
     "key, value",
     [
@@ -891,4 +891,3 @@ def test_copy_container_in_dict(key: str, value: Any) -> None:
     assert id(cfg1.foo) != id(cfg[key].foo)
     assert cfg[key].foo != cfg1.foo
     assert cfg1.foo == value
->>>>>>> b280230... test copy

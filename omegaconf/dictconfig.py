@@ -180,6 +180,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if target is not None
             else self._metadata.element_type
         )
+        if target_type is Any:
+            return
         target_has_ref_type = isinstance(target, DictConfig) and target_type not in (
             Any,
             dict,
@@ -239,7 +241,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             and not issubclass(src_obj_type, dest_obj_type)
         )
         if validation_error:
-            _raise_invalid_assignment(target_type, value_type, value)
+            _raise_invalid_assignment(dest_obj_type, src_obj_type, value)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
