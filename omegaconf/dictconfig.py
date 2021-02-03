@@ -402,6 +402,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def get(self, key: DictKeyType, default_value: Any = DEFAULT_VALUE_MARKER) -> Any:
         try:
             return self._get_impl(key=key, default_value=default_value)
+        except ConfigAttributeError:
+            return None
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 

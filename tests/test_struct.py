@@ -23,7 +23,7 @@ def test_struct_set_on_dict() -> None:
 
 
 def test_struct_set_on_nested_dict() -> None:
-    c = OmegaConf.create(dict(a=dict(b=10)))
+    c = OmegaConf.create({"a": {"b": 10}})
     OmegaConf.set_struct(c, True)
     with pytest.raises(AttributeError):
         # noinspection PyStatementEffect
@@ -37,7 +37,7 @@ def test_struct_set_on_nested_dict() -> None:
 
 
 def test_merge_dotlist_into_struct() -> None:
-    c = OmegaConf.create(dict(a=dict(b=10)))
+    c = OmegaConf.create({"a": {"b": 10}})
     OmegaConf.set_struct(c, True)
     with pytest.raises(AttributeError, match=re.escape("foo")):
         c.merge_with_dotlist(["foo=1"])
@@ -55,6 +55,11 @@ def test_merge_config_with_struct(
 
 
 def test_struct_contain_missing() -> None:
-    c = OmegaConf.create(dict())
+    c = OmegaConf.create()
     OmegaConf.set_struct(c, True)
     assert "foo" not in c
+
+
+@pytest.mark.parametrize("cfg", [{}, OmegaConf.create({}, flags={"struct": True})])
+def test_struct_dict_get(cfg: Any) -> None:
+    assert cfg.get("z") is None
