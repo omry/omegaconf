@@ -876,26 +876,20 @@ class TestConfigs:
             return round_tripped
 
         def test_basic(self, module: Any) -> None:
-            user = self.round_trip_to_container(module.User())
-            assert isinstance(user, module.User)
-            assert type(user) is module.User
-            assert user.name is MISSING
-            assert user.age is MISSING
-
             user = self.round_trip_to_container(module.User("Bond", 7))
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name == "Bond"
             assert user.age == 7
 
-        def test_nested(self, module: Any) -> None:
-            data = self.round_trip_to_container({1: module.User()})
-            user = data[1]
+        def test_basic_with_missing(self, module: Any) -> None:
+            user = self.round_trip_to_container(module.User())
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name is MISSING
             assert user.age is MISSING
 
+        def test_nested(self, module: Any) -> None:
             data = self.round_trip_to_container({1: module.User("Bond", 7)})
             user = data[1]
             assert isinstance(user, module.User)
@@ -903,13 +897,15 @@ class TestConfigs:
             assert user.name == "Bond"
             assert user.age == 7
 
-        def test_list(self, module: Any) -> None:
-            lst = self.round_trip_to_container(module.UserList)
-            assert isinstance(lst, module.UserList)
-            assert type(lst) is module.UserList
-            # assert lst.list is MISSING  # fails: lst.list is "???"
-            assert lst.list == MISSING
+        def test_nested_with_missing(self, module: Any) -> None:
+            data = self.round_trip_to_container({1: module.User()})
+            user = data[1]
+            assert isinstance(user, module.User)
+            assert type(user) is module.User
+            assert user.name is MISSING
+            assert user.age is MISSING
 
+        def test_list(self, module: Any) -> None:
             lst = self.round_trip_to_container(
                 module.UserList([module.User("Bond", 7)])
             )
@@ -922,13 +918,14 @@ class TestConfigs:
             assert user.name == "Bond"
             assert user.age == 7
 
-        def test_dict(self, module: Any) -> None:
-            user_dict = self.round_trip_to_container(module.UserDict)
-            assert isinstance(user_dict, module.UserDict)
-            assert type(user_dict) is module.UserDict
-            # assert user_dict.dict is MISSING  # fails: dct.dict is "???"
-            assert user_dict.dict == MISSING
+        def test_list_with_missing(self, module: Any) -> None:
+            lst = self.round_trip_to_container(module.UserList)
+            assert isinstance(lst, module.UserList)
+            assert type(lst) is module.UserList
+            # assert lst.list is MISSING  # fails: lst.list is "???"
+            assert lst.list == MISSING
 
+        def test_dict(self, module: Any) -> None:
             user_dict = self.round_trip_to_container(
                 module.UserDict({"user007": module.User("Bond", 7)})
             )
@@ -940,6 +937,13 @@ class TestConfigs:
             assert type(user) is module.User
             assert user.name == "Bond"
             assert user.age == 7
+
+        def test_dict_with_missing(self, module: Any) -> None:
+            user_dict = self.round_trip_to_container(module.UserDict)
+            assert isinstance(user_dict, module.UserDict)
+            assert type(user_dict) is module.UserDict
+            # assert user_dict.dict is MISSING  # fails: dct.dict is "???"
+            assert user_dict.dict == MISSING
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:
