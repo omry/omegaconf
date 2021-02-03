@@ -304,7 +304,7 @@ class Container(Node):
         key: Any,
         validate_access: bool = True,
         throw_on_missing: bool = False,
-    ) -> Any:
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
         ...
 
     @abstractmethod

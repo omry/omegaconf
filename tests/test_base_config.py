@@ -337,7 +337,7 @@ def test_set_flags() -> None:
 def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) -> None:
     cfg = OmegaConf.create({"c": node})
     cfg._set_flag("foo", True)
-    nc = cfg._get_node("c")
+    nc: Any = cfg._get_node("c")
     assert nc is not None
     assert nc._flags_cache is None
     assert nc._get_flag("foo") is True

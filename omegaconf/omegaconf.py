@@ -902,8 +902,10 @@ def _select_one(
     assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
-        val: Optional[Node] = c._get_node(ret_key, validate_access=False)
+        val = c._get_node(ret_key, validate_access=False)
+        assert val is None or isinstance(val, Node)
         if val is not None:
+            assert isinstance(val, Node)
             if val._is_missing():
                 if throw_on_missing:
                     raise MissingMandatoryValue(
@@ -931,4 +933,5 @@ def _select_one(
     else:
         assert False
 
+    assert val is None or isinstance(val, Node)
     return val, ret_key

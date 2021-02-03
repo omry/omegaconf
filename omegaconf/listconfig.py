@@ -95,6 +95,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if 0 <= key < self.__len__():
             target = self._get_node(key)
             if target is not None:
+                assert isinstance(target, Node)
                 if value is None and not target._is_optional():
                     raise ValidationError(
                         "$FULL_KEY is not optional and cannot be assigned None"
@@ -274,6 +275,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         for i in range(len(self)):
             node = self._get_node(i)
             if node is not None:
+                assert isinstance(node, Node)
                 node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
@@ -371,7 +373,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         key: Union[int, slice],
         validate_access: bool = True,
         throw_on_missing: bool = False,
-    ) -> Any:
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             if self._is_none():
                 raise TypeError(

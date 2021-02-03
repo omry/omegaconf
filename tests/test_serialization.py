@@ -289,7 +289,7 @@ def test_pickle_none() -> None:
 def test_pickle_flags_consistency() -> None:
     cfg = OmegaConf.create({"a": 0})
     cfg._set_flag("test", True)
-    assert cfg._get_node("a")._get_flag("test")
+    assert cfg._get_node("a")._get_flag("test")  # type: ignore
 
     cfg2 = pickle.loads(pickle.dumps(cfg))
     cfg2._set_flag("test", None)
