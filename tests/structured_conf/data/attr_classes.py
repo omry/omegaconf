@@ -6,6 +6,7 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 from tests import Color
+from tests import User as User2
 
 if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
@@ -534,3 +535,37 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class ContainerInDict:
+    dict_with_list: Dict[str, List[int]] = {"foo": [1, 2]}
+    dict_with_dict: Dict[str, Dict[str, int]] = {"foo": {"var": 1}}
+
+
+@attr.s(auto_attribs=True)
+class ContainerInList:
+    list_with_list: List[List[int]] = [[0, 1], [2, 3]]
+    list_with_dict: List[Dict[str, int]] = [{"foo": 1, "foo2": 2}]
+
+
+@attr.s(auto_attribs=True)
+class ContainerInDictWithUser:
+    dict_with_list: Dict[str, List[User2]] = {"foo": [User2()]}
+    dict_with_dict: Dict[str, Dict[str, User2]] = {"foo": {"var": User2()}}
+
+
+@attr.s(auto_attribs=True)
+class ContainerInListWithUser:
+    list_with_list: List[List[User2]] = [[User2(), User2()], [User2()]]
+    list_with_dict: List[Dict[str, User2]] = [{"foo": User2(), "foo2": User2()}]
+
+
+@attr.s(auto_attribs=True)
+class ComplexList:
+    list: List[List[Dict[str, int]]] = [[{"foo": 1}]]
+
+
+@attr.s(auto_attribs=True)
+class ComplexDict:
+    dict: Dict[str, Dict[str, List[int]]] = {"foo": {"var": [1, 2]}}

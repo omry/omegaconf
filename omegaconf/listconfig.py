@@ -17,12 +17,15 @@ from typing import (
 from ._utils import (
     ValueKind,
     _get_value,
+    _raise_invalid_assignment,
     format_and_raise,
     get_value_kind,
+    is_container_assignment,
     is_int,
+    is_invalid_container_assignment,
     is_primitive_list,
     is_structured_config,
-    type_str,
+    should_unwrap,
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
@@ -85,7 +88,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
 
     def _validate_set(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
+        from omegaconf import OmegaConf, ValueNode
 
         self._validate_get(key, value)
 
@@ -101,18 +104,23 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     )
 
         target_type = self._metadata.element_type
+        if target_type is Any:
+            return
+
         value_type = OmegaConf.get_type(value)
-        if is_structured_config(target_type):
-            if (
-                target_type is not None
-                and value_type is not None
-                and not issubclass(value_type, target_type)
-            ):
-                msg = (
-                    f"Invalid type assigned : {type_str(value_type)} is not a "
-                    f"subclass of {type_str(target_type)}. value: {value}"
-                )
-                raise ValidationError(msg)
+
+        needs_type_validation = is_structured_config(value_type) or isinstance(
+            value, ValueNode
+        )
+        if (
+            needs_type_validation
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        ) or (
+            is_container_assignment(self)
+            and is_invalid_container_assignment(self, value)
+        ):
+            _raise_invalid_assignment(target_type, value_type, value)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
@@ -252,11 +260,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
+
         try:
             from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
             index = len(self)
             self._validate_set(key=index, value=item)
+
+            if should_unwrap(self, item):
+                item = item._value()
 
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,

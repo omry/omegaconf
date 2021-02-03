@@ -19,6 +19,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _raise_invalid_assignment,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -163,7 +164,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 )
 
     def _validate_set(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
+        from omegaconf import AnyNode, OmegaConf
 
         vk = get_value_kind(value)
         if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
@@ -174,16 +175,29 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         target = self._get_node(key) if key is not None else self
 
-        target_has_ref_type = isinstance(
-            target, DictConfig
-        ) and target._metadata.ref_type not in (Any, dict)
-        is_valid_target = target is None or not target_has_ref_type
+        target_type = (
+            target._metadata.ref_type
+            if target is not None
+            else self._metadata.element_type
+        )
+        if target_type is Any:
+            return
+        target_has_ref_type = isinstance(target, DictConfig) and target_type not in (
+            Any,
+            dict,
+        )
+        value_type = OmegaConf.get_type(value)
+
+        input_container = (
+            is_structured_config(value_type) and self._metadata.element_type is not Any
+        )
+        input_any_node = isinstance(value, AnyNode) and target_type is not Any
+        is_valid_target = (
+            not target_has_ref_type and not input_container and not input_any_node
+        )
 
         if is_valid_target:
             return
-
-        target_type = target._metadata.ref_type  # type: ignore
-        value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):
             return
@@ -199,7 +213,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             and not issubclass(value_type, target_type)
         )
         if validation_error:
-            self._raise_invalid_value(value, value_type, target_type)
+            _raise_invalid_assignment(target_type, value_type, value)
 
     def _validate_merge(self, value: Any) -> None:
         from omegaconf import OmegaConf
@@ -227,11 +241,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             and not issubclass(src_obj_type, dest_obj_type)
         )
         if validation_error:
-            msg = (
-                f"Merge error : {type_str(src_obj_type)} is not a "
-                f"subclass of {type_str(dest_obj_type)}. value: {src}"
-            )
-            raise ValidationError(msg)
+            _raise_invalid_assignment(dest_obj_type, src_obj_type, value)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
@@ -252,17 +262,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         value=value,
                         cause=ValidationError("field '$FULL_KEY' is not Optional"),
                     )
-
-    def _raise_invalid_value(
-        self, value: Any, value_type: Any, target_type: Any
-    ) -> None:
-        assert value_type is not None
-        assert target_type is not None
-        msg = (
-            f"Invalid type assigned : {type_str(value_type)} is not a "
-            f"subclass of {type_str(target_type)}. value: {value}"
-        )
-        raise ValidationError(msg)
 
     def _validate_and_normalize_key(self, key: Any) -> DictKeyType:
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)

@@ -24,6 +24,7 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_type,
     is_structured_config,
+    should_unwrap,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -523,6 +524,8 @@ class BaseContainer(Container, ABC):
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
         special_value = value is None or value == "???"
+        expect_nested_container = is_container_annotation(self._metadata.element_type)
+        should_assign = not expect_nested_container and input_config
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -560,6 +563,8 @@ class BaseContainer(Container, ABC):
                 else:
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type
+            if input_config and should_unwrap(self, val):
+                val = val._value()
             return _maybe_wrap(
                 ref_type=ref_type,
                 key=key,
@@ -582,7 +587,7 @@ class BaseContainer(Container, ABC):
             # input is not node, can be primitive or config
             if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
-            elif input_config:
+            elif should_assign:
                 assign(key, value)
             else:
                 self.__dict__["_content"][key] = wrap(key, value)
@@ -592,7 +597,7 @@ class BaseContainer(Container, ABC):
         elif not input_node and not target_node:
             if should_set_value:
                 self.__dict__["_content"][key]._set_value(value)
-            elif input_config:
+            elif should_assign:
                 assign(key, value)
             else:
                 self.__dict__["_content"][key] = wrap(key, value)

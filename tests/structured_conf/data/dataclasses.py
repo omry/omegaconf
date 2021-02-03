@@ -7,6 +7,7 @@ import pytest
 
 from omegaconf import II, MISSING, SI
 from tests import Color
+from tests import User as User2
 
 if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
@@ -553,3 +554,53 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+@dataclass
+class ContainerInDict:
+    dict_with_list: Dict[str, List[int]] = field(
+        default_factory=lambda: {"foo": [1, 2]}
+    )
+    dict_with_dict: Dict[str, Dict[str, int]] = field(
+        default_factory=lambda: {"foo": {"var": 1}}
+    )
+
+
+@dataclass
+class ContainerInList:
+    list_with_list: List[List[int]] = field(default_factory=lambda: [[0, 1], [2, 3]])
+    list_with_dict: List[Dict[str, int]] = field(
+        default_factory=lambda: [{"foo": 1, "foo2": 2}]
+    )
+
+
+@dataclass
+class ContainerInDictWithUser:
+    dict_with_list: Dict[str, List[User2]] = field(
+        default_factory=lambda: {"foo": [User2()]}
+    )
+    dict_with_dict: Dict[str, Dict[str, User2]] = field(
+        default_factory=lambda: {"foo": {"var": User2()}}
+    )
+
+
+@dataclass
+class ContainerInListWithUser:
+    list_with_list: List[List[User2]] = field(
+        default_factory=lambda: [[User2(), User2()]]
+    )
+    list_with_dict: List[Dict[str, User2]] = field(
+        default_factory=lambda: [{"foo": User2(), "foo2": User2()}]
+    )
+
+
+@dataclass
+class ComplexList:
+    list: List[List[Dict[str, int]]] = field(default_factory=lambda: [[{"foo": 1}]])
+
+
+@dataclass
+class ComplexDict:
+    dict: Dict[str, Dict[str, List[int]]] = field(
+        default_factory=lambda: {"foo": {"var": [1, 2]}}
+    )
