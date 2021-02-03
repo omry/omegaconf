@@ -48,9 +48,28 @@ class TestConfigs:
         [
             ("ContainerInList", [{"user": True}], "list_with_dict"),
             ("ContainerInList", [{"user": User()}], "list_with_dict"),
+            (
+                "ContainerInList",
+                ListConfig(
+                    content=[{"user": User()}],
+                    ref_type=List[Dict[str, User]],
+                    element_type=Dict[str, User],
+                ),
+                "list_with_dict",
+            ),
             ("ContainerInList", [[1, 2], [True, 4]], "list_with_list"),
             ("ContainerInList", [[1, 2], [User(), 4]], "list_with_list"),
             ("ContainerInDict", {"users": {"default": True}}, "dict_with_dict"),
+            (
+                "ContainerInDict",
+                DictConfig(
+                    content={"users": {"default": True}},
+                    ref_type=Dict[str, Dict[str, bool]],
+                    element_type=Dict[str, bool],
+                    key_type=str,
+                ),
+                "dict_with_dict",
+            ),
             ("ContainerInDict", {"users": {"default": User()}}, "dict_with_dict"),
             ("ContainerInDict", {"users": [1, True]}, "dict_with_list"),
             ("ContainerInDict", {"users": [1, User()]}, "dict_with_list"),
