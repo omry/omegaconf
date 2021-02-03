@@ -870,27 +870,27 @@ class TestConfigs:
             module: Any = import_module(class_type)
             return module
 
-        def round_trip_to_container(self, input_data: Any) -> Any:
+        def round_trip_to_object(self, input_data: Any) -> Any:
             serialized = OmegaConf.create(input_data)
             round_tripped = OmegaConf.to_object(serialized)
             return round_tripped
 
         def test_basic(self, module: Any) -> None:
-            user = self.round_trip_to_container(module.User("Bond", 7))
+            user = self.round_trip_to_object(module.User("Bond", 7))
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name == "Bond"
             assert user.age == 7
 
         def test_basic_with_missing(self, module: Any) -> None:
-            user = self.round_trip_to_container(module.User())
+            user = self.round_trip_to_object(module.User())
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name is MISSING
             assert user.age is MISSING
 
         def test_nested(self, module: Any) -> None:
-            data = self.round_trip_to_container({1: module.User("Bond", 7)})
+            data = self.round_trip_to_object({1: module.User("Bond", 7)})
             user = data[1]
             assert isinstance(user, module.User)
             assert type(user) is module.User
@@ -898,7 +898,7 @@ class TestConfigs:
             assert user.age == 7
 
         def test_nested_with_missing(self, module: Any) -> None:
-            data = self.round_trip_to_container({1: module.User()})
+            data = self.round_trip_to_object({1: module.User()})
             user = data[1]
             assert isinstance(user, module.User)
             assert type(user) is module.User
@@ -906,9 +906,7 @@ class TestConfigs:
             assert user.age is MISSING
 
         def test_list(self, module: Any) -> None:
-            lst = self.round_trip_to_container(
-                module.UserList([module.User("Bond", 7)])
-            )
+            lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
             assert isinstance(lst, module.UserList)
             assert type(lst) is module.UserList
             assert len(lst.list) == 1
@@ -919,14 +917,14 @@ class TestConfigs:
             assert user.age == 7
 
         def test_list_with_missing(self, module: Any) -> None:
-            lst = self.round_trip_to_container(module.UserList)
+            lst = self.round_trip_to_object(module.UserList)
             assert isinstance(lst, module.UserList)
             assert type(lst) is module.UserList
             # assert lst.list is MISSING  # fails: lst.list is "???"
             assert lst.list == MISSING
 
         def test_dict(self, module: Any) -> None:
-            user_dict = self.round_trip_to_container(
+            user_dict = self.round_trip_to_object(
                 module.UserDict({"user007": module.User("Bond", 7)})
             )
             assert isinstance(user_dict, module.UserDict)
@@ -939,7 +937,7 @@ class TestConfigs:
             assert user.age == 7
 
         def test_dict_with_missing(self, module: Any) -> None:
-            user_dict = self.round_trip_to_container(module.UserDict)
+            user_dict = self.round_trip_to_object(module.UserDict)
             assert isinstance(user_dict, module.UserDict)
             assert type(user_dict) is module.UserDict
             # assert user_dict.dict is MISSING  # fails: dct.dict is "???"
