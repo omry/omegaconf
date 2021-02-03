@@ -872,7 +872,7 @@ class TestConfigs:
 
         def round_trip_to_container(self, input_data: Any) -> Any:
             serialized = OmegaConf.create(input_data)
-            round_tripped = OmegaConf.to_container(serialized, instantiate=True)
+            round_tripped = OmegaConf.to_object(serialized)
             return round_tripped
 
         def test_basic(self, module: Any) -> None:
