@@ -589,6 +589,9 @@ class OmegaConf:
         :param enum_to_str: True to convert Enum values to strings
         :param exclude_structured_configs: If True, do not convert Structured Configs
                (DictConfigs backed by a dataclass)
+        :param instantiate: If True, this function will instantiate structured configs
+               (DictConfigs backed by a dataclass), by creating an instance
+               of the underlying dataclass. See also OmegaConf.to_object.
         :return: A dict or a list representing this config as a primitive container.
         """
         if not OmegaConf.is_config(cfg):
@@ -602,6 +605,33 @@ class OmegaConf:
             enum_to_str=enum_to_str,
             exclude_structured_configs=exclude_structured_configs,
             instantiate=instantiate,
+        )
+
+    @staticmethod
+    def to_object(
+        cfg: Any,
+        *,
+        resolve: bool = False,
+        enum_to_str: bool = False,
+    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
+        """
+        Resursively converts an OmegaConf config to a primitive container (dict or list).
+        Any DictConfig objects backed by dataclasses or attrs classes are instantiated
+        as instances of those backing classes.
+
+        This is an alias for OmegaConf.to_container(..., exclude_structured_configs=Flase, instantiate=True)
+
+        :param cfg: the config to convert
+        :param resolve: True to resolve all values
+        :param enum_to_str: True to convert Enum values to strings
+        :return: A dict or a list or dataclass representing this config.
+        """
+        return OmegaConf.to_container(
+            cfg=cfg,
+            resolve=resolve,
+            enum_to_str=enum_to_str,
+            exclude_structured_configs=False,
+            instantiate=True,
         )
 
     @staticmethod
