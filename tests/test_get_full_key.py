@@ -3,8 +3,7 @@ from typing import Any
 import pytest
 
 from omegaconf import DictConfig, IntegerNode, OmegaConf
-
-from . import Color
+from tests import Color
 
 
 @pytest.mark.parametrize(  # type: ignore

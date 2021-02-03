@@ -16,8 +16,13 @@ from omegaconf import (
     StringNode,
 )
 from omegaconf.errors import UnsupportedInterpolationType
-
-from . import Color, ConcretePlugin, IllegalType, StructuredWithMissing, does_not_raise
+from tests import (
+    Color,
+    ConcretePlugin,
+    IllegalType,
+    StructuredWithMissing,
+    does_not_raise,
+)
 
 
 @pytest.mark.parametrize(  # type: ignore

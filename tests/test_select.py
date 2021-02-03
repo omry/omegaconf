@@ -5,8 +5,7 @@ import pytest
 from pytest import raises
 
 from omegaconf import MissingMandatoryValue, OmegaConf
-
-from . import does_not_raise
+from tests import does_not_raise
 
 
 @pytest.mark.parametrize("struct", [True, False, None])  # type: ignore

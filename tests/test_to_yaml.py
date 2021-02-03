@@ -5,8 +5,7 @@ from typing import Any
 import pytest
 
 from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
-
-from . import Enum1, User
+from tests import Enum1, User
 
 
 @pytest.mark.parametrize(  # type: ignore

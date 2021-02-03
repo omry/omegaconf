@@ -11,8 +11,7 @@ from typing import Any, Dict, Type
 import pytest
 
 from omegaconf import MISSING, DictConfig, OmegaConf
-
-from . import PersonA, PersonD
+from tests import PersonA, PersonD
 
 
 def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
