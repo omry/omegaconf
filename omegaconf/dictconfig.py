@@ -442,7 +442,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         value: Node = self.__dict__["_content"].get(key)
         if throw_on_missing and value._is_missing():
-            raise MissingMandatoryValue(f"Missing node '{key}'")
+            raise MissingMandatoryValue("Missing mandatory value")
 
         return value
 

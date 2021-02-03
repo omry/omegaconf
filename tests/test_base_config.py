@@ -745,12 +745,13 @@ def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
     "cfg, key",
     [
         # dict
-        (OmegaConf.create({"foo": "???"}), "foo"),
+        pytest.param({"foo": "???"}, "foo", id="dict"),
         # list
-        (OmegaConf.create([10, "???", 30]), 1),
-        (OmegaConf.create([10, "???", 30]), slice(1, 2)),
+        pytest.param([10, "???", 30], 1, id="list_int"),
+        pytest.param([10, "???", 30], slice(1, 2), id="list_slice"),
     ],
 )
 def test_get_node_throw_on_missing(cfg: Any, key: Any) -> None:
-    with pytest.raises(MissingMandatoryValue):
-        assert cfg._get_node(key, throw_on_missing=True)
+    cfg = OmegaConf.create(cfg)
+    with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
+        cfg._get_node(key, throw_on_missing=True)

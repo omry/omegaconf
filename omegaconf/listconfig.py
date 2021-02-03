@@ -391,11 +391,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     assert isinstance(value, list)
                     for v in value:
                         if throw_on_missing and v._is_missing():
-                            raise MissingMandatoryValue(f"Missing node '{key}'")
+                            raise MissingMandatoryValue("Missing mandatory value")
                 else:
                     assert isinstance(value, Node)
                     if throw_on_missing and value._is_missing():
-                        raise MissingMandatoryValue(f"Missing node '{key}'")
+                        raise MissingMandatoryValue("Missing mandatory value")
             return value
         except (IndexError, TypeError, MissingMandatoryValue, KeyValidationError) as e:
             if isinstance(e, MissingMandatoryValue) and throw_on_missing:
