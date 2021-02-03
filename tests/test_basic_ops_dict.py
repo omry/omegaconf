@@ -21,8 +21,14 @@ from omegaconf import (
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
-
-from . import ConcretePlugin, Enum1, IllegalType, Plugin, StructuredWithMissing, User
+from tests import (
+    ConcretePlugin,
+    Enum1,
+    IllegalType,
+    Plugin,
+    StructuredWithMissing,
+    User,
+)
 
 
 def test_setattr_deep_value() -> None:

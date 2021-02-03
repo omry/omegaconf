@@ -8,8 +8,7 @@ import yaml
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType
-
-from . import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
+from tests import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
 
 
 @pytest.mark.parametrize(

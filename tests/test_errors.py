@@ -26,8 +26,7 @@ from omegaconf.errors import (
     MissingMandatoryValue,
     OmegaConfBaseException,
 )
-
-from . import (
+from tests import (
     A,
     Color,
     ConcretePlugin,
