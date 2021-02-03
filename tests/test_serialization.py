@@ -5,7 +5,6 @@ import pathlib
 import pickle
 import tempfile
 from pathlib import Path
-from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
 import pytest
@@ -140,46 +139,6 @@ def test_pickle(obj: Any) -> None:
         assert c1._metadata.optional is True
         if isinstance(c, DictConfig):
             assert c1._metadata.key_type is Any
-
-
-def test_load_duplicate_keys_top() -> None:
-    from yaml.constructor import ConstructorError
-
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            content = dedent(
-                """\
-                a:
-                  b: 1
-                a:
-                  b: 2
-                """
-            )
-            fp.write(content.encode("utf-8"))
-        with pytest.raises(ConstructorError):
-            OmegaConf.load(fp.name)
-    finally:
-        os.unlink(fp.name)
-
-
-def test_load_duplicate_keys_sub() -> None:
-    from yaml.constructor import ConstructorError
-
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            content = dedent(
-                """\
-                a:
-                  b: 1
-                  c: 2
-                  b: 3
-                """
-            )
-            fp.write(content.encode("utf-8"))
-        with pytest.raises(ConstructorError):
-            OmegaConf.load(fp.name)
-    finally:
-        os.unlink(fp.name)
 
 
 def test_load_empty_file(tmpdir: str) -> None:
