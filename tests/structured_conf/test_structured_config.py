@@ -886,8 +886,8 @@ class TestConfigs:
             user = self.round_trip_to_object(module.User())
             assert isinstance(user, module.User)
             assert type(user) is module.User
-            assert user.name is MISSING
-            assert user.age is MISSING
+            assert user.name == MISSING
+            assert user.age == MISSING
 
         def test_nested(self, module: Any) -> None:
             data = self.round_trip_to_object({"user": module.User("Bond", 7)})
@@ -902,8 +902,8 @@ class TestConfigs:
             user = data["user"]
             assert isinstance(user, module.User)
             assert type(user) is module.User
-            assert user.name is MISSING
-            assert user.age is MISSING
+            assert user.name == MISSING
+            assert user.age == MISSING
 
         def test_list(self, module: Any) -> None:
             lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
@@ -920,7 +920,6 @@ class TestConfigs:
             lst = self.round_trip_to_object(module.UserList)
             assert isinstance(lst, module.UserList)
             assert type(lst) is module.UserList
-            # assert lst.list is MISSING  # fails: lst.list is "???"
             assert lst.list == MISSING
 
         def test_dict(self, module: Any) -> None:
@@ -940,7 +939,6 @@ class TestConfigs:
             user_dict = self.round_trip_to_object(module.UserDict)
             assert isinstance(user_dict, module.UserDict)
             assert type(user_dict) is module.UserDict
-            # assert user_dict.dict is MISSING  # fails: dct.dict is "???"
             assert user_dict.dict == MISSING
 
 
