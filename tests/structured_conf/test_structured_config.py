@@ -890,16 +890,16 @@ class TestConfigs:
             assert user.age is MISSING
 
         def test_nested(self, module: Any) -> None:
-            data = self.round_trip_to_object({1: module.User("Bond", 7)})
-            user = data[1]
+            data = self.round_trip_to_object({"user": module.User("Bond", 7)})
+            user = data["user"]
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name == "Bond"
             assert user.age == 7
 
         def test_nested_with_missing(self, module: Any) -> None:
-            data = self.round_trip_to_object({1: module.User()})
-            user = data[1]
+            data = self.round_trip_to_object({"user": module.User()})
+            user = data["user"]
             assert isinstance(user, module.User)
             assert type(user) is module.User
             assert user.name is MISSING
