@@ -20,9 +20,12 @@ from ._utils import (
     _raise_invalid_assignment,
     format_and_raise,
     get_value_kind,
+    is_container_assignment,
     is_int,
+    is_invalid_container_assignment,
     is_primitive_list,
     is_structured_config,
+    should_unwrap,
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
@@ -113,6 +116,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             needs_type_validation
             and value_type is not None
             and not issubclass(value_type, target_type)
+        ) or (
+            is_container_assignment(self)
+            and is_invalid_container_assignment(self, value)
         ):
             _raise_invalid_assignment(target_type, value_type, value)
 
@@ -261,7 +267,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             index = len(self)
             self._validate_set(key=index, value=item)
 
-            item = self._resolve_container_assignment(item)
+            if should_unwrap(self, item):
+                item = item._value()
 
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,

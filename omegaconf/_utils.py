@@ -748,6 +748,47 @@ def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
 
 
+def is_container_assignment(cfg: Any) -> bool:
+    element_type = cfg.__dict__["_metadata"].element_type
+    if is_container_annotation(element_type):
+        return True
+    else:
+        return False
+
+
+# Returns if value cannot be assigned to cfg element_type.
+# We return False in case it's valid or because it should unwrap
+# to dynamically check its contents.
+# examples:
+# 1. cfg.element_type = List[int], value=ListConfig(ref_type=List[str]) returns True
+# 2. cfg.element_type = List[int], value=ListConfig(ref_type=List[int]) returns False
+# 3. cfg.element_type = List[Any], value=ListConfig(ref_type=List[int]) returns False
+# 4. cfg.element_type = List[int], value=ListConfig(ref_type=List[Any]) returns False
+# needs to unwrap in order to check every values is a valid type
+# 5. cfg.element_type = List[int], value=list([1, "invalid"]) returns False
+def is_invalid_container_assignment(cfg: Any, value: Any) -> bool:
+    from omegaconf.basecontainer import BaseContainer
+
+    element_type = cfg.__dict__["_metadata"].element_type
+
+    if isinstance(value, BaseContainer):
+        item_ref_type = value._metadata.ref_type
+        if is_container_annotation(item_ref_type) and not is_legal_assignment(
+            element_type, item_ref_type
+        ):
+            return True
+    return False
+
+
+def should_unwrap(cfg: Any, value: Any) -> bool:
+    from omegaconf.basecontainer import BaseContainer
+
+    if is_container_assignment(cfg) and isinstance(value, BaseContainer):
+        return True
+    else:
+        return False
+
+
 def is_legal_assignment(dest_type: Any, src_type: Any) -> bool:
     is_legal = False
     if is_list_annotation(dest_type) and is_list_annotation(src_type):

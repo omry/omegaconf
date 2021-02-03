@@ -24,6 +24,7 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_type,
     is_structured_config,
+    should_unwrap,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
@@ -562,8 +563,8 @@ class BaseContainer(Container, ABC):
                 else:
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type
-            if input_config:
-                val = self._resolve_container_assignment(val)
+            if input_config and should_unwrap(self, val):
+                val = val._value()
             return _maybe_wrap(
                 ref_type=ref_type,
                 key=key,
@@ -752,23 +753,6 @@ class BaseContainer(Container, ABC):
                 )
 
         return full_key
-
-    # If item has a Container annotation like Dict[str, int] it validates against the target element_type
-    # if it doesn't have an annotation it returns the raw value
-    def _resolve_container_assignment(self, item: Any) -> Any:
-        from omegaconf._utils import _raise_invalid_assignment, is_legal_assignment
-
-        element_type = self.__dict__["_metadata"].element_type
-        if is_container_annotation(element_type) and isinstance(item, BaseContainer):
-            item_ref_type = item._metadata.ref_type
-            if is_container_annotation(item_ref_type) and not is_legal_assignment(
-                element_type, item_ref_type
-            ):
-                _raise_invalid_assignment(element_type, item_ref_type, item)
-            else:
-                # regular dict without annotation
-                item = item._value()
-        return item
 
 
 def _create_structured_with_missing_fields(
