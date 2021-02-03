@@ -7,6 +7,7 @@ import pytest
 from omegaconf import (
     DictConfig,
     IntegerNode,
+    Node,
     OmegaConf,
     ValidationError,
     _utils,
@@ -218,7 +219,7 @@ class TestStructured:
         assert get_ref_type(c2, "user") == Optional[module.User]
         assert isinstance(c2, DictConfig)
         c2_user = c2._get_node("user")
-        assert c2_user is not None
+        assert isinstance(c2_user, Node)
         # Compared to the previous assert, here we verify that the `ref_type` found
         # in the metadata is *not* optional: instead, the `optional` flag must be set.
         assert c2_user._metadata.ref_type == module.User

@@ -299,7 +299,12 @@ class Container(Node):
     def select(self, key: str, throw_on_missing: bool = False) -> Any:
         ...
 
-    def _get_node(self, key: Any, validate_access: bool = True) -> Optional[Node]:
+    def _get_node(
+        self,
+        key: Any,
+        validate_access: bool = True,
+        throw_on_missing: bool = False,
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
         ...
 
     @abstractmethod

@@ -219,7 +219,7 @@ class BaseContainer(Container, ABC):
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
-                assert node is not None
+                assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(
                         throw_on_missing=False, throw_on_resolution_failure=True
@@ -240,7 +240,7 @@ class BaseContainer(Container, ABC):
             retlist: List[Any] = []
             for index in range(len(conf)):
                 node = conf._get_node(index)
-                assert node is not None
+                assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(
                         throw_on_missing=False, throw_on_resolution_failure=True
@@ -331,6 +331,8 @@ class BaseContainer(Container, ABC):
         for key, src_value in src.items_ex(resolve=False):
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
+            assert src_node is None or isinstance(src_node, Node)
+            assert dest_node is None or isinstance(dest_node, Node)
 
             if isinstance(dest_node, DictConfig):
                 dest_node._validate_merge(value=src_node)
@@ -558,6 +560,7 @@ class BaseContainer(Container, ABC):
                     if is_structured_config(val):
                         ref_type = self._metadata.element_type
                 else:
+                    assert isinstance(target, Node)
                     is_optional = target._is_optional()
                     ref_type = target._metadata.ref_type
             return _maybe_wrap(
@@ -608,6 +611,9 @@ class BaseContainer(Container, ABC):
         v2 = c2._get_node(k2)
         assert v1 is not None and v2 is not None
 
+        assert isinstance(v1, Node)
+        assert isinstance(v2, Node)
+
         if v1._is_none() and v2._is_none():
             return True
 
@@ -642,11 +648,15 @@ class BaseContainer(Container, ABC):
         elif not v1_inter and not v2_inter:
             v1 = _get_value(v1)
             v2 = _get_value(v2)
-            return v1 == v2
+            ret = v1 == v2
+            assert isinstance(ret, bool)
+            return ret
         else:
             dv1 = _get_value(dv1)
             dv2 = _get_value(dv2)
-            return dv1 == dv2
+            ret = dv1 == dv2
+            assert isinstance(ret, bool)
+            return ret
 
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None

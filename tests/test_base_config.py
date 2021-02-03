@@ -19,7 +19,7 @@ from omegaconf import (
     open_dict,
     read_write,
 )
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandatoryValue
 from tests import Color, StructuredWithMissing, User, does_not_raise
 
 
@@ -337,7 +337,7 @@ def test_set_flags() -> None:
 def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) -> None:
     cfg = OmegaConf.create({"c": node})
     cfg._set_flag("foo", True)
-    nc = cfg._get_node("c")
+    nc: Any = cfg._get_node("c")
     assert nc is not None
     assert nc._flags_cache is None
     assert nc._get_flag("foo") is True
@@ -739,3 +739,19 @@ def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) ->
 )
 def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
     assert cfg._get_node(key) == expected
+
+
+@pytest.mark.parametrize(
+    "cfg, key",
+    [
+        # dict
+        pytest.param({"foo": "???"}, "foo", id="dict"),
+        # list
+        pytest.param([10, "???", 30], 1, id="list_int"),
+        pytest.param([10, "???", 30], slice(1, 2), id="list_slice"),
+    ],
+)
+def test_get_node_throw_on_missing(cfg: Any, key: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
+        cfg._get_node(key, throw_on_missing=True)

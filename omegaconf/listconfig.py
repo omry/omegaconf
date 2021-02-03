@@ -95,6 +95,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if 0 <= key < self.__len__():
             target = self._get_node(key)
             if target is not None:
+                assert isinstance(target, Node)
                 if value is None and not target._is_optional():
                     raise ValidationError(
                         "$FULL_KEY is not optional and cannot be assigned None"
@@ -274,6 +275,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         for i in range(len(self)):
             node = self._get_node(i)
             if node is not None:
+                assert isinstance(node, Node)
                 node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
@@ -367,8 +369,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return c
 
     def _get_node(
-        self, key: Union[int, slice], validate_access: bool = True
-    ) -> Optional[Node]:
+        self,
+        key: Union[int, slice],
+        validate_access: bool = True,
+        throw_on_missing: bool = False,
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             if self._is_none():
                 raise TypeError(
@@ -379,8 +384,22 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self.__dict__["_content"], list)
             if validate_access:
                 self._validate_get(key)
-            return self.__dict__["_content"][key]  # type: ignore
+
+            value = self.__dict__["_content"][key]
+            if value is not None:
+                if isinstance(key, slice):
+                    assert isinstance(value, list)
+                    for v in value:
+                        if throw_on_missing and v._is_missing():
+                            raise MissingMandatoryValue("Missing mandatory value")
+                else:
+                    assert isinstance(value, Node)
+                    if throw_on_missing and value._is_missing():
+                        raise MissingMandatoryValue("Missing mandatory value")
+            return value
         except (IndexError, TypeError, MissingMandatoryValue, KeyValidationError) as e:
+            if isinstance(e, MissingMandatoryValue) and throw_on_missing:
+                raise
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)
                 assert False

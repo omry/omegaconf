@@ -182,7 +182,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if is_valid_target:
             return
 
-        target_type = target._metadata.ref_type  # type: ignore
+        assert isinstance(target, Node)
+
+        target_type = target._metadata.ref_type
         value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):
@@ -239,12 +241,14 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if OmegaConf.is_none(value):
             if key is not None:
                 child = self._get_node(key)
-                if child is not None and not child._is_optional():
-                    self._format_and_raise(
-                        key=key,
-                        value=value,
-                        cause=ValidationError("child '$FULL_KEY' is not Optional"),
-                    )
+                if child is not None:
+                    assert isinstance(child, Node)
+                    if not child._is_optional():
+                        self._format_and_raise(
+                            key=key,
+                            value=value,
+                            cause=ValidationError("child '$FULL_KEY' is not Optional"),
+                        )
             else:
                 if not self._is_optional():
                     self._format_and_raise(
@@ -420,8 +424,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         )
 
     def _get_node(
-        self, key: DictKeyType, validate_access: bool = True
-    ) -> Optional[Node]:
+        self,
+        key: DictKeyType,
+        validate_access: bool = True,
+        throw_on_missing: bool = False,
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:
@@ -434,6 +441,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self._validate_get(key)
 
         value: Node = self.__dict__["_content"].get(key)
+        if throw_on_missing and value._is_missing():
+            raise MissingMandatoryValue("Missing mandatory value")
 
         return value
 
@@ -487,7 +496,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return False
 
         try:
-            node: Optional[Node] = self._get_node(key)
+            node = self._get_node(key)
+            assert node is None or isinstance(node, Node)
         except (KeyError, AttributeError):
             node = None
 
