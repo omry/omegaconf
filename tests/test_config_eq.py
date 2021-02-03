@@ -3,8 +3,7 @@ from typing import Any
 import pytest
 
 from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
-
-from . import Group, User
+from tests import Group, User
 
 
 @pytest.mark.parametrize(

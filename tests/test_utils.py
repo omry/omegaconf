@@ -17,8 +17,7 @@ from omegaconf.nodes import (
     StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
-
-from . import Color, ConcretePlugin, IllegalType, Plugin, User, does_not_raise
+from tests import Color, ConcretePlugin, IllegalType, Plugin, User, does_not_raise
 
 
 @mark.parametrize(

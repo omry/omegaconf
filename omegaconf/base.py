@@ -534,6 +534,7 @@ class Container(Node):
         from .listconfig import ListConfig
 
         # invalidate subtree cache only if the cache is initialized in this node.
+
         if self.__dict__["_flags_cache"] is not None:
             self.__dict__["_flags_cache"] = None
             if isinstance(self, DictConfig):

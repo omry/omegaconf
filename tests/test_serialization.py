@@ -12,8 +12,7 @@ import pytest
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
-
-from . import (
+from tests import (
     PersonA,
     PersonD,
     SubscriptedDict,

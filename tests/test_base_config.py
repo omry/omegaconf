@@ -20,8 +20,7 @@ from omegaconf import (
     read_write,
 )
 from omegaconf.errors import ConfigAttributeError, ConfigKeyError
-
-from . import Color, StructuredWithMissing, User, does_not_raise
+from tests import Color, StructuredWithMissing, User, does_not_raise
 
 
 @pytest.mark.parametrize(

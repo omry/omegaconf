@@ -16,8 +16,7 @@ from omegaconf import (
     ValidationError,
     ValueNode,
 )
-
-from . import Color, Group
+from tests import Color, Group
 
 SKIP = object()
 
