@@ -961,6 +961,38 @@ class TestConfigs:
             assert type(nested.var) is module.Nested
             assert nested.var.with_default == 10
 
+        def test_str2user_instantiate(self, module: Any) -> None:
+            cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+            cfg.bond = module.User(name="James Bond", age=7)
+            data = self.round_trip_to_object(cfg)
+
+            assert isinstance(data, module.DictSubclass.Str2User)
+            assert type(data) is module.DictSubclass.Str2User
+            assert type(data["bond"]) is module.User
+            assert data["bond"] == module.User("James Bond", 7)
+
+        def test_str2user_with_field_instantiate(self, module: Any) -> None:
+            cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+            cfg.mp = module.User(name="Moneypenny", age=11)
+            data = self.round_trip_to_object(cfg)
+
+            assert isinstance(data, module.DictSubclass.Str2UserWithField)
+            assert type(data) is module.DictSubclass.Str2UserWithField
+            assert type(data.foo) is module.User
+            assert data.foo == module.User("Bond", 7)
+            assert type(data["mp"]) is module.User
+            assert data["mp"] == module.User("Moneypenny", 11)
+
+        def test_str2str_with_field_instantiate(self, module: Any) -> None:
+            cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+            cfg.hello = "world"
+            data = self.round_trip_to_object(cfg)
+
+            assert isinstance(data, module.DictSubclass.Str2StrWithField)
+            assert type(data) is module.DictSubclass.Str2StrWithField
+            assert data.foo == "bar"
+            assert data["hello"] == "world"
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
@@ -1126,17 +1158,6 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-    def test_str2user_instantiate(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
-        cfg.bond = module.User(name="James Bond", age=7)
-        data = OmegaConf.to_container(cfg, instantiate=True)
-
-        assert isinstance(data, module.DictSubclass.Str2User)
-        assert type(data) is module.DictSubclass.Str2User
-        assert type(data["bond"]) is module.User
-        assert data["bond"] == module.User("James Bond", 7)
-
     def test_str2user_with_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
@@ -1158,18 +1179,6 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-    def test_str2user_with_field_instantiate(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
-        cfg.mp = module.User(name="Moneypenny", age=11)
-        data = OmegaConf.to_container(cfg, instantiate=True)
-        assert isinstance(data, module.DictSubclass.Str2UserWithField)
-        assert type(data) is module.DictSubclass.Str2UserWithField
-        assert type(data.foo) is module.User
-        assert data.foo == module.User("Bond", 7)
-        assert type(data["mp"]) is module.User
-        assert data["mp"] == module.User("Moneypenny", 11)
-
     def test_str2str_with_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
@@ -1179,17 +1188,6 @@ class TestDictSubclass:
 
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
-
-    def test_str2str_with_field_instantiate(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
-        cfg.hello = "world"
-
-        data = OmegaConf.to_container(cfg, instantiate=True)
-        assert isinstance(data, module.DictSubclass.Str2StrWithField)
-        assert type(data) is module.DictSubclass.Str2StrWithField
-        assert data.foo == "bar"
-        assert data["hello"] == "world"
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:
