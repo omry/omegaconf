@@ -533,6 +533,7 @@ class OmegaConf:
             node = cfg._get_node(key)
             if node is None:
                 return False
+            assert isinstance(node, Node)
             return node._is_missing()
         except (UnsupportedInterpolationType, KeyError, AttributeError):
             return False

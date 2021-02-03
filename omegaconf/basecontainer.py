@@ -608,6 +608,9 @@ class BaseContainer(Container, ABC):
         v2 = c2._get_node(k2)
         assert v1 is not None and v2 is not None
 
+        assert isinstance(v1, Node)
+        assert isinstance(v2, Node)
+
         if v1._is_none() and v2._is_none():
             return True
 
@@ -642,11 +645,15 @@ class BaseContainer(Container, ABC):
         elif not v1_inter and not v2_inter:
             v1 = _get_value(v1)
             v2 = _get_value(v2)
-            return v1 == v2
+            ret = v1 == v2
+            assert isinstance(ret, bool)
+            return ret
         else:
             dv1 = _get_value(dv1)
             dv2 = _get_value(dv2)
-            return dv1 == dv2
+            ret = dv1 == dv2
+            assert isinstance(ret, bool)
+            return ret
 
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None

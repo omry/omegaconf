@@ -704,11 +704,11 @@ def test_is_missing() -> None:
             "missing_node_inter": "${missing_node}",
         }
     )
-    assert cfg._get_node("foo")._is_missing()  # type:ignore
-    assert cfg._get_node("inter")._is_missing()  # type:ignore
-    assert not cfg._get_node("str_inter")._is_missing()  # type:ignore
-    assert cfg._get_node("missing_node")._is_missing()  # type:ignore
-    assert cfg._get_node("missing_node_inter")._is_missing()  # type:ignore
+    assert cfg._get_node("foo")._is_missing()
+    assert cfg._get_node("inter")._is_missing()
+    assert not cfg._get_node("str_inter")._is_missing()
+    assert cfg._get_node("missing_node")._is_missing()
+    assert cfg._get_node("missing_node_inter")._is_missing()
 
 
 @pytest.mark.parametrize("ref_type", [None, Any])

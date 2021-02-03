@@ -182,7 +182,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if is_valid_target:
             return
 
-        target_type = target._metadata.ref_type  # type: ignore
+        target_type = target._metadata.ref_type
         value_type = OmegaConf.get_type(value)
 
         if is_dict(value_type) and is_dict(target_type):
@@ -420,8 +420,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         )
 
     def _get_node(
-        self, key: DictKeyType, validate_access: bool = True
-    ) -> Optional[Node]:
+        self,
+        key: DictKeyType,
+        validate_access: bool = True,
+        throw_on_missing: bool = False,
+    ) -> Any:
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:
@@ -434,6 +437,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self._validate_get(key)
 
         value: Node = self.__dict__["_content"].get(key)
+        if throw_on_missing and value._is_missing():
+            raise MissingMandatoryValue(f"Missing node '{key}'")
 
         return value
 

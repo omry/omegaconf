@@ -19,7 +19,7 @@ from omegaconf import (
     open_dict,
     read_write,
 )
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandatoryValue
 from tests import Color, StructuredWithMissing, User, does_not_raise
 
 
@@ -739,3 +739,18 @@ def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) ->
 )
 def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
     assert cfg._get_node(key) == expected
+
+
+@pytest.mark.parametrize(
+    "cfg, key",
+    [
+        # dict
+        (OmegaConf.create({"foo": "???"}), "foo"),
+        # list
+        (OmegaConf.create([10, "???", 30]), 1),
+        (OmegaConf.create([10, "???", 30]), slice(1, 2)),
+    ],
+)
+def test_get_node_throw_on_missing(cfg: Any, key: Any) -> None:
+    with pytest.raises(MissingMandatoryValue):
+        assert cfg._get_node(key, throw_on_missing=True)

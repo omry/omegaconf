@@ -367,8 +367,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return c
 
     def _get_node(
-        self, key: Union[int, slice], validate_access: bool = True
-    ) -> Optional[Node]:
+        self,
+        key: Union[int, slice],
+        validate_access: bool = True,
+        throw_on_missing: bool = False,
+    ) -> Any:
         try:
             if self._is_none():
                 raise TypeError(
@@ -379,8 +382,24 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self.__dict__["_content"], list)
             if validate_access:
                 self._validate_get(key)
-            return self.__dict__["_content"][key]  # type: ignore
+            assert self.__dict__["_content"] is not None
+            assert not isinstance(self.__dict__["_content"], str)
+
+            value = self.__dict__["_content"][key]
+            if value is not None:
+                if isinstance(key, slice):
+                    assert isinstance(value, list)
+                    for v in value:
+                        if throw_on_missing and v._is_missing():
+                            raise MissingMandatoryValue(f"Missing node '{key}'")
+                else:
+                    assert isinstance(value, Node)
+                    if throw_on_missing and value._is_missing():
+                        raise MissingMandatoryValue(f"Missing node '{key}'")
+            return value
         except (IndexError, TypeError, MissingMandatoryValue, KeyValidationError) as e:
+            if isinstance(e, MissingMandatoryValue) and throw_on_missing:
+                raise
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)
                 assert False
