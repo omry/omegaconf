@@ -219,7 +219,6 @@ class BaseContainer(Container, ABC):
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
-                assert node is not None
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(
@@ -241,7 +240,6 @@ class BaseContainer(Container, ABC):
             retlist: List[Any] = []
             for index in range(len(conf)):
                 node = conf._get_node(index)
-                assert node is not None
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node(

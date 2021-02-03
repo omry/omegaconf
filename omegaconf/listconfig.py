@@ -384,8 +384,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self.__dict__["_content"], list)
             if validate_access:
                 self._validate_get(key)
-            assert self.__dict__["_content"] is not None
-            assert not isinstance(self.__dict__["_content"], str)
 
             value = self.__dict__["_content"][key]
             if value is not None:

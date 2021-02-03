@@ -903,7 +903,6 @@ def _select_one(
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
-        assert val is None or isinstance(val, Node)
         if val is not None:
             assert isinstance(val, Node)
             if val._is_missing():
