@@ -2,6 +2,7 @@
 import re
 import sys
 from typing import Any, Dict, List, Optional
+from textwrap import dedent
 
 import pytest
 import yaml
@@ -293,3 +294,47 @@ def test_create_untyped_dict() -> None:
 
     cfg = DictConfig(ref_type=Dict, content={})
     assert get_ref_type(cfg) == Optional[Dict]
+
+
+def test_yaml_duplicate_keys() -> None:
+    from yaml.constructor import ConstructorError
+
+    with pytest.raises(ConstructorError):
+        OmegaConf.create(
+            dedent(
+                """\
+                a:
+                  b: 1
+                  c: 2
+                  b: 3
+                """
+            )
+        )
+    with pytest.raises(ConstructorError):
+        OmegaConf.create(
+            dedent(
+                """\
+                a:
+                  b: 1
+                a:
+                  b: 2
+                """
+            )
+        )
+
+    cfg = OmegaConf.create(
+        dedent(
+            """\
+                a: &A
+                    x: 1
+                b: &B
+                    y: 2
+                c:
+                    <<: *A
+                    <<: *B
+                    x: 3
+                    z: 1
+                """
+        )
+    )
+    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
