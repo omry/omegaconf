@@ -1,4 +1,5 @@
 import copy
+import re
 from enum import Enum
 from typing import Any, Dict, List, Union
 
@@ -208,6 +209,14 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     assert container == expected
     container = OmegaConf.to_container(cfg, resolve=True)
     assert container == expected_with_resolve
+
+
+def test_to_container_invalid_input() -> None:
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Input cfg is not an OmegaConf config object (dict)"),
+    ):
+        OmegaConf.to_container({})
 
 
 def test_string_interpolation_with_readonly_parent() -> None:

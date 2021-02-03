@@ -1,0 +1,1 @@
+OmegaConf.to_container() raises a ValueError on invalid input
