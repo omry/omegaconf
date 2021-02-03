@@ -1113,8 +1113,8 @@ class TestDictSubclass:
     def test_str2user(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())
-
         cfg.bond = module.User(name="James Bond", age=7)
+
         assert cfg.bond.name == "James Bond"
         assert cfg.bond.age == 7
 
@@ -1126,7 +1126,12 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
+    def test_str2user_instantiate(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+        cfg.bond = module.User(name="James Bond", age=7)
         data = OmegaConf.to_container(cfg, instantiate=True)
+
         assert isinstance(data, module.DictSubclass.Str2User)
         assert type(data) is module.DictSubclass.Str2User
         assert type(data["bond"]) is module.User
@@ -1153,6 +1158,10 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
+    def test_str2user_with_field_instantiate(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+        cfg.mp = module.User(name="Moneypenny", age=11)
         data = OmegaConf.to_container(cfg, instantiate=True)
         assert isinstance(data, module.DictSubclass.Str2UserWithField)
         assert type(data) is module.DictSubclass.Str2UserWithField
@@ -1170,6 +1179,11 @@ class TestDictSubclass:
 
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
+
+    def test_str2str_with_field_instantiate(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+        cfg.hello = "world"
 
         data = OmegaConf.to_container(cfg, instantiate=True)
         assert isinstance(data, module.DictSubclass.Str2StrWithField)
