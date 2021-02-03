@@ -941,6 +941,26 @@ class TestConfigs:
             assert type(user_dict) is module.UserDict
             assert user_dict.dict == MISSING
 
+        def test_nested_object(self, module: Any) -> None:
+            nested = self.round_trip_to_object(module.NestedConfig)
+            assert isinstance(nested, module.NestedConfig)
+            assert type(nested) is module.NestedConfig
+
+            assert nested.default_value == MISSING
+
+            assert isinstance(nested.user_provided_default, module.Nested)
+            assert type(nested.user_provided_default) is module.Nested
+            assert nested.user_provided_default.with_default == 42
+
+        def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
+            nested = self.round_trip_to_object(module.NestedWithAny)
+            assert isinstance(nested, module.NestedWithAny)
+            assert type(nested) is module.NestedWithAny
+
+            assert isinstance(nested.var, module.Nested)
+            assert type(nested.var) is module.Nested
+            assert nested.var.with_default == 10
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with pytest.raises(ReadonlyConfigError):
