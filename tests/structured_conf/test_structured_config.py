@@ -872,9 +872,7 @@ class TestConfigs:
 
         def round_trip_to_container(self, input_data: Any) -> Any:
             serialized = OmegaConf.create(input_data)
-            round_tripped = OmegaConf.to_container(
-                serialized, instantiate_structured_configs=True
-            )
+            round_tripped = OmegaConf.to_container(serialized, instantiate=True)
             return round_tripped
 
         def test_basic(self, module: Any) -> None:
@@ -1108,7 +1106,7 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-        data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        data = OmegaConf.to_container(cfg, instantiate=True)
         assert isinstance(data, module.DictSubclass.Str2User)
         assert type(data) is module.DictSubclass.Str2User
         assert type(data["bond"]) is module.User
@@ -1135,7 +1133,7 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-        data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        data = OmegaConf.to_container(cfg, instantiate=True)
         assert isinstance(data, module.DictSubclass.Str2UserWithField)
         assert type(data) is module.DictSubclass.Str2UserWithField
         assert type(data.foo) is module.User
@@ -1153,7 +1151,7 @@ class TestDictSubclass:
         with pytest.raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
-        data = OmegaConf.to_container(cfg, instantiate_structured_configs=True)
+        data = OmegaConf.to_container(cfg, instantiate=True)
         assert isinstance(data, module.DictSubclass.Str2StrWithField)
         assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
