@@ -18,8 +18,7 @@ from omegaconf import (
 )
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError, ConfigTypeError, KeyValidationError
-
-from . import (
+from tests import (
     ConcretePlugin,
     Enum1,
     IllegalType,

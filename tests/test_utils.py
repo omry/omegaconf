@@ -17,8 +17,7 @@ from omegaconf.nodes import (
     StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
-
-from . import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
+from tests import Color, ConcretePlugin, IllegalType, Plugin, does_not_raise
 
 
 @pytest.mark.parametrize(  # type: ignore

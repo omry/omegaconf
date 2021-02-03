@@ -14,8 +14,7 @@ from omegaconf.errors import (
     ValidationError,
 )
 from omegaconf.nodes import IntegerNode, StringNode
-
-from . import Color, IllegalType, User, does_not_raise
+from tests import Color, IllegalType, User, does_not_raise
 
 
 def test_list_value() -> None:

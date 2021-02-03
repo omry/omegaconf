@@ -17,8 +17,7 @@ from omegaconf import (
     ValueNode,
 )
 from omegaconf.errors import ValidationError
-
-from . import Color, IllegalType, User
+from tests import Color, IllegalType, User
 
 
 # testing valid conversions

@@ -14,8 +14,7 @@ from omegaconf import (
 )
 from omegaconf._utils import is_structured_config
 from omegaconf.errors import ConfigKeyError
-
-from . import (
+from tests import (
     A,
     B,
     C,
