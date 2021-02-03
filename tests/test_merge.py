@@ -130,6 +130,11 @@ from . import (
             ListConfig(content=[1, 2, 3]),
             id="list_merge_missing_onto",
         ),
+        pytest.param(
+            ({"a": 10, "list": []}, {"list": ["${a}"]}),
+            {"a": 10, "list": [10]},
+            id="merge_list_with_interpolation",
+        ),
         # Interpolations
         # value interpolation
         pytest.param(

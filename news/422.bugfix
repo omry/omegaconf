@@ -1,0 +1,1 @@
+Fix ConfigKeyError in some cases when merging lists containing interpolation values

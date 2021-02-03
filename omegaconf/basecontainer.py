@@ -434,12 +434,12 @@ class BaseContainer(Container, ABC):
             et = dest._metadata.element_type
             if is_structured_config(et):
                 prototype = OmegaConf.structured(et)
-                for item in src:
+                for item in src._iter_ex(resolve=False):
                     if isinstance(item, DictConfig):
                         item = OmegaConf.merge(prototype, item)
                     temp_target.append(item)
             else:
-                for item in src:
+                for item in src._iter_ex(resolve=False):
                     temp_target.append(item)
 
             dest.__dict__["_content"] = temp_target.__dict__["_content"]
