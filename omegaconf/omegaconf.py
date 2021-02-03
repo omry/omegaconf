@@ -514,8 +514,11 @@ class OmegaConf:
                (DictConfigs backed by a dataclass)
         :return: A dict or a list representing this config as a primitive container.
         """
-        assert isinstance(cfg, Container)
-        # noinspection PyProtectedMember
+        if not OmegaConf.is_config(cfg):
+            raise ValueError(
+                f"Input cfg is not an OmegaConf config object ({type_str(type(cfg))})"
+            )
+
         return BaseContainer._to_content(
             cfg,
             resolve=resolve,
