@@ -1,8 +1,8 @@
 """Testing for OmegaConf"""
 import re
 import sys
-from typing import Any, Dict, List, Optional
 from textwrap import dedent
+from typing import Any, Dict, List, Optional
 
 import pytest
 import yaml
@@ -296,32 +296,33 @@ def test_create_untyped_dict() -> None:
     assert get_ref_type(cfg) == Optional[Dict]
 
 
-def test_yaml_duplicate_keys() -> None:
-    from yaml.constructor import ConstructorError
-
-    with pytest.raises(ConstructorError):
-        OmegaConf.create(
-            dedent(
-                """\
+@pytest.mark.parametrize(
+    "input_",
+    [
+        dedent(
+            """\
                 a:
                   b: 1
                   c: 2
                   b: 3
                 """
-            )
-        )
-    with pytest.raises(ConstructorError):
-        OmegaConf.create(
-            dedent(
-                """\
+        ),
+        dedent(
+            """\
                 a:
                   b: 1
                 a:
                   b: 2
                 """
-            )
-        )
+        ),
+    ],
+)
+def test_yaml_duplicate_keys(input_: str) -> None:
+    with pytest.raises(yaml.constructor.ConstructorError):
+        OmegaConf.create(input_)
 
+
+def test_yaml_merge() -> None:
     cfg = OmegaConf.create(
         dedent(
             """\
