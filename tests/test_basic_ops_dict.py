@@ -49,10 +49,10 @@ def test_setattr_deep_from_empty() -> None:
     assert {"a": {"b": 9}} == c
 
 
-def test_setattr_deep_map() -> None:
-    c = OmegaConf.create(dict(a=dict(b=dict(c=1))))
+def test_setattr_dict_nested() -> None:
+    c = OmegaConf.create({"a": {"b": {"c": 1}}})
     c.a.b = {"z": 10}
-    assert {"a": {"b": {"z": 10}}} == c
+    assert c == {"a": {"b": {"z": 10}}}
 
 
 def test_getattr() -> None:
@@ -189,7 +189,7 @@ def test_map_expansion() -> None:
 
 
 def test_items() -> None:
-    c = OmegaConf.create(dict(a=2, b=10))
+    c = OmegaConf.create({"a": 2, "b": 10})
     assert sorted([("a", 2), ("b", 10)]) == sorted(list(c.items()))
 
     items = c.items()
@@ -204,16 +204,15 @@ def test_items() -> None:
 
 
 def test_items2() -> None:
-    c = OmegaConf.create(dict(a=dict(v=1), b=dict(v=1)))
+    c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}})
     for k, v in c.items():
         v.v = 2
 
-    assert c.a.v == 2
-    assert c.b.v == 2
+    assert c == {"a": {"v": 2}, "b": {"v": 2}}
 
 
 def test_items_with_interpolation() -> None:
-    c = OmegaConf.create(dict(a=2, b="${a}"))
+    c = OmegaConf.create({"a": 2, "b": "${a}"})
     r = {}
     for k, v in c.items():
         r[k] = v
@@ -230,9 +229,11 @@ def test_dict_keys() -> None:
 def test_pickle_get_root() -> None:
     # Test that get_root() is reconstructed correctly for pickle loaded files.
     with tempfile.TemporaryFile() as fp:
-        c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
+        c1 = OmegaConf.create({"a": {"a1": 1, "a2": 2}})
 
-        c2 = OmegaConf.create(dict(b=dict(b1="${a.a1}", b2=4, bb=dict(bb1=3, bb2=4))))
+        c2 = OmegaConf.create(
+            {"b": {"b1": "${a.a1}", "b2": 4, "bb": {"bb1": 3, "bb2": 4}}}
+        )
         c3 = OmegaConf.merge(c1, c2)
         assert isinstance(c3, DictConfig)
 
@@ -409,15 +410,15 @@ def test_in_dict(conf: Any, key: str, expected: Any) -> None:
 
 
 def test_get_root() -> None:
-    c = OmegaConf.create(dict(a=123, b=dict(bb=456, cc=7)))
+    c = OmegaConf.create({"a": 123, "b": {"bb": 456, "cc": 7}})
     assert c._get_root() == c
     assert c.b._get_root() == c
 
 
 def test_get_root_of_merged() -> None:
-    c1 = OmegaConf.create(dict(a=dict(a1=1, a2=2)))
+    c1 = OmegaConf.create({"a": {"a1": 1, "a2": 2}})
 
-    c2 = OmegaConf.create(dict(b=dict(b1="???", b2=4, bb=dict(bb1=3, bb2=4))))
+    c2 = OmegaConf.create({"b": {"b1": "???", "b2": 4, "bb": {"bb1": 3, "bb2": 4}}})
     c3 = OmegaConf.merge(c1, c2)
     assert isinstance(c3, DictConfig)
 
@@ -428,7 +429,7 @@ def test_get_root_of_merged() -> None:
 
 
 def test_dict_config() -> None:
-    c = OmegaConf.create(dict())
+    c = OmegaConf.create({})
     assert isinstance(c, DictConfig)
 
 
@@ -515,8 +516,8 @@ def test_dir(cfg: Any, key: Any, expected: Any) -> None:
 
 
 def test_hash() -> None:
-    c1 = OmegaConf.create(dict(a=10))
-    c2 = OmegaConf.create(dict(a=10))
+    c1 = OmegaConf.create({"a": 10})
+    c2 = OmegaConf.create({"a": 10})
     assert hash(c1) == hash(c2)
     c2.a = 20
     assert hash(c1) != hash(c2)
@@ -613,7 +614,7 @@ def test_creation_with_invalid_key() -> None:
 def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with pytest.raises(KeyValidationError):
-        cfg[object()] = "a"  # type: ignore
+        cfg[object()]  # type: ignore
 
 
 def test_get_with_invalid_key() -> None:
