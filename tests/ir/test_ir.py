@@ -19,7 +19,7 @@ def resolve_types(module: Any, ir: IRNode) -> None:
 
 @fixture(
     params=["tests.ir.data.dataclass", "tests.ir.data.attr"],
-    ids=lambda x: x.split(".")[-1],
+    ids=lambda x: x.split(".")[-1],  # type: ignore
 )
 def module(request: Any) -> Any:
     return import_module(request.param)
@@ -52,7 +52,7 @@ def module(request: Any) -> Any:
             ),
         ),
     ],
-    ids=lambda x: x[0],
+    ids=lambda x: x[0],  # type: ignore
 )
 def tested_type(module: Any, request: Any) -> Any:
     name = request.param[0]
@@ -61,5 +61,5 @@ def tested_type(module: Any, request: Any) -> Any:
     return {"type": getattr(module, name), "expected": expected}
 
 
-def test_get_dataclass_ir(tested_type: Any):
+def test_get_dataclass_ir(tested_type: Any) -> None:
     assert get_dataclass_ir(tested_type["type"]) == tested_type["expected"]
