@@ -212,7 +212,7 @@ def test_is_dataclass(mocker: Any) -> None:
     assert _utils.is_dataclass(Foo)
     assert _utils.is_dataclass(Foo())
     assert not _utils.is_dataclass(10)
-
+    # TODO: dataclasses are now mandatory, clean this up.
     mocker.patch("omegaconf._utils.dataclasses", None)
     assert not _utils.is_dataclass(10)
 
