@@ -446,8 +446,9 @@ class OmegaConf:
                 pass
             else:
                 # Since the error message below will be included in a Template string,
-                # we must "escape" the dollar signs by duplicating them.
-                bad_arg = bad_arg.replace("$", "$$")
+                # we must "escape" the dollar signs by duplicating them (four times because
+                # the error handling processes the string twice).
+                bad_arg = bad_arg.replace("$", "$$$$")
                 raise ValueError(
                     f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
                     f"to be an interpolation. Nested interpolations are not supported for "

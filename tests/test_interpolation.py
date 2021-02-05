@@ -325,7 +325,7 @@ def test_env_node_interpolation() -> None:
     try:
         os.environ["my_key"] = "${other_key}"
         c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-        with pytest.raises(ConfigKeyError):
+        with pytest.raises(ConfigAttributeError):
             c.my_key
     finally:
         del os.environ["my_key"]
