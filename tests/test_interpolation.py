@@ -10,6 +10,7 @@ from _pytest.python_api import RaisesContext
 
 from omegaconf import (
     II,
+    SI,
     Container,
     DictConfig,
     IntegerNode,
@@ -29,6 +30,8 @@ from omegaconf.errors import (
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
+
+from . import User
 
 # file deepcode ignore CopyPasteError: there are several tests of the form `c.k == c.k`
 # (this is intended to trigger multiple accesses to the same config key)
@@ -1082,3 +1085,24 @@ def _check_is_same_type(value: Any, expected: Any) -> None:
         assert expected is None
     else:
         raise NotImplementedError(type(value))
+
+
+def test_custom_resolver_return_validated(restore_resolvers: Any) -> Any:
+    def cast(t: Any, v: Any) -> Any:
+        if t == "str":
+            return str(v)
+        if t == "int":
+            return int(v)
+        assert False
+
+    OmegaConf.new_register_resolver("cast", cast)
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:int,'7'}")))
+    assert cfg.age == 7
+
+    # converted to int per the dataclass age field
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:str,'7'}")))
+    assert cfg.age == 7
+
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${cast:str,seven}")))
+    with pytest.raises(ValidationError):
+        cfg.age

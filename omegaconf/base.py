@@ -463,13 +463,20 @@ class Container(Node):
     ) -> Optional["Node"]:
         from omegaconf import OmegaConf
 
-        from .nodes import ValueNode
+        from .nodes import AnyNode, ValueNode
 
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
             try:
                 value = resolver(root_node, inter_args, inter_args_str)
+
+                # Ensure the resolver output is compatible with the node's type.
+                if key is not None:
+                    node = self._get_node(key)
+                    if isinstance(node, ValueNode) and not isinstance(node, AnyNode):
+                        value = node.validate_and_convert(value)
+
                 return ValueNode(
                     value=value,
                     parent=self,
