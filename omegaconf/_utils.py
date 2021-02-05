@@ -711,10 +711,9 @@ def _make_hashable(x: Any) -> Any:
     # Hopefully it is already hashable and we have nothing to do!
     try:
         hash(x)
+        return x
     except TypeError:
         pass
-    else:
-        return x
 
     if isinstance(x, (list, tuple)):
         return tuple(_make_hashable(y) for y in x)
