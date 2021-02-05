@@ -10,12 +10,10 @@ from antlr4 import ParserRuleContext
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import (
     ConfigKeyError,
-    InterpolationResolutionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
-
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
@@ -23,6 +21,7 @@ from .grammar_visitor import GrammarVisitor
 DictKeyType = Union[str, int, Enum]
 
 _MARKER_ = object()
+
 
 @dataclass
 class Metadata:
@@ -189,6 +188,10 @@ class Node(ABC):
     ) -> Optional["Node"]:
         if self._is_interpolation():
             parent = self._get_parent()
+            if parent is None:
+                raise OmegaConfBaseException(
+                    "Cannot resolve interpolation for a node without a parent"
+                )
             assert parent is not None
             key = self._key()
             return parent._resolve_interpolation_from_parse_tree(
@@ -482,7 +485,7 @@ class Container(Node):
                     self._format_and_raise(key=None, value=None, cause=e)
                     assert False
                 else:
-                    return None                
+                    return None
         else:
             if throw_on_resolution_failure:
                 raise UnsupportedInterpolationType(
