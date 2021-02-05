@@ -24,7 +24,6 @@ from omegaconf import (
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
     ConfigAttributeError,
-    ConfigKeyError,
     GrammarParseError,
     InterpolationResolutionError,
     OmegaConfBaseException,
@@ -613,7 +612,7 @@ def test_valid_key_names() -> None:
         if c in [".", "}"]:
             # With '.', we try to access `${ab.de}`.
             # With "}", we try to access `${ab}`.
-            error = ConfigKeyError
+            error = ConfigAttributeError
         elif c == ":":
             error = UnsupportedInterpolationType  # `${ab:de}`
         else:
@@ -771,13 +770,13 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
     ("dict_access", "${prim_dict.a}", 0),
     ("list_access_1", "${prim_list.0}", -1),
     ("list_access_2", "${test:${prim_list.1},${prim_list.2}}", ["a", 1.1]),
-    ("list_access_underscore", "${prim_list.1_000}", ConfigKeyError),  # "working"
-    ("list_access_bad_negative", "${prim_list.-1}", ConfigKeyError),
+    ("list_access_underscore", "${prim_list.1_000}", ConfigAttributeError),  # "working"
+    ("list_access_bad_negative", "${prim_list.-1}", ConfigAttributeError),
     ("dict_access_list_like_1", "${0}", 42),
     ("dict_access_list_like_2", "${1.2}", 1337),
     ("bool_like_keys", "${FalsE.TruE}", True),
     ("null_like_key_ok", "${None.True}", 1),
-    ("null_like_key_bad_case", "${null.True}", ConfigKeyError),
+    ("null_like_key_bad_case", "${null.True}", ConfigAttributeError),
     ("null_like_key_quoted_1", "${'None'.'True'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.True'}", GrammarParseError),
     ("dotpath_bad_type", "${prim_dict.${float}}", GrammarParseError),
