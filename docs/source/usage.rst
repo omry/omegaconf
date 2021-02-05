@@ -330,15 +330,12 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
 
 .. doctest::
 
-    >>> from textwrap import dedent
     >>> cfg = OmegaConf.create(
-    ...     dedent(
-    ...         """\
-    ...         john: {height: 180, weight: 75}
-    ...         fred: {height: 195, weight: 90}
-    ...         player: ${john}
-    ...         """
-    ...     )
+    ...     {
+    ...         "john": {"height": 180, "weight": 75},
+    ...         "fred": {"height": 195, "weight": 90},
+    ...         "player": "${john}",
+    ...     }
     ... )
     >>> cfg.player.height
     180
@@ -355,16 +352,13 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
 
 .. doctest::
 
+
     >>> cfg = OmegaConf.create(
-    ...     dedent(
-    ...         """\
-    ...         plans:
-    ...             A: plan A
-    ...             B: plan B
-    ...         selected_plan: A
-    ...         plan: ${plans.${selected_plan}}
-    ...         """
-    ...     )
+    ...     {
+    ...         "plans": {"A": "plan A", "B": "plan B"},
+    ...         "selected_plan": "A",
+    ...         "plan": "${plans.${selected_plan}}",
+    ...     }
     ... )
     >>> cfg.plan # default plan
     'plan A'
