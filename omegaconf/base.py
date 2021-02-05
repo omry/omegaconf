@@ -191,15 +191,14 @@ class Node(ABC):
             parent = self._get_parent()
             assert parent is not None
             key = self._key()
-            rval = parent._maybe_resolve_interpolation(
+            return parent._resolve_interpolation_from_parse_tree(
                 parent=parent,
                 key=key,
                 value=self,
+                parse_tree=parse(_get_value(self)),
                 throw_on_missing=throw_on_missing,
                 throw_on_resolution_failure=throw_on_resolution_failure,
             )
-            assert rval is None or isinstance(rval, Node)
-            return rval
         else:
             # not interpolation, compare directly
             if throw_on_missing:
