@@ -334,14 +334,8 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
     >>> cfg = OmegaConf.create(
     ...     dedent(
     ...         """\
-    ...         john:
-    ...             height: 180
-    ...             weight: 75
-    ...
-    ...         fred:
-    ...             height: 195
-    ...             weight: 90
-    ...
+    ...         john: {height: 180, weight: 75}
+    ...         fred: {height: 195, weight: 90}
     ...         player: ${john}
     ...         """
     ...     )
