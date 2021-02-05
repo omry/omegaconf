@@ -347,15 +347,15 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         :param key:
         :return:
         """
-        # PyCharm is sometimes inspecting __members__, be sure to tell it we don't have that.
-        if key == "__members__":
-            raise AttributeError()
-
         if key == "__name__":
             raise AttributeError()
 
         try:
             return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+        except ConfigKeyError as e:
+            self._format_and_raise(
+                key=key, value=None, cause=e, type_override=ConfigAttributeError
+            )
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
@@ -413,9 +413,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     def _get_impl(self, key: DictKeyType, default_value: Any) -> Any:
         try:
-            node = self._get_node(key=key)
-        except ConfigAttributeError:
-            if default_value != DEFAULT_VALUE_MARKER:
+            node = self._get_node(key=key, throw_on_missing_key=True)
+        except (ConfigAttributeError, ConfigKeyError):
+            if default_value is not DEFAULT_VALUE_MARKER:
                 node = default_value
             else:
                 raise
@@ -427,7 +427,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self,
         key: DictKeyType,
         validate_access: bool = True,
-        throw_on_missing: bool = False,
+        throw_on_missing_value: bool = False,
+        throw_on_missing_key: bool = False,
     ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             key = self._validate_and_normalize_key(key)
@@ -440,10 +441,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if validate_access:
             self._validate_get(key)
 
-        value: Node = self.__dict__["_content"].get(key)
-        if throw_on_missing and value._is_missing():
+        value: Optional[Node] = self.__dict__["_content"].get(key)
+        if value is None:
+            if throw_on_missing_key:
+                raise ConfigKeyError(f"Missing key {key}")
+        elif throw_on_missing_value and value._is_missing():
             raise MissingMandatoryValue("Missing mandatory value")
-
         return value
 
     def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:

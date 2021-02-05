@@ -372,7 +372,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self,
         key: Union[int, slice],
         validate_access: bool = True,
-        throw_on_missing: bool = False,
+        throw_on_missing_value: bool = False,
+        throw_on_missing_key: bool = False,
     ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             if self._is_none():
@@ -390,15 +391,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 if isinstance(key, slice):
                     assert isinstance(value, list)
                     for v in value:
-                        if throw_on_missing and v._is_missing():
+                        if throw_on_missing_value and v._is_missing():
                             raise MissingMandatoryValue("Missing mandatory value")
                 else:
                     assert isinstance(value, Node)
-                    if throw_on_missing and value._is_missing():
+                    if throw_on_missing_value and value._is_missing():
                         raise MissingMandatoryValue("Missing mandatory value")
             return value
         except (IndexError, TypeError, MissingMandatoryValue, KeyValidationError) as e:
-            if isinstance(e, MissingMandatoryValue) and throw_on_missing:
+            if isinstance(e, MissingMandatoryValue) and throw_on_missing_value:
                 raise
             if validate_access:
                 self._format_and_raise(key=key, value=None, cause=e)

@@ -226,10 +226,6 @@ You can provide default values directly in the accessing code:
 
 .. doctest:: loaded
 
-    >>> # providing default values
-    >>> conf.missing_key or 'a default value'
-    'a default value'
-
     >>> conf.get('missing_key', 'a default value')
     'a default value'
 

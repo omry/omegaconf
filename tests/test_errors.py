@@ -196,7 +196,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=ConfigKeyError,
+            exception_type=ConfigAttributeError,
             msg="str interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -207,7 +207,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=ConfigKeyError,
+            exception_type=ConfigAttributeError,
             msg="str interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),

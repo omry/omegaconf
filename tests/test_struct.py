@@ -9,7 +9,6 @@ from omegaconf.errors import ConfigKeyError
 
 def test_struct_default() -> None:
     c = OmegaConf.create()
-    assert c.not_found is None
     assert OmegaConf.is_struct(c) is None
 
 

@@ -17,7 +17,7 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigKeyError, OmegaConfBaseException
+from omegaconf.errors import ConfigAttributeError, OmegaConfBaseException
 
 
 @pytest.mark.parametrize(
@@ -123,7 +123,7 @@ def test_merge_with_interpolation() -> None:
 
 def test_non_container_interpolation() -> None:
     cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
-    with pytest.raises(ConfigKeyError):
+    with pytest.raises(ConfigAttributeError):
         cfg.bar
 
 
