@@ -31,7 +31,7 @@ from omegaconf.errors import (
     UnsupportedInterpolationType,
 )
 
-from . import User
+from . import StructuredWithMissing, User
 
 # file deepcode ignore CopyPasteError: there are several tests of the form `c.k == c.k`
 # (this is intended to trigger multiple accesses to the same config key)
@@ -269,7 +269,7 @@ def test_env_is_cached() -> None:
     assert c.foobar == before
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "value,expected",
     [
         # bool
@@ -505,7 +505,7 @@ def test_resolver_that_allows_a_list_of_arguments(
     assert c[name] == result
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "resolver,name,key,result",
     [
         (lambda *args: args, "arg_list", "${my_resolver:cat, dog}", ("cat", "dog")),
@@ -1007,7 +1007,7 @@ TEST_CONFIG_DATA: List[Tuple[str, Any, Any]] = [
 ]
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "key,expected",
     [
         pytest.param(

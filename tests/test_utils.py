@@ -557,7 +557,7 @@ def test_get_ref_type_error() -> None:
         _utils.get_ref_type(AnyNode(), "foo")
 
 
-@pytest.mark.parametrize(  # type: ignore
+@mark.parametrize(
     "value",
     [
         1,
@@ -573,7 +573,7 @@ def test_get_value_basic(value: Any) -> None:
     assert _get_value(val_node) == value
 
 
-@pytest.mark.parametrize(  # type: ignore
+@mark.parametrize(
     "content",
     [{"a": 0, "b": 1}, "???", None, "${bar}"],
 )
@@ -583,7 +583,7 @@ def test_get_value_container(content: Any) -> None:
     assert _get_value(cfg) == content
 
 
-@pytest.mark.parametrize(  # type: ignore
+@mark.parametrize(
     "input_1,input_2",
     [
         (0, 0),
@@ -605,5 +605,5 @@ def test_make_hashable(input_1: Any, input_2: Any) -> None:
 
 
 def test_make_hashable_type_error() -> None:
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         _make_hashable({...: 0, None: 0})

@@ -6,7 +6,7 @@ import pytest
 from build_helpers.build_helpers import find, find_version, matches
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "path_rel,include_files,include_dirs,excludes,scan_exclude,expected",
     [
         pytest.param("test_files", [], [], [], None, [], id="none"),
@@ -124,7 +124,7 @@ def test_find(
     assert ret_set == expected_set
 
 
-@pytest.mark.parametrize(  # type: ignore
+@pytest.mark.parametrize(
     "patterns,query,expected",
     [
         (["^a/.*"], Path("a") / "b.txt", True),
