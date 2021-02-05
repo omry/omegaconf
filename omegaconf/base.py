@@ -418,7 +418,7 @@ class Container(Node):
         if resolved is None:
             return None
         elif isinstance(resolved, str):
-            # Result is a string: create a new node to store it.
+            # Result is a string: create a new StringNode for it.
             return StringNode(
                 value=resolved,
                 key=key,
