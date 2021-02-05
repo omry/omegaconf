@@ -191,7 +191,7 @@ class Node(ABC):
             parent = self._get_parent()
             assert parent is not None
             key = self._key()
-            rval = parent._resolve_interpolation(
+            rval = parent._maybe_resolve_interpolation(
                 parent=parent,
                 key=key,
                 value=self,
@@ -381,7 +381,7 @@ class Container(Node):
         )
         if value is None:
             return root, last_key, None
-        value = root._resolve_interpolation(
+        value = root._maybe_resolve_interpolation(
             parent=root,
             key=last_key,
             value=value,
@@ -390,7 +390,7 @@ class Container(Node):
         )
         return root, last_key, value
 
-    def _resolve_complex_interpolation(
+    def _resolve_interpolation_from_parse_tree(
         self,
         parent: Optional["Container"],
         value: "Node",
@@ -399,12 +399,6 @@ class Container(Node):
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
-        """
-        A "complex" interpolation is any interpolation that cannot be handled by
-        either `_resolve_node_interpolation()` or `_evaluate_custom_resolver()`, i.e.,
-        that either contains nested interpolations or is not a single "${..}" block.
-        """
-
         from .nodes import StringNode
 
         resolved = self.resolve_parse_tree(
@@ -434,8 +428,8 @@ class Container(Node):
         inter_key: str,
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
-        # inputs_str: Optional[Tuple[str, ...]] = None,  # text representation of inputs
     ) -> Optional["Node"]:
+        """A node interpolation is of the form `${foo.bar}`"""
         root_node, inter_key = self._resolve_key_and_root(inter_key)
         parent, last_key, value = root_node._select_impl(
             inter_key,
@@ -498,7 +492,7 @@ class Container(Node):
             else:
                 return None
 
-    def _resolve_interpolation(
+    def _maybe_resolve_interpolation(
         self,
         parent: Optional["Container"],
         key: Any,
@@ -511,7 +505,7 @@ class Container(Node):
             return value
 
         parse_tree = parse(_get_value(value))
-        return self._resolve_complex_interpolation(
+        return self._resolve_interpolation_from_parse_tree(
             parent=parent,
             value=value,
             key=key,
@@ -559,7 +553,7 @@ class Container(Node):
             )
 
         def quoted_string_callback(quoted_str: str) -> str:
-            quoted_val = self._resolve_interpolation(
+            quoted_val = self._maybe_resolve_interpolation(
                 key=key,
                 parent=parent,
                 value=StringNode(

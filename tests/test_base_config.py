@@ -690,7 +690,7 @@ def test_omegaconf_init_not_implemented() -> None:
 def test_resolve_str_interpolation(query: str, result: Any) -> None:
     cfg = OmegaConf.create({"foo": 10, "bar": "${foo}"})
     assert (
-        cfg._resolve_interpolation(
+        cfg._maybe_resolve_interpolation(
             parent=None,
             key=None,
             value=StringNode(value=query),
