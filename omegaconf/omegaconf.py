@@ -527,6 +527,48 @@ class OmegaConf:
         )
 
     @staticmethod
+    def to_pathdict(
+            cfg: Any,
+            *,
+            resolve: bool = False,
+            enum_to_str: bool = False,
+            exclude_structured_configs: bool = False,
+            sep: Optional[str] = '.',
+        ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
+        """
+        Converts an config to a "flattened" dictionary, in the same format as a dotlist.
+                (only works for DictConfig)
+        :param cfg: the config to convert
+        :param resolve: True to resolve all values
+        :param enum_to_str: True to convert Enum values to strings
+        :param exclude_structured_configs: If True, do not convert Structured Configs
+               (DictConfigs backed by a dataclass)
+        :param sep: string to put between nodes, '.' by default
+        :return: A dict representing this container, with a key for every leaf node
+        """
+        dict_queue = list(OmegaConf.to_container(
+            cfg, 
+            resolve=resolve,
+            enum_to_str=enum_to_str,
+            exclude_structured_configs=exclude_structured_configs,
+        ).items())
+
+        output = dict()
+
+        while dict_queue:
+            key,val = dict_queue.pop()
+            if isinstance(val, dict):
+                dict_queue += {
+                    sep.join((key, dk)) : dv
+                    for dk,dv in val.items()
+                }.items()
+            else:
+                output[key] = val
+
+        return output
+        
+
+    @staticmethod
     def is_missing(cfg: Any, key: DictKeyType) -> bool:
         assert isinstance(cfg, Container)
         try:

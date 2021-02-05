@@ -54,6 +54,12 @@ def test_setattr_deep_map() -> None:
     c.a.b = {"z": 10}
     assert {"a": {"b": {"z": 10}}} == c
 
+def test_to_pathdict() -> None:
+    c = OmegaConf.create(dict(a=dict()))
+    c.a.b = {"c": 1}
+    c.a.y = {"z": 10}
+    assert {"a.b.c": 1, "a.y.z": 10} == OmegaConf.to_pathdict(c)
+
 
 def test_getattr() -> None:
     c = OmegaConf.create("a: b")
