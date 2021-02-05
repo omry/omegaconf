@@ -722,9 +722,8 @@ def _make_hashable(x: Any) -> Any:
         # We sort the dictionary so that the order of keys does not matter.
         # Note that since keys might be of different types, and comparisons
         # between different types are not always allowed, we use a custom
-        # `_safe_cmp()` function to order keys.
-        key_func = cmp_to_key(_safe_cmp)
-        return _make_hashable(tuple(sorted(x.items(), key=lambda kv: key_func(kv[0]))))
+        # `_safe_items_sort_key()` function to order keys.
+        return _make_hashable(tuple(sorted(x.items(), key=_safe_items_sort_key)))
     else:
         raise NotImplementedError(f"type {type(x)} cannot be made hashable")
 
@@ -750,3 +749,11 @@ def _safe_cmp(x: Any, y: Any) -> int:
         if idx_x == idx_y:  # cannot compare two elements of the same type?!
             raise  # pragma: no cover
         return -1 if idx_x < idx_y else 1
+
+
+_safe_key = cmp_to_key(_safe_cmp)
+
+
+def _safe_items_sort_key(kv: Tuple[Any, Any]) -> Any:
+    """Safe function to use as sort key when sorting items in a dictionary"""
+    return _safe_key(kv[0])
