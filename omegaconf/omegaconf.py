@@ -528,13 +528,13 @@ class OmegaConf:
 
     @staticmethod
     def to_pathdict(
-            cfg: Any,
+            cfg: DictConfig,
             *,
             resolve: bool = False,
             enum_to_str: bool = False,
             exclude_structured_configs: bool = False,
-            sep: Optional[str] = '.',
-        ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
+            sep: str = '.',
+        ) -> Union[Dict[str, Any], None, str]:
         """
         Converts an config to a "flattened" dictionary, in the same format as a dotlist.
                 (only works for DictConfig)
@@ -546,26 +546,43 @@ class OmegaConf:
         :param sep: string to put between nodes, '.' by default
         :return: A dict representing this container, with a key for every leaf node
         """
-        dict_queue = list(OmegaConf.to_container(
+        # only works for DictConfig
+        if not OmegaConf.is_dict(cfg):
+            raise ValueError(
+                f"Input cfg is not a DictConfig object ({type_str(type(cfg))})"
+            )
+
+        # convert to a dict, and put everything in the first layer into a queue
+        converted_container = OmegaConf.to_container(
             cfg, 
             resolve=resolve,
             enum_to_str=enum_to_str,
             exclude_structured_configs=exclude_structured_configs,
-        ).items())
+        )
 
-        output = dict()
+        if isinstance(converted_container, str) or converted_container is None:
+            return converted_container
+        
+        elif isinstance(converted_container, list):
+            raise TypeError('DictConfig has been somehow converted into a list (this should not be an accessible state)')
+        else:
+            dict_queue = list(converted_container.items())
 
-        while dict_queue:
-            key,val = dict_queue.pop()
-            if isinstance(val, dict):
-                dict_queue += {
-                    sep.join((key, dk)) : dv
-                    for dk,dv in val.items()
-                }.items()
-            else:
-                output[key] = val
+            output = dict()
 
-        return output
+            while dict_queue:
+                key,val = dict_queue.pop()
+                # all keys cast to strings to allow joining
+                skey = str(key)
+                if isinstance(val, dict):
+                    dict_queue += {
+                        sep.join((skey, dk)) : dv
+                        for dk,dv in val.items()
+                    }.items()
+                else:
+                    output[skey] = val
+
+            return output
         
 
     @staticmethod
