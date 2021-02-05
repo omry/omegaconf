@@ -295,7 +295,7 @@ Note that the saved file may be incompatible across different major versions of 
 Variable interpolation
 ----------------------
 
-OmegaConf support variable interpolation, Interpolations are evaluated lazily on access.
+OmegaConf supports variable interpolation. Interpolations are evaluated lazily on access.
 
 Config node interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -324,6 +324,27 @@ Example:
     http://localhost:80/
     >>> print(type(conf.client.url).__name__)
     str
+
+Interpolated nodes can be any node in the config, not just leaf nodes:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "john": {"height": 180, "weight": 75},
+    ...         "fred": {"height": 195, "weight": 90},
+    ...         "player": "${john}",
+    ...     }
+    ... )
+    >>> cfg.player.height
+    180
+    >>> cfg.player.weight
+    75
+    >>> cfg.player = "${fred}"
+    >>> cfg.player.height
+    195
+    >>> cfg.player.weight
+    90
 
 
 Environment variable interpolation
