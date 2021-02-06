@@ -332,19 +332,11 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "john": {"height": 180, "weight": 75},
-    ...         "fred": {"height": 195, "weight": 90},
     ...         "player": "${john}",
     ...     }
     ... )
-    >>> cfg.player.height
-    180
-    >>> cfg.player.weight
-    75
-    >>> cfg.player = "${fred}"
-    >>> cfg.player.height
-    195
-    >>> cfg.player.weight
-    90
+    >>> cfg.player
+    {"height": 180, "weight": 75}
 
 
 Environment variable interpolation
