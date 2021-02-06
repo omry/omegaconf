@@ -464,19 +464,15 @@ inputs we always return the same value. This behavior may be disabled by setting
 
     >>> import random
     >>> random.seed(1234)
-    >>> OmegaConf.new_register_resolver("cached", random.random)
+    >>> OmegaConf.new_register_resolver("cached", random.randint)
     >>> OmegaConf.new_register_resolver(
-    ...              "uncached", random.random, use_cache=False)
-    >>> c = OmegaConf.create({"cached": "${cached:}",
-    ...                       "uncached": "${uncached:}"})
-    >>> c.cached
-    0.9664535356921388
-    >>> c.cached  # same as above thanks to the cache
-    0.9664535356921388
-    >>> c.uncached
-    0.4407325991753527
-    >>> c.uncached  # not the same since the cache is disabled
-    0.007491470058587191
+    ...              "uncached", random.randint, use_cache=False)
+    >>> c = OmegaConf.create({"cached": "${cached:0,10000}",
+    ...                       "uncached": "${uncached:0,10000}"})
+    >>> # same value on repeated access thanks to the cache
+    >>> assert c.cached == c.cached == 7220
+    >>> # not the same since the cache is disabled
+    >>> assert c.uncached != c.uncached
 
 
 Merging configurations
