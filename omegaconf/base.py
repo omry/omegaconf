@@ -450,7 +450,6 @@ class Container(Node):
     def _evaluate_custom_resolver(
         self,
         key: Any,
-        # parent: Optional["Container"],
         inter_type: str,
         inter_args: Tuple[Any, ...],
         throw_on_missing: bool,
