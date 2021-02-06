@@ -5,7 +5,7 @@ from typing import Any
 from pytest import fixture
 
 from omegaconf import MISSING
-from omegaconf.ir import IRNode, get_dataclass_ir
+from omegaconf.ir import IRNode, get_structured_config_ir
 
 
 def resolve_types(module: Any, ir: IRNode) -> None:
@@ -62,4 +62,4 @@ def tested_type(module: Any, request: Any) -> Any:
 
 
 def test_get_dataclass_ir(tested_type: Any) -> None:
-    assert get_dataclass_ir(tested_type["type"]) == tested_type["expected"]
+    assert get_structured_config_ir(tested_type["type"]) == tested_type["expected"]
