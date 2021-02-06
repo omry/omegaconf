@@ -463,6 +463,7 @@ class Container(Node):
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
+            value = None
             try:
                 value = resolver(root_node, inter_args, inter_args_str)
 
@@ -481,7 +482,7 @@ class Container(Node):
                 )
             except Exception as e:
                 if throw_on_resolution_failure:
-                    self._format_and_raise(key=None, value=None, cause=e)
+                    self._format_and_raise(key=key, value=value, cause=e)
                     assert False
                 else:
                     return None

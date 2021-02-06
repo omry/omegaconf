@@ -333,7 +333,7 @@ To work around it, use SI and II described below.
     >>> assert conf.c == 100
 
 
-Type validation is performed on assignment, but not on values returned by interpolation, e.g:
+Type validation is performed both on assignment and on values returned by interpolation, e.g:
 
 .. doctest::
 
@@ -344,7 +344,7 @@ Type validation is performed on assignment, but not on values returned by interp
     ...     str_key: str = "string"
 
     >>> cfg = OmegaConf.structured(Interpolation)
-    >>> assert cfg.int_key == "string"
+    >>> cfg.int_key  # ValidationError: Value 'Not an int' could not be converted to Integer
 
 Frozen
 ^^^^^^
