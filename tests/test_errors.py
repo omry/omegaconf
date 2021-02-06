@@ -1111,9 +1111,6 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
         if expected.ref_type is not None:
             assert ex.ref_type == expected.ref_type
 
-        if expected.object_type is not None:
-            assert ex.object_type == expected.object_type
-
         if expected.ref_type is not None:
             assert ex.ref_type_str == expected.ref_type_str
 
