@@ -2,7 +2,7 @@ import copy
 from importlib import import_module
 from typing import Any
 
-from pytest import fixture
+from pytest import fixture, raises
 
 from omegaconf import MISSING
 from omegaconf.ir import IRNode, get_structured_config_ir
@@ -51,6 +51,42 @@ def module(request: Any) -> Any:
                 ],
             ),
         ),
+        (
+            "UserWithBackendMissing",
+            IRNode(
+                name=None,
+                type="UserWithBackendMissing",
+                opt=False,
+                val=[
+                    IRNode(name="name", type=str, opt=False, val=MISSING),
+                    IRNode(name="age", type=int, opt=False, val=MISSING),
+                ],
+            ),
+        ),
+        (
+            "UserWithDefault",
+            IRNode(
+                name=None,
+                type="UserWithDefault",
+                opt=False,
+                val=[
+                    IRNode(name="name", type=str, opt=False, val="bond"),
+                    IRNode(name="age", type=int, opt=False, val=7),
+                ],
+            ),
+        ),
+        (
+            "UserWithDefaultFactory",
+            IRNode(
+                name=None,
+                type="UserWithDefaultFactory",
+                opt=False,
+                val=[
+                    IRNode(name="name", type=str, opt=False, val="bond"),
+                    IRNode(name="age", type=int, opt=False, val=7),
+                ],
+            ),
+        ),
     ],
     ids=lambda x: x[0],  # type: ignore
 )
@@ -63,3 +99,9 @@ def tested_type(module: Any, request: Any) -> Any:
 
 def test_get_dataclass_ir(tested_type: Any) -> None:
     assert get_structured_config_ir(tested_type["type"]) == tested_type["expected"]
+
+
+def test_get_structured_config_ir_rejects_nonstructured() -> None:
+    """`get_structured_config_ir` should reject input that is not structured"""
+    with raises(ValueError):
+        get_structured_config_ir(object())

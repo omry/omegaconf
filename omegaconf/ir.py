@@ -2,8 +2,6 @@ import dataclasses
 from dataclasses import dataclass
 from typing import Any, Optional, get_type_hints
 
-import attr
-
 from omegaconf._utils import (
     _resolve_forward,
     _resolve_optional,
@@ -54,24 +52,29 @@ def get_dataclass_ir(obj: Any) -> IRNode:
 
 
 def get_attr_ir(obj: Any) -> IRNode:
+    import attr
+    import attr._make
+
     from omegaconf.omegaconf import MISSING
 
     resolved_hints = get_type_hints(get_type_of(obj))
     assert is_attr_class(obj)
     obj_type = get_type_of(obj)
     children = []
-    for name in attr.fields_dict(obj).keys():
+    for name, attrib in attr.fields_dict(obj).items():
         # for fld in dataclasses.fields(obj):
         # name = fld.name
         opt, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj_type.__module__)
 
-        if hasattr(obj, name):
-            value = getattr(obj, name)
-            if value == attr.NOTHING:
-                value = MISSING
-        else:
+        assert not hasattr(obj, name)  # no test coverage for this case yet
+        if attrib.default == attr.NOTHING:
             value = MISSING
+        elif isinstance(attrib.default, attr._make.Factory):
+            assert not attrib.default.takes_self, "not supported yet"
+            value = attrib.default.factory()
+        else:
+            value = attrib.default
         ir = IRNode(name=name, type=type_, opt=opt, val=value)
         children.append(ir)
 
