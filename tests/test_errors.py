@@ -214,6 +214,19 @@ params = [
         ),
         id="dict,accessing_missing_str_interpolation",
     ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
+            op=lambda cfg: getattr(cfg.foo, "bar"),
+            exception_type=ConfigAttributeError,
+            msg="str interpolation key 'missing' not found",
+            key="bar",
+            full_key="foo.bar",
+            child_node=lambda cfg: cfg.foo._get_node("bar"),
+            parent_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,accessing_missing_relative_interpolation",
+    ),
     # setattr
     pytest.param(
         Expected(
