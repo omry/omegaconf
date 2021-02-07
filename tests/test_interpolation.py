@@ -8,6 +8,7 @@ import pytest
 from _pytest.python_api import RaisesContext
 
 from omegaconf import (
+    II,
     Container,
     DictConfig,
     IntegerNode,
@@ -22,6 +23,8 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     OmegaConfBaseException,
 )
+
+from . import StructuredWithMissing
 
 
 @pytest.mark.parametrize(
@@ -467,3 +470,10 @@ def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
 def test_resolve_interpolation_without_parent() -> None:
     with pytest.raises(OmegaConfBaseException):
         DictConfig(content="${foo}")._dereference_node()
+
+
+def test_optional_after_interpolation() -> None:
+    cfg = OmegaConf.structured(StructuredWithMissing(opt_num=II("num")))
+    # Ensure that we can set an optional field to `None` even when it currently
+    # points to a non-optional field.
+    cfg.opt_num = None

@@ -93,9 +93,7 @@ class ValueNode(Node):
         return node._value() is None
 
     def _is_optional(self) -> bool:
-        node = self._dereference_node()
-        assert node is not None
-        return node._metadata.optional
+        return self._metadata.optional
 
     def _is_missing(self) -> bool:
         if self._is_interpolation():

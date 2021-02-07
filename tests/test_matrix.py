@@ -227,8 +227,7 @@ class TestNodeTypesMatrix:
                 cfg,
                 "resolver",
                 none=False,
-                # Note, resolvers are always optional because the underlying function may return None
-                opt=True,
+                opt=False,
                 missing=False,
                 inter=True,
                 exp=resolver_output,
@@ -273,7 +272,7 @@ class TestNodeTypesMatrix:
                 cfg,
                 "int_reg",
                 none=False,
-                opt=False,
+                opt=True,
                 missing=False,
                 inter=True,
                 exp=value,
@@ -296,7 +295,7 @@ class TestNodeTypesMatrix:
                 inter=True,
                 exp=None,
             )
-            verify(cfg, "int_missing", none=False, opt=False, missing=True, inter=True)
+            verify(cfg, "int_missing", none=False, opt=True, missing=True, inter=True)
             verify(
                 cfg, "int_opt_missing", none=False, opt=True, missing=True, inter=True
             )
@@ -323,7 +322,7 @@ class TestNodeTypesMatrix:
                 cfg,
                 "int_node",
                 none=False,
-                opt=False,
+                opt=True,
                 missing=False,
                 inter=True,
                 exp=node,
