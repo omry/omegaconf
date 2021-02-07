@@ -22,6 +22,7 @@ from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
     ConfigValueError,
+    InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -196,7 +197,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=ConfigAttributeError,
+            exception_type=InterpolationResolutionError,
             msg="str interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -207,12 +208,25 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=ConfigAttributeError,
+            exception_type=InterpolationResolutionError,
             msg="str interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
         id="dict,accessing_missing_str_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
+            op=lambda cfg: getattr(cfg.foo, "bar"),
+            exception_type=InterpolationResolutionError,
+            msg="str interpolation key 'missing' not found",
+            key="bar",
+            full_key="foo.bar",
+            child_node=lambda cfg: cfg.foo._get_node("bar"),
+            parent_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,accessing_missing_relative_interpolation",
     ),
     # setattr
     pytest.param(

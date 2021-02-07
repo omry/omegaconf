@@ -15,7 +15,11 @@ from omegaconf import (
     OmegaConf,
     StringNode,
 )
-from omegaconf.errors import ConfigKeyError, UnsupportedInterpolationType
+from omegaconf.errors import (
+    ConfigKeyError,
+    InterpolationResolutionError,
+    UnsupportedInterpolationType,
+)
 from tests import (
     Color,
     ConcretePlugin,
@@ -30,7 +34,7 @@ from tests import (
     [
         ({}, "foo", False, raises(ConfigKeyError)),
         ({"foo": True}, "foo", False, does_not_raise()),
-        ({"foo": "${no_such_key}"}, "foo", False, raises(ConfigKeyError)),
+        ({"foo": "${no_such_key}"}, "foo", False, raises(InterpolationResolutionError)),
         ({"foo": MISSING}, "foo", True, raises(MissingMandatoryValue)),
         pytest.param(
             {"foo": "${bar}", "bar": DictConfig(content=MISSING)},

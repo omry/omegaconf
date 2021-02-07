@@ -54,6 +54,7 @@ from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
+    InterpolationResolutionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -639,7 +640,7 @@ class OmegaConf:
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-            except ConfigKeyError:
+            except (ConfigKeyError, InterpolationResolutionError):
                 if default is not _EMPTY_MARKER_:
                     return default
                 else:
