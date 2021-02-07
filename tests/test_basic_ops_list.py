@@ -7,8 +7,8 @@ import pytest
 
 from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
-    ConfigKeyError,
     ConfigTypeError,
+    InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
     UnsupportedValueType,
@@ -70,7 +70,7 @@ def test_iterate_list_with_missing_interpolation() -> None:
     c = OmegaConf.create([1, "${10}"])
     itr = iter(c)
     assert 1 == next(itr)
-    with pytest.raises(ConfigKeyError):
+    with pytest.raises(InterpolationResolutionError):
         next(itr)
 
 

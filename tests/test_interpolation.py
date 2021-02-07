@@ -17,15 +17,29 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigAttributeError, OmegaConfBaseException
+from omegaconf.errors import (
+    ConfigAttributeError,
+    InterpolationResolutionError,
+    OmegaConfBaseException,
+)
 
 
 @pytest.mark.parametrize(
     "cfg,key,expected",
     [
         pytest.param({"a": "${b}", "b": 10}, "a", 10, id="simple"),
-        pytest.param({"a": "${x}"}, "a", pytest.raises(KeyError), id="not_found"),
-        pytest.param({"a": "${x.y}"}, "a", pytest.raises(KeyError), id="not_found"),
+        pytest.param(
+            {"a": "${x}"},
+            "a",
+            pytest.raises(InterpolationResolutionError),
+            id="not_found",
+        ),
+        pytest.param(
+            {"a": "${x.y}"},
+            "a",
+            pytest.raises(InterpolationResolutionError),
+            id="not_found",
+        ),
         pytest.param({"a": "foo_${b}", "b": "bar"}, "a", "foo_bar", id="str_inter"),
         pytest.param(
             {"a": "${x}_${y}", "x": "foo", "y": "bar"},
@@ -393,7 +407,7 @@ def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
 
-    with pytest.raises(KeyError):
+    with pytest.raises(InterpolationResolutionError):
         c[0]
 
 

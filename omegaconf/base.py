@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
 from .errors import (
     ConfigKeyError,
+    InterpolationResolutionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -429,7 +430,7 @@ class Container(Node):
             # if parent is None or (value is None and last_key not in parent):  # type: ignore
             if parent is None or value is None:
                 if throw_on_resolution_failure:
-                    raise ConfigKeyError(
+                    raise InterpolationResolutionError(
                         f"{inter_type} interpolation key '{inter_key}' not found"
                     )
                 else:
