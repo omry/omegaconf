@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.6' >> $BASH_ENV
       - run: sudo pip install nox
-      - run: nox
+      - run: nox --add-timestamp
 
   py37_linux:
     docker:
@@ -17,7 +17,7 @@ jobs:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.7' >> $BASH_ENV
       - run: sudo pip install nox
-      - run: nox
+      - run: nox --add-timestamp
 
   py38_linux:
     docker:
@@ -26,7 +26,7 @@ jobs:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.8' >> $BASH_ENV
       - run: sudo pip install nox
-      - run: nox
+      - run: nox --add-timestamp
   
   py39_linux:
     docker:
@@ -35,7 +35,7 @@ jobs:
       - checkout
       - run: echo 'export NOX_PYTHON_VERSIONS=3.9' >> $BASH_ENV
       - run: sudo pip install nox
-      - run: nox
+      - run: nox --add-timestamp
 
 workflows:
   version: 2
