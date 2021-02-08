@@ -1,1 +1,1 @@
-If the value of a typed node is computed by a resolver (including `env`), it is now validated (and possibly converted) based on the type
+`register_resolver()` is deprecated in favor of `new_register_resolver()` (see #426 for details and migration instructions).

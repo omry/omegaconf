@@ -173,7 +173,7 @@ class TestNodeTypesMatrix:
     def test_interpolation(
         self, node_type: Any, values: Any, restore_resolvers: Any
     ) -> None:
-        resolver_output = "9999"
+        resolver_output = 9999
         OmegaConf.new_register_resolver("func", lambda: resolver_output)
         values = copy.deepcopy(values)
         for value in values:
