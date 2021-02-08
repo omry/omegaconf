@@ -1,6 +1,5 @@
 import copy
 import math
-import os
 import random
 import re
 from typing import Any, List, Optional, Tuple
@@ -256,11 +255,11 @@ def test_env_interpolation(
         assert OmegaConf.select(cfg, key) == expected
 
 
-def test_env_is_cached() -> None:
-    os.environ["foobar"] = "1234"
+def test_env_is_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("foobar", "1234")
     c = OmegaConf.create({"foobar": "${env:foobar}"})
     before = c.foobar
-    os.environ["foobar"] = "3456"
+    monkeypatch.setenv("foobar", "3456")
     assert c.foobar == before
 
 
@@ -304,26 +303,19 @@ def test_env_is_cached() -> None:
         ("${env:my_key_2}", 456),  # can call another resolver
     ],
 )
-def test_env_values_are_typed(value: Any, expected: Any) -> None:
-    try:
-        os.environ["my_key"] = value
-        os.environ["my_key_2"] = "456"
-        c = OmegaConf.create(dict(my_key="${env:my_key}"))
-        assert c.my_key == expected
-    finally:
-        del os.environ["my_key"]
-        del os.environ["my_key_2"]
+def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
+    monkeypatch.setenv("my_key", value)
+    monkeypatch.setenv("my_key_2", "456")
+    c = OmegaConf.create(dict(my_key="${env:my_key}"))
+    assert c.my_key == expected
 
 
-def test_env_node_interpolation() -> None:
+def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
-    try:
-        os.environ["my_key"] = "${other_key}"
-        c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-        with pytest.raises(ConfigAttributeError):
-            c.my_key
-    finally:
-        del os.environ["my_key"]
+    monkeypatch.setenv("my_key", "${other_key}")
+    c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
+    with pytest.raises(ConfigAttributeError):
+        c.my_key
 
 
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
