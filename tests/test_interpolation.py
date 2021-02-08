@@ -31,9 +31,6 @@ from omegaconf.errors import (
 
 from . import StructuredWithMissing
 
-# file deepcode ignore CopyPasteError: there are several tests of the form `c.k == c.k`
-# (this is intended to trigger multiple accesses to the same config key)
-
 
 @pytest.mark.parametrize(
     "cfg,key,expected",
@@ -691,6 +688,8 @@ def test_optional_after_interpolation() -> None:
     # Ensure that we can set an optional field to `None` even when it currently
     # points to a non-optional field.
     cfg.opt_num = None
+
+
 def test_empty_stack() -> None:
     """
     Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
