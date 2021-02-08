@@ -30,6 +30,9 @@ from omegaconf.errors import (
 
 from . import StructuredWithMissing
 
+# Characters that are not allowed by the grammar in config key names.
+INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
+
 
 @pytest.mark.parametrize(
     "cfg,key,expected",
@@ -583,30 +586,33 @@ def test_supported_chars() -> None:
     assert c.dir1 == supported_chars
 
 
-def test_valid_key_names() -> None:
-    invalid_chars = "\\${}()[].: '\""
-    valid_chars = "".join(chr(i) for i in range(33, 128) if chr(i) not in invalid_chars)
+def test_valid_chars_in_key_names() -> None:
+    valid_chars = "".join(
+        chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
+    )
     cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
     cfg = OmegaConf.create(cfg_dict)
     # Test that we can access the node made of all valid characters, both
     # directly and through interpolations.
     assert cfg[valid_chars] == 123
     assert cfg.inter == 123
+
+
+@pytest.mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
+def test_invalid_chars_in_key_names(c: str) -> None:
     # Test that all invalid characters trigger errors in interpolations.
-    for c in invalid_chars:
-        cfg_dict["invalid"] = f"${{ab{c}de}}"
-        cfg = OmegaConf.create(cfg_dict)
-        error: type
-        if c in [".", "}"]:
-            # With '.', we try to access `${ab.de}`.
-            # With "}", we try to access `${ab}`.
-            error = ConfigAttributeError
-        elif c == ":":
-            error = UnsupportedInterpolationType  # `${ab:de}`
-        else:
-            error = GrammarParseError  # other cases are all parse errors
-        with pytest.raises(error):
-            cfg.invalid
+    cfg = OmegaConf.create({"invalid": f"${{ab{c}de}}"})
+    error: type
+    if c in [".", "}"]:
+        # With '.', we try to access `${ab.de}`.
+        # With "}", we try to access `${ab}`.
+        error = ConfigAttributeError
+    elif c == ":":
+        error = UnsupportedInterpolationType  # `${ab:de}`
+    else:
+        error = GrammarParseError  # other cases are all parse errors
+    with pytest.raises(error):
+        cfg.invalid
 
 
 def test_interpolation_in_list_key_error() -> None:
