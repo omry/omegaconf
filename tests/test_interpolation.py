@@ -943,6 +943,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("float_resolver_quoted", "${'1.1':1,2,3}", GrammarParseError),
     ("float_resolver_noquote", "${1.1:1,2,3}", GrammarParseError),
     ("float_resolver_exp", "${1e1:1,2,3}", GrammarParseError),
+    ("inter_float_resolver", "${${float}:1,2,3}", (None, GrammarParseError)),
     # NaN as dictionary key (a resolver is used here to output only the key).
     ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
