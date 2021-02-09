@@ -119,6 +119,32 @@ def test_in_with_interpolation() -> None:
     assert 10 in c.a
 
 
+@pytest.mark.parametrize(
+    ("lst", "expected"),
+    [
+        pytest.param(
+            ListConfig(content=None),
+            pytest.raises(
+                TypeError,
+                match="Cannot check if an item is in a ListConfig object representing None",
+            ),
+            id="ListConfig(None)",
+        ),
+        pytest.param(
+            ListConfig(content="???"),
+            pytest.raises(
+                MissingMandatoryValue,
+                match="Cannot check if an item is in missing ListConfig",
+            ),
+            id="ListConfig(???)",
+        ),
+    ],
+)
+def test_not_in_special_lists(lst: Any, expected: Any) -> None:
+    with expected:
+        "foo" not in lst
+
+
 def test_list_config_with_list() -> None:
     c = OmegaConf.create([])
     assert isinstance(c, ListConfig)
