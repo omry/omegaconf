@@ -95,7 +95,7 @@ def test_is_missing(
 ) -> None:
     cfg = OmegaConf.create(cfg)
     with expectation:
-        cfg.get(key)
+        cfg[key]
 
     assert OmegaConf.is_missing(cfg, key) == expected_is_missing
     OmegaConf.set_struct(cfg, True)

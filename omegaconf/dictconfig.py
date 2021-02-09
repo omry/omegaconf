@@ -404,12 +404,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         del self.__dict__["_content"][key]
 
-    def get(self, key: DictKeyType, default_value: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def get(self, key: DictKeyType, default_value: Any = None) -> Any:
+        """Return the value for `key` if `key` is in the dictionary, else
+        `default_value` (defaulting to `None`)."""
         try:
             return self._get_impl(key=key, default_value=default_value)
-        except ConfigAttributeError:
-            return None
-        except Exception as e:
+        except KeyValidationError as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
     def _get_impl(self, key: DictKeyType, default_value: Any) -> Any:
