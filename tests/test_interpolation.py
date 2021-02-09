@@ -409,7 +409,7 @@ def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # the program execution.
     OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:__}"})
-    assert getattr(c, "k") == getattr(c, "k")
+    assert c.k == c.k
 
 
 def test_resolver_cache_1_legacy(restore_resolvers: Any) -> None:
