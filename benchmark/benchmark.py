@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from pytest import lazy_fixture  # type: ignore
 from pytest import fixture, mark, param
@@ -6,7 +6,7 @@ from pytest import fixture, mark, param
 from omegaconf import OmegaConf
 
 
-def build(
+def build_dict(
     d: Dict[str, Any], depth: int, width: int, leaf_value: Any = 1
 ) -> Dict[str, Any]:
     if depth == 0:
@@ -16,24 +16,28 @@ def build(
         for i in range(width):
             c: Dict[str, Any] = {}
             d[f"key_{i}"] = c
-            build(c, depth - 1, width, leaf_value)
+            build_dict(c, depth - 1, width, leaf_value)
 
     return d
 
 
+def build_list(length: int, val: Any = 1) -> List[int]:
+    return [val] * length
+
+
 @fixture(scope="module")
 def large_dict() -> Any:
-    return build({}, 11, 2)
+    return build_dict({}, 11, 2)
 
 
 @fixture(scope="module")
 def small_dict() -> Any:
-    return build({}, 5, 2)
+    return build_dict({}, 5, 2)
 
 
 @fixture(scope="module")
 def dict_with_list_leaf() -> Any:
-    return build({}, 5, 2, leaf_value=[1, 2])
+    return build_dict({}, 5, 2, leaf_value=[1, 2])
 
 
 @fixture(scope="module")
@@ -54,6 +58,16 @@ def large_dict_config(large_dict: Any) -> Any:
 @fixture(scope="module")
 def merge_data(small_dict: Any) -> Any:
     return [OmegaConf.create(small_dict) for _ in range(5)]
+
+
+@fixture(scope="module")
+def small_list() -> Any:
+    return build_list(3, 1)
+
+
+@fixture(scope="module")
+def small_listconfig(small_list: Any) -> Any:
+    return OmegaConf.create(small_list)
 
 
 @mark.parametrize(
@@ -79,3 +93,26 @@ def test_omegaconf_create(data: Any, benchmark: Any) -> None:
 )
 def test_omegaconf_merge(merge_function: Any, merge_data: Any, benchmark: Any) -> None:
     benchmark(merge_function, merge_data)
+
+
+@mark.parametrize(
+    "lst",
+    [
+        lazy_fixture("small_list"),
+        lazy_fixture("small_listconfig"),
+    ],
+)
+def test_list_in(lst: List[Any], benchmark: Any) -> None:
+    benchmark(lambda seq, val: val in seq, lst, 10)
+
+
+@mark.parametrize(
+    "lst",
+    [
+        lazy_fixture("small_list"),
+        lazy_fixture("small_listconfig"),
+    ],
+)
+def test_list_iter(lst: List[Any], benchmark: Any) -> None:
+    # Performance is really bad for list config iteration, not sure why.
+    benchmark(lambda seq: [x for x in seq], lst)
