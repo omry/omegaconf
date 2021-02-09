@@ -114,6 +114,11 @@ def test_in_list() -> None:
     assert "blah" not in c
 
 
+def test_in_with_interpolation() -> None:
+    c = OmegaConf.create({"a": ["${b}"], "b": 10})
+    assert 10 in c.a
+
+
 def test_list_config_with_list() -> None:
     c = OmegaConf.create([])
     assert isinstance(c, ListConfig)
