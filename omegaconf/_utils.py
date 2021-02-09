@@ -340,9 +340,11 @@ def get_value_kind(value: Any) -> ValueKind:
     # We detect potential interpolations simply by the presence of "${" in the string.
     # This is much more efficient than calling `grammar_parser.parse()`, but one must
     # be aware that:
-    #   - invalid interpolations are not detected here
-    #   - escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
-    #     (this is actually required to properly un-escape them during resolution)
+    #   (a) invalid interpolations are not detected here
+    #   (b) escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
+    # These are not actually problems though, since as soon as "${" is present in a
+    # string, it *has* to be parsed as an interpolation to properly (a) detect errors,
+    # and (b) un-escape any escaped interpolations.
     if isinstance(value, str) and "${" in value:
         return ValueKind.INTERPOLATION
     else:
