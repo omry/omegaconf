@@ -539,7 +539,18 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return self
 
     def __contains__(self, item: Any) -> bool:
-        for x in iter(self):
+        if self._is_none():
+            raise TypeError(
+                "Cannot check if an item is in a ListConfig object representing None"
+            )
+        if self._is_missing():
+            raise MissingMandatoryValue(
+                "Cannot check if an item is in missing ListConfig"
+            )
+
+        lst = self.__dict__["_content"]
+        for x in lst:
+            x = x._dereference_node()
             if x == item:
                 return True
         return False
