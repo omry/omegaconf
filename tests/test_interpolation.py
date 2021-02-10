@@ -349,6 +349,12 @@ def test_env_node_interpolation(monkeypatch: Any) -> None:
         c.my_key
 
 
+def test_env_default_none(monkeypatch: Any) -> None:
+    monkeypatch.delenv("my_key", raising=False)
+    c = OmegaConf.create({"my_key": "${env:my_key, null}"})
+    assert c.my_key is None
+
+
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
     def foo(_: Any) -> int:
         return 10
