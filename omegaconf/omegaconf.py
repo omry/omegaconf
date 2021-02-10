@@ -51,8 +51,8 @@ from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
-    InterpolationResolutionError,
     GrammarParseError,
+    InterpolationResolutionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -124,8 +124,8 @@ def register_default_resolvers() -> None:
         empty_config = DictConfig({})
         try:
             val = empty_config.resolve_parse_tree(parse_tree)
-        except ConfigKeyError as exc:
-            raise ConfigKeyError(
+        except InterpolationResolutionError as exc:
+            raise InterpolationResolutionError(
                 f"When attempting to resolve env variable '{key}', a node interpolation "
                 f"caused the following exception: {exc}. Node interpolations are not "
                 f"supported in environment variables: either remove them, or escape "
