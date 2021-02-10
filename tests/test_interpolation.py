@@ -730,15 +730,6 @@ def test_empty_stack() -> None:
         grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
 
 
-def _maybe_create(definition: str) -> Any:
-    """
-    Helper function to create config objects for lists and dictionaries.
-    """
-    if isinstance(definition, (list, dict)):
-        return OmegaConf.create(definition)
-    return definition
-
-
 # Parameters for tests of the "singleElement" rule when there is no interpolation.
 # Each item is a tuple with three elements:
 #   - The id of the test.
