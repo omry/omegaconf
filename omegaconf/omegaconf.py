@@ -425,7 +425,7 @@ class OmegaConf:
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
-        ), "resolver {} is already registered".format(name)
+        ), f"resolver {name} is already registered"
 
         def resolver_wrapper(
             config: BaseContainer,
