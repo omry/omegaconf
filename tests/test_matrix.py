@@ -170,11 +170,14 @@ class TestNodeTypesMatrix:
         with pytest.raises(ValidationError):
             node_type(value=None, is_optional=False)
 
+    @pytest.mark.parametrize(
+        "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+    )
     def test_interpolation(
-        self, node_type: Any, values: Any, restore_resolvers: Any
+        self, node_type: Any, values: Any, restore_resolvers: Any, register_func: Any
     ) -> None:
         resolver_output = 9999
-        OmegaConf.register_new_resolver("func", lambda: resolver_output)
+        register_func("func", lambda: resolver_output)
         values = copy.deepcopy(values)
         for value in values:
             node = {

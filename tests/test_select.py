@@ -17,6 +17,9 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
 
 
 @pytest.mark.parametrize(
+    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+)
+@pytest.mark.parametrize(
     "cfg, key, expected",
     [
         pytest.param({}, "nope", None, id="dict:none"),
@@ -41,8 +44,10 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
         pytest.param({"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"),
     ],
 )
-def test_select(restore_resolvers: Any, cfg: Any, key: Any, expected: Any) -> None:
-    OmegaConf.register_new_resolver("func", lambda x: f"_{x}_")
+def test_select(
+    restore_resolvers: Any, cfg: Any, key: Any, expected: Any, register_func: Any
+) -> None:
+    register_func("func", lambda x: f"_{x}_")
     cfg = _ensure_container(cfg)
     if isinstance(expected, RaisesContext):
         with expected:

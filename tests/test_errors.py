@@ -1149,14 +1149,17 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
                 assert e.__cause__ is None
 
 
-def test_assertion_error(restore_resolvers: Any) -> None:
+@pytest.mark.parametrize(
+    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+)
+def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
     def assert_false() -> None:
         assert False
 
     # The purpose of this test is to cover the case where an `AssertionError`
     # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
     # error is just one way of achieving this goal.
-    OmegaConf.register_new_resolver("assert_false", assert_false)
+    register_func("assert_false", assert_false)
     c = OmegaConf.create({"trigger": "${assert_false:}"})
     with pytest.raises(AssertionError):
         c.trigger
