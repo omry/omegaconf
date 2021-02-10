@@ -562,7 +562,7 @@ def format_and_raise(
         ref_type = get_ref_type(node)
         ref_type_str = type_str(ref_type)
 
-    msg = string.Template(msg).substitute(
+    msg = string.Template(msg).safe_substitute(
         REF_TYPE=ref_type_str,
         OBJECT_TYPE=object_type_str,
         KEY=key,
