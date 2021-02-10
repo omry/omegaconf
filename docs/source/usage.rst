@@ -417,7 +417,7 @@ The example below creates a resolver that adds 10 to the given value.
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("plus_10", lambda x: x + 10)
+    >>> OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
@@ -430,7 +430,7 @@ simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("concat", lambda x, y: x+y)
+    >>> OmegaConf.register_new_resolver("concat", lambda x, y: x+y)
     >>> c = OmegaConf.create({
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
@@ -450,7 +450,7 @@ You can take advantage of nested interpolations to perform custom operations ove
 
 .. doctest::
 
-    >>> OmegaConf.new_register_resolver("plus", lambda x, y: x + y)
+    >>> OmegaConf.register_new_resolver("plus", lambda x, y: x + y)
     >>> c = OmegaConf.create({"a": 1,
     ...                       "b": 2,
     ...                       "a_plus_b": "${plus:${a},${b}}"})
@@ -464,8 +464,8 @@ inputs we always return the same value. This behavior may be disabled by setting
 
     >>> import random
     >>> random.seed(1234)
-    >>> OmegaConf.new_register_resolver("cached", random.randint)
-    >>> OmegaConf.new_register_resolver(
+    >>> OmegaConf.register_new_resolver("cached", random.randint)
+    >>> OmegaConf.register_new_resolver(
     ...              "uncached", random.randint, use_cache=False)
     >>> c = OmegaConf.create({"cached": "${cached:0,10000}",
     ...                       "uncached": "${uncached:0,10000}"})

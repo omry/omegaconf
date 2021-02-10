@@ -353,9 +353,9 @@ def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
     def foo(_: Any) -> int:
         return 10
 
-    OmegaConf.new_register_resolver("foo", foo)
+    OmegaConf.register_new_resolver("foo", foo)
     with pytest.raises(AssertionError):
-        OmegaConf.new_register_resolver("foo", lambda _: 10)
+        OmegaConf.register_new_resolver("foo", lambda _: 10)
 
 
 def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
@@ -364,12 +364,12 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
 
     OmegaConf.legacy_register_resolver("foo", foo)
     with pytest.raises(AssertionError):
-        OmegaConf.new_register_resolver("foo", lambda: 10)
+        OmegaConf.register_new_resolver("foo", lambda: 10)
 
 
 def test_clear_resolvers(restore_resolvers: Any) -> None:
     assert OmegaConf.get_resolver("foo") is None
-    OmegaConf.new_register_resolver("foo", lambda x: x + 10)
+    OmegaConf.register_new_resolver("foo", lambda x: x + 10)
     assert OmegaConf.get_resolver("foo") is not None
     OmegaConf.clear_resolvers()
     assert OmegaConf.get_resolver("foo") is None
@@ -384,7 +384,7 @@ def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("plus_10", lambda x: x + 10)
+    OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
     c = OmegaConf.create(
         {"k": "${plus_10:990}", "node": {"bar": 10, "foo": "${plus_10:${.bar}}"}}
     )
@@ -407,7 +407,7 @@ def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # subsequent calls to the same function with the same argument will always return the same value.
     # this is important to allow embedding of functions like time() without having the value change during
     # the program execution.
-    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:__}"})
     assert c.k == c.k
 
@@ -422,7 +422,7 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
     c1 = OmegaConf.create({"k": "${random:__}"})
     c2 = OmegaConf.create({"k": "${random:__}"})
 
@@ -445,7 +445,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     """
     Tests that the resolver cache works as expected with lists and dicts.
     """
-    OmegaConf.new_register_resolver("random", lambda _: random.uniform(0, 1))
+    OmegaConf.register_new_resolver("random", lambda _: random.uniform(0, 1))
     c = OmegaConf.create(
         dict(
             lst1="${random:[0, 1]}",
@@ -468,7 +468,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
 
 
 def test_resolver_no_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver(
+    OmegaConf.register_new_resolver(
         "random", lambda _: random.uniform(0, 1), use_cache=False
     )
     c = OmegaConf.create(dict(k="${random:__}"))
@@ -479,7 +479,7 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
     """
     Regression test for #373
     """
-    OmegaConf.new_register_resolver("identity", lambda x: x)
+    OmegaConf.register_new_resolver("identity", lambda x: x)
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -518,7 +518,7 @@ def test_resolver_dot_start_legacy(restore_resolvers: Any) -> None:
 def test_resolver_that_allows_a_list_of_arguments(
     restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
 ) -> None:
-    OmegaConf.new_register_resolver("my_resolver", resolver)
+    OmegaConf.register_new_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
     assert c[name] == result
 
@@ -575,13 +575,13 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
     assert c.str == ("a", "b", "c")
 
     # Trying to nest interpolations should trigger an error (users should switch to
-    # `new_register_resolver()` in order to use nested interpolations).
+    # `register_new_resolver()` in order to use nested interpolations).
     with pytest.raises(ValueError):
         c.inter
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
     d = {"k": "${random:__}"}
     c1 = OmegaConf.create(d)
     assert c1.k == c1.k
@@ -599,7 +599,7 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 
 def test_clear_cache(restore_resolvers: Any) -> None:
-    OmegaConf.new_register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create(dict(k="${random:__}"))
     old = c.k
     OmegaConf.clear_cache(c)
@@ -610,7 +610,7 @@ def test_supported_chars() -> None:
     supported_chars = "abc123_/:-\\+.$%*@"
     c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
 
-    OmegaConf.new_register_resolver("copy", lambda x: x)
+    OmegaConf.register_new_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
 
 
@@ -1045,8 +1045,8 @@ class TestInterpolationGrammar:
     ) -> None:
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
 
-        OmegaConf.new_register_resolver("test", self._resolver_test)
-        OmegaConf.new_register_resolver("first", self._resolver_first)
+        OmegaConf.register_new_resolver("test", self._resolver_test)
+        OmegaConf.register_new_resolver("first", self._resolver_first)
 
         self._visit_with_config(parse_tree, expected_visit)
 

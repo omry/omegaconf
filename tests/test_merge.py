@@ -672,7 +672,7 @@ def test_into_custom_resolver_that_throws(restore_resolvers: Any) -> None:
     def fail() -> None:
         raise ValueError()
 
-    OmegaConf.new_register_resolver("fail", fail)
+    OmegaConf.register_new_resolver("fail", fail)
 
     configs = (
         {"d": 20, "i": "${fail:}"},

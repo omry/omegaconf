@@ -1156,7 +1156,7 @@ def test_assertion_error(restore_resolvers: Any) -> None:
     # The purpose of this test is to cover the case where an `AssertionError`
     # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
     # error is just one way of achieving this goal.
-    OmegaConf.new_register_resolver("assert_false", assert_false)
+    OmegaConf.register_new_resolver("assert_false", assert_false)
     c = OmegaConf.create({"trigger": "${assert_false:}"})
     with pytest.raises(AssertionError):
         c.trigger

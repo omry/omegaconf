@@ -134,7 +134,7 @@ def register_default_resolvers() -> None:
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.
-    OmegaConf.new_register_resolver("env", env, use_cache=True)
+    OmegaConf.register_new_resolver("env", env, use_cache=True)
 
 
 class OmegaConf:
@@ -453,7 +453,7 @@ class OmegaConf:
                     f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
                     f"to be an interpolation. Nested interpolations are not supported for "
                     f"resolvers registered with `legacy_register_resolver()`, please use "
-                    f"`new_register_resolver()` instead (see "
+                    f"`register_new_resolver()` instead (see "
                     f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
                 )
 
@@ -465,7 +465,7 @@ class OmegaConf:
         BaseContainer._resolvers[name] = resolver_wrapper
 
     @staticmethod
-    def new_register_resolver(
+    def register_new_resolver(
         name: str,
         resolver: Resolver,
         use_cache: Optional[bool] = True,
