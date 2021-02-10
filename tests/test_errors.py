@@ -22,6 +22,7 @@ from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
     ConfigValueError,
+    GrammarParseError,
     InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
@@ -1163,3 +1164,18 @@ def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
     c = OmegaConf.create({"trigger": "${assert_false:}"})
     with pytest.raises(AssertionError):
         c.trigger
+
+
+@pytest.mark.parametrize(
+    ["create_func", "arg"],
+    [
+        (OmegaConf.create, {"a": "${b"}),
+        (DictConfig, "${b"),
+        (ListConfig, "${b"),
+    ],
+)
+def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
+    with pytest.raises(
+        GrammarParseError, match=re.escape("no viable alternative at input '${b'")
+    ):
+        create_func(arg)

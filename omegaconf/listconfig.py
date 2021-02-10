@@ -14,6 +14,7 @@ from typing import (
     Union,
 )
 
+from . import grammar_parser
 from ._utils import (
     ValueKind,
     _get_value,
@@ -580,6 +581,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         elif vk is ValueKind.MANDATORY_MISSING:
             self.__dict__["_content"] = "???"
         elif vk == ValueKind.INTERPOLATION:
+            grammar_parser.parse(value)  # validate syntax
             self.__dict__["_content"] = value
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):

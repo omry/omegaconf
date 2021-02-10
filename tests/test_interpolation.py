@@ -634,19 +634,25 @@ def test_valid_chars_in_key_names() -> None:
 
 @pytest.mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
 def test_invalid_chars_in_key_names(c: str) -> None:
+    def create() -> DictConfig:
+        return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
+
     # Test that all invalid characters trigger errors in interpolations.
-    cfg = OmegaConf.create({"invalid": f"${{ab{c}de}}"})
-    error: type
     if c in [".", "}"]:
         # With '.', we try to access `${ab.de}`.
-        # With "}", we try to access `${ab}`.
-        error = InterpolationResolutionError
+        # With '}', we try to access `${ab}`.
+        cfg = create()
+        with pytest.raises(InterpolationResolutionError):
+            cfg.invalid
     elif c == ":":
-        error = UnsupportedInterpolationType  # `${ab:de}`
+        # With ':', we try to run a resolver `${ab:de}`
+        cfg = create()
+        with pytest.raises(UnsupportedInterpolationType):
+            cfg.invalid
     else:
-        error = GrammarParseError  # other cases are all parse errors
-    with pytest.raises(error):
-        cfg.invalid
+        # Other invalid characters should be detected at creation time.
+        with pytest.raises(GrammarParseError):
+            create()
 
 
 def test_interpolation_in_list_key_error() -> None:

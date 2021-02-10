@@ -15,6 +15,7 @@ from typing import (
     Union,
 )
 
+from . import grammar_parser
 from ._utils import (
     ValueKind,
     _get_value,
@@ -614,6 +615,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self.__dict__["_content"] = None
             self._metadata.object_type = None
         elif _is_interpolation(value):
+            grammar_parser.parse(value)  # validate syntax
             self.__dict__["_content"] = value
             self._metadata.object_type = None
         elif value == "???":

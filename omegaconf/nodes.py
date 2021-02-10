@@ -13,6 +13,8 @@ from omegaconf.errors import (
     ValidationError,
 )
 
+from . import grammar_parser
+
 
 class ValueNode(Node):
     _val: Any
@@ -33,15 +35,19 @@ class ValueNode(Node):
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        if isinstance(value, str) and get_value_kind(value) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.MANDATORY_MISSING,
-        ):
-            self._val = value
-        else:
+        val = None
+        if isinstance(value, str):
+            vk = get_value_kind(value)
+            if vk == ValueKind.INTERPOLATION:
+                grammar_parser.parse(value)  # validate syntax
+                val = value
+            elif vk == ValueKind.MANDATORY_MISSING:
+                val = value
+        if val is None:
             if not self._metadata.optional and value is None:
                 raise ValidationError("Non optional field cannot be assigned None")
-            self._val = self.validate_and_convert(value)
+            val = self.validate_and_convert(value)
+        self._val = val
 
     def validate_and_convert(self, value: Any) -> Any:
         """
