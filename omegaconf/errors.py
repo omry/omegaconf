@@ -65,7 +65,7 @@ class UnsupportedInterpolationType(OmegaConfBaseException, ValueError):
 
 class InterpolationResolutionError(OmegaConfBaseException, ValueError):
     """
-    Thrown an error ocures when resolving an interpolation
+    Thrown an error occurs when resolving an interpolation
     """
 
 
