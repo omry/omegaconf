@@ -23,13 +23,14 @@ from omegaconf import (
 from omegaconf._utils import _ensure_container, _get_value
 from omegaconf.errors import (
     ConfigAttributeError,
-    ConfigKeyError,
     GrammarParseError,
     InterpolationResolutionError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
 from omegaconf.grammar_visitor import GrammarVisitor
+
+from . import StructuredWithMissing
 
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
@@ -56,7 +57,6 @@ BASE_TEST_CFG = OmegaConf.create(
     }
 )
 
-from . import StructuredWithMissing
 
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
@@ -345,7 +345,7 @@ def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
     monkeypatch.setenv("my_key", "${other_key}")
     c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-    with pytest.raises(ConfigAttributeError):
+    with pytest.raises(InterpolationResolutionError):
         c.my_key
 
 
@@ -634,7 +634,7 @@ def test_invalid_chars_in_key_names(c: str) -> None:
     if c in [".", "}"]:
         # With '.', we try to access `${ab.de}`.
         # With "}", we try to access `${ab}`.
-        error = ConfigAttributeError
+        error = InterpolationResolutionError
     elif c == ":":
         error = UnsupportedInterpolationType  # `${ab:de}`
     else:
@@ -876,12 +876,12 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_access", "${dict.a}", 0),
     ("list_access", "${list.0}", -1),
     ("list_access_underscore", "${list.1_0}", 9),
-    ("list_access_bad_negative", "${list.-1}", ConfigKeyError),
+    ("list_access_bad_negative", "${list.-1}", InterpolationResolutionError),
     ("dict_access_list_like_1", "${0}", 0),
     ("dict_access_list_like_2", "${1.2}", 12),
     ("bool_like_keys", "${FalsE.TruE}", True),
     ("null_like_key_ok", "${None.null}", 1),
-    ("null_like_key_bad_case", "${NoNe.null}", ConfigKeyError),
+    ("null_like_key_bad_case", "${NoNe.null}", InterpolationResolutionError),
     ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
     ("dotpath_bad_type", "${dict.${float}}", (None, GrammarParseError)),
