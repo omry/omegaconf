@@ -406,15 +406,16 @@ class OmegaConf:
 
     @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
-        warnings.warn(
-            dedent(
-                """\
-            register_resolver() is deprecated.
-            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
-            """
-            ),
-            stacklevel=2,
-        )
+        # TODO re-enable warning message before 2.1 release (see also test_resolver_deprecated_behavior)
+        # warnings.warn(
+        #     dedent(
+        #         """\
+        #     register_resolver() is deprecated.
+        #     See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+        #     """
+        #     ),
+        #     stacklevel=2,
+        # )
         return OmegaConf.legacy_register_resolver(name, resolver)
 
     # This function will eventually be deprecated and removed.
@@ -428,20 +429,18 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
-            key: Tuple[Any, ...],
-            inputs_str: Tuple[str, ...],
+            args: Tuple[Any, ...],
+            args_str: Tuple[str, ...],
         ) -> Any:
             cache = OmegaConf.get_cache(config)[name]
             # "Un-escape " spaces and commas.
-            inputs_unesc = [
-                x.replace(r"\ ", " ").replace(r"\,", ",") for x in inputs_str
-            ]
+            args_unesc = [x.replace(r"\ ", " ").replace(r"\,", ",") for x in args_str]
 
             # Nested interpolations behave in a potentially surprising way with
             # legacy resolvers (they remain as strings, e.g., "${foo}"). If any
             # input looks like an interpolation we thus raise an exception.
             try:
-                bad_arg = next(i for i in inputs_unesc if "${" in i)
+                bad_arg = next(i for i in args_unesc if "${" in i)
             except StopIteration:
                 pass
             else:
@@ -452,12 +451,12 @@ class OmegaConf:
                 raise ValueError(
                     f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
                     f"to be an interpolation. Nested interpolations are not supported for "
-                    f"resolvers registered with `legacy_register_resolver()`, please use "
+                    f"resolvers registered with `[legacy_]register_resolver()`, please use "
                     f"`register_new_resolver()` instead (see "
                     f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
                 )
-
-            val = cache[key] if key in cache else resolver(*inputs_unesc)
+            key = args
+            val = cache[key] if key in cache else resolver(*args_unesc)
             cache[key] = val
             return val
 
@@ -489,19 +488,19 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
-            key: Tuple[Any, ...],
-            inputs_str: Tuple[str, ...],  # to remove with `legacy_register_resolver()`
+            args: Tuple[Any, ...],
+            args_str: Tuple[str, ...],
         ) -> Any:
             if use_cache:
                 cache = OmegaConf.get_cache(config)[name]
-                hashable_key = _make_hashable(key)
+                hashable_key = _make_hashable(args)
                 try:
                     return cache[hashable_key]
                 except KeyError:
                     pass
 
             # Call resolver.
-            ret = resolver(*key)
+            ret = resolver(*args)
             if use_cache:
                 cache[hashable_key] = ret
             return ret

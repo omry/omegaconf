@@ -52,9 +52,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         :param resolver_interpolation_callback: Callback function that is called when
             needing to resolve a resolver interpolation. This function should accept
             three keyword arguments: `name` (str, the name of the resolver),
-            `inputs` (tuple, the inputs to the resolver), and `inputs_str` (tuple,
-            the string representation of the inputs to the resolver -- for backward
-            compatibility with resolvers registered with `legacy_register_resolver()`).
+            `args` (tuple, the inputs to the resolver), and `args_str` (tuple,
+            the string representation of the inputs to the resolver).
 
         :param quoted_string_callback: Callback function that is called when needing to
             resolve a quoted string (that may or may not contain interpolations). This
@@ -173,8 +172,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
         # INTER_OPEN (interpolation | ID) COLON sequence? BRACE_CLOSE;
         resolver_name = None
-        inputs = []
-        inputs_str = []
+        args = []
+        args_str = []
         for child in ctx.getChildren():
             if (
                 isinstance(child, TerminalNode)
@@ -194,16 +193,16 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             elif isinstance(child, OmegaConfGrammarParser.SequenceContext):
                 assert resolver_name is not None
                 for val, txt in self.visitSequence(child):
-                    inputs.append(val)
-                    inputs_str.append(txt)
+                    args.append(val)
+                    args_str.append(txt)
             else:
                 assert isinstance(child, TerminalNode)
 
         assert resolver_name is not None
         return self.resolver_interpolation_callback(
             name=resolver_name,
-            inputs=tuple(inputs),
-            inputs_str=tuple(inputs_str),
+            args=tuple(args),
+            args_str=tuple(args_str),
         )
 
     def visitDictKeyValuePair(

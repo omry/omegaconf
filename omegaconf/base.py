@@ -536,13 +536,13 @@ class Container(Node):
             )
 
         def resolver_interpolation_callback(
-            name: str, inputs: Tuple[Any, ...], inputs_str: Tuple[str, ...]
+            name: str, args: Tuple[Any, ...], args_str: Tuple[str, ...]
         ) -> Optional["Node"]:
             return self._evaluate_custom_resolver(
                 key=key,
                 inter_type=name,
-                inter_args=inputs,
-                inter_args_str=inputs_str,
+                inter_args=args,
+                inter_args_str=args_str,
                 **callback_args,
             )
 
