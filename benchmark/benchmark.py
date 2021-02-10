@@ -114,5 +114,8 @@ def test_list_in(lst: List[Any], benchmark: Any) -> None:
     ],
 )
 def test_list_iter(lst: List[Any], benchmark: Any) -> None:
-    # Performance is really bad for list config iteration, not sure why.
-    benchmark(lambda seq: [x for x in seq], lst)
+    def iterate(seq: Any) -> None:
+        for _ in seq:
+            pass
+
+    benchmark(iterate, lst)
