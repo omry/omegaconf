@@ -168,37 +168,22 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitInterpolationResolver(
         self, ctx: OmegaConfGrammarParser.InterpolationResolverContext
     ) -> Optional["Node"]:
-        from ._utils import _get_value
 
-        # INTER_OPEN (interpolation | ID) COLON sequence? BRACE_CLOSE;
-        resolver_name = None
+        # INTER_OPEN resolverName COLON sequence? BRACE_CLOSE
+        assert 4 <= ctx.getChildCount() <= 5
+
+        resolver_name = self.visit(ctx.getChild(1))
+        maybe_seq = ctx.getChild(3)
         args = []
         args_str = []
-        for child in ctx.getChildren():
-            if (
-                isinstance(child, TerminalNode)
-                and child.symbol.type == OmegaConfGrammarLexer.ID
-            ):
-                assert resolver_name is None
-                resolver_name = child.symbol.text
-            elif isinstance(child, OmegaConfGrammarParser.InterpolationContext):
-                assert resolver_name is None
-                resolver_name = _get_value(self.visitInterpolation(child))
-                if not isinstance(resolver_name, str):
-                    raise GrammarParseError(
-                        f"The name of a resolver must be a string, but the interpolation "
-                        f"{child.getText()} resolved to `{resolver_name}` which is of type "
-                        f"{type(resolver_name)}"
-                    )
-            elif isinstance(child, OmegaConfGrammarParser.SequenceContext):
-                assert resolver_name is not None
-                for val, txt in self.visitSequence(child):
-                    args.append(val)
-                    args_str.append(txt)
-            else:
-                assert isinstance(child, TerminalNode)
+        if isinstance(maybe_seq, TerminalNode):  # means there are no args
+            assert maybe_seq.symbol.type == OmegaConfGrammarLexer.BRACE_CLOSE
+        else:
+            assert isinstance(maybe_seq, OmegaConfGrammarParser.SequenceContext)
+            for val, txt in self.visitSequence(maybe_seq):
+                args.append(val)
+                args_str.append(txt)
 
-        assert resolver_name is not None
         return self.resolver_interpolation_callback(
             name=resolver_name,
             args=tuple(args),
@@ -233,6 +218,28 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitPrimitive(self, ctx: OmegaConfGrammarParser.PrimitiveContext) -> Any:
         return self._createPrimitive(ctx)
+
+    def visitResolverName(self, ctx: OmegaConfGrammarParser.ResolverNameContext) -> str:
+        from ._utils import _get_value
+
+        # (interpolation | ID) (DOT (interpolation | ID))*
+        assert ctx.getChildCount() >= 1
+        items = []
+        for child in list(ctx.getChildren())[::2]:
+            if isinstance(child, TerminalNode):
+                assert child.symbol.type == OmegaConfGrammarLexer.ID
+                items.append(child.symbol.text)
+            else:
+                assert isinstance(child, OmegaConfGrammarParser.InterpolationContext)
+                item = _get_value(self.visitInterpolation(child))
+                if not isinstance(item, str):
+                    raise GrammarParseError(
+                        f"The name of a resolver must be a string, but the interpolation "
+                        f"{child.getText()} resolved to `{item}` which is of type "
+                        f"{type(item)}"
+                    )
+                items.append(item)
+        return ".".join(items)
 
     def visitSequence(
         self, ctx: OmegaConfGrammarParser.SequenceContext
