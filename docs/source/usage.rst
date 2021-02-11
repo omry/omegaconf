@@ -6,6 +6,7 @@
     import tempfile
     import pickle
     os.environ['USER'] = 'omry'
+    os.environ['USERID'] = '123456'
 
 .. testsetup:: loaded
 
@@ -387,6 +388,7 @@ Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Environment variable interpolation is also supported.
+An environment variable is always returned as a string.
 
 Input YAML file:
 
@@ -400,38 +402,49 @@ Input YAML file:
     'omry'
     >>> conf.user.home
     '/home/omry'
+    >>> conf.user.id  # returned as string, even if it is a number
+    '123456'
 
 You can specify a default value to use in case the environment variable is not defined.
-The following example sets `abc123` as the the default value when `DB_PASSWORD` is not defined.
+This default value must be a string (with the exception of ``${oc.env:VAR,null}`` that returns ``None`` if ``VAR`` is not defined).
+The following example sets ``abc123`` as the default value when ``DB_PASSWORD`` is not defined.
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,abc123}'}
+    ...       'database': {'password': '${oc.env:DB_PASSWORD,abc123}'}
     ... })
     >>> cfg.database.password
     'abc123'
 
-Environment variables are parsed when they are recognized as valid quantities that
-may be evaluated (e.g., int, float, dict, list):
+
+Decoding strings with interpolations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can automatically convert a string to its corresponding type (e.g., bool, int, float, dict, list) using ``oc.decode``.
+This resolver also accepts ``None`` as input, in which case it returns ``None``.
+This can be useful for instance to parse environment variables:
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,abc123}',
-    ...                    'user': 'someuser',
-    ...                    'port': '${env:DB_PORT,3306}',
-    ...                    'nodes': '${env:DB_NODES,[]}'}
-    ... })
-    >>> os.environ["DB_PORT"] = '3308'
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "database": {
+    ...             "port": '${oc.decode:${oc.env:DB_PORT}}',
+    ...             "nodes": '${oc.decode:${oc.env:DB_NODES,null}}',
+    ...         }
+    ...     }
+    ... )
+    >>> os.environ["DB_PORT"] = "3308"
     >>> cfg.database.port  # converted to int
     3308
-    >>> os.environ["DB_NODES"] = '[host1, host2, host3]'
+    >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
     >>> cfg.database.nodes  # converted to list
     ['host1', 'host2', 'host3']
-    >>> os.environ["DB_PASSWORD"] = 'a%#@~{}$*&^?/<'
-    >>> cfg.database.password  # kept as a string
-    'a%#@~{}$*&^?/<'
+    >>> del os.environ["DB_NODES"]
+    >>> cfg.database.nodes is None  # keeping `None` as is
+    True
+
 
 
 Custom interpolations

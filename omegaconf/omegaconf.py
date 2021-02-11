@@ -32,6 +32,7 @@ from ._utils import (
     _get_value,
     _is_none,
     _make_hashable,
+    decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -53,7 +54,6 @@ from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
-    GrammarParseError,
     InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -101,25 +101,55 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    def env(key: str, default: Any = _EMPTY_MARKER_) -> Any:
+    # # DEPRECATED: remove in 2.2
+    def legacy_env(key: str, default: Optional[str] = None) -> Any:
+        warnings.warn(
+            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573",
+        )
+
         try:
-            val_str = os.environ[key]
+            return decode_primitive(os.environ[key])
+        except KeyError:
+            if default is not None:
+                # We handle the "null" string in a special way so as to preserve
+                # the old behavior of `env` while keeping the fix from #230.
+                if default.lower() == "null":
+                    return None
+                else:
+                    return decode_primitive(default)
+            else:
+                raise ValidationError(f"Environment variable '{key}' not found")
+
+    def env(key: str, default: Any = _EMPTY_MARKER_) -> Optional[str]:
+        try:
+            return os.environ[key]
         except KeyError:
             if default is not _EMPTY_MARKER_:
+                if default is not None and not isinstance(default, str):
+                    raise ValidationError(
+                        f"The default value of the `oc.env` resolver must be a string or "
+                        f"None, but `{default}` is of type {type(default).__name__}"
+                    )
                 return default
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-        # We obtained a string from the environment variable: we try to parse it
-        # using the grammar (as if it was a resolver argument), so that expressions
-        # like numbers, booleans, lists and dictionaries can be properly evaluated.
-        try:
-            parse_tree = parse(
-                val_str, parser_rule="singleElement", lexer_mode="VALUE_MODE"
+    def decode(expr: Optional[str]) -> Any:
+        """
+        Parse and evaluate `expr` according to the `singleElement` rule of the grammar.
+
+        If `expr` is `None`, then return `None`.
+        """
+        if expr is None:
+            return None
+
+        if not isinstance(expr, str):
+            raise ValidationError(
+                f"`oc.decode` can only take strings or None as input, "
+                f"but `{expr}` if of type {type(expr).__name__}"
             )
-        except GrammarParseError:
-            # Un-parsable as a resolver argument: keep the string unchanged.
-            return val_str
+
+        parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")
 
         # Resolve the parse tree. We use an empty config for this, which means that
         # interpolations referring to other nodes will fail.
@@ -128,16 +158,16 @@ def register_default_resolvers() -> None:
             val = empty_config.resolve_parse_tree(parse_tree)
         except InterpolationKeyError as exc:
             raise InterpolationKeyError(
-                f"When attempting to resolve env variable '{key}', a node interpolation "
-                f"caused the following exception: {exc}. Node interpolations are not "
-                f"supported in environment variables: either remove them, or escape "
-                f"them to keep them as a strings."
+                f"When attempting to resolve expression `{expr}` in `oc.decode`, "
+                f"a node interpolation caused the following exception: {exc}. "
+                f"Node interpolations are not supported by `oc.decode`."
             ).with_traceback(sys.exc_info()[2])
 
         return _get_value(val)
 
-    # Note that the `env` resolver does *NOT* use the cache.
-    OmegaConf.register_new_resolver("env", env, use_cache=True)
+    OmegaConf.legacy_register_resolver("env", legacy_env)
+    OmegaConf.register_new_resolver("oc.env", env, use_cache=False)
+    OmegaConf.register_new_resolver("oc.decode", decode, use_cache=False)
 
 
 class OmegaConf:

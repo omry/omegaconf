@@ -1,3 +1,4 @@
 user:
-  name: ${env:USER}
-  home: /home/${env:USER}
+  name: ${oc.env:USER}
+  home: /home/${oc.env:USER}
+  id: ${oc.env:USERID}
