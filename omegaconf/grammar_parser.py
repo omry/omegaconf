@@ -12,6 +12,9 @@ from .grammar_visitor import (  # type: ignore
     OmegaConfGrammarParser,
 )
 
+# Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
+_grammar_cache = None
+
 
 class OmegaConfErrorListener(ErrorListener):  # type: ignore
     def syntaxError(
@@ -72,21 +75,35 @@ def parse(
     """
     Parse interpolated string `value` (and return the parse tree).
     """
-    error_listener = OmegaConfErrorListener()
-    istream = InputStream(value)
-    lexer = OmegaConfGrammarLexer(istream)
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(error_listener)
-    lexer.mode(getattr(OmegaConfGrammarLexer, lexer_mode))
-    stream = CommonTokenStream(lexer)
-    parser = OmegaConfGrammarParser(stream)
-    parser.removeErrorListeners()
-    parser.addErrorListener(error_listener)
+    global _grammar_cache
 
-    # The two lines below could be enabled in the future if we decide to switch
-    # to SLL prediction mode. Warning though, it has not been fully tested yet!
-    # from antlr4 import PredictionMode
-    # parser._interp.predictionMode = PredictionMode.SLL
+    l_mode = getattr(OmegaConfGrammarLexer, lexer_mode)
+    istream = InputStream(value)
+
+    if _grammar_cache is None:
+        error_listener = OmegaConfErrorListener()
+        lexer = OmegaConfGrammarLexer(istream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(error_listener)
+        lexer.mode(l_mode)
+        tokens = CommonTokenStream(lexer)
+        parser = OmegaConfGrammarParser(tokens)
+        parser.removeErrorListeners()
+        parser.addErrorListener(error_listener)
+
+        # The two lines below could be enabled in the future if we decide to switch
+        # to SLL prediction mode. Warning though, it has not been fully tested yet!
+        # from antlr4 import PredictionMode
+        # parser._interp.predictionMode = PredictionMode.SLL
+
+        _grammar_cache = lexer, tokens, parser
+
+    else:
+        lexer, tokens, parser = _grammar_cache
+        lexer.inputStream = istream
+        lexer.mode(l_mode)
+        tokens.setTokenSource(lexer)
+        parser.reset()
 
     try:
         return getattr(parser, parser_rule)()
