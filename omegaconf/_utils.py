@@ -365,7 +365,7 @@ def get_value_kind(
     if isinstance(value, str) and "${" in value:
         if strict_interpolation_validation:
             # First try the cheap regex matching that detects common interpolations.
-            if not SIMPLE_INTERPOLATION_PATTERN.match(value):
+            if SIMPLE_INTERPOLATION_PATTERN.match(value) is None:
                 # If no match, do the more expensive grammar parsing to detect errors.
                 parse(value)
         return ValueKind.INTERPOLATION
