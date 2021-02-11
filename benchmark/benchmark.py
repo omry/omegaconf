@@ -4,6 +4,7 @@ from pytest import lazy_fixture  # type: ignore
 from pytest import fixture, mark, param
 
 from omegaconf import OmegaConf
+from omegaconf._utils import ValueKind, get_value_kind
 
 
 def build_dict(
@@ -119,3 +120,23 @@ def test_list_iter(lst: List[Any], benchmark: Any) -> None:
             pass
 
     benchmark(iterate, lst)
+
+
+@mark.parametrize(
+    "strict_interpolation_validation",
+    [True, False],
+)
+@mark.parametrize(
+    ("value", "expected"),
+    [
+        ("simple", ValueKind.VALUE),
+        ("${a}", ValueKind.INTERPOLATION),
+        ("${a:b,c,d}", ValueKind.INTERPOLATION),
+        ("${${b}}", ValueKind.INTERPOLATION),
+        ("${a:${b}}", ValueKind.INTERPOLATION),
+    ],
+)
+def test_get_value_kind(
+    strict_interpolation_validation: bool, value: Any, expected: Any, benchmark: Any
+) -> None:
+    assert benchmark(get_value_kind, value, strict_interpolation_validation) == expected
