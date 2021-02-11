@@ -16,6 +16,7 @@ from .errors import (
     ConfigValueError,
     OmegaConfBaseException,
 )
+from .grammar_parser import parse
 
 try:
     import dataclasses
@@ -320,7 +321,9 @@ class ValueKind(Enum):
     INTERPOLATION = 2
 
 
-def get_value_kind(value: Any) -> ValueKind:
+def get_value_kind(
+    value: Any, strict_interpolation_validation: bool = False
+) -> ValueKind:
     """
     Determine the kind of a value
     Examples:
@@ -330,6 +333,9 @@ def get_value_kind(value: Any) -> ValueKind:
                    "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
     :param value: Input to classify.
+    :param strict_interpolation_validation: If `True`, then when `value` is a string
+        containing "${", it is parsed to validate the interpolation syntax. If `False`,
+        this parsing step is skipped: this is more efficient, but will not detect errors.
     """
 
     value = _get_value(value)
@@ -337,15 +343,15 @@ def get_value_kind(value: Any) -> ValueKind:
     if value == "???":
         return ValueKind.MANDATORY_MISSING
 
-    # We detect potential interpolations simply by the presence of "${" in the string.
-    # This is much more efficient than calling `grammar_parser.parse()`, but one must
-    # be aware that:
-    #   (a) invalid interpolations are not detected here
-    #   (b) escaped interpolations (ex: "esc: \${bar}") are identified as interpolations
-    # These are not actually problems though, since as soon as "${" is present in a
-    # string, it *has* to be parsed as an interpolation to properly (a) detect errors,
-    # and (b) un-escape any escaped interpolations.
+    # We identify potential interpolations by the presence of "${" in the string.
+    # Note that escaped interpolations (ex: "esc: \${bar}") are identified as
+    # interpolations: this is intended, since they must be processed as interpolations
+    # for the string to be properly un-escaped.
+    # Keep in mind that invalid interpolations will only be detected when
+    # `strict_interpolation_validation` is True.
     if isinstance(value, str) and "${" in value:
+        if strict_interpolation_validation:
+            parse(value)  # will raise an error if syntax is invalid
         return ValueKind.INTERPOLATION
     else:
         return ValueKind.VALUE
@@ -464,9 +470,12 @@ def is_primitive_type(type_: Any) -> bool:
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
 
 
-def _is_interpolation(v: Any) -> bool:
+def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> bool:
     if isinstance(v, str):
-        ret = get_value_kind(v) == ValueKind.INTERPOLATION
+        ret = (
+            get_value_kind(v, strict_interpolation_validation)
+            == ValueKind.INTERPOLATION
+        )
         assert isinstance(ret, bool)
         return ret
     return False

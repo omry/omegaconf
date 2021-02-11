@@ -4,7 +4,13 @@ import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
+from omegaconf._utils import (
+    ValueKind,
+    _is_interpolation,
+    get_type_of,
+    get_value_kind,
+    is_primitive_container,
+)
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     ConfigKeyError,
@@ -12,8 +18,6 @@ from omegaconf.errors import (
     UnsupportedValueType,
     ValidationError,
 )
-
-from . import grammar_parser
 
 
 class ValueNode(Node):
@@ -30,24 +34,20 @@ class ValueNode(Node):
         return self._val
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        from ._utils import ValueKind, get_value_kind
-
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        val = None
-        if isinstance(value, str):
-            vk = get_value_kind(value)
-            if vk == ValueKind.INTERPOLATION:
-                grammar_parser.parse(value)  # validate syntax
-                val = value
-            elif vk == ValueKind.MANDATORY_MISSING:
-                val = value
-        if val is None:
+        if isinstance(value, str) and get_value_kind(
+            value, strict_interpolation_validation=True
+        ) in (
+            ValueKind.INTERPOLATION,
+            ValueKind.MANDATORY_MISSING,
+        ):
+            self._val = value
+        else:
             if not self._metadata.optional and value is None:
                 raise ValidationError("Non optional field cannot be assigned None")
-            val = self.validate_and_convert(value)
-        self._val = val
+            self._val = self.validate_and_convert(value)
 
     def validate_and_convert(self, value: Any) -> Any:
         """

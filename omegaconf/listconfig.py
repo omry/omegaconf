@@ -14,7 +14,6 @@ from typing import (
     Union,
 )
 
-from . import grammar_parser
 from ._utils import (
     ValueKind,
     _get_value,
@@ -571,7 +570,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if flags is None:
             flags = {}
 
-        vk = get_value_kind(value)
+        vk = get_value_kind(value, strict_interpolation_validation=True)
         if OmegaConf.is_none(value):
             if not self._is_optional():
                 raise ValidationError(
@@ -581,7 +580,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         elif vk is ValueKind.MANDATORY_MISSING:
             self.__dict__["_content"] = "???"
         elif vk == ValueKind.INTERPOLATION:
-            grammar_parser.parse(value)  # validate syntax
             self.__dict__["_content"] = value
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
