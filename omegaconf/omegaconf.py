@@ -3,7 +3,6 @@ import copy
 import io
 import os
 import pathlib
-import re
 import sys
 import warnings
 from collections import defaultdict
@@ -17,7 +16,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    Match,
     Optional,
     Tuple,
     Type,
@@ -26,13 +24,12 @@ from typing import (
 )
 
 import yaml
-from typing_extensions import Protocol
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
-    decode_primitive,
+    _make_hashable,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -54,12 +51,14 @@ from .base import Container, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
+    GrammarParseError,
     InterpolationResolutionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
 )
+from .grammar_parser import parse
 from .nodes import (
     AnyNode,
     BooleanNode,
@@ -72,9 +71,13 @@ from .nodes import (
 
 MISSING: Any = "???"
 
-# A marker used in OmegaConf.create() to differentiate between creating an empty {} DictConfig
-# and creating a DictConfig with None content.
+# A marker used:
+# -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
+#    and creating a DictConfig with None content
+# - in env() to detect between no default value vs a default value set to None
 _EMPTY_MARKER_ = object()
+
+Resolver = Callable[..., Any]
 
 
 def II(interpolation: str) -> Any:
@@ -95,40 +98,43 @@ def SI(interpolation: str) -> Any:
     return interpolation
 
 
-class Resolver0(Protocol):
-    def __call__(self) -> Any:
-        ...
-
-
-class Resolver1(Protocol):
-    def __call__(self, __x1: str) -> Any:
-        ...
-
-
-class Resolver2(Protocol):
-    def __call__(self, __x1: str, __x2: str) -> Any:
-        ...
-
-
-class Resolver3(Protocol):
-    def __call__(self, __x1: str, __x2: str, __x3: str) -> Any:
-        ...
-
-
-Resolver = Union[Resolver0, Resolver1, Resolver2, Resolver3]
-
-
 def register_default_resolvers() -> None:
-    def env(key: str, default: Optional[str] = None) -> Any:
+    def env(key: str, default: Any = _EMPTY_MARKER_) -> Any:
         try:
-            return decode_primitive(os.environ[key])
+            val_str = os.environ[key]
         except KeyError:
-            if default is not None:
-                return decode_primitive(default)
+            if default is not _EMPTY_MARKER_:
+                return default
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    OmegaConf.register_resolver("env", env)
+        # We obtained a string from the environment variable: we try to parse it
+        # using the grammar (as if it was a resolver argument), so that expressions
+        # like numbers, booleans, lists and dictionaries can be properly evaluated.
+        try:
+            parse_tree = parse(
+                val_str, parser_rule="singleElement", lexer_mode="VALUE_MODE"
+            )
+        except GrammarParseError:
+            # Un-parsable as a resolver argument: keep the string unchanged.
+            return val_str
+
+        # Resolve the parse tree. We use an empty config for this, which means that
+        # interpolations referring to other nodes will fail.
+        empty_config = DictConfig({})
+        try:
+            val = empty_config.resolve_parse_tree(parse_tree)
+        except InterpolationResolutionError as exc:
+            raise InterpolationResolutionError(
+                f"When attempting to resolve env variable '{key}', a node interpolation "
+                f"caused the following exception: {exc}. Node interpolations are not "
+                f"supported in environment variables: either remove them, or escape "
+                f"them to keep them as a strings."
+            )
+        return _get_value(val)
+
+    # Note that the `env` resolver does *NOT* use the cache.
+    OmegaConf.register_new_resolver("env", env, use_cache=True)
 
 
 class OmegaConf:
@@ -399,40 +405,109 @@ class OmegaConf:
         return target
 
     @staticmethod
-    def _tokenize_args(string: Optional[str]) -> List[str]:
-        if string is None or string == "":
-            return []
-
-        def _unescape_word_boundary(match: Match[str]) -> str:
-            if match.start() == 0 or match.end() == len(match.string):
-                return ""
-            return match.group(0)
-
-        escaped = re.split(r"(?<!\\),", string)
-        escaped = [re.sub(r"(?<!\\) ", _unescape_word_boundary, x) for x in escaped]
-        return [re.sub(r"(\\([ ,]))", lambda x: x.group(2), x) for x in escaped]
-
-    @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
+        # TODO re-enable warning message before 2.1 release (see also test_resolver_deprecated_behavior)
+        # warnings.warn(
+        #     dedent(
+        #         """\
+        #     register_resolver() is deprecated.
+        #     See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+        #     """
+        #     ),
+        #     stacklevel=2,
+        # )
+        return OmegaConf.legacy_register_resolver(name, resolver)
+
+    # This function will eventually be deprecated and removed.
+    @staticmethod
+    def legacy_register_resolver(name: str, resolver: Resolver) -> None:
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
-        ), "resolved {} is already registered".format(name)
+        ), f"resolver {name} is already registered"
 
-        def caching(config: BaseContainer, key: str) -> Any:
+        def resolver_wrapper(
+            config: BaseContainer,
+            args: Tuple[Any, ...],
+            args_str: Tuple[str, ...],
+        ) -> Any:
             cache = OmegaConf.get_cache(config)[name]
-            val = (
-                cache[key] if key in cache else resolver(*OmegaConf._tokenize_args(key))
-            )
+            # "Un-escape " spaces and commas.
+            args_unesc = [x.replace(r"\ ", " ").replace(r"\,", ",") for x in args_str]
+
+            # Nested interpolations behave in a potentially surprising way with
+            # legacy resolvers (they remain as strings, e.g., "${foo}"). If any
+            # input looks like an interpolation we thus raise an exception.
+            try:
+                bad_arg = next(i for i in args_unesc if "${" in i)
+            except StopIteration:
+                pass
+            else:
+                raise ValueError(
+                    f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
+                    f"to be an interpolation. Nested interpolations are not supported for "
+                    f"resolvers registered with `[legacy_]register_resolver()`, please use "
+                    f"`register_new_resolver()` instead (see "
+                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
+                )
+            key = args
+            val = cache[key] if key in cache else resolver(*args_unesc)
             cache[key] = val
             return val
 
         # noinspection PyProtectedMember
-        BaseContainer._resolvers[name] = caching
+        BaseContainer._resolvers[name] = resolver_wrapper
 
     @staticmethod
-    def get_resolver(name: str) -> Optional[Callable[[Container, Any], Any]]:
+    def register_new_resolver(
+        name: str,
+        resolver: Resolver,
+        use_cache: Optional[bool] = True,
+    ) -> None:
+        """
+        Register a resolver.
+
+        :param name: Name of the resolver.
+        :param resolver: Callable whose arguments are provided in the interpolation,
+            e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
+            0 (int) and the value of `y.z`.
+        :param use_cache: Whether the resolver's outputs should be cached. The cache is
+            based only on the list of arguments given in the interpolation, i.e., for a
+            given list of arguments, the same value will always be returned.
+        """
+        assert callable(resolver), "resolver must be callable"
+        # noinspection PyProtectedMember
+        assert (
+            name not in BaseContainer._resolvers
+        ), "resolver {} is already registered".format(name)
+
+        def resolver_wrapper(
+            config: BaseContainer,
+            args: Tuple[Any, ...],
+            args_str: Tuple[str, ...],
+        ) -> Any:
+            if use_cache:
+                cache = OmegaConf.get_cache(config)[name]
+                hashable_key = _make_hashable(args)
+                try:
+                    return cache[hashable_key]
+                except KeyError:
+                    pass
+
+            # Call resolver.
+            ret = resolver(*args)
+            if use_cache:
+                cache[hashable_key] = ret
+            return ret
+
+        # noinspection PyProtectedMember
+        BaseContainer._resolvers[name] = resolver_wrapper
+
+    @staticmethod
+    def get_resolver(
+        name: str,
+    ) -> Optional[Callable[[Container, Tuple[Any, ...], Tuple[str, ...]], Any]]:
         # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None

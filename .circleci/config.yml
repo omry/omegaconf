@@ -1,47 +1,41 @@
 version: 2.1
 
+commands:
+  linux:
+    description: "Commands run on Linux"
+    parameters:
+      py_version:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: "Preparing environment"
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jre
+            sudo pip install nox
+      - run:
+          name: "Testing OmegaConf"
+          command: |
+            export NOX_PYTHON_VERSIONS=<< parameters.py_version >>
+            nox --add-timestamp
+
 jobs:
-  py36_linux:
+  test_linux:
+    parameters:
+      py_version:
+        type: string
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:<< parameters.py_version >>
     steps:
-      - checkout
-      - run: echo 'export NOX_PYTHON_VERSIONS=3.6' >> $BASH_ENV
-      - run: sudo pip install nox
-      - run: nox --add-timestamp
-
-  py37_linux:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - run: echo 'export NOX_PYTHON_VERSIONS=3.7' >> $BASH_ENV
-      - run: sudo pip install nox
-      - run: nox --add-timestamp
-
-  py38_linux:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - run: echo 'export NOX_PYTHON_VERSIONS=3.8' >> $BASH_ENV
-      - run: sudo pip install nox
-      - run: nox --add-timestamp
-  
-  py39_linux:
-    docker:
-      - image: circleci/python:3.9
-    steps:
-      - checkout
-      - run: echo 'export NOX_PYTHON_VERSIONS=3.9' >> $BASH_ENV
-      - run: sudo pip install nox
-      - run: nox --add-timestamp
+      - linux:
+          py_version: << parameters.py_version >>
 
 workflows:
   version: 2
   build:
     jobs:
-      - py36_linux
-      - py37_linux
-      - py38_linux
-      - py39_linux
+      - test_linux:
+          matrix:
+            parameters:
+              py_version: ["3.6", "3.7", "3.8", "3.9"]

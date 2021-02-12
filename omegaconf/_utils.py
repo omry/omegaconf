@@ -4,8 +4,9 @@ import re
 import string
 import sys
 from enum import Enum
+from functools import cmp_to_key
 from textwrap import dedent
-from typing import Any, Dict, List, Match, Optional, Tuple, Type, Union, get_type_hints
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
 
@@ -15,6 +16,7 @@ from .errors import (
     ConfigValueError,
     OmegaConfBaseException,
 )
+from .grammar_parser import parse
 
 try:
     import dataclasses
@@ -28,6 +30,19 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
+# Build regex pattern to efficiently identify typical interpolations.
+# See test `test_match_simple_interpolation_pattern` for examples.
+_id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
+_dot_path = f"{_id}(\\.{_id})*"  # foo, foo.bar3, foo_.b4r.b0z
+_inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
+_arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
+_args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
+_inter_res = f"\\${{\\s*{_id}\\s*:\\s*{_args}?\\s*}}"  # resolver interpolation
+_inter = f"({_inter_node}|{_inter_res})"  # any kind of interpolation
+_outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
+SIMPLE_INTERPOLATION_PATTERN = re.compile(
+    f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
+)
 
 # source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [
@@ -54,6 +69,10 @@ YAML_BOOL_TYPES = [
     "Off",
     "OFF",
 ]
+
+# Define an arbitrary (but fixed) ordering over the types of dictionary keys
+# that may be encountered when calling `_make_hashable()` on a dict.
+_CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
@@ -313,61 +332,45 @@ class ValueKind(Enum):
     VALUE = 0
     MANDATORY_MISSING = 1
     INTERPOLATION = 2
-    STR_INTERPOLATION = 3
 
 
-def get_value_kind(value: Any, return_match_list: bool = False) -> Any:
+def get_value_kind(
+    value: Any, strict_interpolation_validation: bool = False
+) -> ValueKind:
     """
     Determine the kind of a value
     Examples:
-    MANDATORY_MISSING : "???
-    VALUE : "10", "20", True,
-    INTERPOLATION: "${foo}", "${foo.bar}"
-    STR_INTERPOLATION: "ftp://${host}/path"
+    VALUE : "10", "20", True
+    MANDATORY_MISSING : "???"
+    INTERPOLATION: "${foo.bar}", "${foo.${bar}}", "${foo:bar}", "[${foo}, ${bar}]",
+                   "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
-    :param value: input string to classify
-    :param return_match_list: True to return the match list as well
-    :return: ValueKind
+    :param value: Input to classify.
+    :param strict_interpolation_validation: If `True`, then when `value` is a string
+        containing "${", it is parsed to validate the interpolation syntax. If `False`,
+        this parsing step is skipped: this is more efficient, but will not detect errors.
     """
 
-    key_prefix = r"\${(\w+:)?"
-    legal_characters = r"([\w\.%_ \\/:,-@]*?)}"
-    match_list: Optional[List[Match[str]]] = None
-
-    def ret(
-        value_kind: ValueKind,
-    ) -> Union[ValueKind, Tuple[ValueKind, Optional[List[Match[str]]]]]:
-        if return_match_list:
-            return value_kind, match_list
-        else:
-            return value_kind
-
-    from .base import Container
-
-    if isinstance(value, Container):
-        if value._is_interpolation() or value._is_missing():
-            value = value._value()
-
     value = _get_value(value)
+
     if value == "???":
-        return ret(ValueKind.MANDATORY_MISSING)
+        return ValueKind.MANDATORY_MISSING
 
-    if not isinstance(value, str):
-        return ret(ValueKind.VALUE)
-
-    match_list = list(re.finditer(key_prefix + legal_characters, value))
-    if len(match_list) == 0:
-        return ret(ValueKind.VALUE)
-
-    if len(match_list) == 1 and value == match_list[0].group(0):
-        return ret(ValueKind.INTERPOLATION)
+    # We identify potential interpolations by the presence of "${" in the string.
+    # Note that escaped interpolations (ex: "esc: \${bar}") are identified as
+    # interpolations: this is intended, since they must be processed as interpolations
+    # for the string to be properly un-escaped.
+    # Keep in mind that invalid interpolations will only be detected when
+    # `strict_interpolation_validation` is True.
+    if isinstance(value, str) and "${" in value:
+        if strict_interpolation_validation:
+            # First try the cheap regex matching that detects common interpolations.
+            if SIMPLE_INTERPOLATION_PATTERN.match(value) is None:
+                # If no match, do the more expensive grammar parsing to detect errors.
+                parse(value)
+        return ValueKind.INTERPOLATION
     else:
-        return ret(ValueKind.STR_INTERPOLATION)
-
-
-def is_bool(st: str) -> bool:
-    st = str.lower(st)
-    return st == "true" or st == "false"
+        return ValueKind.VALUE
 
 
 def is_float(st: str) -> bool:
@@ -384,19 +387,6 @@ def is_int(st: str) -> bool:
         return True
     except ValueError:
         return False
-
-
-def decode_primitive(s: str) -> Any:
-    if is_bool(s):
-        return str.lower(s) == "true"
-
-    if is_int(s):
-        return int(s)
-
-    if is_float(s):
-        return float(s)
-
-    return s
 
 
 def is_primitive_list(obj: Any) -> bool:
@@ -496,11 +486,11 @@ def is_primitive_type(type_: Any) -> bool:
     return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
 
 
-def _is_interpolation(v: Any) -> bool:
+def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> bool:
     if isinstance(v, str):
-        ret = get_value_kind(v) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
+        ret = (
+            get_value_kind(v, strict_interpolation_validation)
+            == ValueKind.INTERPOLATION
         )
         assert isinstance(ret, bool)
         return ret
@@ -511,8 +501,10 @@ def _get_value(value: Any) -> Any:
     from .base import Container
     from .nodes import ValueNode
 
-    if isinstance(value, Container) and value._is_none():
-        return None
+    if isinstance(value, Container) and (
+        value._is_none() or value._is_interpolation() or value._is_missing()
+    ):
+        return value._value()
     if isinstance(value, ValueNode):
         value = value._value()
     return value
@@ -595,7 +587,7 @@ def format_and_raise(
         ref_type = get_ref_type(node)
         ref_type_str = type_str(ref_type)
 
-    msg = string.Template(msg).substitute(
+    msg = string.Template(msg).safe_substitute(
         REF_TYPE=ref_type_str,
         OBJECT_TYPE=object_type_str,
         KEY=key,
@@ -731,3 +723,64 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
+
+
+def _make_hashable(x: Any) -> Any:
+    """
+    Obtain a hashable version of `x`.
+
+    This is achieved by turning into tuples the lists and dicts that may be
+    stored within `x`.
+    Note that dicts are sorted, so that two dicts ordered differently will
+    lead to the same resulting hashable key.
+
+    :return: a hashable version of `x` (which may be `x` itself if already hashable).
+    """
+    # Hopefully it is already hashable and we have nothing to do!
+    try:
+        hash(x)
+        return x
+    except TypeError:
+        pass
+
+    if isinstance(x, (list, tuple)):
+        return tuple(_make_hashable(y) for y in x)
+    elif isinstance(x, dict):
+        # We sort the dictionary so that the order of keys does not matter.
+        # Note that since keys might be of different types, and comparisons
+        # between different types are not always allowed, we use a custom
+        # `_safe_items_sort_key()` function to order keys.
+        return _make_hashable(tuple(sorted(x.items(), key=_safe_items_sort_key)))
+    else:
+        raise NotImplementedError(f"type {type(x)} cannot be made hashable")
+
+
+def _safe_cmp(x: Any, y: Any) -> int:
+    """
+    Compare two elements `x` and `y` in a "safe" way.
+
+    By default, this function uses regular comparison operators (== and <), but
+    if an exception is raised (due to not being able to compare x and y), we instead
+    use `_CMP_TYPES` to decide which order to use.
+    """
+    try:
+        return 0 if x == y else -1 if x < y else 1
+    except Exception:
+        type_x, type_y = type(x), type(y)
+        try:
+            idx_x = _CMP_TYPES[type_x]
+            idx_y = _CMP_TYPES[type_y]
+        except KeyError:
+            bad_type = type_x if type_y in _CMP_TYPES else type_y
+            raise TypeError(f"Invalid data type: `{bad_type}`")
+        if idx_x == idx_y:  # cannot compare two elements of the same type?!
+            raise  # pragma: no cover
+        return -1 if idx_x < idx_y else 1
+
+
+_safe_key = cmp_to_key(_safe_cmp)
+
+
+def _safe_items_sort_key(kv: Tuple[Any, Any]) -> Any:
+    """Safe function to use as sort key when sorting items in a dictionary"""
+    return _safe_key(kv[0])

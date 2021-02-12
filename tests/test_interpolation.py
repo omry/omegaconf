@@ -1,5 +1,4 @@
 import copy
-import os
 import random
 import re
 from typing import Any, Optional, Tuple
@@ -16,15 +15,26 @@ from omegaconf import (
     OmegaConf,
     Resolver,
     ValidationError,
+    grammar_parser,
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
     ConfigAttributeError,
+    GrammarParseError,
     InterpolationResolutionError,
     OmegaConfBaseException,
+    UnsupportedInterpolationType,
 )
 
 from . import StructuredWithMissing
+
+# file deepcode ignore CopyPasteError:
+# The above comment is a statement to stop DeepCode from raising a warning on
+# lines that do equality checks of the form
+#       c.k == c.k
+
+# Characters that are not allowed by the grammar in config key names.
+INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
 
 
 @pytest.mark.parametrize(
@@ -251,6 +261,14 @@ def test_env_interpolation(
         assert OmegaConf.select(cfg, key) == expected
 
 
+def test_env_is_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("foobar", "1234")
+    c = OmegaConf.create({"foobar": "${env:foobar}"})
+    before = c.foobar
+    monkeypatch.setenv("foobar", "3456")
+    assert c.foobar == before
+
+
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -274,36 +292,91 @@ def test_env_interpolation(
         # yaml strings are not getting parsed by the env resolver
         ("foo: bar", "foo: bar"),
         ("foo: \n - bar\n - baz", "foo: \n - bar\n - baz"),
+        # more advanced uses of the grammar
+        ("ab \\{foo} cd", "ab \\{foo} cd"),
+        ("ab \\\\{foo} cd", "ab \\\\{foo} cd"),
+        ("'\\${other_key}'", "${other_key}"),  # escaped interpolation
+        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),  # escaped interpolation
+        ("[1, 2, 3]", [1, 2, 3]),
+        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
+        ("  123  ", "  123  "),
+        ("  1 2 3  ", "  1 2 3  "),
+        ("\t[1, 2, 3]\t", "\t[1, 2, 3]\t"),
+        ("[\t1, 2, 3\t]", [1, 2, 3]),
+        ("   {a: b}\t  ", "   {a: b}\t  "),
+        ("{   a: b\t  }", {"a": "b"}),
+        ("'123'", "123"),
+        ("${env:my_key_2}", 456),  # can call another resolver
     ],
 )
-def test_env_values_are_typed(value: Any, expected: Any) -> None:
-    try:
-        os.environ["my_key"] = value
-        c = OmegaConf.create(dict(my_key="${env:my_key}"))
-        assert c.my_key == expected
-    finally:
-        del os.environ["my_key"]
+def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
+    monkeypatch.setenv("my_key", value)
+    monkeypatch.setenv("my_key_2", "456")
+    c = OmegaConf.create(dict(my_key="${env:my_key}"))
+    assert c.my_key == expected
+
+
+def test_env_node_interpolation(monkeypatch: Any) -> None:
+    # Test that node interpolations are not supported in env variables.
+    monkeypatch.setenv("my_key", "${other_key}")
+    c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
+    with pytest.raises(InterpolationResolutionError):
+        c.my_key
+
+
+def test_env_default_none(monkeypatch: Any) -> None:
+    monkeypatch.delenv("my_key", raising=False)
+    c = OmegaConf.create({"my_key": "${env:my_key, null}"})
+    assert c.my_key is None
 
 
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
+    def foo(_: Any) -> int:
+        return 10
+
+    OmegaConf.register_new_resolver("foo", foo)
+    with pytest.raises(AssertionError):
+        OmegaConf.register_new_resolver("foo", lambda _: 10)
+
+
+def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
     def foo() -> int:
         return 10
 
-    OmegaConf.register_resolver("foo", foo)
+    OmegaConf.legacy_register_resolver("foo", foo)
     with pytest.raises(AssertionError):
-        OmegaConf.register_resolver("foo", lambda: 10)
+        OmegaConf.register_new_resolver("foo", lambda: 10)
 
 
 def test_clear_resolvers(restore_resolvers: Any) -> None:
     assert OmegaConf.get_resolver("foo") is None
-    OmegaConf.register_resolver("foo", lambda x: int(x) + 10)
+    OmegaConf.register_new_resolver("foo", lambda x: x + 10)
+    assert OmegaConf.get_resolver("foo") is not None
+    OmegaConf.clear_resolvers()
+    assert OmegaConf.get_resolver("foo") is None
+
+
+def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
+    assert OmegaConf.get_resolver("foo") is None
+    OmegaConf.legacy_register_resolver("foo", lambda x: int(x) + 10)
     assert OmegaConf.get_resolver("foo") is not None
     OmegaConf.clear_resolvers()
     assert OmegaConf.get_resolver("foo") is None
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
-    OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
+    c = OmegaConf.create(
+        {"k": "${plus_10:990}", "node": {"bar": 10, "foo": "${plus_10:${.bar}}"}}
+    )
+
+    assert type(c.k) == int
+    assert c.k == 1000
+    assert c.node.foo == 20  # this also tests relative interpolations with resolvers
+
+
+def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
+    OmegaConf.legacy_register_resolver("plus_10", lambda x: int(x) + 10)
     c = OmegaConf.create({"k": "${plus_10:990}"})
 
     assert type(c.k) == int
@@ -315,7 +388,13 @@ def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # subsequent calls to the same function with the same argument will always return the same value.
     # this is important to allow embedding of functions like time() without having the value change during
     # the program execution.
-    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    c = OmegaConf.create({"k": "${random:__}"})
+    assert c.k == c.k
+
+
+def test_resolver_cache_1_legacy(restore_resolvers: Any) -> None:
+    OmegaConf.legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:_}"})
     assert c.k == c.k
 
@@ -324,7 +403,17 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    c1 = OmegaConf.create({"k": "${random:__}"})
+    c2 = OmegaConf.create({"k": "${random:__}"})
+
+    assert c1.k != c2.k
+    assert c1.k == c1.k
+    assert c2.k == c2.k
+
+
+def test_resolver_cache_2_legacy(restore_resolvers: Any) -> None:
+    OmegaConf.legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
     c1 = OmegaConf.create({"k": "${random:_}"})
     c2 = OmegaConf.create({"k": "${random:_}"})
 
@@ -333,11 +422,54 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     assert c2.k == c2.k
 
 
+def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
+    """
+    Tests that the resolver cache works as expected with lists and dicts.
+    """
+    OmegaConf.register_new_resolver("random", lambda _: random.uniform(0, 1))
+    c = OmegaConf.create(
+        dict(
+            lst1="${random:[0, 1]}",
+            lst2="${random:[0, 1]}",
+            lst3="${random:[]}",
+            dct1="${random:{a: 1, b: 2}}",
+            dct2="${random:{b: 2, a: 1}}",
+            mixed1="${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
+            mixed2="${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
+        )
+    )
+    assert c.lst1 == c.lst1
+    assert c.lst1 == c.lst2
+    assert c.lst1 != c.lst3
+    assert c.dct1 == c.dct1
+    assert c.dct1 == c.dct2
+    assert c.mixed1 == c.mixed1
+    assert c.mixed2 == c.mixed2
+    assert c.mixed1 == c.mixed2
+
+
+def test_resolver_no_cache(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver(
+        "random", lambda _: random.uniform(0, 1), use_cache=False
+    )
+    c = OmegaConf.create(dict(k="${random:__}"))
+    assert c.k != c.k
+
+
 def test_resolver_dot_start(restore_resolvers: Any) -> None:
     """
     Regression test for #373
     """
-    OmegaConf.register_resolver("identity", lambda x: x)
+    OmegaConf.register_new_resolver("identity", lambda x: x)
+    c = OmegaConf.create(
+        {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
+    )
+    assert c.foo_nodot == "bar"
+    assert c.foo_dot == ".bar"
+
+
+def test_resolver_dot_start_legacy(restore_resolvers: Any) -> None:
+    OmegaConf.legacy_register_resolver("identity", lambda x: x)
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -358,8 +490,8 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
         (
             lambda *args: args,
             "escape_whitespace",
-            "${my_resolver:cat\\, do g}",
-            ("cat, do g",),
+            "${my_resolver:cat,\\ do g}",
+            ("cat", " do g"),
         ),
         (lambda: "zero", "zero_arg", "${my_resolver:}", "zero"),
     ],
@@ -367,14 +499,71 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
 def test_resolver_that_allows_a_list_of_arguments(
     restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
 ) -> None:
-    OmegaConf.register_resolver("my_resolver", resolver)
+    OmegaConf.register_new_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
     assert c[name] == result
 
 
+@pytest.mark.parametrize(
+    "resolver,name,key,result",
+    [
+        (lambda *args: args, "arg_list", "${my_resolver:cat, dog}", ("cat", "dog")),
+        (
+            lambda *args: args,
+            "escape_comma",
+            "${my_resolver:cat\\, do g}",
+            ("cat, do g",),
+        ),
+        (
+            lambda *args: args,
+            "escape_whitespace",
+            "${my_resolver:cat,\\ do g}",
+            ("cat", " do g"),
+        ),
+        (lambda: "zero", "zero_arg", "${my_resolver:}", "zero"),
+    ],
+)
+def test_resolver_that_allows_a_list_of_arguments_legacy(
+    restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
+) -> None:
+    OmegaConf.legacy_register_resolver("my_resolver", resolver)
+    c = OmegaConf.create({name: key})
+    assert c[name] == result
+
+
+def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
+    # Ensure that resolvers registered with the old "register_resolver()" function
+    # behave as expected.
+
+    # The registration should trigger a deprecation warning.
+    # with pytest.warns(UserWarning):  # TODO re-enable this check with the warning
+    OmegaConf.register_resolver("my_resolver", lambda *args: args)
+
+    c = OmegaConf.create(
+        {
+            "int": "${my_resolver:1}",
+            "null": "${my_resolver:null}",
+            "bool": "${my_resolver:TruE,falSE}",
+            "str": "${my_resolver:a,b,c}",
+            "inter": "${my_resolver:${int}}",
+        }
+    )
+
+    # All resolver arguments should be provided as strings (with no modification).
+    assert c.int == ("1",)
+    assert c.null == ("null",)
+    assert c.bool == ("TruE", "falSE")
+    assert c.str == ("a", "b", "c")
+
+    # Trying to nest interpolations should trigger an error (users should switch to
+    # `register_new_resolver()` in order to use nested interpolations).
+    with pytest.raises(ValueError):
+        c.inter
+
+
 def test_copy_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    d = {"k": "${random:_}"}
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    d = {"k": "${random:__}"}
     c1 = OmegaConf.create(d)
     assert c1.k == c1.k
 
@@ -391,19 +580,54 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 
 def test_clear_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
-    c = OmegaConf.create(dict(k="${random:_}"))
+    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    c = OmegaConf.create(dict(k="${random:__}"))
     old = c.k
     OmegaConf.clear_cache(c)
     assert old != c.k
 
 
 def test_supported_chars() -> None:
-    supported_chars = "%_-abc123."
+    supported_chars = "abc123_/:-\\+.$%*@"
     c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
 
-    OmegaConf.register_resolver("copy", lambda x: x)
+    OmegaConf.register_new_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
+
+
+def test_valid_chars_in_key_names() -> None:
+    valid_chars = "".join(
+        chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
+    )
+    cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
+    cfg = OmegaConf.create(cfg_dict)
+    # Test that we can access the node made of all valid characters, both
+    # directly and through interpolations.
+    assert cfg[valid_chars] == 123
+    assert cfg.inter == 123
+
+
+@pytest.mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
+def test_invalid_chars_in_key_names(c: str) -> None:
+    def create() -> DictConfig:
+        return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
+
+    # Test that all invalid characters trigger errors in interpolations.
+    if c in [".", "}"]:
+        # With '.', we try to access `${ab.de}`.
+        # With '}', we try to access `${ab}`.
+        cfg = create()
+        with pytest.raises(InterpolationResolutionError):
+            cfg.invalid
+    elif c == ":":
+        # With ':', we try to run a resolver `${ab:de}`
+        cfg = create()
+        with pytest.raises(UnsupportedInterpolationType):
+            cfg.invalid
+    else:
+        # Other invalid characters should be detected at creation time.
+        with pytest.raises(GrammarParseError):
+            create()
 
 
 def test_interpolation_in_list_key_error() -> None:
@@ -477,3 +701,11 @@ def test_optional_after_interpolation() -> None:
     # Ensure that we can set an optional field to `None` even when it currently
     # points to a non-optional field.
     cfg.opt_num = None
+
+
+def test_empty_stack() -> None:
+    """
+    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
+    """
+    with pytest.raises(GrammarParseError):
+        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")

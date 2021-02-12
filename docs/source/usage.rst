@@ -313,17 +313,36 @@ Example:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/config_interpolation.yaml')
-    >>> # Primitive interpolation types are inherited from the referenced value
-    >>> print(conf.client.server_port)
+    >>> # Primitive interpolation types are inherited from the reference
+    >>> conf.client.server_port
     80
-    >>> print(type(conf.client.server_port).__name__)
-    int
+    >>> type(conf.client.server_port).__name__
+    'int'
 
     >>> # Composite interpolation types are always string
-    >>> print(conf.client.url)
-    http://localhost:80/
-    >>> print(type(conf.client.url).__name__)
-    str
+    >>> conf.client.url
+    'http://localhost:80/'
+    >>> type(conf.client.url).__name__
+    'str'
+
+
+Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
+
+.. doctest::
+
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "plans": {"A": "plan A", "B": "plan B"},
+    ...         "selected_plan": "A",
+    ...         "plan": "${plans.${selected_plan}}",
+    ...     }
+    ... )
+    >>> cfg.plan # default plan
+    'plan A'
+    >>> cfg.selected_plan = "B"
+    >>> cfg.plan # new plan
+    'plan B'
 
 Interpolated nodes can be any node in the config, not just leaf nodes:
 
@@ -352,34 +371,53 @@ Input YAML file:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/env_interpolation.yaml')
-    >>> print(conf.user.name)
-    omry
-    >>> print(conf.user.home)
-    /home/omry
+    >>> conf.user.name
+    'omry'
+    >>> conf.user.home
+    '/home/omry'
 
 You can specify a default value to use in case the environment variable is not defined.
-The following example sets `12345` as the the default value for the `DB_PASSWORD` environment variable.
+The following example sets `abc123` as the the default value when `DB_PASSWORD` is not defined.
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,12345}'}
+    ...       'database': {'password': '${env:DB_PASSWORD,abc123}'}
     ... })
-    >>> print(cfg.database.password)
-    12345
-    >>> OmegaConf.clear_cache(cfg) # clear resolver cache
-    >>> os.environ["DB_PASSWORD"] = 'secret'
-    >>> print(cfg.database.password)
-    secret
+    >>> cfg.database.password
+    'abc123'
 
-Custom interpolations
-^^^^^^^^^^^^^^^^^^^^^
-You can add additional interpolation types using custom resolvers.
-This example creates a resolver that adds 10 the the given value.
+Environment variables are parsed when they are recognized as valid quantities that
+may be evaluated (e.g., int, float, dict, list):
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("plus_10", lambda x: int(x) + 10)
+    >>> cfg = OmegaConf.create({
+    ...       'database': {'password': '${env:DB_PASSWORD,abc123}',
+    ...                    'user': 'someuser',
+    ...                    'port': '${env:DB_PORT,3306}',
+    ...                    'nodes': '${env:DB_NODES,[]}'}
+    ... })
+    >>> os.environ["DB_PORT"] = '3308'
+    >>> cfg.database.port  # converted to int
+    3308
+    >>> os.environ["DB_NODES"] = '[host1, host2, host3]'
+    >>> cfg.database.nodes  # converted to list
+    ['host1', 'host2', 'host3']
+    >>> os.environ["DB_PASSWORD"] = 'a%#@~{}$*&^?/<'
+    >>> cfg.database.password  # kept as a string
+    'a%#@~{}$*&^?/<'
+
+
+Custom interpolations
+^^^^^^^^^^^^^^^^^^^^^
+
+You can add additional interpolation types using custom resolvers.
+The example below creates a resolver that adds 10 to the given value.
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
@@ -387,15 +425,17 @@ This example creates a resolver that adds 10 the the given value.
 
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
-You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `).
+You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `), or
+simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
-    >>> OmegaConf.register_resolver("concat", lambda x,y: x+y)
+    >>> OmegaConf.register_new_resolver("concat", lambda x, y: x+y)
     >>> c = OmegaConf.create({
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
     ...     'escape_whitespace': '${concat:Hello,\ World}',
+    ...     'quoted': '${concat:"Hello,", " World"}',
     ... })
     >>> c.key1
     'HelloWorld'
@@ -403,7 +443,36 @@ You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code
     'HelloWorld'
     >>> c.escape_whitespace
     'Hello World'
+    >>> c.quoted
+    'Hello, World'
 
+You can take advantage of nested interpolations to perform custom operations over variables:
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver("plus", lambda x, y: x + y)
+    >>> c = OmegaConf.create({"a": 1,
+    ...                       "b": 2,
+    ...                       "a_plus_b": "${plus:${a},${b}}"})
+    >>> c.a_plus_b
+    3
+
+By default a custom resolver's output is cached, so that when it is called with the same
+inputs we always return the same value. This behavior may be disabled by setting ``use_cache=False``:
+
+.. doctest::
+
+    >>> import random
+    >>> random.seed(1234)
+    >>> OmegaConf.register_new_resolver("cached", random.randint)
+    >>> OmegaConf.register_new_resolver(
+    ...              "uncached", random.randint, use_cache=False)
+    >>> c = OmegaConf.create({"cached": "${cached:0,10000}",
+    ...                       "uncached": "${uncached:0,10000}"})
+    >>> # same value on repeated access thanks to the cache
+    >>> assert c.cached == c.cached == 7220
+    >>> # not the same since the cache is disabled
+    >>> assert c.uncached != c.uncached
 
 
 Merging configurations

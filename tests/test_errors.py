@@ -22,6 +22,7 @@ from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
     ConfigValueError,
+    GrammarParseError,
     InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
@@ -198,7 +199,7 @@ params = [
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
             exception_type=InterpolationResolutionError,
-            msg="str interpolation key 'missing' not found",
+            msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
@@ -209,7 +210,7 @@ params = [
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
             exception_type=InterpolationResolutionError,
-            msg="str interpolation key 'missing' not found",
+            msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
@@ -220,7 +221,7 @@ params = [
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
             exception_type=InterpolationResolutionError,
-            msg="str interpolation key 'missing' not found",
+            msg="Interpolation key 'missing' not found",
             key="bar",
             full_key="foo.bar",
             child_node=lambda cfg: cfg.foo._get_node("bar"),
@@ -1149,14 +1150,32 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
                 assert e.__cause__ is None
 
 
-def test_assertion_error(restore_resolvers: Any) -> None:
+@pytest.mark.parametrize(
+    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+)
+def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
     def assert_false() -> None:
         assert False
 
     # The purpose of this test is to cover the case where an `AssertionError`
     # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
     # error is just one way of achieving this goal.
-    OmegaConf.register_resolver("assert_false", assert_false)
+    register_func("assert_false", assert_false)
     c = OmegaConf.create({"trigger": "${assert_false:}"})
     with pytest.raises(AssertionError):
         c.trigger
+
+
+@pytest.mark.parametrize(
+    ["create_func", "arg"],
+    [
+        (OmegaConf.create, {"a": "${b"}),
+        (DictConfig, "${b"),
+        (ListConfig, "${b"),
+    ],
+)
+def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
+    with pytest.raises(
+        GrammarParseError, match=re.escape("no viable alternative at input '${b'")
+    ):
+        create_func(arg)

@@ -4,7 +4,13 @@ import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
-from omegaconf._utils import _is_interpolation, get_type_of, is_primitive_container
+from omegaconf._utils import (
+    ValueKind,
+    _is_interpolation,
+    get_type_of,
+    get_value_kind,
+    is_primitive_container,
+)
 from omegaconf.base import Container, Metadata, Node
 from omegaconf.errors import (
     ConfigKeyError,
@@ -28,14 +34,13 @@ class ValueNode(Node):
         return self._val
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        from ._utils import ValueKind, get_value_kind
-
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        if isinstance(value, str) and get_value_kind(value) in (
+        if isinstance(value, str) and get_value_kind(
+            value, strict_interpolation_validation=True
+        ) in (
             ValueKind.INTERPOLATION,
-            ValueKind.STR_INTERPOLATION,
             ValueKind.MANDATORY_MISSING,
         ):
             self._val = value

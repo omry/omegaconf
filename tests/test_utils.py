@@ -6,7 +6,13 @@ import attr
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
-from omegaconf._utils import is_dict_annotation, is_list_annotation
+from omegaconf._utils import (
+    SIMPLE_INTERPOLATION_PATTERN,
+    _get_value,
+    _make_hashable,
+    is_dict_annotation,
+    is_list_annotation,
+)
 from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
@@ -251,7 +257,7 @@ class Dataclass:
         (Dataclass, _utils.ValueKind.VALUE),
         ("???", _utils.ValueKind.MANDATORY_MISSING),
         ("${foo.bar}", _utils.ValueKind.INTERPOLATION),
-        ("ftp://${host}/path", _utils.ValueKind.STR_INTERPOLATION),
+        ("ftp://${host}/path", _utils.ValueKind.INTERPOLATION),
         ("${func:foo}", _utils.ValueKind.INTERPOLATION),
         ("${func:a/b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
@@ -550,3 +556,90 @@ def test_get_node_ref_type(obj: Any, key: str, expected: Any) -> None:
 def test_get_ref_type_error() -> None:
     with raises(ValueError):
         _utils.get_ref_type(AnyNode(), "foo")
+
+
+@mark.parametrize(
+    "value",
+    [
+        1,
+        None,
+        {"a": 0},
+        [1, 2, 3],
+    ],
+)
+def test_get_value_basic(value: Any) -> None:
+    val_node = _node_wrap(
+        value=value, type_=Any, parent=None, is_optional=True, key=None
+    )
+    assert _get_value(val_node) == value
+
+
+@mark.parametrize(
+    "content",
+    [{"a": 0, "b": 1}, "???", None, "${bar}"],
+)
+def test_get_value_container(content: Any) -> None:
+    cfg = DictConfig({})
+    cfg._set_value(content)
+    assert _get_value(cfg) == content
+
+
+@mark.parametrize(
+    "input_1,input_2",
+    [
+        (0, 0),
+        ([0, 1], (0, 1)),
+        ([0, (1, 2)], (0, [1, 2])),
+        ({0: 1, 1: 2}, {1: 2, 0: 1}),
+        ({"": 1, 0: 2}, {0: 2, "": 1}),
+        (
+            {1: 0, 1.1: 2.0, "1": "0", True: False, None: None},
+            {None: None, 1.1: 2.0, True: False, "1": "0", 1: 0},
+        ),
+    ],
+)
+def test_make_hashable(input_1: Any, input_2: Any) -> None:
+    out_1, out_2 = _make_hashable(input_1), _make_hashable(input_2)
+    assert out_1 == out_2
+    hash_1, hash_2 = hash(out_1), hash(out_2)
+    assert hash_1 == hash_2
+
+
+def test_make_hashable_type_error() -> None:
+    with raises(TypeError):
+        _make_hashable({...: 0, None: 0})
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo}",
+        "${foo.bar}",
+        "${a_b.c123}",
+        "${  foo \t}",
+        "x ${ab.cd.ef.gh} y",
+        "$ ${foo} ${bar} ${boz} $",
+        "${foo:bar}",
+        "${foo : bar, baz, boz}",
+        "${foo:bar,0,a-b+c*d/$.%@}",
+        "\\${foo}",
+    ],
+)
+def test_match_simple_interpolation_pattern(expression: str) -> None:
+    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo",
+        "${0foo}",
+        "${0foo:bar}",
+        "${foo.${bar}}",
+        "${foo:${bar}}",
+        "${foo:'hello'}",
+        "\\${foo",
+    ],
+)
+def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
+    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is None

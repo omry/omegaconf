@@ -668,11 +668,16 @@ def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
     assert c1 == backup
 
 
-def test_into_custom_resolver_that_throws(restore_resolvers: Any) -> None:
+@pytest.mark.parametrize(
+    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+)
+def test_into_custom_resolver_that_throws(
+    restore_resolvers: Any, register_func: Any
+) -> None:
     def fail() -> None:
         raise ValueError()
 
-    OmegaConf.register_resolver("fail", fail)
+    register_func("fail", fail)
 
     configs = (
         {"d": 20, "i": "${fail:}"},

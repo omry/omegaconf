@@ -1,0 +1,1 @@
+`${env:MYVAR,null}` now properly returns `None` if the environment variable MYVAR is undefined.

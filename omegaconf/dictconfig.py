@@ -167,7 +167,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         from omegaconf import OmegaConf
 
         vk = get_value_kind(value)
-        if vk in (ValueKind.INTERPOLATION, ValueKind.STR_INTERPOLATION):
+        if vk == ValueKind.INTERPOLATION:
             return
         self._validate_non_optional(key, value)
         if value == "???" or value is None:
@@ -613,7 +613,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if OmegaConf.is_none(value):
             self.__dict__["_content"] = None
             self._metadata.object_type = None
-        elif _is_interpolation(value):
+        elif _is_interpolation(value, strict_interpolation_validation=True):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
         elif value == "???":
