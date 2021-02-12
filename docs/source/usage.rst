@@ -465,8 +465,12 @@ namespace, and to use interpolations in the name itself. The following example d
 .. doctest::
 
     >>> OmegaConf.register_new_resolver("mylib.plus1", lambda x: x + 1)
-    >>> c = OmegaConf.create({"func": "plus1",
-    ...                       "x": "${mylib.${func}:3}"})
+    >>> c = OmegaConf.create(
+    ...     {
+    ...         "func": "plus1",
+    ...         "x": "${mylib.${func}:3}",
+    ...     }
+    ... )
     >>> c.x
     4
 
