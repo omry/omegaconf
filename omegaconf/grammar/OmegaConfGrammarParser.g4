@@ -48,8 +48,9 @@ sequence: element (COMMA element)*;
 
 interpolation: interpolationNode | interpolationResolver;
 interpolationNode: INTER_OPEN DOT* configKey (DOT configKey)* INTER_CLOSE;
-interpolationResolver: INTER_OPEN (interpolation | ID) COLON sequence? BRACE_CLOSE;
+interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
+resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f
 
 // Primitive types.
 

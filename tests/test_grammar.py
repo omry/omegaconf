@@ -221,6 +221,8 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("ws_inter_res_around_colon", "${test\t  : \tfoo}", "foo"),
     ("ws_inter_res_inside_id", "${te st:foo}", GrammarParseError),
     ("ws_inter_res_inside_args", "${test:f o o}", "f o o"),
+    ("ws_inter_res_namespace", "${ns1 .\t ns2 . test:0}", 0),
+    ("ws_inter_res_no_args", "${test: \t}", []),
     ("ws_list", "${test:[\t a,   b,  ''\t  ]}", ["a", "b", ""]),
     ("ws_dict", "${test:{\t a   : 1\t  , b:  \t''}}", {"a": 1, "b": ""}),
     ("ws_quoted_single", "${test:  \t'foo'\t }", "foo"),
@@ -239,6 +241,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_typo_colons", "${test:{a: 1.1, b:: b}}", {"a": 1.1, "b": ": b"}),
     ("missing_resolver", "${MiSsInG_ReSoLvEr:0}", UnsupportedInterpolationType),
     ("at_in_resolver", "${y@z:}", GrammarParseError),
+    ("ns_resolver", "${ns1.ns2.test:123}", 123),
     # Nested resolvers.
     ("nested_resolver", "${${str_test}:a, b, c}", ["a", "b", "c"]),
     ("nested_deep", "${test:${${test:${ref_str}}}}", "hi"),
@@ -355,6 +358,7 @@ class TestOmegaConfGrammar:
 
         OmegaConf.register_new_resolver("test", self._resolver_test)
         OmegaConf.register_new_resolver("first", self._resolver_first)
+        OmegaConf.register_new_resolver("ns1.ns2.test", self._resolver_test)
 
         self._visit_with_config(parse_tree, expected_visit)
 
