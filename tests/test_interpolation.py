@@ -1,16 +1,19 @@
 import copy
 import random
 import re
-from typing import Any, Optional, Tuple
+from textwrap import dedent
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from _pytest.python_api import RaisesContext
 
 from omegaconf import (
     II,
+    SI,
     Container,
     DictConfig,
     IntegerNode,
+    ListConfig,
     Node,
     OmegaConf,
     Resolver,
@@ -22,11 +25,12 @@ from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
+    KeyValidationError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
 
-from . import StructuredWithMissing
+from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
 
 # file deepcode ignore CopyPasteError:
 # The above comment is a statement to stop DeepCode from raising a warning on
@@ -753,3 +757,212 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver("test", lambda x: x)
     cfg = OmegaConf.create({"x": "${test:'${missing}'}", "missing": None})
     assert cfg.x == "None"
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected_value", "expected_node_type"),
+    [
+        pytest.param(
+            User(name="Bond", age=SI("${cast:int,'7'}")),
+            "age",
+            7,
+            IntegerNode,
+            id="expected_type",
+        ),
+        pytest.param(
+            # This example specifically test the case where intermediate resolver results
+            # are not of the same type as the key.
+            User(name="Bond", age=SI("${cast:int,${drop_last:${drop_last:7xx}}}")),
+            "age",
+            7,
+            IntegerNode,
+            id="intermediate_type_mismatch_ok",
+        ),
+        pytest.param(
+            User(name="Bond", age=SI("${cast:str,'7'}")),
+            "age",
+            7,
+            IntegerNode,
+            id="convert_str_to_int",
+        ),
+        pytest.param(
+            MissingList(list=SI("${identity:[a, b, c]}")),
+            "list",
+            ["a", "b", "c"],
+            ListConfig,
+            id="list_str",
+        ),
+        pytest.param(
+            MissingList(list=SI("${identity:[0, 1, 2]}")),
+            "list",
+            ["0", "1", "2"],
+            ListConfig,
+            id="list_int_to_str",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{a: b, c: d}}")),
+            "dict",
+            {"a": "b", "c": "d"},
+            DictConfig,
+            id="dict_str",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{a: 0, b: 1}}")),
+            "dict",
+            {"a": "0", "b": "1"},
+            DictConfig,
+            id="dict_int_to_str",
+        ),
+    ],
+)
+def test_interpolation_type_validated_ok(
+    cfg: Any,
+    key: str,
+    expected_value: Any,
+    expected_node_type: Any,
+    restore_resolvers: Any,
+) -> Any:
+    def cast(t: Any, v: Any) -> Any:
+        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
+
+    def drop_last(s: str) -> str:
+        return s[0:-1]  # drop last character from string `s`
+
+    OmegaConf.register_new_resolver("cast", cast)
+    OmegaConf.register_new_resolver("drop_last", drop_last)
+    OmegaConf.register_new_resolver("identity", lambda x: x)
+
+    cfg = OmegaConf.structured(cfg)
+
+    val = cfg[key]
+    assert val == expected_value
+
+    node = cfg._get_node(key)
+    assert isinstance(node, Node)
+    assert isinstance(node._dereference_node(), expected_node_type)
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected_error"),
+    [
+        pytest.param(
+            User(name="Bond", age=SI("${cast:str,seven}")),
+            "age",
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        Value 'seven' could not be converted to Integer
+                            full_key: age
+                        """
+                    )
+                ),
+            ),
+            id="type_mismatch_resolver",
+        ),
+        pytest.param(
+            User(name="Bond", age=SI("${name}")),
+            "age",
+            pytest.raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        Value 'Bond' could not be converted to Integer
+                            full_key: age
+                        """
+                    )
+                ),
+            ),
+            id="type_mismatch_node_interpolation",
+        ),
+        pytest.param(
+            StructuredWithMissing(opt_num=None, num=II("opt_num")),
+            "num",
+            pytest.raises(
+                ValidationError,
+                match=re.escape("Non optional field cannot be assigned None"),
+            ),
+            id="non_optional_node_interpolation",
+        ),
+        pytest.param(
+            SubscriptedList(list=SI("${identity:[a, b]}")),
+            "list",
+            pytest.raises(
+                ValidationError,
+                match=re.escape("Value 'a' could not be converted to Integer"),
+            ),
+            id="list_type_mismatch",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{0: b, 1: d}}")),
+            "dict",
+            pytest.raises(
+                KeyValidationError,
+                match=re.escape("Key 0 (int) is incompatible with (str)"),
+            ),
+            id="dict_key_type_mismatch",
+        ),
+    ],
+)
+def test_interpolation_type_validated_error(
+    cfg: Any,
+    key: str,
+    expected_error: Any,
+    restore_resolvers: Any,
+) -> Any:
+    def cast(t: Any, v: Any) -> Any:
+        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
+
+    OmegaConf.register_new_resolver("cast", cast)
+    OmegaConf.register_new_resolver("identity", lambda x: x)
+
+    cfg = OmegaConf.structured(cfg)
+
+    with expected_error:
+        cfg[key]
+
+
+def test_type_validation_error_no_throw() -> None:
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${name}")))
+    bad_node = cfg._get_node("age")
+    assert bad_node._dereference_node(throw_on_resolution_failure=False) is None
+
+
+@pytest.mark.parametrize(
+    ("cfg", "expected"),
+    [
+        ({"a": 0, "b": 1}, {"a": 0, "b": 1}),
+        ({"a": "${y}"}, {"a": -1}),
+        ({"a": 0, "b": "${x.a}"}, {"a": 0, "b": 0}),
+        ({"a": 0, "b": "${.a}"}, {"a": 0, "b": 0}),
+        ({"a": "${..y}"}, {"a": -1}),
+    ],
+)
+def test_resolver_output_dictconfig(
+    restore_resolvers: Any, cfg: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    OmegaConf.register_new_resolver("dict", lambda: cfg)
+    c = OmegaConf.create({"x": "${dict:}", "y": -1})
+    assert isinstance(c.x, DictConfig)
+    assert c.x == expected
+
+
+@pytest.mark.parametrize(
+    ("cfg", "expected"),
+    [
+        ([0, 1], [0, 1]),
+        (["${y}"], [-1]),
+        ([0, "${x.0}"], [0, 0]),
+        ([0, "${.0}"], [0, 0]),
+        (["${..y}"], [-1]),
+    ],
+)
+def test_resolver_output_listconfig(
+    restore_resolvers: Any, cfg: List[Any], expected: List[Any]
+) -> None:
+    OmegaConf.register_new_resolver("list", lambda: cfg)
+    c = OmegaConf.create({"x": "${list:}", "y": -1})
+    assert isinstance(c.x, ListConfig)
+    assert c.x == expected

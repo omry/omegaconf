@@ -292,9 +292,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return key  # type: ignore
         elif issubclass(key_type, Enum):
             try:
-                ret = EnumNode.validate_and_convert_to_enum(key_type, key)
-                assert ret is not None
-                return ret
+                return EnumNode.validate_and_convert_to_enum(key_type, key)
             except ValidationError:
                 valid = ", ".join([x for x in key_type.__members__.keys()])
                 raise KeyValidationError(

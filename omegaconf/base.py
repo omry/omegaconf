@@ -23,6 +23,7 @@ from .errors import (
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
+    ValidationError,
 )
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
@@ -353,8 +354,6 @@ class Container(Node):
     ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
         """
         Select a value using dot separated key sequence
-        :param key:
-        :return:
         """
         from .omegaconf import _select_one
 
@@ -416,7 +415,9 @@ class Container(Node):
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
-        from .nodes import StringNode
+        from .basecontainer import BaseContainer
+        from .nodes import AnyNode, ValueNode
+        from .omegaconf import _node_wrap
 
         try:
             resolved = self.resolve_parse_tree(
@@ -429,14 +430,36 @@ class Container(Node):
                 raise
             return None
 
-        assert resolved is not None
-        if isinstance(resolved, str):
-            # Result is a string: create a new StringNode for it.
-            return StringNode(
-                value=resolved,
-                key=key,
+        # If the output is not a Node already (e.g., because it is the output of a
+        # custom resolver), then we will need to wrap it within a Node.
+        must_wrap = not isinstance(resolved, Node)
+
+        # If the node is typed, validate (and possibly convert) the result.
+        if isinstance(value, ValueNode) and not isinstance(value, AnyNode):
+            res_value = _get_value(resolved)
+            try:
+                conv_value = value.validate_and_convert(res_value)
+            except ValidationError as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(key=key, value=res_value, cause=e)
+                return None
+
+            # If the same object is returned, it means the value is already valid
+            # "as is", and we can thus use it directly. Otherwise, the converted
+            # value has to be wrapped into a node.
+            if conv_value is not res_value:
+                must_wrap = True
+                resolved = conv_value
+
+        if must_wrap:
+            assert parent is None or isinstance(parent, BaseContainer)
+            return _node_wrap(
+                type_=value._metadata.ref_type,
                 parent=parent,
                 is_optional=value._metadata.optional,
+                value=resolved,
+                key=key,
+                ref_type=value._metadata.ref_type,
             )
         else:
             assert isinstance(resolved, Node)
@@ -483,19 +506,10 @@ class Container(Node):
     ) -> Any:
         from omegaconf import OmegaConf
 
-        from .nodes import ValueNode
-
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            value = resolver(root_node, inter_args, inter_args_str)
-            return ValueNode(
-                value=value,
-                parent=self,
-                metadata=Metadata(
-                    ref_type=Any, object_type=Any, key=key, optional=True
-                ),
-            )
+            return resolver(root_node, inter_args, inter_args_str)
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"
@@ -556,7 +570,7 @@ class Container(Node):
                     value=quoted_str,
                     key=key,
                     parent=parent,
-                    is_optional=False,
+                    is_optional=True,
                 ),
                 throw_on_resolution_failure=True,
             )
