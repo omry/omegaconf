@@ -11,6 +11,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_missing_literal,
+    _is_missing_value,
     format_and_raise,
     get_value_kind,
 )
@@ -228,6 +229,9 @@ class Node(ABC):
             assert root is not None and isinstance(root, Container)
         return root
 
+    def _is_missing(self) -> bool:
+        return _is_missing_value(self)
+
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
         ...
@@ -254,10 +258,6 @@ class Node(ABC):
 
     @abstractmethod
     def _is_optional(self) -> bool:
-        ...
-
-    @abstractmethod
-    def _is_missing(self) -> bool:
         ...
 
     @abstractmethod

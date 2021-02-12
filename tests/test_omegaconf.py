@@ -58,6 +58,20 @@ from tests import (
             raises(MissingMandatoryValue),
             id="missing_dict",
         ),
+        pytest.param(
+            {"foo": ListConfig(content="${missing}"), "missing": "???"},
+            "foo",
+            False,
+            raises(MissingMandatoryValue),
+            id="missing_list_interpolation",
+        ),
+        pytest.param(
+            {"foo": DictConfig(content="${missing}"), "missing": "???"},
+            "foo",
+            False,
+            raises(MissingMandatoryValue),
+            id="missing_dict_interpolation",
+        ),
         (
             {"foo": "${bar}", "bar": MISSING},
             "foo",
@@ -91,8 +105,8 @@ from tests import (
         (StructuredWithMissing, "opt_list", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "user", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_user", True, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_user", True, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_opt_user", True, raises(MissingMandatoryValue)),
+        (StructuredWithMissing, "inter_user", False, raises(MissingMandatoryValue)),
+        (StructuredWithMissing, "inter_opt_user", False, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "inter_num", False, raises(MissingMandatoryValue)),
     ],
 )

@@ -666,18 +666,6 @@ class BaseContainer(Container, ABC):
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None
 
-    def _is_missing(self) -> bool:
-        try:
-            self._dereference_node(
-                throw_on_resolution_failure=False, throw_on_missing=True
-            )
-            return False
-        except MissingMandatoryValue:
-            ret = True
-
-        assert isinstance(ret, bool)
-        return ret
-
     def _is_optional(self) -> bool:
         return self.__dict__["_metadata"].optional is True
 

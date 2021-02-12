@@ -101,23 +101,6 @@ class ValueNode(Node):
     def _is_optional(self) -> bool:
         return self._metadata.optional
 
-    def _is_missing(self) -> bool:
-        if self._is_interpolation():
-            try:
-                node = self._dereference_node(
-                    throw_on_resolution_failure=False, throw_on_missing=False
-                )
-                if node is None:
-                    # resolution failure
-                    return False
-                else:
-                    return node._is_missing()
-            except ConfigKeyError:
-                # Will happen if interpolation is accessing keys that does not exist.
-                return False
-        else:
-            return _is_missing_value(self)
-
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())
 
