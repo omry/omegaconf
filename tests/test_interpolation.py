@@ -717,10 +717,19 @@ def test_invalid_intermediate_result_when_not_throwing(
     ref: str, restore_resolvers: Any
 ) -> None:
     """
-    Check that the resolution of nested interpolations stops on missing / resolution failure.
+    Test the handling of missing / resolution failures in nested interpolations.
+
+    The main goal of this test is to make sure that the resolution of an interpolation
+    is stopped immediately when a missing / resolution failure occurs, even if
+    `throw_on_missing` and `throw_on_resolution_failure` are set to False.
+    When this happens while dereferencing a node, the result should be `None`.
     """
-    OmegaConf.register_new_resolver("check_none", lambda x: x is None)
-    cfg = OmegaConf.create({"x": f"${{check_none:${{{ref}}}}}", "missing": "???"})
+
+    def fail_if_called(x: Any) -> None:
+        assert False
+
+    OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
+    cfg = OmegaConf.create({"x": f"${{fail_if_called:${{{ref}}}}}", "missing": "???"})
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert (
