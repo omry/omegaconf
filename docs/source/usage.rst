@@ -354,8 +354,8 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
     ...         "player": "${john}",
     ...     }
     ... )
-    >>> cfg.player
-    {'height': 180, 'weight': 75}
+    >>> (cfg.player.height, cfg.player.weight)
+    (180, 75)
 
 
 Environment variable interpolation
