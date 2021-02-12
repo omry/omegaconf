@@ -28,6 +28,11 @@ from omegaconf.errors import (
 
 from . import StructuredWithMissing
 
+# file deepcode ignore CopyPasteError:
+# The above comment is a statement to stop DeepCode from raising a warning on
+# lines that do equality checks of the form
+#       c.k == c.k
+
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
 
