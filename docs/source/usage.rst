@@ -446,6 +446,7 @@ simply use quotes to bypass character limitations in strings.
     >>> c.quoted
     'Hello, World'
 
+
 You can take advantage of nested interpolations to perform custom operations over variables:
 
 .. doctest::
@@ -456,6 +457,19 @@ You can take advantage of nested interpolations to perform custom operations ove
     ...                       "a_plus_b": "${plus:${a},${b}}"})
     >>> c.a_plus_b
     3
+
+
+More advanced resolver naming features include the ability to prefix a resolver name with a
+namespace, and to use interpolations in the name itself. The following example demonstrates both:
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver("mylib.plus1", lambda x: x + 1)
+    >>> c = OmegaConf.create({"func": "plus1",
+    ...                       "x": "${mylib.${func}:3}"})
+    >>> c.x
+    4
+
 
 By default a custom resolver's output is cached, so that when it is called with the same
 inputs we always return the same value. This behavior may be disabled by setting ``use_cache=False``:
