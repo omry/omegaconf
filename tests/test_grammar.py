@@ -433,7 +433,10 @@ class TestOmegaConfGrammar:
 
     def _resolver_first(self, item: Any, *_: Any) -> Any:
         """Resolver that returns the first element of its first input"""
-        return next(iter(item))
+        try:
+            return next(iter(item))
+        except StopIteration:
+            assert False  # not supposed to happen in current tests
 
     def _resolver_test(self, *args: Any) -> Any:
         """Resolver that returns the list of its inputs"""
