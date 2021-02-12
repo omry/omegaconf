@@ -623,6 +623,7 @@ def test_make_hashable_type_error() -> None:
         "${foo : bar, baz, boz}",
         "${foo:bar,0,a-b+c*d/$.%@}",
         "\\${foo}",
+        "${foo.bar:boz}",
     ],
 )
 def test_match_simple_interpolation_pattern(expression: str) -> None:
