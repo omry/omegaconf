@@ -128,6 +128,8 @@ def test_dereference_interpolation_to_missing() -> None:
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert x_node._dereference_node() is None
+    with pytest.raises(MissingMandatoryValue):
+        cfg.x
 
 
 @pytest.mark.parametrize(
