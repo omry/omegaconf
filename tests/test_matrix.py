@@ -298,9 +298,9 @@ class TestNodeTypesMatrix:
                 inter=True,
                 exp=None,
             )
-            verify(cfg, "int_missing", none=False, opt=True, missing=True, inter=True)
+            verify(cfg, "int_missing", none=False, opt=True, missing=False, inter=True)
             verify(
-                cfg, "int_opt_missing", none=False, opt=True, missing=True, inter=True
+                cfg, "int_opt_missing", none=False, opt=True, missing=False, inter=True
             )
 
             verify(

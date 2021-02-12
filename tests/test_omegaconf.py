@@ -12,6 +12,7 @@ from omegaconf import (
     IntegerNode,
     ListConfig,
     MissingMandatoryValue,
+    Node,
     OmegaConf,
     StringNode,
 )
@@ -39,7 +40,7 @@ from tests import (
         pytest.param(
             {"foo": "${bar}", "bar": DictConfig(content=MISSING)},
             "foo",
-            True,
+            False,
             raises(MissingMandatoryValue),
             id="missing_interpolated_dict",
         ),
@@ -57,7 +58,12 @@ from tests import (
             raises(MissingMandatoryValue),
             id="missing_dict",
         ),
-        ({"foo": "${bar}", "bar": MISSING}, "foo", True, raises(MissingMandatoryValue)),
+        (
+            {"foo": "${bar}", "bar": MISSING},
+            "foo",
+            False,
+            raises(MissingMandatoryValue),
+        ),
         (
             {"foo": "foo_${bar}", "bar": MISSING},
             "foo",
@@ -74,7 +80,7 @@ from tests import (
         (
             {"foo": StringNode(value="???"), "inter": "${foo}"},
             "inter",
-            True,
+            False,
             raises(MissingMandatoryValue),
         ),
         (StructuredWithMissing, "num", True, raises(MissingMandatoryValue)),
@@ -87,7 +93,7 @@ from tests import (
         (StructuredWithMissing, "opt_user", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "inter_user", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "inter_opt_user", True, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_num", True, raises(MissingMandatoryValue)),
+        (StructuredWithMissing, "inter_num", False, raises(MissingMandatoryValue)),
     ],
 )
 def test_is_missing(
@@ -115,6 +121,13 @@ def test_is_missing_resets() -> None:
     assert not OmegaConf.is_missing(cfg, "list")
     cfg.list = "???"
     assert OmegaConf.is_missing(cfg, "list")
+
+
+def test_dereference_interpolation_to_missing() -> None:
+    cfg = OmegaConf.create({"x": "${y}", "y": "???"})
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    assert x_node._dereference_node() is None
 
 
 @pytest.mark.parametrize(

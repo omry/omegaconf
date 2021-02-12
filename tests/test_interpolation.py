@@ -103,8 +103,9 @@ def test_interpolation_with_missing() -> None:
             "x": {"missing": "???"},
         }
     )
+    assert OmegaConf.is_missing(cfg.x, "missing")
     assert not OmegaConf.is_missing(cfg, "a")
-    assert OmegaConf.is_missing(cfg, "b")
+    assert not OmegaConf.is_missing(cfg, "b")
 
 
 def test_assign_to_interpolation() -> None:
@@ -709,3 +710,22 @@ def test_empty_stack() -> None:
     """
     with pytest.raises(GrammarParseError):
         grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
+
+
+@pytest.mark.parametrize("ref", ["missing", "invalid"])
+def test_invalid_intermediate_result_when_not_throwing(
+    ref: str, restore_resolvers: Any
+) -> None:
+    """
+    Check that the resolution of nested interpolations stops on missing / resolution failure.
+    """
+    OmegaConf.register_new_resolver("check_none", lambda x: x is None)
+    cfg = OmegaConf.create({"x": f"${{check_none:${{{ref}}}}}", "missing": "???"})
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    assert (
+        x_node._dereference_node(
+            throw_on_missing=False, throw_on_resolution_failure=False
+        )
+        is None
+    )
