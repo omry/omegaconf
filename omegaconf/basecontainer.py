@@ -50,10 +50,15 @@ class BaseContainer(Container, ABC):
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
 
-        val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
-        if has_default and (val is None or _is_missing_value(val)):
+
+        if has_default and _get_value(value) is None:
             return default_value
+
+        if _is_missing_value(value):
+            if has_default:
+                return default_value
+            raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 
         resolved = self._maybe_resolve_interpolation(
             parent=self,
@@ -63,12 +68,6 @@ class BaseContainer(Container, ABC):
         )
         if resolved is None and has_default:
             return default_value
-
-        if _is_missing_value(resolved):
-            if has_default:
-                return default_value
-            else:
-                raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 
         return _get_value(resolved)
 

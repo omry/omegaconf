@@ -418,9 +418,8 @@ class Container(Node):
                 raise
             return None
 
-        if resolved is None:
-            return None
-        elif isinstance(resolved, str):
+        assert resolved is not None
+        if isinstance(resolved, str):
             # Result is a string: create a new StringNode for it.
             return StringNode(
                 value=resolved,

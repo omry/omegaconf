@@ -137,6 +137,14 @@ def test_is_missing_resets() -> None:
     assert OmegaConf.is_missing(cfg, "list")
 
 
+def test_dereference_missing() -> None:
+    cfg = OmegaConf.create({"x": "???"})
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    with pytest.raises(MissingMandatoryValue):
+        x_node._dereference_node(throw_on_missing=True)
+
+
 def test_dereference_interpolation_to_missing() -> None:
     cfg = OmegaConf.create({"x": "${y}", "y": "???"})
     x_node = cfg._get_node("x")
