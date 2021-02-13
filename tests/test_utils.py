@@ -651,6 +651,8 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
         "${foo:${bar}}",
         "${foo:'hello'}",
         "\\${foo",
+        "${foo . bar}",
+        "${ns . f:var}",
     ],
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
