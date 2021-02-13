@@ -507,3 +507,41 @@ class TestOmegaConfGrammar:
             )
 
         self._visit(visit, expected)
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo}",
+        "${foo.bar}",
+        "${a_b.c123}",
+        "${  foo \t}",
+        "x ${ab.cd.ef.gh} y",
+        "$ ${foo} ${bar} ${boz} $",
+        "${foo:bar}",
+        "${foo : bar, baz, boz}",
+        "${foo:bar,0,a-b+c*d/$.%@}",
+        "\\${foo}",
+        "${foo.bar:boz}",
+    ],
+)
+def test_match_simple_interpolation_pattern(expression: str) -> None:
+    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo",
+        "${0foo}",
+        "${0foo:bar}",
+        "${foo.${bar}}",
+        "${foo:${bar}}",
+        "${foo:'hello'}",
+        "\\${foo",
+        "${foo . bar}",
+        "${ns . f:var}",
+    ],
+)
+def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
+    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
