@@ -511,7 +511,6 @@ def test_resolve_str_interpolation(query: str, result: Any) -> None:
             parent=None,
             key=None,
             value=StringNode(value=query),
-            throw_on_missing=False,
             throw_on_resolution_failure=True,
         )
         == result

@@ -59,7 +59,6 @@ class BaseContainer(Container, ABC):
             parent=self,
             key=key,
             value=value,
-            throw_on_missing=not has_default,
             throw_on_resolution_failure=not has_default,
         )
         if resolved is None and has_default:

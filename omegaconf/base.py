@@ -207,7 +207,6 @@ class Node(ABC):
                 key=key,
                 value=self,
                 parse_tree=parse(_get_value(self)),
-                throw_on_missing=throw_on_missing,
                 throw_on_resolution_failure=throw_on_resolution_failure,
             )
         else:
@@ -394,7 +393,6 @@ class Container(Node):
             parent=root,
             key=last_key,
             value=value,
-            throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
         return root, last_key, value
@@ -405,7 +403,6 @@ class Container(Node):
         value: "Node",
         key: Any,
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
-        throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
         from .nodes import StringNode
@@ -416,10 +413,6 @@ class Container(Node):
                 key=key,
                 parent=parent,
             )
-        except MissingMandatoryValue:
-            if throw_on_missing:
-                raise
-            return None
         except Exception:
             if throw_on_resolution_failure:
                 raise
@@ -492,7 +485,6 @@ class Container(Node):
         parent: Optional["Container"],
         key: Any,
         value: "Node",
-        throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
         value_kind = get_value_kind(value)
@@ -505,7 +497,6 @@ class Container(Node):
             value=value,
             key=key,
             parse_tree=parse_tree,
-            throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
 
@@ -546,7 +537,6 @@ class Container(Node):
                     parent=parent,
                     is_optional=False,
                 ),
-                throw_on_missing=True,
                 throw_on_resolution_failure=True,
             )
             return str(quoted_val)

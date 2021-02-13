@@ -88,11 +88,9 @@ class ValueNode(Node):
 
     def _is_none(self) -> bool:
         if self._is_interpolation():
-            node = self._dereference_node(
-                throw_on_resolution_failure=False, throw_on_missing=False
-            )
+            node = self._dereference_node(throw_on_resolution_failure=False)
             if node is None:
-                # missing or resolution failure
+                # resolution failure
                 return False
         else:
             node = self
