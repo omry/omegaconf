@@ -63,6 +63,9 @@ def test_exclude_structured_configs(cfg: Any, ex_false: Any, ex_true: Any) -> No
     ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=False)
     assert ret1 == ex_false
 
+    ret1 = OmegaConf.to_container(cfg, instantiate=True)
+    assert ret1 == ex_true
+
     ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=True)
     assert ret1 == ex_true
 
@@ -132,6 +135,8 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     cfg = OmegaConf.create(src)
     container = OmegaConf.to_container(cfg)
     assert container == expected
+    container = OmegaConf.to_container(cfg, instantiate=True)
+    assert container == expected
     container = OmegaConf.to_container(cfg, resolve=True)
     assert container == expected_with_resolve
 
@@ -142,6 +147,12 @@ def test_to_container_invalid_input() -> None:
         match=re.escape("Input cfg is not an OmegaConf config object (dict)"),
     ):
         OmegaConf.to_container({})
+
+
+def test_to_container_options_mutually_exclusive() -> None:
+    with pytest.raises(ValueError):
+        cfg = OmegaConf.create()
+        OmegaConf.to_container(cfg, exclude_structured_configs=True, instantiate=True)
 
 
 def test_string_interpolation_with_readonly_parent() -> None:
