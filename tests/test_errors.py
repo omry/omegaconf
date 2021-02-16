@@ -1249,6 +1249,25 @@ def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
 
 
 @pytest.mark.parametrize(
+    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+)
+def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
+    def div(x: Any, y: Any) -> float:
+        return float(x) / float(y)
+
+    register_func("div", div)
+    c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
+    expected_msg = dedent(
+        """\
+        float division by zero
+            full_key: div_by_zero
+            object_type=dict"""
+    )
+    with pytest.raises(ZeroDivisionError, match=re.escape(expected_msg)):
+        c.div_by_zero
+
+
+@pytest.mark.parametrize(
     ["create_func", "arg"],
     [
         (OmegaConf.create, {"a": "${b"}),

@@ -463,17 +463,14 @@ class Container(Node):
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            try:
-                value = resolver(root_node, inter_args, inter_args_str)
-                return ValueNode(
-                    value=value,
-                    parent=self,
-                    metadata=Metadata(
-                        ref_type=Any, object_type=Any, key=key, optional=True
-                    ),
-                )
-            except Exception as e:
-                self._format_and_raise(key=None, value=None, cause=e)
+            value = resolver(root_node, inter_args, inter_args_str)
+            return ValueNode(
+                value=value,
+                parent=self,
+                metadata=Metadata(
+                    ref_type=Any, object_type=Any, key=key, optional=True
+                ),
+            )
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"
