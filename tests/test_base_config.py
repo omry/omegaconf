@@ -569,7 +569,7 @@ def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
         pytest.param([10, "???", 30], slice(1, 2), id="list_slice"),
     ],
 )
-def test_get_node_throw_on_missing_value(cfg: Any, key: Any) -> None:
+def test_string_interpolation_with_readonly_parent(cfg: Any, key: Any) -> None:
     cfg = OmegaConf.create(cfg)
     with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
         cfg._get_node(key, throw_on_missing_value=True)
