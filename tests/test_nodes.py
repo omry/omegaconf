@@ -12,11 +12,16 @@ from omegaconf import (
     FloatNode,
     IntegerNode,
     ListConfig,
+    Node,
     OmegaConf,
     StringNode,
     ValueNode,
 )
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import (
+    MissingMandatoryValue,
+    UnsupportedValueType,
+    ValidationError,
+)
 from tests import Color, IllegalType, User
 
 
@@ -559,3 +564,20 @@ def test_allow_objects() -> None:
     iv = IllegalType()
     c.foo = iv
     assert c.foo == iv
+
+
+def test_dereference_missing() -> None:
+    cfg = OmegaConf.create({"x": "???"})
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    with pytest.raises(MissingMandatoryValue):
+        x_node._dereference_node(throw_on_missing=True)
+
+
+def test_dereference_interpolation_to_missing() -> None:
+    cfg = OmegaConf.create({"x": "${y}", "y": "???"})
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    assert x_node._dereference_node(throw_on_resolution_failure=False) is None
+    with pytest.raises(MissingMandatoryValue):
+        cfg.x
