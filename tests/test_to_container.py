@@ -167,3 +167,123 @@ def test_string_interpolation_with_readonly_parent() -> None:
 def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     res = OmegaConf.to_container(src, resolve=False)
     assert res == expected
+
+
+@pytest.mark.parametrize(
+    "src,enum_to_str,expected",
+    [
+        pytest.param(
+            DictConfig(content={Color.RED: "enum key"}),
+            True,
+            "RED",
+            id="enum_key:convert",
+        ),
+        pytest.param(
+            DictConfig(content={Color.RED: "enum key"}),
+            False,
+            Color.RED,
+            id="enum_key:dont-convert",
+        ),
+        pytest.param(
+            DictConfig(content={123: "int key"}),
+            True,
+            123,
+            id="int_key:T-unaffected",
+        ),
+        pytest.param(
+            DictConfig(content={123: "int key"}),
+            False,
+            123,
+            id="int_key:F-unaffected",
+        ),
+    ],
+)
+def test_enum_to_str_for_keys(
+    src: DictConfig, enum_to_str: bool, expected: Any
+) -> None:
+    """Test the enum_to_str argument to the OmegaConf.to_container method."""
+    container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
+    assert isinstance(container, dict)
+    key = list(container.keys())[0]
+    assert key == expected
+    assert type(key) == type(expected)
+
+
+@pytest.mark.parametrize(
+    "src,enum_to_str,expected",
+    [
+        pytest.param(
+            DictConfig(content={"enum value": Color.RED}),
+            True,
+            "RED",
+            id="enum_value:convert",
+        ),
+        pytest.param(
+            DictConfig(content={"enum value": Color.RED}),
+            False,
+            Color.RED,
+            id="enum_value:dont-convert",
+        ),
+        pytest.param(
+            DictConfig(content={"int value": 123}),
+            True,
+            123,
+            id="int_value:T-unaffected",
+        ),
+        pytest.param(
+            DictConfig(content={"int value": 123}),
+            False,
+            123,
+            id="int_value:F-unaffected",
+        ),
+    ],
+)
+def test_enum_to_str_for_values(
+    src: DictConfig, enum_to_str: bool, expected: Any
+) -> None:
+    """Test the enum_to_str argument to the OmegaConf.to_container method."""
+    container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
+    assert isinstance(container, dict)
+    value = list(container.values())[0]
+    assert value == expected
+    assert type(value) == type(expected)
+
+
+@pytest.mark.parametrize(
+    "src,enum_to_str,expected",
+    [
+        pytest.param(
+            ListConfig(content=[Color.RED]),
+            True,
+            "RED",
+            id="List[Enum]:convert",
+        ),
+        pytest.param(
+            ListConfig(content=[Color.RED]),
+            False,
+            Color.RED,
+            id="List[Enum]:dont-convert",
+        ),
+        pytest.param(
+            ListConfig(content=[123]),
+            True,
+            123,
+            id="List[int]:T-unaffected",
+        ),
+        pytest.param(
+            ListConfig(content=[123]),
+            False,
+            123,
+            id="List[int]:F-unaffected",
+        ),
+    ],
+)
+def test_enum_to_str_for_list(
+    src: ListConfig, enum_to_str: bool, expected: Any
+) -> None:
+    """Test the enum_to_str argument to the OmegaConf.to_container method."""
+    container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
+    assert isinstance(container, list)
+    value = container[0]
+    assert value == expected
+    assert type(value) == type(expected)
