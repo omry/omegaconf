@@ -1,10 +1,11 @@
 import re
 from enum import Enum
+from importlib import import_module
 from typing import Any
 
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from tests import Color, User
 
 
@@ -178,3 +179,140 @@ def test_string_interpolation_with_readonly_parent() -> None:
 def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     res = OmegaConf.to_container(src, resolve=False)
     assert res == expected
+
+
+@pytest.mark.parametrize(
+    "class_type",
+    [
+        "tests.structured_conf.data.dataclasses",
+        "tests.structured_conf.data.attr_classes",
+    ],
+)
+class TestInstantiateStructuredConfigs:
+    @pytest.fixture
+    def module(self, class_type: str) -> Any:
+        module: Any = import_module(class_type)
+        return module
+
+    def round_trip_to_object(self, input_data: Any) -> Any:
+        serialized = OmegaConf.create(input_data)
+        round_tripped = OmegaConf.to_object(serialized)
+        return round_tripped
+
+    def test_basic(self, module: Any) -> None:
+        user = self.round_trip_to_object(module.User("Bond", 7))
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_basic_with_missing(self, module: Any) -> None:
+        user = self.round_trip_to_object(module.User())
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == MISSING
+        assert user.age == MISSING
+
+    def test_nested(self, module: Any) -> None:
+        data = self.round_trip_to_object({"user": module.User("Bond", 7)})
+        user = data["user"]
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_nested_with_missing(self, module: Any) -> None:
+        data = self.round_trip_to_object({"user": module.User()})
+        user = data["user"]
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == MISSING
+        assert user.age == MISSING
+
+    def test_list(self, module: Any) -> None:
+        lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
+        assert isinstance(lst, module.UserList)
+        assert type(lst) is module.UserList
+        assert len(lst.list) == 1
+        user = lst.list[0]
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_list_with_missing(self, module: Any) -> None:
+        lst = self.round_trip_to_object(module.UserList)
+        assert isinstance(lst, module.UserList)
+        assert type(lst) is module.UserList
+        assert lst.list == MISSING
+
+    def test_dict(self, module: Any) -> None:
+        user_dict = self.round_trip_to_object(
+            module.UserDict({"user007": module.User("Bond", 7)})
+        )
+        assert isinstance(user_dict, module.UserDict)
+        assert type(user_dict) is module.UserDict
+        assert len(user_dict.dict) == 1
+        user = user_dict.dict["user007"]
+        assert isinstance(user, module.User)
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_dict_with_missing(self, module: Any) -> None:
+        user_dict = self.round_trip_to_object(module.UserDict)
+        assert isinstance(user_dict, module.UserDict)
+        assert type(user_dict) is module.UserDict
+        assert user_dict.dict == MISSING
+
+    def test_nested_object(self, module: Any) -> None:
+        nested = self.round_trip_to_object(module.NestedConfig)
+        assert isinstance(nested, module.NestedConfig)
+        assert type(nested) is module.NestedConfig
+
+        assert nested.default_value == MISSING
+
+        assert isinstance(nested.user_provided_default, module.Nested)
+        assert type(nested.user_provided_default) is module.Nested
+        assert nested.user_provided_default.with_default == 42
+
+    def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
+        nested = self.round_trip_to_object(module.NestedWithAny)
+        assert isinstance(nested, module.NestedWithAny)
+        assert type(nested) is module.NestedWithAny
+
+        assert isinstance(nested.var, module.Nested)
+        assert type(nested.var) is module.Nested
+        assert nested.var.with_default == 10
+
+    def test_str2user_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+        cfg.bond = module.User(name="James Bond", age=7)
+        data = self.round_trip_to_object(cfg)
+
+        assert isinstance(data, module.DictSubclass.Str2User)
+        assert type(data) is module.DictSubclass.Str2User
+        assert type(data["bond"]) is module.User
+        assert data["bond"] == module.User("James Bond", 7)
+
+    def test_str2user_with_field_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+        cfg.mp = module.User(name="Moneypenny", age=11)
+        data = self.round_trip_to_object(cfg)
+
+        assert isinstance(data, module.DictSubclass.Str2UserWithField)
+        assert type(data) is module.DictSubclass.Str2UserWithField
+        assert type(data.foo) is module.User
+        assert data.foo == module.User("Bond", 7)
+        assert type(data["mp"]) is module.User
+        assert data["mp"] == module.User("Moneypenny", 11)
+
+    def test_str2str_with_field_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+        cfg.hello = "world"
+        data = self.round_trip_to_object(cfg)
+
+        assert isinstance(data, module.DictSubclass.Str2StrWithField)
+        assert type(data) is module.DictSubclass.Str2StrWithField
+        assert data.foo == "bar"
+        assert data["hello"] == "world"
