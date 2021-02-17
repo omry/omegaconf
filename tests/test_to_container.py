@@ -204,7 +204,6 @@ class TestEnumToStr:
     def test_enum_to_str_for_keys(
         self, src: DictConfig, enum_to_str: bool, expected: Any
     ) -> None:
-        """Test the enum_to_str argument to the OmegaConf.to_container method."""
         container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
         assert isinstance(container, dict)
         key = list(container.keys())[0]
@@ -243,7 +242,6 @@ class TestEnumToStr:
     def test_enum_to_str_for_values(
         self, src: DictConfig, enum_to_str: bool, expected: Any
     ) -> None:
-        """Test the enum_to_str argument to the OmegaConf.to_container method."""
         container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
         assert isinstance(container, dict)
         value = list(container.values())[0]
@@ -282,7 +280,6 @@ class TestEnumToStr:
     def test_enum_to_str_for_list(
         self, src: ListConfig, enum_to_str: bool, expected: Any
     ) -> None:
-        """Test the enum_to_str argument to the OmegaConf.to_container method."""
         container = OmegaConf.to_container(src, enum_to_str=enum_to_str)
         assert isinstance(container, list)
         value = container[0]
