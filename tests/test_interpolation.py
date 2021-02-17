@@ -729,7 +729,12 @@ def test_invalid_intermediate_result_when_not_throwing(
         assert False
 
     OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
-    cfg = OmegaConf.create({"x": "${fail_if_called:${%s}}" % ref, "missing": "???"})
+    cfg = OmegaConf.create(
+        {
+            "x": "${fail_if_called:${%s}}" % ref,
+            "missing": "???",
+        }
+    )
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert (
