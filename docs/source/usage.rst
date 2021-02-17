@@ -346,7 +346,7 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
     ...        "selected_plan": "A",
     ...        "plan": "${plans.${selected_plan}}",
     ...    }
-    ...)
+    ... )
     >>> cfg.plan # default plan
     'plan A'
     >>> cfg.selected_plan = "B"
