@@ -611,7 +611,7 @@ class OmegaConf:
     def to_object(
         cfg: Any,
         *,
-        resolve: bool = False,
+        resolve: bool = True,
         enum_to_str: bool = False,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """

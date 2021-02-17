@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
+from omegaconf.errors import InterpolationResolutionError
 from tests import Color, User
 
 
@@ -194,9 +195,9 @@ class TestInstantiateStructuredConfigs:
         module: Any = import_module(class_type)
         return module
 
-    def round_trip_to_object(self, input_data: Any) -> Any:
+    def round_trip_to_object(self, input_data: Any, **kwargs: Any) -> Any:
         serialized = OmegaConf.create(input_data)
-        round_tripped = OmegaConf.to_object(serialized)
+        round_tripped = OmegaConf.to_object(serialized, **kwargs)
         return round_tripped
 
     def test_basic(self, module: Any) -> None:
@@ -276,8 +277,28 @@ class TestInstantiateStructuredConfigs:
         assert type(nested.user_provided_default) is module.Nested
         assert nested.user_provided_default.with_default == 42
 
+    def test_to_object_resolve_is_True_by_default(self, module: Any) -> None:
+        interp = self.round_trip_to_object(module.Interpolation)
+        assert isinstance(interp, module.Interpolation)
+        assert type(interp) is module.Interpolation
+
+        assert interp.z1 == 100
+        assert interp.z2 == "100_200"
+
+    def test_to_object_resolve_False(self, module: Any) -> None:
+        interp = self.round_trip_to_object(module.Interpolation, resolve=False)
+        assert isinstance(interp, module.Interpolation)
+        assert type(interp) is module.Interpolation
+
+        assert interp.z1 == "${x}"
+        assert interp.z2 == "${x}_${y}"
+
+    def test_to_object_InterpolationResolutionError(self, module: Any) -> None:
+        with pytest.raises(InterpolationResolutionError):
+            self.round_trip_to_object(module.NestedWithAny)
+
     def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
-        nested = self.round_trip_to_object(module.NestedWithAny)
+        nested = self.round_trip_to_object(module.NestedWithAny, resolve=False)
         assert isinstance(nested, module.NestedWithAny)
         assert type(nested) is module.NestedWithAny
 
