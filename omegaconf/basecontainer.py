@@ -820,9 +820,9 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
 def _instantiate_structured_config_impl(
     retdict: Dict[str, Any], object_type: Type[Any]
 ) -> Any:
-    from ._utils import get_structured_config_data
+    from ._utils import get_structured_config_field_names
 
-    object_type_field_names = get_structured_config_data(object_type).keys()
+    object_type_field_names = get_structured_config_field_names(object_type)
     if issubclass(object_type, dict):
         # Extending dict as a subclass
 

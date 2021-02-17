@@ -193,6 +193,24 @@ def test_get_structured_config_data(test_cls_or_obj: Any, expectation: Any) -> N
 
 
 @mark.parametrize(
+    "test_cls_or_obj, expectation",
+    [
+        (_TestDataclass, does_not_raise()),
+        (_TestDataclass(), does_not_raise()),
+        (_TestAttrsClass, does_not_raise()),
+        (_TestAttrsClass(), does_not_raise()),
+        ("invalid", raises(ValueError)),
+    ],
+)
+def test_get_structured_config_field_names(
+    test_cls_or_obj: Any, expectation: Any
+) -> None:
+    with expectation:
+        field_names = _utils.get_structured_config_field_names(test_cls_or_obj)
+        assert field_names == ["x", "s", "b", "f", "e", "list1", "dict1"]
+
+
+@mark.parametrize(
     "test_cls",
     [
         _TestDataclassIllegalValue,

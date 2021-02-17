@@ -192,6 +192,12 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
         return type_
 
 
+def get_attr_class_field_names(obj: Any) -> List[str]:
+    is_type = isinstance(obj, type)
+    obj_type = obj if is_type else type(obj)
+    return [name for name in attr.fields_dict(obj_type).keys()]
+
+
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -226,6 +232,10 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         )
         d[name]._set_parent(None)
     return d
+
+
+def get_dataclass_field_names(obj: Any) -> List[str]:
+    return [field.name for field in dataclasses.fields(obj)]
 
 
 def get_dataclass_data(
@@ -315,6 +325,15 @@ def is_structured_config_frozen(obj: Any) -> bool:
     if is_attr_class(type_):
         return is_attr_frozen(type_)
     return False
+
+
+def get_structured_config_field_names(obj: Any) -> List[str]:
+    if is_dataclass(obj):
+        return get_dataclass_field_names(obj)
+    elif is_attr_class(obj):
+        return get_attr_class_field_names(obj)
+    else:
+        raise ValueError(f"Unsupported type: {type(obj).__name__}")
 
 
 def get_structured_config_data(
