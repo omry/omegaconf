@@ -60,16 +60,16 @@ class BaseContainer(Container, ABC):
                 return default_value
             raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 
-        resolved = self._maybe_resolve_interpolation(
+        resolved_node = self._maybe_resolve_interpolation(
             parent=self,
             key=key,
             value=value,
             throw_on_resolution_failure=not has_default,
         )
-        if resolved is None and has_default:
+        if resolved_node is None and has_default:
             return default_value
 
-        return _get_value(resolved)
+        return _get_value(resolved_node)
 
     def __str__(self) -> str:
         return self.__repr__()
