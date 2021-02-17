@@ -227,6 +227,8 @@ class BaseContainer(Container, ABC):
                     )
 
                 assert node is not None
+                if enum_to_str and isinstance(key, Enum):
+                    key = f"{key.name}"
                 if isinstance(node, Container):
                     retdict[key] = BaseContainer._to_content(
                         node,
