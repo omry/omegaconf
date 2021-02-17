@@ -585,7 +585,7 @@ class OmegaConf:
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
         :param resolve: True to resolve all values
-        :param enum_to_str: True to convert Enum values to strings
+        :param enum_to_str: True to convert Enum keys and values to strings
         :param exclude_structured_configs: If True, do not convert Structured Configs
                (DictConfigs backed by a dataclass)
         :return: A dict or a list representing this config as a primitive container.
