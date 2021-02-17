@@ -4,7 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -244,11 +244,9 @@ class BaseContainer(Container, ABC):
                 else:
                     retdict[key] = convert(node)
 
-            object_type = conf._metadata.object_type
-            if instantiate and is_structured_config(object_type):
-                assert object_type is not None
+            if instantiate and is_structured_config(conf._metadata.object_type):
                 retstruct = _instantiate_structured_config_impl(
-                    retdict=retdict, object_type=object_type
+                    conf=conf, instance_data=retdict
                 )
                 return retstruct
             else:
@@ -818,24 +816,27 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
 
 
 def _instantiate_structured_config_impl(
-    retdict: Dict[str, Any], object_type: Type[Any]
+    conf: "DictConfig", instance_data: Dict[str, Any]
 ) -> Any:
+    """Instantiate an instance of `conf._metadata.object_type`, populated by `instance_data`."""
     from ._utils import get_structured_config_field_names
+
+    object_type = conf._metadata.object_type
 
     object_type_field_names = get_structured_config_field_names(object_type)
     if issubclass(object_type, dict):
         # Extending dict as a subclass
 
         retdict_field_items = {
-            k: v for k, v in retdict.items() if k in object_type_field_names
+            k: v for k, v in instance_data.items() if k in object_type_field_names
         }
         retdict_nonfield_items = {
-            k: v for k, v in retdict.items() if k not in object_type_field_names
+            k: v for k, v in instance_data.items() if k not in object_type_field_names
         }
         result = object_type(**retdict_field_items)
         result.update(retdict_nonfield_items)
     else:
         # normal structured config
-        assert set(retdict.keys()) <= set(object_type_field_names)
-        result = object_type(**retdict)
+        assert set(instance_data.keys()) <= set(object_type_field_names)
+        result = object_type(**instance_data)
     return result
