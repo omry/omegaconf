@@ -302,6 +302,11 @@ Config node interpolation
 The interpolated variable can be the dot-path to another node in the configuration, and in that case
 the value will be the value of that node.
 
+Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
+The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
+e.g. **${..foo}** points to the **foo** sibling of the parent of the current node.
+
+
 Input YAML file:
 
 .. include:: config_interpolation.yaml
@@ -318,6 +323,8 @@ Example:
     80
     >>> type(conf.client.server_port).__name__
     'int'
+    >>> conf.client.description
+    'Client of http://localhost:80/'
 
     >>> # Composite interpolation types are always string
     >>> conf.client.url
@@ -330,13 +337,15 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
 
 .. doctest::
 
-
     >>> cfg = OmegaConf.create(
-    ...     {
-    ...         "plans": {"A": "plan A", "B": "plan B"},
-    ...         "selected_plan": "A",
-    ...         "plan": "${plans.${selected_plan}}",
-    ...     }
+    ...    {
+    ...        "plans": {
+    ...            "A": "plan A",
+    ...            "B": "plan B",
+    ...        },
+    ...        "selected_plan": "A",
+    ...        "plan": "${plans.${selected_plan}}",
+    ...    }
     ... )
     >>> cfg.plan # default plan
     'plan A'

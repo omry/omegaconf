@@ -5,3 +5,5 @@ server:
 client:
   url: http://${server.host}:${server.port}/
   server_port: ${server.port}
+  # relative interpolation
+  description: Client of ${.url}
