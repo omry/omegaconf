@@ -229,9 +229,13 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    try:
+                        node = node._dereference_node(
+                            throw_on_missing=False, throw_on_resolution_failure=True
+                        )
+                    except MissingMandatoryValue as e:
+                        assert node is not None
+                        conf._format_and_raise(key=key, value=node._value(), cause=e)
 
                 assert node is not None
                 if isinstance(node, Container):
@@ -251,9 +255,13 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(index, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    try:
+                        node = node._dereference_node(
+                            throw_on_missing=False, throw_on_resolution_failure=True
+                        )
+                    except MissingMandatoryValue as e:
+                        assert node is not None
+                        conf._format_and_raise(key=index, value=node._value(), cause=e)
                 assert node is not None
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(

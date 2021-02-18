@@ -1180,7 +1180,25 @@ params = [
             child_node=lambda cfg: cfg.subcfg._get_node("x"),
             parent_node=lambda cfg: cfg.subcfg,
         ),
-        id="to_container-throw_on_missing:interpolation",
+        id="to_container-throw_on_missing:dictconfig-interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"missing": "???", "subcfg": ["${missing}"]}
+            ),
+            op=lambda cfg: OmegaConf.to_container(
+                cfg.subcfg, resolve=True, throw_on_missing=True
+            ),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value",
+            key=0,
+            full_key="subcfg[0]",
+            child_node=lambda cfg: cfg.subcfg._get_node(0),
+            parent_node=lambda cfg: cfg.subcfg,
+            object_type=list,
+        ),
+        id="to_container-throw_on_missing:listconfig-interpolation",
     ),
 ]
 
