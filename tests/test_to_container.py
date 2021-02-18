@@ -1,11 +1,11 @@
 import re
 from enum import Enum
-from typing import Any
+from typing import Any, Callable, Union
 
 import pytest
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
-from tests import Color, User
+from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
+from tests import B, Color, User
 
 
 @pytest.mark.parametrize(
@@ -167,3 +167,83 @@ def test_string_interpolation_with_readonly_parent() -> None:
 def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     res = OmegaConf.to_container(src, resolve=False)
     assert res == expected
+
+
+PytestRaisesType = type(pytest.raises(Exception))
+
+
+@pytest.mark.parametrize(
+    "cfg, op, expected",
+    [
+        # to_container: throw_on_missing
+        pytest.param(
+            DictConfig(content="???"),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="dict,missing",
+        ),
+        pytest.param(
+            OmegaConf.create({"a": "???"}),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="dict,missing_value",
+        ),
+        pytest.param(
+            OmegaConf.create({"a": {"b": "???"}}),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="dict,nested",
+        ),
+        pytest.param(
+            ListConfig(content="???"),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="list,missing",
+        ),
+        pytest.param(
+            OmegaConf.create(["???"]),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="list,missing_elt",
+        ),
+        pytest.param(
+            OmegaConf.create(["abc", ["???"]]),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="list,nested",
+        ),
+        pytest.param(
+            OmegaConf.structured(B),
+            lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            MissingMandatoryValue,
+            id="structured",
+        ),
+        pytest.param(
+            OmegaConf.create({"missing": "???", "subcfg": {"x": "${missing}"}}),
+            lambda cfg: OmegaConf.to_container(
+                cfg.subcfg, resolve=True, throw_on_missing=True
+            ),
+            MissingMandatoryValue,
+            id="dictconfig-interpolation",
+        ),
+        pytest.param(
+            OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}),
+            lambda cfg: OmegaConf.to_container(
+                cfg.subcfg, resolve=True, throw_on_missing=True
+            ),
+            MissingMandatoryValue,
+            id="listconfig-interpolation",
+        ),
+    ],
+)
+def test_throw_on_missing(
+    cfg: Union[DictConfig, ListConfig],
+    op: Callable[[Any], Any],
+    expected: Any,
+) -> None:
+    """Tests for the OmegaConf.to_container throw_on_missing argument"""
+    if issubclass(expected, Exception):
+        with pytest.raises(expected):
+            op(cfg)
+    else:
+        assert op(cfg) == expected

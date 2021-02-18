@@ -30,7 +30,6 @@ from omegaconf.errors import (
 )
 from tests import (
     A,
-    B,
     Color,
     ConcretePlugin,
     IllegalType,
@@ -1085,120 +1084,6 @@ params = [
             child_node=lambda cfg: cfg._get_node(0),
         ),
         id="list,readonly:del",
-    ),
-    # to_container: throw_on_missing
-    pytest.param(
-        Expected(
-            create=lambda: DictConfig(content="???"),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-        ),
-        id="to_container-throw_on_missing:dict",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create({"a": "???"}),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key="a",
-            child_node=lambda cfg: cfg._get_node("a"),
-        ),
-        id="to_container-throw_on_missing:dict,missing_value",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create({"a": {"b": "???"}}),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key="b",
-            full_key="a.b",
-            child_node=lambda cfg: cfg.a._get_node("b"),
-            parent_node=lambda cfg: cfg.a,
-        ),
-        id="to_container-throw_on_missing:dict,nested",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: ListConfig(content="???"),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-        ),
-        id="to_container-throw_on_missing:list",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create(["???"]),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key=0,
-            full_key="[0]",
-            child_node=lambda cfg: cfg._get_node(0),
-        ),
-        id="to_container-throw_on_missing:list,missing_value",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create(["abc", ["???"]]),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key=0,
-            full_key="[1][0]",
-            child_node=lambda cfg: cfg[1]._get_node(0),
-            parent_node=lambda cfg: cfg[1],
-        ),
-        id="to_container-throw_on_missing:list,nested",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.structured(B),
-            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key="x",
-            child_node=lambda cfg: cfg._get_node("x"),
-        ),
-        id="to_container-throw_on_missing:structured",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create(
-                {"missing": "???", "subcfg": {"x": "${missing}"}}
-            ),
-            op=lambda cfg: OmegaConf.to_container(
-                cfg.subcfg, resolve=True, throw_on_missing=True
-            ),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key="x",
-            full_key="subcfg.x",
-            child_node=lambda cfg: cfg.subcfg._get_node("x"),
-            parent_node=lambda cfg: cfg.subcfg,
-        ),
-        id="to_container-throw_on_missing:dictconfig-interpolation",
-    ),
-    pytest.param(
-        Expected(
-            create=lambda: OmegaConf.create(
-                {"missing": "???", "subcfg": ["${missing}"]}
-            ),
-            op=lambda cfg: OmegaConf.to_container(
-                cfg.subcfg, resolve=True, throw_on_missing=True
-            ),
-            exception_type=MissingMandatoryValue,
-            msg="Missing mandatory value",
-            key=0,
-            full_key="subcfg[0]",
-            child_node=lambda cfg: cfg.subcfg._get_node(0),
-            parent_node=lambda cfg: cfg.subcfg,
-            object_type=list,
-        ),
-        id="to_container-throw_on_missing:listconfig-interpolation",
     ),
 ]
 
