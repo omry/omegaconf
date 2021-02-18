@@ -1,11 +1,11 @@
 import re
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Any, Union, Callable
 
 import pytest
 
-from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
-from tests import B, Color, User
+from omegaconf import DictConfig, ListConfig, OmegaConf, MissingMandatoryValue
+from tests import Color, User, B
 
 
 @pytest.mark.parametrize(
@@ -168,8 +168,6 @@ def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     res = OmegaConf.to_container(src, resolve=False)
     assert res == expected
 
-
-PytestRaisesType = type(pytest.raises(Exception))
 
 
 @pytest.mark.parametrize(
