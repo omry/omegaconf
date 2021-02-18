@@ -390,11 +390,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             if value is not None:
                 if isinstance(key, slice):
                     assert isinstance(value, list)
-                    indices = range(len(self))[key]
-                    for idx, v in zip(indices, value):
+                    for v in value:
                         if throw_on_missing_value and v._is_missing():
                             self._format_and_raise(
-                                key=idx,
+                                key=key,
                                 value=None,
                                 cause=MissingMandatoryValue("Missing mandatory value"),
                             )
