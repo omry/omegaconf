@@ -206,11 +206,8 @@ class TestThrowOnMissing:
         self, src: Any, expected_subcfg: Any
     ) -> None:
         """Test throw_on_missing when resolve==True"""
-
         cfg = OmegaConf.create(src)
-
         with pytest.raises(MissingMandatoryValue):
             OmegaConf.to_container(cfg.subcfg, resolve=True, throw_on_missing=True)
-
         res = OmegaConf.to_container(cfg.subcfg, resolve=True, throw_on_missing=False)
         assert res == expected_subcfg
