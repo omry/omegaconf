@@ -353,6 +353,9 @@ def get_value_kind(
 
     value = _get_value(value)
 
+    if not isinstance(value, str):
+        return ValueKind.VALUE
+
     if value == "???":
         return ValueKind.MANDATORY_MISSING
 

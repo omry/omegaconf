@@ -784,7 +784,7 @@ def _create_structured_with_missing_fields(
 def _is_missing_value(value: Any) -> bool:
     if isinstance(value, Container):
         value = value._value()
-    ret = value == "???"
+    ret = value == "???" if isinstance(value, str) else False
     assert isinstance(ret, bool)
     return ret
 
