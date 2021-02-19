@@ -200,7 +200,7 @@ class TestEnumToStr:
     ) -> None:
         cfg = OmegaConf.create(src)
         container: Dict[Any, Any] = OmegaConf.to_container(cfg, enum_to_str=enum_to_str)  # type: ignore
-        value = list(container.values())[0]
+        value = container["enum val"]
         assert value == expected
         assert type(value) == type(expected)
 
