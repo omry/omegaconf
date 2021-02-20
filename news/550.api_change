@@ -1,1 +1,0 @@
-OmegaConf.to_container(cfg, enum_to_str=True) now converts both keys and values to str. Previously only values were converted.
