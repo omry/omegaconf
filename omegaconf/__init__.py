@@ -1,4 +1,4 @@
-from .base import Container, DictKeyType, Node
+from .base import Container, DictKeyType, Node, SCMode
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
@@ -42,6 +42,7 @@ __all__ = [
     "DictKeyType",
     "OmegaConf",
     "Resolver",
+    "SCMode",
     "flag_override",
     "read_write",
     "open_dict",

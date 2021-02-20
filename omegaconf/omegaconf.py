@@ -47,7 +47,7 @@ from ._utils import (
     is_tuple_annotation,
     type_str,
 )
-from .base import Container, Node
+from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
@@ -579,7 +579,8 @@ class OmegaConf:
         *,
         resolve: bool = False,
         enum_to_str: bool = False,
-        exclude_structured_configs: bool = False,
+        structured_config_mode: SCMode = SCMode.DICT,
+        exclude_structured_configs: Optional[bool] = None,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
@@ -590,6 +591,19 @@ class OmegaConf:
                (DictConfigs backed by a dataclass)
         :return: A dict or a list representing this config as a primitive container.
         """
+        if exclude_structured_configs is not None:
+            warnings.warn(
+                dedent(
+                    """\
+                The exclude_structured_configs argument to to_container is deprecated.
+                See https://github.com/omry/omegaconf/issues/548 for migration instructions.
+                """
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if exclude_structured_configs is True:
+                structured_config_mode = SCMode.DICT_CONFIG
         if not OmegaConf.is_config(cfg):
             raise ValueError(
                 f"Input cfg is not an OmegaConf config object ({type_str(type(cfg))})"
@@ -599,7 +613,7 @@ class OmegaConf:
             cfg,
             resolve=resolve,
             enum_to_str=enum_to_str,
-            exclude_structured_configs=exclude_structured_configs,
+            structured_config_mode=structured_config_mode,
         )
 
     @staticmethod

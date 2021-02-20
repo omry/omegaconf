@@ -2,9 +2,9 @@ import re
 from enum import Enum
 from typing import Any, Dict, List
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
 from tests import Color, User
 
 
@@ -39,7 +39,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "cfg,ex_false,ex_true",
+    "src,ex_DICT,ex_DICT_CONFIG",
     [
         param(
             {"user": User(age=7, name="Bond")},
@@ -58,13 +58,38 @@ def test_to_container_returns_primitives(input_: Any) -> None:
         ),
     ],
 )
-def test_exclude_structured_configs(cfg: Any, ex_false: Any, ex_true: Any) -> None:
-    cfg = OmegaConf.create(cfg)
-    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=False)
-    assert ret1 == ex_false
+class TestSCMode:
+    @fixture
+    def cfg(self, src: Any) -> Any:
+        return OmegaConf.create(src)
 
-    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=True)
-    assert ret1 == ex_true
+    def test_exclude_structured_configs_default(
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
+    ) -> None:
+        ret = OmegaConf.to_container(cfg)
+        assert ret == ex_DICT
+
+    def test_SCMode_DICT(self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any) -> None:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
+        assert ret == ex_DICT
+        with warns(UserWarning):
+            ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
+        assert ret == ex_DICT
+
+    def test_SCMode_DICT_CONFIG(
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
+    ) -> None:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
+        assert ret == ex_DICT_CONFIG
+        with warns(UserWarning):
+            ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
+        assert ret == ex_DICT_CONFIG
+
+    def test_SCMode_INSTANTIATE(
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
+    ) -> None:
+        with raises(NotImplementedError):  # wip in #502
+            OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
 
 
 @mark.parametrize(
