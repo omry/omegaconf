@@ -184,9 +184,7 @@ class TestEnumToStr:
     ) -> None:
         cfg = OmegaConf.create(src)
         container: Dict[Any, Any] = OmegaConf.to_container(cfg, enum_to_str=enum_to_str)  # type: ignore
-        key = list(container.keys())[0]
-        assert key == expected
-        assert type(key) == type(expected)
+        assert container == {expected: "enum key"}
 
     @mark.parametrize(
         "src,enum_to_str,expected",
@@ -200,9 +198,7 @@ class TestEnumToStr:
     ) -> None:
         cfg = OmegaConf.create(src)
         container: Dict[Any, Any] = OmegaConf.to_container(cfg, enum_to_str=enum_to_str)  # type: ignore
-        value = container["enum val"]
-        assert value == expected
-        assert type(value) == type(expected)
+        assert container == {"enum val": expected}
 
     @mark.parametrize(
         "src,enum_to_str,expected",
@@ -216,6 +212,4 @@ class TestEnumToStr:
     ) -> None:
         cfg = OmegaConf.create(src)
         container: List[Any] = OmegaConf.to_container(cfg, enum_to_str=enum_to_str)  # type: ignore
-        value = container[0]
-        assert value == expected
-        assert type(value) == type(expected)
+        assert container == [expected]
