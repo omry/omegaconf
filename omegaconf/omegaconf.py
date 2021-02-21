@@ -578,6 +578,7 @@ class OmegaConf:
         cfg: Any,
         *,
         resolve: bool = False,
+        throw_on_missing: bool = False,
         enum_to_str: bool = False,
         exclude_structured_configs: bool = False,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
@@ -585,6 +586,8 @@ class OmegaConf:
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
         :param resolve: True to resolve all values
+        :param throw_on_missing: Whether an error should be thrown when "???"
+                values are encountered in the given config object.
         :param enum_to_str: True to convert Enum values to strings
         :param exclude_structured_configs: If True, do not convert Structured Configs
                (DictConfigs backed by a dataclass)
@@ -598,6 +601,7 @@ class OmegaConf:
         return BaseContainer._to_content(
             cfg,
             resolve=resolve,
+            throw_on_missing=throw_on_missing,
             enum_to_str=enum_to_str,
             exclude_structured_configs=exclude_structured_configs,
         )

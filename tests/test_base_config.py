@@ -571,5 +571,10 @@ def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
 )
 def test_get_node_throw_on_missing_value(cfg: Any, key: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
+    with pytest.raises(
+        MissingMandatoryValue, match="Missing mandatory value"
+    ) as excinfo:
         cfg._get_node(key, throw_on_missing_value=True)
+    ex: MissingMandatoryValue = excinfo.value
+    assert ex.key == key
+    assert ex.parent_node == cfg
