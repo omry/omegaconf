@@ -39,22 +39,21 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "src,ex_DICT,ex_DICT_CONFIG",
+    "src,ex_DICT,ex_DICT_CONFIG,SC_key",
     [
         param(
             {"user": User(age=7, name="Bond")},
             {"user": {"name": "Bond", "age": 7}},
-            {"user": User(age=7, name="Bond")},
+            {"user": OmegaConf.structured(User(age=7, name="Bond"))},
+            "user",
+            id="structured-inside-dict",
         ),
         param(
             [1, User(age=7, name="Bond")],
             [1, {"name": "Bond", "age": 7}],
-            [1, User(age=7, name="Bond")],
-        ),
-        param(
-            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
-            {"users": [{"age": 1, "name": "a"}, {"age": 2, "name": "b"}]},
-            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
+            [1, OmegaConf.structured(User(age=7, name="Bond"))],
+            1,
+            id="structured-inside-list",
         ),
     ],
 )
@@ -64,23 +63,30 @@ class TestSCMode:
         return OmegaConf.create(src)
 
     def test_exclude_structured_configs_default(
-        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any, SC_key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg)
         assert ret == ex_DICT
+        assert isinstance(ret[SC_key], dict)
 
-    def test_SCMode_DICT(self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any) -> None:
+    def test_SCMode_DICT(
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any, SC_key: Any
+    ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
         assert ret == ex_DICT
+        assert isinstance(ret[SC_key], dict)
+
         with warns(UserWarning):
             ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
         assert ret == ex_DICT
 
     def test_SCMode_DICT_CONFIG(
-        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
+        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any, SC_key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
         assert ret == ex_DICT_CONFIG
+        assert isinstance(ret[SC_key], DictConfig)
+
         with warns(UserWarning):
             ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
         assert ret == ex_DICT_CONFIG
