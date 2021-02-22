@@ -880,67 +880,81 @@ def _node_wrap(
     ref_type: Any = Any,
 ) -> Node:
     node: Node
-    is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
-    is_list = (
-        type(value) in (list, tuple)
-        or is_list_annotation(type_)
-        or is_tuple_annotation(type_)
-    )
-    if is_dict:
-        key_type, element_type = get_dict_key_value_types(type_)
-        node = DictConfig(
-            content=value,
-            key=key,
-            parent=parent,
-            ref_type=type_,
-            is_optional=is_optional,
-            key_type=key_type,
-            element_type=element_type,
+    try:
+        # breakpoint()
+        is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
+        is_list = (
+            type(value) in (list, tuple)
+            or is_list_annotation(type_)
+            or is_tuple_annotation(type_)
         )
-    elif is_list:
-        element_type = get_list_element_type(type_)
-        node = ListConfig(
-            content=value,
-            key=key,
-            parent=parent,
-            is_optional=is_optional,
-            element_type=element_type,
-            ref_type=ref_type,
-        )
-    elif is_structured_config(type_) or is_structured_config(value):
-        key_type, element_type = get_dict_key_value_types(value)
-        node = DictConfig(
-            ref_type=type_,
-            is_optional=is_optional,
-            content=value,
-            key=key,
-            parent=parent,
-            key_type=key_type,
-            element_type=element_type,
-        )
-    elif type_ == Any or type_ is None:
-        node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif issubclass(type_, Enum):
-        node = EnumNode(
-            enum_type=type_,
-            value=value,
-            key=key,
-            parent=parent,
-            is_optional=is_optional,
-        )
-    elif type_ == int:
-        node = IntegerNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == float:
-        node = FloatNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == bool:
-        node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == str:
-        node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    else:
-        if parent is not None and parent._get_flag("allow_objects") is True:
+        if is_dict:
+            key_type, element_type = get_dict_key_value_types(type_)
+            node = DictConfig(
+                content=value,
+                key=key,
+                parent=parent,
+                ref_type=type_,
+                is_optional=is_optional,
+                key_type=key_type,
+                element_type=element_type,
+            )
+        elif is_list:
+            element_type = get_list_element_type(type_)
+            node = ListConfig(
+                content=value,
+                key=key,
+                parent=parent,
+                is_optional=is_optional,
+                element_type=element_type,
+                ref_type=ref_type,
+            )
+        elif is_structured_config(type_) or is_structured_config(value):
+            key_type, element_type = get_dict_key_value_types(value)
+            node = DictConfig(
+                ref_type=type_,
+                is_optional=is_optional,
+                content=value,
+                key=key,
+                parent=parent,
+                key_type=key_type,
+                element_type=element_type,
+            )
+        elif type_ == Any or type_ is None:
             node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        elif issubclass(type_, Enum):
+            node = EnumNode(
+                enum_type=type_,
+                value=value,
+                key=key,
+                parent=parent,
+                is_optional=is_optional,
+            )
+        elif type_ == int:
+            node = IntegerNode(
+                value=value, key=key, parent=parent, is_optional=is_optional
+            )
+        elif type_ == float:
+            node = FloatNode(
+                value=value, key=key, parent=parent, is_optional=is_optional
+            )
+        elif type_ == bool:
+            node = BooleanNode(
+                value=value, key=key, parent=parent, is_optional=is_optional
+            )
+        elif type_ == str:
+            node = StringNode(
+                value=value, key=key, parent=parent, is_optional=is_optional
+            )
         else:
-            raise ValidationError(f"Unexpected object type : {type_str(type_)}")
+            if parent is not None and parent._get_flag("allow_objects") is True:
+                node = AnyNode(
+                    value=value, key=key, parent=parent, is_optional=is_optional
+                )
+            else:
+                raise ValidationError(f"Unexpected object type : {type_str(type_)}")
+    except ValidationError as e:
+        format_and_raise(node=parent, key=key, value=value, msg=str(e), cause=e)
     return node
 
 

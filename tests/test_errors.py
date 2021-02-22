@@ -292,6 +292,19 @@ params = [
         ),
         id="structured:setattr,invalid_type_assigned_to_field",
     ),
+    # structured typecheck
+    pytest.param(
+        Expected(
+            create=lambda: None,
+            op=lambda cfg: OmegaConf.structured(User(age="foo")),  # type: ignore
+            exception_type=ValidationError,
+            msg="Value 'foo' could not be converted to Integer",
+            object_type=dict,
+            key="age",
+            low_level=True,
+        ),
+        id="structured:creation-with-incorrect-key-type",
+    ),
     # setitem
     pytest.param(
         Expected(
@@ -477,8 +490,9 @@ params = [
             op=lambda cfg: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
-            object_type_str=None,
-            ref_type_str=None,
+            object_type=dict,
+            key="foo",
+            low_level=True,
         ),
         id="dict:create_none_optional_with_none",
     ),
@@ -487,10 +501,10 @@ params = [
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            object_type=None,
             msg="Non optional field cannot be assigned None",
-            object_type_str="NotOptionalInt",
-            ref_type_str=None,
+            object_type=dict,
+            key="foo",
+            low_level=True,
         ),
         id="dict:create:not_optional_int_field_with_none",
     ),
