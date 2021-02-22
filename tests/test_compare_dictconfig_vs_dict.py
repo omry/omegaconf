@@ -31,18 +31,11 @@ from tests import Enum1
 
 @fixture(
     params=[
-        "a",
-        "b",
+        "str",
         1,
-        2,
-        123.45,
-        67.89,
+        3.1415,
         True,
-        False,
         Enum1.FOO,
-        Enum1.BAR,
-        "FOO",
-        "BAR",
     ]
 )
 def key(request: Any) -> Any:
