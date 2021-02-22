@@ -15,6 +15,8 @@ from tests import Enum1, User
         ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
         ({"abc": "str key"}, "abc: str key\n"),
         ({123: "int key"}, "123: int key\n"),
+        ({123.45: "float key"}, "123.45: float key\n"),
+        ({True: "bool key", False: "another"}, "true: bool key\nfalse: another\n"),
     ],
 )
 def test_to_yaml(input_: Any, expected: str) -> None:

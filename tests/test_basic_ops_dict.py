@@ -73,39 +73,51 @@ def test_getattr_dict() -> None:
 
 
 @pytest.mark.parametrize(
-    "key",
-    ["a", 1],
+    "key,match",
+    [
+        pytest.param("a", "a", id="str"),
+        pytest.param(1, "1", id="int"),
+        pytest.param(123.45, "123.45", id="float"),
+        pytest.param(True, "True", id="bool-T"),
+        pytest.param(False, "False", id="bool-F"),
+        pytest.param(Enum1.FOO, "FOO", id="enum"),
+    ],
 )
 class TestDictKeyTypes:
-    def test_mandatory_value(self, key: DictKeyType) -> None:
+    def test_mandatory_value(self, key: DictKeyType, match: str) -> None:
         c = OmegaConf.create({key: "???"})
-        with pytest.raises(MissingMandatoryValue, match=str(key)):
+        with pytest.raises(MissingMandatoryValue, match=match):
             c[key]
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue, match=key):
+            with pytest.raises(MissingMandatoryValue, match=match):
                 getattr(c, key)
 
-    def test_nested_dict_mandatory_value(self, key: DictKeyType) -> None:
+    def test_nested_dict_mandatory_value_inner(
+        self, key: DictKeyType, match: str
+    ) -> None:
         c = OmegaConf.create({"b": {key: "???"}})
-        with pytest.raises(MissingMandatoryValue):
+        with pytest.raises(MissingMandatoryValue, match=match):
             c.b[key]
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue):
+            with pytest.raises(MissingMandatoryValue, match=match):
                 getattr(c.b, key)
 
+    def test_nested_dict_mandatory_value_outer(
+        self, key: DictKeyType, match: str
+    ) -> None:
         c = OmegaConf.create({key: {"b": "???"}})
-        with pytest.raises(MissingMandatoryValue):
+        with pytest.raises(MissingMandatoryValue, match=match):
             c[key].b
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue):
+            with pytest.raises(MissingMandatoryValue, match=match):
                 getattr(c, key).b
 
-    def test_subscript_get(self, key: DictKeyType) -> None:
+    def test_subscript_get(self, key: DictKeyType, match: str) -> None:
         c = OmegaConf.create({key: "b"})
         assert isinstance(c, DictConfig)
         assert "b" == c[key]
 
-    def test_subscript_set(self, key: DictKeyType) -> None:
+    def test_subscript_set(self, key: DictKeyType, match: str) -> None:
         c = OmegaConf.create()
         c[key] = "b"
         assert {key: "b"} == c
@@ -116,6 +128,9 @@ class TestDictKeyTypes:
     [
         ({"a": 10, "b": 11}, "a", {"b": 11}),
         ({1: "a", 2: "b"}, 1, {2: "b"}),
+        ({123.45: "a", 67.89: "b"}, 67.89, {123.45: "a"}),
+        ({True: "a", False: "b"}, False, {True: "a"}),
+        ({Enum1.FOO: "foo", Enum1.BAR: "bar"}, Enum1.FOO, {Enum1.BAR: "bar"}),
     ],
 )
 class TestDelitemKeyTypes:
@@ -124,8 +139,14 @@ class TestDelitemKeyTypes:
         assert c == src
         del c[key]
         assert c == expected
+
+    def test_dict_delitem_KeyError(
+        self, src: Any, key: DictKeyType, expected: Any
+    ) -> None:
+        c = OmegaConf.create(expected)
+        assert c == expected
         with pytest.raises(KeyError):
-            del c["not_found"]
+            del c[key]
 
     def test_dict_struct_delitem(
         self, src: Any, key: DictKeyType, expected: Any
@@ -282,6 +303,7 @@ def test_iterate_dict_with_interpolation() -> None:
 @pytest.mark.parametrize(
     "cfg, key, default_, expected",
     [
+        # string key
         pytest.param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
         pytest.param({"a": 1, "b": 2}, "not_found", None, None, id="none_default"),
         pytest.param(
@@ -311,6 +333,31 @@ def test_iterate_dict_with_interpolation() -> None:
             "default",
             "default",
             id="enum_key_with_default",
+        ),
+        # other key types
+        pytest.param(
+            {123.45: "a", 67.89: "b"},
+            67.89,
+            "__NO_DEFAULT__",
+            "b",
+            id="float_key_no_default",
+        ),
+        pytest.param(
+            {123.45: "a", 67.89: "b"},
+            "not found",
+            None,
+            None,
+            id="float_key_with_default",
+        ),
+        pytest.param(
+            {True: "a", False: "b"},
+            False,
+            "__NO_DEFAULT__",
+            "b",
+            id="bool_key_no_default",
+        ),
+        pytest.param(
+            {True: "a", False: "b"}, "not found", None, None, id="bool_key_with_default"
         ),
     ],
 )
@@ -364,12 +411,23 @@ def test_dict_structured_mode_pop() -> None:
 @pytest.mark.parametrize(
     "cfg, key, expectation",
     [
+        # key not found
         ({"a": 1, "b": 2}, "not_found", pytest.raises(KeyError)),
+        ({1: "a", 2: "b"}, 3, pytest.raises(KeyError)),
+        ({123.45: "a", 67.89: "b"}, 10.11, pytest.raises(KeyError)),
+        ({True: "a"}, False, pytest.raises(KeyError)),
+        ({Enum1.FOO: "bar"}, Enum1.BAR, pytest.raises(KeyError)),
         # Interpolations
         ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
+        ({1: "???", 2: "b"}, 1, pytest.raises(MissingMandatoryValue)),
+        ({123.45: "???", 67.89: "b"}, 123.45, pytest.raises(MissingMandatoryValue)),
+        ({True: "???", False: "b"}, True, pytest.raises(MissingMandatoryValue)),
+        (
+            {Enum1.FOO: "???", Enum1.BAR: "bar"},
+            Enum1.FOO,
+            pytest.raises(MissingMandatoryValue),
+        ),
         ({"a": "${b}", "b": "???"}, "a", pytest.raises(MissingMandatoryValue)),
-        # enum key
-        ({Enum1.FOO: "bar"}, Enum1.BAR, pytest.raises(KeyError)),
     ],
 )
 def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None:
@@ -382,6 +440,7 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
 @pytest.mark.parametrize(
     "conf,key,expected",
     [
+        # str key type
         ({"a": 1, "b": {}}, "a", True),
         ({"a": 1, "b": {}}, "b", True),
         ({"a": 1, "b": {}}, "c", False),
@@ -392,8 +451,10 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
         ({"a": "${unknown_resolver:bar}"}, "a", True),
         ({"a": None, "b": "${a}"}, "b", True),
         ({"a": "cat", "b": "${a}"}, "b", True),
+        # Enum key type
         ({Enum1.FOO: 1, "b": {}}, Enum1.FOO, True),
         ({Enum1.FOO: 1, "b": {}}, "aaa", False),
+        ({Enum1.FOO: 1, "b": {}}, "FOO", False),
         (
             DictConfig(content={Enum1.FOO: "foo"}, key_type=Enum1, element_type=str),
             Enum1.FOO,
@@ -404,10 +465,39 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
             "incompatible_key_type",
             False,
         ),
+        (
+            DictConfig(content={Enum1.FOO: "foo"}, key_type=Enum1, element_type=str),
+            "FOO",
+            True,
+        ),
+        (
+            DictConfig(content={Enum1.FOO: "foo"}, key_type=Enum1, element_type=str),
+            None,
+            False,
+        ),
+        # int key type
         ({1: "a", 2: {}}, 1, True),
         ({1: "a", 2: {}}, 2, True),
         ({1: "a", 2: {}}, 3, False),
         ({1: "a", 2: "???"}, 2, False),
+        ({1: "a", 2: "???"}, None, False),
+        ({1: "a", 2: "???"}, "1", False),
+        (DictConfig({1: "a", 2: "???"}, key_type=int), "1", False),
+        # float key type
+        ({1.1: "a", 2.2: {}}, 1.1, True),
+        ({1.1: "a", 2.2: {}}, "1.1", False),
+        (DictConfig({1.1: "a", 2.2: {}}, key_type=float), "1.1", False),
+        ({1.1: "a", 2.2: {}}, 2.2, True),
+        ({1.1: "a", 2.2: {}}, 3.3, False),
+        ({1.1: "a", 2.2: "???"}, 2.2, False),
+        ({1.1: "a", 2.2: "???"}, None, False),
+        # bool key type
+        ({True: "a", False: {}}, True, True),
+        ({True: "a", False: {}}, False, True),
+        ({True: "a", False: {}}, "no", False),
+        ({True: "a", False: {}}, 1, True),
+        ({True: "a", False: {}}, None, False),
+        ({True: "a", False: "???"}, False, False),
     ],
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:

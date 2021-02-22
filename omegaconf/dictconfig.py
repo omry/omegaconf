@@ -275,28 +275,26 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _s_validate_and_normalize_key(self, key_type: Any, key: Any) -> DictKeyType:
         if key_type is Any:
             for t in DictKeyType.__args__:  # type: ignore
-                try:
-                    return self._s_validate_and_normalize_key(key_type=t, key=key)
-                except KeyValidationError:
-                    pass
+                if isinstance(key, t):
+                    return key  # type: ignore
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
-        elif key_type == str:
-            if not isinstance(key, str):
+        elif key_type is bool and key in [0, 1]:
+            # Python treats True as 1 and False as 0 when used as dict keys
+            #   assert hash(0) == hash(False)
+            #   assert hash(1) == hash(True)
+            return bool(key)
+        elif key_type in (str, int, float, bool):  # primitive type
+            if not isinstance(key, key_type):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
                 )
 
-            return key
-        elif key_type == int:
-            if not isinstance(key, int):
-                raise KeyValidationError(
-                    f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
-                )
-
-            return key
+            return key  # type: ignore
         elif issubclass(key_type, Enum):
             try:
-                ret = EnumNode.validate_and_convert_to_enum(key_type, key)
+                ret = EnumNode.validate_and_convert_to_enum(
+                    key_type, key, allow_none=False
+                )
                 assert ret is not None
                 return ret
             except ValidationError:
@@ -377,6 +375,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self._format_and_raise(key=key, value=None, cause=e)
 
     def __delitem__(self, key: DictKeyType) -> None:
+        key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -402,7 +401,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 ),
             )
 
-        del self.__dict__["_content"][key]
+        try:
+            del self.__dict__["_content"][key]
+        except KeyError:
+            msg = "Key not found: '$KEY'"
+            self._format_and_raise(key=key, value=None, cause=ConfigKeyError(msg))
 
     def get(self, key: DictKeyType, default_value: Any = None) -> Any:
         """Return the value for `key` if `key` is in the dictionary, else

@@ -11,7 +11,7 @@ from omegaconf._utils import (
     get_value_kind,
     is_primitive_container,
 )
-from omegaconf.base import Container, Metadata, Node
+from omegaconf.base import Container, DictKeyType, Metadata, Node
 from omegaconf.errors import (
     ConfigKeyError,
     ReadonlyConfigError,
@@ -122,7 +122,7 @@ class ValueNode(Node):
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())
 
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
         parent = self._get_parent()
         if parent is None:
             if self._metadata.key is None:
@@ -366,9 +366,9 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
 
     @staticmethod
     def validate_and_convert_to_enum(
-        enum_type: Type[Enum], value: Any
+        enum_type: Type[Enum], value: Any, allow_none: bool = True
     ) -> Optional[Enum]:
-        if value is None:
+        if allow_none and value is None:
             return None
 
         if not isinstance(value, (str, int)) and not isinstance(value, enum_type):

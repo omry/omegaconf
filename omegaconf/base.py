@@ -19,7 +19,7 @@ from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 
-DictKeyType = Union[str, int, Enum]
+DictKeyType = Union[str, int, Enum, float, bool]
 
 _MARKER_ = object()
 
@@ -179,7 +179,7 @@ class Node(ABC):
         assert False
 
     @abstractmethod
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
         ...
 
     def _dereference_node(

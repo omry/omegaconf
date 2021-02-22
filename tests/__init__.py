@@ -181,7 +181,11 @@ class UntypedDict:
 
 @dataclass
 class SubscriptedDict:
-    dict: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
+    dict_str: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
+    dict_enum: Dict[Color, int] = field(default_factory=lambda: {Color.RED: 4})
+    dict_int: Dict[int, int] = field(default_factory=lambda: {123: 4})
+    dict_float: Dict[float, int] = field(default_factory=lambda: {123.45: 4})
+    dict_bool: Dict[bool, int] = field(default_factory=lambda: {True: 4, False: 5})
 
 
 @dataclass

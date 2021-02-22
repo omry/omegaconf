@@ -639,42 +639,47 @@ class TestConfigs:
             Color.BLUE,
         ]
 
-    def test_dict_examples(self, class_type: str) -> None:
+    def test_dict_examples_any(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictExamples)
 
-        def test_any(name: str) -> None:
-            conf[name].c = True
-            conf[name].d = Color.RED
-            conf[name].e = 3.1415
-            assert conf[name] == {
-                "a": 1,
-                "b": "foo",
-                "c": True,
-                "d": Color.RED,
-                "e": 3.1415,
-            }
+        dct = conf.any
+        dct.c = True
+        dct.d = Color.RED
+        dct.e = 3.1415
+        assert dct == {"a": 1, "b": "foo", "c": True, "d": Color.RED, "e": 3.1415}
 
-        # any and untyped
-        test_any("any")
+    def test_dict_examples_int(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        conf = OmegaConf.structured(module.DictExamples)
+        dct = conf.ints
 
         # test ints
         with pytest.raises(ValidationError):
-            conf.ints.a = "foo"
-        conf.ints.c = 10
-        assert conf.ints == {"a": 10, "b": 20, "c": 10}
+            dct.a = "foo"
+        dct.c = 10
+        assert dct == {"a": 10, "b": 20, "c": 10}
+
+    def test_dict_examples_strings(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        conf = OmegaConf.structured(module.DictExamples)
 
         # test strings
         conf.strings.c = Color.BLUE
         assert conf.strings == {"a": "foo", "b": "bar", "c": "Color.BLUE"}
 
-        # tests booleans
+    def test_dict_examples_bool(self, class_type: str) -> None:
+        module: Any = import_module(class_type)
+        conf = OmegaConf.structured(module.DictExamples)
+        dct = conf.booleans
+
+        # test bool
         with pytest.raises(ValidationError):
-            conf.booleans.a = "foo"
-        conf.booleans.c = True
-        conf.booleans.d = "off"
-        conf.booleans.e = 1
-        assert conf.booleans == {
+            dct.a = "foo"
+        dct.c = True
+        dct.d = "off"
+        dct.e = 1
+        assert dct == {
             "a": True,
             "b": False,
             "c": True,
@@ -682,60 +687,110 @@ class TestConfigs:
             "e": True,
         }
 
-        # test colors
-        with pytest.raises(ValidationError):
-            conf.colors.foo = "foo"
-        conf.colors.c = Color.BLUE
-        conf.colors.d = "RED"
-        conf.colors.e = "Color.GREEN"
-        conf.colors.f = 3
-        assert conf.colors == {
-            "red": Color.RED,
-            "green": Color.GREEN,
-            "blue": Color.BLUE,
-            "c": Color.BLUE,
-            "d": Color.RED,
-            "e": Color.GREEN,
-            "f": Color.BLUE,
-        }
+    class TestDictExamples:
+        @pytest.fixture
+        def conf(self, class_type: str) -> DictConfig:
+            module: Any = import_module(class_type)
+            conf: DictConfig = OmegaConf.structured(module.DictExamples)
+            return conf
 
-        # test int_keys
-        with pytest.raises(KeyValidationError):
-            conf.int_keys.foo_key = "foo_value"
-        conf.int_keys[3] = "three"
-        assert conf.int_keys == {
-            1: "one",
-            2: "two",
-            3: "three",
-        }
+        def test_dict_examples_colors(self, conf: DictConfig) -> None:
+            dct = conf.colors
 
-    def test_enum_key(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-        conf = OmegaConf.structured(module.DictWithEnumKeys)
+            # test colors
+            with pytest.raises(ValidationError):
+                dct.foo = "foo"
+            dct.c = Color.BLUE
+            dct.d = "RED"
+            dct.e = "Color.GREEN"
+            dct.f = 3
+            assert dct == {
+                "red": Color.RED,
+                "green": Color.GREEN,
+                "blue": Color.BLUE,
+                "c": Color.BLUE,
+                "d": Color.RED,
+                "e": Color.GREEN,
+                "f": Color.BLUE,
+            }
 
-        # When an Enum is a dictionary key the name of the Enum is actually used
-        # as the key
-        assert conf.enum_key.RED == "red"
-        assert conf.enum_key["GREEN"] == "green"
-        assert conf.enum_key[Color.GREEN] == "green"
+        def test_dict_examples_str_keys(self, conf: DictConfig) -> None:
+            dct = conf.any
 
-        conf.enum_key["BLUE"] = "Blue too"
-        assert conf.enum_key[Color.BLUE] == "Blue too"
-        with pytest.raises(KeyValidationError):
-            conf.enum_key["error"] = "error"
+            with pytest.raises(KeyValidationError):
+                dct[123] = "bad key type"
+            dct["c"] = "three"
+            assert dct == {
+                "a": 1,
+                "b": "foo",
+                "c": "three",
+            }
+
+        def test_dict_examples_int_keys(self, conf: DictConfig) -> None:
+            dct = conf.int_keys
+
+            # test int keys
+            with pytest.raises(KeyValidationError):
+                dct.foo_key = "foo_value"
+            dct[3] = "three"
+            assert dct == {
+                1: "one",
+                2: "two",
+                3: "three",
+            }
+
+        def test_dict_examples_float_keys(self, conf: DictConfig) -> None:
+            dct = conf.float_keys
+
+            # test float keys
+            with pytest.raises(KeyValidationError):
+                dct.foo_key = "foo_value"
+            dct[3.3] = "three"
+            assert dct == {
+                1.1: "one",
+                2.2: "two",
+                3.3: "three",
+            }
+
+        def test_dict_examples_bool_keys(self, conf: DictConfig) -> None:
+            dct = conf.bool_keys
+
+            # test bool_keys
+            with pytest.raises(KeyValidationError):
+                dct.foo_key = "foo_value"
+            dct[True] = "new value"
+            assert dct == {
+                True: "new value",
+                False: "F",
+            }
+
+        def test_dict_examples_enum_key(self, conf: DictConfig) -> None:
+            dct = conf.enum_key
+
+            # When an Enum is a dictionary key the name of the Enum is actually used
+            # as the key
+            assert dct.RED == "red"
+            assert dct["GREEN"] == "green"
+            assert dct[Color.GREEN] == "green"
+
+            dct["BLUE"] = "Blue too"
+            assert dct[Color.BLUE] == "Blue too"
+            with pytest.raises(KeyValidationError):
+                dct["error"] = "error"
 
     def test_dict_of_objects(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.DictOfObjects)
-        assert conf.users.joe.age == 18
-        assert conf.users.joe.name == "Joe"
+        dct = conf.users
+        assert dct.joe.age == 18
+        assert dct.joe.name == "Joe"
 
-        conf.users.bond = module.User(name="James Bond", age=7)
-        assert conf.users.bond.name == "James Bond"
-        assert conf.users.bond.age == 7
+        dct.bond = module.User(name="James Bond", age=7)
+        assert dct.bond.name == "James Bond"
+        assert dct.bond.age == 7
 
         with pytest.raises(ValidationError):
-            conf.users.fail = "fail"
+            dct.fail = "fail"
 
     def test_list_of_objects(self, class_type: str) -> None:
         module: Any = import_module(class_type)

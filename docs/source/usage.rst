@@ -51,7 +51,23 @@ From a dictionary
       3: c
     <BLANKLINE>
 
-OmegaConf supports `str`, `int` and Enums as dictionary key types.
+Here is an example of various supported key types:
+
+.. doctest::
+
+    >>> from enum import Enum
+    >>> class Color(Enum):
+    ...   RED = 1
+    ...   BLUE = 2
+    >>> 
+    >>> conf = OmegaConf.create(
+    ...   {"key": "str", 123: "int", True: "bool", 3.14: "float", Color.RED: "Color"}
+    ... )
+    >>> 
+    >>> print(conf)
+    {'key': 'str', 123: 'int', True: 'bool', 3.14: 'float', <Color.RED: 1>: 'Color'}
+
+OmegaConf supports `str`, `int`, `bool`, `float` and Enums as dictionary key types.
 
 From a list
 ^^^^^^^^^^^

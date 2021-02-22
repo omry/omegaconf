@@ -403,10 +403,10 @@ class DictExamples:
         }
     )
     int_keys: Dict[int, str] = field(default_factory=lambda: {1: "one", 2: "two"})
-
-
-@dataclass
-class DictWithEnumKeys:
+    float_keys: Dict[float, str] = field(
+        default_factory=lambda: {1.1: "one", 2.2: "two"}
+    )
+    bool_keys: Dict[bool, str] = field(default_factory=lambda: {True: "T", False: "F"})
     enum_key: Dict[Color, str] = field(
         default_factory=lambda: {Color.RED: "red", Color.GREEN: "green"}
     )
@@ -431,6 +431,14 @@ class DictSubclass:
 
     @dataclass
     class Int2Str(Dict[int, str]):
+        pass
+
+    @dataclass
+    class Float2Str(Dict[float, str]):
+        pass
+
+    @dataclass
+    class Bool2Str(Dict[bool, str]):
         pass
 
     @dataclass
