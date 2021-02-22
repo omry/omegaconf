@@ -20,7 +20,7 @@ We have separate test classes for the following cases:
 """
 from copy import deepcopy
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from pytest import fixture, mark, param, raises
 
@@ -49,9 +49,9 @@ def python_dict(data: Dict[Any, Any]) -> Dict[Any, Any]:
     return deepcopy(data)
 
 
-@fixture(params=[True, False])
-def struct_mode(request: Any) -> bool:
-    struct_mode: bool = request.param
+@fixture(params=[True, False, None])
+def struct_mode(request: Any) -> Optional[bool]:
+    struct_mode: Optional[bool] = request.param
     return struct_mode
 
 
@@ -69,15 +69,14 @@ class TestUntypedDictConfig:
     """Compare DictConfig with python dict in the case where key_type is not set."""
 
     @fixture
-    def cfg(self, python_dict: Any, struct_mode: bool) -> DictConfig:
+    def cfg(self, python_dict: Any, struct_mode: Optional[bool]) -> DictConfig:
         """Create a DictConfig instance from the given data"""
         cfg: DictConfig = DictConfig(content=python_dict)
-        if struct_mode:
-            OmegaConf.set_struct(cfg, True)
+        OmegaConf.set_struct(cfg, struct_mode)
         return cfg
 
     def test__setitem__(
-        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: bool
+        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: Optional[bool]
     ) -> None:
         """Ensure that __setitem__ has same effect on python dict and on DictConfig."""
         if struct_mode and key not in cfg:
@@ -99,7 +98,7 @@ class TestUntypedDictConfig:
             assert result == cfg[key]
 
     def test__delitem__(
-        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: bool
+        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: Optional[bool]
     ) -> None:
         """Ensure that __delitem__ has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -114,7 +113,7 @@ class TestUntypedDictConfig:
                 assert key not in cfg
 
     def test__delitem__struct_mode(
-        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: bool
+        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: Optional[bool]
     ) -> None:
         """Ensure that __delitem__ fails in struct_mode"""
         if struct_mode:
@@ -143,7 +142,7 @@ class TestUntypedDictConfig:
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -161,7 +160,7 @@ class TestUntypedDictConfig:
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         if struct_mode:
             """Ensure that pop fails in struct mode."""
@@ -173,7 +172,7 @@ class TestUntypedDictConfig:
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -185,7 +184,7 @@ class TestUntypedDictConfig:
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) fails in struct mode."""
         if struct_mode:
@@ -203,11 +202,12 @@ class TestUntypedDictConfig:
 
 
 @fixture
-def cfg_typed(python_dict: Any, cfg_key_type: Any, struct_mode: bool) -> DictConfig:
+def cfg_typed(
+    python_dict: Any, cfg_key_type: Any, struct_mode: Optional[bool]
+) -> DictConfig:
     """Create a DictConfig instance that has strongly-typed keys"""
     cfg_typed: DictConfig = DictConfig(content=python_dict, key_type=cfg_key_type)
-    if struct_mode:
-        OmegaConf.set_struct(cfg_typed, True)
+    OmegaConf.set_struct(cfg_typed, struct_mode)
     return cfg_typed
 
 
@@ -224,7 +224,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """When DictConfig keys are strongly typed,
         ensure that __setitem__ has same effect on python dict and on DictConfig."""
@@ -277,7 +277,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """When Dictconfig keys are strongly typed,
         ensure that __delitem__ has same result with python dict as with DictConfig."""
@@ -304,7 +304,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure ensure that struct-mode __delitem__ raises ConfigTypeError or KeyValidationError"""
         if struct_mode:
@@ -362,7 +362,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -387,7 +387,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop fails in struct mode."""
         if struct_mode:
@@ -400,7 +400,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -419,7 +419,7 @@ class TestPrimitiveTypeDunderMethods:
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) fails in struct mode"""
         if struct_mode:
@@ -462,7 +462,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """When DictConfig keys are strongly typed,
         ensure that __setitem__ has same effect on python dict and on DictConfig."""
@@ -511,7 +511,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """When Dictconfig keys are strongly typed,
         ensure that __delitem__ has same result with python dict as with DictConfig."""
@@ -537,7 +537,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that __delitem__ errors in struct mode"""
         if struct_mode:
@@ -596,7 +596,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -620,7 +620,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop fails in struct mode"""
         if struct_mode:
@@ -634,7 +634,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
         if not struct_mode:
@@ -654,7 +654,7 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: bool,
+        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) errors in struct mode"""
         if struct_mode:
