@@ -2,7 +2,11 @@ import re
 from enum import Enum
 from typing import Any, Dict, List
 
+<<<<<<< HEAD
 from pytest import mark, param, raises, warns
+=======
+from pytest import deprecated_call, fixture, mark, param, raises
+>>>>>>> 0aae702 (fix pytest imports)
 
 from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
 from tests import Color, User
