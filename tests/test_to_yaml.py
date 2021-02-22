@@ -126,6 +126,14 @@ def test_to_yaml_with_enum() -> None:
     )
 
 
+def test_to_yaml_with_enum_key() -> None:
+    cfg = OmegaConf.create({Enum1.FOO: "enum key"})
+    expected = """FOO: enum key
+"""
+    s = OmegaConf.to_yaml(cfg)
+    assert s == expected
+
+
 def test_pretty_deprecated() -> None:
     c = OmegaConf.create({"foo": "bar"})
     with pytest.warns(
