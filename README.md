@@ -13,7 +13,7 @@ providing a consistent API regardless of how the configuration was created.
 ### Stable (2.0)
 OmegaConf 2.0 stable version.
 
-* [What's new](https://github.com/omry/omegaconf/releases/tag/2.0.0)
+* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.0.0)
 * [Documentation](https://omegaconf.readthedocs.io/en/2.0_branch/)
 * [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
 * [Source code](https://github.com/omry/omegaconf/tree/2.0_branch)
