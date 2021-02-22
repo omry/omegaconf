@@ -97,28 +97,26 @@ class TestUntypedDictConfig:
         else:
             assert result == cfg[key]
 
-    def test__delitem__(
-        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: Optional[bool]
-    ) -> None:
+    @mark.parametrize("struct_mode", [False, None])
+    def test__delitem__(self, python_dict: Any, cfg: DictConfig, key: Any) -> None:
         """Ensure that __delitem__ has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            try:
-                del python_dict[key]
-                assert key not in python_dict
-            except KeyError:
-                with raises(ConfigKeyError):
-                    del cfg[key]
-            else:
+        try:
+            del python_dict[key]
+            assert key not in python_dict
+        except KeyError:
+            with raises(ConfigKeyError):
                 del cfg[key]
-                assert key not in cfg
+        else:
+            del cfg[key]
+            assert key not in cfg
 
+    @mark.parametrize("struct_mode", [True])
     def test__delitem__struct_mode(
-        self, python_dict: Any, cfg: DictConfig, key: Any, struct_mode: Optional[bool]
+        self, python_dict: Any, cfg: DictConfig, key: Any
     ) -> None:
         """Ensure that __delitem__ fails in struct_mode"""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                del cfg[key]
+        with raises(ConfigTypeError):
+            del cfg[key]
 
     def test__contains__(self, python_dict: Any, cfg: Any, key: Any) -> None:
         """Ensure that __contains__ has same result with python dict as with DictConfig."""
@@ -137,59 +135,55 @@ class TestUntypedDictConfig:
         """Ensure that __getitem__ has same result with python dict as with DictConfig."""
         assert python_dict.get(key, "DEFAULT") == cfg.get(key, "DEFAULT")
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop(
         self,
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            try:
-                result = python_dict.pop(key)
-            except KeyError:
-                with raises(ConfigKeyError):
-                    cfg.pop(key)
-            else:
-                assert result == cfg.pop(key)
-            assert python_dict.keys() == cfg.keys()
+        try:
+            result = python_dict.pop(key)
+        except KeyError:
+            with raises(ConfigKeyError):
+                cfg.pop(key)
+        else:
+            assert result == cfg.pop(key)
+        assert python_dict.keys() == cfg.keys()
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_struct_mode(
         self,
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: Optional[bool],
     ) -> None:
-        if struct_mode:
-            """Ensure that pop fails in struct mode."""
-            with raises(ConfigTypeError):
-                cfg.pop(key)
+        """Ensure that pop fails in struct mode."""
+        with raises(ConfigTypeError):
+            cfg.pop(key)
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop_with_default(
         self,
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            assert python_dict.pop(key, "DEFAULT") == cfg.pop(key, "DEFAULT")
-            assert python_dict.keys() == cfg.keys()
+        assert python_dict.pop(key, "DEFAULT") == cfg.pop(key, "DEFAULT")
+        assert python_dict.keys() == cfg.keys()
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_with_default_struct_mode(
         self,
         python_dict: Any,
         cfg: DictConfig,
         key: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) fails in struct mode."""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                cfg.pop(key, "DEFAULT")
+        with raises(ConfigTypeError):
+            cfg.pop(key, "DEFAULT")
 
     def test_keys(self, python_dict: Any, cfg: Any) -> None:
         assert python_dict.keys() == cfg.keys()
@@ -271,51 +265,47 @@ class TestPrimitiveTypeDunderMethods:
         else:
             assert result == cfg_typed[key]
 
+    @mark.parametrize("struct_mode", [False, None])
     def test__delitem__primitive_typed(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """When Dictconfig keys are strongly typed,
         ensure that __delitem__ has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            try:
-                del python_dict[key]
-                assert key not in python_dict
-            except KeyError:
-                if isinstance(key, cfg_key_type) or (
-                    cfg_key_type == bool and key in (0, 1)
-                ):
-                    with raises(ConfigKeyError):
-                        del cfg_typed[key]
-                else:
-                    with raises(KeyValidationError):
-                        del cfg_typed[key]
+        try:
+            del python_dict[key]
+            assert key not in python_dict
+        except KeyError:
+            if isinstance(key, cfg_key_type) or (
+                cfg_key_type == bool and key in (0, 1)
+            ):
+                with raises(ConfigKeyError):
+                    del cfg_typed[key]
             else:
-                del cfg_typed[key]
-                assert key not in cfg_typed
+                with raises(KeyValidationError):
+                    del cfg_typed[key]
+        else:
+            del cfg_typed[key]
+            assert key not in cfg_typed
 
+    @mark.parametrize("struct_mode", [True])
     def test__delitem__primitive_typed_struct_mode(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure ensure that struct-mode __delitem__ raises ConfigTypeError or KeyValidationError"""
-        if struct_mode:
-            if isinstance(key, cfg_key_type) or (
-                cfg_key_type == bool and key in (0, 1)
-            ):
-                with raises(ConfigTypeError):
-                    del cfg_typed[key]
-            else:
-                with raises(KeyValidationError):
-                    del cfg_typed[key]
+        if isinstance(key, cfg_key_type) or (cfg_key_type == bool and key in (0, 1)):
+            with raises(ConfigTypeError):
+                del cfg_typed[key]
+        else:
+            with raises(KeyValidationError):
+                del cfg_typed[key]
 
     def test__contains__primitive_typed(
         self, python_dict: Any, cfg_typed: Any, key: Any
@@ -356,75 +346,67 @@ class TestPrimitiveTypeDunderMethods:
             with raises(KeyValidationError):
                 cfg_typed.get(key, "DEFAULT")
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop_primitive_typed(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            if isinstance(key, cfg_key_type) or (
-                cfg_key_type == bool and key in (0, 1)
-            ):
-                try:
-                    result = python_dict.pop(key)
-                except KeyError:
-                    with raises(ConfigKeyError):
-                        cfg_typed.pop(key)
-                else:
-                    assert result == cfg_typed.pop(key)
-                assert python_dict.keys() == cfg_typed.keys()
-            else:
-                with raises(KeyValidationError):
+        if isinstance(key, cfg_key_type) or (cfg_key_type == bool and key in (0, 1)):
+            try:
+                result = python_dict.pop(key)
+            except KeyError:
+                with raises(ConfigKeyError):
                     cfg_typed.pop(key)
+            else:
+                assert result == cfg_typed.pop(key)
+            assert python_dict.keys() == cfg_typed.keys()
+        else:
+            with raises(KeyValidationError):
+                cfg_typed.pop(key)
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_primitive_typed_struct_mode(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop fails in struct mode."""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                cfg_typed.pop(key)
+        with raises(ConfigTypeError):
+            cfg_typed.pop(key)
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop_with_default_primitive_typed(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            if isinstance(key, cfg_key_type) or (
-                cfg_key_type == bool and key in (0, 1)
-            ):
-                assert python_dict.pop(key, "DEFAULT") == cfg_typed.pop(key, "DEFAULT")
-                assert python_dict.keys() == cfg_typed.keys()
-            else:
-                with raises(KeyValidationError):
-                    cfg_typed.pop(key, "DEFAULT")
+        if isinstance(key, cfg_key_type) or (cfg_key_type == bool and key in (0, 1)):
+            assert python_dict.pop(key, "DEFAULT") == cfg_typed.pop(key, "DEFAULT")
+            assert python_dict.keys() == cfg_typed.keys()
+        else:
+            with raises(KeyValidationError):
+                cfg_typed.pop(key, "DEFAULT")
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_with_default_primitive_typed_struct_mode(
         self,
         python_dict: Any,
         cfg_typed: DictConfig,
         key: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) fails in struct mode"""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                cfg_typed.pop(key)
+        with raises(ConfigTypeError):
+            cfg_typed.pop(key)
 
     def test_keys_primitive_typed(self, python_dict: Any, cfg_typed: Any) -> None:
         assert python_dict.keys() == cfg_typed.keys()
@@ -504,6 +486,7 @@ class TestEnumTypeDunderMethods:
         else:
             assert result == cfg_typed[key]
 
+    @mark.parametrize("struct_mode", [False, None])
     def test__delitem__enum_typed(
         self,
         python_dict: Any,
@@ -511,25 +494,24 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """When Dictconfig keys are strongly typed,
         ensure that __delitem__ has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            try:
-                del python_dict[key_coerced]
-                assert key_coerced not in python_dict
-            except KeyError:
-                if isinstance(key_coerced, cfg_key_type):
-                    with raises(ConfigKeyError):
-                        del cfg_typed[key]
-                else:
-                    with raises(KeyValidationError):
-                        del cfg_typed[key]
+        try:
+            del python_dict[key_coerced]
+            assert key_coerced not in python_dict
+        except KeyError:
+            if isinstance(key_coerced, cfg_key_type):
+                with raises(ConfigKeyError):
+                    del cfg_typed[key]
             else:
-                del cfg_typed[key]
-                assert key not in cfg_typed
+                with raises(KeyValidationError):
+                    del cfg_typed[key]
+        else:
+            del cfg_typed[key]
+            assert key not in cfg_typed
 
+    @mark.parametrize("struct_mode", [True])
     def test__delitem__enum_typed_struct_mode(
         self,
         python_dict: Any,
@@ -537,16 +519,14 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that __delitem__ errors in struct mode"""
-        if struct_mode:
-            if isinstance(key_coerced, cfg_key_type):
-                with raises(ConfigTypeError):
-                    del cfg_typed[key]
-            else:
-                with raises(KeyValidationError):
-                    del cfg_typed[key]
+        if isinstance(key_coerced, cfg_key_type):
+            with raises(ConfigTypeError):
+                del cfg_typed[key]
+        else:
+            with raises(KeyValidationError):
+                del cfg_typed[key]
 
     def test__contains__enum_typed(
         self, python_dict: Any, cfg_typed: Any, key: Any, key_coerced: Any
@@ -589,6 +569,7 @@ class TestEnumTypeDunderMethods:
             with raises(KeyValidationError):
                 cfg_typed.get(key, "DEFAULT")
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop_enum_typed(
         self,
         python_dict: Any,
@@ -596,23 +577,22 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            if isinstance(key_coerced, cfg_key_type):
-                try:
-                    result = python_dict.pop(key_coerced)
-                except KeyError:
-                    with raises(ConfigKeyError):
-                        cfg_typed.pop(key)
-                else:
-                    assert result == cfg_typed.pop(key)
-                assert python_dict.keys() == cfg_typed.keys()
-            else:
-                with raises(KeyValidationError):
+        if isinstance(key_coerced, cfg_key_type):
+            try:
+                result = python_dict.pop(key_coerced)
+            except KeyError:
+                with raises(ConfigKeyError):
                     cfg_typed.pop(key)
+            else:
+                assert result == cfg_typed.pop(key)
+            assert python_dict.keys() == cfg_typed.keys()
+        else:
+            with raises(KeyValidationError):
+                cfg_typed.pop(key)
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_enum_typed_struct_mode(
         self,
         python_dict: Any,
@@ -620,13 +600,12 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop fails in struct mode"""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                cfg_typed.pop(key)
+        with raises(ConfigTypeError):
+            cfg_typed.pop(key)
 
+    @mark.parametrize("struct_mode", [False, None])
     def test_pop_with_default_enum_typed(
         self,
         python_dict: Any,
@@ -634,19 +613,18 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) has same result with python dict as with DictConfig."""
-        if not struct_mode:
-            if isinstance(key_coerced, cfg_key_type):
-                assert python_dict.pop(key_coerced, "DEFAULT") == cfg_typed.pop(
-                    key, "DEFAULT"
-                )
-                assert python_dict.keys() == cfg_typed.keys()
-            else:
-                with raises(KeyValidationError):
-                    cfg_typed.pop(key, "DEFAULT")
+        if isinstance(key_coerced, cfg_key_type):
+            assert python_dict.pop(key_coerced, "DEFAULT") == cfg_typed.pop(
+                key, "DEFAULT"
+            )
+            assert python_dict.keys() == cfg_typed.keys()
+        else:
+            with raises(KeyValidationError):
+                cfg_typed.pop(key, "DEFAULT")
 
+    @mark.parametrize("struct_mode", [True])
     def test_pop_with_default_enum_typed_struct_mode(
         self,
         python_dict: Any,
@@ -654,12 +632,10 @@ class TestEnumTypeDunderMethods:
         key: Any,
         key_coerced: Any,
         cfg_key_type: Any,
-        struct_mode: Optional[bool],
     ) -> None:
         """Ensure that pop(..., DEFAULT) errors in struct mode"""
-        if struct_mode:
-            with raises(ConfigTypeError):
-                cfg_typed.pop(key)
+        with raises(ConfigTypeError):
+            cfg_typed.pop(key)
 
     def test_keys_enum_typed(self, python_dict: Any, cfg_typed: Any) -> None:
         assert python_dict.keys() == cfg_typed.keys()
