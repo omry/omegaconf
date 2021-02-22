@@ -197,9 +197,6 @@ class BaseContainer(Container, ABC):
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
 
-        if structured_config_mode == SCMode.INSTANTIATE:
-            raise NotImplementedError("wip in PR #502")
-
         def convert(val: Node) -> Any:
             value = val._value()
             if enum_to_str and isinstance(value, Enum):

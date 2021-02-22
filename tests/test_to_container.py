@@ -85,13 +85,6 @@ class TestSCMode:
             ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
         assert ret == ex_DICT_CONFIG
 
-    def test_SCMode_INSTANTIATE(
-        self, cfg: Any, ex_DICT: Any, ex_DICT_CONFIG: Any
-    ) -> None:
-        with raises(NotImplementedError):  # wip in #502
-            OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
-
-
 @mark.parametrize(
     "src, expected, expected_with_resolve",
     [
