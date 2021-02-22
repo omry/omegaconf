@@ -49,7 +49,7 @@ def python_dict(data: Dict[Any, Any]) -> Dict[Any, Any]:
     return deepcopy(data)
 
 
-@fixture(params=[True, False, None])
+@fixture(params=[None, False, True])
 def struct_mode(request: Any) -> Optional[bool]:
     struct_mode: Optional[bool] = request.param
     return struct_mode
