@@ -39,7 +39,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "src,ex_DICT,ex_DICT_CONFIG,SC_key",
+    "src,ex_dict,ex_dict_config,key",
     [
         param(
             {"user": User(age=7, name="Bond")},
