@@ -2,7 +2,7 @@ import re
 from importlib import import_module
 from typing import Any, Optional
 
-import pytest
+from pytest import mark, raises
 
 from omegaconf import (
     DictConfig,
@@ -18,7 +18,7 @@ from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "class_type",
     [
         "tests.structured_conf.data.dataclasses",
@@ -29,14 +29,14 @@ class TestStructured:
     class TestBasic:
         def test_error_on_non_structured_config_class(self, class_type: str) -> None:
             module: Any = import_module(class_type)
-            with pytest.raises(ValidationError, match="structured config"):
+            with raises(ValidationError, match="structured config"):
                 OmegaConf.structured(module.NotStructuredConfig)
 
         def test_error_on_non_structured_nested_config_class(
             self, class_type: str
         ) -> None:
             module: Any = import_module(class_type)
-            with pytest.raises(
+            with raises(
                 ValidationError,
                 match=re.escape("Unexpected object type : NotStructuredConfig"),
             ):
@@ -63,7 +63,7 @@ class TestStructured:
             cfg = OmegaConf.create(
                 {"plugin": DictConfig(module.Plugin, ref_type=module.Plugin)}
             )
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.plugin = OmegaConf.structured(module.FaultyPlugin)
 
         def test_merge(self, class_type: str) -> None:
@@ -82,7 +82,7 @@ class TestStructured:
             module: Any = import_module(class_type)
             cfg1 = OmegaConf.create({"plugin": module.Plugin})
             cfg2 = OmegaConf.create({"plugin": module.FaultyPlugin})
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
 
         def test_merge_error_new_attribute(self, class_type: str) -> None:
@@ -90,7 +90,7 @@ class TestStructured:
             cfg = OmegaConf.structured(module.ConcretePlugin)
             cfg2 = OmegaConf.create({"params": {"bar": 10}})
             # raise if an invalid key is merged into a struct
-            with pytest.raises(ConfigKeyError):
+            with raises(ConfigKeyError):
                 OmegaConf.merge(cfg, cfg2)
 
         def test_merge_error_override_bad_type(self, class_type: str) -> None:
@@ -98,14 +98,14 @@ class TestStructured:
             cfg = OmegaConf.structured(module.ConcretePlugin)
 
             # raise if an invalid key is merged into a struct
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 OmegaConf.merge(cfg, {"params": {"foo": "zonk"}})
 
         def test_error_message(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.structured(module.StructuredOptional)
             msg = re.escape("child 'not_optional' is not Optional")
-            with pytest.raises(ValidationError, match=msg):
+            with raises(ValidationError, match=msg):
                 cfg.not_optional = None
 
     def test_none_assignment(self, class_type: str) -> None:
@@ -116,24 +116,24 @@ class TestStructured:
         assert cfg.plugin.params is None
 
         cfg2 = OmegaConf.create({"plugin": module.ConcretePlugin})
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg2.plugin.params = None
 
-    @pytest.mark.parametrize("rhs", [1, "foo"])
+    @mark.parametrize("rhs", [1, "foo"])
     class TestFailedAssignmentOrMerges:
         def test_assignment_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.create(
                 {"plugin": DictConfig(module.Plugin, ref_type=module.Plugin)}
             )
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.plugin = rhs
 
         def test_merge_of_non_subclass_2(self, class_type: str, rhs: Any) -> None:
             module: Any = import_module(class_type)
             cfg1 = OmegaConf.create({"plugin": module.Plugin})
             cfg2 = OmegaConf.create({"plugin": rhs})
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 OmegaConf.merge(cfg1, cfg2)
 
     def test_get_type(self, class_type: str) -> None:
@@ -251,7 +251,7 @@ class TestStructured:
 
             assert OmegaConf.get_type(cfg, "head") is None
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.head = 10
 
         def test_missing2(self, class_type: str) -> None:
@@ -313,7 +313,7 @@ class TestStructured:
             module: Any = import_module(class_type)
             cfg = OmegaConf.structured(module.Plugin)
             iv = IllegalType()
-            with pytest.raises(UnsupportedValueType):
+            with raises(UnsupportedValueType):
                 cfg.params = iv
             cfg = OmegaConf.structured(module.Plugin, flags={"allow_objects": True})
             cfg.params = iv
@@ -326,7 +326,7 @@ class TestStructured:
 
             cfg = OmegaConf.structured({"plugin": module.Plugin})
             pwo = module.Plugin(name="foo", params=iv)
-            with pytest.raises(UnsupportedValueType):
+            with raises(UnsupportedValueType):
                 cfg.plugin = pwo
 
             with flag_override(cfg, "allow_objects", True):

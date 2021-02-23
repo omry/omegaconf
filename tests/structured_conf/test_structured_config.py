@@ -2,7 +2,7 @@ import sys
 from importlib import import_module
 from typing import Any, Dict, List, Optional
 
-import pytest
+from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     MISSING,
@@ -86,7 +86,7 @@ class AnyTypeConfigAssignments:
     illegal: Any = []
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "class_type",
     [
         "tests.structured_conf.data.dataclasses",
@@ -121,10 +121,10 @@ class TestConfigs:
                 "value_at_root": 1000,
             }
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.user_provided_default = 10
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.default_value = 10
 
             # assign subclass
@@ -159,10 +159,10 @@ class TestConfigs:
                 "value_at_root": 1000,
             }
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.user_provided_default = 10
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.default_value = 10
 
             # assign subclass
@@ -191,7 +191,7 @@ class TestConfigs:
 
     def test_union_errors(self, class_type: str) -> None:
         module: Any = import_module(class_type)
-        with pytest.raises(ValueError):
+        with raises(ValueError):
             OmegaConf.structured(module.UnionError)
 
     def test_config_with_list(self, class_type: str) -> None:
@@ -199,7 +199,7 @@ class TestConfigs:
 
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3], "missing": MISSING}
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.list1[1] = "foo"
 
             assert OmegaConf.is_missing(cfg, "missing")
@@ -213,7 +213,7 @@ class TestConfigs:
     def test_assignment_to_nested_structured_config(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         conf = OmegaConf.structured(module.NestedConfig)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.default_value = 10
 
         conf.default_value = module.Nested()
@@ -223,7 +223,7 @@ class TestConfigs:
         conf = OmegaConf.create(
             {"val": DictConfig(module.Nested, ref_type=module.Nested)}
         )
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.val = 10
 
     def test_config_with_dict(self, class_type: str) -> None:
@@ -243,7 +243,7 @@ class TestConfigs:
 
         def validate(cfg: DictConfig) -> None:
             assert not OmegaConf.is_struct(cfg)
-            with pytest.raises(AttributeError):
+            with raises(AttributeError):
                 # noinspection PyStatementEffect
                 cfg.foo
 
@@ -261,7 +261,7 @@ class TestConfigs:
         conf = OmegaConf.structured(module.ConfigWithDict())
         validate(conf)
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "tested_type,assignment_data, init_dict",
         [
             # Use class to build config
@@ -296,7 +296,7 @@ class TestConfigs:
             assert conf.null_default is None
             # Test that accessing a variable without a default value
             # results in a MissingMandatoryValue exception
-            with pytest.raises(MissingMandatoryValue):
+            with raises(MissingMandatoryValue):
                 # noinspection PyStatementEffect
                 conf.mandatory_missing
 
@@ -306,13 +306,13 @@ class TestConfigs:
 
             # Test that assignment of illegal values
             for illegal_value in assignment_data.illegal:
-                with pytest.raises(ValidationError):
+                with raises(ValidationError):
                     conf.with_default = illegal_value
 
-                with pytest.raises(ValidationError):
+                with raises(ValidationError):
                     conf.null_default = illegal_value
 
-                with pytest.raises(ValidationError):
+                with raises(ValidationError):
                     conf.mandatory_missing = illegal_value
 
             # Test assignment of legal values
@@ -333,7 +333,7 @@ class TestConfigs:
         validate(input_class, input_class())
         validate(input_class(**init_dict), input_class(**init_dict))
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "input_init, expected_init",
         [
             # attr class as class
@@ -364,7 +364,7 @@ class TestConfigs:
         # yes, this is weird.
         assert "mandatory_missing" in conf.keys() and "mandatory_missing" not in conf
 
-        with pytest.raises(MissingMandatoryValue):
+        with raises(MissingMandatoryValue):
             # noinspection PyStatementEffect
             conf.mandatory_missing
 
@@ -376,7 +376,7 @@ class TestConfigs:
         assert type(conf._get_node("mandatory_missing")) == AnyNode
 
         assert conf.int_default == expected.int_default
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.typed_int_default = "foo"
 
         values = [10, True, False, None, 1.0, -1.0, "10", float("inf")]
@@ -405,7 +405,7 @@ class TestConfigs:
         assert type(conf.z1) == int
         assert type(conf.z2) == str
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "tested_type",
         [
             "BoolOptional",
@@ -426,7 +426,7 @@ class TestConfigs:
         conf = OmegaConf.structured(input_)
 
         # verify non-optional fields are rejecting None
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.not_optional = None
 
         assert conf.as_none is None
@@ -439,13 +439,13 @@ class TestConfigs:
         module: Any = import_module(class_type)
         input_ = module.WithListField
         conf = OmegaConf.structured(input_)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.list[0] = "fail"
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.list.append("fail")
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg2 = OmegaConf.create({"list": ["fail"]})
             OmegaConf.merge(conf, cfg2)
 
@@ -453,15 +453,13 @@ class TestConfigs:
         module: Any = import_module(class_type)
         input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.dict["foo"] = "fail"
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8), reason="requires Python 3.8 or newer"
-    )
+    @mark.skipif(sys.version_info < (3, 8), reason="requires Python 3.8 or newer")
     def test_typed_dict_field(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.WithTypedDictField
@@ -537,7 +535,7 @@ class TestConfigs:
         module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.Plugin)
         c2 = OmegaConf.structured(module.FaultyPlugin)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             OmegaConf.merge(c1, c2)
 
     def test_merge_into_Dict(self, class_type: str) -> None:
@@ -549,7 +547,7 @@ class TestConfigs:
     def test_merge_user_list_with_wrong_key(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UserList)
-        with pytest.raises(ConfigKeyError):
+        with raises(ConfigKeyError):
             OmegaConf.merge(cfg, {"list": [{"foo": "var"}]})
 
     def test_merge_list_with_correct_type(self, class_type: str) -> None:
@@ -562,7 +560,7 @@ class TestConfigs:
     def test_merge_dict_with_wrong_type(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UserDict)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             OmegaConf.merge(cfg, {"dict": {"foo": "var"}})
 
     def test_merge_dict_with_correct_type(self, class_type: str) -> None:
@@ -575,22 +573,22 @@ class TestConfigs:
     def test_dict_field_key_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictObjectKey
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             OmegaConf.structured(input_)
 
     def test_dict_field_value_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorDictUnsupportedValue
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             OmegaConf.structured(input_)
 
     def test_list_field_value_type_error(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         input_ = module.ErrorListUnsupportedValue
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             OmegaConf.structured(input_)
 
-    @pytest.mark.parametrize("example", ["ListExamples", "TupleExamples"])
+    @mark.parametrize("example", ["ListExamples", "TupleExamples"])
     def test_list_examples(self, class_type: str, example: str) -> None:
         module: Any = import_module(class_type)
         input_ = getattr(module, example)
@@ -606,7 +604,7 @@ class TestConfigs:
         test_any("any")
 
         # test ints
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.ints[0] = "foo"
         conf.ints.append(10)
         assert conf.ints == [1, 2, 10]
@@ -616,7 +614,7 @@ class TestConfigs:
         assert conf.strings == ["foo", "bar", "Color.BLUE"]
 
         # test booleans
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.booleans[0] = "foo"
         conf.booleans.append(True)
         conf.booleans.append("off")
@@ -624,7 +622,7 @@ class TestConfigs:
         assert conf.booleans == [True, False, True, False, True]
 
         # test colors
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.colors[0] = "foo"
         conf.colors.append(Color.BLUE)
         conf.colors.append("RED")
@@ -655,7 +653,7 @@ class TestConfigs:
         dct = conf.ints
 
         # test ints
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             dct.a = "foo"
         dct.c = 10
         assert dct == {"a": 10, "b": 20, "c": 10}
@@ -674,7 +672,7 @@ class TestConfigs:
         dct = conf.booleans
 
         # test bool
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             dct.a = "foo"
         dct.c = True
         dct.d = "off"
@@ -688,7 +686,7 @@ class TestConfigs:
         }
 
     class TestDictExamples:
-        @pytest.fixture
+        @fixture
         def conf(self, class_type: str) -> DictConfig:
             module: Any = import_module(class_type)
             conf: DictConfig = OmegaConf.structured(module.DictExamples)
@@ -698,7 +696,7 @@ class TestConfigs:
             dct = conf.colors
 
             # test colors
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 dct.foo = "foo"
             dct.c = Color.BLUE
             dct.d = "RED"
@@ -717,7 +715,7 @@ class TestConfigs:
         def test_dict_examples_str_keys(self, conf: DictConfig) -> None:
             dct = conf.any
 
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 dct[123] = "bad key type"
             dct["c"] = "three"
             assert dct == {
@@ -730,7 +728,7 @@ class TestConfigs:
             dct = conf.int_keys
 
             # test int keys
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 dct.foo_key = "foo_value"
             dct[3] = "three"
             assert dct == {
@@ -743,7 +741,7 @@ class TestConfigs:
             dct = conf.float_keys
 
             # test float keys
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 dct.foo_key = "foo_value"
             dct[3.3] = "three"
             assert dct == {
@@ -756,7 +754,7 @@ class TestConfigs:
             dct = conf.bool_keys
 
             # test bool_keys
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 dct.foo_key = "foo_value"
             dct[True] = "new value"
             assert dct == {
@@ -775,7 +773,7 @@ class TestConfigs:
 
             dct["BLUE"] = "Blue too"
             assert dct[Color.BLUE] == "Blue too"
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 dct["error"] = "error"
 
     def test_dict_of_objects(self, class_type: str) -> None:
@@ -789,7 +787,7 @@ class TestConfigs:
         assert dct.bond.name == "James Bond"
         assert dct.bond.age == 7
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             dct.fail = "fail"
 
     def test_list_of_objects(self, class_type: str) -> None:
@@ -802,7 +800,7 @@ class TestConfigs:
         assert conf.users[1].name == "James Bond"
         assert conf.users[1].age == 7
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             conf.users.append("fail")
 
     def test_promote_api(self, class_type: str) -> None:
@@ -810,7 +808,7 @@ class TestConfigs:
         conf = OmegaConf.create(module.AnyTypeConfig)
         conf._promote(None)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
-        with pytest.raises(ValueError):
+        with raises(ValueError):
             conf._promote(42)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
 
@@ -851,19 +849,17 @@ class TestConfigs:
         assert cfg.list == value
         assert cfg.tuple == value
 
-    @pytest.mark.parametrize(
-        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()]
-    )
+    @mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()])
     def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.ListClass)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg.list = value
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg.tuple = value
         assert cfg == OmegaConf.structured(module.ListClass)
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "value",
         [
             1,
@@ -880,7 +876,7 @@ class TestConfigs:
     def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
         module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.ConfigWithDict2)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg.dict1 = value
         assert cfg == OmegaConf.structured(module.ConfigWithDict2)
 
@@ -921,23 +917,23 @@ class TestConfigs:
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.x = 20
 
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.list[0] = 10
 
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.user.age = 20
 
     # merge into is rejected because it mutates a readonly object
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.merge_with({"user": {"name": "iceman"}})
 
     # Normal merge is allowed.
     ret = OmegaConf.merge(conf, {"user": {"name": "iceman"}})
     assert ret == {"user": {"name": "iceman", "age": 10}, "x": 10, "list": [1, 2, 3]}
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         ret.user.age = 20
 
 
@@ -955,7 +951,7 @@ def test_dataclass_frozen() -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "class_type",
     [
         "tests.structured_conf.data.dataclasses",
@@ -969,7 +965,7 @@ class TestDictSubclass:
         cfg.hello = "world"
         assert cfg.hello == "world"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg[Color.RED]
 
     def test_str2str_as_sub_node(self, class_type: str) -> None:
@@ -981,10 +977,10 @@ class TestDictSubclass:
         cfg.foo.hello = "world"
         assert cfg.foo.hello == "world"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo[Color.RED] = "fail"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo[123] = "fail"
 
     def test_int2str(self, class_type: str) -> None:
@@ -994,16 +990,16 @@ class TestDictSubclass:
         cfg[10] = "ten"  # okay
         assert cfg[10] == "ten"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg[10.0] = "float"  # fail
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg["10"] = "string"  # fail
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.hello = "fail"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
     def test_int2str_as_sub_node(self, class_type: str) -> None:
@@ -1015,16 +1011,16 @@ class TestDictSubclass:
         cfg.foo[10] = "ten"
         assert cfg.foo[10] == "ten"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo[10.0] = "float"  # fail
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo["10"] = "string"  # fail
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo.hello = "fail"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.foo[Color.RED] = "fail"
 
     def test_color2str(self, class_type: str) -> None:
@@ -1032,10 +1028,10 @@ class TestDictSubclass:
         cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
         cfg[Color.RED] = "red"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg.greeen = "nope"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg[123] = "nope"
 
     def test_color2color(self, class_type: str) -> None:
@@ -1056,15 +1052,15 @@ class TestDictSubclass:
         cfg.RED = Color.RED
         assert cfg.RED == Color.RED
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             # bad value
             cfg[Color.GREEN] = 10
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             # bad value
             cfg[Color.GREEN] = "this string is not a color"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             # bad key
             cfg.greeen = "nope"
 
@@ -1076,11 +1072,11 @@ class TestDictSubclass:
         assert cfg.bond.name == "James Bond"
         assert cfg.bond.age == 7
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             # bad value
             cfg.hello = "world"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             # bad key
             cfg[Color.BLUE] = "nope"
 
@@ -1091,29 +1087,29 @@ class TestDictSubclass:
         cfg.hello = "world"
         assert cfg.hello == "world"
 
-        with pytest.raises(KeyValidationError):
+        with raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
     class TestErrors:
         def test_usr2str(self, class_type: str) -> None:
             module: Any = import_module(class_type)
-            with pytest.raises(KeyValidationError):
+            with raises(KeyValidationError):
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
 
         def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
             module: Any = import_module(class_type)
             cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg.foo = "str"
 
     def test_construct_from_another_retain_node_types(self, class_type: str) -> None:
         module: Any = import_module(class_type)
         cfg1 = OmegaConf.create(module.User(name="James Bond", age=7))
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg1.age = "not a number"
 
         cfg2 = OmegaConf.create(cfg1)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             cfg2.age = "not a number"
 
     def test_nested_with_any_var_type(self, class_type: str) -> None:
@@ -1159,23 +1155,23 @@ class TestDictSubclass:
 
         assert OmegaConf.merge(cfg, cfg) == cfg
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "update_value,expected",
         [
-            pytest.param([], {"list": []}, id="empty"),
-            pytest.param(
+            param([], {"list": []}, id="empty"),
+            param(
                 [{"name": "Bond"}],
                 {"list": [{"name": "Bond", "age": "???"}]},
                 id="partial",
             ),
-            pytest.param(
+            param(
                 [{"name": "Bond", "age": 7}],
                 {"list": [{"name": "Bond", "age": 7}]},
                 id="complete",
             ),
-            pytest.param(
+            param(
                 [{"age": "double o seven"}],
-                pytest.raises(ValidationError),
+                raises(ValidationError),
                 id="complete",
             ),
         ],
@@ -1189,7 +1185,7 @@ class TestDictSubclass:
             OmegaConf.update(cfg, "list", update_value, merge=True)
             assert cfg == expected
         else:
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 OmegaConf.update(cfg, "list", update_value, merge=True)
 
     def test_merge_missing_list_promotes_target_type(self, class_type: str) -> None:
@@ -1197,5 +1193,5 @@ class TestDictSubclass:
         c1 = OmegaConf.create({"missing": []})
         c2 = OmegaConf.structured(module.ConfigWithList)
         c3 = OmegaConf.merge(c1, c2)
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             c3.missing.append("xx")
