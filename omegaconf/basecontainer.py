@@ -64,7 +64,7 @@ class BaseContainer(Container, ABC):
             parent=self,
             key=key,
             value=value,
-            throw_on_resolution_failure=not has_default,
+            throw_on_resolution_failure=True,
         )
         if resolved_node is None and has_default:
             return default_value

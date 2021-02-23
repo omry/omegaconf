@@ -5,6 +5,7 @@ import tempfile
 from typing import Any, Dict, List, Optional, Union
 
 import pytest
+from _pytest.python_api import RaisesContext
 
 from omegaconf import (
     MISSING,
@@ -24,6 +25,7 @@ from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
     ConfigTypeError,
+    InterpolationKeyError,
     InterpolationToMissingValueError,
     KeyValidationError,
 )
@@ -187,11 +189,8 @@ def test_scientific_notation_float() -> None:
         ({"hello": {"a": 2}}, "hello", "missing"),
         ({"hello": "???"}, "", "hello"),
         ({"hello": None}, "", "hello"),
-        ({"hello": "${foo}"}, "", "hello"),
-        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
         ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
         ({"hello": DictConfig(content="???")}, "", "hello"),
-        ({"hello": DictConfig(content="${foo}")}, "", "hello"),
         ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
         ({"hello": ListConfig(content="???")}, "", "hello"),
     ],
@@ -203,6 +202,26 @@ def test_dict_get_with_default(
     c = OmegaConf.select(c, select)
     OmegaConf.set_struct(c, struct)
     assert c.get(key, default_val) == default_val
+
+
+@pytest.mark.parametrize(
+    "d,select,key,exc",
+    [
+        ({"hello": "${foo}"}, "", "hello", InterpolationKeyError),
+        (
+            {"hello": "${foo}", "foo": "???"},
+            "",
+            "hello",
+            InterpolationToMissingValueError,
+        ),
+        ({"hello": DictConfig(content="${foo}")}, "", "hello", InterpolationKeyError),
+    ],
+)
+def test_dict_get_with_default_errors(d: Any, select: Any, key: Any, exc: type) -> None:
+    c = OmegaConf.create(d)
+    c = OmegaConf.select(c, select)
+    with pytest.raises(exc):
+        c.get(key, default_value=123)
 
 
 def test_map_expansion() -> None:
@@ -314,7 +333,11 @@ def test_iterate_dict_with_interpolation() -> None:
             {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
         ),
         pytest.param(
-            {"a": "${b}"}, "a", "default", "default", id="interpolation_with_default"
+            {"a": "${b}"},
+            "a",
+            "default",
+            pytest.raises(InterpolationKeyError),
+            id="interpolation_with_default",
         ),
         # enum key
         pytest.param(
@@ -364,13 +387,19 @@ def test_iterate_dict_with_interpolation() -> None:
 def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -> None:
     c = OmegaConf.create(cfg)
 
-    if default_ != "__NO_DEFAULT__":
-        val = c.pop(key, default_)
-    else:
-        val = c.pop(key)
+    def pop() -> Any:
+        if default_ != "__NO_DEFAULT__":
+            return c.pop(key, default_)
+        else:
+            return c.pop(key)
 
-    assert val == expected
-    assert type(val) == type(expected)
+    if isinstance(expected, RaisesContext):
+        with expected:
+            pop()
+    else:
+        val = pop()
+        assert val == expected
+        assert type(val) == type(expected)
 
 
 def test_dict_struct_mode_pop() -> None:
