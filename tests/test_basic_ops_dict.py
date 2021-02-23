@@ -186,7 +186,6 @@ def test_scientific_notation_float() -> None:
         ({"hello": {"a": 2}}, "", "missing"),
         ({"hello": {"a": 2}}, "hello", "missing"),
         ({"hello": "???"}, "", "hello"),
-        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
         ({"hello": None}, "", "hello"),
         ({"hello": "${foo}"}, "", "hello"),
         ({"hello": "${foo}", "foo": "???"}, "", "hello"),
