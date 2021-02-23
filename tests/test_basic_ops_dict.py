@@ -451,7 +451,8 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
         ({"a": 1, "b": {}}, "c", False),
         ({"a": 1, "b": "${a}"}, "b", True),
         ({"a": 1, "b": "???"}, "b", False),
-        ({"a": 1, "b": "${not_found}"}, "b", False),
+        ({"a": 1, "b": "???", "c": "${b}"}, "c", True),
+        ({"a": 1, "b": "${not_found}"}, "b", True),
         ({"a": "${unknown_resolver:bar}"}, "a", True),
         ({"a": None, "b": "${a}"}, "b", True),
         ({"a": "cat", "b": "${a}"}, "b", True),
@@ -507,18 +508,6 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:
     conf = OmegaConf.create(conf)
     assert (key in conf) == expected
-
-
-@pytest.mark.parametrize(
-    "conf,key,expected",
-    [
-        ({"a": 1, "b": "???", "c": "${b}"}, "c", InterpolationToMissingValueError),
-    ],
-)
-def test_in_dict_errors(conf: Any, key: str, expected: Any) -> None:
-    conf = OmegaConf.create(conf)
-    with pytest.raises(expected):
-        key in conf
 
 
 def test_get_root() -> None:
