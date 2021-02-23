@@ -193,31 +193,25 @@ class Node(ABC):
 
     def _dereference_node(
         self,
-        throw_on_missing: bool = False,
         throw_on_resolution_failure: bool = True,
     ) -> Optional["Node"]:
-        if self._is_interpolation():
-            parent = self._get_parent()
-            if parent is None:
-                raise OmegaConfBaseException(
-                    "Cannot resolve interpolation for a node without a parent"
-                )
-            assert parent is not None
-            key = self._key()
-            return parent._resolve_interpolation_from_parse_tree(
-                parent=parent,
-                key=key,
-                value=self,
-                parse_tree=parse(_get_value(self)),
-                throw_on_resolution_failure=throw_on_resolution_failure,
-            )
-        else:
-            # not interpolation, compare directly
-            if throw_on_missing:
-                value = self._value()
-                if _is_missing_literal(value):
-                    raise MissingMandatoryValue("Missing mandatory value")
+        if not self._is_interpolation():
             return self
+
+        parent = self._get_parent()
+        if parent is None:
+            raise OmegaConfBaseException(
+                "Cannot resolve interpolation for a node without a parent"
+            )
+        assert parent is not None
+        key = self._key()
+        return parent._resolve_interpolation_from_parse_tree(
+            parent=parent,
+            key=key,
+            value=self,
+            parse_tree=parse(_get_value(self)),
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
 
     def _get_root(self) -> "Container":
         root: Optional[Container] = self._get_parent()
@@ -366,7 +360,6 @@ class Container(Node):
             )
             if isinstance(ret, Node):
                 ret = ret._dereference_node(
-                    throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
 

@@ -740,9 +740,4 @@ def test_invalid_intermediate_result_when_not_throwing(
     )
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
-    assert (
-        x_node._dereference_node(
-            throw_on_missing=False, throw_on_resolution_failure=False
-        )
-        is None
-    )
+    assert x_node._dereference_node(throw_on_resolution_failure=False) is None

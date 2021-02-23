@@ -219,9 +219,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    node = node._dereference_node(throw_on_resolution_failure=True)
 
                 assert node is not None
                 if enum_to_str and isinstance(key, Enum):
@@ -242,9 +240,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(index)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    node = node._dereference_node(throw_on_resolution_failure=True)
                 assert node is not None
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(
@@ -629,13 +625,9 @@ class BaseContainer(Container, ABC):
         dv2: Optional[Node] = v2
 
         if v1_inter:
-            dv1 = v1._dereference_node(
-                throw_on_missing=False, throw_on_resolution_failure=False
-            )
+            dv1 = v1._dereference_node(throw_on_resolution_failure=False)
         if v2_inter:
-            dv2 = v2._dereference_node(
-                throw_on_missing=False, throw_on_resolution_failure=False
-            )
+            dv2 = v2._dereference_node(throw_on_resolution_failure=False)
 
         if v1_inter and v2_inter:
             if dv1 is None or dv2 is None:
