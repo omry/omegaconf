@@ -2,11 +2,7 @@ import re
 from enum import Enum
 from typing import Any, Dict, List
 
-<<<<<<< HEAD
-from pytest import mark, param, raises, warns
-=======
-from pytest import deprecated_call, fixture, mark, param, raises
->>>>>>> 0aae702 (fix pytest imports)
+from pytest import fixture, mark, param, raises, warns
 
 from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
 from tests import Color, User
@@ -88,6 +84,7 @@ class TestSCMode:
         with warns(UserWarning):
             ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
         assert ret == ex_DICT_CONFIG
+
 
 @mark.parametrize(
     "src, expected, expected_with_resolve",

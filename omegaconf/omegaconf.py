@@ -599,7 +599,7 @@ class OmegaConf:
                 See https://github.com/omry/omegaconf/issues/548 for migration instructions.
                 """
                 ),
-                DeprecationWarning,
+                UserWarning,
                 stacklevel=2,
             )
             if exclude_structured_configs is True:
