@@ -14,7 +14,7 @@ from typing import (
 
 from antlr4 import TerminalNode
 
-from .errors import GrammarParseError
+from .errors import InterpolationResolutionError
 
 if TYPE_CHECKING:
     from .base import Node  # noqa F401
@@ -83,7 +83,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
             res = _get_value(self.visitInterpolation(child))
             if not isinstance(res, str):
-                raise GrammarParseError(
+                raise InterpolationResolutionError(
                     f"The following interpolation is used to denote a config key and "
                     f"thus should return a string, but instead returned `{res}` of "
                     f"type `{type(res)}`: {ctx.getChild(0).getText()}"
@@ -233,7 +233,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 assert isinstance(child, OmegaConfGrammarParser.InterpolationContext)
                 item = _get_value(self.visitInterpolation(child))
                 if not isinstance(item, str):
-                    raise GrammarParseError(
+                    raise InterpolationResolutionError(
                         f"The name of a resolver must be a string, but the interpolation "
                         f"{child.getText()} resolved to `{item}` which is of type "
                         f"{type(item)}"

@@ -18,6 +18,8 @@ from ._utils import (
 from .errors import (
     ConfigKeyError,
     InterpolationKeyError,
+    InterpolationResolutionError,
+    InterpolationToMissingValueError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -436,12 +438,22 @@ class Container(Node):
         inter_key: str,
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
-        root_node, inter_key = self._resolve_key_and_root(inter_key)
-        parent, last_key, value = root_node._select_impl(
-            inter_key,
-            throw_on_missing=True,
-            throw_on_resolution_failure=True,
-        )
+        try:
+            root_node, inter_key = self._resolve_key_and_root(inter_key)
+        except ConfigKeyError as exc:
+            raise InterpolationKeyError(str(exc))
+
+        try:
+            parent, last_key, value = root_node._select_impl(
+                inter_key,
+                throw_on_missing=True,
+                throw_on_resolution_failure=True,
+            )
+        except MissingMandatoryValue as exc:
+            raise InterpolationToMissingValueError(str(exc))
+        except ConfigKeyError as exc:
+            raise InterpolationKeyError(str(exc))
+
         if parent is None or value is None:
             raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
         else:
@@ -540,7 +552,15 @@ class Container(Node):
             resolver_interpolation_callback=resolver_interpolation_callback,
             quoted_string_callback=quoted_string_callback,
         )
-        return visitor.visit(parse_tree)
+        try:
+            return visitor.visit(parse_tree)
+        except InterpolationResolutionError:
+            raise
+        except Exception as exc:
+            # Other kinds of exceptions are wrapped in an `InterpolationResolutionError`.
+            raise InterpolationResolutionError(
+                f"{type(exc).__name__} raised while resolving interpolation: {exc}"
+            )
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig

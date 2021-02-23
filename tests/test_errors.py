@@ -24,6 +24,7 @@ from omegaconf.errors import (
     ConfigValueError,
     GrammarParseError,
     InterpolationKeyError,
+    InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -1245,7 +1246,7 @@ def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
     # error is just one way of achieving this goal.
     register_func("assert_false", assert_false)
     c = OmegaConf.create({"trigger": "${assert_false:}"})
-    with pytest.raises(AssertionError):
+    with pytest.raises(InterpolationResolutionError, match=re.escape("assert False")):
         c.trigger
 
 
@@ -1264,7 +1265,7 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
             full_key: div_by_zero
             object_type=dict"""
     )
-    with pytest.raises(ZeroDivisionError, match=re.escape(expected_msg)):
+    with pytest.raises(InterpolationResolutionError, match=re.escape(expected_msg)):
         c.div_by_zero
 
 

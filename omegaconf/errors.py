@@ -57,15 +57,27 @@ class ReadonlyConfigError(OmegaConfBaseException):
     """
 
 
-class UnsupportedInterpolationType(OmegaConfBaseException, ValueError):
+class InterpolationResolutionError(OmegaConfBaseException, ValueError):
+    """
+    Base class for exceptions raised when resolving an interpolation.
+    """
+
+
+class UnsupportedInterpolationType(InterpolationResolutionError):
     """
     Thrown when an attempt to use an unregistered interpolation is made
     """
 
 
-class InterpolationKeyError(OmegaConfBaseException, ValueError):
+class InterpolationKeyError(InterpolationResolutionError):
     """
-    Thrown an error occurs when resolving an interpolation
+    Thrown when a node does not exist when resolving an interpolation.
+    """
+
+
+class InterpolationToMissingValueError(InterpolationResolutionError):
+    """
+    Thrown when a node interpolation points to a node that is set to ???.
     """
 
 

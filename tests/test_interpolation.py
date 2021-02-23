@@ -19,9 +19,9 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
-    ConfigAttributeError,
     GrammarParseError,
     InterpolationKeyError,
+    InterpolationResolutionError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
@@ -82,7 +82,10 @@ INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
         pytest.param({"a": {"z": "${..b}"}, "b": 10}, "a.z", 10, id="relative"),
         pytest.param({"a": {"z": "${..a.b}", "b": 10}}, "a.z", 10, id="relative"),
         pytest.param(
-            {"a": "${..b}", "b": 10}, "a", pytest.raises(KeyError), id="relative"
+            {"a": "${..b}", "b": 10},
+            "a",
+            pytest.raises(InterpolationKeyError),
+            id="relative",
         ),
     ],
 )
@@ -151,7 +154,7 @@ def test_merge_with_interpolation() -> None:
 
 def test_non_container_interpolation() -> None:
     cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
-    with pytest.raises(ConfigAttributeError):
+    with pytest.raises(InterpolationKeyError):
         cfg.bar
 
 
@@ -220,7 +223,7 @@ def test_type_inherit_type(cfg: Any) -> None:
             None,
             "path",
             pytest.raises(
-                ValidationError,
+                InterpolationResolutionError,
                 match=re.escape("Environment variable 'not_found' not found"),
             ),
             id="not_found",

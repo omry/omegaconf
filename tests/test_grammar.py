@@ -15,6 +15,7 @@ from omegaconf import (
 from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
+    InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
 
@@ -195,7 +196,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("null_like_key_bad_case", "${NoNe.null}", InterpolationKeyError),
     ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
-    ("dotpath_bad_type", "${dict.${float}}", (None, GrammarParseError)),
+    ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
     ("at_in_key", "${x@y}", 123),
     # Interpolations in dictionaries.
     ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
@@ -257,7 +258,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("float_resolver_quoted", "${'1.1':1,2,3}", GrammarParseError),
     ("float_resolver_noquote", "${1.1:1,2,3}", GrammarParseError),
     ("float_resolver_exp", "${1e1:1,2,3}", GrammarParseError),
-    ("inter_float_resolver", "${${float}:1,2,3}", (None, GrammarParseError)),
+    ("inter_float_resolver", "${${float}:1,2,3}", (None, InterpolationResolutionError)),
     # NaN as dictionary key (a resolver is used here to output only the key).
     ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),

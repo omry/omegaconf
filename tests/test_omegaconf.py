@@ -18,6 +18,7 @@ from omegaconf import (
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
+    InterpolationToMissingValueError,
     UnsupportedInterpolationType,
 )
 from tests import (
@@ -40,7 +41,7 @@ from tests import (
             {"foo": "${bar}", "bar": DictConfig(content=MISSING)},
             "foo",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
             id="missing_interpolated_dict",
         ),
         pytest.param(
@@ -61,27 +62,27 @@ from tests import (
             {"foo": ListConfig(content="${missing}"), "missing": "???"},
             "foo",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
             id="missing_list_interpolation",
         ),
         pytest.param(
             {"foo": DictConfig(content="${missing}"), "missing": "???"},
             "foo",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
             id="missing_dict_interpolation",
         ),
         (
             {"foo": "${bar}", "bar": MISSING},
             "foo",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
         ),
         (
             {"foo": "foo_${bar}", "bar": MISSING},
             "foo",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
         ),
         (
             {"foo": "${unknown_resolver:foo}"},
@@ -94,7 +95,7 @@ from tests import (
             {"foo": StringNode(value="???"), "inter": "${foo}"},
             "inter",
             False,
-            raises(MissingMandatoryValue),
+            raises(InterpolationToMissingValueError),
         ),
         (StructuredWithMissing, "num", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_num", True, raises(MissingMandatoryValue)),
@@ -104,9 +105,24 @@ from tests import (
         (StructuredWithMissing, "opt_list", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "user", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_user", True, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_user", False, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_opt_user", False, raises(MissingMandatoryValue)),
-        (StructuredWithMissing, "inter_num", False, raises(MissingMandatoryValue)),
+        (
+            StructuredWithMissing,
+            "inter_user",
+            False,
+            raises(InterpolationToMissingValueError),
+        ),
+        (
+            StructuredWithMissing,
+            "inter_opt_user",
+            False,
+            raises(InterpolationToMissingValueError),
+        ),
+        (
+            StructuredWithMissing,
+            "inter_num",
+            False,
+            raises(InterpolationToMissingValueError),
+        ),
     ],
 )
 def test_is_missing(

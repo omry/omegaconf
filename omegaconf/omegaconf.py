@@ -739,10 +739,10 @@ class OmegaConf:
                     raise
 
             if (
-                _root is not None
+                default is not _EMPTY_MARKER_
+                and _root is not None
                 and _last_key is not None
-                and _last_key not in _root
-                and default is not _EMPTY_MARKER_
+                and (value is None or _last_key not in _root)
             ):
                 return default
 

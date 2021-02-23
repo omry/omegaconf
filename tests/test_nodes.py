@@ -18,6 +18,7 @@ from omegaconf import (
     ValueNode,
 )
 from omegaconf.errors import (
+    InterpolationToMissingValueError,
     MissingMandatoryValue,
     UnsupportedValueType,
     ValidationError,
@@ -579,5 +580,5 @@ def test_dereference_interpolation_to_missing() -> None:
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert x_node._dereference_node(throw_on_resolution_failure=False) is None
-    with pytest.raises(MissingMandatoryValue):
+    with pytest.raises(InterpolationToMissingValueError):
         cfg.x
