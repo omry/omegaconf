@@ -14,7 +14,7 @@ from omegaconf import (
 )
 from omegaconf.errors import (
     GrammarParseError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     UnsupportedInterpolationType,
 )
 
@@ -187,12 +187,12 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_access", "${dict.a}", 0),
     ("list_access", "${list.0}", -1),
     ("list_access_underscore", "${list.1_0}", 9),
-    ("list_access_bad_negative", "${list.-1}", InterpolationResolutionError),
+    ("list_access_bad_negative", "${list.-1}", InterpolationKeyError),
     ("dict_access_list_like_1", "${0}", 0),
     ("dict_access_list_like_2", "${1.2}", 12),
     ("bool_like_keys", "${FalsE.TruE}", True),
     ("null_like_key_ok", "${None.null}", 1),
-    ("null_like_key_bad_case", "${NoNe.null}", InterpolationResolutionError),
+    ("null_like_key_bad_case", "${NoNe.null}", InterpolationKeyError),
     ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
     ("dotpath_bad_type", "${dict.${float}}", (None, GrammarParseError)),

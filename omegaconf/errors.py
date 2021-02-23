@@ -63,7 +63,7 @@ class UnsupportedInterpolationType(OmegaConfBaseException, ValueError):
     """
 
 
-class InterpolationResolutionError(OmegaConfBaseException, ValueError):
+class InterpolationKeyError(OmegaConfBaseException, ValueError):
     """
     Thrown an error occurs when resolving an interpolation
     """

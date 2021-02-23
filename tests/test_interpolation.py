@@ -21,7 +21,7 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
     ConfigAttributeError,
     GrammarParseError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
@@ -44,13 +44,13 @@ INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
         pytest.param(
             {"a": "${x}"},
             "a",
-            pytest.raises(InterpolationResolutionError),
+            pytest.raises(InterpolationKeyError),
             id="not_found",
         ),
         pytest.param(
             {"a": "${x.y}"},
             "a",
-            pytest.raises(InterpolationResolutionError),
+            pytest.raises(InterpolationKeyError),
             id="not_found",
         ),
         pytest.param({"a": "foo_${b}", "b": "bar"}, "a", "foo_bar", id="str_inter"),
@@ -321,7 +321,7 @@ def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
     monkeypatch.setenv("my_key", "${other_key}")
     c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-    with pytest.raises(InterpolationResolutionError):
+    with pytest.raises(InterpolationKeyError):
         c.my_key
 
 
@@ -618,7 +618,7 @@ def test_invalid_chars_in_key_names(c: str) -> None:
         # With '.', we try to access `${ab.de}`.
         # With '}', we try to access `${ab}`.
         cfg = create()
-        with pytest.raises(InterpolationResolutionError):
+        with pytest.raises(InterpolationKeyError):
             cfg.invalid
     elif c == ":":
         # With ':', we try to run a resolver `${ab:de}`
@@ -635,7 +635,7 @@ def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
 
-    with pytest.raises(InterpolationResolutionError):
+    with pytest.raises(InterpolationKeyError):
         c[0]
 
 

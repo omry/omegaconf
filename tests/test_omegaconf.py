@@ -17,7 +17,7 @@ from omegaconf import (
 )
 from omegaconf.errors import (
     ConfigKeyError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     UnsupportedInterpolationType,
 )
 from tests import (
@@ -34,7 +34,7 @@ from tests import (
     [
         ({}, "foo", False, raises(ConfigKeyError)),
         ({"foo": True}, "foo", False, does_not_raise()),
-        ({"foo": "${no_such_key}"}, "foo", False, raises(InterpolationResolutionError)),
+        ({"foo": "${no_such_key}"}, "foo", False, raises(InterpolationKeyError)),
         ({"foo": MISSING}, "foo", True, raises(MissingMandatoryValue)),
         pytest.param(
             {"foo": "${bar}", "bar": DictConfig(content=MISSING)},

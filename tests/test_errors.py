@@ -23,7 +23,7 @@ from omegaconf.errors import (
     ConfigTypeError,
     ConfigValueError,
     GrammarParseError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -220,7 +220,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -231,7 +231,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -242,7 +242,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="bar",
             full_key="foo.bar",

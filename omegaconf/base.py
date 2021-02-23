@@ -17,7 +17,7 @@ from ._utils import (
 )
 from .errors import (
     ConfigKeyError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -443,9 +443,7 @@ class Container(Node):
             throw_on_resolution_failure=True,
         )
         if parent is None or value is None:
-            raise InterpolationResolutionError(
-                f"Interpolation key '{inter_key}' not found"
-            )
+            raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
         else:
             return value
 

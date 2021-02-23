@@ -39,7 +39,7 @@ from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
     ConfigTypeError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -518,7 +518,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             except UnsupportedInterpolationType:
                 # Value that has unsupported interpolation counts as existing.
                 return True
-            except (MissingMandatoryValue, KeyError, InterpolationResolutionError):
+            except (MissingMandatoryValue, KeyError, InterpolationKeyError):
                 return False
 
     def __iter__(self) -> Iterator[DictKeyType]:
