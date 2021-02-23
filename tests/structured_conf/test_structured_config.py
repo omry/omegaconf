@@ -20,6 +20,17 @@ from omegaconf.errors import ConfigKeyError
 from tests import Color, User
 
 
+@fixture(
+    params=[
+        "tests.structured_conf.data.dataclasses",
+        "tests.structured_conf.data.attr_classes",
+    ],
+    ids=["dataclasses", "attr_classes"],
+)
+def module(request: Any) -> Any:
+    return import_module(request.param)
+
+
 class EnumConfigAssignments:
     legal = [
         (Color.RED, Color.RED),
@@ -86,24 +97,14 @@ class AnyTypeConfigAssignments:
     illegal: Any = []
 
 
-@mark.parametrize(
-    "class_type",
-    [
-        "tests.structured_conf.data.dataclasses",
-        "tests.structured_conf.data.attr_classes",
-    ],
-)
 class TestConfigs:
-    def test_nested_config_is_none(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_nested_config_is_none(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithNone)
         assert cfg == {"plugin": None}
         assert OmegaConf.get_type(cfg, "plugin") is None
         assert _utils.get_ref_type(cfg, "plugin") == Optional[module.Plugin]
 
-    def test_nested_config(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-
+    def test_nested_config(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert cfg == {
                 "default_value": {
@@ -144,9 +145,7 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.NestedConfig(default_value=module.Nested()))
         validate(conf1)
 
-    def test_nested_config2(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-
+    def test_nested_config2(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert cfg == {
                 "default_value": "???",
@@ -182,21 +181,17 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.NestedConfig)
         validate(conf1)
 
-    def test_value_without_a_default(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_value_without_a_default(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NoDefaultValue)
         assert OmegaConf.is_missing(cfg, "no_default")
 
         OmegaConf.structured(module.NoDefaultValue(no_default=10)) == {"no_default": 10}
 
-    def test_union_errors(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_union_errors(self, module: Any) -> None:
         with raises(ValueError):
             OmegaConf.structured(module.UnionError)
 
-    def test_config_with_list(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-
+    def test_config_with_list(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3], "missing": MISSING}
             with raises(ValidationError):
@@ -210,25 +205,21 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.ConfigWithList())
         validate(conf1)
 
-    def test_assignment_to_nested_structured_config(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_assignment_to_nested_structured_config(self, module: Any) -> None:
         conf = OmegaConf.structured(module.NestedConfig)
         with raises(ValidationError):
             conf.default_value = 10
 
         conf.default_value = module.Nested()
 
-    def test_assignment_to_structured_inside_dict_config(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_assignment_to_structured_inside_dict_config(self, module: Any) -> None:
         conf = OmegaConf.create(
             {"val": DictConfig(module.Nested, ref_type=module.Nested)}
         )
         with raises(ValidationError):
             conf.val = 10
 
-    def test_config_with_dict(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-
+    def test_config_with_dict(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"dict1": {"foo": "bar"}, "missing": MISSING}
             assert OmegaConf.is_missing(cfg, "missing")
@@ -238,9 +229,7 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.ConfigWithDict())
         validate(conf1)
 
-    def test_structured_config_struct_behavior(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
-
+    def test_structured_config_struct_behavior(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert not OmegaConf.is_struct(cfg)
             with raises(AttributeError):
@@ -281,12 +270,11 @@ class TestConfigs:
     )
     def test_field_with_default_value(
         self,
-        class_type: str,
+        module: Any,
         tested_type: str,
         init_dict: Dict[str, Any],
         assignment_data: Any,
     ) -> None:
-        module: Any = import_module(class_type)
         input_class = getattr(module, tested_type)
 
         def validate(input_: Any, expected: Any) -> None:
@@ -346,10 +334,7 @@ class TestConfigs:
             ({"int_default": 30}, {"int_default": 30}),
         ],
     )
-    def test_untyped(
-        self, class_type: str, input_init: Any, expected_init: Any
-    ) -> None:
-        module: Any = import_module(class_type)
+    def test_untyped(self, module: Any, input_init: Any, expected_init: Any) -> None:
         input_ = module.AnyTypeConfig
         expected = input_(**expected_init)
         if input_init is not None:
@@ -393,8 +378,7 @@ class TestConfigs:
             assert conf.str_default == val
             assert conf.bool_default == val
 
-    def test_interpolation(self, class_type: str) -> Any:
-        module: Any = import_module(class_type)
+    def test_interpolation(self, module: Any) -> Any:
         input_ = module.Interpolation()
         conf = OmegaConf.structured(input_)
         assert conf.x == input_.x
@@ -419,8 +403,7 @@ class TestConfigs:
             "DictOptional",
         ],
     )
-    def test_optional(self, class_type: str, tested_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_optional(self, module: Any, tested_type: str) -> None:
         input_ = getattr(module, tested_type)
         obj = input_()
         conf = OmegaConf.structured(input_)
@@ -435,8 +418,7 @@ class TestConfigs:
         conf.with_default = None
         assert conf.with_default is None
 
-    def test_list_field(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_list_field(self, module: Any) -> None:
         input_ = module.WithListField
         conf = OmegaConf.structured(input_)
         with raises(ValidationError):
@@ -449,8 +431,7 @@ class TestConfigs:
             cfg2 = OmegaConf.create({"list": ["fail"]})
             OmegaConf.merge(conf, cfg2)
 
-    def test_dict_field(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_field(self, module: Any) -> None:
         input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         with raises(ValidationError):
@@ -460,8 +441,7 @@ class TestConfigs:
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
     @mark.skipif(sys.version_info < (3, 8), reason="requires Python 3.8 or newer")
-    def test_typed_dict_field(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_typed_dict_field(self, module: Any) -> None:
         input_ = module.WithTypedDictField
         conf = OmegaConf.structured(input_(dict={"foo": 10}))
         assert conf.dict["foo"] == 10
@@ -470,59 +450,51 @@ class TestConfigs:
         conf = OmegaConf.merge(conf, {"dict": {"foo": "not_failed"}})
         assert conf.dict["foo"] == "not_failed"
 
-    def test_merged_type1(self, class_type: str) -> None:
+    def test_merged_type1(self, module: Any) -> None:
         # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
         input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(OmegaConf.create(), conf)
         assert OmegaConf.get_type(res) == input_
 
-    def test_merged_type2(self, class_type: str) -> None:
+    def test_merged_type2(self, module: Any) -> None:
         # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
         input_ = module.WithDictField
         conf = OmegaConf.structured(input_)
         res = OmegaConf.merge(conf, {"dict": {"foo": 99}})
         assert OmegaConf.get_type(res) == input_
 
-    def test_merged_with_subclass(self, class_type: str) -> None:
+    def test_merged_with_subclass(self, module: Any) -> None:
         # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.Plugin)
         c2 = OmegaConf.structured(module.ConcretePlugin)
         res = OmegaConf.merge(c1, c2)
         assert OmegaConf.get_type(res) == module.ConcretePlugin
 
-    def test_merge_missing_structured_on_self(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_missing_structured_on_self(self, module: Any) -> None:
         c1 = OmegaConf.structured(module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c1, "plugin")
         c2 = OmegaConf.merge(c1, module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c2, "plugin")
 
-    def test_merge_missing_structured_config_is_missing(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_missing_structured_config_is_missing(self, module: Any) -> None:
         c1 = OmegaConf.structured(module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c1, "plugin")
 
-    def test_merge_missing_structured(self, class_type: str) -> None:
+    def test_merge_missing_structured(self, module: Any) -> None:
         # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
         c1 = OmegaConf.create({"plugin": "???"})
         c2 = OmegaConf.merge(c1, module.MissingStructuredConfigField)
         assert OmegaConf.is_missing(c2, "plugin")
 
-    def test_merge_none_is_none(self, class_type: str) -> None:
+    def test_merge_none_is_none(self, module: Any) -> None:
         # Test that the merged type is that of the last merged config
-        module: Any = import_module(class_type)
         c1 = OmegaConf.structured(module.StructuredOptional)
         assert c1.with_default == module.Nested()
         c2 = OmegaConf.merge(c1, {"with_default": None})
         assert OmegaConf.is_none(c2, "with_default")
 
-    def test_merge_with_subclass_into_missing(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_with_subclass_into_missing(self, module: Any) -> None:
         base = OmegaConf.structured(module.PluginHolder)
         assert _utils.get_ref_type(base, "missing") == module.Plugin
         assert OmegaConf.get_type(base, "missing") is None
@@ -531,66 +503,56 @@ class TestConfigs:
         assert _utils.get_ref_type(base, "missing") == module.Plugin
         assert OmegaConf.get_type(res, "missing") == module.Plugin
 
-    def test_merged_with_nons_subclass(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merged_with_nons_subclass(self, module: Any) -> None:
         c1 = OmegaConf.structured(module.Plugin)
         c2 = OmegaConf.structured(module.FaultyPlugin)
         with raises(ValidationError):
             OmegaConf.merge(c1, c2)
 
-    def test_merge_into_Dict(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_into_Dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictExamples)
         res = OmegaConf.merge(cfg, {"strings": {"x": "abc"}})
         assert res.strings == {"a": "foo", "b": "bar", "x": "abc"}
 
-    def test_merge_user_list_with_wrong_key(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_user_list_with_wrong_key(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UserList)
         with raises(ConfigKeyError):
             OmegaConf.merge(cfg, {"list": [{"foo": "var"}]})
 
-    def test_merge_list_with_correct_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_list_with_correct_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UserList)
         user = module.User(name="John", age=21)
         res = OmegaConf.merge(cfg, {"list": [user]})
         assert res.list == [user]
 
-    def test_merge_dict_with_wrong_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_dict_with_wrong_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UserDict)
         with raises(ValidationError):
             OmegaConf.merge(cfg, {"dict": {"foo": "var"}})
 
-    def test_merge_dict_with_correct_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_dict_with_correct_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UserDict)
         user = module.User(name="John", age=21)
         res = OmegaConf.merge(cfg, {"dict": {"foo": user}})
         assert res.dict == {"foo": user}
 
-    def test_dict_field_key_type_error(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_field_key_type_error(self, module: Any) -> None:
         input_ = module.ErrorDictObjectKey
         with raises(KeyValidationError):
             OmegaConf.structured(input_)
 
-    def test_dict_field_value_type_error(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_field_value_type_error(self, module: Any) -> None:
         input_ = module.ErrorDictUnsupportedValue
         with raises(ValidationError):
             OmegaConf.structured(input_)
 
-    def test_list_field_value_type_error(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_list_field_value_type_error(self, module: Any) -> None:
         input_ = module.ErrorListUnsupportedValue
         with raises(ValidationError):
             OmegaConf.structured(input_)
 
     @mark.parametrize("example", ["ListExamples", "TupleExamples"])
-    def test_list_examples(self, class_type: str, example: str) -> None:
-        module: Any = import_module(class_type)
+    def test_list_examples(self, module: Any, example: str) -> None:
         input_ = getattr(module, example)
         conf = OmegaConf.structured(input_)
 
@@ -637,8 +599,7 @@ class TestConfigs:
             Color.BLUE,
         ]
 
-    def test_dict_examples_any(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_examples_any(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
 
         dct = conf.any
@@ -647,8 +608,7 @@ class TestConfigs:
         dct.e = 3.1415
         assert dct == {"a": 1, "b": "foo", "c": True, "d": Color.RED, "e": 3.1415}
 
-    def test_dict_examples_int(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_examples_int(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
         dct = conf.ints
 
@@ -658,16 +618,14 @@ class TestConfigs:
         dct.c = 10
         assert dct == {"a": 10, "b": 20, "c": 10}
 
-    def test_dict_examples_strings(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_examples_strings(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
 
         # test strings
         conf.strings.c = Color.BLUE
         assert conf.strings == {"a": "foo", "b": "bar", "c": "Color.BLUE"}
 
-    def test_dict_examples_bool(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_examples_bool(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
         dct = conf.booleans
 
@@ -687,8 +645,7 @@ class TestConfigs:
 
     class TestDictExamples:
         @fixture
-        def conf(self, class_type: str) -> DictConfig:
-            module: Any = import_module(class_type)
+        def conf(self, module: Any) -> DictConfig:
             conf: DictConfig = OmegaConf.structured(module.DictExamples)
             return conf
 
@@ -776,8 +733,7 @@ class TestConfigs:
             with raises(KeyValidationError):
                 dct["error"] = "error"
 
-    def test_dict_of_objects(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_dict_of_objects(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictOfObjects)
         dct = conf.users
         assert dct.joe.age == 18
@@ -790,8 +746,7 @@ class TestConfigs:
         with raises(ValidationError):
             dct.fail = "fail"
 
-    def test_list_of_objects(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_list_of_objects(self, module: Any) -> None:
         conf = OmegaConf.structured(module.ListOfObjects)
         assert conf.users[0].age == 18
         assert conf.users[0].name == "Joe"
@@ -803,8 +758,7 @@ class TestConfigs:
         with raises(ValidationError):
             conf.users.append("fail")
 
-    def test_promote_api(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_promote_api(self, module: Any) -> None:
         conf = OmegaConf.create(module.AnyTypeConfig)
         conf._promote(None)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
@@ -812,8 +766,7 @@ class TestConfigs:
             conf._promote(42)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
 
-    def test_promote_to_class(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_promote_to_class(self, module: Any) -> None:
 
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert OmegaConf.get_type(conf) == module.AnyTypeConfig
@@ -825,8 +778,7 @@ class TestConfigs:
         assert conf.null_default is None
         assert OmegaConf.is_missing(conf, "mandatory_missing")
 
-    def test_promote_to_object(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_promote_to_object(self, module: Any) -> None:
 
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert OmegaConf.get_type(conf) == module.AnyTypeConfig
@@ -835,13 +787,11 @@ class TestConfigs:
         assert OmegaConf.get_type(conf) == module.BoolConfig
         assert conf.with_default is False
 
-    def test_set_key_with_with_dataclass(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_set_key_with_with_dataclass(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": [1, 2]})
         cfg.foo = module.ListClass()
 
-    def test_set_list_correct_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_set_list_correct_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
         value = [1, 2, 3]
         cfg.list = value
@@ -850,8 +800,7 @@ class TestConfigs:
         assert cfg.tuple == value
 
     @mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()])
-    def test_assign_wrong_type_to_list(self, class_type: str, value: Any) -> None:
-        module: Any = import_module(class_type)
+    def test_assign_wrong_type_to_list(self, module: Any, value: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
         with raises(ValidationError):
             cfg.list = value
@@ -873,15 +822,13 @@ class TestConfigs:
             ListConfig(content=[1, 2], ref_type=List[int], element_type=int),
         ],
     )
-    def test_assign_wrong_type_to_dict(self, class_type: str, value: Any) -> None:
-        module: Any = import_module(class_type)
+    def test_assign_wrong_type_to_dict(self, module: Any, value: Any) -> None:
         cfg = OmegaConf.structured(module.ConfigWithDict2)
         with raises(ValidationError):
             cfg.dict1 = value
         assert cfg == OmegaConf.structured(module.ConfigWithDict2)
 
-    def test_recursive_dict(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_recursive_dict(self, module: Any) -> None:
         rd = module.RecursiveDict
         o = rd(d={"a": rd(), "b": rd()})
         cfg = OmegaConf.structured(o)
@@ -892,23 +839,20 @@ class TestConfigs:
             }
         }
 
-    def test_recursive_list(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_recursive_list(self, module: Any) -> None:
         rl = module.RecursiveList
         o = rl(d=[rl(), rl()])
         cfg = OmegaConf.structured(o)
         assert cfg == {"d": [{"d": "???"}, {"d": "???"}]}
 
-    def test_create_untyped_dict(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_create_untyped_dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UntypedDict)
         assert _utils.get_ref_type(cfg, "dict") == Dict[Any, Any]
         assert _utils.get_ref_type(cfg, "opt_dict") == Optional[Dict[Any, Any]]
         assert cfg.dict == {"foo": "var"}
         assert cfg.opt_dict is None
 
-    def test_create_untyped_list(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_create_untyped_list(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UntypedList)
         assert _utils.get_ref_type(cfg, "list") == List[Any]
         assert _utils.get_ref_type(cfg, "opt_list") == Optional[List[Any]]
@@ -951,16 +895,8 @@ def test_dataclass_frozen() -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-@mark.parametrize(
-    "class_type",
-    [
-        "tests.structured_conf.data.dataclasses",
-        "tests.structured_conf.data.attr_classes",
-    ],
-)
 class TestDictSubclass:
-    def test_str2str(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_str2str(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2Str())
         cfg.hello = "world"
         assert cfg.hello == "world"
@@ -968,8 +904,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg[Color.RED]
 
-    def test_str2str_as_sub_node(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_str2str_as_sub_node(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
         assert _utils.get_ref_type(cfg.foo) == Any
@@ -983,8 +918,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg.foo[123] = "fail"
 
-    def test_int2str(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_int2str(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Int2Str())
 
         cfg[10] = "ten"  # okay
@@ -1002,8 +936,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg[Color.RED] = "fail"
 
-    def test_int2str_as_sub_node(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_int2str_as_sub_node(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
         assert _utils.get_ref_type(cfg.foo) == Any
@@ -1023,8 +956,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg.foo[Color.RED] = "fail"
 
-    def test_color2str(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_color2str(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
         cfg[Color.RED] = "red"
 
@@ -1034,8 +966,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg[123] = "nope"
 
-    def test_color2color(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_color2color(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
 
         # add key
@@ -1064,8 +995,7 @@ class TestDictSubclass:
             # bad key
             cfg.greeen = "nope"
 
-    def test_str2user(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_str2user(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())
 
         cfg.bond = module.User(name="James Bond", age=7)
@@ -1080,8 +1010,7 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-    def test_str2str_with_field(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_str2str_with_field(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
         assert cfg.foo == "bar"
         cfg.hello = "world"
@@ -1091,19 +1020,16 @@ class TestDictSubclass:
             cfg[Color.RED] = "fail"
 
     class TestErrors:
-        def test_usr2str(self, class_type: str) -> None:
-            module: Any = import_module(class_type)
+        def test_usr2str(self, module: Any) -> None:
             with raises(KeyValidationError):
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
 
-        def test_str2int_with_field_of_different_type(self, class_type: str) -> None:
-            module: Any = import_module(class_type)
+        def test_str2int_with_field_of_different_type(self, module: Any) -> None:
             cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
             with raises(ValidationError):
                 cfg.foo = "str"
 
-    def test_construct_from_another_retain_node_types(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_construct_from_another_retain_node_types(self, module: Any) -> None:
         cfg1 = OmegaConf.create(module.User(name="James Bond", age=7))
         with raises(ValidationError):
             cfg1.age = "not a number"
@@ -1112,8 +1038,7 @@ class TestDictSubclass:
         with raises(ValidationError):
             cfg2.age = "not a number"
 
-    def test_nested_with_any_var_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_nested_with_any_var_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithAny)
         assert cfg == {
             "var": {
@@ -1124,8 +1049,7 @@ class TestDictSubclass:
             }
         }
 
-    def test_noop_merge_into_frozen(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_noop_merge_into_frozen(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ContainsFrozen)
         ret = OmegaConf.merge(cfg, {"x": 20, "frozen": {}})
         assert ret == {
@@ -1133,8 +1057,7 @@ class TestDictSubclass:
             "frozen": {"user": {"name": "Bart", "age": 10}, "x": 10, "list": [1, 2, 3]},
         }
 
-    def test_merge_into_none_list(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_into_none_list(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ListOptional)
         assert OmegaConf.merge(cfg, {"as_none": [4, 5, 6]}) == {
             "with_default": [1, 2, 3],
@@ -1144,8 +1067,7 @@ class TestDictSubclass:
 
         assert OmegaConf.merge(cfg, cfg) == cfg
 
-    def test_merge_into_none_dict(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_into_none_dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictOptional)
         assert OmegaConf.merge(cfg, {"as_none": {"x": 100}}) == {
             "with_default": {"a": 10},
@@ -1177,9 +1099,8 @@ class TestDictSubclass:
         ],
     )
     def test_update_userlist(
-        self, class_type: str, update_value: Any, expected: Any
+        self, module: Any, update_value: Any, expected: Any
     ) -> None:
-        module: Any = import_module(class_type)
         cfg = OmegaConf.structured(module.UserList)
         if isinstance(expected, dict):
             OmegaConf.update(cfg, "list", update_value, merge=True)
@@ -1188,8 +1109,7 @@ class TestDictSubclass:
             with raises(ValidationError):
                 OmegaConf.update(cfg, "list", update_value, merge=True)
 
-    def test_merge_missing_list_promotes_target_type(self, class_type: str) -> None:
-        module: Any = import_module(class_type)
+    def test_merge_missing_list_promotes_target_type(self, module: Any) -> None:
         c1 = OmegaConf.create({"missing": []})
         c2 = OmegaConf.structured(module.ConfigWithList)
         c3 = OmegaConf.merge(c1, c2)
