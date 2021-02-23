@@ -16,7 +16,7 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
 )
-from omegaconf._utils import type_str
+from omegaconf._utils import format_and_raise, type_str
 from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -1234,20 +1234,17 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
                 assert e.__cause__ is None
 
 
-@pytest.mark.parametrize(
-    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
-)
-def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
-    def assert_false() -> None:
+def test_assertion_error() -> None:
+    """Test the case where an `AssertionError` is processed in `format_and_raise()`"""
+    try:
         assert False
-
-    # The purpose of this test is to cover the case where an `AssertionError`
-    # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
-    # error is just one way of achieving this goal.
-    register_func("assert_false", assert_false)
-    c = OmegaConf.create({"trigger": "${assert_false:}"})
-    with pytest.raises(InterpolationResolutionError, match=re.escape("assert False")):
-        c.trigger
+    except AssertionError as exc:
+        try:
+            format_and_raise(node=None, key=None, value=None, msg=str(exc), cause=exc)
+        except AssertionError as exc2:
+            assert exc2 is exc  # we expect the original exception to be raised
+        else:
+            assert False
 
 
 @pytest.mark.parametrize(
