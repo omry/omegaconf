@@ -13,12 +13,7 @@ from omegaconf._utils import (
     is_primitive_container,
 )
 from omegaconf.base import Container, DictKeyType, Metadata, Node
-from omegaconf.errors import (
-    ConfigKeyError,
-    ReadonlyConfigError,
-    UnsupportedValueType,
-    ValidationError,
-)
+from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
 
 
 class ValueNode(Node):
