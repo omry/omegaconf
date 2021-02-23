@@ -66,8 +66,7 @@ class BaseContainer(Container, ABC):
             value=value,
             throw_on_resolution_failure=True,
         )
-        if resolved_node is None and has_default:
-            return default_value
+        assert resolved_node is not None
 
         return _get_value(resolved_node)
 
