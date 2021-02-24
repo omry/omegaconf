@@ -587,8 +587,11 @@ class OmegaConf:
         :param cfg: the config to convert
         :param resolve: True to resolve all values
         :param enum_to_str: True to convert Enum keys and values to strings
-        :param exclude_structured_configs: If True, do not convert Structured Configs
-               (DictConfigs backed by a dataclass)
+        :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
+            By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
+            If `structured_config_mode=SCMode.DICT_CONFIG`, structured config nodes will remain as DictConfig.
+        :param exclude_structured_configs: (DEPRECATED) If true, do not convert structured configs.
+            Equivalent to `structured_config_mode=SCMode.DICT_CONFIG`.
         :return: A dict or a list representing this config as a primitive container.
         """
         if exclude_structured_configs is not None:
