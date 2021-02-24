@@ -979,17 +979,6 @@ def _select_one(
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
-        if val is not None:
-            assert isinstance(val, Node)
-            if val._is_missing():
-                if throw_on_missing:
-                    raise MissingMandatoryValue(
-                        f"Missing mandatory value : {c._get_full_key(ret_key)}"
-                    )
-                else:
-                    return val, ret_key
-        else:
-            val = None
     elif isinstance(c, ListConfig):
         assert isinstance(ret_key, str)
         if not is_int(ret_key):
@@ -1007,6 +996,16 @@ def _select_one(
                 val = c._get_node(ret_key)
     else:
         assert False
+
+    if val is not None:
+        assert isinstance(val, Node)
+        if val._is_missing():
+            if throw_on_missing:
+                raise MissingMandatoryValue(
+                    f"Missing mandatory value : {c._get_full_key(ret_key)}"
+                )
+            else:
+                return val, ret_key
 
     assert val is None or isinstance(val, Node)
     return val, ret_key

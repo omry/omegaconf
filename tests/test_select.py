@@ -32,6 +32,7 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
         pytest.param([], "0", None, id="list:oob"),
         pytest.param([1, "2"], "0", 1, id="list:int"),
         pytest.param([1, "2"], "1", "2", id="list:str"),
+        pytest.param(["???"], "0", None, id="list:missing"),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "0", 1),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.a", 10),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.b", None),
@@ -85,7 +86,7 @@ def test_select_default(
         pytest.param({"missing": "???"}, "missing", id="missing"),
     ],
 )
-def test_select_default_throw_on_missing(
+def test_select_default_throw_on_missing_dict(
     cfg: Any,
     struct: bool,
     key: Any,
@@ -97,6 +98,23 @@ def test_select_default_throw_on_missing(
     # throw on missing still throws if default is provided
     with pytest.raises(MissingMandatoryValue):
         OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
+
+
+@pytest.mark.parametrize(
+    "cfg, key",
+    [
+        pytest.param(["???"], "0", id="missing"),
+    ],
+)
+def test_select_default_throw_on_missing_list(
+    cfg: Any,
+    key: Any,
+) -> None:
+    cfg = OmegaConf.create(cfg)
+
+    # throw on missing still throws if default is provided
+    with pytest.raises(MissingMandatoryValue):
+        OmegaConf.select(cfg, key, default=0, throw_on_missing=True)
 
 
 @pytest.mark.parametrize(
