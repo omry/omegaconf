@@ -601,11 +601,9 @@ def test_merge_allow_objects(merge: Any) -> None:
 
 
 def test_merge_with_allow_Dataframe() -> None:
-    kwargs = OmegaConf.create({"a": Dataframe()}, flags={"allow_objects": True})
-    cfg = OmegaConf.create()
-
-    cfg.merge_with(kwargs)
-    assert isinstance(cfg.a, Dataframe)
+    cfg = OmegaConf.create({"a": Dataframe()}, flags={"allow_objects": True})
+    ret = OmegaConf.merge({}, cfg)
+    assert isinstance(ret.a, Dataframe)
 
 
 @pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
