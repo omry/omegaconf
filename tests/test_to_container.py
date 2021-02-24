@@ -44,14 +44,14 @@ def test_to_container_returns_primitives(input_: Any) -> None:
         param(
             {"user": User(age=7, name="Bond")},
             {"user": {"name": "Bond", "age": 7}},
-            {"user": OmegaConf.structured(User(age=7, name="Bond"))},
+            {"user": User(age=7, name="Bond")},
             "user",
             id="structured-inside-dict",
         ),
         param(
             [1, User(age=7, name="Bond")],
             [1, {"name": "Bond", "age": 7}],
-            [1, OmegaConf.structured(User(age=7, name="Bond"))],
+            [1, User(age=7, name="Bond")],
             1,
             id="structured-inside-list",
         ),
