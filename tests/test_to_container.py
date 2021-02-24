@@ -69,7 +69,7 @@ class TestSCMode:
         assert ret == ex_dict
         assert isinstance(ret[key], dict)
 
-    def test_SCMode_DICT(
+    def test_scmode_dict(
         self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
@@ -80,7 +80,7 @@ class TestSCMode:
             ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
         assert ret == ex_dict
 
-    def test_SCMode_DICT_CONFIG(
+    def test_scmode_dict_config(
         self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
