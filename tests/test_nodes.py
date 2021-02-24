@@ -17,7 +17,7 @@ from omegaconf import (
     ValueNode,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
-from tests import Color, Dataframe, IllegalType, User
+from tests import Color, IllegalType, User
 
 
 # testing valid conversions
@@ -559,10 +559,3 @@ def test_allow_objects() -> None:
     iv = IllegalType()
     c.foo = iv
     assert c.foo == iv
-
-
-def test_allow_Dataframe_objects() -> None:
-    c = OmegaConf.create()
-    c._set_flag("allow_objects", True)
-    c.a = Dataframe()
-    assert isinstance(c.a, Dataframe)
