@@ -1,0 +1,2 @@
+Container methods `get()` and `pop()` do not return their default value anymore when the accessed key is an interpolation that cannot be resolved: instead, an exception is raised.
+
