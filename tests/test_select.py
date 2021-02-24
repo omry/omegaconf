@@ -32,6 +32,7 @@ def test_select_key_from_empty(struct: Optional[bool]) -> None:
         pytest.param([], "0", None, id="list:oob"),
         pytest.param([1, "2"], "0", 1, id="list:int"),
         pytest.param([1, "2"], "1", "2", id="list:str"),
+        pytest.param(["???"], "0", None, id="list:missing"),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "0", 1),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.a", 10),
         pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.b", None),
@@ -82,7 +83,8 @@ def test_select_default(
 @pytest.mark.parametrize(
     "cfg, key",
     [
-        pytest.param({"missing": "???"}, "missing", id="missing"),
+        pytest.param({"missing": "???"}, "missing", id="missing_dict"),
+        pytest.param(["???"], "0", id="missing_list"),
     ],
 )
 def test_select_default_throw_on_missing(
