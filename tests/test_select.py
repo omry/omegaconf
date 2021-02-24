@@ -83,10 +83,11 @@ def test_select_default(
 @pytest.mark.parametrize(
     "cfg, key",
     [
-        pytest.param({"missing": "???"}, "missing", id="missing"),
+        pytest.param({"missing": "???"}, "missing", id="missing_dict"),
+        pytest.param(["???"], "0", id="missing_list"),
     ],
 )
-def test_select_default_throw_on_missing_dict(
+def test_select_default_throw_on_missing(
     cfg: Any,
     struct: bool,
     key: Any,
@@ -98,23 +99,6 @@ def test_select_default_throw_on_missing_dict(
     # throw on missing still throws if default is provided
     with pytest.raises(MissingMandatoryValue):
         OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
-
-
-@pytest.mark.parametrize(
-    "cfg, key",
-    [
-        pytest.param(["???"], "0", id="missing"),
-    ],
-)
-def test_select_default_throw_on_missing_list(
-    cfg: Any,
-    key: Any,
-) -> None:
-    cfg = OmegaConf.create(cfg)
-
-    # throw on missing still throws if default is provided
-    with pytest.raises(MissingMandatoryValue):
-        OmegaConf.select(cfg, key, default=0, throw_on_missing=True)
 
 
 @pytest.mark.parametrize(
