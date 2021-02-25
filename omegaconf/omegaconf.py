@@ -829,6 +829,14 @@ class OmegaConf:
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
+        if not (
+            is_primitive_container(cfg)
+            or is_structured_config(cfg)
+            or OmegaConf.is_config(cfg)
+        ):
+            raise ValueError(
+                "to_yaml expects input of type DictConfig / ListConfig / dict / list / StructuredConfig."
+            )
         cfg = _ensure_container(cfg)
         container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore

@@ -168,3 +168,11 @@ def test_structured_configs(user: User) -> None:
                 """
     )
     assert OmegaConf.to_yaml(user) == expected
+
+
+def test_raises_ValueError_on_string_input() -> None:
+    with pytest.raises(
+        ValueError,
+        match="to_yaml expects input of type DictConfig / ListConfig / dict / list / StructuredConfig.",
+    ):
+        OmegaConf.to_yaml("abc")
