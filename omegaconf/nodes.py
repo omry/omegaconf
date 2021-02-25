@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Type, Union
 from omegaconf._utils import (
     ValueKind,
     _is_interpolation,
+    _is_missing_literal,
     get_type_of,
     get_value_kind,
     is_primitive_container,
@@ -115,7 +116,7 @@ class ValueNode(Node):
                 # Will happen if interpolation is accessing keys that does not exist.
                 return False
         else:
-            ret = self._value() == "???"
+            ret = _is_missing_literal(self._value())
             assert isinstance(ret, bool)
             return ret
 

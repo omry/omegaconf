@@ -565,7 +565,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import OmegaConf, flag_override
+        from omegaconf import MISSING, OmegaConf, flag_override
 
         if flags is None:
             flags = {}
@@ -578,7 +578,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
             self.__dict__["_content"] = None
         elif vk is ValueKind.MANDATORY_MISSING:
-            self.__dict__["_content"] = "???"
+            self.__dict__["_content"] = MISSING
         elif vk == ValueKind.INTERPOLATION:
             self.__dict__["_content"] = value
         else:

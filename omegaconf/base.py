@@ -7,7 +7,13 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 from antlr4 import ParserRuleContext
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import (
+    ValueKind,
+    _get_value,
+    _is_missing_literal,
+    format_and_raise,
+    get_value_kind,
+)
 from .errors import (
     ConfigKeyError,
     InterpolationResolutionError,
@@ -207,7 +213,7 @@ class Node(ABC):
             # not interpolation, compare directly
             if throw_on_missing:
                 value = self._value()
-                if value == "???":
+                if _is_missing_literal(value):
                     raise MissingMandatoryValue("Missing mandatory value")
             return self
 

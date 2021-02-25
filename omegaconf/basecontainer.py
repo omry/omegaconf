@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
-    ValueKind,
     _ensure_container,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
+    _is_missing_value,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
-    get_value_kind,
     get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
@@ -50,12 +50,9 @@ class BaseContainer(Container, ABC):
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
 
-        def is_mandatory_missing(val: Any) -> bool:
-            return bool(get_value_kind(val) == ValueKind.MANDATORY_MISSING)
-
         val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
-        if has_default and (val is None or is_mandatory_missing(val)):
+        if has_default and (val is None or _is_missing_value(val)):
             return default_value
 
         resolved = self._maybe_resolve_interpolation(
@@ -68,7 +65,7 @@ class BaseContainer(Container, ABC):
         if resolved is None and has_default:
             return default_value
 
-        if is_mandatory_missing(resolved):
+        if _is_missing_value(resolved):
             if has_default:
                 return default_value
             else:
@@ -194,8 +191,7 @@ class BaseContainer(Container, ABC):
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
+        from omegaconf import MISSING, DictConfig, ListConfig
 
         def convert(val: Node) -> Any:
             value = val._value()
@@ -212,7 +208,7 @@ class BaseContainer(Container, ABC):
             assert isinstance(inter, str)
             return inter
         elif conf._is_missing():
-            return "???"
+            return MISSING
         elif isinstance(conf, DictConfig):
             if (
                 conf._metadata.object_type is not None
@@ -383,7 +379,7 @@ class BaseContainer(Container, ABC):
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
                         # Compare to literal missing, ignoring interpolation
-                        src_node_missing = src_value == "???"
+                        src_node_missing = _is_missing_literal(src_value)
                         try:
                             if isinstance(dest_node, AnyNode):
                                 if src_node_missing:
@@ -534,7 +530,7 @@ class BaseContainer(Container, ABC):
 
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
-        special_value = value is None or value == "???"
+        special_value = value is None or _is_missing_value(value)
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -550,7 +546,6 @@ class BaseContainer(Container, ABC):
         # 3. If the target is a NodeValue then it should set his value.
         #    Furthermore if it's an AnyNode it should wrap when the input is
         # a container and set when the input is an compatible type(primitive type).
-
         should_set_value = target_node_ref is not None and (
             (
                 isinstance(target_node_ref, Container)
@@ -775,25 +770,17 @@ class BaseContainer(Container, ABC):
 def _create_structured_with_missing_fields(
     ref_type: type, object_type: Optional[type] = None
 ) -> "DictConfig":
-    from .dictconfig import DictConfig
+    from . import MISSING, DictConfig
 
     cfg_data = get_structured_config_data(ref_type)
     for v in cfg_data.values():
-        v._set_value("???")
+        v._set_value(MISSING)
 
     cfg = DictConfig(cfg_data)
     cfg._metadata.optional, cfg._metadata.ref_type = _resolve_optional(ref_type)
     cfg._metadata.object_type = object_type
 
     return cfg
-
-
-def _is_missing_value(value: Any) -> bool:
-    if isinstance(value, Container):
-        value = value._value()
-    ret = isinstance(value, str) and value == "???"
-    assert isinstance(ret, bool)
-    return ret
 
 
 def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
