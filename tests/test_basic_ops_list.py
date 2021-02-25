@@ -93,28 +93,32 @@ def test_items_with_interpolation() -> None:
     [
         pytest.param([1, 2, 3], 0, 1, [2, 3]),
         pytest.param([1, 2, 3], None, 3, [1, 2]),
-        pytest.param([1, 2, 3], 100, IndexError, ...),
         pytest.param(["???", 2, 3], 0, None, [2, 3]),
-        pytest.param(["${4}", 2, 3], 0, InterpolationKeyError, ...),
-        pytest.param(["${1}", "???", 3], 0, InterpolationToMissingValueError, ...),
     ],
 )
 def test_list_pop(
     cfg: List[Any], key: Optional[int], expected_out: Any, expected_cfg: Any
 ) -> None:
     c = OmegaConf.create(cfg)
-    pop_args = [] if key is None else [key]
-    if isinstance(expected_out, type):
-        with pytest.raises(expected_out):
-            c.pop(*pop_args)
-    else:
-        val = c.pop(*pop_args)
-        assert val == expected_out
-
-    if expected_cfg is ...:  # shortcut to mean it is unchanged
-        expected_cfg = cfg
+    val = c.pop() if key is None else c.pop(key)
+    assert val == expected_out
     assert c == expected_cfg
+    validate_list_keys(c)
 
+
+@pytest.mark.parametrize(
+    ["cfg", "key", "exc"],
+    [
+        pytest.param([1, 2, 3], 100, IndexError),
+        pytest.param(["${4}", 2, 3], 0, InterpolationKeyError),
+        pytest.param(["${1}", "???", 3], 0, InterpolationToMissingValueError),
+    ],
+)
+def test_list_pop_errors(cfg: List[Any], key: int, exc: type) -> None:
+    c = OmegaConf.create(cfg)
+    with pytest.raises(exc):
+        c.pop(key)
+    assert c == cfg
     validate_list_keys(c)
 
 
