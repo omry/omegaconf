@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from typing import Any, Dict, List
 
-from pytest import fixture, mark, param, raises, warns
+from pytest import fixture, mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
 from tests import Color, User
@@ -76,20 +76,12 @@ class TestSCMode:
         assert ret == ex_dict
         assert isinstance(ret[key], dict)
 
-        with warns(UserWarning):
-            ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
-        assert ret == ex_dict
-
     def test_scmode_dict_config(
         self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
         assert ret == ex_dict_config
         assert isinstance(ret[key], DictConfig)
-
-        with warns(UserWarning):
-            ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
-        assert ret == ex_dict_config
 
 
 @mark.parametrize(
