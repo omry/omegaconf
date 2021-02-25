@@ -205,23 +205,20 @@ def test_dict_get_with_default(
 
 
 @pytest.mark.parametrize(
-    "d,select,key,exc",
+    "d,exc",
     [
-        ({"hello": "${foo}"}, "", "hello", InterpolationKeyError),
+        ({"hello": "${foo}"}, InterpolationKeyError),
         (
             {"hello": "${foo}", "foo": "???"},
-            "",
-            "hello",
             InterpolationToMissingValueError,
         ),
-        ({"hello": DictConfig(content="${foo}")}, "", "hello", InterpolationKeyError),
+        ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
     ],
 )
-def test_dict_get_with_default_errors(d: Any, select: Any, key: Any, exc: type) -> None:
+def test_dict_get_with_default_errors(d: Any, exc: type) -> None:
     c = OmegaConf.create(d)
-    c = OmegaConf.select(c, select)
     with pytest.raises(exc):
-        c.get(key, default_value=123)
+        c.get("hello", default_value=123)
 
 
 def test_map_expansion() -> None:
