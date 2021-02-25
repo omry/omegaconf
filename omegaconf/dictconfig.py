@@ -19,6 +19,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _is_missing_value,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -170,7 +171,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if vk == ValueKind.INTERPOLATION:
             return
         self._validate_non_optional(key, value)
-        if (isinstance(value, str) and value == "???") or value is None:
+        if vk == ValueKind.MANDATORY_MISSING or value is None:
             return
 
         target = self._get_node(key) if key is not None else self
@@ -605,7 +606,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import OmegaConf, flag_override
+        from omegaconf import MISSING, OmegaConf, flag_override
 
         if flags is None:
             flags = {}
@@ -619,8 +620,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         elif _is_interpolation(value, strict_interpolation_validation=True):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
-        elif value == "???":
-            self.__dict__["_content"] = "???"
+        elif _is_missing_value(value):
+            self.__dict__["_content"] = MISSING
             self._metadata.object_type = None
         else:
             self.__dict__["_content"] = {}
