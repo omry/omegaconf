@@ -9,17 +9,18 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
+    ValueKind,
     _ensure_container,
     _get_value,
     _is_interpolation,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
+    get_value_kind,
     get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
-    is_mandatory_missing,
     is_primitive_dict,
     is_primitive_type,
     is_structured_config,
@@ -48,6 +49,9 @@ class BaseContainer(Container, ABC):
         default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
+
+        def is_mandatory_missing(val: Any) -> bool:
+            return bool(get_value_kind(val) == ValueKind.MANDATORY_MISSING)
 
         val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
@@ -780,7 +784,7 @@ def _create_structured_with_missing_fields(
 def _is_missing_value(value: Any) -> bool:
     if isinstance(value, Container):
         value = value._value()
-    ret = is_mandatory_missing(value)
+    ret = isinstance(value, str) and value == "???"
     assert isinstance(ret, bool)
     return ret
 

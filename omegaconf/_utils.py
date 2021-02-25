@@ -328,10 +328,6 @@ def get_structured_config_data(
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
 
 
-def is_mandatory_missing(value: Any) -> bool:
-    return isinstance(value, str) and value == "???"
-
-
 class ValueKind(Enum):
     VALUE = 0
     MANDATORY_MISSING = 1
@@ -357,7 +353,7 @@ def get_value_kind(
 
     value = _get_value(value)
 
-    if is_mandatory_missing(value):
+    if isinstance(value, str) and value == "???":
         return ValueKind.MANDATORY_MISSING
 
     # We identify potential interpolations by the presence of "${" in the string.
