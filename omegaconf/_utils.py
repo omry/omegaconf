@@ -353,7 +353,7 @@ def get_value_kind(
 
     value = _get_value(value)
 
-    if value == "???":
+    if isinstance(value, str) and value == "???":
         return ValueKind.MANDATORY_MISSING
 
     # We identify potential interpolations by the presence of "${" in the string.

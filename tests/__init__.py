@@ -34,6 +34,21 @@ class NonCopyableIllegalType:
         raise NotImplementedError()
 
 
+class Dataframe:
+    """Emulates Pandas Dataframe equality and boolean behavior."""
+
+    def __init__(self) -> None:
+        pass
+
+    def __eq__(self, other: Any) -> Any:
+        """Mimic pandas DataFrame __eq__, which returns a pandas DataFrame object"""
+        return self
+
+    def __bool__(self) -> None:
+        """Mimic pandas DataFrame __bool__, which raises a ValueError"""
+        raise ValueError
+
+
 @contextmanager
 def does_not_raise(enter_result: Any = None) -> Iterator[Any]:
     yield enter_result
