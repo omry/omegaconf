@@ -25,7 +25,7 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 if TYPE_CHECKING:
@@ -192,7 +192,7 @@ class BaseContainer(Container, ABC):
         conf: Container,
         resolve: bool,
         enum_to_str: bool = False,
-        exclude_structured_configs: bool = False,
+        structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -214,7 +214,10 @@ class BaseContainer(Container, ABC):
         elif conf._is_missing():
             return "???"
         elif isinstance(conf, DictConfig):
-            if conf._metadata.object_type is not None and exclude_structured_configs:
+            if (
+                conf._metadata.object_type is not None
+                and structured_config_mode == SCMode.DICT_CONFIG
+            ):
                 return conf
 
             retdict: Dict[str, Any] = {}
@@ -234,7 +237,7 @@ class BaseContainer(Container, ABC):
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
-                        exclude_structured_configs=exclude_structured_configs,
+                        structured_config_mode=structured_config_mode,
                     )
                 else:
                     retdict[key] = convert(node)
@@ -254,7 +257,7 @@ class BaseContainer(Container, ABC):
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
-                        exclude_structured_configs=exclude_structured_configs,
+                        structured_config_mode=structured_config_mode,
                     )
                     retlist.append(item)
                 else:

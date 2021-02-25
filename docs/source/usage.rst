@@ -740,6 +740,22 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> print(resolved)
     {'foo': 'bar', 'foo2': 'bar'}
 
+You can customize the treatment of **OmegaConf.to_container()** for
+Structured Config nodes using the `structured_config_mode` option.
+By default, Structured Config nodes are converted to plain dict.
+Using **structured_config_mode=SCMode.DICT_CONFIG** causes such nodes to remain
+as DictConfig, allowing attribute style access on the resulting node.
+
+.. doctest::
+
+    >>> from omegaconf import SCMode
+    >>> conf = OmegaConf.create({"structured_config": MyConfig})
+    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
+    >>> print(container)
+    {'structured_config': {'port': 80, 'host': 'localhost'}}
+    >>> assert type(container) is dict
+    >>> assert type(container["structured_config"]) is DictConfig
+    >>> assert container["structured_config"].port == 80
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^

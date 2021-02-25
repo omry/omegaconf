@@ -2,9 +2,9 @@ import re
 from enum import Enum
 from typing import Any, Dict, List
 
-from pytest import mark, param, raises
+from pytest import fixture, mark, param, raises, warns
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
 from tests import Color, User
 
 
@@ -39,32 +39,57 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "cfg,ex_false,ex_true",
+    "src,ex_dict,ex_dict_config,key",
     [
         param(
             {"user": User(age=7, name="Bond")},
             {"user": {"name": "Bond", "age": 7}},
             {"user": User(age=7, name="Bond")},
+            "user",
+            id="structured-inside-dict",
         ),
         param(
             [1, User(age=7, name="Bond")],
             [1, {"name": "Bond", "age": 7}],
             [1, User(age=7, name="Bond")],
-        ),
-        param(
-            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
-            {"users": [{"age": 1, "name": "a"}, {"age": 2, "name": "b"}]},
-            {"users": [User(age=1, name="a"), User(age=2, name="b")]},
+            1,
+            id="structured-inside-list",
         ),
     ],
 )
-def test_exclude_structured_configs(cfg: Any, ex_false: Any, ex_true: Any) -> None:
-    cfg = OmegaConf.create(cfg)
-    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=False)
-    assert ret1 == ex_false
+class TestSCMode:
+    @fixture
+    def cfg(self, src: Any) -> Any:
+        return OmegaConf.create(src)
 
-    ret1 = OmegaConf.to_container(cfg, exclude_structured_configs=True)
-    assert ret1 == ex_true
+    def test_exclude_structured_configs_default(
+        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
+    ) -> None:
+        ret = OmegaConf.to_container(cfg)
+        assert ret == ex_dict
+        assert isinstance(ret[key], dict)
+
+    def test_scmode_dict(
+        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
+    ) -> None:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
+        assert ret == ex_dict
+        assert isinstance(ret[key], dict)
+
+        with warns(UserWarning):
+            ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
+        assert ret == ex_dict
+
+    def test_scmode_dict_config(
+        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
+    ) -> None:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
+        assert ret == ex_dict_config
+        assert isinstance(ret[key], DictConfig)
+
+        with warns(UserWarning):
+            ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
+        assert ret == ex_dict_config
 
 
 @mark.parametrize(

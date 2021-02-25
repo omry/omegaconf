@@ -615,3 +615,8 @@ class Container(Node):
 
     def _has_ref_type(self) -> bool:
         return self._metadata.ref_type is not Any
+
+
+class SCMode(Enum):
+    DICT = 1  # convert to plain dict
+    DICT_CONFIG = 2  # Keep as OmegaConf DictConfig
