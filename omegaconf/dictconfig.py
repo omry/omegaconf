@@ -171,7 +171,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if vk == ValueKind.INTERPOLATION:
             return
         self._validate_non_optional(key, value)
-        if vk is ValueKind.MANDATORY_MISSING or value is None:
+        if vk == ValueKind.MANDATORY_MISSING or value is None:
             return
 
         target = self._get_node(key) if key is not None else self

@@ -116,9 +116,7 @@ class ValueNode(Node):
                 # Will happen if interpolation is accessing keys that does not exist.
                 return False
         else:
-            ret = _is_missing_literal(self._value())
-            assert isinstance(ret, bool)
-            return ret
+            return _is_missing_literal(self._value())
 
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())
