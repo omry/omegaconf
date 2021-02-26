@@ -170,38 +170,36 @@ def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
     assert valid_value_annotation_type(type_) == expected
 
 
-@mark.parametrize(
-    "test_cls_or_obj",
-    [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
-)
-def test_get_structured_config_data(test_cls_or_obj: Any) -> None:
-    d = _utils.get_structured_config_data(test_cls_or_obj)
-    assert d["x"] == 10
-    assert d["s"] == "foo"
-    assert d["b"] == bool(True)
-    assert d["f"] == 3.14
-    assert d["e"] == _TestEnum.A
-    assert d["list1"] == []
-    assert d["dict1"] == {}
+class TestGetStructuredConfigInfo:
+    @mark.parametrize(
+        "test_cls_or_obj",
+        [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
+    )
+    def test_get_structured_config_data(self, test_cls_or_obj: Any) -> None:
+        d = _utils.get_structured_config_data(test_cls_or_obj)
+        assert d["x"] == 10
+        assert d["s"] == "foo"
+        assert d["b"] == bool(True)
+        assert d["f"] == 3.14
+        assert d["e"] == _TestEnum.A
+        assert d["list1"] == []
+        assert d["dict1"] == {}
 
+    def test_get_structured_config_data_throws_ValueError(self) -> None:
+        with raises(ValueError):
+            _utils.get_structured_config_data("invalid")
 
-def test_get_structured_config_data_throws_ValueError() -> None:
-    with raises(ValueError):
-        _utils.get_structured_config_data("invalid")
+    @mark.parametrize(
+        "test_cls_or_obj",
+        [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
+    )
+    def test_get_structured_config_field_names(self, test_cls_or_obj: Any) -> None:
+        field_names = _utils.get_structured_config_field_names(test_cls_or_obj)
+        assert field_names == ["x", "s", "b", "f", "e", "list1", "dict1"]
 
-
-@mark.parametrize(
-    "test_cls_or_obj",
-    [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
-)
-def test_get_structured_config_field_names(test_cls_or_obj: Any) -> None:
-    field_names = _utils.get_structured_config_field_names(test_cls_or_obj)
-    assert field_names == ["x", "s", "b", "f", "e", "list1", "dict1"]
-
-
-def test_get_structured_config_field_names_throws_ValueError() -> None:
-    with raises(ValueError):
-        _utils.get_structured_config_field_names("invalid")
+    def test_get_structured_config_field_names_throws_ValueError(self) -> None:
+        with raises(ValueError):
+            _utils.get_structured_config_field_names("invalid")
 
 
 @mark.parametrize(
