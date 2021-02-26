@@ -130,7 +130,8 @@ def register_default_resolvers() -> None:
                 f"caused the following exception: {exc}. Node interpolations are not "
                 f"supported in environment variables: either remove them, or escape "
                 f"them to keep them as a strings."
-            )
+            ).with_traceback(sys.exc_info()[2])
+
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.

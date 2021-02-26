@@ -322,9 +322,15 @@ def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> No
 
 def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
-    monkeypatch.setenv("my_key", "${other_key}")
-    c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-    with pytest.raises(InterpolationKeyError):
+    monkeypatch.setenv("MYKEY", "${other_key}")
+    c = OmegaConf.create(dict(my_key="${env:MYKEY}", other_key=123))
+    with pytest.raises(
+        InterpolationKeyError,
+        match=re.escape(
+            "When attempting to resolve env variable 'MYKEY', a node interpolation caused "
+            "the following exception: Interpolation key 'other_key' not found."
+        ),
+    ):
         c.my_key
 
 

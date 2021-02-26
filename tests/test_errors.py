@@ -25,6 +25,7 @@ from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
+    InterpolationToMissingValueError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -251,6 +252,47 @@ params = [
             parent_node=lambda cfg: cfg.foo,
         ),
         id="dict,accessing_missing_relative_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "${..missing}"}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationKeyError,
+            msg="ConfigKeyError while resolving interpolation: Error resolving key '..missing'",
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_invalid_double_relative_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "${int.missing}", "int": 0}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationKeyError,
+            msg=(
+                "ConfigKeyError while resolving interpolation: Error trying to access int.missing: "
+                "node `int` is not a container and thus cannot contain `missing`"
+            ),
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_non_container_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"foo": "${${missing_val}}", "missing_val": "???"}
+            ),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value : missing_val"
+            ),
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_missing_nested_interpolation",
     ),
     # setattr
     pytest.param(
@@ -1258,7 +1300,7 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
     expected_msg = dedent(
         """\
-        float division by zero
+        ZeroDivisionError raised while resolving interpolation: float division by zero
             full_key: div_by_zero
             object_type=dict"""
     )

@@ -1,4 +1,5 @@
 import copy
+import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -10,7 +11,6 @@ from antlr4 import ParserRuleContext
 from ._utils import (
     ValueKind,
     _get_value,
-    _is_missing_literal,
     _is_missing_value,
     format_and_raise,
     get_value_kind,
@@ -434,7 +434,9 @@ class Container(Node):
         try:
             root_node, inter_key = self._resolve_key_and_root(inter_key)
         except ConfigKeyError as exc:
-            raise InterpolationKeyError(str(exc))
+            raise InterpolationKeyError(
+                f"ConfigKeyError while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
 
         try:
             parent, last_key, value = root_node._select_impl(
@@ -443,9 +445,13 @@ class Container(Node):
                 throw_on_resolution_failure=True,
             )
         except MissingMandatoryValue as exc:
-            raise InterpolationToMissingValueError(str(exc))
+            raise InterpolationToMissingValueError(
+                f"MissingMandatoryValue while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
         except ConfigKeyError as exc:
-            raise InterpolationKeyError(str(exc))
+            raise InterpolationKeyError(
+                f"ConfigKeyError while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
 
         if parent is None or value is None:
             raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
@@ -553,7 +559,7 @@ class Container(Node):
             # Other kinds of exceptions are wrapped in an `InterpolationResolutionError`.
             raise InterpolationResolutionError(
                 f"{type(exc).__name__} raised while resolving interpolation: {exc}"
-            )
+            ).with_traceback(sys.exc_info()[2])
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig
