@@ -724,7 +724,7 @@ def test_invalid_intermediate_result_when_not_throwing(
 
     The main goal of this test is to make sure that the resolution of an interpolation
     is stopped immediately when a missing / resolution failure occurs, even if
-    `throw_on_missing` and `throw_on_resolution_failure` are set to False.
+    `throw_on_resolution_failure` is set to False.
     When this happens while dereferencing a node, the result should be `None`.
     """
 
