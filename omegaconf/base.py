@@ -408,7 +408,7 @@ class Container(Node):
                 key=key,
                 parent=parent,
             )
-        except Exception:
+        except InterpolationResolutionError:
             if throw_on_resolution_failure:
                 raise
             return None
