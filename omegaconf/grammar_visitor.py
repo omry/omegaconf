@@ -261,7 +261,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             )
 
         is_previous_comma = True  # whether previous child was a comma (init to True)
-        for i, child in enumerate(ctx.getChildren()):
+        for child in ctx.getChildren():
             if isinstance(child, OmegaConfGrammarParser.ElementContext):
                 # Also preserve the original text representation of `child` so
                 # as to allow backward compatibility with old resolvers (registered
