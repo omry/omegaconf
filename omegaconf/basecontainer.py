@@ -812,7 +812,11 @@ def _instantiate_structured_config_impl(
     object_type = conf._metadata.object_type
 
     object_type_field_names = get_structured_config_field_names(object_type)
-    if issubclass(object_type, dict):
+    if not issubclass(object_type, dict):
+        # normal structured config
+        assert set(instance_data.keys()) <= set(object_type_field_names)
+        result = object_type(**instance_data)
+    else:
         # Extending dict as a subclass
 
         retdict_field_items = {
@@ -823,8 +827,4 @@ def _instantiate_structured_config_impl(
         }
         result = object_type(**retdict_field_items)
         result.update(retdict_nonfield_items)
-    else:
-        # normal structured config
-        assert set(instance_data.keys()) <= set(object_type_field_names)
-        result = object_type(**instance_data)
     return result
