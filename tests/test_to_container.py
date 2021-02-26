@@ -96,12 +96,7 @@ class TestSCMode:
         assert ret == ex_dict_config
 
     def test_scmode_instantiate(
-        self,
-        cfg: Any,
-        ex_dict: Any,
-        ex_dict_config: Any,
-        ex_instantiate: Any,
-        key: Any,
+        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
         assert ret == ex_instantiate
