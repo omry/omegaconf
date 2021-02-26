@@ -532,30 +532,31 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
+            op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
-            object_type_str=None,
-            ref_type_str=None,
+            key="foo",
+            object_type=NotOptionalInt,
+            parent_node=lambda _: {},  # dummy parent
         ),
         id="dict:create_none_optional_with_none",
     ),
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
+            op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            object_type=None,
+            object_type=NotOptionalInt,
             msg="Non optional field cannot be assigned None",
-            object_type_str="NotOptionalInt",
-            ref_type_str=None,
+            key="foo",
+            parent_node=lambda _: {},  # dummy parent
         ),
         id="dict:create:not_optional_int_field_with_none",
     ),
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NotOptionalA),
+            op=lambda _: OmegaConf.structured(NotOptionalA),
             exception_type=ValidationError,
             object_type=None,
             key=None,
@@ -569,32 +570,35 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(IllegalType),
+            op=lambda _: OmegaConf.structured(IllegalType),
             exception_type=ValidationError,
             msg="Input class 'IllegalType' is not a structured config. did you forget to decorate it as a dataclass?",
             object_type_str=None,
             ref_type_str=None,
+            parent_node=lambda _: None,
         ),
         id="dict_create_from_illegal_type",
     ),
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(IllegalType()),
+            op=lambda _: OmegaConf.structured(IllegalType()),
             exception_type=ValidationError,
             msg="Object of unsupported type: 'IllegalType'",
             object_type_str=None,
             ref_type_str=None,
+            parent_node=lambda _: None,
         ),
         id="structured:create_from_unsupported_object",
     ),
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(UnionError),
+            op=lambda _: OmegaConf.structured(UnionError),
             exception_type=ValueError,
             msg="Union types are not supported:\nx: Union[int, str]",
             num_lines=3,
+            parent_node=lambda _: None,
         ),
         id="structured:create_with_union_error",
     ),
@@ -607,6 +611,7 @@ params = [
             msg="Invalid type assigned : int is not a subclass of ConcretePlugin. value: 1",
             low_level=True,
             ref_type=Optional[ConcretePlugin],
+            parent_node=lambda _: {},  # dummy parent
         ),
         id="dict:set_value:reftype_mismatch",
     ),

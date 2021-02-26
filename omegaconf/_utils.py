@@ -15,6 +15,7 @@ from .errors import (
     ConfigTypeError,
     ConfigValueError,
     OmegaConfBaseException,
+    ValidationError,
 )
 from .grammar_parser import parse
 
@@ -195,13 +196,15 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
+    obj_type = get_type_of(obj)
+
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create(flags=flags)
+    dummy_parent._metadata.object_type = obj_type
     from omegaconf import MISSING
 
     d = {}
     is_type = isinstance(obj, type)
-    obj_type = obj if is_type else type(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
         type_ = _resolve_forward(type_, obj.__module__)
@@ -217,13 +220,16 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            dummy_parent._format_and_raise(key=name, value=value, cause=ex)
         d[name]._set_parent(None)
     return d
 
@@ -233,10 +239,13 @@ def get_dataclass_data(
 ) -> Dict[str, Any]:
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
+    obj_type = get_type_of(obj)
+
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create({}, flags=flags)
+    dummy_parent._metadata.object_type = obj_type
     d = {}
-    resolved_hints = get_type_hints(get_type_of(obj))
+    resolved_hints = get_type_hints(obj_type)
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
@@ -257,13 +266,16 @@ def get_dataclass_data(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            dummy_parent._format_and_raise(key=name, value=value, cause=ex)
         d[name]._set_parent(None)
     return d
 
