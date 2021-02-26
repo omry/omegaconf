@@ -7,7 +7,6 @@ from typing import Any, Dict, Optional, Type, Union
 from omegaconf._utils import (
     ValueKind,
     _is_interpolation,
-    _is_missing_value,
     get_type_of,
     get_value_kind,
     is_primitive_container,
