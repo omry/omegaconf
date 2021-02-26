@@ -47,7 +47,7 @@ from ._utils import (
     is_tuple_annotation,
     type_str,
 )
-from .base import Container, Node
+from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
@@ -579,21 +579,37 @@ class OmegaConf:
         *,
         resolve: bool = False,
         enum_to_str: bool = False,
-        exclude_structured_configs: bool = False,
-        instantiate: bool = False,
+        structured_config_mode: SCMode = SCMode.DICT,
+        exclude_structured_configs: Optional[bool] = None,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
         :param resolve: True to resolve all values
-        :param enum_to_str: True to convert Enum values to strings
-        :param exclude_structured_configs: If True, do not convert Structured Configs
-               (DictConfigs backed by a dataclass)
-        :param instantiate: If True, this function will instantiate structured configs
-               (DictConfigs backed by a dataclass), by creating an instance
-               of the underlying dataclass. See also OmegaConf.to_object.
+        :param enum_to_str: True to convert Enum keys and values to strings
+        :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
+            By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
+            If `structured_config_mode=SCMode.DICT_CONFIG`, structured config nodes will remain as DictConfig.
+            If `structured_config_mode=SCMode.INSTANTIATE`, this function will instantiate structured configs
+               (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
+               See also OmegaConf.to_object.
+        :param exclude_structured_configs: (DEPRECATED) If true, do not convert structured configs.
+            Equivalent to `structured_config_mode=SCMode.DICT_CONFIG`.
         :return: A dict or a list representing this config as a primitive container.
         """
+        if exclude_structured_configs is not None:
+            warnings.warn(
+                dedent(
+                    """\
+                The exclude_structured_configs argument to to_container is deprecated.
+                See https://github.com/omry/omegaconf/issues/548 for migration instructions.
+                """
+                ),
+                UserWarning,
+                stacklevel=2,
+            )
+            if exclude_structured_configs is True:
+                structured_config_mode = SCMode.DICT_CONFIG
         if not OmegaConf.is_config(cfg):
             raise ValueError(
                 f"Input cfg is not an OmegaConf config object ({type_str(type(cfg))})"
@@ -603,8 +619,7 @@ class OmegaConf:
             cfg,
             resolve=resolve,
             enum_to_str=enum_to_str,
-            exclude_structured_configs=exclude_structured_configs,
-            instantiate=instantiate,
+            structured_config_mode=structured_config_mode,
         )
 
     @staticmethod
@@ -619,7 +634,7 @@ class OmegaConf:
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
         as instances of those backing classes.
 
-        This is an alias for OmegaConf.to_container(..., exclude_structured_configs=Flase, instantiate=True)
+        This is an alias for OmegaConf.to_container(..., resolve=True, structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
         :param resolve: True to resolve all values
@@ -630,8 +645,7 @@ class OmegaConf:
             cfg=cfg,
             resolve=resolve,
             enum_to_str=enum_to_str,
-            exclude_structured_configs=False,
-            instantiate=True,
+            structured_config_mode=SCMode.INSTANTIATE,
         )
 
     @staticmethod
@@ -1011,17 +1025,6 @@ def _select_one(
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
-        if val is not None:
-            assert isinstance(val, Node)
-            if val._is_missing():
-                if throw_on_missing:
-                    raise MissingMandatoryValue(
-                        f"Missing mandatory value : {c._get_full_key(ret_key)}"
-                    )
-                else:
-                    return val, ret_key
-        else:
-            val = None
     elif isinstance(c, ListConfig):
         assert isinstance(ret_key, str)
         if not is_int(ret_key):
@@ -1039,6 +1042,16 @@ def _select_one(
                 val = c._get_node(ret_key)
     else:
         assert False
+
+    if val is not None:
+        assert isinstance(val, Node)
+        if val._is_missing():
+            if throw_on_missing:
+                raise MissingMandatoryValue(
+                    f"Missing mandatory value : {c._get_full_key(ret_key)}"
+                )
+            else:
+                return val, ret_key
 
     assert val is None or isinstance(val, Node)
     return val, ret_key

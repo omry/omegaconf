@@ -19,6 +19,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _is_missing_value,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -170,7 +171,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if vk == ValueKind.INTERPOLATION:
             return
         self._validate_non_optional(key, value)
-        if value == "???" or value is None:
+        if vk == ValueKind.MANDATORY_MISSING or value is None:
             return
 
         target = self._get_node(key) if key is not None else self
@@ -275,28 +276,26 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _s_validate_and_normalize_key(self, key_type: Any, key: Any) -> DictKeyType:
         if key_type is Any:
             for t in DictKeyType.__args__:  # type: ignore
-                try:
-                    return self._s_validate_and_normalize_key(key_type=t, key=key)
-                except KeyValidationError:
-                    pass
+                if isinstance(key, t):
+                    return key  # type: ignore
             raise KeyValidationError("Incompatible key type '$KEY_TYPE'")
-        elif key_type == str:
-            if not isinstance(key, str):
+        elif key_type is bool and key in [0, 1]:
+            # Python treats True as 1 and False as 0 when used as dict keys
+            #   assert hash(0) == hash(False)
+            #   assert hash(1) == hash(True)
+            return bool(key)
+        elif key_type in (str, int, float, bool):  # primitive type
+            if not isinstance(key, key_type):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
                 )
 
-            return key
-        elif key_type == int:
-            if not isinstance(key, int):
-                raise KeyValidationError(
-                    f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
-                )
-
-            return key
+            return key  # type: ignore
         elif issubclass(key_type, Enum):
             try:
-                ret = EnumNode.validate_and_convert_to_enum(key_type, key)
+                ret = EnumNode.validate_and_convert_to_enum(
+                    key_type, key, allow_none=False
+                )
                 assert ret is not None
                 return ret
             except ValidationError:
@@ -377,6 +376,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self._format_and_raise(key=key, value=None, cause=e)
 
     def __delitem__(self, key: DictKeyType) -> None:
+        key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -402,7 +402,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 ),
             )
 
-        del self.__dict__["_content"][key]
+        try:
+            del self.__dict__["_content"][key]
+        except KeyError:
+            msg = "Key not found: '$KEY'"
+            self._format_and_raise(key=key, value=None, cause=ConfigKeyError(msg))
 
     def get(self, key: DictKeyType, default_value: Any = None) -> Any:
         """Return the value for `key` if `key` is in the dictionary, else
@@ -602,7 +606,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import OmegaConf, flag_override
+        from omegaconf import MISSING, OmegaConf, flag_override
 
         if flags is None:
             flags = {}
@@ -616,8 +620,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         elif _is_interpolation(value, strict_interpolation_validation=True):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
-        elif value == "???":
-            self.__dict__["_content"] = "???"
+        elif _is_missing_value(value):
+            self.__dict__["_content"] = MISSING
             self._metadata.object_type = None
         else:
             self.__dict__["_content"] = {}

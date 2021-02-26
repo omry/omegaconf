@@ -34,6 +34,21 @@ class NonCopyableIllegalType:
         raise NotImplementedError()
 
 
+class Dataframe:
+    """Emulates Pandas Dataframe equality and boolean behavior."""
+
+    def __init__(self) -> None:
+        pass
+
+    def __eq__(self, other: Any) -> Any:
+        """Mimic pandas DataFrame __eq__, which returns a pandas DataFrame object"""
+        return self
+
+    def __bool__(self) -> None:
+        """Mimic pandas DataFrame __bool__, which raises a ValueError"""
+        raise ValueError
+
+
 @contextmanager
 def does_not_raise(enter_result: Any = None) -> Iterator[Any]:
     yield enter_result
@@ -181,7 +196,11 @@ class UntypedDict:
 
 @dataclass
 class SubscriptedDict:
-    dict: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
+    dict_str: Dict[str, int] = field(default_factory=lambda: {"foo": 4})
+    dict_enum: Dict[Color, int] = field(default_factory=lambda: {Color.RED: 4})
+    dict_int: Dict[int, int] = field(default_factory=lambda: {123: 4})
+    dict_float: Dict[float, int] = field(default_factory=lambda: {123.45: 4})
+    dict_bool: Dict[bool, int] = field(default_factory=lambda: {True: 4, False: 5})
 
 
 @dataclass

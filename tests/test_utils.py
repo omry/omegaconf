@@ -23,7 +23,7 @@ from omegaconf.nodes import (
     StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
-from tests import Color, ConcretePlugin, IllegalType, Plugin, User
+from tests import Color, ConcretePlugin, Dataframe, IllegalType, Plugin, User
 
 
 @mark.parametrize(
@@ -267,6 +267,7 @@ class Dataclass:
         (False, _utils.ValueKind.VALUE),
         (Color.GREEN, _utils.ValueKind.VALUE),
         (Dataclass, _utils.ValueKind.VALUE),
+        (Dataframe(), _utils.ValueKind.VALUE),
         ("???", _utils.ValueKind.MANDATORY_MISSING),
         ("${foo.bar}", _utils.ValueKind.INTERPOLATION),
         ("ftp://${host}/path", _utils.ValueKind.INTERPOLATION),

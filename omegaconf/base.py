@@ -7,7 +7,13 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 from antlr4 import ParserRuleContext
 
-from ._utils import ValueKind, _get_value, format_and_raise, get_value_kind
+from ._utils import (
+    ValueKind,
+    _get_value,
+    _is_missing_literal,
+    format_and_raise,
+    get_value_kind,
+)
 from .errors import (
     ConfigKeyError,
     InterpolationResolutionError,
@@ -19,7 +25,7 @@ from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 
-DictKeyType = Union[str, int, Enum]
+DictKeyType = Union[str, int, Enum, float, bool]
 
 _MARKER_ = object()
 
@@ -179,7 +185,7 @@ class Node(ABC):
         assert False
 
     @abstractmethod
-    def _get_full_key(self, key: Union[str, Enum, int, None]) -> str:
+    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
         ...
 
     def _dereference_node(
@@ -207,7 +213,7 @@ class Node(ABC):
             # not interpolation, compare directly
             if throw_on_missing:
                 value = self._value()
-                if value == "???":
+                if _is_missing_literal(value):
                     raise MissingMandatoryValue("Missing mandatory value")
             return self
 
@@ -615,3 +621,9 @@ class Container(Node):
 
     def _has_ref_type(self) -> bool:
         return self._metadata.ref_type is not Any
+
+
+class SCMode(Enum):
+    DICT = 1  # Convert to plain dict
+    DICT_CONFIG = 2  # Keep as OmegaConf DictConfig
+    INSTANTIATE = 3  # Create a dataclass or attrs class instance

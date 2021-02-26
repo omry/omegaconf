@@ -353,6 +353,23 @@ class ValueKind(Enum):
     INTERPOLATION = 2
 
 
+def _is_missing_value(value: Any) -> bool:
+    from omegaconf import Node
+
+    if isinstance(value, Node):
+        value = value._value()
+    return _is_missing_literal(value)
+
+
+def _is_missing_literal(value: Any) -> bool:
+    from omegaconf import MISSING, Node
+
+    assert not isinstance(value, Node)
+    ret = isinstance(value, str) and value == MISSING
+    assert isinstance(ret, bool)
+    return ret
+
+
 def get_value_kind(
     value: Any, strict_interpolation_validation: bool = False
 ) -> ValueKind:
@@ -370,10 +387,10 @@ def get_value_kind(
         this parsing step is skipped: this is more efficient, but will not detect errors.
     """
 
-    value = _get_value(value)
-
-    if value == "???":
+    if _is_missing_value(value):
         return ValueKind.MANDATORY_MISSING
+
+    value = _get_value(value)
 
     # We identify potential interpolations by the presence of "${" in the string.
     # Note that escaped interpolations (ex: "esc: \${bar}") are identified as

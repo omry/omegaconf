@@ -51,7 +51,23 @@ From a dictionary
       3: c
     <BLANKLINE>
 
-OmegaConf supports `str`, `int` and Enums as dictionary key types.
+Here is an example of various supported key types:
+
+.. doctest::
+
+    >>> from enum import Enum
+    >>> class Color(Enum):
+    ...   RED = 1
+    ...   BLUE = 2
+    >>> 
+    >>> conf = OmegaConf.create(
+    ...   {"key": "str", 123: "int", True: "bool", 3.14: "float", Color.RED: "Color"}
+    ... )
+    >>> 
+    >>> print(conf)
+    {'key': 'str', 123: 'int', True: 'bool', 3.14: 'float', <Color.RED: 1>: 'Color'}
+
+OmegaConf supports `str`, `int`, `bool`, `float` and Enums as dictionary key types.
 
 From a list
 ^^^^^^^^^^^
@@ -302,6 +318,11 @@ Config node interpolation
 The interpolated variable can be the dot-path to another node in the configuration, and in that case
 the value will be the value of that node.
 
+Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
+The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
+e.g. **${..foo}** points to the **foo** sibling of the parent of the current node.
+
+
 Input YAML file:
 
 .. include:: config_interpolation.yaml
@@ -318,6 +339,8 @@ Example:
     80
     >>> type(conf.client.server_port).__name__
     'int'
+    >>> conf.client.description
+    'Client of http://localhost:80/'
 
     >>> # Composite interpolation types are always string
     >>> conf.client.url
@@ -330,13 +353,15 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
 
 .. doctest::
 
-
     >>> cfg = OmegaConf.create(
-    ...     {
-    ...         "plans": {"A": "plan A", "B": "plan B"},
-    ...         "selected_plan": "A",
-    ...         "plan": "${plans.${selected_plan}}",
-    ...     }
+    ...    {
+    ...        "plans": {
+    ...            "A": "plan A",
+    ...            "B": "plan B",
+    ...        },
+    ...        "selected_plan": "A",
+    ...        "plan": "${plans.${selected_plan}}",
+    ...    }
     ... )
     >>> cfg.plan # default plan
     'plan A'
@@ -715,6 +740,22 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> print(resolved)
     {'foo': 'bar', 'foo2': 'bar'}
 
+You can customize the treatment of **OmegaConf.to_container()** for
+Structured Config nodes using the `structured_config_mode` option.
+By default, Structured Config nodes are converted to plain dict.
+Using **structured_config_mode=SCMode.DICT_CONFIG** causes such nodes to remain
+as DictConfig, allowing attribute style access on the resulting node.
+
+.. doctest::
+
+    >>> from omegaconf import SCMode
+    >>> conf = OmegaConf.create({"structured_config": MyConfig})
+    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
+    >>> print(container)
+    {'structured_config': {'port': 80, 'host': 'localhost'}}
+    >>> assert type(container) is dict
+    >>> assert type(container["structured_config"]) is DictConfig
+    >>> assert container["structured_config"].port == 80
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^

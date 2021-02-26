@@ -21,6 +21,7 @@ from tests import (
     C,
     ConcretePlugin,
     ConfWithMissingDict,
+    Dataframe,
     Group,
     IllegalType,
     InterpolationDict,
@@ -597,6 +598,12 @@ def test_merge_allow_objects(merge: Any) -> None:
     cfg._set_flag("allow_objects", True)
     ret = merge(cfg, {"foo": iv})
     assert ret == {"a": 10, "foo": iv}
+
+
+def test_merge_with_allow_Dataframe() -> None:
+    cfg = OmegaConf.create({"a": Dataframe()}, flags={"allow_objects": True})
+    ret = OmegaConf.merge({}, cfg)
+    assert isinstance(ret.a, Dataframe)
 
 
 @pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])

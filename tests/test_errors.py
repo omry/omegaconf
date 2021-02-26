@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
 import pytest
@@ -91,7 +90,7 @@ class Expected:
             if self.key is None:
                 self.full_key = ""
             else:
-                if isinstance(self.key, (str, int, Enum, slice)):
+                if isinstance(self.key, (str, int, Enum, float, bool, slice)):
                     self.full_key = self.key
                 else:
                     self.full_key = ""
@@ -153,24 +152,46 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "bar"}),
-            op=lambda cfg: cfg.pop("nevermind"),
-            key="nevermind",
+            op=lambda cfg: cfg.pop("not_found"),
+            key="not_found",
             exception_type=ConfigKeyError,
-            msg="Key not found: 'nevermind'",
+            msg="Key not found: 'not_found'",
         ),
         id="dict:pop_invalid",
     ),
     pytest.param(
         Expected(
             create=lambda: OmegaConf.create({"foo": {}}),
-            op=lambda cfg: cfg.foo.pop("nevermind"),
-            key="nevermind",
-            full_key="foo.nevermind",
+            op=lambda cfg: cfg.foo.pop("not_found"),
+            key="not_found",
+            full_key="foo.not_found",
             parent_node=lambda cfg: cfg.foo,
             exception_type=ConfigKeyError,
-            msg="Key not found: 'nevermind' (path: 'foo.nevermind')",
+            msg="Key not found: 'not_found' (path: 'foo.not_found')",
         ),
         id="dict:pop_invalid_nested",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "bar"}),
+            op=lambda cfg: cfg.__delitem__("not_found"),
+            key="not_found",
+            exception_type=ConfigKeyError,
+            msg="Key not found: 'not_found'",
+        ),
+        id="dict:del_invalid",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": {}}),
+            op=lambda cfg: cfg.foo.__delitem__("not_found"),
+            key="not_found",
+            full_key="foo.not_found",
+            parent_node=lambda cfg: cfg.foo,
+            exception_type=ConfigKeyError,
+            msg="Key not found: 'not_found'",
+        ),
+        id="dict:del_invalid_nested",
     ),
     pytest.param(
         Expected(
@@ -316,6 +337,16 @@ params = [
     ),
     pytest.param(
         Expected(
+            create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
+            op=lambda cfg: cfg.__setitem__(None, "bar"),
+            exception_type=KeyValidationError,
+            msg="Key 'None' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
+            key=None,
+        ),
+        id="DictConfig[Color,str]:setitem_bad_key",
+    ),
+    pytest.param(
+        Expected(
             create=lambda: DictConfig(key_type=str, element_type=Color, content={}),
             op=lambda cfg: cfg.__setitem__("foo", "bar"),
             exception_type=ValidationError,
@@ -357,6 +388,16 @@ params = [
             key="foo",
         ),
         id="DictConfig[Color,str]:getitem_str_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
+            op=lambda cfg: cfg.__getitem__(None),
+            exception_type=KeyValidationError,
+            msg="Key 'None' is incompatible with the enum type 'Color', valid: [RED, GREEN, BLUE]",
+            key=None,
+        ),
+        id="DictConfig[Color,str]:getitem_str_key_None",
     ),
     pytest.param(
         Expected(
@@ -459,16 +500,33 @@ params = [
             create=lambda: DictConfig({}, key_type=int),
             op=lambda cfg: cfg.get("foo"),
             exception_type=KeyValidationError,
-            msg=dedent(
-                """\
-                Key foo (str) is incompatible with (int)
-                    full_key: foo
-                    object_type=dict"""
-            ),
+            msg="Key foo (str) is incompatible with (int)",
             key="foo",
             full_key="foo",
         ),
         id="dict[int,Any]:mistyped_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig({}, key_type=float),
+            op=lambda cfg: cfg.get("foo"),
+            exception_type=KeyValidationError,
+            msg="Key foo (str) is incompatible with (float)",
+            key="foo",
+            full_key="foo",
+        ),
+        id="dict[float,Any]:mistyped_key",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: DictConfig({}, key_type=bool),
+            op=lambda cfg: cfg.get("foo"),
+            exception_type=KeyValidationError,
+            msg="Key foo (str) is incompatible with (bool)",
+            key="foo",
+            full_key="foo",
+        ),
+        id="dict[bool,Any]:mistyped_key",
     ),
     # dict:create
     pytest.param(
@@ -567,10 +625,10 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
-            op=lambda cfg: cfg.__setitem__("dict", 1),
+            op=lambda cfg: cfg.__setitem__("dict_str", 1),
             exception_type=ValidationError,
             msg="Cannot assign int to Dict[str, int]",
-            key="dict",
+            key="dict_str",
             ref_type=Optional[Dict[str, int]],
             low_level=True,
         ),
@@ -579,14 +637,38 @@ params = [
     pytest.param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
-            op=lambda cfg: cfg.__setitem__("dict", User(age=2, name="bar")),
+            op=lambda cfg: cfg.__setitem__("dict_str", User(age=2, name="bar")),
             exception_type=ValidationError,
             msg="Cannot assign User to Dict[str, int]",
-            key="dict",
+            key="dict_str",
             ref_type=Optional[Dict[str, int]],
             low_level=True,
         ),
         id="DictConfig[str,int]:assigned_structured_config",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(SubscriptedDict),
+            op=lambda cfg: cfg.__setitem__("dict_int", "fail"),
+            exception_type=ValidationError,
+            msg="Cannot assign str to Dict[int, int]",
+            key="dict_int",
+            ref_type=Optional[Dict[int, int]],
+            low_level=True,
+        ),
+        id="DictConfig[int,int]:assigned_primitive_type",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(SubscriptedDict),
+            op=lambda cfg: cfg.__setitem__("dict_int", User(age=2, name="bar")),
+            exception_type=ValidationError,
+            msg="Cannot assign User to Dict[int, int]",
+            key="dict_int",
+            ref_type=Optional[Dict[int, int]],
+            low_level=True,
+        ),
+        id="DictConfig[int,int]:assigned_structured_config",
     ),
     # delete
     pytest.param(

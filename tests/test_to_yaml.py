@@ -15,6 +15,8 @@ from tests import Enum1, User
         ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
         ({"abc": "str key"}, "abc: str key\n"),
         ({123: "int key"}, "123: int key\n"),
+        ({123.45: "float key"}, "123.45: float key\n"),
+        ({True: "bool key", False: "another"}, "true: bool key\nfalse: another\n"),
     ],
 )
 def test_to_yaml(input_: Any, expected: str) -> None:
@@ -124,6 +126,14 @@ def test_to_yaml_with_enum() -> None:
         OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
         == cfg
     )
+
+
+def test_to_yaml_with_enum_key() -> None:
+    cfg = OmegaConf.create({Enum1.FOO: "enum key"})
+    expected = """FOO: enum key
+"""
+    s = OmegaConf.to_yaml(cfg)
+    assert s == expected
 
 
 def test_pretty_deprecated() -> None:

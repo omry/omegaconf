@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
-    ValueKind,
     _ensure_container,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
+    _is_missing_value,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
-    get_value_kind,
     get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
@@ -25,7 +25,7 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
 
 if TYPE_CHECKING:
@@ -44,18 +44,15 @@ class BaseContainer(Container, ABC):
 
     def _resolve_with_default(
         self,
-        key: Union[str, int, Enum],
+        key: Union[DictKeyType, int],
         value: Any,
         default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
 
-        def is_mandatory_missing(val: Any) -> bool:
-            return bool(get_value_kind(val) == ValueKind.MANDATORY_MISSING)
-
         val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
-        if has_default and (val is None or is_mandatory_missing(val)):
+        if has_default and (val is None or _is_missing_value(val)):
             return default_value
 
         resolved = self._maybe_resolve_interpolation(
@@ -68,7 +65,7 @@ class BaseContainer(Container, ABC):
         if resolved is None and has_default:
             return default_value
 
-        if is_mandatory_missing(resolved):
+        if _is_missing_value(resolved):
             if has_default:
                 return default_value
             else:
@@ -192,16 +189,9 @@ class BaseContainer(Container, ABC):
         conf: Container,
         resolve: bool,
         enum_to_str: bool = False,
-        exclude_structured_configs: bool = False,
-        instantiate: bool = False,
+        structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-
-        if exclude_structured_configs and instantiate:
-            raise ValueError(
-                "Cannot both exclude and and instantiate structured configs"
-            )
+        from omegaconf import MISSING, DictConfig, ListConfig
 
         def convert(val: Node) -> Any:
             value = val._value()
@@ -218,9 +208,12 @@ class BaseContainer(Container, ABC):
             assert isinstance(inter, str)
             return inter
         elif conf._is_missing():
-            return "???"
+            return MISSING
         elif isinstance(conf, DictConfig):
-            if conf._metadata.object_type is not None and exclude_structured_configs:
+            if (
+                conf._metadata.object_type is not None
+                and structured_config_mode == SCMode.DICT_CONFIG
+            ):
                 return conf
 
             retdict: Dict[str, Any] = {}
@@ -233,18 +226,21 @@ class BaseContainer(Container, ABC):
                     )
 
                 assert node is not None
+                if enum_to_str and isinstance(key, Enum):
+                    key = f"{key.name}"
                 if isinstance(node, Container):
                     retdict[key] = BaseContainer._to_content(
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
-                        exclude_structured_configs=exclude_structured_configs,
-                        instantiate=instantiate,
+                        structured_config_mode=structured_config_mode,
                     )
                 else:
                     retdict[key] = convert(node)
 
-            if instantiate and is_structured_config(conf._metadata.object_type):
+            if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
+                conf._metadata.object_type
+            ):
                 retstruct = _instantiate_structured_config_impl(
                     conf=conf, instance_data=retdict
                 )
@@ -266,8 +262,7 @@ class BaseContainer(Container, ABC):
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
-                        exclude_structured_configs=exclude_structured_configs,
-                        instantiate=instantiate,
+                        structured_config_mode=structured_config_mode,
                     )
                     retlist.append(item)
                 else:
@@ -393,7 +388,7 @@ class BaseContainer(Container, ABC):
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
                         # Compare to literal missing, ignoring interpolation
-                        src_node_missing = src_value == "???"
+                        src_node_missing = _is_missing_literal(src_value)
                         try:
                             if isinstance(dest_node, AnyNode):
                                 if src_node_missing:
@@ -544,7 +539,7 @@ class BaseContainer(Container, ABC):
 
         input_config = isinstance(value, Container)
         target_node_ref = self._get_node(key)
-        special_value = value is None or value == "???"
+        special_value = value is None or _is_missing_value(value)
 
         input_node = isinstance(value, ValueNode)
         if isinstance(self.__dict__["_content"], dict):
@@ -560,7 +555,6 @@ class BaseContainer(Container, ABC):
         # 3. If the target is a NodeValue then it should set his value.
         #    Furthermore if it's an AnyNode it should wrap when the input is
         # a container and set when the input is an compatible type(primitive type).
-
         should_set_value = target_node_ref is not None and (
             (
                 isinstance(target_node_ref, Container)
@@ -710,11 +704,11 @@ class BaseContainer(Container, ABC):
     def _value(self) -> Any:
         return self.__dict__["_content"]
 
-    def _get_full_key(self, key: Union[str, Enum, int, slice, None]) -> str:
+    def _get_full_key(self, key: Union[DictKeyType, int, slice, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
-        if not isinstance(key, (int, str, Enum, slice, type(None))):
+        if not isinstance(key, (int, str, Enum, float, bool, slice, type(None))):
             return ""
 
         def _slice_to_str(x: slice) -> str:
@@ -728,6 +722,8 @@ class BaseContainer(Container, ABC):
                 key = _slice_to_str(key)
             elif isinstance(key, Enum):
                 key = key.name
+            elif isinstance(key, (int, float, bool)):
+                key = str(key)
 
             if issubclass(parent_type, ListConfig):
                 if full_key != "":
@@ -783,25 +779,17 @@ class BaseContainer(Container, ABC):
 def _create_structured_with_missing_fields(
     ref_type: type, object_type: Optional[type] = None
 ) -> "DictConfig":
-    from .dictconfig import DictConfig
+    from . import MISSING, DictConfig
 
     cfg_data = get_structured_config_data(ref_type)
     for v in cfg_data.values():
-        v._set_value("???")
+        v._set_value(MISSING)
 
     cfg = DictConfig(cfg_data)
     cfg._metadata.optional, cfg._metadata.ref_type = _resolve_optional(ref_type)
     cfg._metadata.object_type = object_type
 
     return cfg
-
-
-def _is_missing_value(value: Any) -> bool:
-    if isinstance(value, Container):
-        value = value._value()
-    ret = value == "???"
-    assert isinstance(ret, bool)
-    return ret
 
 
 def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
