@@ -582,6 +582,20 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
+            op=lambda _: OmegaConf.structured(
+                ConcretePlugin(params=ConcretePlugin.FoobarParams(foo="x"))  # type: ignore
+            ),
+            exception_type=ValidationError,
+            msg="Value 'x' could not be converted to Integer",
+            object_type=ConcretePlugin.FoobarParams,
+            key="foo",
+            parent_node=lambda _: {},  # dummy parent
+        ),
+        id="structured:create_with_invalid_value",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: None,
             op=lambda _: OmegaConf.structured(IllegalType()),
             exception_type=ValidationError,
             msg="Object of unsupported type: 'IllegalType'",
