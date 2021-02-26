@@ -1,8 +1,9 @@
 import math
+import re
 from typing import Any, Callable, List, Optional, Tuple
 
 import antlr4
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     DictConfig,
@@ -368,6 +369,30 @@ class TestOmegaConfGrammar:
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
         self._visit_with_config(parse_tree, expected_visit)
+
+    @parametrize_from(
+        [
+            ("trailing_comma", "${test:a,b,}", ["a", "b", ""]),
+            ("empty_middle", "${test:a,,b}", ["a", "", "b"]),
+            ("empty_first", "${test:,a,b}", ["", "a", "b"]),
+            ("single_comma", "${test:,}", ["", ""]),
+            (
+                "mixed_with_ws",
+                "${test:  ,a,b,\t,,c,  \t   \t ,d,, \t}",
+                ["", "a", "b", "", "", "c", "", "d", "", ""],
+            ),
+        ]
+    )
+    def test_deprecated_empty_args(
+        self, restore_resolvers: Any, definition: str, expected: Any
+    ) -> None:
+        OmegaConf.register_new_resolver("test", self._resolver_test)
+
+        parse_tree, expected_visit = self._parse("singleElement", definition, expected)
+        with warns(
+            UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/572")
+        ):
+            self._visit_with_config(parse_tree, expected_visit)
 
     def _check_is_same_type(self, value: Any, expected: Any) -> None:
         """

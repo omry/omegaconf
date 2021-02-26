@@ -250,12 +250,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         # (element (COMMA element?)*) | (COMMA element?)+
         assert ctx.getChildCount() >= 1
 
+        # DEPRECATED: remove in 2.2 (revert #571)
         def empty_str_warning() -> None:
             txt = ctx.getText()
             warnings.warn(
                 f"In the sequence `{txt}` some elements are missing: please replace "
-                f"them with empty strings (\"\" or '') since this will not be supported "
-                f"anymore in the future.",
+                f"them with empty quoted strings. "
+                f"See https://github.com/omry/omegaconf/issues/572 for details.",
                 category=UserWarning,
             )
 
