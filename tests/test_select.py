@@ -7,6 +7,7 @@ from pytest import raises
 
 from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._utils import _ensure_container
+from omegaconf.errors import InterpolationKeyError
 
 
 @pytest.mark.parametrize("struct", [True, False, None])
@@ -64,7 +65,6 @@ def test_select(
     [
         pytest.param({}, "not_found", id="empty"),
         pytest.param({"missing": "???"}, "missing", id="missing"),
-        pytest.param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
     ],
 )
 def test_select_default(
@@ -99,6 +99,20 @@ def test_select_default_throw_on_missing(
     # throw on missing still throws if default is provided
     with pytest.raises(MissingMandatoryValue):
         OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
+
+
+@pytest.mark.parametrize(
+    ["cfg", "key"],
+    [
+        pytest.param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
+    ],
+)
+def test_select_default_throw_on_resolution_failure(cfg: Any, key: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+
+    # throw on resolution failure still throws if default is provided
+    with pytest.raises(InterpolationKeyError):
+        OmegaConf.select(cfg, key, default=123, throw_on_resolution_failure=True)
 
 
 @pytest.mark.parametrize(

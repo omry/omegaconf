@@ -733,7 +733,7 @@ class OmegaConf:
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-            except (ConfigKeyError, InterpolationKeyError):
+            except ConfigKeyError:
                 if default is not _EMPTY_MARKER_:
                     return default
                 else:
