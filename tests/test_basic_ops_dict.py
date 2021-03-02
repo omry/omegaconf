@@ -182,43 +182,46 @@ def test_scientific_notation_float() -> None:
 
 @pytest.mark.parametrize("struct", [None, True, False])
 @pytest.mark.parametrize("default_val", [4, True, False, None])
-@pytest.mark.parametrize(
-    "d,select,key",
-    [
-        ({"hello": {"a": 2}}, "", "missing"),
-        ({"hello": {"a": 2}}, "hello", "missing"),
-        ({"hello": "???"}, "", "hello"),
-        ({"hello": None}, "", "hello"),
-        ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
-        ({"hello": DictConfig(content="???")}, "", "hello"),
-        ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
-        ({"hello": ListConfig(content="???")}, "", "hello"),
-    ],
-)
-def test_dict_get_with_default(
-    d: Any, select: Any, key: Any, default_val: Any, struct: Any
-) -> None:
-    c = OmegaConf.create(d)
-    c = OmegaConf.select(c, select)
-    OmegaConf.set_struct(c, struct)
-    assert c.get(key, default_val) == default_val
+class TestGetWithDefault:
+    @pytest.mark.parametrize(
+        "d,select,key",
+        [
+            ({"hello": {"a": 2}}, "", "missing"),
+            ({"hello": {"a": 2}}, "hello", "missing"),
+            ({"hello": "???"}, "", "hello"),
+            ({"hello": None}, "", "hello"),
+            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
+            ({"hello": DictConfig(content="???")}, "", "hello"),
+            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
+            ({"hello": ListConfig(content="???")}, "", "hello"),
+        ],
+    )
+    def test_dict_get_with_default(
+        self, d: Any, select: Any, key: Any, default_val: Any, struct: Optional[bool]
+    ) -> None:
+        c = OmegaConf.create(d)
+        c = OmegaConf.select(c, select)
+        OmegaConf.set_struct(c, struct)
+        assert c.get(key, default_val) == default_val
 
-
-@pytest.mark.parametrize(
-    "d,exc",
-    [
-        ({"hello": "${foo}"}, InterpolationKeyError),
-        (
-            {"hello": "${foo}", "foo": "???"},
-            InterpolationToMissingValueError,
-        ),
-        ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
-    ],
-)
-def test_dict_get_with_default_errors(d: Any, exc: type) -> None:
-    c = OmegaConf.create(d)
-    with pytest.raises(exc):
-        c.get("hello", default_value=123)
+    @pytest.mark.parametrize(
+        "d,exc",
+        [
+            ({"hello": "${foo}"}, InterpolationKeyError),
+            (
+                {"hello": "${foo}", "foo": "???"},
+                InterpolationToMissingValueError,
+            ),
+            ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
+        ],
+    )
+    def test_dict_get_with_default_errors(
+        self, d: Any, exc: type, struct: Optional[bool], default_val: Any
+    ) -> None:
+        c = OmegaConf.create(d)
+        OmegaConf.set_struct(c, struct)
+        with pytest.raises(exc):
+            c.get("hello", default_value=123)
 
 
 def test_map_expansion() -> None:
