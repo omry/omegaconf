@@ -1,1 +1,1 @@
-An interpolation interpolating a missing key no longer counts as missing. Resolving such an interpolation raises an `InterpolationToMissingValueError` exception.
+`OmegaConf.is_missing(cfg, key)`  no longer returns True if key is an interpolation to a missing key. Resolving such an interpolation raises an `InterpolationToMissingValueError` exception.
