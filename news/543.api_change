@@ -1,1 +1,1 @@
-`OmegaConf.is_missing(cfg, key)`  no longer returns True if key is an interpolation to a missing key. Resolving such an interpolation raises an `InterpolationToMissingValueError` exception.
+`OmegaConf.select()`, `DictConfig.{get(),pop()}`, `ListConfig.{get(),pop()}` no longer return the specified default value when the accessed key is an interpolation that cannot be resolved: instead, an exception is raised.
