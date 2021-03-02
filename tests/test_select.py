@@ -61,10 +61,28 @@ def test_select(
 @pytest.mark.parametrize("struct", [False, True])
 @pytest.mark.parametrize("default", [10, None])
 @pytest.mark.parametrize(
-    ("cfg", "key", "exc_no_default"),
+    ("cfg", "key"),
     [
-        pytest.param({}, "not_found", None, id="empty"),
-        pytest.param({"missing": "???"}, "missing", None, id="missing"),
+        pytest.param({}, "not_found", id="empty"),
+        pytest.param({"missing": "???"}, "missing", id="missing"),
+        pytest.param({"int": 0}, "int.y", id="non_container"),
+    ],
+)
+def test_select_default(
+    cfg: Any,
+    struct: bool,
+    key: Any,
+    default: Any,
+) -> None:
+    cfg = _ensure_container(cfg)
+    OmegaConf.set_struct(cfg, struct)
+    assert OmegaConf.select(cfg, key, default=default) == default
+
+
+@pytest.mark.parametrize("struct", [False, True])
+@pytest.mark.parametrize(
+    ("cfg", "key", "exc"),
+    [
         pytest.param(
             {"int": 0},
             "int.y",
@@ -79,23 +97,11 @@ def test_select(
         ),
     ],
 )
-def test_select_default(
-    cfg: Any,
-    struct: bool,
-    key: Any,
-    exc_no_default: Any,
-    default: Any,
-) -> None:
+def test_select_error(cfg: Any, key: Any, exc: Any, struct: bool) -> None:
     cfg = _ensure_container(cfg)
     OmegaConf.set_struct(cfg, struct)
-    assert OmegaConf.select(cfg, key, default=default) == default
-    if exc_no_default is None:
-        # Not providing a default value is expected to work and return `None`.
-        assert OmegaConf.select(cfg, key) is None
-    else:
-        # Not providing a default value is expected to raise an exception.
-        with exc_no_default:
-            OmegaConf.select(cfg, key)
+    with exc:
+        OmegaConf.select(cfg, key)
 
 
 @pytest.mark.parametrize("struct", [False, True])
