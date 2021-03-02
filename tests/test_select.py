@@ -61,7 +61,7 @@ def test_select(
 @pytest.mark.parametrize("struct", [False, True])
 @pytest.mark.parametrize("default", [10, None])
 @pytest.mark.parametrize(
-    ["cfg", "key", "exc_no_default"],
+    ("cfg", "key", "exc_no_default"),
     [
         pytest.param({}, "not_found", None, id="empty"),
         pytest.param({"missing": "???"}, "missing", None, id="missing"),
@@ -122,7 +122,7 @@ def test_select_default_throw_on_missing(
 
 
 @pytest.mark.parametrize(
-    ["cfg", "key"],
+    ("cfg", "key"),
     [
         pytest.param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
     ],
