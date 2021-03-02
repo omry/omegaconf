@@ -153,7 +153,7 @@ def test_merge_with_interpolation() -> None:
 
 
 def test_non_container_interpolation() -> None:
-    cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
+    cfg = OmegaConf.create({"foo": 0, "bar": "${foo.baz}"})
     with pytest.raises(InterpolationKeyError):
         cfg.bar
 
@@ -316,14 +316,14 @@ def test_env_is_cached(monkeypatch: Any) -> None:
 def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
     monkeypatch.setenv("my_key", value)
     monkeypatch.setenv("my_key_2", "456")
-    c = OmegaConf.create(dict(my_key="${env:my_key}"))
+    c = OmegaConf.create({"my_key": "${env:my_key}"})
     assert c.my_key == expected
 
 
 def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
     monkeypatch.setenv("MYKEY", "${other_key}")
-    c = OmegaConf.create(dict(my_key="${env:MYKEY}", other_key=123))
+    c = OmegaConf.create({"my_key": "${env:MYKEY}", "other_key": 123})
     with pytest.raises(
         InterpolationKeyError,
         match=re.escape(
@@ -438,15 +438,15 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     """
     OmegaConf.register_new_resolver("random", lambda _: random.uniform(0, 1))
     c = OmegaConf.create(
-        dict(
-            lst1="${random:[0, 1]}",
-            lst2="${random:[0, 1]}",
-            lst3="${random:[]}",
-            dct1="${random:{a: 1, b: 2}}",
-            dct2="${random:{b: 2, a: 1}}",
-            mixed1="${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
-            mixed2="${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
-        )
+        {
+            "lst1": "${random:[0, 1]}",
+            "lst2": "${random:[0, 1]}",
+            "lst3": "${random:[]}",
+            "dct1": "${random:{a: 1, b: 2}}",
+            "dct2": "${random:{b: 2, a: 1}}",
+            "mixed1": "${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
+            "mixed2": "${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
+        }
     )
     assert c.lst1 == c.lst1
     assert c.lst1 == c.lst2
@@ -462,7 +462,7 @@ def test_resolver_no_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver(
         "random", lambda _: random.uniform(0, 1), use_cache=False
     )
-    c = OmegaConf.create(dict(k="${random:__}"))
+    c = OmegaConf.create({"k": "${random:__}"})
     assert c.k != c.k
 
 
@@ -591,7 +591,7 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 def test_clear_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
-    c = OmegaConf.create(dict(k="${random:__}"))
+    c = OmegaConf.create({"k": "${random:__}"})
     old = c.k
     OmegaConf.clear_cache(c)
     assert old != c.k
@@ -599,7 +599,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
 
 def test_supported_chars() -> None:
     supported_chars = "abc123_/:-\\+.$%*@"
-    c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
+    c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
