@@ -5,7 +5,6 @@ import tempfile
 from typing import Any, Dict, List, Optional, Union
 
 import pytest
-from _pytest.python_api import RaisesContext
 
 from omegaconf import (
     MISSING,
@@ -332,13 +331,6 @@ def test_iterate_dict_with_interpolation() -> None:
         pytest.param(
             {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
         ),
-        pytest.param(
-            {"a": "${b}"},
-            "a",
-            "default",
-            pytest.raises(InterpolationKeyError),
-            id="interpolation_with_default",
-        ),
         # enum key
         pytest.param(
             {Enum1.FOO: "bar"},
@@ -387,19 +379,13 @@ def test_iterate_dict_with_interpolation() -> None:
 def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -> None:
     c = OmegaConf.create(cfg)
 
-    def pop() -> Any:
-        if default_ != "__NO_DEFAULT__":
-            return c.pop(key, default_)
-        else:
-            return c.pop(key)
-
-    if isinstance(expected, RaisesContext):
-        with expected:
-            pop()
+    if default_ != "__NO_DEFAULT__":
+        val = c.pop(key, default_)
     else:
-        val = pop()
-        assert val == expected
-        assert type(val) == type(expected)
+        val = c.pop(key)
+
+    assert val == expected
+    assert type(val) == type(expected)
 
 
 def test_dict_struct_mode_pop() -> None:
@@ -450,6 +436,7 @@ def test_dict_structured_mode_pop() -> None:
         ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
         ({1: "???", 2: "b"}, 1, pytest.raises(MissingMandatoryValue)),
         ({123.45: "???", 67.89: "b"}, 123.45, pytest.raises(MissingMandatoryValue)),
+        ({"a": "${b}"}, "a", pytest.raises(InterpolationKeyError)),
         ({True: "???", False: "b"}, True, pytest.raises(MissingMandatoryValue)),
         (
             {Enum1.FOO: "???", Enum1.BAR: "bar"},
