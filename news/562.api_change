@@ -1,2 +1,1 @@
-`key in cfg` now returns True whenever `key` is an interpolation (it used to be False for interpolations to non-existing nodes or to nodes set to `???`)
-
+`key in cfg` now returns True when `key` is an interpolation even if the interpolation target is a missing ("???") value.
