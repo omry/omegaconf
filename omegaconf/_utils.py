@@ -4,7 +4,6 @@ import re
 import string
 import sys
 from enum import Enum
-from functools import cmp_to_key
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
@@ -57,10 +56,6 @@ YAML_BOOL_TYPES = [
     "Off",
     "OFF",
 ]
-
-# Define an arbitrary (but fixed) ordering over the types of dictionary keys
-# that may be encountered when calling `_make_hashable()` on a dict.
-_CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
 class Marker:
@@ -794,64 +789,3 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
-
-
-def _make_hashable(x: Any) -> Any:
-    """
-    Obtain a hashable version of `x`.
-
-    This is achieved by turning into tuples the lists and dicts that may be
-    stored within `x`.
-    Note that dicts are sorted, so that two dicts ordered differently will
-    lead to the same resulting hashable key.
-
-    :return: a hashable version of `x` (which may be `x` itself if already hashable).
-    """
-    # Hopefully it is already hashable and we have nothing to do!
-    try:
-        hash(x)
-        return x
-    except TypeError:
-        pass
-
-    if isinstance(x, (list, tuple)):
-        return tuple(_make_hashable(y) for y in x)
-    elif isinstance(x, dict):
-        # We sort the dictionary so that the order of keys does not matter.
-        # Note that since keys might be of different types, and comparisons
-        # between different types are not always allowed, we use a custom
-        # `_safe_items_sort_key()` function to order keys.
-        return _make_hashable(tuple(sorted(x.items(), key=_safe_items_sort_key)))
-    else:
-        raise NotImplementedError(f"type {type(x)} cannot be made hashable")
-
-
-def _safe_cmp(x: Any, y: Any) -> int:
-    """
-    Compare two elements `x` and `y` in a "safe" way.
-
-    By default, this function uses regular comparison operators (== and <), but
-    if an exception is raised (due to not being able to compare x and y), we instead
-    use `_CMP_TYPES` to decide which order to use.
-    """
-    try:
-        return 0 if x == y else -1 if x < y else 1
-    except Exception:
-        type_x, type_y = type(x), type(y)
-        try:
-            idx_x = _CMP_TYPES[type_x]
-            idx_y = _CMP_TYPES[type_y]
-        except KeyError:
-            bad_type = type_x if type_y in _CMP_TYPES else type_y
-            raise TypeError(f"Invalid data type: `{bad_type}`")
-        if idx_x == idx_y:  # cannot compare two elements of the same type?!
-            raise  # pragma: no cover
-        return -1 if idx_x < idx_y else 1
-
-
-_safe_key = cmp_to_key(_safe_cmp)
-
-
-def _safe_items_sort_key(kv: Tuple[Any, Any]) -> Any:
-    """Safe function to use as sort key when sorting items in a dictionary"""
-    return _safe_key(kv[0])

@@ -81,11 +81,11 @@ def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
 
 
 def test_resolver_cache_1(restore_resolvers: Any) -> None:
-    # resolvers are always converted to stateless idempotent functions
-    # subsequent calls to the same function with the same argument will always return the same value.
-    # this is important to allow embedding of functions like time() without having the value change during
-    # the program execution.
-    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    # The cache is important to allow embedding of functions like time()
+    # without having the value change during the program execution.
+    OmegaConf.register_new_resolver(
+        "random", lambda _: random.randint(0, 10000000), use_cache=True
+    )
     c = OmegaConf.create({"k": "${random:__}"})
     assert c.k == c.k
 
@@ -100,7 +100,9 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver(
+        "random", lambda _: random.randint(0, 10000000), use_cache=True
+    )
     c1 = OmegaConf.create({"k": "${random:__}"})
     c2 = OmegaConf.create({"k": "${random:__}"})
 
@@ -121,9 +123,14 @@ def test_resolver_cache_2_legacy(restore_resolvers: Any) -> None:
 
 def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     """
-    Tests that the resolver cache works as expected with lists and dicts.
+    Test that the resolver cache works as expected with lists and dicts.
+
+    Note that since the cache is based on string literals, changing the order of
+    items in a dictionary is considered as a different input.
     """
-    OmegaConf.register_new_resolver("random", lambda _: random.uniform(0, 1))
+    OmegaConf.register_new_resolver(
+        "random", lambda _: random.uniform(0, 1), use_cache=True
+    )
     c = OmegaConf.create(
         {
             "lst1": "${random:[0, 1]}",
@@ -139,10 +146,19 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     assert c.lst1 == c.lst2
     assert c.lst1 != c.lst3
     assert c.dct1 == c.dct1
-    assert c.dct1 == c.dct2
+    assert c.dct1 != c.dct2
     assert c.mixed1 == c.mixed1
     assert c.mixed2 == c.mixed2
-    assert c.mixed1 == c.mixed2
+    assert c.mixed1 != c.mixed2
+
+
+def test_resolver_cache_4_interpolation(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver("test", lambda x: x, use_cache=True)
+    c = OmegaConf.create({"x": "${test:${y}}", "y": 0})
+
+    assert c.x == 0
+    c.y = 1
+    assert c.x == 0  # cache is based on string literals
 
 
 def test_resolver_no_cache(restore_resolvers: Any) -> None:
@@ -257,7 +273,9 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_new_resolver(
+        "random", lambda _: random.randint(0, 10000000), use_cache=True
+    )
     d = {"k": "${random:__}"}
     c1 = OmegaConf.create(d)
     assert c1.k == c1.k

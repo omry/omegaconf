@@ -11,7 +11,6 @@ from omegaconf._utils import (
     Marker,
     _ensure_container,
     _get_value,
-    _make_hashable,
     is_dict_annotation,
     is_list_annotation,
 )
@@ -593,32 +592,6 @@ def test_get_value_container(content: Any) -> None:
     cfg = DictConfig({})
     cfg._set_value(content)
     assert _get_value(cfg) == content
-
-
-@mark.parametrize(
-    "input_1,input_2",
-    [
-        (0, 0),
-        ([0, 1], (0, 1)),
-        ([0, (1, 2)], (0, [1, 2])),
-        ({0: 1, 1: 2}, {1: 2, 0: 1}),
-        ({"": 1, 0: 2}, {0: 2, "": 1}),
-        (
-            {1: 0, 1.1: 2.0, "1": "0", True: False, None: None},
-            {None: None, 1.1: 2.0, True: False, "1": "0", 1: 0},
-        ),
-    ],
-)
-def test_make_hashable(input_1: Any, input_2: Any) -> None:
-    out_1, out_2 = _make_hashable(input_1), _make_hashable(input_2)
-    assert out_1 == out_2
-    hash_1, hash_2 = hash(out_1), hash(out_2)
-    assert hash_1 == hash_2
-
-
-def test_make_hashable_type_error() -> None:
-    with raises(TypeError):
-        _make_hashable({...: 0, None: 0})
 
 
 def test_ensure_container_raises_ValueError() -> None:

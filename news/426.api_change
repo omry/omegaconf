@@ -1,1 +1,1 @@
-`register_resolver()` is deprecated in favor of `register_new_resolver()`, allowing resolvers to take non-string arguments like int, float, dict, etc.
+`register_resolver()` is deprecated in favor of `register_new_resolver()`, allowing resolvers to (i) take non-string arguments like int, float, dict, interpolations, etc. and (ii) control the cache behavior (now disabled by default)
