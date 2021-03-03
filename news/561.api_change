@@ -1,0 +1,1 @@
+All exceptions raised during the resolution of an interpolation are either `InterpolationResolutionError` or a subclass of it.

@@ -8,7 +8,8 @@ import pytest
 from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigTypeError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
+    InterpolationToMissingValueError,
     KeyValidationError,
     MissingMandatoryValue,
     UnsupportedValueType,
@@ -70,7 +71,7 @@ def test_iterate_list_with_missing_interpolation() -> None:
     c = OmegaConf.create([1, "${10}"])
     itr = iter(c)
     assert 1 == next(itr)
-    with pytest.raises(InterpolationResolutionError):
+    with pytest.raises(InterpolationKeyError):
         next(itr)
 
 
@@ -87,13 +88,37 @@ def test_items_with_interpolation() -> None:
     assert c == ["foo", "foo"]
 
 
-def test_list_pop() -> None:
-    c = OmegaConf.create([1, 2, 3, 4])
-    assert c.pop(0) == 1
-    assert c.pop() == 4
-    assert c == [2, 3]
-    with pytest.raises(IndexError):
-        c.pop(100)
+@pytest.mark.parametrize(
+    ["cfg", "key", "expected_out", "expected_cfg"],
+    [
+        pytest.param([1, 2, 3], 0, 1, [2, 3]),
+        pytest.param([1, 2, 3], None, 3, [1, 2]),
+        pytest.param(["???", 2, 3], 0, None, [2, 3]),
+    ],
+)
+def test_list_pop(
+    cfg: List[Any], key: Optional[int], expected_out: Any, expected_cfg: Any
+) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.pop() if key is None else c.pop(key)
+    assert val == expected_out
+    assert c == expected_cfg
+    validate_list_keys(c)
+
+
+@pytest.mark.parametrize(
+    ["cfg", "key", "exc"],
+    [
+        pytest.param([1, 2, 3], 100, IndexError),
+        pytest.param(["${4}", 2, 3], 0, InterpolationKeyError),
+        pytest.param(["${1}", "???", 3], 0, InterpolationToMissingValueError),
+    ],
+)
+def test_list_pop_errors(cfg: List[Any], key: int, exc: type) -> None:
+    c = OmegaConf.create(cfg)
+    with pytest.raises(exc):
+        c.pop(key)
+    assert c == cfg
     validate_list_keys(c)
 
 
@@ -613,6 +638,8 @@ def test_getitem_slice(sli: slice) -> None:
     [
         (OmegaConf.create([1, 2]), 0, 1),
         (OmegaConf.create([1, 2]), "foo", KeyValidationError),
+        (OmegaConf.create([1, "${2}"]), 1, InterpolationKeyError),
+        (OmegaConf.create(["???", "${0}"]), 1, InterpolationToMissingValueError),
         (ListConfig(content=None), 0, TypeError),
         (ListConfig(content="???"), 0, MissingMandatoryValue),
     ],
@@ -622,7 +649,7 @@ def test_get(lst: Any, idx: Any, expected: Any) -> None:
         with pytest.raises(expected):
             lst.get(idx)
     else:
-        lst.__getitem__(idx) == expected
+        assert lst.__getitem__(idx) == expected
 
 
 def test_getattr() -> None:

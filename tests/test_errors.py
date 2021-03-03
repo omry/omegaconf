@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
 import pytest
@@ -15,14 +16,16 @@ from omegaconf import (
     UnsupportedValueType,
     ValidationError,
 )
-from omegaconf._utils import type_str
+from omegaconf._utils import format_and_raise, type_str
 from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
     ConfigTypeError,
     ConfigValueError,
     GrammarParseError,
+    InterpolationKeyError,
     InterpolationResolutionError,
+    InterpolationToMissingValueError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -219,7 +222,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -230,7 +233,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -241,7 +244,7 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
-            exception_type=InterpolationResolutionError,
+            exception_type=InterpolationKeyError,
             msg="Interpolation key 'missing' not found",
             key="bar",
             full_key="foo.bar",
@@ -249,6 +252,47 @@ params = [
             parent_node=lambda cfg: cfg.foo,
         ),
         id="dict,accessing_missing_relative_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "${..missing}"}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationKeyError,
+            msg="ConfigKeyError while resolving interpolation: Error resolving key '..missing'",
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_invalid_double_relative_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": "${int.missing}", "int": 0}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationKeyError,
+            msg=(
+                "ConfigKeyError while resolving interpolation: Error trying to access int.missing: "
+                "node `int` is not a container and thus cannot contain `missing`"
+            ),
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_non_container_interpolation",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"foo": "${${missing_val}}", "missing_val": "???"}
+            ),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value : missing_val"
+            ),
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_missing_nested_interpolation",
     ),
     # setattr
     pytest.param(
@@ -1232,20 +1276,36 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
                 assert e.__cause__ is None
 
 
+def test_assertion_error() -> None:
+    """Test the case where an `AssertionError` is processed in `format_and_raise()`"""
+    try:
+        assert False
+    except AssertionError as exc:
+        try:
+            format_and_raise(node=None, key=None, value=None, msg=str(exc), cause=exc)
+        except AssertionError as exc2:
+            assert exc2 is exc  # we expect the original exception to be raised
+        else:
+            assert False
+
+
 @pytest.mark.parametrize(
     "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
 )
-def test_assertion_error(restore_resolvers: Any, register_func: Any) -> None:
-    def assert_false() -> None:
-        assert False
+def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
+    def div(x: Any, y: Any) -> float:
+        return float(x) / float(y)
 
-    # The purpose of this test is to cover the case where an `AssertionError`
-    # is processed in `format_and_raise()`. Using a resolver to trigger the assertion
-    # error is just one way of achieving this goal.
-    register_func("assert_false", assert_false)
-    c = OmegaConf.create({"trigger": "${assert_false:}"})
-    with pytest.raises(AssertionError):
-        c.trigger
+    register_func("div", div)
+    c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
+    expected_msg = dedent(
+        """\
+        ZeroDivisionError raised while resolving interpolation: float division by zero
+            full_key: div_by_zero
+            object_type=dict"""
+    )
+    with pytest.raises(InterpolationResolutionError, match=re.escape(expected_msg)):
+        c.div_by_zero
 
 
 @pytest.mark.parametrize(

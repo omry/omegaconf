@@ -1,0 +1,1 @@
+`key in cfg` now returns True when `key` is an interpolation even if the interpolation target is a missing ("???") value.

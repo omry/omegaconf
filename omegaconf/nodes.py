@@ -7,18 +7,12 @@ from typing import Any, Dict, Optional, Type, Union
 from omegaconf._utils import (
     ValueKind,
     _is_interpolation,
-    _is_missing_value,
     get_type_of,
     get_value_kind,
     is_primitive_container,
 )
 from omegaconf.base import Container, DictKeyType, Metadata, Node
-from omegaconf.errors import (
-    ConfigKeyError,
-    ReadonlyConfigError,
-    UnsupportedValueType,
-    ValidationError,
-)
+from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
 
 
 class ValueNode(Node):
@@ -88,11 +82,9 @@ class ValueNode(Node):
 
     def _is_none(self) -> bool:
         if self._is_interpolation():
-            node = self._dereference_node(
-                throw_on_resolution_failure=False, throw_on_missing=False
-            )
+            node = self._dereference_node(throw_on_resolution_failure=False)
             if node is None:
-                # missing or resolution failure
+                # resolution failure
                 return False
         else:
             node = self
@@ -100,23 +92,6 @@ class ValueNode(Node):
 
     def _is_optional(self) -> bool:
         return self._metadata.optional
-
-    def _is_missing(self) -> bool:
-        if self._is_interpolation():
-            try:
-                node = self._dereference_node(
-                    throw_on_resolution_failure=False, throw_on_missing=False
-                )
-                if node is None:
-                    # resolution failure
-                    return False
-                else:
-                    return node._is_missing()
-            except ConfigKeyError:
-                # Will happen if interpolation is accessing keys that does not exist.
-                return False
-        else:
-            return _is_missing_value(self)
 
     def _is_interpolation(self) -> bool:
         return _is_interpolation(self._value())

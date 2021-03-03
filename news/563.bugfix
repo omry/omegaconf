@@ -1,1 +1,1 @@
-Calling `OmegaConf.select()` on a missing node from a ListConfig with `throw_on_missing` set to True now raises the intended exception.
+`OmegaConf.select()` of a missing ("???") node from a ListConfig with `throw_on_missing` set to True now raises the intended exception.

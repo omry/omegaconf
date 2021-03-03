@@ -19,8 +19,8 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
-    ConfigAttributeError,
     GrammarParseError,
+    InterpolationKeyError,
     InterpolationResolutionError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -44,13 +44,13 @@ INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
         pytest.param(
             {"a": "${x}"},
             "a",
-            pytest.raises(InterpolationResolutionError),
+            pytest.raises(InterpolationKeyError),
             id="not_found",
         ),
         pytest.param(
             {"a": "${x.y}"},
             "a",
-            pytest.raises(InterpolationResolutionError),
+            pytest.raises(InterpolationKeyError),
             id="not_found",
         ),
         pytest.param({"a": "foo_${b}", "b": "bar"}, "a", "foo_bar", id="str_inter"),
@@ -82,7 +82,10 @@ INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
         pytest.param({"a": {"z": "${..b}"}, "b": 10}, "a.z", 10, id="relative"),
         pytest.param({"a": {"z": "${..a.b}", "b": 10}}, "a.z", 10, id="relative"),
         pytest.param(
-            {"a": "${..b}", "b": 10}, "a", pytest.raises(KeyError), id="relative"
+            {"a": "${..b}", "b": 10},
+            "a",
+            pytest.raises(InterpolationKeyError),
+            id="relative",
         ),
     ],
 )
@@ -103,8 +106,9 @@ def test_interpolation_with_missing() -> None:
             "x": {"missing": "???"},
         }
     )
+    assert OmegaConf.is_missing(cfg.x, "missing")
     assert not OmegaConf.is_missing(cfg, "a")
-    assert OmegaConf.is_missing(cfg, "b")
+    assert not OmegaConf.is_missing(cfg, "b")
 
 
 def test_assign_to_interpolation() -> None:
@@ -149,8 +153,8 @@ def test_merge_with_interpolation() -> None:
 
 
 def test_non_container_interpolation() -> None:
-    cfg = OmegaConf.create(dict(foo=0, bar="${foo.baz}"))
-    with pytest.raises(ConfigAttributeError):
+    cfg = OmegaConf.create({"foo": 0, "bar": "${foo.baz}"})
+    with pytest.raises(InterpolationKeyError):
         cfg.bar
 
 
@@ -219,7 +223,7 @@ def test_type_inherit_type(cfg: Any) -> None:
             None,
             "path",
             pytest.raises(
-                ValidationError,
+                InterpolationResolutionError,
                 match=re.escape("Environment variable 'not_found' not found"),
             ),
             id="not_found",
@@ -312,15 +316,21 @@ def test_env_is_cached(monkeypatch: Any) -> None:
 def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
     monkeypatch.setenv("my_key", value)
     monkeypatch.setenv("my_key_2", "456")
-    c = OmegaConf.create(dict(my_key="${env:my_key}"))
+    c = OmegaConf.create({"my_key": "${env:my_key}"})
     assert c.my_key == expected
 
 
 def test_env_node_interpolation(monkeypatch: Any) -> None:
     # Test that node interpolations are not supported in env variables.
-    monkeypatch.setenv("my_key", "${other_key}")
-    c = OmegaConf.create(dict(my_key="${env:my_key}", other_key=123))
-    with pytest.raises(InterpolationResolutionError):
+    monkeypatch.setenv("MYKEY", "${other_key}")
+    c = OmegaConf.create({"my_key": "${env:MYKEY}", "other_key": 123})
+    with pytest.raises(
+        InterpolationKeyError,
+        match=re.escape(
+            "When attempting to resolve env variable 'MYKEY', a node interpolation caused "
+            "the following exception: Interpolation key 'other_key' not found."
+        ),
+    ):
         c.my_key
 
 
@@ -428,15 +438,15 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     """
     OmegaConf.register_new_resolver("random", lambda _: random.uniform(0, 1))
     c = OmegaConf.create(
-        dict(
-            lst1="${random:[0, 1]}",
-            lst2="${random:[0, 1]}",
-            lst3="${random:[]}",
-            dct1="${random:{a: 1, b: 2}}",
-            dct2="${random:{b: 2, a: 1}}",
-            mixed1="${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
-            mixed2="${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
-        )
+        {
+            "lst1": "${random:[0, 1]}",
+            "lst2": "${random:[0, 1]}",
+            "lst3": "${random:[]}",
+            "dct1": "${random:{a: 1, b: 2}}",
+            "dct2": "${random:{b: 2, a: 1}}",
+            "mixed1": "${random:{x: [1.1], y: {a: true, b: false, c: null, d: []}}}",
+            "mixed2": "${random:{x: [1.1], y: {b: false, c: null, a: true, d: []}}}",
+        }
     )
     assert c.lst1 == c.lst1
     assert c.lst1 == c.lst2
@@ -452,7 +462,7 @@ def test_resolver_no_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver(
         "random", lambda _: random.uniform(0, 1), use_cache=False
     )
-    c = OmegaConf.create(dict(k="${random:__}"))
+    c = OmegaConf.create({"k": "${random:__}"})
     assert c.k != c.k
 
 
@@ -581,7 +591,7 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 def test_clear_cache(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
-    c = OmegaConf.create(dict(k="${random:__}"))
+    c = OmegaConf.create({"k": "${random:__}"})
     old = c.k
     OmegaConf.clear_cache(c)
     assert old != c.k
@@ -589,7 +599,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
 
 def test_supported_chars() -> None:
     supported_chars = "abc123_/:-\\+.$%*@"
-    c = OmegaConf.create(dict(dir1="${copy:" + supported_chars + "}"))
+    c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
@@ -617,7 +627,7 @@ def test_invalid_chars_in_key_names(c: str) -> None:
         # With '.', we try to access `${ab.de}`.
         # With '}', we try to access `${ab}`.
         cfg = create()
-        with pytest.raises(InterpolationResolutionError):
+        with pytest.raises(InterpolationKeyError):
             cfg.invalid
     elif c == ":":
         # With ':', we try to run a resolver `${ab:de}`
@@ -634,7 +644,7 @@ def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
 
-    with pytest.raises(InterpolationResolutionError):
+    with pytest.raises(InterpolationKeyError):
         c[0]
 
 
@@ -709,3 +719,31 @@ def test_empty_stack() -> None:
     """
     with pytest.raises(GrammarParseError):
         grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
+
+
+@pytest.mark.parametrize("ref", ["missing", "invalid"])
+def test_invalid_intermediate_result_when_not_throwing(
+    ref: str, restore_resolvers: Any
+) -> None:
+    """
+    Test the handling of missing / resolution failures in nested interpolations.
+
+    The main goal of this test is to make sure that the resolution of an interpolation
+    is stopped immediately when a missing / resolution failure occurs, even if
+    `throw_on_resolution_failure` is set to False.
+    When this happens while dereferencing a node, the result should be `None`.
+    """
+
+    def fail_if_called(x: Any) -> None:
+        assert False
+
+    OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
+    cfg = OmegaConf.create(
+        {
+            "x": "${fail_if_called:${%s}}" % ref,
+            "missing": "???",
+        }
+    )
+    x_node = cfg._get_node("x")
+    assert isinstance(x_node, Node)
+    assert x_node._dereference_node(throw_on_resolution_failure=False) is None
