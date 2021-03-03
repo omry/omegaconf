@@ -536,8 +536,7 @@ params = [
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
             key="foo",
-            object_type=NotOptionalInt,
-            parent_node=lambda _: {},  # dummy parent
+            full_key="",
         ),
         id="dict:create_none_optional_with_none",
     ),
@@ -546,10 +545,9 @@ params = [
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            object_type=NotOptionalInt,
             msg="Non optional field cannot be assigned None",
             key="foo",
-            parent_node=lambda _: {},  # dummy parent
+            full_key="",
         ),
         id="dict:create:not_optional_int_field_with_none",
     ),
@@ -586,9 +584,8 @@ params = [
             ),
             exception_type=ValidationError,
             msg="Value 'x' could not be converted to Integer",
-            object_type=ConcretePlugin.FoobarParams,
             key="foo",
-            parent_node=lambda _: {},  # dummy parent
+            full_key="",
         ),
         id="structured:create_with_invalid_value",
     ),

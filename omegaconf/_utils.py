@@ -229,7 +229,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                 parent=dummy_parent,
             )
         except ValidationError as ex:
-            dummy_parent._format_and_raise(key=name, value=value, cause=ex)
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
@@ -275,7 +275,7 @@ def get_dataclass_data(
                 parent=dummy_parent,
             )
         except ValidationError as ex:
-            dummy_parent._format_and_raise(key=name, value=value, cause=ex)
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
