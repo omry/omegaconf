@@ -52,7 +52,7 @@ from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
     GrammarParseError,
-    InterpolationResolutionError,
+    InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -124,13 +124,14 @@ def register_default_resolvers() -> None:
         empty_config = DictConfig({})
         try:
             val = empty_config.resolve_parse_tree(parse_tree)
-        except InterpolationResolutionError as exc:
-            raise InterpolationResolutionError(
+        except InterpolationKeyError as exc:
+            raise InterpolationKeyError(
                 f"When attempting to resolve env variable '{key}', a node interpolation "
                 f"caused the following exception: {exc}. Node interpolations are not "
                 f"supported in environment variables: either remove them, or escape "
                 f"them to keep them as a strings."
-            )
+            ).with_traceback(sys.exc_info()[2])
+
         return _get_value(val)
 
     # Note that the `env` resolver does *NOT* use the cache.
@@ -761,17 +762,17 @@ class OmegaConf:
                     throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
-            except (ConfigKeyError, InterpolationResolutionError):
+            except ConfigKeyError:
                 if default is not _EMPTY_MARKER_:
                     return default
                 else:
                     raise
 
             if (
-                _root is not None
+                default is not _EMPTY_MARKER_
+                and _root is not None
                 and _last_key is not None
                 and _last_key not in _root
-                and default is not _EMPTY_MARKER_
             ):
                 return default
 

@@ -42,7 +42,7 @@ element:
 listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                         // [], [1,2,3], [a,b,[1,2]]
 dictContainer: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
 dictKeyValuePair: dictKey COLON element;
-sequence: element (COMMA element)*;
+sequence: (element (COMMA element?)*) | (COMMA element?)+;
 
 // Interpolations.
 

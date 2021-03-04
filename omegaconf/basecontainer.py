@@ -50,28 +50,25 @@ class BaseContainer(Container, ABC):
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
 
-        val = _get_value(value)
         has_default = default_value is not DEFAULT_VALUE_MARKER
-        if has_default and (val is None or _is_missing_value(val)):
+
+        if has_default and _get_value(value) is None:
             return default_value
 
-        resolved = self._maybe_resolve_interpolation(
+        if _is_missing_value(value):
+            if has_default:
+                return default_value
+            raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
+
+        resolved_node = self._maybe_resolve_interpolation(
             parent=self,
             key=key,
             value=value,
-            throw_on_missing=not has_default,
-            throw_on_resolution_failure=not has_default,
+            throw_on_resolution_failure=True,
         )
-        if resolved is None and has_default:
-            return default_value
+        assert resolved_node is not None
 
-        if _is_missing_value(resolved):
-            if has_default:
-                return default_value
-            else:
-                raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
-
-        return _get_value(resolved)
+        return _get_value(resolved_node)
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -221,9 +218,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    node = node._dereference_node(throw_on_resolution_failure=True)
 
                 assert node is not None
                 if enum_to_str and isinstance(key, Enum):
@@ -253,9 +248,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(index)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(
-                        throw_on_missing=False, throw_on_resolution_failure=True
-                    )
+                    node = node._dereference_node(throw_on_resolution_failure=True)
                 assert node is not None
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(
@@ -640,13 +633,9 @@ class BaseContainer(Container, ABC):
         dv2: Optional[Node] = v2
 
         if v1_inter:
-            dv1 = v1._dereference_node(
-                throw_on_missing=False, throw_on_resolution_failure=False
-            )
+            dv1 = v1._dereference_node(throw_on_resolution_failure=False)
         if v2_inter:
-            dv2 = v2._dereference_node(
-                throw_on_missing=False, throw_on_resolution_failure=False
-            )
+            dv2 = v2._dereference_node(throw_on_resolution_failure=False)
 
         if v1_inter and v2_inter:
             if dv1 is None or dv2 is None:
@@ -674,18 +663,6 @@ class BaseContainer(Container, ABC):
 
     def _is_none(self) -> bool:
         return self.__dict__["_content"] is None
-
-    def _is_missing(self) -> bool:
-        try:
-            self._dereference_node(
-                throw_on_resolution_failure=False, throw_on_missing=True
-            )
-            return False
-        except MissingMandatoryValue:
-            ret = True
-
-        assert isinstance(ret, bool)
-        return ret
 
     def _is_optional(self) -> bool:
         return self.__dict__["_metadata"].optional is True

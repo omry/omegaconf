@@ -1,4 +1,5 @@
 import copy
+import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -10,13 +11,15 @@ from antlr4 import ParserRuleContext
 from ._utils import (
     ValueKind,
     _get_value,
-    _is_missing_literal,
+    _is_missing_value,
     format_and_raise,
     get_value_kind,
 )
 from .errors import (
     ConfigKeyError,
+    InterpolationKeyError,
     InterpolationResolutionError,
+    InterpolationToMissingValueError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -190,32 +193,25 @@ class Node(ABC):
 
     def _dereference_node(
         self,
-        throw_on_missing: bool = False,
         throw_on_resolution_failure: bool = True,
     ) -> Optional["Node"]:
-        if self._is_interpolation():
-            parent = self._get_parent()
-            if parent is None:
-                raise OmegaConfBaseException(
-                    "Cannot resolve interpolation for a node without a parent"
-                )
-            assert parent is not None
-            key = self._key()
-            return parent._resolve_interpolation_from_parse_tree(
-                parent=parent,
-                key=key,
-                value=self,
-                parse_tree=parse(_get_value(self)),
-                throw_on_missing=throw_on_missing,
-                throw_on_resolution_failure=throw_on_resolution_failure,
-            )
-        else:
-            # not interpolation, compare directly
-            if throw_on_missing:
-                value = self._value()
-                if _is_missing_literal(value):
-                    raise MissingMandatoryValue("Missing mandatory value")
+        if not self._is_interpolation():
             return self
+
+        parent = self._get_parent()
+        if parent is None:
+            raise OmegaConfBaseException(
+                "Cannot resolve interpolation for a node without a parent"
+            )
+        assert parent is not None
+        key = self._key()
+        return parent._resolve_interpolation_from_parse_tree(
+            parent=parent,
+            key=key,
+            value=self,
+            parse_tree=parse(_get_value(self)),
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
 
     def _get_root(self) -> "Container":
         root: Optional[Container] = self._get_parent()
@@ -227,6 +223,9 @@ class Node(ABC):
             root = root._get_parent()
             assert root is not None and isinstance(root, Container)
         return root
+
+    def _is_missing(self) -> bool:
+        return _is_missing_value(self)
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
@@ -254,10 +253,6 @@ class Node(ABC):
 
     @abstractmethod
     def _is_optional(self) -> bool:
-        ...
-
-    @abstractmethod
-    def _is_missing(self) -> bool:
         ...
 
     @abstractmethod
@@ -365,7 +360,6 @@ class Container(Node):
             )
             if isinstance(ret, Node):
                 ret = ret._dereference_node(
-                    throw_on_missing=throw_on_missing,
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
 
@@ -394,7 +388,6 @@ class Container(Node):
             parent=root,
             key=last_key,
             value=value,
-            throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
         return root, last_key, value
@@ -405,22 +398,23 @@ class Container(Node):
         value: "Node",
         key: Any,
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
-        throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
         from .nodes import StringNode
 
-        resolved = self.resolve_parse_tree(
-            parse_tree=parse_tree,
-            key=key,
-            parent=parent,
-            throw_on_missing=throw_on_missing,
-            throw_on_resolution_failure=throw_on_resolution_failure,
-        )
-
-        if resolved is None:
+        try:
+            resolved = self.resolve_parse_tree(
+                parse_tree=parse_tree,
+                key=key,
+                parent=parent,
+            )
+        except InterpolationResolutionError:
+            if throw_on_resolution_failure:
+                raise
             return None
-        elif isinstance(resolved, str):
+
+        assert resolved is not None
+        if isinstance(resolved, str):
             # Result is a string: create a new StringNode for it.
             return StringNode(
                 value=resolved,
@@ -435,36 +429,42 @@ class Container(Node):
     def _resolve_node_interpolation(
         self,
         inter_key: str,
-        throw_on_missing: bool,
-        throw_on_resolution_failure: bool,
-    ) -> Optional["Node"]:
+    ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
-        root_node, inter_key = self._resolve_key_and_root(inter_key)
-        parent, last_key, value = root_node._select_impl(
-            inter_key,
-            throw_on_missing=throw_on_missing,
-            throw_on_resolution_failure=throw_on_resolution_failure,
-        )
+        try:
+            root_node, inter_key = self._resolve_key_and_root(inter_key)
+        except ConfigKeyError as exc:
+            raise InterpolationKeyError(
+                f"ConfigKeyError while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
+
+        try:
+            parent, last_key, value = root_node._select_impl(
+                inter_key,
+                throw_on_missing=True,
+                throw_on_resolution_failure=True,
+            )
+        except MissingMandatoryValue as exc:
+            raise InterpolationToMissingValueError(
+                f"MissingMandatoryValue while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
+        except ConfigKeyError as exc:
+            raise InterpolationKeyError(
+                f"ConfigKeyError while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
 
         if parent is None or value is None:
-            if throw_on_resolution_failure:
-                raise InterpolationResolutionError(
-                    f"Interpolation key '{inter_key}' not found"
-                )
-            else:
-                return None
-        assert isinstance(value, Node)
-        return value
+            raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
+        else:
+            return value
 
     def _evaluate_custom_resolver(
         self,
         key: Any,
         inter_type: str,
         inter_args: Tuple[Any, ...],
-        throw_on_missing: bool,
-        throw_on_resolution_failure: bool,
         inter_args_str: Tuple[str, ...],
-    ) -> Optional["Node"]:
+    ) -> Any:
         from omegaconf import OmegaConf
 
         from .nodes import ValueNode
@@ -472,35 +472,24 @@ class Container(Node):
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            try:
-                value = resolver(root_node, inter_args, inter_args_str)
-                return ValueNode(
-                    value=value,
-                    parent=self,
-                    metadata=Metadata(
-                        ref_type=Any, object_type=Any, key=key, optional=True
-                    ),
-                )
-            except Exception as e:
-                if throw_on_resolution_failure:
-                    self._format_and_raise(key=None, value=None, cause=e)
-                    assert False
-                else:
-                    return None
+            value = resolver(root_node, inter_args, inter_args_str)
+            return ValueNode(
+                value=value,
+                parent=self,
+                metadata=Metadata(
+                    ref_type=Any, object_type=Any, key=key, optional=True
+                ),
+            )
         else:
-            if throw_on_resolution_failure:
-                raise UnsupportedInterpolationType(
-                    f"Unsupported interpolation type {inter_type}"
-                )
-            else:
-                return None
+            raise UnsupportedInterpolationType(
+                f"Unsupported interpolation type {inter_type}"
+            )
 
     def _maybe_resolve_interpolation(
         self,
         parent: Optional["Container"],
         key: Any,
         value: "Node",
-        throw_on_missing: bool,
         throw_on_resolution_failure: bool,
     ) -> Any:
         value_kind = get_value_kind(value)
@@ -513,7 +502,6 @@ class Container(Node):
             value=value,
             key=key,
             parse_tree=parse_tree,
-            throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
 
@@ -522,8 +510,6 @@ class Container(Node):
         parse_tree: ParserRuleContext,
         key: Optional[Any] = None,
         parent: Optional["Container"] = None,
-        throw_on_missing: bool = True,
-        throw_on_resolution_failure: bool = True,
     ) -> Any:
         """
         Resolve a given parse tree into its value.
@@ -533,26 +519,17 @@ class Container(Node):
         """
         from .nodes import StringNode
 
-        # Common arguments to all callbacks.
-        callback_args: Dict[str, Any] = dict(
-            throw_on_missing=throw_on_missing,
-            throw_on_resolution_failure=throw_on_resolution_failure,
-        )
-
         def node_interpolation_callback(inter_key: str) -> Optional["Node"]:
-            return self._resolve_node_interpolation(
-                inter_key=inter_key, **callback_args
-            )
+            return self._resolve_node_interpolation(inter_key=inter_key)
 
         def resolver_interpolation_callback(
             name: str, args: Tuple[Any, ...], args_str: Tuple[str, ...]
-        ) -> Optional["Node"]:
+        ) -> Any:
             return self._evaluate_custom_resolver(
                 key=key,
                 inter_type=name,
                 inter_args=args,
                 inter_args_str=args_str,
-                **callback_args,
             )
 
         def quoted_string_callback(quoted_str: str) -> str:
@@ -565,7 +542,7 @@ class Container(Node):
                     parent=parent,
                     is_optional=False,
                 ),
-                **callback_args,
+                throw_on_resolution_failure=True,
             )
             return str(quoted_val)
 
@@ -574,7 +551,15 @@ class Container(Node):
             resolver_interpolation_callback=resolver_interpolation_callback,
             quoted_string_callback=quoted_string_callback,
         )
-        return visitor.visit(parse_tree)
+        try:
+            return visitor.visit(parse_tree)
+        except InterpolationResolutionError:
+            raise
+        except Exception as exc:
+            # Other kinds of exceptions are wrapped in an `InterpolationResolutionError`.
+            raise InterpolationResolutionError(
+                f"{type(exc).__name__} raised while resolving interpolation: {exc}"
+            ).with_traceback(sys.exc_info()[2])
 
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig

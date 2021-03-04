@@ -1,4 +1,5 @@
 import sys
+import warnings
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -14,7 +15,7 @@ from typing import (
 
 from antlr4 import TerminalNode
 
-from .errors import GrammarParseError
+from .errors import InterpolationResolutionError
 
 if TYPE_CHECKING:
     from .base import Node  # noqa F401
@@ -83,7 +84,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
             res = _get_value(self.visitInterpolation(child))
             if not isinstance(res, str):
-                raise GrammarParseError(
+                raise InterpolationResolutionError(
                     f"The following interpolation is used to denote a config key and "
                     f"thus should return a string, but instead returned `{res}` of "
                     f"type `{type(res)}`: {ctx.getChild(0).getText()}"
@@ -233,7 +234,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 assert isinstance(child, OmegaConfGrammarParser.InterpolationContext)
                 item = _get_value(self.visitInterpolation(child))
                 if not isinstance(item, str):
-                    raise GrammarParseError(
+                    raise InterpolationResolutionError(
                         f"The name of a resolver must be a string, but the interpolation "
                         f"{child.getText()} resolved to `{item}` which is of type "
                         f"{type(item)}"
@@ -246,20 +247,42 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     ) -> Generator[Any, None, None]:
         from ._utils import _get_value
 
-        assert ctx.getChildCount() >= 1  # element (COMMA element)*
-        for i, child in enumerate(ctx.getChildren()):
-            if i % 2 == 0:
-                assert isinstance(child, OmegaConfGrammarParser.ElementContext)
+        # (element (COMMA element?)*) | (COMMA element?)+
+        assert ctx.getChildCount() >= 1
+
+        # DEPRECATED: remove in 2.2 (revert #571)
+        def empty_str_warning() -> None:
+            txt = ctx.getText()
+            warnings.warn(
+                f"In the sequence `{txt}` some elements are missing: please replace "
+                f"them with empty quoted strings. "
+                f"See https://github.com/omry/omegaconf/issues/572 for details.",
+                category=UserWarning,
+            )
+
+        is_previous_comma = True  # whether previous child was a comma (init to True)
+        for child in ctx.getChildren():
+            if isinstance(child, OmegaConfGrammarParser.ElementContext):
                 # Also preserve the original text representation of `child` so
                 # as to allow backward compatibility with old resolvers (registered
                 # with `legacy_register_resolver()`). Note that we cannot just cast
                 # the value to string later as for instance `null` would become "None".
                 yield _get_value(self.visitElement(child)), child.getText()
+                is_previous_comma = False
             else:
                 assert (
                     isinstance(child, TerminalNode)
                     and child.symbol.type == OmegaConfGrammarLexer.COMMA
                 )
+                if is_previous_comma:
+                    empty_str_warning()
+                    yield "", ""
+                else:
+                    is_previous_comma = True
+        if is_previous_comma:
+            # Trailing comma.
+            empty_str_warning()
+            yield "", ""
 
     def visitSingleElement(
         self, ctx: OmegaConfGrammarParser.SingleElementContext

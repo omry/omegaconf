@@ -24,6 +24,8 @@ from omegaconf.errors import (
     ConfigAttributeError,
     ConfigKeyError,
     ConfigTypeError,
+    InterpolationKeyError,
+    InterpolationToMissingValueError,
     KeyValidationError,
 )
 from tests import (
@@ -179,30 +181,46 @@ def test_scientific_notation_float() -> None:
 
 @pytest.mark.parametrize("struct", [None, True, False])
 @pytest.mark.parametrize("default_val", [4, True, False, None])
-@pytest.mark.parametrize(
-    "d,select,key",
-    [
-        ({"hello": {"a": 2}}, "", "missing"),
-        ({"hello": {"a": 2}}, "hello", "missing"),
-        ({"hello": "???"}, "", "hello"),
-        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
-        ({"hello": None}, "", "hello"),
-        ({"hello": "${foo}"}, "", "hello"),
-        ({"hello": "${foo}", "foo": "???"}, "", "hello"),
-        ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
-        ({"hello": DictConfig(content="???")}, "", "hello"),
-        ({"hello": DictConfig(content="${foo}")}, "", "hello"),
-        ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
-        ({"hello": ListConfig(content="???")}, "", "hello"),
-    ],
-)
-def test_dict_get_with_default(
-    d: Any, select: Any, key: Any, default_val: Any, struct: Any
-) -> None:
-    c = OmegaConf.create(d)
-    c = OmegaConf.select(c, select)
-    OmegaConf.set_struct(c, struct)
-    assert c.get(key, default_val) == default_val
+class TestGetWithDefault:
+    @pytest.mark.parametrize(
+        "d,select,key",
+        [
+            ({"hello": {"a": 2}}, "", "missing"),
+            ({"hello": {"a": 2}}, "hello", "missing"),
+            ({"hello": "???"}, "", "hello"),
+            ({"hello": None}, "", "hello"),
+            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
+            ({"hello": DictConfig(content="???")}, "", "hello"),
+            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
+            ({"hello": ListConfig(content="???")}, "", "hello"),
+        ],
+    )
+    def test_dict_get_with_default(
+        self, d: Any, select: Any, key: Any, default_val: Any, struct: Optional[bool]
+    ) -> None:
+        c = OmegaConf.create(d)
+        c = OmegaConf.select(c, select)
+        OmegaConf.set_struct(c, struct)
+        assert c.get(key, default_val) == default_val
+
+    @pytest.mark.parametrize(
+        "d,exc",
+        [
+            ({"hello": "${foo}"}, InterpolationKeyError),
+            (
+                {"hello": "${foo}", "foo": "???"},
+                InterpolationToMissingValueError,
+            ),
+            ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
+        ],
+    )
+    def test_dict_get_with_default_errors(
+        self, d: Any, exc: type, struct: Optional[bool], default_val: Any
+    ) -> None:
+        c = OmegaConf.create(d)
+        OmegaConf.set_struct(c, struct)
+        with pytest.raises(exc):
+            c.get("hello", default_value=123)
 
 
 def test_map_expansion() -> None:
@@ -313,9 +331,6 @@ def test_iterate_dict_with_interpolation() -> None:
         pytest.param(
             {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
         ),
-        pytest.param(
-            {"a": "${b}"}, "a", "default", "default", id="interpolation_with_default"
-        ),
         # enum key
         pytest.param(
             {Enum1.FOO: "bar"},
@@ -421,13 +436,18 @@ def test_dict_structured_mode_pop() -> None:
         ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
         ({1: "???", 2: "b"}, 1, pytest.raises(MissingMandatoryValue)),
         ({123.45: "???", 67.89: "b"}, 123.45, pytest.raises(MissingMandatoryValue)),
+        ({"a": "${b}"}, "a", pytest.raises(InterpolationKeyError)),
         ({True: "???", False: "b"}, True, pytest.raises(MissingMandatoryValue)),
         (
             {Enum1.FOO: "???", Enum1.BAR: "bar"},
             Enum1.FOO,
             pytest.raises(MissingMandatoryValue),
         ),
-        ({"a": "${b}", "b": "???"}, "a", pytest.raises(MissingMandatoryValue)),
+        (
+            {"a": "${b}", "b": "???"},
+            "a",
+            pytest.raises(InterpolationToMissingValueError),
+        ),
     ],
 )
 def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None:
@@ -446,8 +466,8 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
         ({"a": 1, "b": {}}, "c", False),
         ({"a": 1, "b": "${a}"}, "b", True),
         ({"a": 1, "b": "???"}, "b", False),
-        ({"a": 1, "b": "???", "c": "${b}"}, "c", False),
-        ({"a": 1, "b": "${not_found}"}, "b", False),
+        ({"a": 1, "b": "???", "c": "${b}"}, "c", True),
+        ({"a": 1, "b": "${not_found}"}, "b", True),
         ({"a": "${unknown_resolver:bar}"}, "a", True),
         ({"a": None, "b": "${a}"}, "b", True),
         ({"a": "cat", "b": "${a}"}, "b", True),
@@ -802,10 +822,10 @@ def test_is_missing() -> None:
         }
     )
     assert cfg._get_node("foo")._is_missing()  # type: ignore
-    assert cfg._get_node("inter")._is_missing()  # type: ignore
+    assert not cfg._get_node("inter")._is_missing()  # type: ignore
     assert not cfg._get_node("str_inter")._is_missing()  # type: ignore
     assert cfg._get_node("missing_node")._is_missing()  # type: ignore
-    assert cfg._get_node("missing_node_inter")._is_missing()  # type: ignore
+    assert not cfg._get_node("missing_node_inter")._is_missing()  # type: ignore
 
 
 @pytest.mark.parametrize("ref_type", [None, Any])

@@ -1,8 +1,9 @@
 import math
+import re
 from typing import Any, Callable, List, Optional, Tuple
 
 import antlr4
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     DictConfig,
@@ -14,6 +15,7 @@ from omegaconf import (
 )
 from omegaconf.errors import (
     GrammarParseError,
+    InterpolationKeyError,
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
@@ -187,15 +189,15 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_access", "${dict.a}", 0),
     ("list_access", "${list.0}", -1),
     ("list_access_underscore", "${list.1_0}", 9),
-    ("list_access_bad_negative", "${list.-1}", InterpolationResolutionError),
+    ("list_access_bad_negative", "${list.-1}", InterpolationKeyError),
     ("dict_access_list_like_1", "${0}", 0),
     ("dict_access_list_like_2", "${1.2}", 12),
     ("bool_like_keys", "${FalsE.TruE}", True),
     ("null_like_key_ok", "${None.null}", 1),
-    ("null_like_key_bad_case", "${NoNe.null}", InterpolationResolutionError),
+    ("null_like_key_bad_case", "${NoNe.null}", InterpolationKeyError),
     ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
-    ("dotpath_bad_type", "${dict.${float}}", (None, GrammarParseError)),
+    ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
     ("at_in_key", "${x@y}", 123),
     # Interpolations in dictionaries.
     ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
@@ -257,7 +259,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("float_resolver_quoted", "${'1.1':1,2,3}", GrammarParseError),
     ("float_resolver_noquote", "${1.1:1,2,3}", GrammarParseError),
     ("float_resolver_exp", "${1e1:1,2,3}", GrammarParseError),
-    ("inter_float_resolver", "${${float}:1,2,3}", (None, GrammarParseError)),
+    ("inter_float_resolver", "${${float}:1,2,3}", (None, InterpolationResolutionError)),
     # NaN as dictionary key (a resolver is used here to output only the key).
     ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
@@ -368,6 +370,30 @@ class TestOmegaConfGrammar:
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
         self._visit_with_config(parse_tree, expected_visit)
+
+    @parametrize_from(
+        [
+            ("trailing_comma", "${test:a,b,}", ["a", "b", ""]),
+            ("empty_middle", "${test:a,,b}", ["a", "", "b"]),
+            ("empty_first", "${test:,a,b}", ["", "a", "b"]),
+            ("single_comma", "${test:,}", ["", ""]),
+            (
+                "mixed_with_ws",
+                "${test:  ,a,b,\t,,c,  \t   \t ,d,, \t}",
+                ["", "a", "b", "", "", "c", "", "d", "", ""],
+            ),
+        ]
+    )
+    def test_deprecated_empty_args(
+        self, restore_resolvers: Any, definition: str, expected: Any
+    ) -> None:
+        OmegaConf.register_new_resolver("test", self._resolver_test)
+
+        parse_tree, expected_visit = self._parse("singleElement", definition, expected)
+        with warns(
+            UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/572")
+        ):
+            self._visit_with_config(parse_tree, expected_visit)
 
     def _check_is_same_type(self, value: Any, expected: Any) -> None:
         """

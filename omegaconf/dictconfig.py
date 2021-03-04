@@ -44,7 +44,6 @@ from .errors import (
     MissingMandatoryValue,
     OmegaConfBaseException,
     ReadonlyConfigError,
-    UnsupportedInterpolationType,
     ValidationError,
 )
 from .nodes import EnumNode, ValueNode
@@ -515,10 +514,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             try:
                 self._resolve_with_default(key=key, value=node)
                 return True
-            except UnsupportedInterpolationType:
-                # Value that has unsupported interpolation counts as existing.
+            except InterpolationResolutionError:
+                # Interpolations that fail count as existing.
                 return True
-            except (MissingMandatoryValue, KeyError, InterpolationResolutionError):
+            except MissingMandatoryValue:
+                # Missing values count as *not* existing.
                 return False
 
     def __iter__(self) -> Iterator[DictKeyType]:
