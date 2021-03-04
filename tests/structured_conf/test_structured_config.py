@@ -997,8 +997,8 @@ class TestDictSubclass:
 
     def test_str2user(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())
-        cfg.bond = module.User(name="James Bond", age=7)
 
+        cfg.bond = module.User(name="James Bond", age=7)
         assert cfg.bond.name == "James Bond"
         assert cfg.bond.age == 7
 
