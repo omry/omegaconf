@@ -233,11 +233,8 @@ class TestInstantiateStructuredConfigs:
         assert user.age == 7
 
     def test_basic_with_missing(self, module: Any) -> None:
-        user = self.round_trip_to_object(module.User())
-        assert isinstance(user, module.User)
-        assert type(user) is module.User
-        assert user.name == MISSING
-        assert user.age == MISSING
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.User())
 
     def test_nested(self, module: Any) -> None:
         data = self.round_trip_to_object({"user": module.User("Bond", 7)})
@@ -248,12 +245,8 @@ class TestInstantiateStructuredConfigs:
         assert user.age == 7
 
     def test_nested_with_missing(self, module: Any) -> None:
-        data = self.round_trip_to_object({"user": module.User()})
-        user = data["user"]
-        assert isinstance(user, module.User)
-        assert type(user) is module.User
-        assert user.name == MISSING
-        assert user.age == MISSING
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object({"user": module.User()})
 
     def test_list(self, module: Any) -> None:
         lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
@@ -267,10 +260,8 @@ class TestInstantiateStructuredConfigs:
         assert user.age == 7
 
     def test_list_with_missing(self, module: Any) -> None:
-        lst = self.round_trip_to_object(module.UserList)
-        assert isinstance(lst, module.UserList)
-        assert type(lst) is module.UserList
-        assert lst.list == MISSING
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.UserList)
 
     def test_dict(self, module: Any) -> None:
         user_dict = self.round_trip_to_object(
@@ -286,21 +277,27 @@ class TestInstantiateStructuredConfigs:
         assert user.age == 7
 
     def test_dict_with_missing(self, module: Any) -> None:
-        user_dict = self.round_trip_to_object(module.UserDict)
-        assert isinstance(user_dict, module.UserDict)
-        assert type(user_dict) is module.UserDict
-        assert user_dict.dict == MISSING
+        with raises(MissingMandatoryValue):
+            user_dict = self.round_trip_to_object(module.UserDict)
+
+    def test_nested_object_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.NestedConfig)
 
     def test_nested_object(self, module: Any) -> None:
-        nested = self.round_trip_to_object(module.NestedConfig)
-        assert isinstance(nested, module.NestedConfig)
+        cfg = OmegaConf.structured(module.NestedConfig)
+        # fill in missing values:
+        cfg.default_value = module.NestedSubclass(mandatory_missing=123)
+        cfg.user_provided_default.mandatory_missing = 456
+
+        nested = OmegaConf.to_object(cfg)
         assert type(nested) is module.NestedConfig
-
-        assert nested.default_value == MISSING
-
-        assert isinstance(nested.user_provided_default, module.Nested)
+        assert type(nested.default_value) is module.NestedSubclass
         assert type(nested.user_provided_default) is module.Nested
-        assert nested.user_provided_default.with_default == 42
+
+        assert nested.default_value.mandatory_missing == 123
+        assert nested.default_value.additional == 20
+        assert nested.user_provided_default.mandatory_missing == 456
 
     def test_to_object_resolve_is_True_by_default(self, module: Any) -> None:
         interp = self.round_trip_to_object(module.Interpolation)
