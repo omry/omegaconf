@@ -691,7 +691,7 @@ def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> A
         target = OmegaConf.create(target, flags=flags)
     elif is_structured_config(target):
         target = OmegaConf.structured(target, flags=flags)
-    if not OmegaConf.is_config(target):
+    elif not OmegaConf.is_config(target):
         raise ValueError(
             "Invalid input. Supports one of "
             + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
