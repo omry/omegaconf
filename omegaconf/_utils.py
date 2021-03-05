@@ -196,15 +196,13 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
-    obj_type = get_type_of(obj)
-
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create(flags=flags)
-    dummy_parent._metadata.object_type = obj_type
     from omegaconf import MISSING
 
     d = {}
     is_type = isinstance(obj, type)
+    obj_type = get_type_of(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
         type_ = _resolve_forward(type_, obj.__module__)
@@ -239,13 +237,10 @@ def get_dataclass_data(
 ) -> Dict[str, Any]:
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
-    obj_type = get_type_of(obj)
-
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create({}, flags=flags)
-    dummy_parent._metadata.object_type = obj_type
     d = {}
-    resolved_hints = get_type_hints(obj_type)
+    resolved_hints = get_type_hints(get_type_of(obj))
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
