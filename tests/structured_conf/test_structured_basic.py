@@ -48,6 +48,13 @@ class TestStructured:
             assert list(ret.keys()) == ["bar"]
             assert ret.bar == module.NotStructuredConfig()
 
+        def test_error_on_creation_with_bad_value_type(self, module: Any) -> None:
+            with raises(
+                ValidationError,
+                match=re.escape("Value 'seven' could not be converted to Integer"),
+            ):
+                OmegaConf.structured(module.User(age="seven"))
+
         def test_assignment_of_subclass(self, module: Any) -> None:
             cfg = OmegaConf.create({"plugin": module.Plugin})
             cfg.plugin = OmegaConf.structured(module.ConcretePlugin)

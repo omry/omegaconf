@@ -576,23 +576,22 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
+            op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
             msg="Non optional field cannot be assigned None",
-            object_type_str=None,
-            ref_type_str=None,
+            key="foo",
+            full_key="",
         ),
         id="dict:create_none_optional_with_none",
     ),
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(NotOptionalInt),
+            op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            object_type=None,
             msg="Non optional field cannot be assigned None",
-            object_type_str="NotOptionalInt",
-            ref_type_str=None,
+            key="foo",
+            full_key="",
         ),
         id="dict:create:not_optional_int_field_with_none",
     ),
@@ -620,6 +619,19 @@ params = [
             ref_type_str=None,
         ),
         id="dict_create_from_illegal_type",
+    ),
+    pytest.param(
+        Expected(
+            create=lambda: None,
+            op=lambda _: OmegaConf.structured(
+                ConcretePlugin(params=ConcretePlugin.FoobarParams(foo="x"))  # type: ignore
+            ),
+            exception_type=ValidationError,
+            msg="Value 'x' could not be converted to Integer",
+            key="foo",
+            full_key="",
+        ),
+        id="structured:create_with_invalid_value",
     ),
     pytest.param(
         Expected(

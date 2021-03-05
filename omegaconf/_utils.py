@@ -15,6 +15,7 @@ from .errors import (
     ConfigTypeError,
     ConfigValueError,
     OmegaConfBaseException,
+    ValidationError,
 )
 from .grammar_parser import parse
 
@@ -217,13 +218,16 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
@@ -257,13 +261,16 @@ def get_dataclass_data(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
