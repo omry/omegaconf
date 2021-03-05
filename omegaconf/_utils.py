@@ -202,7 +202,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
 
     d = {}
     is_type = isinstance(obj, type)
-    obj_type = get_type_of(obj)
+    obj_type = obj if is_type else type(obj)
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
         type_ = _resolve_forward(type_, obj.__module__)

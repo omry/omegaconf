@@ -554,7 +554,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda _: OmegaConf.structured(NotOptionalA),
+            op=lambda cfg: OmegaConf.structured(NotOptionalA),
             exception_type=ValidationError,
             object_type=None,
             key=None,
@@ -568,7 +568,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda _: OmegaConf.structured(IllegalType),
+            op=lambda cfg: OmegaConf.structured(IllegalType),
             exception_type=ValidationError,
             msg="Input class 'IllegalType' is not a structured config. did you forget to decorate it as a dataclass?",
             object_type_str=None,
@@ -592,7 +592,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda _: OmegaConf.structured(IllegalType()),
+            op=lambda cfg: OmegaConf.structured(IllegalType()),
             exception_type=ValidationError,
             msg="Object of unsupported type: 'IllegalType'",
             object_type_str=None,
@@ -603,7 +603,7 @@ params = [
     pytest.param(
         Expected(
             create=lambda: None,
-            op=lambda _: OmegaConf.structured(UnionError),
+            op=lambda cfg: OmegaConf.structured(UnionError),
             exception_type=ValueError,
             msg="Union types are not supported:\nx: Union[int, str]",
             num_lines=3,
