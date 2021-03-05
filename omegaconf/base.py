@@ -444,10 +444,10 @@ class Container(Node):
                     self._format_and_raise(key=key, value=res_value, cause=e)
                 return None
 
-            # If the same object is returned, it means the value is already valid
-            # "as is", and we can thus use it directly. Otherwise, the converted
-            # value has to be wrapped into a node.
-            if conv_value is not res_value:
+            # If the converted value is of the same type, it means that no conversion
+            # was actually needed. As a result, we can keep the original `resolved`
+            # (and otherwise, the converted value must be wrapped into a new node).
+            if type(conv_value) != type(res_value):
                 must_wrap = True
                 resolved = conv_value
 
