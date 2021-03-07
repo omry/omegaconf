@@ -9,6 +9,7 @@ import warnings
 from collections import defaultdict
 from contextlib import contextmanager
 from enum import Enum
+from functools import partial
 from textwrap import dedent
 from typing import (
     IO,
@@ -416,7 +417,9 @@ class OmegaConf:
         """
         Register a resolver.
 
-        :param name: Name of the resolver.
+        :param name: Name of the resolver. If this name has already been registered,
+            then a `ValueError` is raised (unless `resolver` is the same callable object
+            and `use_cache` has the same value as previously registered).
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
@@ -425,11 +428,24 @@ class OmegaConf:
             ${foo:${bar}} will always return the same value regardless of the value of
             `bar` if the cache is enabled for `foo`.
         """
-        assert callable(resolver), "resolver must be callable"
-        # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), "resolver {} is already registered".format(name)
+        if not callable(resolver):
+            raise TypeError("resolver must be callable")
+        if not name:
+            raise ValueError("cannot use an empty resolver name")
+
+        existing = OmegaConf._get_resolver(name)
+        if existing is not None:
+            if (
+                # DEPRECATED: remove the very first check in 2.2
+                # (it is only there because some resolvers may be registered with
+                # the legacy function and thus would not be `partial` objects)
+                # Also the typing may be updated accordingly.
+                hasattr(existing, "keywords")
+                and existing.keywords["resolver"] is resolver  # type: ignore
+                and existing.keywords["use_cache"] == use_cache  # type: ignore
+            ):
+                return  # already registered with the same settings => ignore
+            raise ValueError(f"resolver '{name}' is already registered")
 
         try:
             sig: Optional[inspect.Signature] = inspect.signature(resolver)
@@ -444,34 +460,14 @@ class OmegaConf:
                 )
             return ret
 
-        pass_parent = _should_pass("_parent_")
-        pass_root = _should_pass("_root_")
-
-        def resolver_wrapper(
-            config: BaseContainer,
-            parent: Container,
-            args: Tuple[Any, ...],
-            args_str: Tuple[str, ...],
-        ) -> Any:
-            if use_cache:
-                cache = OmegaConf.get_cache(config)[name]
-                try:
-                    return cache[args_str]
-                except KeyError:
-                    pass
-
-            # Call resolver.
-            kwargs = {}
-            if pass_parent:
-                kwargs["_parent_"] = parent
-            if pass_root:
-                kwargs["_root_"] = config
-
-            ret = resolver(*args, **kwargs)
-
-            if use_cache:
-                cache[args_str] = ret
-            return ret
+        resolver_wrapper = partial(
+            _resolver_wrapper,
+            name=name,
+            resolver=resolver,
+            use_cache=use_cache,
+            pass_parent=_should_pass("_parent_"),
+            pass_root=_should_pass("_root_"),
+        )
 
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = resolver_wrapper
@@ -892,10 +888,6 @@ class OmegaConf:
         )
 
 
-# register all default resolvers
-register_default_resolvers()
-
-
 @contextmanager
 def flag_override(
     config: Node,
@@ -1037,6 +1029,38 @@ def _maybe_wrap(
         )
 
 
+def _resolver_wrapper(
+    config: BaseContainer,
+    parent: Container,
+    args: Tuple[Any, ...],
+    args_str: Tuple[str, ...],
+    name: str,
+    resolver: Resolver,
+    use_cache: bool,
+    pass_parent: bool,
+    pass_root: bool,
+) -> Any:
+    if use_cache:
+        cache = OmegaConf.get_cache(config)[name]
+        try:
+            return cache[args_str]
+        except KeyError:
+            pass
+
+    kwargs = {}
+    if pass_parent:
+        kwargs["_parent_"] = parent
+    if pass_root:
+        kwargs["_root_"] = config
+
+    ret = resolver(*args, **kwargs)
+
+    if use_cache:
+        cache[args_str] = ret
+
+    return ret
+
+
 def _select_one(
     c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> Tuple[Optional[Node], Union[str, int]]:
@@ -1078,3 +1102,8 @@ def _select_one(
 
     assert val is None or isinstance(val, Node)
     return val, ret_key
+
+
+# Register all default resolvers (must be done as last import step to ensure all
+# necessary functions have been defined).
+register_default_resolvers()
