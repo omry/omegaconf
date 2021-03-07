@@ -746,6 +746,22 @@ class TestConfigs:
         with raises(ValidationError):
             dct.fail = "fail"
 
+    def test_dict_is_open_even_with_parent_in_struct_mode(self, module: Any) -> Any:
+        cfg = OmegaConf.structured({"a": module.DictExamples})
+        OmegaConf.set_struct(cfg, True)
+        assert not OmegaConf.is_struct(cfg.a.any)
+        cfg.a.any["foo"] = "bar"
+        assert cfg.a.any["foo"] == "bar"
+
+    def test_dict_subclass_is_open_even_with_parent_in_struct_mode(
+        self, module: Any
+    ) -> Any:
+        cfg = OmegaConf.structured({"a": module.DictSubclass.Str2Str})
+        OmegaConf.set_struct(cfg, True)
+        assert not OmegaConf.is_struct(cfg.a)
+        cfg.a["foo"] = "bar"
+        assert cfg.a["foo"] == "bar"
+
     def test_list_of_objects(self, module: Any) -> None:
         conf = OmegaConf.structured(module.ListOfObjects)
         assert conf.users[0].age == 18

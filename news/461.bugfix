@@ -1,0 +1,1 @@
+Dict fields and subclasses are now open to new keys even if the there is a parent node in struct mode.

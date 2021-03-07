@@ -906,6 +906,9 @@ def _node_wrap(
     )
     if is_dict:
         key_type, element_type = get_dict_key_value_types(type_)
+        flags = {}
+        if is_dict_annotation(type_):
+            flags["struct"] = False
         node = DictConfig(
             content=value,
             key=key,
@@ -914,6 +917,7 @@ def _node_wrap(
             is_optional=is_optional,
             key_type=key_type,
             element_type=element_type,
+            flags=flags,
         )
     elif is_list:
         element_type = get_list_element_type(type_)
