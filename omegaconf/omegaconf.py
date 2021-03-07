@@ -411,7 +411,7 @@ class OmegaConf:
         name: str,
         resolver: Resolver,
         *,
-        use_cache: Optional[bool] = False,
+        use_cache: bool = False,
     ) -> None:
         """
         Register a resolver.
