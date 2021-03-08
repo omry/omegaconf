@@ -185,11 +185,11 @@ class TestGetWithDefault:
     @pytest.mark.parametrize(
         "d,select,key",
         [
-            ({"hello": {"a": 2}}, "", "missing"),
-            ({"hello": {"a": 2}}, "hello", "missing"),
-            ({"hello": "???"}, "", "hello"),
-            ({"hello": DictConfig(content="???")}, "", "hello"),
-            ({"hello": ListConfig(content="???")}, "", "hello"),
+            ({"key": {"subkey": 2}}, "", "missing"),
+            ({"key": {"subkey": 2}}, "key", "missing"),
+            ({"key": "???"}, "", "key"),
+            ({"key": DictConfig(content="???")}, "", "key"),
+            ({"key": ListConfig(content="???")}, "", "key"),
         ],
     )
     def test_dict_get_with_default(
@@ -203,11 +203,11 @@ class TestGetWithDefault:
     @pytest.mark.parametrize(
         ("d", "select", "key", "expected"),
         [
-            ({"hello": "world"}, "", "hello", "world"),
-            ({"hello": None}, "", "hello", None),
-            ({"hello": {"a": None}}, "hello", "a", None),
-            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello", None),
-            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello", None),
+            ({"key": "value"}, "", "key", "value"),
+            ({"key": None}, "", "key", None),
+            ({"key": {"subkey": None}}, "key", "subkey", None),
+            ({"key": DictConfig(is_optional=True, content=None)}, "", "key", None),
+            ({"key": ListConfig(is_optional=True, content=None)}, "", "key", None),
         ],
     )
     def test_dict_get_not_returning_default(
@@ -227,12 +227,12 @@ class TestGetWithDefault:
     @pytest.mark.parametrize(
         "d,exc",
         [
-            ({"hello": "${foo}"}, InterpolationKeyError),
+            ({"key": "${foo}"}, InterpolationKeyError),
             (
-                {"hello": "${foo}", "foo": "???"},
+                {"key": "${foo}", "foo": "???"},
                 InterpolationToMissingValueError,
             ),
-            ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
+            ({"key": DictConfig(content="${foo}")}, InterpolationKeyError),
         ],
     )
     def test_dict_get_with_default_errors(
@@ -241,7 +241,7 @@ class TestGetWithDefault:
         c = OmegaConf.create(d)
         OmegaConf.set_struct(c, struct)
         with pytest.raises(exc):
-            c.get("hello", default_value=123)
+            c.get("key", default_value=123)
 
 
 def test_map_expansion() -> None:
