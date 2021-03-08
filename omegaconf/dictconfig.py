@@ -420,9 +420,10 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             node = self._get_node(key=key, throw_on_missing_key=True)
         except (ConfigAttributeError, ConfigKeyError):
             if default_value is not DEFAULT_VALUE_MARKER:
-                node = default_value
+                return default_value
             else:
                 raise
+        assert isinstance(node, Node)
         return self._resolve_with_default(
             key=key, value=node, default_value=default_value
         )
@@ -466,6 +467,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             key = self._validate_and_normalize_key(key)
             node = self._get_node(key=key, validate_access=False)
             if node is not None:
+                assert isinstance(node, Node)
                 value = self._resolve_with_default(
                     key=key, value=node, default_value=default
                 )

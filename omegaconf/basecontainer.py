@@ -45,15 +45,12 @@ class BaseContainer(Container, ABC):
     def _resolve_with_default(
         self,
         key: Union[DictKeyType, int],
-        value: Any,
+        value: Node,
         default_value: Any = DEFAULT_VALUE_MARKER,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
-
-        has_default = default_value is not DEFAULT_VALUE_MARKER
-
         if _is_missing_value(value):
-            if has_default:
+            if default_value is not DEFAULT_VALUE_MARKER:
                 return default_value
             raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 

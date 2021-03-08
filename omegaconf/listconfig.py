@@ -434,9 +434,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot pop from a missing ListConfig")
 
             assert isinstance(self.__dict__["_content"], list)
-            ret = self._resolve_with_default(
-                key=index, value=self._get_node(index), default_value=None
-            )
+            node = self._get_node(index)
+            assert isinstance(node, Node)
+            ret = self._resolve_with_default(key=index, value=node, default_value=None)
             del self.__dict__["_content"][index]
             self._update_keys()
             return ret
