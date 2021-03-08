@@ -631,7 +631,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     value,
                     allow_objects=self._get_flag("allow_objects"),
                 )
-                # Structured Configs that are a subclass of Dict gets their struct flag set to False by default.
+                # Structured Configs that are a subclass of Dict get their struct flag set to False by default.
                 if is_dict(get_type_of(value)):
                     self._set_flag("struct", False)
 
