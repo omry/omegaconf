@@ -329,6 +329,25 @@ def test_is_none(fac: Any, is_none: bool) -> None:
 
 
 @pytest.mark.parametrize(
+    ("cfg", "key", "is_none"),
+    [
+        ({"foo": "${none}", "none": None}, "foo", True),
+        ({"foo": "${missing_node}"}, "foo", False),
+        ({"foo": "${missing_resolver:}"}, "foo", False),
+        ({"foo": "${oc.decode:'[1, '}"}, "foo", False),
+    ],
+)
+def test_is_none_interpolation(cfg: Any, key: str, is_none: bool) -> None:
+    cfg = OmegaConf.create(cfg)
+    assert OmegaConf.is_none(cfg, key) == is_none
+
+
+def test_is_none_invalid_node() -> None:
+    cfg = OmegaConf.create({})
+    assert OmegaConf.is_none(cfg, "invalid")
+
+
+@pytest.mark.parametrize(
     "fac",
     [
         (
