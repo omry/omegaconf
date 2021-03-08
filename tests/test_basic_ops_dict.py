@@ -188,10 +188,7 @@ class TestGetWithDefault:
             ({"hello": {"a": 2}}, "", "missing"),
             ({"hello": {"a": 2}}, "hello", "missing"),
             ({"hello": "???"}, "", "hello"),
-            ({"hello": None}, "", "hello"),
-            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
             ({"hello": DictConfig(content="???")}, "", "hello"),
-            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
             ({"hello": ListConfig(content="???")}, "", "hello"),
         ],
     )
@@ -202,6 +199,30 @@ class TestGetWithDefault:
         c = OmegaConf.select(c, select)
         OmegaConf.set_struct(c, struct)
         assert c.get(key, default_val) == default_val
+
+    @pytest.mark.parametrize(
+        ("d", "select", "key", "expected"),
+        [
+            ({"hello": "world"}, "", "hello", "world"),
+            ({"hello": None}, "", "hello", None),
+            ({"hello": {"a": None}}, "hello", "a", None),
+            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello", None),
+            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello", None),
+        ],
+    )
+    def test_dict_get_not_returning_default(
+        self,
+        d: Any,
+        select: Any,
+        key: Any,
+        expected: Any,
+        default_val: Any,
+        struct: Optional[bool],
+    ) -> None:
+        c = OmegaConf.create(d)
+        c = OmegaConf.select(c, select)
+        OmegaConf.set_struct(c, struct)
+        assert c.get(key, default_val) == expected
 
     @pytest.mark.parametrize(
         "d,exc",
@@ -327,6 +348,8 @@ def test_iterate_dict_with_interpolation() -> None:
         pytest.param(
             {"a": 1, "b": 2}, "not_found", "default", "default", id="with_default"
         ),
+        pytest.param({"a": None}, "a", "default", None, id="none_value"),
+        pytest.param({"a": "???"}, "a", "default", "default", id="missing_value"),
         # Interpolations
         pytest.param(
             {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"

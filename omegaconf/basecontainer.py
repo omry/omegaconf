@@ -52,9 +52,6 @@ class BaseContainer(Container, ABC):
 
         has_default = default_value is not DEFAULT_VALUE_MARKER
 
-        if has_default and _get_value(value) is None:
-            return default_value
-
         if _is_missing_value(value):
             if has_default:
                 return default_value
@@ -66,7 +63,6 @@ class BaseContainer(Container, ABC):
             value=value,
             throw_on_resolution_failure=True,
         )
-        assert resolved_node is not None
 
         return _get_value(resolved_node)
 
