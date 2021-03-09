@@ -24,7 +24,8 @@ SKIP = object()
 def verify(
     cfg: Any,
     key: Any,
-    none: bool,
+    none_internal: bool,
+    none_public: bool,
     opt: bool,
     missing: bool,
     inter: bool,
@@ -32,7 +33,7 @@ def verify(
 ) -> None:
     target_node = cfg._get_node(key)
     assert target_node._key() == key
-    assert target_node._is_none() == none
+    assert target_node._is_none() == none_internal
     assert target_node._is_optional() == opt
     assert target_node._is_missing() == missing
     assert target_node._is_interpolation() == inter
@@ -41,7 +42,7 @@ def verify(
         assert cfg.get(key) == exp
 
     assert OmegaConf.is_missing(cfg, key) == missing
-    assert OmegaConf.is_none(cfg, key) == none
+    assert OmegaConf.is_none(cfg, key) == none_public
     assert OmegaConf.is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
 
@@ -104,7 +105,15 @@ class TestNodeTypesMatrix:
             node = node_type(value=value, is_optional=False)
             data = {"node": node}
             cfg = OmegaConf.create(obj=data)
-            verify(cfg, "node", none=False, opt=False, missing=False, inter=False)
+            verify(
+                cfg,
+                "node",
+                none_internal=False,
+                none_public=False,
+                opt=False,
+                missing=False,
+                inter=False,
+            )
             msg = "child 'node' is not Optional"
             with pytest.raises(ValidationError, match=re.escape(msg)):
                 cfg.node = None
@@ -117,18 +126,50 @@ class TestNodeTypesMatrix:
         for value in values:
             value_backup = copy.deepcopy(value)
             cfg = OmegaConf.create({"node": node_type(value=None, is_optional=True)})
-            verify(cfg, "node", none=True, opt=True, missing=False, inter=False)
+            verify(
+                cfg,
+                "node",
+                none_internal=True,
+                none_public=True,
+                opt=True,
+                missing=False,
+                inter=False,
+            )
 
             cfg.node = value
             assert cfg._get_node("node") == value
-            verify(cfg, "node", none=False, opt=True, missing=False, inter=False)
+            verify(
+                cfg,
+                "node",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=False,
+            )
 
             cfg.node = "???"
-            verify(cfg, "node", none=False, opt=True, missing=True, inter=False)
+            verify(
+                cfg,
+                "node",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=True,
+                inter=False,
+            )
 
             cfg.node = value_backup
             assert cfg._get_node("node") == value_backup
-            verify(cfg, "node", none=False, opt=True, missing=False, inter=False)
+            verify(
+                cfg,
+                "node",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=False,
+            )
 
     def test_none_assignment_in_list(self, node_type: Any, values: Any) -> None:
         values = copy.deepcopy(values)
@@ -136,7 +177,15 @@ class TestNodeTypesMatrix:
             key = 0
             d = node_type(value=value, key=key, is_optional=False)
             cfg = OmegaConf.create([d])
-            verify(cfg, key, none=False, opt=False, missing=False, inter=False)
+            verify(
+                cfg,
+                key,
+                none_internal=False,
+                none_public=False,
+                opt=False,
+                missing=False,
+                inter=False,
+            )
 
             with pytest.raises(ValidationError):
                 cfg[key] = None
@@ -146,11 +195,27 @@ class TestNodeTypesMatrix:
         for value in values:
             key = 0
             cfg = OmegaConf.create([node_type(value=None, key=key, is_optional=True)])
-            verify(cfg, key, none=True, opt=True, missing=False, inter=False)
+            verify(
+                cfg,
+                key,
+                none_internal=True,
+                none_public=True,
+                opt=True,
+                missing=False,
+                inter=False,
+            )
 
             cfg[key] = value
             assert cfg[key] == value
-            verify(cfg, key, none=False, opt=True, missing=False, inter=False)
+            verify(
+                cfg,
+                key,
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=False,
+            )
 
     def test_none_construction(self, node_type: Any, values: Any) -> None:
         values = copy.deepcopy(values)
@@ -159,13 +224,13 @@ class TestNodeTypesMatrix:
             assert node._value() is None
             assert node._is_optional()
         assert node.__eq__(None)
-        assert OmegaConf.is_none(node)
+        assert node._is_none()
 
         for value in values:
             node._set_value(value)
             assert node.__eq__(value)
             assert not node.__eq__(None)
-            assert not OmegaConf.is_none(node)
+            assert not node._is_none()
 
         with pytest.raises(ValidationError):
             node_type(value=None, is_optional=False)
@@ -223,13 +288,21 @@ class TestNodeTypesMatrix:
             )
 
             verify(
-                cfg, "const", none=False, opt=True, missing=False, inter=False, exp=10
+                cfg,
+                "const",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=False,
+                exp=10,
             )
 
             verify(
                 cfg,
                 "resolver",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=False,
                 missing=False,
                 inter=True,
@@ -239,7 +312,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "opt_resolver",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -249,7 +323,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "reg",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=False,
                 missing=False,
                 inter=False,
@@ -257,24 +332,49 @@ class TestNodeTypesMatrix:
             )
 
             verify(
-                cfg, "opt", none=False, opt=True, missing=False, inter=False, exp=value
+                cfg,
+                "opt",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=False,
+                exp=value,
             )
             verify(
                 cfg,
                 "opt_none",
-                none=True,
+                none_internal=True,
+                none_public=True,
                 opt=True,
                 missing=False,
                 inter=False,
                 exp=None,
             )
-            verify(cfg, "missing", none=False, opt=False, missing=True, inter=False)
-            verify(cfg, "opt_missing", none=False, opt=True, missing=True, inter=False)
+            verify(
+                cfg,
+                "missing",
+                none_internal=False,
+                none_public=False,
+                opt=False,
+                missing=True,
+                inter=False,
+            )
+            verify(
+                cfg,
+                "opt_missing",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=True,
+                inter=False,
+            )
 
             verify(
                 cfg,
                 "int_reg",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -283,7 +383,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -292,21 +393,37 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt_none",
-                none=True,
+                none_internal=True,
+                none_public=True,
                 opt=True,
                 missing=False,
                 inter=True,
                 exp=None,
             )
-            verify(cfg, "int_missing", none=False, opt=True, missing=False, inter=True)
             verify(
-                cfg, "int_opt_missing", none=False, opt=True, missing=False, inter=True
+                cfg,
+                "int_missing",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=True,
+            )
+            verify(
+                cfg,
+                "int_opt_missing",
+                none_internal=False,
+                none_public=False,
+                opt=True,
+                missing=False,
+                inter=True,
             )
 
             verify(
                 cfg,
                 "str_int_const",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=False,
                 missing=False,
                 inter=True,
@@ -315,7 +432,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "opt_str_int_const",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -324,7 +442,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_node",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -334,7 +453,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt_node",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -344,7 +464,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_resolver",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -354,7 +475,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt_resolver",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
@@ -364,7 +486,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "str_int_with_primitive_missing",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=False,
                 missing=False,
                 inter=True,
@@ -373,7 +496,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "opt_str_int_with_primitive_missing",
-                none=False,
+                none_internal=False,
+                none_public=False,
                 opt=True,
                 missing=False,
                 inter=True,
