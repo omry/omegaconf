@@ -15,6 +15,7 @@ from omegaconf import (
     OmegaConf,
     StringNode,
 )
+from omegaconf._utils import _is_none
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
@@ -322,10 +323,10 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
 )
 def test_is_none(fac: Any, is_none: bool) -> None:
     obj = fac(is_none)
-    assert OmegaConf.is_none(obj) == is_none
+    assert obj._is_none() == is_none
 
     cfg = OmegaConf.create({"node": obj})
-    assert OmegaConf.is_none(cfg, "node") == is_none
+    assert (cfg.node is None) == is_none
 
 
 @pytest.mark.parametrize(
@@ -339,12 +340,18 @@ def test_is_none(fac: Any, is_none: bool) -> None:
 )
 def test_is_none_interpolation(cfg: Any, key: str, is_none: bool) -> None:
     cfg = OmegaConf.create(cfg)
-    assert OmegaConf.is_none(cfg, key) == is_none
+    with pytest.warns(UserWarning):
+        assert OmegaConf.is_none(cfg, key) == is_none
+    check = _is_none(
+        cfg._get_node(key), resolve=True, throw_on_resolution_failure=False
+    )
+    assert check == is_none
 
 
 def test_is_none_invalid_node() -> None:
     cfg = OmegaConf.create({})
-    assert OmegaConf.is_none(cfg, "invalid")
+    with pytest.warns(UserWarning):
+        assert OmegaConf.is_none(cfg, "invalid")
 
 
 @pytest.mark.parametrize(

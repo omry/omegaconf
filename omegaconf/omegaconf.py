@@ -29,6 +29,7 @@ from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _ensure_container,
     _get_value,
+    _is_none,
     _make_hashable,
     format_and_raise,
     get_dict_key_value_types,
@@ -642,15 +643,18 @@ class OmegaConf:
         else:
             return True
 
+    # DEPRECATED: remove in 2.2
     @staticmethod
     def is_none(obj: Any, key: Optional[Union[int, DictKeyType]] = None) -> bool:
+        warnings.warn(
+            "`OmegaConf.is_none()` is deprecated, see https://github.com/omry/omegaconf/issues/547"
+        )
+
         if key is not None:
             assert isinstance(obj, Container)
             obj = obj._get_node(key)
-        if isinstance(obj, Node):
-            return obj._is_none()
-        else:
-            return obj is None
+
+        return _is_none(obj, resolve=True, throw_on_resolution_failure=False)
 
     @staticmethod
     def is_interpolation(node: Any, key: Optional[Union[int, str]] = None) -> bool:

@@ -233,7 +233,16 @@ class Node(ABC):
         return root
 
     def _is_missing(self) -> bool:
+        """
+        Check if the node's value is `???` (does *not* resolve interpolations).
+        """
         return _is_missing_value(self)
+
+    def _is_none(self) -> bool:
+        """
+        Check if the node's value is `None` (does *not* resolve interpolations).
+        """
+        return self._value() is None
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
@@ -253,10 +262,6 @@ class Node(ABC):
 
     @abstractmethod
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        ...
-
-    @abstractmethod
-    def _is_none(self) -> bool:
         ...
 
     @abstractmethod

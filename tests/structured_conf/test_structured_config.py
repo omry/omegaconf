@@ -492,7 +492,7 @@ class TestConfigs:
         c1 = OmegaConf.structured(module.StructuredOptional)
         assert c1.with_default == module.Nested()
         c2 = OmegaConf.merge(c1, {"with_default": None})
-        assert OmegaConf.is_none(c2, "with_default")
+        assert c2.with_default is None
 
     def test_merge_with_subclass_into_missing(self, module: Any) -> None:
         base = OmegaConf.structured(module.PluginHolder)

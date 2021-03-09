@@ -80,16 +80,6 @@ class ValueNode(Node):
         # parent is retained, but not copied
         res.__dict__["_parent"] = self._parent
 
-    def _is_none(self) -> bool:
-        if self._is_interpolation():
-            node = self._dereference_node(throw_on_resolution_failure=False)
-            if node is None:
-                # resolution failure
-                return False
-        else:
-            node = self
-        return node._value() is None
-
     def _is_optional(self) -> bool:
         return self._metadata.optional
 

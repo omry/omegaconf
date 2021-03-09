@@ -42,7 +42,8 @@ def verify(
         assert cfg.get(key) == exp
 
     assert OmegaConf.is_missing(cfg, key) == missing
-    assert OmegaConf.is_none(cfg, key) == none_public
+    with pytest.warns(UserWarning):
+        assert OmegaConf.is_none(cfg, key) == none_public
     assert OmegaConf.is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
 
@@ -393,7 +394,7 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt_none",
-                none_internal=True,
+                none_internal=False,
                 none_public=True,
                 opt=True,
                 missing=False,

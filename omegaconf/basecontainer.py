@@ -14,6 +14,7 @@ from ._utils import (
     _is_interpolation,
     _is_missing_literal,
     _is_missing_value,
+    _is_none,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
@@ -267,7 +268,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import AnyNode, DictConfig, OmegaConf, ValueNode
+        from omegaconf import AnyNode, DictConfig, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -276,9 +277,9 @@ class BaseContainer(Container, ABC):
         assert src_ref_type is not None
 
         # If source DictConfig is:
-        #  - an interpolation => set the destination DictConfig to be the same interpolation
         #  - None => set the destination DictConfig to None
-        if src._is_interpolation() or src._is_none():
+        #  - an interpolation => set the destination DictConfig to be the same interpolation
+        if src._is_none() or src._is_interpolation():
             dest._set_value(src._value())
             _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
@@ -329,9 +330,9 @@ class BaseContainer(Container, ABC):
 
             if (
                 isinstance(dest_node, Container)
-                and OmegaConf.is_none(dest, key)
+                and dest_node._is_none()
                 and not missing_src_value
-                and not OmegaConf.is_none(src_value)
+                and not _is_none(src_value, resolve=True)
             ):
                 expand(dest_node)
 
@@ -408,14 +409,14 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, ListConfig)
         assert isinstance(src, ListConfig)
 
-        if src._is_interpolation():
-            dest._set_value(src._value())
-        elif src._is_none():
+        if src._is_none():
             dest._set_value(None)
         elif src._is_missing():
             # do not change dest if src is MISSING.
             if dest._metadata.element_type is Any:
                 dest._metadata.element_type = src._metadata.element_type
+        elif src._is_interpolation():
+            dest._set_value(src._value())
         else:
             temp_target = ListConfig(content=[], parent=dest._get_parent())
             temp_target.__dict__["_metadata"] = copy.deepcopy(
@@ -644,9 +645,6 @@ class BaseContainer(Container, ABC):
             ret = dv1 == dv2
             assert isinstance(ret, bool)
             return ret
-
-    def _is_none(self) -> bool:
-        return self.__dict__["_content"] is None
 
     def _is_optional(self) -> bool:
         return self.__dict__["_metadata"].optional is True
