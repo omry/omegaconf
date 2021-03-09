@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
+from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -33,22 +33,35 @@ def test_list_of_dicts() -> None:
 
 @pytest.mark.parametrize("default", [None, 0, "default"])
 @pytest.mark.parametrize(
+    ("cfg", "key"),
+    [
+        (["???"], 0),
+        ([DictConfig(content="???")], 0),
+        ([ListConfig(content="???")], 0),
+    ],
+)
+def test_list_get_return_default(cfg: List[Any], key: int, default: Any) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.get(key, default_value=default)
+    assert val is default
+
+
+@pytest.mark.parametrize("default", [None, 0, "default"])
+@pytest.mark.parametrize(
     ("cfg", "key", "expected"),
     [
         (["found"], 0, "found"),
         ([None], 0, None),
-        (["???"], 0, "__DEFAULT__"),
+        ([DictConfig(content=None)], 0, None),
+        ([ListConfig(content=None)], 0, None),
     ],
 )
-def test_list_get_with_default(
+def test_list_get_do_not_return_default(
     cfg: List[Any], key: int, expected: Any, default: Any
 ) -> None:
     c = OmegaConf.create(cfg)
     val = c.get(key, default_value=default)
-    if expected == "__DEFAULT__":
-        assert val == default
-    else:
-        assert val == expected
+    assert val == expected
 
 
 @pytest.mark.parametrize(
