@@ -320,6 +320,15 @@ def test_flag_override(
             func(c)
 
 
+def test_nested_flag_override() -> None:
+    c = OmegaConf.create({"a": {"b": 1}})
+    with flag_override(c, "test", True):
+        assert c._get_flag("test") is True
+        with flag_override(c.a, "test", False):
+            assert c.a._get_flag("test") is False
+    assert c.a._get_flag("test") is None
+
+
 def test_multiple_flags_override() -> None:
     c = OmegaConf.create({"foo": "bar"})
     with flag_override(c, ["readonly"], True):

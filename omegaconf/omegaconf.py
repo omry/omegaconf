@@ -857,7 +857,7 @@ def flag_override(
     if values is None or isinstance(values, bool):
         values = [values]
 
-    prev_states = [config._get_flag(name) for name in names]
+    prev_states = [config._get_node_flag(name) for name in names]
 
     try:
         config._set_flag(names, values)
