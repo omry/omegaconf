@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
+from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -31,11 +31,37 @@ def test_list_of_dicts() -> None:
     assert c[1].key2 == "value2"
 
 
-def test_list_get_with_default() -> None:
-    c = OmegaConf.create([None, "???", "found"])
-    assert c.get(0, "default_value") == "default_value"
-    assert c.get(1, "default_value") == "default_value"
-    assert c.get(2, "default_value") == "found"
+@pytest.mark.parametrize("default", [None, 0, "default"])
+@pytest.mark.parametrize(
+    ("cfg", "key"),
+    [
+        (["???"], 0),
+        ([DictConfig(content="???")], 0),
+        ([ListConfig(content="???")], 0),
+    ],
+)
+def test_list_get_return_default(cfg: List[Any], key: int, default: Any) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.get(key, default_value=default)
+    assert val is default
+
+
+@pytest.mark.parametrize("default", [None, 0, "default"])
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected"),
+    [
+        (["found"], 0, "found"),
+        ([None], 0, None),
+        ([DictConfig(content=None)], 0, None),
+        ([ListConfig(content=None)], 0, None),
+    ],
+)
+def test_list_get_do_not_return_default(
+    cfg: List[Any], key: int, expected: Any, default: Any
+) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.get(key, default_value=default)
+    assert val == expected
 
 
 @pytest.mark.parametrize(
@@ -94,6 +120,7 @@ def test_items_with_interpolation() -> None:
         pytest.param([1, 2, 3], 0, 1, [2, 3]),
         pytest.param([1, 2, 3], None, 3, [1, 2]),
         pytest.param(["???", 2, 3], 0, None, [2, 3]),
+        pytest.param([1, None, 3], 1, None, [1, 3]),
     ],
 )
 def test_list_pop(
