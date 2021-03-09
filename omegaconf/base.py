@@ -277,7 +277,9 @@ class Node(ABC):
         return self._metadata.flags_root
 
     def _set_flags_root(self, flags_root: bool) -> None:
-        self._metadata.flags_root = flags_root
+        if self._metadata.flags_root != flags_root:
+            self._metadata.flags_root = flags_root
+            self._invalidate_flags_cache()
 
 
 class Container(Node):
