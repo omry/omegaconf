@@ -27,6 +27,7 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     InterpolationValidationError,
     OmegaConfBaseException,
+    ReadonlyConfigError,
     UnsupportedInterpolationType,
 )
 
@@ -924,6 +925,43 @@ def test_interpolation_type_validated_error(
         cfg[key]
 
     assert OmegaConf.select(cfg, key, throw_on_resolution_failure=False) is None
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key"),
+    [
+        pytest.param({"dict": "${identity:{a: 0, b: 1}}"}, "dict.a", id="dict"),
+        pytest.param(
+            {"dict": "${identity:{a: 0, b: {c: 1}}}"},
+            "dict.b.c",
+            id="dict_nested",
+        ),
+        pytest.param({"list": "${identity:[0, 1]}"}, "list.0", id="list"),
+        pytest.param({"list": "${identity:[0, [1, 2]]}"}, "list.1.1", id="list_nested"),
+    ],
+)
+def test_interpolation_readonly_resolver_output(
+    restore_resolvers: Any, cfg: Any, key: str
+) -> None:
+    OmegaConf.register_new_resolver("identity", lambda x: x)
+    cfg = OmegaConf.create(cfg)
+    sub_key: Any
+    parent_key, sub_key = key.rsplit(".", 1)
+    try:
+        sub_key = int(sub_key)  # convert list index to integer
+    except ValueError:
+        pass
+    parent_node = OmegaConf.select(cfg, parent_key)
+    with pytest.raises(ReadonlyConfigError):
+        parent_node[sub_key] = -1
+
+
+def test_interpolation_readonly_node() -> None:
+    cfg = OmegaConf.structured(User(name="7", age=II("name")))
+    resolved = cfg._get_node("age")._dereference_node()
+    assert resolved == 7
+    with pytest.raises(ReadonlyConfigError):
+        resolved._set_value(8)
 
 
 def test_type_validation_error_no_throw() -> None:

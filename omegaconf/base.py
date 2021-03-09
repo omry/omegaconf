@@ -461,7 +461,7 @@ class Container(Node):
         if must_wrap:
             assert parent is None or isinstance(parent, BaseContainer)
             try:
-                return _node_wrap(
+                wrapped = _node_wrap(
                     type_=value._metadata.ref_type,
                     parent=parent,
                     is_optional=value._metadata.optional,
@@ -478,6 +478,11 @@ class Container(Node):
                         type_override=InterpolationValidationError,
                     )
                 return None
+            # Since we created a new node on the fly, future changes to this node are
+            # likely to be lost. We thus set the "readonly" flag to `True` to reduce
+            # the risk of accidental modifications.
+            wrapped._set_flag("readonly", True)
+            return wrapped
         else:
             assert isinstance(resolved, Node)
             return resolved
