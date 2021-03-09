@@ -641,10 +641,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 self._metadata.flags = copy.deepcopy(flags)
                 # disable struct and readonly for the construction phase
                 # retaining other flags like allow_objects. The real flags are restored at the end of this function
-                with flag_override(self, "struct", False):
-                    with flag_override(self, "readonly", False):
-                        for k, v in value.__dict__["_content"].items():
-                            self.__setitem__(k, v)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for k, v in value.__dict__["_content"].items():
+                        self.__setitem__(k, v)
 
             elif isinstance(value, dict):
                 for k, v in value.items():
