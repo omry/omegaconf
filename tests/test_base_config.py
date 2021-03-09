@@ -572,3 +572,12 @@ def test_string_interpolation_with_readonly_parent(cfg: Any, key: Any) -> None:
     cfg = OmegaConf.create(cfg)
     with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
         cfg._get_node(key, throw_on_missing_value=True)
+
+
+def test_flags_root() -> None:
+    cfg = OmegaConf.create({"a": {"b": 10}})
+    cfg._set_flag("flag", True)
+    assert cfg.a._get_flag_no_cache("flag") is True
+
+    cfg.a._set_flags_root(True)
+    assert cfg.a._get_flag_no_cache("flag") is None

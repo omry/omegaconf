@@ -49,6 +49,11 @@ class Metadata:
     #   set to true: flag is true
     #   set to false: flag is false
     flags: Optional[Dict[str, bool]] = None
+
+    # If True, when checking the value of a flag, if the flag is not set None is returned
+    # otherwise, the parent node is queried.
+    flags_root: bool = False
+
     resolver_cache: Dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
 
     def __post_init__(self) -> None:
@@ -167,6 +172,9 @@ class Node(ABC):
         if flag in flags and flags[flag] is not None:
             return flags[flag]
 
+        if self._is_flags_root():
+            return None
+
         parent = self._get_parent()
         if parent is None:
             return None
@@ -264,6 +272,12 @@ class Node(ABC):
 
     def _set_key(self, key: Any) -> None:
         self._metadata.key = key
+
+    def _is_flags_root(self) -> bool:
+        return self._metadata.flags_root
+
+    def _set_flags_root(self, flags_root: bool) -> None:
+        self._metadata.flags_root = flags_root
 
 
 class Container(Node):
