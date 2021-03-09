@@ -25,7 +25,7 @@ from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
-    KeyValidationError,
+    InterpolationValidationError,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
@@ -849,7 +849,7 @@ def test_interpolation_type_validated_ok(
             User(name="Bond", age=SI("${cast:str,seven}")),
             "age",
             pytest.raises(
-                ValidationError,
+                InterpolationValidationError,
                 match=re.escape(
                     dedent(
                         """\
@@ -865,7 +865,7 @@ def test_interpolation_type_validated_ok(
             User(name="Bond", age=SI("${name}")),
             "age",
             pytest.raises(
-                ValidationError,
+                InterpolationValidationError,
                 match=re.escape(
                     dedent(
                         """\
@@ -881,7 +881,7 @@ def test_interpolation_type_validated_ok(
             StructuredWithMissing(opt_num=None, num=II("opt_num")),
             "num",
             pytest.raises(
-                ValidationError,
+                InterpolationValidationError,
                 match=re.escape("Non optional field cannot be assigned None"),
             ),
             id="non_optional_node_interpolation",
@@ -890,7 +890,7 @@ def test_interpolation_type_validated_ok(
             SubscriptedList(list=SI("${identity:[a, b]}")),
             "list",
             pytest.raises(
-                ValidationError,
+                InterpolationValidationError,
                 match=re.escape("Value 'a' could not be converted to Integer"),
             ),
             id="list_type_mismatch",
@@ -899,7 +899,7 @@ def test_interpolation_type_validated_ok(
             MissingDict(dict=SI("${identity:{0: b, 1: d}}")),
             "dict",
             pytest.raises(
-                KeyValidationError,
+                InterpolationValidationError,
                 match=re.escape("Key 0 (int) is incompatible with (str)"),
             ),
             id="dict_key_type_mismatch",
@@ -911,7 +911,7 @@ def test_interpolation_type_validated_error(
     key: str,
     expected_error: Any,
     restore_resolvers: Any,
-) -> Any:
+) -> None:
     def cast(t: Any, v: Any) -> Any:
         return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
 
@@ -922,6 +922,8 @@ def test_interpolation_type_validated_error(
 
     with expected_error:
         cfg[key]
+
+    assert OmegaConf.select(cfg, key, throw_on_resolution_failure=False) is None
 
 
 def test_type_validation_error_no_throw() -> None:

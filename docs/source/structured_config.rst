@@ -347,7 +347,7 @@ Interpolated values are validated, and converted when possible, to the annotated
     >>> cfg.int_key  # fails due to type mismatch
     Traceback (most recent call last):
       ...
-    omegaconf.errors.ValidationError: Value 'string' could not be converted to Integer
+    omegaconf.errors.InterpolationValidationError: Value 'string' could not be converted to Integer
         full_key: int_key
         object_type=Interpolation
     >>> cfg.str_key = "1234"  # string value

@@ -20,6 +20,8 @@ from .errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
+    InterpolationValidationError,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -441,7 +443,12 @@ class Container(Node):
                 conv_value = value.validate_and_convert(res_value)
             except ValidationError as e:
                 if throw_on_resolution_failure:
-                    self._format_and_raise(key=key, value=res_value, cause=e)
+                    self._format_and_raise(
+                        key=key,
+                        value=res_value,
+                        cause=e,
+                        type_override=InterpolationValidationError,
+                    )
                 return None
 
             # If the converted value is of the same type, it means that no conversion
@@ -453,14 +460,24 @@ class Container(Node):
 
         if must_wrap:
             assert parent is None or isinstance(parent, BaseContainer)
-            return _node_wrap(
-                type_=value._metadata.ref_type,
-                parent=parent,
-                is_optional=value._metadata.optional,
-                value=resolved,
-                key=key,
-                ref_type=value._metadata.ref_type,
-            )
+            try:
+                return _node_wrap(
+                    type_=value._metadata.ref_type,
+                    parent=parent,
+                    is_optional=value._metadata.optional,
+                    value=resolved,
+                    key=key,
+                    ref_type=value._metadata.ref_type,
+                )
+            except (KeyValidationError, ValidationError) as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(
+                        key=key,
+                        value=resolved,
+                        cause=e,
+                        type_override=InterpolationValidationError,
+                    )
+                return None
         else:
             assert isinstance(resolved, Node)
             return resolved
