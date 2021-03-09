@@ -146,7 +146,7 @@ class Node(ABC):
         :return: the state of the flag on this node.
         """
         assert self._metadata.flags is not None
-        return self._metadata.flags[flag] if flag in self._metadata.flags else None
+        return self._metadata.flags.get(flag)
 
     def _get_flag(self, flag: str) -> Optional[bool]:
         cache = self.__dict__["_flags_cache"]
