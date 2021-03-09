@@ -62,3 +62,10 @@ def test_struct_contain_missing() -> None:
 @mark.parametrize("cfg", [{}, OmegaConf.create({}, flags={"struct": True})])
 def test_struct_dict_get(cfg: Any) -> None:
     assert cfg.get("z") is None
+
+
+def test_struct_dict_assign() -> None:
+    cfg = OmegaConf.create({"a": {}})
+    OmegaConf.set_struct(cfg, True)
+    cfg.a = {"b": 10}
+    assert cfg.a == {"b": 10}

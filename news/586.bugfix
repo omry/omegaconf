@@ -1,0 +1,2 @@
+Assignment of a dict to an existing node in a parent in struct mode no longer raises ValidationError
+
