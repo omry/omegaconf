@@ -629,18 +629,16 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
-                data = get_structured_config_data(
-                    value,
-                    allow_objects=self._get_flag("allow_objects"),
-                )
-                for k, v in data.items():
-                    self.__setitem__(k, v)
+                ao = self._get_flag("allow_objects")
+                data = get_structured_config_data(value, allow_objects=ao)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for k, v in data.items():
+                        self.__setitem__(k, v)
                 self._metadata.object_type = get_type_of(value)
+
             elif isinstance(value, DictConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
                 self._metadata.flags = copy.deepcopy(flags)
-                # disable struct and readonly for the construction phase
-                # retaining other flags like allow_objects. The real flags are restored at the end of this function
                 with flag_override(self, ["struct", "readonly"], False):
                     for k, v in value.__dict__["_content"].items():
                         self.__setitem__(k, v)
@@ -649,6 +647,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 with flag_override(self, ["struct", "readonly"], False):
                     for k, v in value.items():
                         self.__setitem__(k, v)
+
             else:  # pragma: no cover
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)
