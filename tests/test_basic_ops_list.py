@@ -712,3 +712,12 @@ def test_shallow_copy_none() -> None:
     c._set_value([1])
     assert c[0] == 1
     assert cfg._is_none()
+
+
+@pytest.mark.parametrize("flag", ["struct", "readonly"])
+def test_listconfig_creation_with_parent_flag(flag: str) -> None:
+    parent = OmegaConf.create([])
+    parent._set_flag(flag, True)
+    d = [1, 2, 3]
+    cfg = ListConfig(d, parent=parent)
+    assert cfg == d
