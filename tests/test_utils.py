@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -8,6 +9,7 @@ from pytest import mark, param, raises
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import (
     SIMPLE_INTERPOLATION_PATTERN,
+    _ensure_container,
     _get_value,
     _make_hashable,
     is_dict_annotation,
@@ -653,3 +655,16 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
     assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+
+
+def test_ensure_container_raises_ValueError() -> None:
+    """Some values cannot be converted to a container.
+    On these inputs, _ensure_container should raise a ValueError."""
+    with raises(
+        ValueError,
+        match=re.escape(
+            "Invalid input. Supports one of "
+            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+        ),
+    ):
+        _ensure_container("abc")

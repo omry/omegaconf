@@ -1,0 +1,1 @@
+OmegaConf.{merge, unsafe_merge, to_yaml} now raises a ValueError when called on a str input. Previously an AssertionError was raised.
