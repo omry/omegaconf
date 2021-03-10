@@ -272,7 +272,7 @@ class BooleanNode(ValueNode):
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Optional[bool]:
+    def _validate_and_convert_impl(self, value: Any) -> bool:
         if isinstance(value, bool):
             return value
         if isinstance(value, int):
