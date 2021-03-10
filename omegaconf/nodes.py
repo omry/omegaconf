@@ -332,7 +332,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Optional[Enum]:
+    def _validate_and_convert_impl(self, value: Any) -> Enum:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
 
     @staticmethod
