@@ -646,7 +646,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         self.__setitem__(k, v)
 
             elif isinstance(value, dict):
-                with flag_override(self, "struct", False):
+                with flag_override(self, ["struct", "readonly"], False):
                     for k, v in value.items():
                         self.__setitem__(k, v)
             else:  # pragma: no cover
