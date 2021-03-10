@@ -1,4 +1,5 @@
 import copy
+import re
 from enum import Enum
 from typing import Any, Dict, Tuple, Type
 
@@ -487,12 +488,7 @@ def test_deepcopy(obj: Any) -> None:
         (BooleanNode(True), None, False),
         (BooleanNode(True), False, False),
         (BooleanNode(False), False, True),
-        (AnyNode(value=1, is_optional=True), AnyNode(value=1, is_optional=True), True),
-        (
-            AnyNode(value=1, is_optional=True),
-            AnyNode(value=1, is_optional=False),
-            True,
-        ),
+        (AnyNode(value=1), AnyNode(value=1), True),
         (EnumNode(enum_type=Enum1), Enum1.BAR, False),
         (EnumNode(enum_type=Enum1), EnumNode(Enum1), True),
         (EnumNode(enum_type=Enum1), "nope", False),
@@ -571,6 +567,26 @@ def test_dereference_missing() -> None:
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert x_node._dereference_node() is x_node
+
+
+@pytest.mark.parametrize(
+    "make_func",
+    [
+        StringNode,
+        IntegerNode,
+        FloatNode,
+        BooleanNode,
+        lambda val, is_optional: EnumNode(
+            enum_type=Color, value=val, is_optional=is_optional
+        ),
+    ],
+)
+def test_validate_and_convert_none(make_func: Any) -> None:
+    node = make_func("???", is_optional=False)
+    with pytest.raises(
+        ValidationError, match=re.escape("Non optional field cannot be assigned None")
+    ):
+        node.validate_and_convert(None)
 
 
 def test_dereference_interpolation_to_missing() -> None:

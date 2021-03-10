@@ -937,7 +937,7 @@ def _node_wrap(
             element_type=element_type,
         )
     elif type_ == Any or type_ is None:
-        node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = AnyNode(value=value, key=key, parent=parent)
     elif issubclass(type_, Enum):
         node = EnumNode(
             enum_type=type_,
@@ -956,7 +956,7 @@ def _node_wrap(
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
-            node = AnyNode(value=value, key=key, parent=parent, is_optional=is_optional)
+            node = AnyNode(value=value, key=key, parent=parent)
         else:
             raise ValidationError(f"Unexpected object type : {type_str(type_)}")
     return node
