@@ -336,9 +336,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
 
     @staticmethod
-    def validate_and_convert_to_enum(
-        enum_type: Type[Enum], value: Any
-    ) -> Optional[Enum]:
+    def validate_and_convert_to_enum(enum_type: Type[Enum], value: Any) -> Enum:
         if not isinstance(value, (str, int)) and not isinstance(value, enum_type):
             raise ValidationError(
                 f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"
