@@ -223,7 +223,7 @@ class FloatNode(ValueNode):
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Optional[float]:
+    def _validate_and_convert_impl(self, value: Any) -> float:
         try:
             if type(value) in (float, str, int):
                 return float(value)
