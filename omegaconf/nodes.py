@@ -119,14 +119,11 @@ class AnyNode(ValueNode):
         value: Any = None,
         key: Any = None,
         parent: Optional[Container] = None,
-        is_optional: bool = True,
     ):
         super().__init__(
             parent=parent,
             value=value,
-            metadata=Metadata(
-                ref_type=Any, object_type=None, key=key, optional=is_optional
-            ),
+            metadata=Metadata(ref_type=Any, object_type=None, key=key, optional=True),
         )
 
     def _validate_and_convert_impl(self, value: Any) -> Any:

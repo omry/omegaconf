@@ -488,12 +488,7 @@ def test_deepcopy(obj: Any) -> None:
         (BooleanNode(True), None, False),
         (BooleanNode(True), False, False),
         (BooleanNode(False), False, True),
-        (AnyNode(value=1, is_optional=True), AnyNode(value=1, is_optional=True), True),
-        (
-            AnyNode(value=1, is_optional=True),
-            AnyNode(value=1, is_optional=False),
-            True,
-        ),
+        (AnyNode(value=1), AnyNode(value=1), True),
         (EnumNode(enum_type=Enum1), Enum1.BAR, False),
         (EnumNode(enum_type=Enum1), EnumNode(Enum1), True),
         (EnumNode(enum_type=Enum1), "nope", False),
@@ -577,7 +572,6 @@ def test_dereference_missing() -> None:
 @pytest.mark.parametrize(
     "make_func",
     [
-        AnyNode,
         StringNode,
         IntegerNode,
         FloatNode,
