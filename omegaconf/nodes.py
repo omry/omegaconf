@@ -191,7 +191,7 @@ class IntegerNode(ValueNode):
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Optional[int]:
+    def _validate_and_convert_impl(self, value: Any) -> int:
         try:
             if type(value) in (str, int):
                 val = int(value)
