@@ -417,6 +417,34 @@ class Container(Node):
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
+        """
+        Resolve an interpolation.
+
+        This happens in two steps:
+            1. The parse tree is visited, which outputs either a `Node` (e.g.,
+               for node interpolations "${foo}"), a string (e.g., for string
+               interpolations "hello ${name}", or any other arbitrary value
+               (e.g., or custom interpolations "${foo:bar}").
+            2. This output is potentially validated and converted when the node
+               being resolved (`value`) is typed.
+
+        If an error occurs in one of the above steps, an `InterpolationResolutionError`
+        (or a subclass of it) is raised, *unless* `throw_on_resolution_failure` is set
+        to `False` (in which case the return value is `None`).
+
+        :param parent: Parent of the node being resolved.
+        :param value: Node being resolved.
+        :param key: The associated key in the parent.
+        :param parse_tree: The parse tree as obtained from `grammar_parser.parse()`.
+        :param throw_on_resolution_failure: If `False`, then exceptions raised during
+            the resolution of the interpolation are silenced, and instead `None` is
+            returned.
+
+        :return: A `Node` that contains the interpolation result. This may be an existing
+            node in the config (in the case of a node interpolation "${foo}"), or a new
+            node that is created to wrap the interpolated value. It is `None` if and only if
+            `throw_on_resolution_failure` is `False` and an error occurs during resolution.
+        """
         from .basecontainer import BaseContainer
         from .nodes import AnyNode, ValueNode
         from .omegaconf import _node_wrap
