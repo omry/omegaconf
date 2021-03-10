@@ -1023,3 +1023,12 @@ def test_dict_getitem_not_found() -> None:
 def test_dict_getitem_none_output() -> None:
     cfg = OmegaConf.create({"a": None})
     assert cfg["a"] is None
+
+
+@pytest.mark.parametrize("data", [{"b": 0}, User])
+@pytest.mark.parametrize("flag", ["struct", "readonly"])
+def test_dictconfig_creation_with_parent_flag(flag: str, data: Any) -> None:
+    parent = OmegaConf.create({"a": 10})
+    parent._set_flag(flag, True)
+    cfg = DictConfig(data, parent=parent)
+    assert cfg == data

@@ -593,13 +593,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 self._metadata.flags = copy.deepcopy(flags)
                 # disable struct and readonly for the construction phase
                 # retaining other flags like allow_objects. The real flags are restored at the end of this function
-                with flag_override(self, "struct", False):
-                    with flag_override(self, "readonly", False):
-                        for item in value._iter_ex(resolve=False):
-                            self.append(item)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for item in value._iter_ex(resolve=False):
+                        self.append(item)
             elif is_primitive_list(value):
-                for item in value:
-                    self.append(item)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for item in value:
+                        self.append(item)
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:
