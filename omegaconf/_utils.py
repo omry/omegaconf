@@ -17,7 +17,7 @@ from .errors import (
     OmegaConfBaseException,
     ValidationError,
 )
-from .grammar_parser import parse
+from .grammar_parser import SIMPLE_INTERPOLATION_PATTERN, parse
 
 try:
     import dataclasses
@@ -31,19 +31,6 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
-# Build regex pattern to efficiently identify typical interpolations.
-# See test `test_match_simple_interpolation_pattern` for examples.
-_id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
-_dot_path = f"{_id}(\\.{_id})*"  # foo, foo.bar3, foo_.b4r.b0z
-_inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
-_arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
-_args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
-_inter_res = f"\\${{\\s*{_dot_path}\\s*:\\s*{_args}?\\s*}}"  # resolver interpolation
-_inter = f"({_inter_node}|{_inter_res})"  # any kind of interpolation
-_outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
-SIMPLE_INTERPOLATION_PATTERN = re.compile(
-    f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
-)
 
 # source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [

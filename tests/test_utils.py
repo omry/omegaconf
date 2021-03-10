@@ -8,7 +8,6 @@ from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import (
-    SIMPLE_INTERPOLATION_PATTERN,
     _ensure_container,
     _get_value,
     _make_hashable,
@@ -619,42 +618,6 @@ def test_make_hashable(input_1: Any, input_2: Any) -> None:
 def test_make_hashable_type_error() -> None:
     with raises(TypeError):
         _make_hashable({...: 0, None: 0})
-
-
-@mark.parametrize(
-    "expression",
-    [
-        "${foo}",
-        "${foo.bar}",
-        "${a_b.c123}",
-        "${  foo \t}",
-        "x ${ab.cd.ef.gh} y",
-        "$ ${foo} ${bar} ${boz} $",
-        "${foo:bar}",
-        "${foo : bar, baz, boz}",
-        "${foo:bar,0,a-b+c*d/$.%@}",
-        "\\${foo}",
-        "${foo.bar:boz}",
-    ],
-)
-def test_match_simple_interpolation_pattern(expression: str) -> None:
-    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
-
-
-@mark.parametrize(
-    "expression",
-    [
-        "${foo",
-        "${0foo}",
-        "${0foo:bar}",
-        "${foo.${bar}}",
-        "${foo:${bar}}",
-        "${foo:'hello'}",
-        "\\${foo",
-    ],
-)
-def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
-    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
 
 
 def test_ensure_container_raises_ValueError() -> None:

@@ -30,7 +30,7 @@ TOP_STR: ~[\\$]+;  // anything else
 
 mode VALUE_MODE;
 
-INTER_OPEN: '${' -> pushMode(INTERPOLATION_MODE);
+INTER_OPEN: '${' WS? -> pushMode(INTERPOLATION_MODE);
 BRACE_OPEN: '{' WS? -> pushMode(VALUE_MODE);  // must keep track of braces to detect end of interpolation
 BRACE_CLOSE: WS? '}' -> popMode;
 
@@ -70,11 +70,10 @@ QUOTED_VALUE:
 
 mode INTERPOLATION_MODE;
 
-NESTED_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
-INTER_COLON: ':' WS? -> type(COLON), mode(VALUE_MODE);
-INTER_CLOSE: '}' -> popMode;
+NESTED_INTER_OPEN: INTER_OPEN WS? -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
+INTER_COLON: WS? ':' WS? -> type(COLON), mode(VALUE_MODE);
+INTER_CLOSE: WS? '}' -> popMode;
 
 DOT: '.';
 INTER_ID: ID -> type(ID);
 INTER_KEY: ~[\\${}()[\]:. \t'"]+;  // interpolation key, may contain any non special character
-INTER_WS: WS -> skip;

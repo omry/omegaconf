@@ -217,13 +217,13 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
-    ("ws_inter_node_around_dot", "${dict .\ta}", 0),
+    ("ws_inter_node_around_dot", "${dict .\ta}", GrammarParseError),
     ("ws_inter_node_inside_id", "${d i c t.a}", GrammarParseError),
     ("ws_inter_res_outer", "${\t test:foo\t  }", "foo"),
     ("ws_inter_res_around_colon", "${test\t  : \tfoo}", "foo"),
     ("ws_inter_res_inside_id", "${te st:foo}", GrammarParseError),
     ("ws_inter_res_inside_args", "${test:f o o}", "f o o"),
-    ("ws_inter_res_namespace", "${ns1 .\t ns2 . test:0}", 0),
+    ("ws_inter_res_namespace", "${ns1 .\t ns2 . test:0}", GrammarParseError),
     ("ws_inter_res_no_args", "${test: \t}", []),
     ("ws_list", "${test:[\t a,   b,  ''\t  ]}", ["a", "b", ""]),
     ("ws_dict", "${test:{\t a   : 1\t  , b:  \t''}}", {"a": 1, "b": ""}),
@@ -507,3 +507,41 @@ class TestOmegaConfGrammar:
             )
 
         self._visit(visit, expected)
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo}",
+        "${foo.bar}",
+        "${a_b.c123}",
+        "${  foo \t}",
+        "x ${ab.cd.ef.gh} y",
+        "$ ${foo} ${bar} ${boz} $",
+        "${foo:bar}",
+        "${foo : bar, baz, boz}",
+        "${foo:bar,0,a-b+c*d/$.%@}",
+        "\\${foo}",
+        "${foo.bar:boz}",
+    ],
+)
+def test_match_simple_interpolation_pattern(expression: str) -> None:
+    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+
+
+@mark.parametrize(
+    "expression",
+    [
+        "${foo",
+        "${0foo}",
+        "${0foo:bar}",
+        "${foo.${bar}}",
+        "${foo:${bar}}",
+        "${foo:'hello'}",
+        "\\${foo",
+        "${foo . bar}",
+        "${ns . f:var}",
+    ],
+)
+def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
+    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None

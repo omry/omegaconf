@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
@@ -14,6 +15,20 @@ from .grammar_visitor import (  # type: ignore
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
 _grammar_cache = None
+
+# Build regex pattern to efficiently identify typical interpolations.
+# See test `test_match_simple_interpolation_pattern` for examples.
+_id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
+_dot_path = f"{_id}(\\.{_id})*"  # foo, foo.bar3, foo_.b4r.b0z
+_inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
+_arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
+_args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
+_inter_res = f"\\${{\\s*{_dot_path}\\s*:\\s*{_args}?\\s*}}"  # resolver interpolation
+_inter = f"({_inter_node}|{_inter_res})"  # any kind of interpolation
+_outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
+SIMPLE_INTERPOLATION_PATTERN = re.compile(
+    f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
+)
 
 
 class OmegaConfErrorListener(ErrorListener):  # type: ignore
