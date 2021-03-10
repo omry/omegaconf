@@ -81,7 +81,7 @@ class InterpolationToMissingValueError(InterpolationResolutionError):
     """
 
 
-class InterpolationValidationError(InterpolationResolutionError):
+class InterpolationValidationError(InterpolationResolutionError, ValidationError):
     """
     Thrown when the result of an interpolation fails the validation step.
     """
