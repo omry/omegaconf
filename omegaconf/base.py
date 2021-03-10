@@ -445,10 +445,6 @@ class Container(Node):
             node that is created to wrap the interpolated value. It is `None` if and only if
             `throw_on_resolution_failure` is `False` and an error occurs during resolution.
         """
-        from .basecontainer import BaseContainer
-        from .nodes import AnyNode, ValueNode
-        from .omegaconf import _node_wrap
-
         try:
             resolved = self.resolve_parse_tree(
                 parse_tree=parse_tree,
@@ -459,6 +455,24 @@ class Container(Node):
             if throw_on_resolution_failure:
                 raise
             return None
+
+        return self._validate_and_convert_interpolation_result(
+            parent=parent,
+            value=value,
+            key=key,
+            resolved=resolved,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
+
+    def _validate_and_convert_interpolation_result(
+        self,
+        parent: Optional["Container"],
+        value: "Node",
+        key: Any,
+        resolved: Any,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        from .nodes import AnyNode, ValueNode
 
         # If the output is not a Node already (e.g., because it is the output of a
         # custom resolver), then we will need to wrap it within a Node.
@@ -487,33 +501,52 @@ class Container(Node):
                 resolved = conv_value
 
         if must_wrap:
-            assert parent is None or isinstance(parent, BaseContainer)
-            try:
-                wrapped = _node_wrap(
-                    type_=value._metadata.ref_type,
-                    parent=parent,
-                    is_optional=value._metadata.optional,
-                    value=resolved,
-                    key=key,
-                    ref_type=value._metadata.ref_type,
-                )
-            except (KeyValidationError, ValidationError) as e:
-                if throw_on_resolution_failure:
-                    self._format_and_raise(
-                        key=key,
-                        value=resolved,
-                        cause=e,
-                        type_override=InterpolationValidationError,
-                    )
-                return None
-            # Since we created a new node on the fly, future changes to this node are
-            # likely to be lost. We thus set the "readonly" flag to `True` to reduce
-            # the risk of accidental modifications.
-            wrapped._set_flag("readonly", True)
-            return wrapped
+            return self._wrap_interpolation_result(
+                parent=parent,
+                value=value,
+                key=key,
+                resolved=resolved,
+                throw_on_resolution_failure=throw_on_resolution_failure,
+            )
         else:
             assert isinstance(resolved, Node)
             return resolved
+
+    def _wrap_interpolation_result(
+        self,
+        parent: Optional["Container"],
+        value: "Node",
+        key: Any,
+        resolved: Any,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        from .basecontainer import BaseContainer
+        from .omegaconf import _node_wrap
+
+        assert parent is None or isinstance(parent, BaseContainer)
+        try:
+            wrapped = _node_wrap(
+                type_=value._metadata.ref_type,
+                parent=parent,
+                is_optional=value._metadata.optional,
+                value=resolved,
+                key=key,
+                ref_type=value._metadata.ref_type,
+            )
+        except (KeyValidationError, ValidationError) as e:
+            if throw_on_resolution_failure:
+                self._format_and_raise(
+                    key=key,
+                    value=resolved,
+                    cause=e,
+                    type_override=InterpolationValidationError,
+                )
+            return None
+        # Since we created a new node on the fly, future changes to this node are
+        # likely to be lost. We thus set the "readonly" flag to `True` to reduce
+        # the risk of accidental modifications.
+        wrapped._set_flag("readonly", True)
+        return wrapped
 
     def _resolve_node_interpolation(
         self,
