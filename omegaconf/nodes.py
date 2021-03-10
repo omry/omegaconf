@@ -162,7 +162,7 @@ class StringNode(ValueNode):
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Optional[str]:
+    def _validate_and_convert_impl(self, value: Any) -> str:
         from omegaconf import OmegaConf
 
         if OmegaConf.is_config(value) or is_primitive_container(value):
