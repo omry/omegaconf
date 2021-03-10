@@ -1023,3 +1023,11 @@ def test_dict_getitem_not_found() -> None:
 def test_dict_getitem_none_output() -> None:
     cfg = OmegaConf.create({"a": None})
     assert cfg["a"] is None
+
+
+def test_dictconfig_creation_with_struct_parent() -> None:
+    parent = OmegaConf.create({"a": 10})
+    OmegaConf.set_struct(parent, True)
+    d = {"b": 0}
+    cfg = DictConfig(d, parent=parent)
+    assert cfg == d

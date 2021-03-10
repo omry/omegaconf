@@ -899,7 +899,7 @@ def _node_wrap(
 ) -> Node:
     node: Node
     allow_objects = parent is not None and parent._get_flag("allow_objects") is True
-    dummy = OmegaConf.create(flags={"allow_objects": allow_objects})
+    dummy = parent  # OmegaConf.create(flags={"allow_objects": allow_objects})
 
     is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
     is_list = (
