@@ -17,6 +17,12 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
             id="dict_setitem",
         ),
         pytest.param(
+            {"a": None},
+            lambda c: c.__setitem__("a", {"b": 10}),
+            raises(ReadonlyConfigError, match="a"),
+            id="dict_setitem",
+        ),
+        pytest.param(
             {"a": {"b": {"c": 1}}},
             lambda c: c.__getattr__("a").__getattr__("b").__setitem__("c", 1),
             raises(ReadonlyConfigError, match="a.b.c"),
