@@ -471,11 +471,10 @@ def test_resolver_no_cache(restore_resolvers: Any) -> None:
     assert c.k != c.k
 
 
-def test_resolver_dot_start(restore_resolvers: Any) -> None:
+def test_resolver_dot_start(register_identity: Any) -> None:
     """
     Regression test for #373
     """
-    OmegaConf.register_new_resolver("identity", lambda x: x)
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -483,8 +482,7 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
     assert c.foo_dot == ".bar"
 
 
-def test_resolver_dot_start_legacy(restore_resolvers: Any) -> None:
-    OmegaConf.legacy_register_resolver("identity", lambda x: x)
+def test_resolver_dot_start_legacy(register_identity: Any) -> None:
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -821,7 +819,7 @@ def test_interpolation_type_validated_ok(
     key: str,
     expected_value: Any,
     expected_node_type: Any,
-    restore_resolvers: Any,
+    register_identity: Any,
 ) -> Any:
     def cast(t: Any, v: Any) -> Any:
         return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
@@ -831,7 +829,6 @@ def test_interpolation_type_validated_ok(
 
     OmegaConf.register_new_resolver("cast", cast)
     OmegaConf.register_new_resolver("drop_last", drop_last)
-    OmegaConf.register_new_resolver("identity", lambda x: x)
 
     cfg = OmegaConf.structured(cfg)
 
@@ -911,13 +908,12 @@ def test_interpolation_type_validated_error(
     cfg: Any,
     key: str,
     expected_error: Any,
-    restore_resolvers: Any,
+    register_identity: Any,
 ) -> None:
     def cast(t: Any, v: Any) -> Any:
         return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
 
     OmegaConf.register_new_resolver("cast", cast)
-    OmegaConf.register_new_resolver("identity", lambda x: x)
 
     cfg = OmegaConf.structured(cfg)
 
@@ -941,9 +937,8 @@ def test_interpolation_type_validated_error(
     ],
 )
 def test_interpolation_readonly_resolver_output(
-    restore_resolvers: Any, cfg: Any, key: str
+    register_identity: Any, cfg: Any, key: str
 ) -> None:
-    OmegaConf.register_new_resolver("identity", lambda x: x)
     cfg = OmegaConf.create(cfg)
     sub_key: Any
     parent_key, sub_key = key.rsplit(".", 1)
