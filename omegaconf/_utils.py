@@ -195,7 +195,7 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
 def get_attr_class_field_names(obj: Any) -> List[str]:
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
-    return [name for name in attr.fields_dict(obj_type).keys()]
+    return list(attr.fields_dict(obj_type))
 
 
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
