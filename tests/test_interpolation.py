@@ -977,7 +977,7 @@ def test_type_validation_error_no_throw() -> None:
         ({"a": "${..y}"}, {"a": -1}),
     ],
 )
-def test_resolver_output_dictconfig(
+def test_resolver_output_dict_to_dictconfig(
     restore_resolvers: Any, cfg: Dict[str, Any], expected: Dict[str, Any]
 ) -> None:
     OmegaConf.register_new_resolver("dict", lambda: cfg)
@@ -996,7 +996,7 @@ def test_resolver_output_dictconfig(
         (["${..y}"], [-1]),
     ],
 )
-def test_resolver_output_listconfig(
+def test_resolver_output_list_to_listconfig(
     restore_resolvers: Any, cfg: List[Any], expected: List[Any]
 ) -> None:
     OmegaConf.register_new_resolver("list", lambda: cfg)
