@@ -801,9 +801,9 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             id="list_int_to_str",
         ),
         pytest.param(
-            MissingDict(dict=SI("${identity:{a: b, c: d}}")),
+            MissingDict(dict=SI("${identity:{key1: val1, key2: val2}}")),
             "dict",
-            {"a": "b", "c": "d"},
+            {"key1": "val1", "key2": "val2"},
             DictConfig,
             id="dict_str",
         ),
