@@ -778,6 +778,8 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             id="intermediate_type_mismatch_ok",
         ),
         pytest.param(
+            # This example relies on the automatic casting of a string to int when
+            # assigned to an IntegerNode.
             User(name="Bond", age=SI("${cast:str,'7'}")),
             "age",
             7,
