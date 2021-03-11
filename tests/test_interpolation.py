@@ -772,7 +772,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
         ),
         pytest.param(
             # This example specifically test the case where intermediate resolver results
-            # are not of the same type as the key.
+            # cannot be cast to the same type as the key.
             User(name="Bond", age=SI("${cast:int,${drop_last:${drop_last:7xx}}}")),
             "age",
             7,
