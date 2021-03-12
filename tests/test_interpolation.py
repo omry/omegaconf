@@ -15,7 +15,6 @@ from omegaconf import (
     OmegaConf,
     Resolver,
     ValidationError,
-    grammar_parser,
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
@@ -711,14 +710,6 @@ def test_optional_after_interpolation() -> None:
     # Ensure that we can set an optional field to `None` even when it currently
     # points to a non-optional field.
     cfg.opt_num = None
-
-
-def test_empty_stack() -> None:
-    """
-    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
-    """
-    with pytest.raises(GrammarParseError):
-        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
 
 
 @pytest.mark.parametrize("ref", ["missing", "invalid"])

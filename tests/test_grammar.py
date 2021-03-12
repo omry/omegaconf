@@ -545,3 +545,11 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
     assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+
+
+def test_empty_stack() -> None:
+    """
+    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
+    """
+    with raises(GrammarParseError):
+        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
