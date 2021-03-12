@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from pytest import fixture, mark, param, raises, warns
 
-from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf, SCMode
+from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf, SCMode
 from omegaconf.errors import InterpolationResolutionError
 from tests import Color, User
 
@@ -278,7 +278,7 @@ class TestInstantiateStructuredConfigs:
 
     def test_dict_with_missing(self, module: Any) -> None:
         with raises(MissingMandatoryValue):
-            user_dict = self.round_trip_to_object(module.UserDict)
+            self.round_trip_to_object(module.UserDict)
 
     def test_nested_object_with_missing(self, module: Any) -> None:
         with raises(MissingMandatoryValue):
@@ -290,7 +290,7 @@ class TestInstantiateStructuredConfigs:
         cfg.default_value = module.NestedSubclass(mandatory_missing=123)
         cfg.user_provided_default.mandatory_missing = 456
 
-        nested = OmegaConf.to_object(cfg)
+        nested: Any = OmegaConf.to_object(cfg)
         assert type(nested) is module.NestedConfig
         assert type(nested.default_value) is module.NestedSubclass
         assert type(nested.user_provided_default) is module.Nested
