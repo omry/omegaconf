@@ -6,6 +6,7 @@ import antlr4
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
+    Container,
     DictConfig,
     ListConfig,
     OmegaConf,
@@ -556,15 +557,39 @@ def test_empty_stack() -> None:
 
 
 @mark.parametrize(
-    ("inter", "expected"),
+    ("inter", "key", "expected"),
     [
-        param("${dict.bar}", 20, id="dict_value"),
-        param("${dict}", {"bar": 20}, id="dict_node"),
-        param("${list}", [1, 2], id="list_node"),
-        param("${list.0}", 1, id="list_value"),
+        param("${dict.bar}", "", 20, id="dict_value"),
+        param("${dict}", "", {"bar": 20}, id="dict_node"),
+        param("${list}", "", [1, 2], id="list_node"),
+        param("${list.0}", "", 1, id="list_value"),
+        param(
+            "${.}",
+            "",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="relative:root_from_root",
+        ),
+        param(
+            "${.}",
+            "dict",
+            {"bar": 20},
+            id="relative:root_from_dict",
+        ),
+        param(
+            "${..}",
+            "dict",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="relative:parent_from_dict",
+        ),
+        param(
+            "${..list}",
+            "dict",
+            [1, 2],
+            id="relative:list_from_dict",
+        ),
     ],
 )
-def test_parse_interpolation(inter: Any, expected: Any) -> None:
+def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
     cfg = OmegaConf.create(
         {
             "dict": {"bar": 20},
@@ -572,15 +597,20 @@ def test_parse_interpolation(inter: Any, expected: Any) -> None:
         },
     )
 
+    root = cfg._select_impl(
+        key=key, throw_on_missing=True, throw_on_resolution_failure=True
+    )[2]
+
     tree = grammar_parser.parse(
         parser_rule="singleElement",
         value=inter,
         lexer_mode="VALUE_MODE",
     )
 
-    def callback(key: Any) -> Any:
-        ret = cfg._select_impl(
-            key=key, throw_on_missing=True, throw_on_resolution_failure=True
+    def callback(inter_key: Any) -> Any:
+        assert isinstance(root, Container)
+        ret = root._select_impl(
+            key=inter_key, throw_on_missing=True, throw_on_resolution_failure=True
         )
         return ret[2]
 
