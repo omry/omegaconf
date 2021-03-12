@@ -524,6 +524,11 @@ class TestOmegaConfGrammar:
         "${foo:bar,0,a-b+c*d/$.%@}",
         "\\${foo}",
         "${foo.bar:boz}",
+        # relative interpolations
+        "${.}",
+        "${..}",
+        "${..foo}",
+        "${..foo.bar}",
     ],
 )
 def test_match_simple_interpolation_pattern(expression: str) -> None:
