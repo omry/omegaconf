@@ -207,18 +207,15 @@ def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     assert res == expected
 
 
-@mark.parametrize(
-    "class_type",
-    [
-        "tests.structured_conf.data.dataclasses",
-        "tests.structured_conf.data.attr_classes",
-    ],
-)
 class TestInstantiateStructuredConfigs:
-    @fixture
-    def module(self, class_type: str) -> Any:
-        module: Any = import_module(class_type)
-        return module
+    @fixture(
+        params=[
+            "tests.structured_conf.data.dataclasses",
+            "tests.structured_conf.data.attr_classes",
+        ]
+    )
+    def module(self, request: Any) -> Any:
+        return import_module(request.param)
 
     def round_trip_to_object(self, input_data: Any, **kwargs: Any) -> Any:
         serialized = OmegaConf.create(input_data)
@@ -280,10 +277,6 @@ class TestInstantiateStructuredConfigs:
         with raises(MissingMandatoryValue):
             self.round_trip_to_object(module.UserDict)
 
-    def test_nested_object_with_missing(self, module: Any) -> None:
-        with raises(MissingMandatoryValue):
-            self.round_trip_to_object(module.NestedConfig)
-
     def test_nested_object(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedConfig)
         # fill in missing values:
@@ -298,6 +291,10 @@ class TestInstantiateStructuredConfigs:
         assert nested.default_value.mandatory_missing == 123
         assert nested.default_value.additional == 20
         assert nested.user_provided_default.mandatory_missing == 456
+
+    def test_nested_object_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.NestedConfig)
 
     def test_to_object_resolve_is_True_by_default(self, module: Any) -> None:
         interp = self.round_trip_to_object(module.Interpolation)
