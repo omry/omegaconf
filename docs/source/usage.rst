@@ -531,6 +531,37 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> assert c.uncached != c.uncached
 
 
+
+Custom interpolations can also receive the following special parameters:
+
+- ``_parent_`` : the parent node of an interpolation.
+- ``_root_``: The config root.
+
+This can be achieved by adding ``_parent_`` and ``_root_`` to the resolver signature.
+Note that special parameters must be defined as named keywords (after the `*`):
+
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver(
+    ...    "sum_friends",
+    ...    lambda a, b, *, _parent_: _parent_[a] + _parent_[b],
+    ...    use_cache=False,
+    ...)
+    >>>
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "a": {
+    ...             "b": 1,
+    ...             "c": 2,
+    ...             "sum": "${sum_friends:b,c}",
+    ...         },
+    ...     }
+    ... )
+    >>> cfg.a.sum
+    3
+
+
 Merging configurations
 ----------------------
 Merging configurations enables the creation of reusable configuration files for each logical component
