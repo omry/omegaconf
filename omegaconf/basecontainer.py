@@ -790,7 +790,7 @@ def _instantiate_structured_config_impl(
 
     object_type = conf._metadata.object_type
 
-    object_type_field_names = get_structured_config_field_names(object_type)
+    object_type_field_names = set(get_structured_config_field_names(object_type))
     if not issubclass(object_type, dict):
         # normal structured config
         assert set(instance_data.keys()) <= set(object_type_field_names)
