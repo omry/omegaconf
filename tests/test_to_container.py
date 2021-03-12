@@ -224,7 +224,6 @@ class TestInstantiateStructuredConfigs:
 
     def test_basic(self, module: Any) -> None:
         user = self.round_trip_to_object(module.User("Bond", 7))
-        assert isinstance(user, module.User)
         assert type(user) is module.User
         assert user.name == "Bond"
         assert user.age == 7
@@ -236,7 +235,6 @@ class TestInstantiateStructuredConfigs:
     def test_nested(self, module: Any) -> None:
         data = self.round_trip_to_object({"user": module.User("Bond", 7)})
         user = data["user"]
-        assert isinstance(user, module.User)
         assert type(user) is module.User
         assert user.name == "Bond"
         assert user.age == 7
@@ -247,11 +245,9 @@ class TestInstantiateStructuredConfigs:
 
     def test_list(self, module: Any) -> None:
         lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
-        assert isinstance(lst, module.UserList)
         assert type(lst) is module.UserList
         assert len(lst.list) == 1
         user = lst.list[0]
-        assert isinstance(user, module.User)
         assert type(user) is module.User
         assert user.name == "Bond"
         assert user.age == 7
@@ -264,11 +260,9 @@ class TestInstantiateStructuredConfigs:
         user_dict = self.round_trip_to_object(
             module.UserDict({"user007": module.User("Bond", 7)})
         )
-        assert isinstance(user_dict, module.UserDict)
         assert type(user_dict) is module.UserDict
         assert len(user_dict.dict) == 1
         user = user_dict.dict["user007"]
-        assert isinstance(user, module.User)
         assert type(user) is module.User
         assert user.name == "Bond"
         assert user.age == 7
@@ -298,7 +292,6 @@ class TestInstantiateStructuredConfigs:
 
     def test_to_object_resolve_is_True_by_default(self, module: Any) -> None:
         interp = self.round_trip_to_object(module.Interpolation)
-        assert isinstance(interp, module.Interpolation)
         assert type(interp) is module.Interpolation
 
         assert interp.z1 == 100
@@ -306,7 +299,6 @@ class TestInstantiateStructuredConfigs:
 
     def test_to_object_resolve_False(self, module: Any) -> None:
         interp = self.round_trip_to_object(module.Interpolation, resolve=False)
-        assert isinstance(interp, module.Interpolation)
         assert type(interp) is module.Interpolation
 
         assert interp.z1 == "${x}"
@@ -320,10 +312,8 @@ class TestInstantiateStructuredConfigs:
         cfg = OmegaConf.structured(module.NestedWithAny())
         cfg.var.mandatory_missing = 123
         nested = self.round_trip_to_object(cfg, resolve=False)
-        assert isinstance(nested, module.NestedWithAny)
         assert type(nested) is module.NestedWithAny
 
-        assert isinstance(nested.var, module.Nested)
         assert type(nested.var) is module.Nested
         assert nested.var.with_default == 10
         assert nested.var.mandatory_missing == 123
@@ -333,7 +323,6 @@ class TestInstantiateStructuredConfigs:
         cfg.bond = module.User(name="James Bond", age=7)
         data = self.round_trip_to_object(cfg)
 
-        assert isinstance(data, module.DictSubclass.Str2User)
         assert type(data) is module.DictSubclass.Str2User
         assert type(data["bond"]) is module.User
         assert data["bond"] == module.User("James Bond", 7)
@@ -343,7 +332,6 @@ class TestInstantiateStructuredConfigs:
         cfg.mp = module.User(name="Moneypenny", age=11)
         data = self.round_trip_to_object(cfg)
 
-        assert isinstance(data, module.DictSubclass.Str2UserWithField)
         assert type(data) is module.DictSubclass.Str2UserWithField
         assert type(data.foo) is module.User
         assert data.foo == module.User("Bond", 7)
@@ -355,7 +343,6 @@ class TestInstantiateStructuredConfigs:
         cfg.hello = "world"
         data = self.round_trip_to_object(cfg)
 
-        assert isinstance(data, module.DictSubclass.Str2StrWithField)
         assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
         assert data["hello"] == "world"
