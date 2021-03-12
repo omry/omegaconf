@@ -41,6 +41,14 @@ from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, 
 INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
 
 
+def dereference(cfg: Container, key: Any) -> Node:
+    node = cfg._get_node(key)
+    assert isinstance(node, Node)
+    node = node._dereference_node()
+    assert isinstance(node, Node)
+    return node
+
+
 @pytest.mark.parametrize(
     "cfg,key,expected",
     [
@@ -941,7 +949,7 @@ def test_interpolation_readonly_resolver_output(
 
 def test_interpolation_readonly_node() -> None:
     cfg = OmegaConf.structured(User(name="7", age=II("name")))
-    resolved = cfg._get_node("age")._dereference_node()
+    resolved = dereference(cfg, "age")
     assert resolved == 7
     # The `resolved` node must be read-only because `age` is an integer, so the
     # interpolation cannot return directly the `name` node.
@@ -971,6 +979,7 @@ def test_resolver_output_dict_to_dictconfig(
     c = OmegaConf.create({"x": "${dict:}", "y": -1})
     assert isinstance(c.x, DictConfig)
     assert c.x == expected
+    assert dereference(c, "x")._get_flag("readonly")
 
 
 @pytest.mark.parametrize(
@@ -990,3 +999,4 @@ def test_resolver_output_list_to_listconfig(
     c = OmegaConf.create({"x": "${list:}", "y": -1})
     assert isinstance(c.x, ListConfig)
     assert c.x == expected
+    assert dereference(c, "x")._get_flag("readonly")
