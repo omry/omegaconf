@@ -22,7 +22,7 @@ from omegaconf.errors import (
 )
 
 # Characters that are not allowed by the grammar in config key names.
-INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
+INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
 
 
 # A fixed config that may be used (but not modified!) by tests.
@@ -37,6 +37,7 @@ BASE_TEST_CFG = OmegaConf.create(
         "null": None,
         # Special cases.
         "x@y": 123,  # @ in name
+        "$x$y$z$": 456,  # $ in name (beginning, middle and end)
         "0": 0,  # integer name
         "FalsE": {"TruE": True},  # bool name
         "None": {"null": 1},  # null-like name
@@ -204,6 +205,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
     ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
     ("at_in_key", "${x@y}", 123),
+    ("dollar_in_key", "${$x$y$z$}", 456),
     # Interpolations in dictionaries.
     ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
     ("dict_interpolation_key", "{${str}: 0, ${null}: 1", GrammarParseError),
@@ -528,6 +530,7 @@ class TestOmegaConfGrammar:
         "${foo:bar,0,a-b+c*d/$.%@}",
         "\\${foo}",
         "${foo.bar:boz}",
+        "${$foo.bar$.x$y}",
         # relative interpolations
         "${.}",
         "${..}",
@@ -553,6 +556,8 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
         "\\${foo",
         "${foo . bar}",
         "${ns . f:var}",
+        "${$foo:bar}",
+        "${.foo:bar}",
     ],
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
