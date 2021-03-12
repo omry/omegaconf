@@ -553,3 +553,41 @@ def test_empty_stack() -> None:
     """
     with raises(GrammarParseError):
         grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
+
+
+@mark.parametrize(
+    ("inter", "expected"),
+    [
+        param("${dict.bar}", 20, id="dict_value"),
+        param("${dict}", {"bar": 20}, id="dict_node"),
+        param("${list}", [1, 2], id="list_node"),
+        param("${list.0}", 1, id="list_value"),
+    ],
+)
+def test_parse_interpolation(inter: Any, expected: Any) -> None:
+    cfg = OmegaConf.create(
+        {
+            "dict": {"bar": 20},
+            "list": [1, 2],
+        },
+    )
+
+    tree = grammar_parser.parse(
+        parser_rule="singleElement",
+        value=inter,
+        lexer_mode="VALUE_MODE",
+    )
+
+    def callback(key: Any) -> Any:
+        ret = cfg._select_impl(
+            key=key, throw_on_missing=True, throw_on_resolution_failure=True
+        )
+        return ret[2]
+
+    visitor = grammar_visitor.GrammarVisitor(
+        node_interpolation_callback=callback,
+        resolver_interpolation_callback=None,  # type: ignore
+        quoted_string_callback=lambda s: s,
+    )
+    ret = visitor.visit(tree)
+    assert ret == expected
