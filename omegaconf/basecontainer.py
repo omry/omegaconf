@@ -792,18 +792,18 @@ def _instantiate_structured_config_impl(
 
     object_type_field_names = set(get_structured_config_field_names(object_type))
 
-    retdict_field_items = {
+    field_items = {
         k: v for k, v in instance_data.items() if k in object_type_field_names
     }
-    retdict_nonfield_items = {
+    nonfield_items = {
         k: v for k, v in instance_data.items() if k not in object_type_field_names
     }
-    result = object_type(**retdict_field_items)
+    result = object_type(**field_items)
     if not issubclass(object_type, dict):
         # normal structured config
-        for k, v in retdict_nonfield_items.items():
+        for k, v in nonfield_items.items():
             setattr(result, k, v)
     else:
         # Extending dict as a subclass
-        result.update(retdict_nonfield_items)
+        result.update(nonfield_items)
     return result
