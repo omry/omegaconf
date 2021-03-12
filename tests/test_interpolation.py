@@ -471,7 +471,7 @@ def test_resolver_no_cache(restore_resolvers: Any) -> None:
     assert c.k != c.k
 
 
-def test_resolver_dot_start(register_identity: Any) -> None:
+def test_resolver_dot_start(common_resolvers: Any) -> None:
     """
     Regression test for #373
     """
@@ -482,7 +482,7 @@ def test_resolver_dot_start(register_identity: Any) -> None:
     assert c.foo_dot == ".bar"
 
 
-def test_resolver_dot_start_legacy(register_identity: Any) -> None:
+def test_resolver_dot_start_legacy(common_resolvers: Any) -> None:
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -821,7 +821,7 @@ def test_interpolation_type_validated_ok(
     key: str,
     expected_value: Any,
     expected_node_type: Any,
-    register_identity: Any,
+    common_resolvers: Any,
 ) -> Any:
     def cast(t: Any, v: Any) -> Any:
         return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
@@ -829,7 +829,6 @@ def test_interpolation_type_validated_ok(
     def drop_last(s: str) -> str:
         return s[0:-1]  # drop last character from string `s`
 
-    OmegaConf.register_new_resolver("cast", cast)
     OmegaConf.register_new_resolver("drop_last", drop_last)
 
     cfg = OmegaConf.structured(cfg)
@@ -910,13 +909,8 @@ def test_interpolation_type_validated_error(
     cfg: Any,
     key: str,
     expected_error: Any,
-    register_identity: Any,
+    common_resolvers: Any,
 ) -> None:
-    def cast(t: Any, v: Any) -> Any:
-        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
-
-    OmegaConf.register_new_resolver("cast", cast)
-
     cfg = OmegaConf.structured(cfg)
 
     with expected_error:
@@ -939,7 +933,7 @@ def test_interpolation_type_validated_error(
     ],
 )
 def test_interpolation_readonly_resolver_output(
-    register_identity: Any, cfg: Any, key: str
+    common_resolvers: Any, cfg: Any, key: str
 ) -> None:
     cfg = OmegaConf.create(cfg)
     sub_key: Any

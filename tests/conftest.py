@@ -20,10 +20,16 @@ def restore_resolvers() -> Any:
 
 
 @pytest.fixture(scope="function")
-def register_identity(restore_resolvers: Any) -> Any:
+def common_resolvers(restore_resolvers: Any) -> Any:
     """
     A fixture to register the common `identity` resolver.
     It depends on `restore_resolvers` to make it easier and safer to use.
     """
+
+    def cast(t: Any, v: Any) -> Any:
+        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
+
+    OmegaConf.register_new_resolver("cast", cast)
     OmegaConf.register_new_resolver("identity", lambda x: x)
+
     yield
