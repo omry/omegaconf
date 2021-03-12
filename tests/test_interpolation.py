@@ -872,8 +872,7 @@ def test_interpolation_type_validated_ok(
             "age",
             pytest.raises(
                 InterpolationValidationError,
-                match=re.escape("'Bond' could not be converted to Integer")
-                ),
+                match=re.escape("'Bond' could not be converted to Integer"),
             ),
             id="type_mismatch_node_interpolation",
         ),
