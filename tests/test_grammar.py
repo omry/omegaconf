@@ -529,6 +529,8 @@ class TestOmegaConfGrammar:
         "${..}",
         "${..foo}",
         "${..foo.bar}",
+        # config root
+        "${}",
     ],
 )
 def test_match_simple_interpolation_pattern(expression: str) -> None:
@@ -564,6 +566,13 @@ def test_empty_stack() -> None:
 @mark.parametrize(
     ("inter", "key", "expected"),
     [
+        # config root
+        param(
+            "${}",
+            "",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="absolute_config_root",
+        ),
         # simple
         param("${dict.bar}", "", 20, id="dict_value"),
         param("${dict}", "", {"bar": 20}, id="dict_node"),
