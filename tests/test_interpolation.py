@@ -951,6 +951,8 @@ def test_interpolation_readonly_node() -> None:
     cfg = OmegaConf.structured(User(name="7", age=II("name")))
     resolved = cfg._get_node("age")._dereference_node()
     assert resolved == 7
+    # The `resolved` node must be read-only because `age` is an integer, so the
+    # interpolation cannot return directly the `name` node.
     with pytest.raises(ReadonlyConfigError):
         resolved._set_value(8)
 
