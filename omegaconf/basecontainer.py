@@ -236,6 +236,8 @@ class BaseContainer(Container, ABC):
             if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
                 conf._metadata.object_type
             ):
+                if any(_is_missing_literal(value) for value in retdict.values()):
+                    raise MissingMandatoryValue()
                 retstruct = _instantiate_structured_config_impl(
                     conf=conf, instance_data=retdict
                 )
