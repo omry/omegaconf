@@ -19,7 +19,7 @@ _grammar_cache = None
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
 _id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
-_dot_path = f"{_id}(\\.{_id})*"  # foo, foo.bar3, foo_.b4r.b0z
+_dot_path = f"(\\.)*({_id}(\\.{_id})*)?"  # foo, foo.bar3, foo_.b4r.b0z
 _inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
 _arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
 _args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments

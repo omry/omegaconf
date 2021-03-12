@@ -146,8 +146,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitInterpolationNode(
         self, ctx: OmegaConfGrammarParser.InterpolationNodeContext
     ) -> Optional["Node"]:
-        # INTER_OPEN DOT* configKey (DOT configKey)* INTER_CLOSE
-        assert ctx.getChildCount() >= 3
+        # INTER_OPEN DOT* (configKey (DOT configKey)*)? INTER_CLOSE
+        assert ctx.getChildCount() >= 2
 
         inter_key_tokens = []  # parsed elements of the dot path
         for child in ctx.getChildren():

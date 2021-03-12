@@ -6,6 +6,7 @@ import antlr4
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
+    Container,
     DictConfig,
     ListConfig,
     OmegaConf,
@@ -523,6 +524,13 @@ class TestOmegaConfGrammar:
         "${foo:bar,0,a-b+c*d/$.%@}",
         "\\${foo}",
         "${foo.bar:boz}",
+        # relative interpolations
+        "${.}",
+        "${..}",
+        "${..foo}",
+        "${..foo.bar}",
+        # config root
+        "${}",
     ],
 )
 def test_match_simple_interpolation_pattern(expression: str) -> None:
@@ -545,3 +553,84 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
     assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+
+
+def test_empty_stack() -> None:
+    """
+    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
+    """
+    with raises(GrammarParseError):
+        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
+
+
+@mark.parametrize(
+    ("inter", "key", "expected"),
+    [
+        # config root
+        param(
+            "${}",
+            "",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="absolute_config_root",
+        ),
+        # simple
+        param("${dict.bar}", "", 20, id="dict_value"),
+        param("${dict}", "", {"bar": 20}, id="dict_node"),
+        param("${list}", "", [1, 2], id="list_node"),
+        param("${list.0}", "", 1, id="list_value"),
+        # relative
+        param(
+            "${.}",
+            "",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="relative:root_from_root",
+        ),
+        param(
+            "${.}",
+            "dict",
+            {"bar": 20},
+            id="relative:root_from_dict",
+        ),
+        param(
+            "${..}",
+            "dict",
+            {"dict": {"bar": 20}, "list": [1, 2]},
+            id="relative:parent_from_dict",
+        ),
+        param(
+            "${..list}",
+            "dict",
+            [1, 2],
+            id="relative:list_from_dict",
+        ),
+        param("${..list.1}", "dict", 2, id="up_down"),
+    ],
+)
+def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
+    cfg = OmegaConf.create(
+        {
+            "dict": {"bar": 20},
+            "list": [1, 2],
+        },
+    )
+
+    root = OmegaConf.select(cfg, key)
+
+    tree = grammar_parser.parse(
+        parser_rule="singleElement",
+        value=inter,
+        lexer_mode="VALUE_MODE",
+    )
+
+    def callback(inter_key: Any) -> Any:
+        assert isinstance(root, Container)
+        ret = root._resolve_node_interpolation(inter_key=inter_key)
+        return ret
+
+    visitor = grammar_visitor.GrammarVisitor(
+        node_interpolation_callback=callback,
+        resolver_interpolation_callback=None,  # type: ignore
+        quoted_string_callback=lambda s: s,
+    )
+    ret = visitor.visit(tree)
+    assert ret == expected
