@@ -830,9 +830,6 @@ def test_interpolation_type_validated_ok(
     expected_node_type: Any,
     common_resolvers: Any,
 ) -> Any:
-    def cast(t: Any, v: Any) -> Any:
-        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
-
     def drop_last(s: str) -> str:
         return s[0:-1]  # drop last character from string `s`
 
