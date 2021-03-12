@@ -36,11 +36,11 @@ BASE_TEST_CFG = OmegaConf.create(
         "list": [x - 1 for x in range(11)],
         "null": None,
         # Special cases.
-        "x@y": 123,  # to test keys with @ in name
-        "0": 0,  # to test keys with int names
-        "1": {"2": 12},  # to test dot-path with int keys
-        "FalsE": {"TruE": True},  # to test keys with bool names
-        "None": {"null": 1},  # to test keys with null-like names
+        "x@y": 123,  # @ in name
+        "0": 0,  # integer name
+        "FalsE": {"TruE": True},  # bool name
+        "None": {"null": 1},  # null-like name
+        "1": {"2": 12},  # dot-path with int keys
         # Used in nested interpolations.
         "str_test": "test",
         "ref_str": "str",
