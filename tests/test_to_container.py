@@ -320,13 +320,16 @@ class TestInstantiateStructuredConfigs:
             self.round_trip_to_object(module.NestedWithAny)
 
     def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
-        nested = self.round_trip_to_object(module.NestedWithAny, resolve=False)
+        cfg = OmegaConf.structured(module.NestedWithAny())
+        cfg.var.mandatory_missing = 123
+        nested = self.round_trip_to_object(cfg, resolve=False)
         assert isinstance(nested, module.NestedWithAny)
         assert type(nested) is module.NestedWithAny
 
         assert isinstance(nested.var, module.Nested)
         assert type(nested.var) is module.Nested
         assert nested.var.with_default == 10
+        assert nested.var.mandatory_missing == 123
 
     def test_str2user_instantiate(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())
