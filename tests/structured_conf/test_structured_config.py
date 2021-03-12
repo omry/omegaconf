@@ -1028,7 +1028,7 @@ class TestDictSubclass:
 
         with raises(KeyValidationError):
             # bad key
-            cfg[Color.BLUE] = "nope"
+            cfg[Color.BLUE] = cfg.mp
 
     def test_str2str_with_field(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
