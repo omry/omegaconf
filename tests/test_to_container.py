@@ -5,7 +5,14 @@ from typing import Any, Dict, List
 
 from pytest import fixture, mark, param, raises, warns
 
-from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf, SCMode
+from omegaconf import (
+    DictConfig,
+    ListConfig,
+    MissingMandatoryValue,
+    OmegaConf,
+    SCMode,
+    open_dict,
+)
 from omegaconf.errors import InterpolationResolutionError
 from tests import Color, User
 
@@ -346,6 +353,15 @@ class TestInstantiateStructuredConfigs:
         assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
         assert data["hello"] == "world"
+
+    def test_setattr_for_user_with_extra_field(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.User(name="James Bond", age=7))
+        with open_dict(cfg):
+            cfg.extra_field = 123
+
+        user: Any = OmegaConf.to_object(cfg)
+        assert type(user) is module.User
+        assert user.extra_field == 123
 
 
 class TestEnumToStr:
