@@ -559,10 +559,12 @@ def test_empty_stack() -> None:
 @mark.parametrize(
     ("inter", "key", "expected"),
     [
+        # simple
         param("${dict.bar}", "", 20, id="dict_value"),
         param("${dict}", "", {"bar": 20}, id="dict_node"),
         param("${list}", "", [1, 2], id="list_node"),
         param("${list.0}", "", 1, id="list_value"),
+        # relative
         param(
             "${.}",
             "",
@@ -587,6 +589,7 @@ def test_empty_stack() -> None:
             [1, 2],
             id="relative:list_from_dict",
         ),
+        param("${..list.1}", "dict", 2, id="up_down"),
     ],
 )
 def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
@@ -597,9 +600,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
         },
     )
 
-    root = cfg._select_impl(
-        key=key, throw_on_missing=True, throw_on_resolution_failure=True
-    )[2]
+    root = OmegaConf.select(cfg, key)
 
     tree = grammar_parser.parse(
         parser_rule="singleElement",
@@ -609,10 +610,8 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
     def callback(inter_key: Any) -> Any:
         assert isinstance(root, Container)
-        ret = root._select_impl(
-            key=inter_key, throw_on_missing=True, throw_on_resolution_failure=True
-        )
-        return ret[2]
+        ret = root._resolve_node_interpolation(inter_key=inter_key)
+        return ret
 
     visitor = grammar_visitor.GrammarVisitor(
         node_interpolation_callback=callback,
