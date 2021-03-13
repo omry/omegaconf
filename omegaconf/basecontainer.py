@@ -787,7 +787,6 @@ def _instantiate_structured_config_impl(
     from ._utils import get_structured_config_field_names
 
     object_type = conf._metadata.object_type
-
     object_type_field_names = set(get_structured_config_field_names(object_type))
 
     field_items: Dict[str, Any] = {}
