@@ -1,5 +1,6 @@
 """OmegaConf module"""
 import copy
+import inspect
 import io
 import os
 import pathlib
@@ -431,6 +432,7 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
+            node: BaseContainer,
             args: Tuple[Any, ...],
             args_str: Tuple[str, ...],
         ) -> Any:
@@ -484,8 +486,22 @@ class OmegaConf:
             name not in BaseContainer._resolvers
         ), "resolver {} is already registered".format(name)
 
+        sig = inspect.signature(resolver)
+
+        def _should_pass(special: str) -> bool:
+            ret = special in sig.parameters
+            if ret and use_cache:
+                raise ValueError(
+                    f"use_cache=True is incompatible with functions that receive the {special}"
+                )
+            return ret
+
+        pass_parent = _should_pass("_parent_")
+        pass_root = _should_pass("_root_")
+
         def resolver_wrapper(
             config: BaseContainer,
+            parent: Container,
             args: Tuple[Any, ...],
             args_str: Tuple[str, ...],
         ) -> Any:
@@ -498,7 +514,14 @@ class OmegaConf:
                     pass
 
             # Call resolver.
-            ret = resolver(*args)
+            kwargs = {}
+            if pass_parent:
+                kwargs["_parent_"] = parent
+            if pass_root:
+                kwargs["_root_"] = config
+
+            ret = resolver(*args, **kwargs)
+
             if use_cache:
                 cache[hashable_key] = ret
             return ret
@@ -509,7 +532,9 @@ class OmegaConf:
     @staticmethod
     def get_resolver(
         name: str,
-    ) -> Optional[Callable[[Container, Tuple[Any, ...], Tuple[str, ...]], Any]]:
+    ) -> Optional[
+        Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
+    ]:
         # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None

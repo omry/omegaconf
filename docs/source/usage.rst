@@ -489,13 +489,12 @@ You can take advantage of nested interpolations to perform custom operations ove
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver("plus", lambda x, y: x + y)
+    >>> OmegaConf.register_new_resolver("sum", lambda x, y: x + y)
     >>> c = OmegaConf.create({"a": 1,
     ...                       "b": 2,
-    ...                       "a_plus_b": "${plus:${a},${b}}"})
+    ...                       "a_plus_b": "${sum:${a},${b}}"})
     >>> c.a_plus_b
     3
-
 
 More advanced resolver naming features include the ability to prefix a resolver name with a
 namespace, and to use interpolations in the name itself. The following example demonstrates both:
@@ -529,6 +528,39 @@ inputs we always return the same value. This behavior may be disabled by setting
     >>> assert c.cached == c.cached == 7220
     >>> # not the same since the cache is disabled
     >>> assert c.uncached != c.uncached
+
+
+
+Custom interpolations can also receive the following special parameters:
+
+- ``_parent_`` : the parent node of an interpolation.
+- ``_root_``: The config root.
+
+This can be achieved by adding the special parameters to the resolver signature.
+Note that special parameters must be defined as named keywords (after the `*`):
+
+In this example, we use ``_parent_`` to implement a sum function that defaults to 0 if the node does not exist.
+(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}`` will result in an error).
+
+.. doctest::
+
+    >>> def sum2(a, b, *, _parent_):
+    ...     return _parent_.get(a, 0) + _parent_.get(b, 0)
+    >>> OmegaConf.register_new_resolver("sum2", sum2, use_cache=False)
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "node": {
+    ...             "a": 1,
+    ...             "b": 2,
+    ...             "a_plus_b": "${sum2:a,b}",
+    ...             "a_plus_z": "${sum2:a,z}",
+    ...         },
+    ...     }
+    ... )
+    >>> cfg.node.a_plus_b
+    3
+    >>> cfg.node.a_plus_z
+    1
 
 
 Merging configurations

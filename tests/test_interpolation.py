@@ -987,3 +987,86 @@ def test_resolver_output_list_to_listconfig(
     assert isinstance(c.x, ListConfig)
     assert c.x == expected
     assert dereference(c, "x")._get_flag("readonly")
+
+
+def test_register_cached_resolver_with_keyword_unsupported() -> None:
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("root", lambda _root_: None, use_cache=True)
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("parent", lambda _parent_: None, use_cache=True)
+
+
+def test_resolver_with_parent(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver(
+        "parent", lambda _parent_: _parent_, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "a": 10,
+            "b": {
+                "c": 20,
+                "parent": "${parent:}",
+            },
+            "parent": "${parent:}",
+        }
+    )
+
+    assert cfg.parent is cfg
+    assert cfg.b.parent is cfg.b
+
+
+def test_resolver_with_root(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver("root", lambda _root_: _root_, use_cache=False)
+    cfg = OmegaConf.create(
+        {
+            "a": 10,
+            "b": {
+                "c": 20,
+                "root": "${root:}",
+            },
+            "root": "${root:}",
+        }
+    )
+
+    assert cfg.root is cfg
+    assert cfg.b.root is cfg
+
+
+def test_resolver_with_root_and_parent(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver(
+        "both", lambda _root_, _parent_: _root_.add + _parent_.add, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "add": 10,
+            "b": {
+                "add": 20,
+                "both": "${both:}",
+            },
+            "both": "${both:}",
+        }
+    )
+    assert cfg.both == 20
+    assert cfg.b.both == 30
+
+
+def test_resolver_with_parent_and_default_value(restore_resolvers: Any) -> None:
+    def parent_and_default(default: int = 10, *, _parent_: Any) -> Any:
+        return _parent_.add + default
+
+    OmegaConf.register_new_resolver(
+        "parent_and_default", parent_and_default, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "add": 10,
+            "no_param": "${parent_and_default:}",
+            "param": "${parent_and_default:20}",
+        }
+    )
+
+    assert cfg.no_param == 20
+    assert cfg.param == 30
