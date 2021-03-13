@@ -647,7 +647,8 @@ class OmegaConf:
     @staticmethod
     def is_none(obj: Any, key: Optional[Union[int, DictKeyType]] = None) -> bool:
         warnings.warn(
-            "`OmegaConf.is_none()` is deprecated, see https://github.com/omry/omegaconf/issues/547"
+            "`OmegaConf.is_none()` is deprecated, see https://github.com/omry/omegaconf/issues/547",
+            stacklevel=2,
         )
 
         if key is not None:
