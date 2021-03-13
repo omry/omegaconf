@@ -1,6 +1,7 @@
 import copy
 import math
 import sys
+from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
@@ -55,8 +56,9 @@ class ValueNode(Node):
         # Subclasses can assume that `value` is not None in `_validate_and_convert_impl()`.
         return self._validate_and_convert_impl(value)
 
+    @abstractmethod
     def _validate_and_convert_impl(self, value: Any) -> Any:
-        return value
+        ...
 
     def __str__(self) -> str:
         return str(self._val)

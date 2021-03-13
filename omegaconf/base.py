@@ -20,9 +20,12 @@ from .errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
+    InterpolationValidationError,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
+    ValidationError,
 )
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
@@ -358,8 +361,6 @@ class Container(Node):
     ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
         """
         Select a value using dot separated key sequence
-        :param key:
-        :return:
         """
         from .omegaconf import _select_one
 
@@ -421,8 +422,34 @@ class Container(Node):
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
-        from .nodes import StringNode
+        """
+        Resolve an interpolation.
 
+        This happens in two steps:
+            1. The parse tree is visited, which outputs either a `Node` (e.g.,
+               for node interpolations "${foo}"), a string (e.g., for string
+               interpolations "hello ${name}", or any other arbitrary value
+               (e.g., or custom interpolations "${foo:bar}").
+            2. This output is potentially validated and converted when the node
+               being resolved (`value`) is typed.
+
+        If an error occurs in one of the above steps, an `InterpolationResolutionError`
+        (or a subclass of it) is raised, *unless* `throw_on_resolution_failure` is set
+        to `False` (in which case the return value is `None`).
+
+        :param parent: Parent of the node being resolved.
+        :param value: Node being resolved.
+        :param key: The associated key in the parent.
+        :param parse_tree: The parse tree as obtained from `grammar_parser.parse()`.
+        :param throw_on_resolution_failure: If `False`, then exceptions raised during
+            the resolution of the interpolation are silenced, and instead `None` is
+            returned.
+
+        :return: A `Node` that contains the interpolation result. This may be an existing
+            node in the config (in the case of a node interpolation "${foo}"), or a new
+            node that is created to wrap the interpolated value. It is `None` if and only if
+            `throw_on_resolution_failure` is `False` and an error occurs during resolution.
+        """
         try:
             resolved = self.resolve_parse_tree(
                 parse_tree=parse_tree,
@@ -434,18 +461,97 @@ class Container(Node):
                 raise
             return None
 
-        assert resolved is not None
-        if isinstance(resolved, str):
-            # Result is a string: create a new StringNode for it.
-            return StringNode(
-                value=resolved,
-                key=key,
+        return self._validate_and_convert_interpolation_result(
+            parent=parent,
+            value=value,
+            key=key,
+            resolved=resolved,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
+
+    def _validate_and_convert_interpolation_result(
+        self,
+        parent: Optional["Container"],
+        value: "Node",
+        key: Any,
+        resolved: Any,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        from .nodes import AnyNode, ValueNode
+
+        # If the output is not a Node already (e.g., because it is the output of a
+        # custom resolver), then we will need to wrap it within a Node.
+        must_wrap = not isinstance(resolved, Node)
+
+        # If the node is typed, validate (and possibly convert) the result.
+        if isinstance(value, ValueNode) and not isinstance(value, AnyNode):
+            res_value = _get_value(resolved)
+            try:
+                conv_value = value.validate_and_convert(res_value)
+            except ValidationError as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(
+                        key=key,
+                        value=res_value,
+                        cause=e,
+                        type_override=InterpolationValidationError,
+                    )
+                return None
+
+            # If the converted value is of the same type, it means that no conversion
+            # was actually needed. As a result, we can keep the original `resolved`
+            # (and otherwise, the converted value must be wrapped into a new node).
+            if type(conv_value) != type(res_value):
+                must_wrap = True
+                resolved = conv_value
+
+        if must_wrap:
+            return self._wrap_interpolation_result(
                 parent=parent,
-                is_optional=value._metadata.optional,
+                value=value,
+                key=key,
+                resolved=resolved,
+                throw_on_resolution_failure=throw_on_resolution_failure,
             )
         else:
             assert isinstance(resolved, Node)
             return resolved
+
+    def _wrap_interpolation_result(
+        self,
+        parent: Optional["Container"],
+        value: "Node",
+        key: Any,
+        resolved: Any,
+        throw_on_resolution_failure: bool,
+    ) -> Optional["Node"]:
+        from .basecontainer import BaseContainer
+        from .omegaconf import _node_wrap
+
+        assert parent is None or isinstance(parent, BaseContainer)
+        try:
+            wrapped = _node_wrap(
+                type_=value._metadata.ref_type,
+                parent=parent,
+                is_optional=value._metadata.optional,
+                value=resolved,
+                key=key,
+                ref_type=value._metadata.ref_type,
+            )
+        except (KeyValidationError, ValidationError) as e:
+            if throw_on_resolution_failure:
+                self._format_and_raise(
+                    key=key,
+                    value=resolved,
+                    cause=e,
+                    type_override=InterpolationValidationError,
+                )
+            return None
+        # Since we created a new node on the fly, future changes to this node are
+        # likely to be lost. We thus set the "readonly" flag to `True` to reduce
+        # the risk of accidental modifications.
+        wrapped._set_flag("readonly", True)
+        return wrapped
 
     def _resolve_node_interpolation(
         self,
@@ -488,19 +594,10 @@ class Container(Node):
     ) -> Any:
         from omegaconf import OmegaConf
 
-        from .nodes import ValueNode
-
         resolver = OmegaConf.get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            value = resolver(root_node, inter_args, inter_args_str)
-            return ValueNode(
-                value=value,
-                parent=self,
-                metadata=Metadata(
-                    ref_type=Any, object_type=Any, key=key, optional=True
-                ),
-            )
+            return resolver(root_node, inter_args, inter_args_str)
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"
@@ -561,7 +658,7 @@ class Container(Node):
                     value=quoted_str,
                     key=key,
                     parent=parent,
-                    is_optional=False,
+                    is_optional=True,
                 ),
                 throw_on_resolution_failure=True,
             )

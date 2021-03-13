@@ -1,0 +1,1 @@
+A custom resolver interpolation whose output is a list or dictionary is now automatically converted into a ListConfig or DictConfig.

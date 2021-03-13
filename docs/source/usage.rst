@@ -472,6 +472,19 @@ simply use quotes to bypass character limitations in strings.
     'Hello, World'
 
 
+Custom resolvers can return lists or dictionaries, that are automatically converted into DictConfig and ListConfig:
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver(
+    ...     "min_max", lambda *a: {"min": min(a), "max": max(a)}
+    ... )
+    >>> c = OmegaConf.create({'stats': '${min_max: -1, 3, 2, 5, -10}'})
+    >>> assert isinstance(c.stats, DictConfig)
+    >>> c.stats.min, c.stats.max
+    (-10, 5)
+
+
 You can take advantage of nested interpolations to perform custom operations over variables:
 
 .. doctest::

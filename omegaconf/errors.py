@@ -81,6 +81,12 @@ class InterpolationToMissingValueError(InterpolationResolutionError):
     """
 
 
+class InterpolationValidationError(InterpolationResolutionError, ValidationError):
+    """
+    Thrown when the result of an interpolation fails the validation step.
+    """
+
+
 class ConfigKeyError(OmegaConfBaseException, KeyError):
     """
     Thrown from DictConfig when a regular dict access would have caused a KeyError.

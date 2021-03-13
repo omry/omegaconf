@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 
+from omegaconf import OmegaConf
 from omegaconf.basecontainer import BaseContainer
 
 
@@ -16,3 +17,19 @@ def restore_resolvers() -> Any:
     state = copy.deepcopy(BaseContainer._resolvers)
     yield
     BaseContainer._resolvers = state
+
+
+@pytest.fixture(scope="function")
+def common_resolvers(restore_resolvers: Any) -> Any:
+    """
+    A fixture to register the common `identity` resolver.
+    It depends on `restore_resolvers` to make it easier and safer to use.
+    """
+
+    def cast(t: Any, v: Any) -> Any:
+        return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
+
+    OmegaConf.register_new_resolver("cast", cast)
+    OmegaConf.register_new_resolver("identity", lambda x: x)
+
+    yield
