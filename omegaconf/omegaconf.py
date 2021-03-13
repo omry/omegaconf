@@ -487,17 +487,17 @@ class OmegaConf:
         ), "resolver {} is already registered".format(name)
 
         sig = inspect.signature(resolver)
-        pass_parent = "_parent_" in sig.parameters
-        pass_root = "_root_" in sig.parameters
-        if pass_parent and use_cache:
-            raise ValueError(
-                "use_cache=True is incompatible with functions that receive the _node_"
-            )
 
-        if pass_root and use_cache:
-            raise ValueError(
-                "use_cache=True is incompatible with functions that receive the _root_"
-            )
+        def _should_pass(special: str) -> bool:
+            ret = special in sig.parameters
+            if ret and use_cache:
+                raise ValueError(
+                    f"use_cache=True is incompatible with functions that receive the {special}"
+                )
+            return ret
+
+        pass_parent = _should_pass("_parent_")
+        pass_root = _should_pass("_root_")
 
         def resolver_wrapper(
             config: BaseContainer,
