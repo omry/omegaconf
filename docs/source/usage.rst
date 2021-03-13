@@ -540,15 +540,13 @@ This can be achieved by adding the special parameters to the resolver signature.
 Note that special parameters must be defined as named keywords (after the `*`):
 
 In this example, we use ``_parent_`` to implement a sum function that defaults to 0 if the node does not exist.
-(In contrast to the sum we defined earlier where accessing an invalid key, e.g. `"a_plus_z": ${sum:${a}, ${z}}` will result in an error).
+(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}`` will result in an error).
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver(
-    ...     "sum2",
-    ...     lambda a, b, *, _parent_: _parent_.get(a, 0) + _parent_.get(b, 0),
-    ...     use_cache=False,
-    ... )
+    >>> def sum2(a, b, *, _parent_):
+    ...     return _parent_.get(a, 0) + _parent_.get(b, 0)
+    >>> OmegaConf.register_new_resolver("sum2", sum2, use_cache=False)
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "node": {
