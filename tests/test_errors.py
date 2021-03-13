@@ -1211,6 +1211,18 @@ params = [
         ),
         id="list,readonly:del",
     ),
+    # to_object
+    pytest.param(
+        Expected(
+            create=lambda: OmegaConf.structured(User),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=MissingMandatoryValue,
+            msg="Structured Config has Missing Mandatory Value: name",
+            key="name",
+            child_node=lambda cfg: cfg._get_node("name"),
+        ),
+        id="to_object:structured-missing-field",
+    ),
 ]
 
 

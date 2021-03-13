@@ -236,8 +236,6 @@ class BaseContainer(Container, ABC):
             if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
                 conf._metadata.object_type
             ):
-                if any(_is_missing_literal(value) for value in retdict.values()):
-                    raise MissingMandatoryValue()
                 retstruct = _instantiate_structured_config_impl(
                     conf=conf, instance_data=retdict
                 )
@@ -792,12 +790,22 @@ def _instantiate_structured_config_impl(
 
     object_type_field_names = set(get_structured_config_field_names(object_type))
 
-    field_items = {
-        k: v for k, v in instance_data.items() if k in object_type_field_names
-    }
-    nonfield_items = {
-        k: v for k, v in instance_data.items() if k not in object_type_field_names
-    }
+    field_items: Dict[str, Any] = {}
+    nonfield_items: Dict[str, Any] = {}
+    for k, v in instance_data.items():
+        if _is_missing_literal(v):
+            conf._format_and_raise(
+                key=k,
+                value=None,
+                cause=MissingMandatoryValue(
+                    "Structured Config has Missing Mandatory Value: $KEY"
+                ),
+            )
+        if k in object_type_field_names:
+            field_items[k] = v
+        else:
+            nonfield_items[k] = v
+
     result = object_type(**field_items)
     if not issubclass(object_type, dict):
         # normal structured config
