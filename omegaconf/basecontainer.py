@@ -797,7 +797,7 @@ def _instantiate_structured_config_impl(
                 key=k,
                 value=None,
                 cause=MissingMandatoryValue(
-                    "Structured Config has Missing Mandatory Value: $KEY"
+                    "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
                 ),
             )
         if k in object_type_field_names:

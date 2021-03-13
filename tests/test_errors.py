@@ -1217,7 +1217,7 @@ params = [
             create=lambda: OmegaConf.structured(User),
             op=lambda cfg: OmegaConf.to_object(cfg),
             exception_type=MissingMandatoryValue,
-            msg="Structured Config has Missing Mandatory Value: name",
+            msg="Structured config of type `User` has missing mandatory value: name",
             key="name",
             child_node=lambda cfg: cfg._get_node("name"),
         ),
