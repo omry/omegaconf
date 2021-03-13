@@ -544,11 +544,10 @@ Note that special parameters must be defined as named keywords (after the `*`):
 .. doctest::
 
     >>> OmegaConf.register_new_resolver(
-    ...    "sum_friends",
-    ...    lambda a, b, *, _parent_: _parent_[a] + _parent_[b],
-    ...    use_cache=False,
-    ...)
-    >>>
+    ...     "sum_friends", 
+    ...     lambda a, b, *, _parent_: _parent_[a] + _parent_[b], 
+    ...     use_cache=False
+    ... )
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "a": {
