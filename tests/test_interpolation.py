@@ -989,6 +989,13 @@ def test_resolver_output_list_to_listconfig(
     assert dereference(c, "x")._get_flag("readonly")
 
 
+def test_register_cached_resolver_with_keyword_unsupported() -> None:
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("root", lambda _root_: None, use_cache=True)
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("parent", lambda _parent_: None, use_cache=True)
+
+
 def test_resolver_with_parent(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver(
         "parent", lambda _parent_: _parent_, use_cache=False
