@@ -687,22 +687,6 @@ Tests if a value is an interpolation.
     >>> assert not OmegaConf.is_interpolation(cfg, "foo")
     >>> assert OmegaConf.is_interpolation(cfg, "bar")
 
-OmegaConf.is_none
-^^^^^^^^^^^^^^^^^
-
-Tests if a value is None.
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...         "foo" : 10, 
-    ...         "bar": None,
-    ...     })
-    >>> assert not OmegaConf.is_none(cfg, "foo")
-    >>> assert OmegaConf.is_none(cfg, "bar")
-    >>> # missing keys are interpreted as None
-    >>> assert OmegaConf.is_none(cfg, "no_such_key")
-
 
 OmegaConf.{is_config, is_dict, is_list}
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

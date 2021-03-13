@@ -345,6 +345,26 @@ def _is_missing_literal(value: Any) -> bool:
     return ret
 
 
+def _is_none(
+    value: Any, resolve: bool = False, throw_on_resolution_failure: bool = True
+) -> bool:
+    from omegaconf import Node
+
+    if not isinstance(value, Node):
+        return value is None
+
+    if resolve:
+        value = value._dereference_node(
+            throw_on_resolution_failure=throw_on_resolution_failure
+        )
+        if not throw_on_resolution_failure and value is None:
+            # Resolution failure: consider that it is *not* None.
+            return False
+        assert isinstance(value, Node)
+
+    return value._is_none()
+
+
 def get_value_kind(
     value: Any, strict_interpolation_validation: bool = False
 ) -> ValueKind:
@@ -513,7 +533,7 @@ def _get_value(value: Any) -> Any:
     from .nodes import ValueNode
 
     if isinstance(value, Container) and (
-        value._is_none() or value._is_interpolation() or value._is_missing()
+        value._is_none() or value._is_missing() or value._is_interpolation()
     ):
         return value._value()
     if isinstance(value, ValueNode):
@@ -587,7 +607,7 @@ def format_and_raise(
         ref_type = None
         ref_type_str = None
     else:
-        if key is not None and not OmegaConf.is_none(node):
+        if key is not None and not node._is_none():
             child_node = node._get_node(key, validate_access=False)
 
         full_key = node._get_full_key(key=key)

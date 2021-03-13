@@ -20,6 +20,7 @@ from ._utils import (
     _get_value,
     _is_interpolation,
     _is_missing_value,
+    _is_none,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -225,7 +226,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             dest_obj_type is not None
             and src_obj_type is not None
             and is_structured_config(dest_obj_type)
-            and not OmegaConf.is_none(src)
+            and not src._is_none()
             and not is_dict(src_obj_type)
             and not issubclass(src_obj_type, dest_obj_type)
         )
@@ -237,9 +238,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise ValidationError(msg)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
-
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True, throw_on_resolution_failure=False):
             if key is not None:
                 child = self._get_node(key)
                 if child is not None:
@@ -606,7 +605,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import MISSING, OmegaConf, flag_override
+        from omegaconf import MISSING, flag_override
 
         if flags is None:
             flags = {}
@@ -614,7 +613,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert not isinstance(value, ValueNode)
         self._validate_set(key=None, value=value)
 
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True):
             self.__dict__["_content"] = None
             self._metadata.object_type = None
         elif _is_interpolation(value, strict_interpolation_validation=True):

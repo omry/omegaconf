@@ -17,6 +17,7 @@ from typing import (
 from ._utils import (
     ValueKind,
     _get_value,
+    _is_none,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -565,13 +566,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import MISSING, OmegaConf, flag_override
+        from omegaconf import MISSING, flag_override
 
         if flags is None:
             flags = {}
 
         vk = get_value_kind(value, strict_interpolation_validation=True)
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True):
             if not self._is_optional():
                 raise ValidationError(
                     "Non optional ListConfig cannot be constructed from None"
