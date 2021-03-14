@@ -1333,3 +1333,38 @@ def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
         GrammarParseError, match=re.escape("no viable alternative at input '${b'")
     ):
         create_func(arg)
+
+
+def test_cycle_when_iterating_over_parents() -> None:
+    c = OmegaConf.create({"x": {}})
+    x_node = c._get_node("x")
+    assert isinstance(x_node, DictConfig)
+    c._set_parent(x_node)
+    with pytest.raises(
+        OmegaConfBaseException,
+        match=re.escape("Cycle when iterating over parents of key `x`"),
+    ):
+        c._get_full_key("x")
+
+
+def test_get_full_key_failure_in_format_and_raise() -> None:
+    c = OmegaConf.create({"x": {}})
+    x_node = c._get_node("x")
+    assert isinstance(x_node, DictConfig)
+    # We create a cycle in the parent relationship that will trigger a RecursionError
+    # when trying to access `c.x`. This test verifies that this RecursionError is properly
+    # raised even if another exception occurs in `format_and_raise()` when trying to
+    # obtain the full key.
+    c._set_parent(x_node)
+    with pytest.raises(
+        RecursionError,
+        match=re.escape(
+            dedent(
+                """\
+                maximum recursion depth exceeded in comparison
+                    full_key: <unresolvable due to OmegaConfBaseException: Cycle when iterating over parents of key `x`
+                """
+            )
+        ),
+    ):
+        c.x
