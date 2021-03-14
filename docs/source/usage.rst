@@ -858,3 +858,19 @@ Creates a copy of a DictConfig that contains only specific keys.
     a:
       b: 10
     <BLANKLINE>
+
+Debugger integration
+^^^^^^^^^^^^^^^^^^^^
+OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
+VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
+
+The debugger extension enables OmegaConf-aware object inspection:
+ - providing information about interpolations.
+ - properly handling missing values (``???``).
+ 
+The plugin comes in two flavors:
+ - USER: Default behavior, useful when debugging your OmegaConf objects.
+ - DEV: Useful when debugging OmegaConf itself, shows the exact data model of OmegaConf.
+
+The default flavor is ``USER``. You can select which flavor to use using the environment variable ``OC_PYDEVD_RESOLVER``,
+Which takes the possible values ``USER``, ``DEV`` and ``DISABLE``.
