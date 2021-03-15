@@ -25,7 +25,6 @@ from omegaconf.errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationValidationError,
-    OmegaConfBaseException,
     UnsupportedInterpolationType,
 )
 
@@ -711,7 +710,10 @@ def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
 
 
 def test_resolve_interpolation_without_parent() -> None:
-    with pytest.raises(OmegaConfBaseException):
+    with pytest.raises(
+        InterpolationResolutionError,
+        match=re.escape("Cannot resolve interpolation for a node without a parent"),
+    ):
         DictConfig(content="${foo}")._dereference_node()
 
 
