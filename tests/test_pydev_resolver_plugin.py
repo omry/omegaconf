@@ -44,12 +44,9 @@ def resolver() -> Any:
             {"_val": Color.RED},
             id="Color:Color.RED",
         ),
-        param(AnyNode("${foo}"), {"interpolation": "${foo}", "->": None}, id="any:10"),
-        param(
-            AnyNode("${foo}", parent=OmegaConf.create({"foo": 10})),
-            {"interpolation": "${foo}", "->": AnyNode(10)},
-            id="any:10",
-        ),
+        # nodes are never returning a dictionary
+        param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:10"),
+        param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:10"),
         # DictConfig
         param(DictConfig({"a": 10}), {"a": AnyNode(10)}, id="dict"),
         param(
@@ -67,6 +64,7 @@ def resolver() -> Any:
             {"a": AnyNode(10), "b": AnyNode("foo_10")},
             id="dict:str_interpolation_value",
         ),
+        param(DictConfig("${zzz}"), {}, id="dict:inter_error"),
         # ListConfig
         param(
             ListConfig(["a", "b"]), {"0": AnyNode("a"), "1": AnyNode("b")}, id="list"
@@ -76,6 +74,7 @@ def resolver() -> Any:
             {"0": AnyNode("${1}"), "1": AnyNode(10)},
             id="list:interpolation_value",
         ),
+        param(ListConfig("${zzz}"), {}, id="list:inter_error"),
     ],
 )
 def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
@@ -97,8 +96,17 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
         param(
             DictConfig({"a": "${b}", "b": 10}),
             "a",
-            Wrapper(AnyNode("${b}"), desc="${b} -> { int } 10"),
+            Wrapper(AnyNode("${b}"), desc="${b} -> 10"),
             id="dict:value_interpolation",
+        ),
+        param(
+            DictConfig({"a": "${zzz}"}),
+            "a",
+            Wrapper(
+                AnyNode("${zzz}"),
+                desc="${zzz} -> ERR: Interpolation key 'zzz' not found",
+            ),
+            id="dict:value_interpolation_error",
         ),
         # listconfig
         param(ListConfig([10]), 0, AnyNode(10), id="list"),
@@ -106,8 +114,17 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
         param(
             ListConfig(["${.1}", 10]),
             0,
-            Wrapper(AnyNode("${.1}"), desc="${.1} -> { int } 10"),
-            id="list",
+            Wrapper(AnyNode("${.1}"), desc="${.1} -> 10"),
+            id="list:value_interpolation",
+        ),
+        param(
+            ListConfig(["${zzz}", 10]),
+            0,
+            Wrapper(
+                AnyNode("${zzz}"),
+                desc="${zzz} -> ERR: TypeError raised while resolving interpolation: Index 'zzz' (str) is not an int",
+            ),
+            id="list:value_interpolation_error",
         ),
         # wrapper
         param(
@@ -115,13 +132,6 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
             "a",
             AnyNode(10),
             id="dict_in_wrapper",
-        ),
-        # dereference
-        param(
-            AnyNode("${a}", parent=DictConfig({"a": 10})),
-            "->",
-            AnyNode(10),
-            id="dereference",
         ),
     ],
 )
@@ -140,10 +150,7 @@ def test_resolve(
     ("obj", "attribute", "expected"),
     [
         param(
-            OmegaConf.create({"a": 10, "inter": "${a}"}),
-            "inter",
-            {"interpolation": "${a}", "->": AnyNode(10)},
-            id="dict:inter",
+            OmegaConf.create({"a": 10, "inter": "${a}"}), "inter", {}, id="dict:inter"
         ),
         param(
             OmegaConf.create({"missing": "???"}),
@@ -170,9 +177,15 @@ def test_resolve(
             id="dict:missing_dictconfig_value",
         ),
         param(
+            OmegaConf.create({"missing": DictConfig("???")}),
+            "missing",
+            {},
+            id="dict:missing_dictconfig_value",
+        ),
+        param(
             OmegaConf.create({"a": {"b": 10}, "b": DictConfig("${a}")}),
             "b",
-            {"interpolation": "${a}", "->": {"b": 10}},
+            {"b": 10},
             id="dict:interpolation_dictconfig_value",
         ),
     ],
@@ -192,12 +205,7 @@ def test_get_dictionary_dictconfig(
 @mark.parametrize(
     ("obj", "attribute", "expected"),
     [
-        param(
-            OmegaConf.create(["${.1}", 10]),
-            "0",
-            {"interpolation": "${.1}", "->": AnyNode(10)},
-            id="list:inter_value",
-        ),
+        param(OmegaConf.create(["${.1}", 10]), "0", {}, id="list:inter_value"),
         param(
             OmegaConf.create({"a": ListConfig(None)}),
             "a",
@@ -213,7 +221,7 @@ def test_get_dictionary_dictconfig(
         param(
             OmegaConf.create({"a": [1, 2], "b": ListConfig("${a}")}),
             "b",
-            {"interpolation": "${a}", "->": [1, 2]},
+            {"0": 1, "1": 2},
             id="list:interpolationn_listconfig_value",
         ),
     ],

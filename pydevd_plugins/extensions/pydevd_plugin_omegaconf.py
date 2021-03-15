@@ -6,8 +6,6 @@ from typing import Any, Dict
 
 from _pydevd_bundle.pydevd_extension_api import TypeResolveProvider  # type: ignore
 
-from omegaconf._utils import type_str
-
 
 @lru_cache(maxsize=128)
 def find_mod_attr(mod_name: str, attr: str) -> Any:
@@ -43,17 +41,17 @@ class OmegaConfNodeResolver(object):
         return Node is not None and issubclass(type_object, (Node, Wrapper))
 
     def resolve(self, obj: Any, attribute: str) -> Any:
+        InterpolationResolutionError = find_mod_attr(
+            "omegaconf.errors", "InterpolationResolutionError"
+        )
         Node = find_mod_attr("omegaconf", "Node")
         DictConfig = find_mod_attr("omegaconf", "DictConfig")
         ListConfig = find_mod_attr("omegaconf", "ListConfig")
-        ValueNode = find_mod_attr("omegaconf", "ValueNode")
 
         if isinstance(obj, Wrapper):
             obj = obj.target
 
-        if attribute == "->" and isinstance(obj, Node):
-            field = obj._dereference_node(throw_on_resolution_failure=False)
-        elif isinstance(obj, DictConfig):
+        if isinstance(obj, DictConfig):
             field = obj.__dict__["_content"][attribute]
         elif isinstance(obj, ListConfig):
             field = obj.__dict__["_content"][int(attribute)]
@@ -61,18 +59,18 @@ class OmegaConfNodeResolver(object):
             assert False
 
         if isinstance(field, Node) and field._is_interpolation():
-            resolved = field._dereference_node(throw_on_resolution_failure=False)
-            if resolved is not None:
-                if isinstance(resolved, ValueNode):
-                    resolved_type = type_str(type(resolved._val))
-                else:
-                    resolved_type = type_str(type(resolved))
-                desc = f"{field} -> {{ {resolved_type} }} {resolved}"
+            try:
+                resolved = field._dereference_node()
+                desc = f"{field} -> {resolved}"
+                field = Wrapper(field, desc)
+            except InterpolationResolutionError as ex:
+                desc = f"{field} -> ERR: {ex}"
                 field = Wrapper(field, desc)
 
         return field
 
     def get_dictionary(self, obj: Any) -> Dict[str, Any]:
+        Container = find_mod_attr("omegaconf", "Container")
         ListConfig = find_mod_attr("omegaconf", "ListConfig")
         DictConfig = find_mod_attr("omegaconf", "DictConfig")
         Node = find_mod_attr("omegaconf", "Node")
@@ -83,18 +81,21 @@ class OmegaConfNodeResolver(object):
 
         assert isinstance(obj, Node)
 
-        d = {}
+        d: Dict[Any, Any] = {}
 
         if isinstance(obj, Node):
             if obj._is_missing() or obj._is_none():
                 return {}
             if obj._is_interpolation():
-                d["interpolation"] = obj._value()
                 if obj._parent is not None:
                     resolved = obj._dereference_node(throw_on_resolution_failure=False)
                 else:
                     resolved = None
-                d["->"] = resolved
+                if isinstance(obj, ValueNode):
+                    d = {}
+                elif isinstance(obj, Container):
+                    if resolved is not None:
+                        d = self.get_dictionary(resolved)
                 return d
             else:
                 if isinstance(obj, ValueNode):
