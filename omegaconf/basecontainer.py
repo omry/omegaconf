@@ -261,18 +261,18 @@ class BaseContainer(Container, ABC):
 
         assert False
 
-    def _instantiate_structured_config_impl(conf, instance_data: Dict[str, Any]) -> Any:
-        """Instantiate an instance of `conf._metadata.object_type`, populated by `instance_data`."""
+    def _instantiate_structured_config_impl(self, instance_data: Dict[str, Any]) -> Any:
+        """Instantiate an instance of `self._metadata.object_type`, populated by `instance_data`."""
         from ._utils import get_structured_config_field_names
 
-        object_type = conf._metadata.object_type
+        object_type = self._metadata.object_type
         object_type_field_names = set(get_structured_config_field_names(object_type))
 
         field_items: Dict[str, Any] = {}
         nonfield_items: Dict[str, Any] = {}
         for k, v in instance_data.items():
             if _is_missing_literal(v):
-                conf._format_and_raise(
+                self._format_and_raise(
                     key=k,
                     value=None,
                     cause=MissingMandatoryValue(
