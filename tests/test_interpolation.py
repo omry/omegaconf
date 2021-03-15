@@ -24,7 +24,6 @@ from omegaconf.errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationValidationError,
-    UnsupportedInterpolationType,
 )
 
 from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
