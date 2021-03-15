@@ -236,8 +236,8 @@ class BaseContainer(Container, ABC):
             if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
                 conf._metadata.object_type
             ):
-                retstruct = _instantiate_structured_config_impl(
-                    conf=conf, instance_data=retdict
+                retstruct = conf._instantiate_structured_config_impl(
+                    instance_data=retdict
                 )
                 return retstruct
             else:
@@ -264,6 +264,39 @@ class BaseContainer(Container, ABC):
             return retlist
 
         assert False
+
+    def _instantiate_structured_config_impl(conf, instance_data: Dict[str, Any]) -> Any:
+        """Instantiate an instance of `conf._metadata.object_type`, populated by `instance_data`."""
+        from ._utils import get_structured_config_field_names
+
+        object_type = conf._metadata.object_type
+        object_type_field_names = set(get_structured_config_field_names(object_type))
+
+        field_items: Dict[str, Any] = {}
+        nonfield_items: Dict[str, Any] = {}
+        for k, v in instance_data.items():
+            if _is_missing_literal(v):
+                conf._format_and_raise(
+                    key=k,
+                    value=None,
+                    cause=MissingMandatoryValue(
+                        "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
+                    ),
+                )
+            if k in object_type_field_names:
+                field_items[k] = v
+            else:
+                nonfield_items[k] = v
+
+        result = object_type(**field_items)
+        if not issubclass(object_type, dict):
+            # normal structured config
+            for k, v in nonfield_items.items():
+                setattr(result, k, v)
+        else:
+            # Extending dict as a subclass
+            result.update(nonfield_items)
+        return result
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
         from omegaconf import OmegaConf
@@ -778,39 +811,3 @@ def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> No
         if new_ref_type is not Any:
             node._metadata.ref_type = new_ref_type
             node._metadata.optional = new_is_optional
-
-
-def _instantiate_structured_config_impl(
-    conf: "DictConfig", instance_data: Dict[str, Any]
-) -> Any:
-    """Instantiate an instance of `conf._metadata.object_type`, populated by `instance_data`."""
-    from ._utils import get_structured_config_field_names
-
-    object_type = conf._metadata.object_type
-    object_type_field_names = set(get_structured_config_field_names(object_type))
-
-    field_items: Dict[str, Any] = {}
-    nonfield_items: Dict[str, Any] = {}
-    for k, v in instance_data.items():
-        if _is_missing_literal(v):
-            conf._format_and_raise(
-                key=k,
-                value=None,
-                cause=MissingMandatoryValue(
-                    "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
-                ),
-            )
-        if k in object_type_field_names:
-            field_items[k] = v
-        else:
-            nonfield_items[k] = v
-
-    result = object_type(**field_items)
-    if not issubclass(object_type, dict):
-        # normal structured config
-        for k, v in nonfield_items.items():
-            setattr(result, k, v)
-    else:
-        # Extending dict as a subclass
-        result.update(nonfield_items)
-    return result
