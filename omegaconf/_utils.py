@@ -615,7 +615,7 @@ def format_and_raise(
         except Exception as exc:
             # Since we are handling an exception, raising a different one here would
             # be misleading. Instead, we display it in the key.
-            full_key = f"<unresolvable due to {type(exc).__name__}: {exc}"
+            full_key = f"<unresolvable due to {type(exc).__name__}: {exc}>"
 
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)
