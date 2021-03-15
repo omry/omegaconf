@@ -653,7 +653,7 @@ def test_custom_resolver_param_supported_chars() -> None:
     assert c.dir1 == supported_chars
 
 
-def test_valid_chars_in_key_names() -> None:
+def test_valid_chars_in_interpolation() -> None:
     valid_chars = "".join(
         chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
     )
