@@ -1,5 +1,4 @@
 import re
-import sys
 from dataclasses import dataclass
 from enum import Enum
 from textwrap import dedent
@@ -1358,20 +1357,13 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
     # obtain the full key.
     c._set_parent(x_node)
 
-    # For some reason in Python 3.6 the error message may vary depending on how this
-    # test is run (`nox -s coverage-3.6` vs `nox -s omegaconf-3.6`). As a result, we
-    # do not check the message.
-    if sys.version_info < (3, 7):
-        match = ""
-    else:
-        match = re.escape(
-            dedent(
-                """\
-                maximum recursion depth exceeded in comparison
-                    full_key: <unresolvable due to OmegaConfBaseException: Cycle when iterating over parents of key `x`
-                """
-            )
-        )
+    # The exception message may vary depending on the Python version and seemingly
+    # irrelevant code changes. As a result, we only test the "full_key" part of the
+    # message (which we have control on).
+    match = re.escape(
+        "full_key: <unresolvable due to OmegaConfBaseException: "
+        "Cycle when iterating over parents of key `x`"
+    )
 
     with pytest.raises(RecursionError, match=match):
         c.x
