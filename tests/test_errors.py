@@ -1362,7 +1362,7 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
     # message (which we have control on).
     match = re.escape(
         "full_key: <unresolvable due to OmegaConfBaseException: "
-        "Cycle when iterating over parents of key `x`"
+        "Cycle when iterating over parents of key `x`>"
     )
 
     with pytest.raises(RecursionError, match=match):
