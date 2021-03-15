@@ -21,6 +21,10 @@ from omegaconf.errors import (
     UnsupportedInterpolationType,
 )
 
+# Characters that are not allowed by the grammar in config key names.
+INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
+
+
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
     {
@@ -32,11 +36,12 @@ BASE_TEST_CFG = OmegaConf.create(
         "list": [x - 1 for x in range(11)],
         "null": None,
         # Special cases.
-        "x@y": 123,  # to test keys with @ in name
-        "0": 0,  # to test keys with int names
-        "1": {"2": 12},  # to test dot-path with int keys
-        "FalsE": {"TruE": True},  # to test keys with bool names
-        "None": {"null": 1},  # to test keys with null-like names
+        "x@y": 123,  # @ in name
+        "$x$y$z$": 456,  # $ in name (beginning, middle and end)
+        "0": 0,  # integer name
+        "FalsE": {"TruE": True},  # bool name
+        "None": {"null": 1},  # null-like name
+        "1": {"2": 12},  # dot-path with int keys
         # Used in nested interpolations.
         "str_test": "test",
         "ref_str": "str",
@@ -200,6 +205,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
     ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
     ("at_in_key", "${x@y}", 123),
+    ("dollar_in_key", "${$x$y$z$}", 456),
     # Interpolations in dictionaries.
     ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
     ("dict_interpolation_key", "{${str}: 0, ${null}: 1", GrammarParseError),
@@ -524,6 +530,7 @@ class TestOmegaConfGrammar:
         "${foo:bar,0,a-b+c*d/$.%@}",
         "\\${foo}",
         "${foo.bar:boz}",
+        "${$foo.bar$.x$y}",
         # relative interpolations
         "${.}",
         "${..}",
@@ -549,6 +556,8 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
         "\\${foo",
         "${foo . bar}",
         "${ns . f:var}",
+        "${$foo:bar}",
+        "${.foo:bar}",
     ],
 )
 def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
@@ -634,3 +643,46 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
     )
     ret = visitor.visit(tree)
     assert ret == expected
+
+
+def test_custom_resolver_param_supported_chars() -> None:
+    supported_chars = "abc123_/:-\\+.$%*@"
+    c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
+
+    OmegaConf.register_new_resolver("copy", lambda x: x)
+    assert c.dir1 == supported_chars
+
+
+def test_valid_chars_in_interpolation() -> None:
+    valid_chars = "".join(
+        chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
+    )
+    cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
+    cfg = OmegaConf.create(cfg_dict)
+    # Test that we can access the node made of all valid characters, both
+    # directly and through interpolations.
+    assert cfg[valid_chars] == 123
+    assert cfg.inter == 123
+
+
+@mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
+def test_invalid_chars_in_interpolation(c: str) -> None:
+    def create() -> DictConfig:
+        return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
+
+    # Test that all invalid characters trigger errors in interpolations.
+    if c in [".", "}"]:
+        # With '.', we try to access `${ab.de}`.
+        # With '}', we try to access `${ab}`.
+        cfg = create()
+        with raises(InterpolationKeyError):
+            cfg.invalid
+    elif c == ":":
+        # With ':', we try to run a resolver `${ab:de}`
+        cfg = create()
+        with raises(UnsupportedInterpolationType):
+            cfg.invalid
+    else:
+        # Other invalid characters should be detected at creation time.
+        with raises(GrammarParseError):
+            create()

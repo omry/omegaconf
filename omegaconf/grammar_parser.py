@@ -19,12 +19,14 @@ _grammar_cache = None
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
 _id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
-_dot_path = f"(\\.)*({_id}(\\.{_id})*)?"  # foo, foo.bar3, foo_.b4r.b0z
-_inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
+_config_key = f"({_id}|\\$)+"  # foo, $bar, $foo$bar$
+_node_path = f"(\\.)*({_config_key}(\\.{_config_key})*)?"  # foo, .foo.$bar
+_node_inter = f"\\${{\\s*{_node_path}\\s*}}"  # node interpolation ${foo.bar}
+_resolver_name = f"({_id}(\\.{_id})*)?"  # foo, ns.bar3, ns_1.ns_2.b0z
 _arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
 _args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
-_inter_res = f"\\${{\\s*{_dot_path}\\s*:\\s*{_args}?\\s*}}"  # resolver interpolation
-_inter = f"({_inter_node}|{_inter_res})"  # any kind of interpolation
+_resolver_inter = f"\\${{\\s*{_resolver_name}\\s*:\\s*{_args}?\\s*}}"  # ${foo:bar}
+_inter = f"({_node_inter}|{_resolver_inter})"  # any kind of interpolation
 _outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
 SIMPLE_INTERPOLATION_PATTERN = re.compile(
     f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII

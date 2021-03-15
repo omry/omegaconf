@@ -76,4 +76,9 @@ INTER_CLOSE: WS? '}' -> popMode;
 
 DOT: '.';
 INTER_ID: ID -> type(ID);
-INTER_KEY: ~[\\${}()[\]:. \t'"]+;  // interpolation key, may contain any non special character
+
+// Interpolation key, may contain any non special character.
+// Note that we can allow '$' because the parser does not support interpolations that
+// are only part of a key name, i.e., "${foo${bar}}" is not allowed. As a result, it
+// is ok to "consume" all '$' characters within the `INTER_KEY` token.
+INTER_KEY: ~[\\{}()[\]:. \t'"]+;

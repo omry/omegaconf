@@ -21,11 +21,9 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
-    GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationValidationError,
-    UnsupportedInterpolationType,
 )
 
 from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
@@ -34,9 +32,6 @@ from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, 
 # The above comment is a statement to stop DeepCode from raising a warning on
 # lines that do equality checks of the form
 #       c.k == c.k
-
-# Characters that are not allowed by the grammar in config key names.
-INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
 
 
 def dereference(cfg: Container, key: Any) -> Node:
@@ -603,49 +598,6 @@ def test_clear_cache(restore_resolvers: Any) -> None:
     old = c.k
     OmegaConf.clear_cache(c)
     assert old != c.k
-
-
-def test_supported_chars() -> None:
-    supported_chars = "abc123_/:-\\+.$%*@"
-    c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
-
-    OmegaConf.register_new_resolver("copy", lambda x: x)
-    assert c.dir1 == supported_chars
-
-
-def test_valid_chars_in_key_names() -> None:
-    valid_chars = "".join(
-        chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
-    )
-    cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
-    cfg = OmegaConf.create(cfg_dict)
-    # Test that we can access the node made of all valid characters, both
-    # directly and through interpolations.
-    assert cfg[valid_chars] == 123
-    assert cfg.inter == 123
-
-
-@pytest.mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
-def test_invalid_chars_in_key_names(c: str) -> None:
-    def create() -> DictConfig:
-        return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
-
-    # Test that all invalid characters trigger errors in interpolations.
-    if c in [".", "}"]:
-        # With '.', we try to access `${ab.de}`.
-        # With '}', we try to access `${ab}`.
-        cfg = create()
-        with pytest.raises(InterpolationKeyError):
-            cfg.invalid
-    elif c == ":":
-        # With ':', we try to run a resolver `${ab:de}`
-        cfg = create()
-        with pytest.raises(UnsupportedInterpolationType):
-            cfg.invalid
-    else:
-        # Other invalid characters should be detected at creation time.
-        with pytest.raises(GrammarParseError):
-            create()
 
 
 def test_interpolation_in_list_key_error() -> None:
