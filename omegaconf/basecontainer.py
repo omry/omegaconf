@@ -27,7 +27,12 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
-from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
+from .errors import (
+    ConfigCycleDetectedException,
+    MissingMandatoryValue,
+    ReadonlyConfigError,
+    ValidationError,
+)
 
 if TYPE_CHECKING:
     from .dictconfig import DictConfig  # pragma: no cover
@@ -723,11 +728,16 @@ class BaseContainer(Container, ABC):
             full_key = self._key()
 
         assert cur is not None
+        memo = {id(cur)}  # remember already visited nodes so as to detect cycles
         while cur._get_parent() is not None:
             cur = cur._get_parent()
+            if id(cur) in memo:
+                raise ConfigCycleDetectedException(
+                    f"Cycle when iterating over parents of key `{key}`"
+                )
+            memo.add(id(cur))
             assert cur is not None
-            key = cur._key()
-            if key is not None:
+            if cur._key() is not None:
                 full_key = prepand(
                     full_key, type(cur._get_parent()), type(cur), cur._key()
                 )
