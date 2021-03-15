@@ -666,7 +666,7 @@ def test_valid_chars_in_interpolation() -> None:
 
 
 @mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
-def test_invalid_chars_in_key_names(c: str) -> None:
+def test_invalid_chars_in_interpolation(c: str) -> None:
     def create() -> DictConfig:
         return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
 
