@@ -213,7 +213,7 @@ class BaseContainer(Container, ABC):
             ):
                 return conf
 
-            retdict: Dict[str, Any] = {}
+            ret: Any = {}
             for key in conf.keys():
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
@@ -224,24 +224,20 @@ class BaseContainer(Container, ABC):
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
                 if isinstance(node, Container):
-                    retdict[key] = BaseContainer._to_content(
+                    ret[key] = BaseContainer._to_content(
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         structured_config_mode=structured_config_mode,
                     )
                 else:
-                    retdict[key] = convert(node)
+                    ret[key] = convert(node)
 
             if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
                 conf._metadata.object_type
             ):
-                retstruct = conf._instantiate_structured_config_impl(
-                    instance_data=retdict
-                )
-                return retstruct
-            else:
-                return retdict
+                ret = conf._instantiate_structured_config_impl(instance_data=ret)
+            return ret
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
