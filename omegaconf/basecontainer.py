@@ -28,8 +28,8 @@ from ._utils import (
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
+    ConfigCycleDetectedException,
     MissingMandatoryValue,
-    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
@@ -732,7 +732,7 @@ class BaseContainer(Container, ABC):
         while cur._get_parent() is not None:
             cur = cur._get_parent()
             if id(cur) in memo:
-                raise OmegaConfBaseException(
+                raise ConfigCycleDetectedException(
                     f"Cycle when iterating over parents of key `{key}`"
                 )
             memo.add(id(cur))

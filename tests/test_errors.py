@@ -1361,7 +1361,7 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
     # irrelevant code changes. As a result, we only test the "full_key" part of the
     # message (which we have control on).
     match = re.escape(
-        "full_key: <unresolvable due to OmegaConfBaseException: "
+        "full_key: <unresolvable due to ConfigCycleDetectedException: "
         "Cycle when iterating over parents of key `x`>"
     )
 

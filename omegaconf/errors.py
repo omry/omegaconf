@@ -129,6 +129,12 @@ class ConfigValueError(OmegaConfBaseException, ValueError):
     """
 
 
+class ConfigCycleDetectedException(OmegaConfBaseException):
+    """
+    Thrown when a cycle is detected in the graph made by config nodes.
+    """
+
+
 class GrammarParseError(OmegaConfBaseException):
     """
     Thrown when failing to parse an expression according to the ANTLR grammar.
