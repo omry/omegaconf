@@ -23,7 +23,6 @@ from .errors import (
     InterpolationValidationError,
     KeyValidationError,
     MissingMandatoryValue,
-    OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
 )
@@ -211,7 +210,7 @@ class Node(ABC):
 
         parent = self._get_parent()
         if parent is None:
-            raise OmegaConfBaseException(
+            raise InterpolationResolutionError(
                 "Cannot resolve interpolation for a node without a parent"
             )
         assert parent is not None
