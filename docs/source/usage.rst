@@ -382,6 +382,11 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
     >>> (cfg.player.height, cfg.player.weight)
     (180, 75)
 
+Usually the nodes in a config should have the topology of a directed acyclic
+graph. It is possible to use interpolation to create configs that contain
+cycles (i.e. that are not acyclic), but doing so is strongly discouraged and
+may result in undefined behavior.
+
 
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
