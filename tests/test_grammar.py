@@ -645,7 +645,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
     assert ret == expected
 
 
-def test_supported_chars() -> None:
+def test_custom_resolver_param_supported_chars() -> None:
     supported_chars = "abc123_/:-\\+.$%*@"
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
