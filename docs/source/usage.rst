@@ -335,19 +335,17 @@ Example:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/config_interpolation.yaml')
+    >>> def show(x):
+    ...     print(f"type: {type(x).__name__}, value: {repr(x)}")
     >>> # Primitive interpolation types are inherited from the reference
-    >>> conf.client.server_port
-    80
-    >>> type(conf.client.server_port).__name__
-    'int'
-    >>> conf.client.description
-    'Client of http://localhost:80/'
+    >>> show(conf.client.server_port)
+    type: int, value: 80
+    >>> show(conf.client.description)
+    type: str, value: 'Client of http://localhost:80/'
 
     >>> # Composite interpolation types are always string
-    >>> conf.client.url
-    'http://localhost:80/'
-    >>> type(conf.client.url).__name__
-    'str'
+    >>> show(conf.client.url)
+    type: str, value: 'http://localhost:80/'
 
 
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
@@ -446,8 +444,6 @@ This can be useful for instance to parse environment variables:
     ...         }
     ...     }
     ... )
-    >>> def show(x):
-    ...     print(f"type: {type(x).__name__}, value: {x}")
     >>> os.environ["DB_PORT"] = "3308"
     >>> show(cfg.database.port)  # converted to int
     type: int, value: 3308
@@ -789,12 +785,11 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
     >>> assert type(conf) == DictConfig
     >>> primitive = OmegaConf.to_container(conf)
-    >>> assert type(primitive) == dict
-    >>> print(primitive)
-    {'foo': 'bar', 'foo2': '${foo}'}
+    >>> show(primitive)
+    type: dict, value: {'foo': 'bar', 'foo2': '${foo}'}
     >>> resolved = OmegaConf.to_container(conf, resolve=True)
-    >>> print(resolved)
-    {'foo': 'bar', 'foo2': 'bar'}
+    >>> show(resolved)
+    type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
 You can customize the treatment of **OmegaConf.to_container()** for
 Structured Config nodes using the `structured_config_mode` option.
@@ -807,9 +802,8 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> from omegaconf import SCMode
     >>> conf = OmegaConf.create({"structured_config": MyConfig})
     >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
-    >>> print(container)
-    {'structured_config': {'port': 80, 'host': 'localhost'}}
-    >>> assert type(container) is dict
+    >>> show(container)
+    type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
     >>> assert type(container["structured_config"]) is DictConfig
     >>> assert container["structured_config"].port == 80
 
