@@ -304,8 +304,13 @@ class TestInstantiateStructuredConfigs:
         assert interp.z1 == 100
         assert interp.z2 == "100_200"
 
-    def test_to_object_resolve_False(self, module: Any) -> None:
-        interp = self.round_trip_to_object(module.Interpolation, resolve=False)
+    def test_to_container_INSTANTIATE_resolve_False(self, module: Any) -> None:
+        """Test the lower level `to_container` API with SCMode.INSTANTIATE and resolve=False"""
+        serialized = OmegaConf.structured(module.Interpolation)
+        interp = OmegaConf.to_container(
+            serialized, resolve=False, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(interp, module.Interpolation)
         assert type(interp) is module.Interpolation
 
         assert interp.z1 == "${x}"
@@ -318,12 +323,15 @@ class TestInstantiateStructuredConfigs:
     def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithAny())
         cfg.var.mandatory_missing = 123
-        nested = self.round_trip_to_object(cfg, resolve=False)
+        with open_dict(cfg):
+            cfg.value_at_root = 456
+        nested = self.round_trip_to_object(cfg)
         assert type(nested) is module.NestedWithAny
 
         assert type(nested.var) is module.Nested
         assert nested.var.with_default == 10
         assert nested.var.mandatory_missing == 123
+        assert nested.var.interpolation == 456
 
     def test_str2user_instantiate(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2User())

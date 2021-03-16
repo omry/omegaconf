@@ -627,7 +627,6 @@ class OmegaConf:
     def to_object(
         cfg: Any,
         *,
-        resolve: bool = True,
         enum_to_str: bool = False,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
@@ -638,13 +637,12 @@ class OmegaConf:
         This is an alias for OmegaConf.to_container(..., structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
-        :param resolve: True to resolve all values
         :param enum_to_str: True to convert Enum values to strings
         :return: A dict or a list or dataclass representing this config.
         """
         return OmegaConf.to_container(
             cfg=cfg,
-            resolve=resolve,
+            resolve=True,
             enum_to_str=enum_to_str,
             structured_config_mode=SCMode.INSTANTIATE,
         )
