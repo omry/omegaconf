@@ -426,6 +426,7 @@ def is_int(st: str) -> bool:
         return False
 
 
+# DEPRECATED: remove in 2.2
 def decode_primitive(s: str) -> Any:
     if is_bool(s):
         return str.lower(s) == "true"
