@@ -53,14 +53,10 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
         ListConfig = find_mod_attr("omegaconf", "ListConfig")
         DictConfig = find_mod_attr("omegaconf", "DictConfig")
         Node = find_mod_attr("omegaconf", "Node")
-        IRE = find_mod_attr("omegaconf.errors", "InterpolationResolutionError")
 
         if isinstance(obj, Node):
-            try:
-                obj = obj._dereference_node(throw_on_resolution_failure=False)
-                if obj._is_none() or obj._is_missing():
-                    return {}
-            except IRE:
+            obj = obj._dereference_node(throw_on_resolution_failure=False)
+            if obj is None or obj._is_none() or obj._is_missing():
                 return {}
 
         if isinstance(obj, DictConfig):
