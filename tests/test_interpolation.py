@@ -379,6 +379,13 @@ def test_clear_resolvers_and_has_resolver_legacy(restore_resolvers: Any) -> None
     assert not OmegaConf.has_resolver("foo")
 
 
+def test_get_resolver_deprecation() -> None:
+    with pytest.warns(
+        UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/608")
+    ):
+        assert OmegaConf.get_resolver("foo") is None
+
+
 def test_register_resolver_1(restore_resolvers: Any) -> None:
     OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
     c = OmegaConf.create(
