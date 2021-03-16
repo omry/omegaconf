@@ -472,8 +472,13 @@ def test_env_default_none(monkeypatch: Any, env_func: str) -> None:
         assert c.my_key is None
 
 
-def test_env_non_str_default(monkeypatch: Any) -> None:
-    monkeypatch.delenv("MYKEY", raising=False)
+@pytest.mark.parametrize("has_var", [True, False])
+def test_env_non_str_default(monkeypatch: Any, has_var: bool) -> None:
+    if has_var:
+        monkeypatch.setenv("MYKEY", "456")
+    else:
+        monkeypatch.delenv("MYKEY", raising=False)
+
     c = OmegaConf.create({"my_key": "${oc.env:MYKEY, 123}"})
     with pytest.raises(
         InterpolationResolutionError,

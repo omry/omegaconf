@@ -120,15 +120,21 @@ def register_default_resolvers() -> None:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
     def env(key: str, default: Any = _EMPTY_MARKER_) -> Optional[str]:
+        if (
+            default is not _EMPTY_MARKER_
+            and default is not None
+            and not isinstance(default, str)
+        ):
+            raise ValidationError(
+                f"The default value of the `oc.env` resolver must be a string or "
+                f"None, but `{default}` is of type {type(default).__name__}"
+            )
+
         try:
             return os.environ[key]
         except KeyError:
             if default is not _EMPTY_MARKER_:
-                if default is not None and not isinstance(default, str):
-                    raise ValidationError(
-                        f"The default value of the `oc.env` resolver must be a string or "
-                        f"None, but `{default}` is of type {type(default).__name__}"
-                    )
+                assert default is None or isinstance(default, str)  # redundant for mypy
                 return default
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
