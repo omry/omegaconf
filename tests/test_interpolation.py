@@ -244,6 +244,8 @@ class TestEnvInterpolation:
     )
     def test_env_interpolation(
         self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
         monkeypatch: Any,
         env_func: str,
         cfg: Any,
@@ -258,12 +260,7 @@ class TestEnvInterpolation:
         cfg["env_func"] = env_func  # allows choosing which env resolver to use
         cfg = OmegaConf.create(cfg)
 
-        # The legacy env resolver triggers a deprecation warning.
-        if env_func == "env":
-            with pytest.warns(UserWarning):
-                assert OmegaConf.select(cfg, key) == expected
-        else:
-            assert OmegaConf.select(cfg, key) == expected
+        assert OmegaConf.select(cfg, key) == expected
 
     @pytest.mark.parametrize(
         ("cfg", "key", "expected"),
@@ -281,6 +278,8 @@ class TestEnvInterpolation:
     )
     def test_env_interpolation_error(
         self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
         env_func: str,
         cfg: Any,
         key: str,
@@ -289,14 +288,8 @@ class TestEnvInterpolation:
         cfg["env_func"] = env_func  # allows choosing which env resolver to use
         cfg = _ensure_container(cfg)
 
-        # The legacy env resolver triggers a deprecation warning.
-        if env_func == "env":
-            with pytest.warns(UserWarning):
-                with expected:
-                    OmegaConf.select(cfg, key)
-        else:
-            with expected:
-                OmegaConf.select(cfg, key)
+        with expected:
+            OmegaConf.select(cfg, key)
 
 
 def test_legacy_env_is_cached(monkeypatch: Any) -> None:
@@ -461,15 +454,12 @@ def test_legacy_env_values_are_typed(
         assert c.my_key == expected
 
 
+# DEPRECATED: remove `recwarn` in 2.2 with the legacy env resolver
 @pytest.mark.parametrize("env_func", ["env", "oc.env"])
-def test_env_default_none(monkeypatch: Any, env_func: str) -> None:
+def test_env_default_none(monkeypatch: Any, recwarn: Any, env_func: str) -> None:
     monkeypatch.delenv("MYKEY", raising=False)
     c = OmegaConf.create({"my_key": "${%s:MYKEY, null}" % env_func})
-    if env_func == "env":
-        with pytest.warns(UserWarning):
-            assert c.my_key is None
-    else:
-        assert c.my_key is None
+    assert c.my_key is None
 
 
 @pytest.mark.parametrize("has_var", [True, False])
