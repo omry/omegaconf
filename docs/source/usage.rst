@@ -404,16 +404,23 @@ Input YAML file:
     '/home/omry'
 
 You can specify a default value to use in case the environment variable is not defined.
-This default value can be a string or `null` (representing Python `None`). Passing a default with a different type will result in an error.
-The following example sets ``abc123`` as the default value when ``DB_PASSWORD`` is not defined.
+This default value can be a string or ``null`` (representing Python ``None``). Passing a default with a different type will result in an error.
+The following example sets default database passwords when ``DB_PASSWORD`` is not defined:
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${oc.env:DB_PASSWORD,abc123}'}
-    ... })
-    >>> cfg.database.password
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "database": {
+    ...             "password1": "${oc.env:DB_PASSWORD,abc123}",
+    ...             "password2": "${oc.env:DB_PASSWORD,'12345'}",
+    ...         },
+    ...     }
+    ... )
+    >>> cfg.database.password1  # the string 'abc123'
     'abc123'
+    >>> cfg.database.password2  # the string '12345'
+    '12345'
 
 
 Decoding strings with interpolations
