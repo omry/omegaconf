@@ -100,7 +100,7 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    # # DEPRECATED: remove in 2.2
+    # DEPRECATED: remove in 2.2
     def legacy_env(key: str, default: Optional[str] = None) -> Any:
         warnings.warn(
             "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573",

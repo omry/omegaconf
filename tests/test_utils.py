@@ -58,7 +58,7 @@ from tests import (
         param(float, 1, FloatNode(1), id="float"),
         param(float, 1.0, FloatNode(1.0), id="float"),
         param(float, Color.RED, ValidationError, id="float"),
-        # # bool
+        # bool
         param(bool, "foo", ValidationError, id="bool"),
         param(bool, True, BooleanNode(True), id="bool"),
         param(bool, 1, BooleanNode(True), id="bool"),
