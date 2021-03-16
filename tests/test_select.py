@@ -12,7 +12,8 @@ from omegaconf.errors import ConfigKeyError, InterpolationKeyError
 @mark.parametrize("struct", [False, True, None])
 class TestSelect:
     @mark.parametrize(
-        "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+        "register_func",
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
     )
     @mark.parametrize(
         "cfg, key, expected",

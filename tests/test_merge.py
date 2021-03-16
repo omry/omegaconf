@@ -666,7 +666,8 @@ def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
 
 
 @mark.parametrize(
-    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+    "register_func",
+    [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
 )
 def test_into_custom_resolver_that_throws(
     restore_resolvers: Any, register_func: Any

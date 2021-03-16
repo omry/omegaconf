@@ -292,8 +292,8 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
     # behave as expected.
 
     # The registration should trigger a deprecation warning.
-    # with warns(UserWarning):  # TODO re-enable this check with the warning
-    OmegaConf.register_resolver("my_resolver", lambda *args: args)
+    with warns(UserWarning):
+        OmegaConf.register_resolver("my_resolver", lambda *args: args)
 
     c = OmegaConf.create(
         {

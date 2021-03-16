@@ -1302,7 +1302,8 @@ def test_assertion_error() -> None:
 
 
 @mark.parametrize(
-    "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+    "register_func",
+    [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
 )
 def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     def div(x: Any, y: Any) -> float:

@@ -352,16 +352,15 @@ class OmegaConf:
 
     @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
-        # TODO re-enable warning message before 2.1 release (see also test_resolver_deprecated_behavior)
-        # warnings.warn(
-        #     dedent(
-        #         """\
-        #     register_resolver() is deprecated.
-        #     See https://github.com/omry/omegaconf/issues/426 for migration instructions.
-        #     """
-        #     ),
-        #     stacklevel=2,
-        # )
+        warnings.warn(
+            dedent(
+                """\
+            register_resolver() is deprecated.
+            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            """
+            ),
+            stacklevel=2,
+        )
         return OmegaConf.legacy_register_resolver(name, resolver)
 
     # This function will eventually be deprecated and removed.
