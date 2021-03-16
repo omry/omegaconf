@@ -407,7 +407,7 @@ Input YAML file:
     '123456'
 
 You can specify a default value to use in case the environment variable is not defined.
-This default value must be a string (with the exception of ``${oc.env:VAR,null}`` that returns ``None`` if ``VAR`` is not defined).
+This default value can be a string or `null` (representing Python `None`). Passing a default with a different type will result in an error.
 The following example sets ``abc123`` as the default value when ``DB_PASSWORD`` is not defined.
 
 .. doctest::
