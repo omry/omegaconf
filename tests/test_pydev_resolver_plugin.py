@@ -41,8 +41,7 @@ def resolver() -> Any:
         param(BooleanNode(True), {}, id="bool:True"),
         param(EnumNode(enum_type=Color, value=Color.RED), {}, id="Color:Color.RED"),
         # nodes are never returning a dictionary
-        param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:10"),
-        param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:10"),
+        param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:inter_10"),
         # DictConfig
         param(DictConfig({"a": 10}), {"a": AnyNode(10)}, id="dict"),
         param(
@@ -91,7 +90,7 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
         ),
         # listconfig
         param(ListConfig([10]), 0, AnyNode(10), id="list"),
-        param(ListConfig(["???"]), 0, AnyNode("???"), id="list"),
+        param(ListConfig(["???"]), 0, AnyNode("???"), id="list:missing_item"),
     ],
 )
 def test_resolve(
@@ -128,12 +127,6 @@ def test_resolve(
             "none",
             {},
             id="dict:none_dictconfig_value",
-        ),
-        param(
-            OmegaConf.create({"missing": DictConfig("???")}),
-            "missing",
-            {},
-            id="dict:missing_dictconfig_value",
         ),
         param(
             OmegaConf.create({"missing": DictConfig("???")}),
@@ -181,7 +174,7 @@ def test_get_dictionary_dictconfig(
             OmegaConf.create({"a": [1, 2], "b": ListConfig("${a}")}),
             "b",
             {"0": 1, "1": 2},
-            id="list:interpolationn_listconfig_value",
+            id="list:interpolation_listconfig_value",
         ),
     ],
 )
@@ -213,6 +206,7 @@ def test_get_dictionary_listconfig(
         (FloatNode, True),
         (StringNode, True),
         (BooleanNode, True),
+        (EnumNode, True),
         # not covering some other things.
         (builtins.int, False),
         (dict, False),

@@ -34,12 +34,9 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
         return Node is not None and issubclass(type_object, Node)
 
     def resolve(self, obj: Any, attribute: Any) -> Any:
-        if isinstance(obj, Sequence):
-            if isinstance(attribute, str):
-                attribute = int(attribute)
-            val = obj.__dict__["_content"][attribute]
-        else:
-            val = obj.__dict__["_content"][attribute]
+        if isinstance(obj, Sequence) and isinstance(attribute, str):
+            attribute = int(attribute)
+        val = obj.__dict__["_content"][attribute]
 
         return val
 
@@ -47,9 +44,9 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
         ValueNode = find_mod_attr("omegaconf", "ValueNode")
         return (
             isinstance(val, ValueNode)
+            and not val._is_none()
             and not val._is_missing()
             and not val._is_interpolation()
-            and not val._is_none()
         )
 
     def get_dictionary(self, obj: Any) -> Dict[str, Any]:
@@ -60,11 +57,11 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
 
         if isinstance(obj, Node):
             try:
-                obj = obj._dereference_node()
+                obj = obj._dereference_node(throw_on_resolution_failure=False)
                 if obj._is_none() or obj._is_missing():
                     return {}
             except IRE:
-                obj = None
+                return {}
 
         if isinstance(obj, DictConfig):
             d = {}
