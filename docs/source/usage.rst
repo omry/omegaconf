@@ -7,6 +7,7 @@
     import pickle
     os.environ['USER'] = 'omry'
     os.environ['USERID'] = '123456'
+    os.environ.pop('DB_TIMEOUT', None)
 
 .. testsetup:: loaded
 
@@ -421,7 +422,8 @@ The following example sets ``abc123`` as the default value when ``DB_PASSWORD`` 
 Decoding strings with interpolations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can automatically convert a string to its corresponding type (e.g., bool, int, float, dict, list) using ``oc.decode``.
+You can automatically convert a string to its corresponding type (e.g., bool, int, float, dict, list) using ``oc.decode``
+(which can even resolve interpolations).
 This resolver also accepts ``None`` as input, in which case it returns ``None``.
 This can be useful for instance to parse environment variables:
 
@@ -431,7 +433,8 @@ This can be useful for instance to parse environment variables:
     ...     {
     ...         "database": {
     ...             "port": '${oc.decode:${oc.env:DB_PORT}}',
-    ...             "nodes": '${oc.decode:${oc.env:DB_NODES,null}}',
+    ...             "nodes": '${oc.decode:${oc.env:DB_NODES}}',
+    ...             "timeout": '${oc.decode:${oc.env:DB_TIMEOUT,null}}',
     ...         }
     ...     }
     ... )
@@ -441,10 +444,9 @@ This can be useful for instance to parse environment variables:
     >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
     >>> cfg.database.nodes  # converted to list
     ['host1', 'host2', 'host3']
-    >>> del os.environ["DB_NODES"]
-    >>> cfg.database.nodes is None  # keeping `None` as is
-    True
-
+    >>> assert cfg.database.timeout is None  # keeping `None` as is
+    >>> os.environ["DB_TIMEOUT"] = "${.port}"
+    >>> assert cfg.database.timeout == 3308  # resolving interpolation
 
 
 Custom interpolations

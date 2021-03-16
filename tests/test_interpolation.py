@@ -343,14 +343,25 @@ def test_env_is_not_cached(monkeypatch: Any) -> None:
         ("{a: 0, b: 1}", {"a": 0, "b": 1}),
         ("[\t1, 2, 3\t]", [1, 2, 3]),
         ("{   a: b\t  }", {"a": "b"}),
-        # resolvers
+        # interpolations
+        ("${parent.sibling}", 1),
+        ("${.sibling}", 1),
+        ("${..parent.sibling}", 1),
+        ("${uncle}", 2),
+        ("${..uncle}", 2),
         ("${oc.env:MYKEY}", 456),
     ],
 )
 def test_decode(monkeypatch: Any, value: Optional[str], expected: Any) -> None:
     monkeypatch.setenv("MYKEY", "456")
-    c = OmegaConf.create({"x": f"${{oc.decode:'{value}'}}"})
-    assert c.x == expected
+    c = OmegaConf.create(
+        {
+            # The node of interest is "node" (others are used to test interpolations).
+            "parent": {"node": f"${{oc.decode:'{value}'}}", "sibling": 1},
+            "uncle": 2,
+        }
+    )
+    assert c.parent.node == expected
 
 
 def test_decode_none() -> None:
@@ -388,9 +399,9 @@ def test_decode_none() -> None:
             "'\\${foo}'",
             pytest.raises(
                 InterpolationResolutionError,
-                match=re.escape("Node interpolations are not supported by `oc.decode`"),
+                match=re.escape("Interpolation key 'foo' not found"),
             ),
-            id="node_interpolation",
+            id="interpolation_not_found",
         ),
     ],
 )

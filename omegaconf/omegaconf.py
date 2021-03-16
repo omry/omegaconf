@@ -54,7 +54,6 @@ from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
-    InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -134,7 +133,7 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    def decode(expr: Optional[str]) -> Any:
+    def decode(expr: Optional[str], _parent_: Container) -> Any:
         """
         Parse and evaluate `expr` according to the `singleElement` rule of the grammar.
 
@@ -150,19 +149,7 @@ def register_default_resolvers() -> None:
             )
 
         parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")
-
-        # Resolve the parse tree. We use an empty config for this, which means that
-        # interpolations referring to other nodes will fail.
-        empty_config = DictConfig({})
-        try:
-            val = empty_config.resolve_parse_tree(parse_tree)
-        except InterpolationKeyError as exc:
-            raise InterpolationKeyError(
-                f"When attempting to resolve expression `{expr}` in `oc.decode`, "
-                f"a node interpolation caused the following exception: {exc}. "
-                f"Node interpolations are not supported by `oc.decode`."
-            ).with_traceback(sys.exc_info()[2])
-
+        val = _parent_.resolve_parse_tree(parse_tree)
         return _get_value(val)
 
     OmegaConf.legacy_register_resolver("env", legacy_env)
