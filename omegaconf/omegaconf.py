@@ -529,8 +529,28 @@ class OmegaConf:
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = resolver_wrapper
 
-    @staticmethod
+    @classmethod
+    def has_resolver(cls, name: str) -> bool:
+        return cls._get_resolver(name) is not None
+
+    # DEPRECATED: remove in 2.2
+    @classmethod
     def get_resolver(
+        cls,
+        name: str,
+    ) -> Optional[
+        Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
+    ]:
+        warnings.warn(
+            "`OmegaConf.get_resolver()` is deprecated (see https://github.com/omry/omegaconf/issues/608)",
+            UserWarning,
+            stacklevel=2,
+        )
+
+        return cls._get_resolver(name)
+
+    @staticmethod
+    def _get_resolver(
         name: str,
     ) -> Optional[
         Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
