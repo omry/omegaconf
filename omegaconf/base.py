@@ -593,7 +593,7 @@ class Container(Node):
     ) -> Any:
         from omegaconf import OmegaConf
 
-        resolver = OmegaConf.get_resolver(inter_type)
+        resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
             return resolver(root_node, self, inter_args, inter_args_str)

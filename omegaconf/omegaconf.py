@@ -212,74 +212,6 @@ class OmegaConf:
         )
 
     @staticmethod
-    def _create_impl(  # noqa F811
-        obj: Any = _EMPTY_MARKER_,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
-    ) -> Union[DictConfig, ListConfig]:
-        try:
-            from ._utils import get_yaml_loader
-            from .dictconfig import DictConfig
-            from .listconfig import ListConfig
-
-            if obj is _EMPTY_MARKER_:
-                obj = {}
-            if isinstance(obj, str):
-                obj = yaml.load(obj, Loader=get_yaml_loader())
-                if obj is None:
-                    return OmegaConf.create({}, flags=flags)
-                elif isinstance(obj, str):
-                    return OmegaConf.create({obj: None}, flags=flags)
-                else:
-                    assert isinstance(obj, (list, dict))
-                    return OmegaConf.create(obj, flags=flags)
-
-            else:
-                if (
-                    is_primitive_dict(obj)
-                    or OmegaConf.is_dict(obj)
-                    or is_structured_config(obj)
-                    or obj is None
-                ):
-                    if isinstance(obj, DictConfig):
-                        key_type = obj._metadata.key_type
-                        element_type = obj._metadata.element_type
-                    else:
-                        obj_type = OmegaConf.get_type(obj)
-                        key_type, element_type = get_dict_key_value_types(obj_type)
-                    return DictConfig(
-                        content=obj,
-                        parent=parent,
-                        ref_type=Any,
-                        key_type=key_type,
-                        element_type=element_type,
-                        flags=flags,
-                    )
-                elif is_primitive_list(obj) or OmegaConf.is_list(obj):
-                    obj_type = OmegaConf.get_type(obj)
-                    element_type = get_list_element_type(obj_type)
-                    return ListConfig(
-                        element_type=element_type,
-                        ref_type=Any,
-                        content=obj,
-                        parent=parent,
-                        flags=flags,
-                    )
-                else:
-                    if isinstance(obj, type):
-                        raise ValidationError(
-                            f"Input class '{obj.__name__}' is not a structured config. "
-                            "did you forget to decorate it as a dataclass?"
-                        )
-                    else:
-                        raise ValidationError(
-                            f"Object of unsupported type: '{type(obj).__name__}'"
-                        )
-        except OmegaConfBaseException as e:
-            format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
-            assert False
-
-    @staticmethod
     def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
@@ -529,16 +461,25 @@ class OmegaConf:
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = resolver_wrapper
 
-    @staticmethod
+    @classmethod
+    def has_resolver(cls, name: str) -> bool:
+        return cls._get_resolver(name) is not None
+
+    # DEPRECATED: remove in 2.2
+    @classmethod
     def get_resolver(
+        cls,
         name: str,
     ) -> Optional[
         Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
     ]:
-        # noinspection PyProtectedMember
-        return (
-            BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
+        warnings.warn(
+            "`OmegaConf.get_resolver()` is deprecated (see https://github.com/omry/omegaconf/issues/608)",
+            UserWarning,
+            stacklevel=2,
         )
+
+        return cls._get_resolver(name)
 
     # noinspection PyProtectedMember
     @staticmethod
@@ -721,33 +662,6 @@ class OmegaConf:
         return OmegaConf._get_obj_type(c)
 
     @staticmethod
-    def _get_obj_type(c: Any) -> Optional[Type[Any]]:
-        if is_structured_config(c):
-            return get_type_of(c)
-        elif c is None:
-            return None
-        elif isinstance(c, DictConfig):
-            if c._is_none():
-                return None
-            elif c._is_missing():
-                return None
-            else:
-                if is_structured_config(c._metadata.object_type):
-                    return c._metadata.object_type
-                else:
-                    return dict
-        elif isinstance(c, ListConfig):
-            return list
-        elif isinstance(c, ValueNode):
-            return type(c._value())
-        elif isinstance(c, dict):
-            return dict
-        elif isinstance(c, (list, tuple)):
-            return list
-        else:
-            return get_type_of(c)
-
-    @staticmethod
     def select(
         cfg: Container,
         key: str,
@@ -868,6 +782,114 @@ class OmegaConf:
             allow_unicode=True,
             sort_keys=sort_keys,
             Dumper=get_omega_conf_dumper(),
+        )
+
+    # === private === #
+
+    @staticmethod
+    def _create_impl(  # noqa F811
+        obj: Any = _EMPTY_MARKER_,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> Union[DictConfig, ListConfig]:
+        try:
+            from ._utils import get_yaml_loader
+            from .dictconfig import DictConfig
+            from .listconfig import ListConfig
+
+            if obj is _EMPTY_MARKER_:
+                obj = {}
+            if isinstance(obj, str):
+                obj = yaml.load(obj, Loader=get_yaml_loader())
+                if obj is None:
+                    return OmegaConf.create({}, flags=flags)
+                elif isinstance(obj, str):
+                    return OmegaConf.create({obj: None}, flags=flags)
+                else:
+                    assert isinstance(obj, (list, dict))
+                    return OmegaConf.create(obj, flags=flags)
+
+            else:
+                if (
+                    is_primitive_dict(obj)
+                    or OmegaConf.is_dict(obj)
+                    or is_structured_config(obj)
+                    or obj is None
+                ):
+                    if isinstance(obj, DictConfig):
+                        key_type = obj._metadata.key_type
+                        element_type = obj._metadata.element_type
+                    else:
+                        obj_type = OmegaConf.get_type(obj)
+                        key_type, element_type = get_dict_key_value_types(obj_type)
+                    return DictConfig(
+                        content=obj,
+                        parent=parent,
+                        ref_type=Any,
+                        key_type=key_type,
+                        element_type=element_type,
+                        flags=flags,
+                    )
+                elif is_primitive_list(obj) or OmegaConf.is_list(obj):
+                    obj_type = OmegaConf.get_type(obj)
+                    element_type = get_list_element_type(obj_type)
+                    return ListConfig(
+                        element_type=element_type,
+                        ref_type=Any,
+                        content=obj,
+                        parent=parent,
+                        flags=flags,
+                    )
+                else:
+                    if isinstance(obj, type):
+                        raise ValidationError(
+                            f"Input class '{obj.__name__}' is not a structured config. "
+                            "did you forget to decorate it as a dataclass?"
+                        )
+                    else:
+                        raise ValidationError(
+                            f"Object of unsupported type: '{type(obj).__name__}'"
+                        )
+        except OmegaConfBaseException as e:
+            format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+            assert False
+
+    @staticmethod
+    def _get_obj_type(c: Any) -> Optional[Type[Any]]:
+        if is_structured_config(c):
+            return get_type_of(c)
+        elif c is None:
+            return None
+        elif isinstance(c, DictConfig):
+            if c._is_none():
+                return None
+            elif c._is_missing():
+                return None
+            else:
+                if is_structured_config(c._metadata.object_type):
+                    return c._metadata.object_type
+                else:
+                    return dict
+        elif isinstance(c, ListConfig):
+            return list
+        elif isinstance(c, ValueNode):
+            return type(c._value())
+        elif isinstance(c, dict):
+            return dict
+        elif isinstance(c, (list, tuple)):
+            return list
+        else:
+            return get_type_of(c)
+
+    @staticmethod
+    def _get_resolver(
+        name: str,
+    ) -> Optional[
+        Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
+    ]:
+        # noinspection PyProtectedMember
+        return (
+            BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
         )
 
 

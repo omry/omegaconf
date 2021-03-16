@@ -1,0 +1,1 @@
+`OmegaConf.get_resolver()` is deprecated: use the new `OmegaConf.has_resolver()` to check for the existence of a resolver.

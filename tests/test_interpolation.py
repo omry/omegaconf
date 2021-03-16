@@ -363,20 +363,27 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
         OmegaConf.register_new_resolver("foo", lambda: 10)
 
 
-def test_clear_resolvers(restore_resolvers: Any) -> None:
-    assert OmegaConf.get_resolver("foo") is None
+def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
+    assert not OmegaConf.has_resolver("foo")
     OmegaConf.register_new_resolver("foo", lambda x: x + 10)
-    assert OmegaConf.get_resolver("foo") is not None
+    assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
-    assert OmegaConf.get_resolver("foo") is None
+    assert not OmegaConf.has_resolver("foo")
 
 
-def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
-    assert OmegaConf.get_resolver("foo") is None
+def test_clear_resolvers_and_has_resolver_legacy(restore_resolvers: Any) -> None:
+    assert not OmegaConf.has_resolver("foo")
     OmegaConf.legacy_register_resolver("foo", lambda x: int(x) + 10)
-    assert OmegaConf.get_resolver("foo") is not None
+    assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
-    assert OmegaConf.get_resolver("foo") is None
+    assert not OmegaConf.has_resolver("foo")
+
+
+def test_get_resolver_deprecation() -> None:
+    with pytest.warns(
+        UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/608")
+    ):
+        assert OmegaConf.get_resolver("foo") is None
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
