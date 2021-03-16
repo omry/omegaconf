@@ -210,9 +210,11 @@ class Node(ABC):
 
         parent = self._get_parent()
         if parent is None:
-            raise InterpolationResolutionError(
-                "Cannot resolve interpolation for a node without a parent"
-            )
+            if throw_on_resolution_failure:
+                raise InterpolationResolutionError(
+                    "Cannot resolve interpolation for a node without a parent"
+                )
+            return None
         assert parent is not None
         key = self._key()
         return parent._resolve_interpolation_from_parse_tree(
