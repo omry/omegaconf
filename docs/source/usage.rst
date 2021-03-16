@@ -6,7 +6,6 @@
     import tempfile
     import pickle
     os.environ['USER'] = 'omry'
-    os.environ['USERID'] = '123456'
     os.environ.pop('DB_TIMEOUT', None)
 
 .. testsetup:: loaded
@@ -403,8 +402,6 @@ Input YAML file:
     'omry'
     >>> conf.user.home
     '/home/omry'
-    >>> conf.user.id  # returned as string, even if it is a number
-    '123456'
 
 You can specify a default value to use in case the environment variable is not defined.
 This default value can be a string or `null` (representing Python `None`). Passing a default with a different type will result in an error.
