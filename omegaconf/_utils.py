@@ -404,6 +404,7 @@ def get_value_kind(
         return ValueKind.VALUE
 
 
+# DEPRECATED: remove in 2.2
 def is_bool(st: str) -> bool:
     st = str.lower(st)
     return st == "true" or st == "false"
