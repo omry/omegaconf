@@ -422,9 +422,13 @@ The following example sets ``abc123`` as the default value when ``DB_PASSWORD`` 
 Decoding strings with interpolations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can automatically convert a string to its corresponding type (e.g., bool, int, float, dict, list) using ``oc.decode``
-(which can even resolve interpolations).
-This resolver also accepts ``None`` as input, in which case it returns ``None``.
+Strings may be converted using ``oc.decode``:
+
+- Primitive values (e.g., ``"true"``, ``"1"``, ``"1e-3"``) are automatically converted to their corresponding type (bool, int, float)
+- Dictionaries and lists (e.g., ``"{a: b}"``, ``"[a, b, c]"``)  are returned as transient config nodes (DictConfig and ListConfig)
+- Interpolations (e.g., ``"${foo}"``) are automatically resolved
+- ``None`` is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+
 This can be useful for instance to parse environment variables:
 
 .. doctest::
@@ -438,15 +442,19 @@ This can be useful for instance to parse environment variables:
     ...         }
     ...     }
     ... )
+    >>> def show(x):
+    ...     print(f"type: {type(x).__name__}, value: {x}")
     >>> os.environ["DB_PORT"] = "3308"
-    >>> cfg.database.port  # converted to int
-    3308
+    >>> show(cfg.database.port)  # converted to int
+    type: int, value: 3308
     >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
-    >>> cfg.database.nodes  # converted to list
-    ['host1', 'host2', 'host3']
-    >>> assert cfg.database.timeout is None  # keeping `None` as is
+    >>> show(cfg.database.nodes)  # converted to a ListConfig
+    type: ListConfig, value: ['host1', 'host2', 'host3']
+    >>> show(cfg.database.timeout)  # keeping `None` as is
+    type: NoneType, value: None
     >>> os.environ["DB_TIMEOUT"] = "${.port}"
-    >>> assert cfg.database.timeout == 3308  # resolving interpolation
+    >>> show(cfg.database.timeout)  # resolving interpolation
+    type: int, value: 3308
 
 
 Custom interpolations
