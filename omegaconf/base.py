@@ -610,10 +610,13 @@ class Container(Node):
         key: Any,
         value: "Node",
         throw_on_resolution_failure: bool,
+        force_resolution: bool = False,
     ) -> Any:
-        value_kind = get_value_kind(value)
-        if value_kind != ValueKind.INTERPOLATION:
-            return value
+        if not force_resolution:
+            # Skip resolution if not an interpolation.
+            value_kind = get_value_kind(value)
+            if value_kind != ValueKind.INTERPOLATION:
+                return value
 
         parse_tree = parse(_get_value(value))
         return self._resolve_interpolation_from_parse_tree(
@@ -662,6 +665,9 @@ class Container(Node):
                     is_optional=True,
                 ),
                 throw_on_resolution_failure=True,
+                # We must always process the string as if it contained an
+                # interpolation, for proper un-escaping of backslashes (\\).
+                force_resolution=True,
             )
             return str(quoted_val)
 

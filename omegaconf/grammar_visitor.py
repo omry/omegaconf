@@ -97,10 +97,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             return child.symbol.text
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
-        # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
+        # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+))? EOF
         # Visit all children (except last one which is EOF)
         vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
-        assert vals
         if len(vals) == 1 and isinstance(
             ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
         ):
@@ -335,16 +334,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         quote_type = quoted[0]
         assert quote_type in ["'", '"']
 
-        # Un-escape quotes and backslashes within the string (the two kinds of
-        # escapable characters in quoted strings). We do it in two passes:
-        #   1. Replace `\"` with `"` (and similarly for single quotes)
-        #   2. Replace `\\` with `\`
-        # The order is important so that `\\"` is replaced with an escaped quote `\"`.
-        # We also remove the start and end quotes.
+        # Remove start and end quotes and un-escape quotes within the string.
+        # Note that, importantly, we do *not* un-escape backslashes (\\) here:
+        # instead, we rely on `quoted_string_callback()` to take care of these.
         esc_quote = f"\\{quote_type}"
-        quoted_content = (
-            quoted[1:-1].replace(esc_quote, quote_type).replace("\\\\", "\\")
-        )
+        quoted_content = quoted[1:-1].replace(esc_quote, quote_type)
 
         # Parse the string.
         return self.quoted_string_callback(quoted_content)

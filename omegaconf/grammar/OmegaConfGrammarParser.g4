@@ -17,7 +17,7 @@ options {tokenVocab = OmegaConfGrammarLexer;}
 
 // Main rules used to parse OmegaConf strings.
 
-configValue: (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF;
+configValue: (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+))? EOF;
 singleElement: element EOF;
 
 // Top-level string (that does not need to be parsed).

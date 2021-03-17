@@ -52,7 +52,7 @@ BASE_TEST_CFG = OmegaConf.create(
 )
 
 
-# Parameters for tests of the "singleElement" rule when there is no interpolation.
+# Parameters for tests of the "singleElement" rule when there is no need for callbacks.
 # Each item is a tuple with three elements:
 #   - The id of the test.
 #   - The expression to be evaluated.
@@ -62,7 +62,7 @@ BASE_TEST_CFG = OmegaConf.create(
 #     visiting (= evaluating) the parse tree. If the expected behavior is for the parsing
 #     to succeed, but a `GrammarParseError` to be raised when visiting it, then set the
 #     expected result to the pair `(None, GrammarParseError)`.
-PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
+PARAMS_SINGLE_ELEMENT_NO_CALLBACK: List[Tuple[str, str, Any]] = [
     # Special keywords.
     ("null", "null", None),
     ("true", "TrUe", True),
@@ -121,22 +121,6 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_backslash_noesc", r"ab\cd", r"ab\cd"),
     ("str_esc_illegal_1", r"\#", GrammarParseError),
     ("str_esc_illegal_2", "\\'\\\"", GrammarParseError),
-    # Quoted strings.
-    ("str_quoted_single", "'!@#$%^&*()[]:.,\"'", '!@#$%^&*()[]:.,"'),
-    ("str_quoted_double", '"!@#$%^&*()[]:.,\'"', "!@#$%^&*()[]:.,'"),
-    ("str_quoted_outer_ws_single", "'  a \t'", "  a \t"),
-    ("str_quoted_outer_ws_double", '"  a \t"', "  a \t"),
-    ("str_quoted_int", "'123'", "123"),
-    ("str_quoted_null", "'null'", "null"),
-    ("str_quoted_bool", "['truE', \"FalSe\"]", ["truE", "FalSe"]),
-    ("str_quoted_list", "'[a,b, c]'", "[a,b, c]"),
-    ("str_quoted_dict", '"{a:b, c: d}"', "{a:b, c: d}"),
-    ("str_quoted_backslash_noesc_single", r"'a\b'", r"a\b"),
-    ("str_quoted_backslash_noesc_double", r'"a\b"', r"a\b"),
-    ("str_quoted_concat_bad_2", "'Hi''there'", GrammarParseError),
-    ("str_quoted_too_many_1", "''a'", GrammarParseError),
-    ("str_quoted_too_many_2", "'a''", GrammarParseError),
-    ("str_quoted_too_many_3", "''a''", GrammarParseError),
     # Lists and dictionaries.
     ("list", "[0, 1]", [0, 1]),
     (
@@ -149,11 +133,51 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
         "{a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@\\(\\)\\[\\]\\{\\}\\:\\=\\ \\\t\\,:0}",
         {"a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@()[]{}:= \t,": 0},
     ),
+    ("dict_int_key", "{0: 0}", {0: 0}),
+    ("dict_float_key", "{1.1: 0}", {1.1: 0}),
+    ("dict_null_key", "{null: 0}", {None: 0}),
+    ("dict_list_as_key", "{[0]: 1}", GrammarParseError),
+    ("empty_dict", "{}", {}),
+    ("empty_list", "[]", []),
+    (
+        "structured_deep",
+        "{null0: [0, 3.14, false], true1: {a: [0, 1, 2], b: {}}}",
+        {"null0": [0, 3.14, False], "true1": {"a": [0, 1, 2], "b": {}}},
+    ),
+]
+
+# Parameters for tests of the "singleElement" rule when callbacks are required.
+PARAMS_SINGLE_ELEMENT_WITH_CALLBACK = [
+    # Node interpolations.
+    ("dict_access", "${dict.a}", 0),
+    ("list_access", "${list.0}", -1),
+    ("list_access_underscore", "${list.1_0}", 9),
+    ("list_access_bad_negative", "${list.-1}", InterpolationKeyError),
+    ("dict_access_list_like_1", "${0}", 0),
+    ("dict_access_list_like_2", "${1.2}", 12),
+    ("bool_like_keys", "${FalsE.TruE}", True),
+    ("null_like_key_ok", "${None.null}", 1),
+    ("null_like_key_bad_case", "${NoNe.null}", InterpolationKeyError),
+    ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
+    ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
+    ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
+    ("at_in_key", "${x@y}", 123),
+    ("dollar_in_key", "${$x$y$z$}", 456),
+    # Dictionaries.
+    ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
+    ("dict_interpolation_key", "{${str}: 0, ${null}: 1", GrammarParseError),
+    ("dict_bool_key", "{true: true, false: 'false'}", {True: True, False: "false"}),
     (
         "dict_quoted",
         "{0: 1, 'a': 'b', 1.1: 1e2, null: 0.1, true: false, -inf: true}",
         {0: 1, "a": "b", 1.1: 100.0, None: 0.1, True: False, -math.inf: True},
     ),
+    # NaN as dictionary key (a resolver is used here to output only the key).
+    ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
+    ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
+    ("dict_nan_like_key", "{'nan': 0}", {"nan": 0}),
+    # Lists.
+    ("list_interpolation", "[${str}, ${int}]", ["hi", 123]),
     (
         "structured_mixed",
         "[10,str,3.14,true,false,inf,[1,2,3], 'quoted', \"quoted\", 'a,b,c']",
@@ -170,57 +194,36 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
             "a,b,c",
         ],
     ),
-    ("dict_int_key", "{0: 0}", {0: 0}),
-    ("dict_float_key", "{1.1: 0}", {1.1: 0}),
-    ("dict_null_key", "{null: 0}", {None: 0}),
-    ("dict_nan_like_key", "{'nan': 0}", {"nan": 0}),
-    ("dict_list_as_key", "{[0]: 1}", GrammarParseError),
-    (
-        "dict_bool_key",
-        "{true: true, false: 'false'}",
-        {True: True, False: "false"},
-    ),
-    ("empty_dict", "{}", {}),
-    ("empty_list", "[]", []),
-    (
-        "structured_deep",
-        "{null0: [0, 3.14, false], true1: {a: [0, 1, 2], b: {}}}",
-        {"null0": [0, 3.14, False], "true1": {"a": [0, 1, 2], "b": {}}},
-    ),
-]
-
-# Parameters for tests of the "singleElement" rule when there are interpolations.
-PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
-    # Node interpolations.
-    ("dict_access", "${dict.a}", 0),
-    ("list_access", "${list.0}", -1),
-    ("list_access_underscore", "${list.1_0}", 9),
-    ("list_access_bad_negative", "${list.-1}", InterpolationKeyError),
-    ("dict_access_list_like_1", "${0}", 0),
-    ("dict_access_list_like_2", "${1.2}", 12),
-    ("bool_like_keys", "${FalsE.TruE}", True),
-    ("null_like_key_ok", "${None.null}", 1),
-    ("null_like_key_bad_case", "${NoNe.null}", InterpolationKeyError),
-    ("null_like_key_quoted_1", "${'None'.'null'}", GrammarParseError),
-    ("null_like_key_quoted_2", "${'None.null'}", GrammarParseError),
-    ("dotpath_bad_type", "${dict.${float}}", (None, InterpolationResolutionError)),
-    ("at_in_key", "${x@y}", 123),
-    ("dollar_in_key", "${$x$y$z$}", 456),
-    # Interpolations in dictionaries.
-    ("dict_interpolation_value", "{hi: ${str}, int: ${int}}", {"hi": "hi", "int": 123}),
-    ("dict_interpolation_key", "{${str}: 0, ${null}: 1", GrammarParseError),
-    # Interpolations in lists.
-    ("list_interpolation", "[${str}, ${int}]", ["hi", 123]),
-    # Interpolations in unquoted strings.
+    # Unquoted strings.
     ("str_dollar_and_inter", "$$${str}", "$$hi"),
     ("str_inter", "hi_${str}", "hi_hi"),
     ("str_esc_illegal_3", r"\${foo\}", GrammarParseError),
-    # Interpolations in quoted strings.
+    # Quoted strings without interpolations.
+    ("str_quoted_single", "'!@#$%^&*()[]:.,\"'", '!@#$%^&*()[]:.,"'),
+    ("str_quoted_double", '"!@#$%^&*()[]:.,\'"', "!@#$%^&*()[]:.,'"),
+    ("str_quoted_outer_ws_single", "'  a \t'", "  a \t"),
+    ("str_quoted_outer_ws_double", '"  a \t"', "  a \t"),
+    ("str_quoted_int", "'123'", "123"),
+    ("str_quoted_null", "'null'", "null"),
+    ("str_quoted_bool", "['truE', \"FalSe\"]", ["truE", "FalSe"]),
+    ("str_quoted_list", "'[a,b, c]'", "[a,b, c]"),
+    ("str_quoted_dict", '"{a:b, c: d}"', "{a:b, c: d}"),
+    ("str_quoted_backslash_noesc_single", r"'a\b'", r"a\b"),
+    ("str_quoted_backslash_noesc_double", r'"a\b"', r"a\b"),
+    ("str_quoted_esc_backslash_1", r"'a\\b'", r"a\b"),
+    ("str_quoted_esc_backslash_2", r"'a\\\b'", r"a\\b"),
+    ("str_quoted_esc_backslash_3", r"'a\\\\b'", r"a\\b"),
+    ("str_quoted_concat_bad_2", "'Hi''there'", GrammarParseError),
+    ("str_quoted_too_many_1", "''a'", GrammarParseError),
+    ("str_quoted_too_many_2", "'a''", GrammarParseError),
+    ("str_quoted_too_many_3", "''a''", GrammarParseError),
+    ("str_quoted_empty", "''", ""),
+    # Quoted strings with interpolations.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", "'\"\\\\\\\\\\${foo}\\ '", r'"\${foo}\ '),
+    ("str_quoted_esc_single_2", "'\"\\\\\\${foo}\\ '", r'"\${foo}\ '),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", '"\'\\\\\\\\\\${foo}\\ "', r"'\${foo}\ "),
+    ("str_quoted_esc_double_2", '"\'\\\\\\${foo}\\ "', r"'\${foo}\ "),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
@@ -267,9 +270,6 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("float_resolver_noquote", "${1.1:1,2,3}", GrammarParseError),
     ("float_resolver_exp", "${1e1:1,2,3}", GrammarParseError),
     ("inter_float_resolver", "${${float}:1,2,3}", (None, InterpolationResolutionError)),
-    # NaN as dictionary key (a resolver is used here to output only the key).
-    ("dict_nan_key_1", "${first:{nan: 0}}", math.nan),
-    ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
 ]
 
 # Parameters for tests of the "configValue" rule (may contain node
@@ -309,6 +309,7 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_escapes", r"abc\\\\\${str}", r"abc\\${str}"),
     ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 3),
     ("str_top_concat_interpolations", "${null}${float}", "None1.2"),
+    ("str_top_empty", "", ""),
     # Whitespaces.
     ("ws_toplevel", "  \tab  ${str} cd  ${int}\t", "  \tab  hi cd  123\t"),
     # Unmatched braces.
@@ -333,34 +334,33 @@ class TestOmegaConfGrammar:
     Test most grammar constructs.
 
     Each method in this class tests the validity of expressions in a specific
-    setting. For instance, `test_single_element_no_interpolation()` tests the
-    "singleElement" parsing rule on expressions that do not contain interpolations
+    setting. For instance, `test_single_element_no_callback()` tests the
+    "singleElement" parsing rule on expressions that do not need callbacks
     (which allows for faster tests without using any config object).
 
     Tests that actually need a config object all re-use the same `BASE_TEST_CFG`
     config, to avoid creating a new config for each test.
     """
 
-    @parametrize_from(PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION)
-    def test_single_element_no_interpolation(
-        self, definition: str, expected: Any
-    ) -> None:
+    @parametrize_from(PARAMS_SINGLE_ELEMENT_NO_CALLBACK)
+    def test_single_element_no_callback(self, definition: str, expected: Any) -> None:
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
         if parse_tree is None:
             return
 
-        # Since there are no interpolations here, we do not need to provide
-        # callbacks to resolve them, and the quoted string callback can simply
-        # be the identity.
+        def fake_callback(*args: Any, **kw: Any) -> None:
+            assert False  # must not be called
+
         visitor = grammar_visitor.GrammarVisitor(
-            node_interpolation_callback=None,  # type: ignore
-            resolver_interpolation_callback=None,  # type: ignore
-            quoted_string_callback=lambda s: s,
+            node_interpolation_callback=fake_callback,
+            resolver_interpolation_callback=fake_callback,
+            quoted_string_callback=fake_callback,  # type: ignore
         )
+
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)
 
-    @parametrize_from(PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION)
-    def test_single_element_with_resolver(
+    @parametrize_from(PARAMS_SINGLE_ELEMENT_WITH_CALLBACK)
+    def test_single_element_with_callback(
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
