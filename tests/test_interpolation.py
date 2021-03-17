@@ -457,9 +457,13 @@ def test_legacy_env_values_are_typed(
         assert c.my_key == expected
 
 
-# DEPRECATED: remove `recwarn` in 2.2 with the legacy env resolver
 @pytest.mark.parametrize("env_func", ["env", "oc.env"])
-def test_env_default_none(monkeypatch: Any, recwarn: Any, env_func: str) -> None:
+def test_env_default_none(
+    monkeypatch: Any,
+    # DEPRECATED: remove `recwarn` in 2.2 with the legacy env resolver
+    recwarn: Any,
+    env_func: str,
+) -> None:
     monkeypatch.delenv("MYKEY", raising=False)
     c = OmegaConf.create({"my_key": "${%s:MYKEY, null}" % env_func})
     assert c.my_key is None
