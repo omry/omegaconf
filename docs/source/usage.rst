@@ -402,7 +402,7 @@ Input YAML file:
 
 You can specify a default value to use in case the environment variable is not defined.
 This default value can be a string or ``null`` (representing Python ``None``). Passing a default with a different type will result in an error.
-The following example sets default database passwords when ``DB_PASSWORD`` is not defined:
+The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
 .. doctest::
 
