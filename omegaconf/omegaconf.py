@@ -28,6 +28,7 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
+    Marker,
     _ensure_container,
     _get_value,
     _is_none,
@@ -72,11 +73,11 @@ from .nodes import (
 
 MISSING: Any = "???"
 
-# A marker used:
+# Marker used:
 # -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
 #    and creating a DictConfig with None content
 # - in env() to detect between no default value vs a default value set to None
-_EMPTY_MARKER_ = "_OMEGACONF_EMPTY_MARKER_"
+_EMPTY_MARKER_: Any = Marker("_EMPTY_MARKER_")
 
 Resolver = Callable[..., Any]
 

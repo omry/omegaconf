@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
+    Marker,
     _ensure_container,
     _get_value,
     _is_interpolation,
@@ -37,7 +38,7 @@ from .errors import (
 if TYPE_CHECKING:
     from .dictconfig import DictConfig  # pragma: no cover
 
-DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
+DEFAULT_VALUE_MARKER: Any = Marker("DEFAULT_VALUE_MARKER")
 
 
 class BaseContainer(Container, ABC):

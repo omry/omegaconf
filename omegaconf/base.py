@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 from antlr4 import ParserRuleContext
 
 from ._utils import (
+    Marker,
     ValueKind,
     _get_value,
     _is_missing_value,
@@ -32,7 +33,7 @@ from .grammar_visitor import GrammarVisitor
 
 DictKeyType = Union[str, int, Enum, float, bool]
 
-_MARKER_ = object()
+_MARKER_: Any = Marker("_MARKER_")
 
 
 @dataclass

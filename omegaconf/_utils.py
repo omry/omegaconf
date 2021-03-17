@@ -76,6 +76,14 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
         )
 
 
+class Marker:
+    def __init__(self, desc: str):
+        self.desc = desc
+
+    def __repr__(self) -> str:
+        return self.desc
+
+
 def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
     if not OmegaConfDumper.str_representer_added:
         OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
