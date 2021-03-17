@@ -778,7 +778,7 @@ The `OmegaConf.to_object` method provides a convenient alias to achieve the abov
 
 Calling `OmegaConf.to_object(conf)` is equivalent to
 `OmegaConf.to_container(conf, resolve=True, structured_config_mode=SCMode.INSTANTIATE)`;
-string interpolations will be resolved before dataclass instances are instantiated.
+string interpolations will be resolved before dataclass instances are created.
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
