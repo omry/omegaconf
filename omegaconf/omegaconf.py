@@ -137,7 +137,7 @@ def register_default_resolvers() -> None:
                 assert default is None or isinstance(default, str)  # redundant for mypy
                 return default
             else:
-                raise ValidationError(f"Environment variable '{key}' not found")
+                raise KeyError(f"Environment variable '{key}' not found")
 
     def decode(expr: Optional[str], _parent_: Container) -> Any:
         """
