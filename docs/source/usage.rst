@@ -757,28 +757,31 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> assert type(container["structured_config"]) is DictConfig
     >>> assert container["structured_config"].port == 80
 
-Using **structured_config_mode=SCMode.INSTANTIATE** causes such nodes to
-be converted to instances of the backing dataclass.
-
-.. doctest::
-
-    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.INSTANTIATE)
-    >>> print(container)
-    {'structured_config': MyConfig(port=80, host='localhost')}
-    >>> assert type(container["structured_config"]) is MyConfig
-    >>> assert container["structured_config"].port == 80
-
-The `OmegaConf.to_object` method provides a convenient alias to achieve the above:
+OmegaConf.to_object
+^^^^^^^^^^^^^^^^^^^^^^
+The ``OmegaConf.to_object`` method is very similar to the
+``OmegaConf.to_container`` method.
 
 .. doctest::
 
     >>> container = OmegaConf.to_object(conf)
     >>> print(container)
     {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> assert type(container["structured_config"]) is MyConfig
+    >>> assert container["structured_config"].port == 80
 
-Calling `OmegaConf.to_object(conf)` is equivalent to
-`OmegaConf.to_container(conf, resolve=True, structured_config_mode=SCMode.INSTANTIATE)`;
-string interpolations will be resolved before dataclass instances are created.
+Note that here, ``container.structured_config`` is actually an instance of
+``MyConfig``, whereas in the previous examples we had a ``dict`` or
+``DictConfig`` object that was duck-typed to look like an instance of
+``MyConfig``.
+
+The call ``OmegaConf.to_object(conf)`` is equivalent to
+``OmegaConf.to_container(conf, resolve=True,
+structured_config_mode=SCMode.INSTANTIATE)``.  The ``resolve=True`` keyword
+argument means that string interpolations are resolved before conversion to a
+container, and ``structured_config_mode=SCMode.INSTANTIATE`` means that each
+structured config node is converted into an actual instance of the underlying
+structured config type.
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
