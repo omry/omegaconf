@@ -385,8 +385,7 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Environment variable interpolation is also supported.
-An environment variable is always returned as a string.
+Access to environment variables is supported using ``oc.env``:
 
 Input YAML file:
 
