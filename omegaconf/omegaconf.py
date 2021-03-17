@@ -143,9 +143,9 @@ def register_default_resolvers() -> None:
             return None
 
         if not isinstance(expr, str):
-            raise ValidationError(
+            raise TypeError(
                 f"`oc.decode` can only take strings or None as input, "
-                f"but `{expr}` if of type {type(expr).__name__}"
+                f"but `{expr}` is of type {type(expr).__name__}"
             )
 
         parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")

@@ -373,8 +373,8 @@ def test_decode_none() -> None:
             pytest.raises(
                 InterpolationResolutionError,
                 match=re.escape(
-                    "ValidationError raised while resolving interpolation: "
-                    "`oc.decode` can only take strings or None as input, but `123` if of type int"
+                    "TypeError raised while resolving interpolation: "
+                    "`oc.decode` can only take strings or None as input, but `123` is of type int"
                 ),
             ),
             id="bad_type",
