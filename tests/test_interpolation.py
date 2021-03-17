@@ -350,7 +350,10 @@ def test_decode(monkeypatch: Any, value: Optional[str], expected: Any) -> None:
     c = OmegaConf.create(
         {
             # The node of interest is "node" (others are used to test interpolations).
-            "parent": {"node": f"${{oc.decode:'{value}'}}", "sibling": 1},
+            "parent": {
+                "node": f"${{oc.decode:'{value}'}}",
+                "sibling": 1,
+            },
             "uncle": 2,
         }
     )
