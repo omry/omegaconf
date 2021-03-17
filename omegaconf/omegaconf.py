@@ -110,12 +110,7 @@ def register_default_resolvers() -> None:
             return decode_primitive(os.environ[key])
         except KeyError:
             if default is not None:
-                # We handle the "null" string in a special way so as to preserve
-                # the old behavior of `env` while keeping the fix from #230.
-                if default.lower() == "null":
-                    return None
-                else:
-                    return decode_primitive(default)
+                return decode_primitive(default)
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
