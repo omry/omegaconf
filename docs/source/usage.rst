@@ -6,6 +6,7 @@
     import tempfile
     import pickle
     os.environ['USER'] = 'omry'
+    # ensures that DB_TIMEOUT is not set in the doc.
     os.environ.pop('DB_TIMEOUT', None)
 
 .. testsetup:: loaded
