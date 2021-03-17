@@ -214,7 +214,7 @@ def test_type_inherit_type(cfg: Any) -> None:
 @pytest.mark.parametrize("env_func", ["env", "oc.env"])
 class TestEnvInterpolation:
     @pytest.mark.parametrize(
-        "cfg,env_name,env_val,key,expected",
+        ("cfg", "env_name", "env_val", "key", "expected"),
         [
             pytest.param(
                 {"path": "/test/${${env_func}:foo}"},
