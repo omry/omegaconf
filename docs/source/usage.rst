@@ -341,6 +341,9 @@ Example:
     >>> show(conf.client.server_port)
     type: int, value: 80
     >>> # String interpolations concatenate fragments into a string
+    >>> show(conf.client.url)
+    type: str, value: 'http://localhost:80/'
+    >>> # Relative interpolation example
     >>> show(conf.client.description)
     type: str, value: 'Client of http://localhost:80/'
 
