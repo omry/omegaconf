@@ -757,6 +757,18 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> assert type(container["structured_config"]) is DictConfig
     >>> assert container["structured_config"].port == 80
 
+Using **structured_config_mode=SCMode.INSTANTIATE** causes such nodes to
+be converted to instances of the backing dataclass.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({"structured_config": MyConfig})
+    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.INSTANTIATE)
+    >>> print(container)
+    {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> assert type(container["structured_config"]) is MyConfig
+    >>> assert container["structured_config"].port == 80
+
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
 OmegaConf.select() allow you to select a config node or value using a dot-notation key.
