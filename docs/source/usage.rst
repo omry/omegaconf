@@ -340,13 +340,9 @@ Example:
     >>> # Primitive interpolation types are inherited from the reference
     >>> show(conf.client.server_port)
     type: int, value: 80
+    >>> # String interpolations concatenate fragments into a string
     >>> show(conf.client.description)
     type: str, value: 'Client of http://localhost:80/'
-
-    >>> # Composite interpolation types are always string
-    >>> show(conf.client.url)
-    type: str, value: 'http://localhost:80/'
-
 
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
 
