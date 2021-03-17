@@ -76,7 +76,7 @@ MISSING: Any = "???"
 # -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
 #    and creating a DictConfig with None content
 # - in env() to detect between no default value vs a default value set to None
-_EMPTY_MARKER_ = object()
+_EMPTY_MARKER_ = "_OMEGACONF_EMPTY_MARKER_"
 
 Resolver = Callable[..., Any]
 
@@ -114,7 +114,7 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    def env(key: str, default: Any = _EMPTY_MARKER_) -> Optional[str]:
+    def env(key: str, default: Optional[str] = _EMPTY_MARKER_) -> Optional[str]:
         if (
             default is not _EMPTY_MARKER_
             and default is not None
@@ -129,7 +129,6 @@ def register_default_resolvers() -> None:
             return os.environ[key]
         except KeyError:
             if default is not _EMPTY_MARKER_:
-                assert default is None or isinstance(default, str)  # redundant for mypy
                 return default
             else:
                 raise KeyError(f"Environment variable '{key}' not found")
