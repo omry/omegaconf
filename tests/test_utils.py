@@ -8,6 +8,7 @@ from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import (
+    Marker,
     _ensure_container,
     _get_value,
     _make_hashable,
@@ -631,3 +632,8 @@ def test_ensure_container_raises_ValueError() -> None:
         ),
     ):
         _ensure_container("abc")
+
+
+def test_marker_string_representation() -> None:
+    marker = Marker("marker")
+    assert repr(marker) == "marker"
