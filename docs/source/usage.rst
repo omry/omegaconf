@@ -803,8 +803,8 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
     >>> show(container)
     type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
-    >>> assert type(container["structured_config"]) is DictConfig
-    >>> assert container["structured_config"].port == 80
+    >>> show(container["structured_config"])
+    type: DictConfig, value: {'port': 80, 'host': 'localhost'}
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
