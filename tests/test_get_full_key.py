@@ -1,12 +1,12 @@
 from typing import Any
 
-import pytest
+from pytest import mark, param
 
 from omegaconf import DictConfig, IntegerNode, OmegaConf
 from tests import Color
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, select, key, expected",
     [
         ({}, "", "a", "a"),
@@ -71,14 +71,14 @@ from tests import Color
         ({"foo": IntegerNode(value=10)}, "", "foo", "foo"),
         ({"foo": {"bar": IntegerNode(value=10)}}, "foo", "bar", "foo.bar"),
         # enum
-        pytest.param(
+        param(
             DictConfig(key_type=Color, element_type=str, content={Color.RED: "red"}),
             "RED",
             "",
             "RED",
             id="get_full_key_with_enum_key",
         ),
-        pytest.param(
+        param(
             {
                 "foo": DictConfig(
                     key_type=Color, element_type=str, content={Color.RED: "red"}

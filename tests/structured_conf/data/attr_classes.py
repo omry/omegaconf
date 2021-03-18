@@ -2,7 +2,7 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
-import pytest
+from pytest import importorskip
 
 from omegaconf import II, MISSING, SI
 from tests import Color
@@ -11,7 +11,7 @@ if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
 
 # attr is a dependency of pytest which means it's always available when testing with pytest.
-pytest.importorskip("attr")
+importorskip("attr")
 
 
 class NotStructuredConfig:

@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import pytest
+from pytest import importorskip
 
 from omegaconf import II, MISSING, SI
 from tests import Color
@@ -12,7 +12,7 @@ if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
 
 # skip test if dataclasses are not available
-pytest.importorskip("dataclasses")
+importorskip("dataclasses")
 
 
 class NotStructuredConfig:

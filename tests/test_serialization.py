@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import pytest
+from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
@@ -54,11 +54,11 @@ def save_load_from_filename(
 
 
 def test_load_from_invalid() -> None:
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         OmegaConf.load(3.1415)  # type: ignore
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_,resolve,expected,file_class",
     [
         ({"a": 10}, False, None, str),
@@ -90,7 +90,7 @@ class TestSaveLoad:
         save_load_from_filename(cfg, resolve, expected, file_class)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_,resolve,expected,file_class",
     [
         (PersonA, False, {"age": 18, "registered": True}, str),
@@ -120,13 +120,11 @@ class TestSaveLoadStructured:
 
 
 def test_save_illegal_type() -> None:
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         OmegaConf.save(OmegaConf.create(), 1000)  # type: ignore
 
 
-@pytest.mark.parametrize(
-    "obj", [pytest.param({"a": "b"}, id="dict"), pytest.param([1, 2, 3], id="list")]
-)
+@mark.parametrize("obj", [param({"a": "b"}, id="dict"), param([1, 2, 3], id="list")])
 def test_pickle(obj: Any) -> None:
     with tempfile.TemporaryFile() as fp:
         c = OmegaConf.create(obj)
@@ -152,7 +150,7 @@ def test_load_empty_file(tmpdir: str) -> None:
         assert OmegaConf.load(f) == {}
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_,node,element_type,key_type,optional,ref_type",
     [
         (UntypedList, "list", Any, Any, False, List[Any]),

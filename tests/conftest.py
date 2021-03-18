@@ -1,13 +1,13 @@
 import copy
 from typing import Any
 
-import pytest
+from pytest import fixture
 
 from omegaconf import OmegaConf
 from omegaconf.basecontainer import BaseContainer
 
 
-@pytest.fixture(scope="function")
+@fixture(scope="function")
 def restore_resolvers() -> Any:
     """
     A fixture to restore singletons state after this the function.
@@ -19,7 +19,7 @@ def restore_resolvers() -> Any:
     BaseContainer._resolvers = state
 
 
-@pytest.fixture(scope="function")
+@fixture(scope="function")
 def common_resolvers(restore_resolvers: Any) -> Any:
     """
     A fixture to register the common `identity` resolver.
