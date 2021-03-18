@@ -28,10 +28,12 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
+    _DEFAULT_MARKER_,
     _ensure_container,
     _get_value,
     _is_none,
     _make_hashable,
+    decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -53,8 +55,6 @@ from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
-    GrammarParseError,
-    InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -72,12 +72,6 @@ from .nodes import (
 )
 
 MISSING: Any = "???"
-
-# A marker used:
-# -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
-#    and creating a DictConfig with None content
-# - in env() to detect between no default value vs a default value set to None
-_EMPTY_MARKER_ = object()
 
 Resolver = Callable[..., Any]
 
@@ -101,43 +95,61 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    def env(key: str, default: Any = _EMPTY_MARKER_) -> Any:
+    # DEPRECATED: remove in 2.2
+    def legacy_env(key: str, default: Optional[str] = None) -> Any:
+        warnings.warn(
+            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573",
+        )
+
         try:
-            val_str = os.environ[key]
+            return decode_primitive(os.environ[key])
         except KeyError:
-            if default is not _EMPTY_MARKER_:
-                return default
+            if default is not None:
+                return decode_primitive(default)
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-        # We obtained a string from the environment variable: we try to parse it
-        # using the grammar (as if it was a resolver argument), so that expressions
-        # like numbers, booleans, lists and dictionaries can be properly evaluated.
-        try:
-            parse_tree = parse(
-                val_str, parser_rule="singleElement", lexer_mode="VALUE_MODE"
+    def env(key: str, default: Optional[str] = _DEFAULT_MARKER_) -> Optional[str]:
+        if (
+            default is not _DEFAULT_MARKER_
+            and default is not None
+            and not isinstance(default, str)
+        ):
+            raise TypeError(
+                f"The default value of the `oc.env` resolver must be a string or "
+                f"None, but `{default}` is of type {type(default).__name__}"
             )
-        except GrammarParseError:
-            # Un-parsable as a resolver argument: keep the string unchanged.
-            return val_str
 
-        # Resolve the parse tree. We use an empty config for this, which means that
-        # interpolations referring to other nodes will fail.
-        empty_config = DictConfig({})
         try:
-            val = empty_config.resolve_parse_tree(parse_tree)
-        except InterpolationKeyError as exc:
-            raise InterpolationKeyError(
-                f"When attempting to resolve env variable '{key}', a node interpolation "
-                f"caused the following exception: {exc}. Node interpolations are not "
-                f"supported in environment variables: either remove them, or escape "
-                f"them to keep them as a strings."
-            ).with_traceback(sys.exc_info()[2])
+            return os.environ[key]
+        except KeyError:
+            if default is not _DEFAULT_MARKER_:
+                return default
+            else:
+                raise KeyError(f"Environment variable '{key}' not found")
 
+    def decode(expr: Optional[str], _parent_: Container) -> Any:
+        """
+        Parse and evaluate `expr` according to the `singleElement` rule of the grammar.
+
+        If `expr` is `None`, then return `None`.
+        """
+        if expr is None:
+            return None
+
+        if not isinstance(expr, str):
+            raise TypeError(
+                f"`oc.decode` can only take strings or None as input, "
+                f"but `{expr}` is of type {type(expr).__name__}"
+            )
+
+        parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")
+        val = _parent_.resolve_parse_tree(parse_tree)
         return _get_value(val)
 
-    # Note that the `env` resolver does *NOT* use the cache.
-    OmegaConf.register_new_resolver("env", env, use_cache=True)
+    OmegaConf.legacy_register_resolver("env", legacy_env)
+    OmegaConf.register_new_resolver("oc.env", env, use_cache=False)
+    OmegaConf.register_new_resolver("oc.decode", decode, use_cache=False)
 
 
 class OmegaConf:
@@ -201,7 +213,7 @@ class OmegaConf:
 
     @staticmethod
     def create(  # noqa F811
-        obj: Any = _EMPTY_MARKER_,
+        obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
@@ -666,7 +678,7 @@ class OmegaConf:
         cfg: Container,
         key: str,
         *,
-        default: Any = _EMPTY_MARKER_,
+        default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
     ) -> Any:
@@ -678,13 +690,13 @@ class OmegaConf:
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
             except ConfigKeyError:
-                if default is not _EMPTY_MARKER_:
+                if default is not _DEFAULT_MARKER_:
                     return default
                 else:
                     raise
 
             if (
-                default is not _EMPTY_MARKER_
+                default is not _DEFAULT_MARKER_
                 and _root is not None
                 and _last_key is not None
                 and _last_key not in _root
@@ -788,7 +800,7 @@ class OmegaConf:
 
     @staticmethod
     def _create_impl(  # noqa F811
-        obj: Any = _EMPTY_MARKER_,
+        obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
@@ -797,7 +809,7 @@ class OmegaConf:
             from .dictconfig import DictConfig
             from .listconfig import ListConfig
 
-            if obj is _EMPTY_MARKER_:
+            if obj is _DEFAULT_MARKER_:
                 obj = {}
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())

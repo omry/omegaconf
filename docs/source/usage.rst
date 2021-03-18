@@ -6,6 +6,8 @@
     import tempfile
     import pickle
     os.environ['USER'] = 'omry'
+    # ensures that DB_TIMEOUT is not set in the doc.
+    os.environ.pop('DB_TIMEOUT', None)
 
 .. testsetup:: loaded
 
@@ -334,20 +336,17 @@ Example:
 .. doctest::
 
     >>> conf = OmegaConf.load('source/config_interpolation.yaml')
+    >>> def show(x):
+    ...     print(f"type: {type(x).__name__}, value: {repr(x)}")
     >>> # Primitive interpolation types are inherited from the reference
-    >>> conf.client.server_port
-    80
-    >>> type(conf.client.server_port).__name__
-    'int'
-    >>> conf.client.description
-    'Client of http://localhost:80/'
-
-    >>> # Composite interpolation types are always string
-    >>> conf.client.url
-    'http://localhost:80/'
-    >>> type(conf.client.url).__name__
-    'str'
-
+    >>> show(conf.client.server_port)
+    type: int, value: 80
+    >>> # String interpolations concatenate fragments into a string
+    >>> show(conf.client.url)
+    type: str, value: 'http://localhost:80/'
+    >>> # Relative interpolation example
+    >>> show(conf.client.description)
+    type: str, value: 'Client of http://localhost:80/'
 
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
 
@@ -386,7 +385,7 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
 Environment variable interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Environment variable interpolation is also supported.
+Access to environment variables is supported using ``oc.env``:
 
 Input YAML file:
 
@@ -402,36 +401,59 @@ Input YAML file:
     '/home/omry'
 
 You can specify a default value to use in case the environment variable is not defined.
-The following example sets `abc123` as the the default value when `DB_PASSWORD` is not defined.
+This default value can be a string or ``null`` (representing Python ``None``). Passing a default with a different type will result in an error.
+The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,abc123}'}
-    ... })
-    >>> cfg.database.password
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "database": {
+    ...             "password1": "${oc.env:DB_PASSWORD,abc123}",
+    ...             "password2": "${oc.env:DB_PASSWORD,'12345'}",
+    ...         },
+    ...     }
+    ... )
+    >>> cfg.database.password1  # the string 'abc123'
     'abc123'
+    >>> cfg.database.password2  # the string '12345'
+    '12345'
 
-Environment variables are parsed when they are recognized as valid quantities that
-may be evaluated (e.g., int, float, dict, list):
+
+Decoding strings with interpolations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Strings may be converted using ``oc.decode``:
+
+- Primitive values (e.g., ``"true"``, ``"1"``, ``"1e-3"``) are automatically converted to their corresponding type (bool, int, float)
+- Dictionaries and lists (e.g., ``"{a: b}"``, ``"[a, b, c]"``)  are returned as transient config nodes (DictConfig and ListConfig)
+- Interpolations (e.g., ``"${foo}"``) are automatically resolved
+- ``None`` is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+
+This can be useful for instance to parse environment variables:
 
 .. doctest::
 
-    >>> cfg = OmegaConf.create({
-    ...       'database': {'password': '${env:DB_PASSWORD,abc123}',
-    ...                    'user': 'someuser',
-    ...                    'port': '${env:DB_PORT,3306}',
-    ...                    'nodes': '${env:DB_NODES,[]}'}
-    ... })
-    >>> os.environ["DB_PORT"] = '3308'
-    >>> cfg.database.port  # converted to int
-    3308
-    >>> os.environ["DB_NODES"] = '[host1, host2, host3]'
-    >>> cfg.database.nodes  # converted to list
-    ['host1', 'host2', 'host3']
-    >>> os.environ["DB_PASSWORD"] = 'a%#@~{}$*&^?/<'
-    >>> cfg.database.password  # kept as a string
-    'a%#@~{}$*&^?/<'
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "database": {
+    ...             "port": '${oc.decode:${oc.env:DB_PORT}}',
+    ...             "nodes": '${oc.decode:${oc.env:DB_NODES}}',
+    ...             "timeout": '${oc.decode:${oc.env:DB_TIMEOUT,null}}',
+    ...         }
+    ...     }
+    ... )
+    >>> os.environ["DB_PORT"] = "3308"
+    >>> show(cfg.database.port)  # converted to int
+    type: int, value: 3308
+    >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
+    >>> show(cfg.database.nodes)  # converted to a ListConfig
+    type: ListConfig, value: ['host1', 'host2', 'host3']
+    >>> show(cfg.database.timeout)  # keeping `None` as is
+    type: NoneType, value: None
+    >>> os.environ["DB_TIMEOUT"] = "${.port}"
+    >>> show(cfg.database.timeout)  # resolving interpolation
+    type: int, value: 3308
 
 
 Custom interpolations
@@ -762,12 +784,11 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
     >>> assert type(conf) == DictConfig
     >>> primitive = OmegaConf.to_container(conf)
-    >>> assert type(primitive) == dict
-    >>> print(primitive)
-    {'foo': 'bar', 'foo2': '${foo}'}
+    >>> show(primitive)
+    type: dict, value: {'foo': 'bar', 'foo2': '${foo}'}
     >>> resolved = OmegaConf.to_container(conf, resolve=True)
-    >>> print(resolved)
-    {'foo': 'bar', 'foo2': 'bar'}
+    >>> show(resolved)
+    type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
 You can customize the treatment of **OmegaConf.to_container()** for
 Structured Config nodes using the `structured_config_mode` option.
@@ -780,11 +801,10 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> from omegaconf import SCMode
     >>> conf = OmegaConf.create({"structured_config": MyConfig})
     >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
-    >>> print(container)
-    {'structured_config': {'port': 80, 'host': 'localhost'}}
-    >>> assert type(container) is dict
-    >>> assert type(container["structured_config"]) is DictConfig
-    >>> assert container["structured_config"].port == 80
+    >>> show(container)
+    type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
+    >>> show(container["structured_config"])
+    type: DictConfig, value: {'port': 80, 'host': 'localhost'}
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^

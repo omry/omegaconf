@@ -8,6 +8,7 @@ from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import (
+    Marker,
     _ensure_container,
     _get_value,
     _make_hashable,
@@ -58,7 +59,7 @@ from tests import (
         param(float, 1, FloatNode(1), id="float"),
         param(float, 1.0, FloatNode(1.0), id="float"),
         param(float, Color.RED, ValidationError, id="float"),
-        # # bool
+        # bool
         param(bool, "foo", ValidationError, id="bool"),
         param(bool, True, BooleanNode(True), id="bool"),
         param(bool, 1, BooleanNode(True), id="bool"),
@@ -631,3 +632,8 @@ def test_ensure_container_raises_ValueError() -> None:
         ),
     ):
         _ensure_container("abc")
+
+
+def test_marker_string_representation() -> None:
+    marker = Marker("marker")
+    assert repr(marker) == "marker"

@@ -63,6 +63,18 @@ YAML_BOOL_TYPES = [
 _CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
+class Marker:
+    def __init__(self, desc: str):
+        self.desc = desc
+
+    def __repr__(self) -> str:
+        return self.desc
+
+
+# To be used as default value when `None` is not an option.
+_DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
+
+
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
     str_representer_added = False
 
@@ -404,6 +416,12 @@ def get_value_kind(
         return ValueKind.VALUE
 
 
+# DEPRECATED: remove in 2.2
+def is_bool(st: str) -> bool:
+    st = str.lower(st)
+    return st == "true" or st == "false"
+
+
 def is_float(st: str) -> bool:
     try:
         float(st)
@@ -418,6 +436,20 @@ def is_int(st: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+# DEPRECATED: remove in 2.2
+def decode_primitive(s: str) -> Any:
+    if is_bool(s):
+        return str.lower(s) == "true"
+
+    if is_int(s):
+        return int(s)
+
+    if is_float(s):
+        return float(s)
+
+    return s
 
 
 def is_primitive_list(obj: Any) -> bool:

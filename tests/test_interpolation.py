@@ -211,71 +211,210 @@ def test_type_inherit_type(cfg: Any) -> None:
     assert type(cfg.s) == str  # check that string interpolations are always strings
 
 
+@pytest.mark.parametrize("env_func", ["env", "oc.env"])
+class TestEnvInterpolation:
+    @pytest.mark.parametrize(
+        ("cfg", "env_name", "env_val", "key", "expected"),
+        [
+            pytest.param(
+                {"path": "/test/${${env_func}:foo}"},
+                "foo",
+                "1234",
+                "path",
+                "/test/1234",
+                id="simple",
+            ),
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found,ZZZ}"},
+                None,
+                None,
+                "path",
+                "/test/ZZZ",
+                id="not_found_with_default",
+            ),
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found,a/b}"},
+                None,
+                None,
+                "path",
+                "/test/a/b",
+                id="not_found_with_default",
+            ),
+        ],
+    )
+    def test_env_interpolation(
+        self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
+        monkeypatch: Any,
+        env_func: str,
+        cfg: Any,
+        env_name: Optional[str],
+        env_val: str,
+        key: str,
+        expected: Any,
+    ) -> None:
+        if env_name is not None:
+            monkeypatch.setenv(env_name, env_val)
+
+        cfg["env_func"] = env_func  # allows choosing which env resolver to use
+        cfg = OmegaConf.create(cfg)
+
+        assert OmegaConf.select(cfg, key) == expected
+
+    @pytest.mark.parametrize(
+        ("cfg", "key", "expected"),
+        [
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found}"},
+                "path",
+                pytest.raises(
+                    InterpolationResolutionError,
+                    match=re.escape("Environment variable 'not_found' not found"),
+                ),
+                id="not_found",
+            ),
+        ],
+    )
+    def test_env_interpolation_error(
+        self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
+        env_func: str,
+        cfg: Any,
+        key: str,
+        expected: Any,
+    ) -> None:
+        cfg["env_func"] = env_func  # allows choosing which env resolver to use
+        cfg = _ensure_container(cfg)
+
+        with expected:
+            OmegaConf.select(cfg, key)
+
+
+def test_legacy_env_is_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("FOOBAR", "1234")
+    c = OmegaConf.create({"foobar": "${env:FOOBAR}"})
+    with pytest.warns(UserWarning):
+        before = c.foobar
+        monkeypatch.setenv("FOOBAR", "3456")
+        assert c.foobar == before
+
+
+def test_env_is_not_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("FOOBAR", "1234")
+    c = OmegaConf.create({"foobar": "${oc.env:FOOBAR}"})
+    before = c.foobar
+    monkeypatch.setenv("FOOBAR", "3456")
+    assert c.foobar != before
+
+
 @pytest.mark.parametrize(
-    "cfg,env_name,env_val,key,expected",
+    "value,expected",
+    [
+        # We only test a few typical cases: more extensive grammar tests are
+        # found in `test_grammar.py`.
+        # bool
+        ("false", False),
+        ("true", True),
+        # int
+        ("10", 10),
+        ("-10", -10),
+        # float
+        ("10.0", 10.0),
+        ("-10.0", -10.0),
+        # null
+        ("null", None),
+        ("NulL", None),
+        # strings
+        ("hello", "hello"),
+        ("hello world", "hello world"),
+        ("  123  ", "  123  "),
+        ('"123"', "123"),
+        # lists and dicts
+        ("[1, 2, 3]", [1, 2, 3]),
+        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
+        ("[\t1, 2, 3\t]", [1, 2, 3]),
+        ("{   a: b\t  }", {"a": "b"}),
+        # interpolations
+        ("${parent.sibling}", 1),
+        ("${.sibling}", 1),
+        ("${..parent.sibling}", 1),
+        ("${uncle}", 2),
+        ("${..uncle}", 2),
+        ("${oc.env:MYKEY}", 456),
+    ],
+)
+def test_decode(monkeypatch: Any, value: Optional[str], expected: Any) -> None:
+    monkeypatch.setenv("MYKEY", "456")
+    c = OmegaConf.create(
+        {
+            # The node of interest is "node" (others are used to test interpolations).
+            "parent": {
+                "node": f"${{oc.decode:'{value}'}}",
+                "sibling": 1,
+            },
+            "uncle": 2,
+        }
+    )
+    assert c.parent.node == expected
+
+
+def test_decode_none() -> None:
+    c = OmegaConf.create({"x": "${oc.decode:null}"})
+    assert c.x is None
+
+
+@pytest.mark.parametrize(
+    ("value", "exc"),
     [
         pytest.param(
-            {"path": "/test/${env:foo}"},
-            "foo",
-            "1234",
-            "path",
-            "/test/1234",
-            id="simple",
-        ),
-        pytest.param(
-            {"path": "/test/${env:not_found}"},
-            None,
-            None,
-            "path",
+            123,
             pytest.raises(
                 InterpolationResolutionError,
-                match=re.escape("Environment variable 'not_found' not found"),
+                match=re.escape(
+                    "TypeError raised while resolving interpolation: "
+                    "`oc.decode` can only take strings or None as input, but `123` is of type int"
+                ),
             ),
-            id="not_found",
+            id="bad_type",
         ),
         pytest.param(
-            {"path": "/test/${env:not_found,ZZZ}"},
-            None,
-            None,
-            "path",
-            "/test/ZZZ",
-            id="not_found_with_default",
+            "'[1, '",
+            pytest.raises(
+                InterpolationResolutionError,
+                match=re.escape(
+                    "GrammarParseError raised while resolving interpolation: "
+                    "missing BRACKET_CLOSE at '<EOF>'"
+                ),
+            ),
+            id="parse_error",
         ),
         pytest.param(
-            {"path": "/test/${env:not_found,a/b}"},
-            None,
-            None,
-            "path",
-            "/test/a/b",
-            id="not_found_with_default",
+            # Must be escaped to prevent resolution before feeding it to `oc.decode`.
+            "'\\${foo}'",
+            pytest.raises(
+                InterpolationResolutionError,
+                match=re.escape("Interpolation key 'foo' not found"),
+            ),
+            id="interpolation_not_found",
         ),
     ],
 )
-def test_env_interpolation(
-    monkeypatch: Any,
-    cfg: Any,
-    env_name: Optional[str],
-    env_val: str,
-    key: str,
-    expected: Any,
-) -> None:
-    if env_name is not None:
-        monkeypatch.setenv(env_name, env_val)
-
-    cfg = _ensure_container(cfg)
-    if isinstance(expected, RaisesContext):
-        with expected:
-            OmegaConf.select(cfg, key)
-    else:
-        assert OmegaConf.select(cfg, key) == expected
+def test_decode_error(monkeypatch: Any, value: Any, exc: Any) -> None:
+    c = OmegaConf.create({"x": f"${{oc.decode:{value}}}"})
+    with exc:
+        c.x
 
 
-def test_env_is_cached(monkeypatch: Any) -> None:
-    monkeypatch.setenv("foobar", "1234")
-    c = OmegaConf.create({"foobar": "${env:foobar}"})
-    before = c.foobar
-    monkeypatch.setenv("foobar", "3456")
-    assert c.foobar == before
+@pytest.mark.parametrize(
+    "value",
+    ["false", "true", "10", "1.5", "null", "None", "${foo}"],
+)
+def test_env_preserves_string(monkeypatch: Any, value: str) -> None:
+    monkeypatch.setenv("MYKEY", value)
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY}"})
+    assert c.my_key == value
 
 
 @pytest.mark.parametrize(
@@ -304,45 +443,42 @@ def test_env_is_cached(monkeypatch: Any) -> None:
         # more advanced uses of the grammar
         ("ab \\{foo} cd", "ab \\{foo} cd"),
         ("ab \\\\{foo} cd", "ab \\\\{foo} cd"),
-        ("'\\${other_key}'", "${other_key}"),  # escaped interpolation
-        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),  # escaped interpolation
-        ("[1, 2, 3]", [1, 2, 3]),
-        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
-        ("  123  ", "  123  "),
         ("  1 2 3  ", "  1 2 3  "),
         ("\t[1, 2, 3]\t", "\t[1, 2, 3]\t"),
-        ("[\t1, 2, 3\t]", [1, 2, 3]),
         ("   {a: b}\t  ", "   {a: b}\t  "),
-        ("{   a: b\t  }", {"a": "b"}),
-        ("'123'", "123"),
-        ("${env:my_key_2}", 456),  # can call another resolver
     ],
 )
-def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
-    monkeypatch.setenv("my_key", value)
-    monkeypatch.setenv("my_key_2", "456")
-    c = OmegaConf.create({"my_key": "${env:my_key}"})
-    assert c.my_key == expected
-
-
-def test_env_node_interpolation(monkeypatch: Any) -> None:
-    # Test that node interpolations are not supported in env variables.
-    monkeypatch.setenv("MYKEY", "${other_key}")
-    c = OmegaConf.create({"my_key": "${env:MYKEY}", "other_key": 123})
-    with pytest.raises(
-        InterpolationKeyError,
-        match=re.escape(
-            "When attempting to resolve env variable 'MYKEY', a node interpolation caused "
-            "the following exception: Interpolation key 'other_key' not found."
-        ),
-    ):
-        c.my_key
+def test_legacy_env_values_are_typed(
+    monkeypatch: Any, value: Any, expected: Any
+) -> None:
+    monkeypatch.setenv("MYKEY", value)
+    c = OmegaConf.create({"my_key": "${env:MYKEY}"})
+    with pytest.warns(UserWarning, match=re.escape("The `env` resolver is deprecated")):
+        assert c.my_key == expected
 
 
 def test_env_default_none(monkeypatch: Any) -> None:
-    monkeypatch.delenv("my_key", raising=False)
-    c = OmegaConf.create({"my_key": "${env:my_key, null}"})
+    monkeypatch.delenv("MYKEY", raising=False)
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY, null}"})
     assert c.my_key is None
+
+
+@pytest.mark.parametrize("has_var", [True, False])
+def test_env_non_str_default(monkeypatch: Any, has_var: bool) -> None:
+    if has_var:
+        monkeypatch.setenv("MYKEY", "456")
+    else:
+        monkeypatch.delenv("MYKEY", raising=False)
+
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY, 123}"})
+    with pytest.raises(
+        InterpolationResolutionError,
+        match=re.escape(
+            "TypeError raised while resolving interpolation: The default value "
+            "of the `oc.env` resolver must be a string or None, but `123` is of type int"
+        ),
+    ):
+        c.my_key
 
 
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:

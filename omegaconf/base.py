@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 from antlr4 import ParserRuleContext
 
 from ._utils import (
+    _DEFAULT_MARKER_,
     ValueKind,
     _get_value,
     _is_missing_value,
@@ -31,8 +32,6 @@ from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 
 DictKeyType = Union[str, int, Enum, float, bool]
-
-_MARKER_ = object()
 
 
 @dataclass
@@ -155,8 +154,8 @@ class Node(ABC):
         if cache is None:
             cache = self.__dict__["_flags_cache"] = {}
 
-        ret = cache.get(flag, _MARKER_)
-        if ret is _MARKER_:
+        ret = cache.get(flag, _DEFAULT_MARKER_)
+        if ret is _DEFAULT_MARKER_:
             ret = self._get_flag_no_cache(flag)
             cache[flag] = ret
         assert ret is None or isinstance(ret, bool)

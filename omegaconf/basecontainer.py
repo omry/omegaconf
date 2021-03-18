@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
+    _DEFAULT_MARKER_,
     _ensure_container,
     _get_value,
     _is_interpolation,
@@ -37,8 +38,6 @@ from .errors import (
 if TYPE_CHECKING:
     from .dictconfig import DictConfig  # pragma: no cover
 
-DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
-
 
 class BaseContainer(Container, ABC):
     # static
@@ -52,11 +51,11 @@ class BaseContainer(Container, ABC):
         self,
         key: Union[DictKeyType, int],
         value: Node,
-        default_value: Any = DEFAULT_VALUE_MARKER,
+        default_value: Any = _DEFAULT_MARKER_,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
         if _is_missing_value(value):
-            if default_value is not DEFAULT_VALUE_MARKER:
+            if default_value is not _DEFAULT_MARKER_:
                 return default_value
             raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 
