@@ -537,9 +537,19 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self, resolve: bool = True, keys: Optional[Sequence[DictKeyType]] = None
     ) -> AbstractSet[Tuple[DictKeyType, Any]]:
         items: List[Tuple[DictKeyType, Any]] = []
+
+        if self._is_none():
+            self._format_and_raise(
+                key=None,
+                value=None,
+                cause=TypeError("Cannot iterate a DictConfig object representing None"),
+            )
+        if self._is_missing():
+            raise MissingMandatoryValue("Cannot iterate a missing DictConfig")
+
         for key in self.keys():
             if resolve:
-                value = self.get(key)
+                value = self[key]
             else:
                 value = self.__dict__["_content"][key]
                 if isinstance(value, ValueNode):
@@ -662,6 +672,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert isinstance(d2, DictConfig)
         if len(d1) != len(d2):
             return False
+        if d1._is_missing() or d2._is_missing():
+            return d1._is_missing() is d2._is_missing()
+
         for k, v in d1.items_ex(resolve=False):
             if k not in d2.__dict__["_content"]:
                 return False

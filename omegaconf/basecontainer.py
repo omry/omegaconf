@@ -324,7 +324,8 @@ class BaseContainer(Container, ABC):
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
 
-        for key, src_value in src.items_ex(resolve=False):
+        src_items = src.items_ex(resolve=False) if not src._is_missing() else []
+        for key, src_value in src_items:
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
             assert src_node is None or isinstance(src_node, Node)

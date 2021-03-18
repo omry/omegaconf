@@ -19,6 +19,7 @@ from omegaconf import (
     flag_override,
     open_dict,
 )
+from omegaconf._utils import _ensure_container
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import (
     ConfigAttributeError,
@@ -254,10 +255,13 @@ def test_map_expansion() -> None:
     assert 12 == foo(**c)
 
 
-def test_items() -> None:
+def test_items_iterator_behavior() -> None:
     c = OmegaConf.create({"a": 2, "b": 10})
-    assert sorted([("a", 2), ("b", 10)]) == sorted(list(c.items()))
+    assert list(c.items()) == [("a", 2), ("b", 10)]
 
+    # This is actually not compatible with native dict:
+    # Due to implementation considerations, DictConfig items() returns a list.
+    # If that can be fixed, feel free to remove this block
     items = c.items()
     for x in [("a", 2), ("b", 10)]:
         assert x in items
@@ -269,7 +273,7 @@ def test_items() -> None:
         next(items2)
 
 
-def test_items2() -> None:
+def test_mutate_config_via_items_iteration() -> None:
     c = OmegaConf.create({"a": {"v": 1}, "b": {"v": 1}})
     for k, v in c.items():
         v.v = 2
@@ -286,10 +290,81 @@ def test_items_with_interpolation() -> None:
     assert r["b"] == 2
 
 
-def test_dict_keys() -> None:
-    c = OmegaConf.create("{a: 2, b: 10}")
-    assert isinstance(c, DictConfig)
-    assert {"a": 2, "b": 10}.keys() == c.keys()
+@mark.parametrize(
+    ("cfg", "expected", "expected_no_resolve"),
+    [
+        param({}, [], [], id="empty"),
+        param({"a": 10}, [("a", 10)], [("a", 10)], id="simple"),
+        param(
+            {"a": 2, "b": "${a}"},
+            [("a", 2), ("b", 2)],
+            [("a", 2), ("b", "${a}")],
+            id="interpolation_in_value",
+        ),
+        param(
+            {"a": "???"},
+            raises(MissingMandatoryValue),
+            [("a", "???")],
+            id="missing_value",
+        ),
+        # Special DictConfigs
+        param(DictConfig(None), raises(TypeError), raises(TypeError), id="none"),
+        param(
+            DictConfig("???"),
+            raises(MissingMandatoryValue),
+            raises(MissingMandatoryValue),
+            id="missing",
+        ),
+        param(DictConfig("${missing}"), [], [], id="missing_interpolation"),
+        param(
+            DictConfig("${a}", parent=DictConfig({"a": {"b": 10}})),
+            [],
+            [],
+            id="missing_interpolation",
+        ),
+    ],
+)
+def test_items(cfg: Any, expected: Any, expected_no_resolve: Any) -> None:
+    cfg = _ensure_container(cfg)
+
+    if isinstance(expected, list):
+        assert list(cfg.items()) == expected
+    else:
+        with expected:
+            cfg.items()
+
+    if isinstance(expected_no_resolve, list):
+        pairs = list(cfg.items_ex(resolve=False))
+        assert pairs == expected_no_resolve
+        for idx in range(len(expected_no_resolve)):
+            assert type(pairs[idx][0]) == type(expected_no_resolve[idx][0])  # noqa
+            assert type(pairs[idx][1]) == type(expected_no_resolve[idx][1])  # noqa
+    else:
+        with expected_no_resolve:
+            cfg.items_ex(resolve=False)
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        param({}, [], id="empty"),
+        param({"a": 10}, ["a"], id="full"),
+        param({"a": "???"}, ["a"], id="missing_value"),
+        param({"a": "${missing}}"}, ["a"], id="missing_interpolation"),
+        param({"a": "${b}}", "b": 10}, ["a", "b"], id="interpolation"),
+        param(DictConfig(None), [], id="none_dictconfig"),
+        param(DictConfig("???"), [], id="missing_dictconfig"),
+        param(DictConfig("${missing}"), [], id="missing_interpolation_dictconfig"),
+        param(
+            DictConfig("${a}", parent=OmegaConf.create({"a": {"b": 10}})),
+            [],
+            id="interpolation_dictconfig",
+        ),
+    ],
+)
+def test_dict_keys(cfg: Any, expected: Any) -> None:
+    c = _ensure_container(cfg)
+    assert list(c.keys()) == expected
 
 
 def test_pickle_get_root() -> None:
