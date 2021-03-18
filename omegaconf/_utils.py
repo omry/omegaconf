@@ -564,12 +564,14 @@ def _get_value(value: Any) -> Any:
     from .base import Container
     from .nodes import ValueNode
 
-    if isinstance(value, Container) and (
-        value._is_none() or value._is_missing() or value._is_interpolation()
-    ):
-        return value._value()
     if isinstance(value, ValueNode):
-        value = value._value()
+        return value._value()
+    elif isinstance(value, Container):
+        boxed = value._value()
+        if boxed is None or _is_missing_literal(boxed) or _is_interpolation(boxed):
+            return boxed
+
+    # return primitives and regular OmegaConf Containers as is
     return value
 
 
