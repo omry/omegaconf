@@ -137,6 +137,23 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_quoted_too_many_1", "''a'", GrammarParseError),
     ("str_quoted_too_many_2", "'a''", GrammarParseError),
     ("str_quoted_too_many_3", "''a''", GrammarParseError),
+    ("str_quoted_trailing_esc_1", "'abc\\\\'", "abc\\"),
+    ("str_quoted_trailing_esc_2", "'abc\\\\\\\\'", "abc\\\\"),
+    ("str_quoted_no_esc_1", '"abc\\def"', "abc\\def"),
+    ("str_quoted_no_esc_2", '"abc\\\\def"', "abc\\\\def"),
+    ("str_quoted_no_esc_3", '"\\\\\\abc\\def"', "\\\\\\abc\\def"),
+    ("str_quoted_bad_1", '"abc\\"', GrammarParseError),
+    ("str_quoted_bad_2", '"abc\\\\\\"', GrammarParseError),
+    ("str_quoted_esc_quote_single_1", "'abc\\'def'", "abc'def"),
+    ("str_quoted_esc_quote_single_2", "'abc\\\\\\'def'", "abc\\'def"),
+    ("str_quoted_esc_quote_single_3", "'abc\\\\\\\\\\'def'", "abc\\\\'def"),
+    ("str_quoted_esc_quote_single_4", "'a\\'b\\'cdef\\\\\\''", "a'b'cdef\\'"),
+    ("str_quoted_esc_quote_single_bad", "'abc\\\\'def'", GrammarParseError),
+    ("str_quoted_esc_quote_double_1", '"abc\\"def"', 'abc"def'),
+    ("str_quoted_esc_quote_double_2", '"abc\\\\\\"def"', 'abc\\"def'),
+    ("str_quoted_esc_quote_double_3", '"abc\\\\\\\\\\"def"', 'abc\\\\"def'),
+    ("str_quoted_esc_quote_double_4", '"a\\"b\\"cdef\\\\\\""', 'a"b"cdef\\"'),
+    ("str_quoted_esc_quote_double_bad", '"abc\\\\"def"', GrammarParseError),
     # Lists and dictionaries.
     ("list", "[0, 1]", [0, 1]),
     (
@@ -218,9 +235,9 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Interpolations in quoted strings.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", "'\"\\\\\\\\\\${foo}\\ '", r'"\${foo}\ '),
+    ("str_quoted_esc_single_2", "'\"\\\\\\${foo}\\ '", r'"\${foo}\ '),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", '"\'\\\\\\\\\\${foo}\\ "', r"'\${foo}\ "),
+    ("str_quoted_esc_double_2", '"\'\\\\\\${foo}\\ "', r"'\${foo}\ "),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
@@ -240,7 +257,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("nested_simple", "${${ref_str}}", "hi"),
     ("nested_select", "${options.${choice}}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
-    ("str_quoted_nested", r"'AB${test:\'CD${test:\\'EF\\'}GH\'}'", "ABCDEFGH"),
+    ("str_quoted_nested", r"'AB${test:\'CD${test:\\\'EF\\\'}GH\'}'", "ABCDEFGH"),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
@@ -272,8 +289,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
 ]
 
-# Parameters for tests of the "configValue" rule (may contain node
-# interpolations, but no resolvers).
+# Parameters for tests of the "configValue" rule (may contain interpolations).
 PARAMS_CONFIG_VALUE = [
     # String interpolations (top-level).
     ("str_top_basic", "bonjour ${str}", "bonjour hi"),
@@ -298,7 +314,9 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_quotes_single", "I like '${str}'", "I like 'hi'"),
     ("str_top_middle_quotes_double", 'I like "${str}"', 'I like "hi"'),
     ("str_top_any_char", "${str} !@\\#$%^&*})][({,/?;", "hi !@\\#$%^&*})][({,/?;"),
-    ("str_top_esc_inter", r"Esc: \${str}", "Esc: ${str}"),
+    ("str_top_esc_inter_1", r"Esc: \${str}", "Esc: ${str}"),
+    ("str_top_esc_inter_2", r"Esc: \\\${str}", r"Esc: \${str}"),
+    ("str_top_esc_inter_3", r"abc\\${str}\${str}\\", r"abc\hi${str}\\"),
     ("str_top_esc_inter_wrong_1", r"Wrong: $\{str\}", r"Wrong: $\{str\}"),
     ("str_top_esc_inter_wrong_2", r"Wrong: \${str\}", r"Wrong: ${str\}"),
     ("str_top_esc_backslash", r"Esc: \\${str}", r"Esc: \hi"),
@@ -307,8 +325,9 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_trailing_dollars", r"${str}$$$$", "hi$$$$"),
     ("str_top_leading_escapes", r"\\\\\${str}", r"\\${str}"),
     ("str_top_middle_escapes", r"abc\\\\\${str}", r"abc\\${str}"),
-    ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 3),
+    ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 5),
     ("str_top_concat_interpolations", "${null}${float}", "None1.2"),
+    ("str_top_issue_617", r""" ${test: "hi\\" }"} """, ' hi\\"} '),
     # Whitespaces.
     ("ws_toplevel", "  \tab  ${str} cd  ${int}\t", "  \tab  hi cd  123\t"),
     # Unmatched braces.
@@ -376,6 +395,7 @@ class TestOmegaConfGrammar:
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
+        OmegaConf.register_new_resolver("test", self._resolver_test)
         self._visit_with_config(parse_tree, expected_visit)
 
     @parametrize_from(

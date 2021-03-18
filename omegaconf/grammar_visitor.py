@@ -1,3 +1,4 @@
+import re
 import sys
 import warnings
 from typing import (
@@ -33,6 +34,16 @@ except ModuleNotFoundError:  # pragma: no cover
         file=sys.stderr,
     )
     sys.exit(1)
+
+# Regex matching trailing backslashes.
+TRAILING_BACKSLASHES = re.compile("(\\\\)+$")
+
+# Regex matching escaped quotes, for each kind of quote.
+# Note that we include *all* backslashes preceding the quote.
+ESCAPED_QUOTE = {
+    "'": re.compile(r"(\\)+'"),  # escaped single quote
+    '"': re.compile(r'(\\)+"'),  # escaped double quote
+}
 
 
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
@@ -100,14 +111,33 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
         # Visit all children (except last one which is EOF)
         vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
-        assert vals
-        if len(vals) == 1 and isinstance(
+        n_vals = len(vals)
+        assert n_vals > 0
+
+        if n_vals == 1 and isinstance(
             ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
         ):
             # Single interpolation: return the result "as is".
             return vals[0]
+
         # Concatenation of multiple components.
-        return "".join(map(str, vals))
+        # When a top-level string is followed by an interpolation, we need to un-escape
+        # any trailing backslash.
+        tokens = []
+        for i, (child, val) in enumerate(zip(ctx.getChildren(), vals)):
+            if isinstance(child, OmegaConfGrammarParser.ToplevelStrContext):
+                if i < n_vals - 1:
+                    # Top-level string followed by an interpolation.
+                    assert isinstance(
+                        ctx.getChild(i + 1), OmegaConfGrammarParser.InterpolationContext
+                    )
+                    tokens.append(self._unescape_trailing_backslashes(val))
+                else:
+                    tokens.append(val)
+            else:
+                tokens.append(str(val))
+
+        return "".join(tokens)
 
     def visitDictKey(self, ctx: OmegaConfGrammarParser.DictKeyContext) -> Any:
         return self._createPrimitive(ctx)
@@ -282,8 +312,19 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self.visit(ctx.getChild(0))
 
     def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
-        # (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+
-        return self._unescape(ctx.getChildren())
+        # (EVEN_BACKSLASHES | ESC_INTER | TOP_CHAR | TOP_STR)+
+
+        # Concatenate all fragments, un-escaping interpolations.
+        tokens = []
+        for child in ctx.getChildren():
+            txt = child.getText()
+            if child.symbol.type == OmegaConfGrammarLexer.ESC_INTER:
+                # Un-escape the interpolation, e.g. \${ -> ${ or \\\${ -> \${
+                assert len(txt) % 2 == 1
+                txt = txt[-(len(txt) + 1) // 2 :]
+            tokens.append(txt)
+
+        return "".join(tokens)
 
     def _createPrimitive(
         self,
@@ -318,13 +359,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             elif symbol.type == OmegaConfGrammarLexer.BOOL:
                 return symbol.text.lower() == "true"
             elif symbol.type == OmegaConfGrammarLexer.ESC:
-                return self._unescape([child])
+                return self._unescape_from_sequence([child])
             elif symbol.type == OmegaConfGrammarLexer.WS:  # pragma: no cover
                 # A single WS should have been "consumed" by another token.
                 raise AssertionError("WS should never be reached")
             assert False, symbol.type
         # Concatenation of multiple items ==> un-escape the concatenation.
-        return self._unescape(ctx.getChildren())
+        return self._unescape_from_sequence(ctx.getChildren())
 
     def _resolve_quoted_string(self, quoted: str) -> str:
         """
@@ -333,23 +374,18 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         # Identify quote type.
         assert len(quoted) >= 2 and quoted[0] == quoted[-1]
         quote_type = quoted[0]
-        assert quote_type in ["'", '"']
 
-        # Un-escape quotes and backslashes within the string (the two kinds of
-        # escapable characters in quoted strings). We do it in two passes:
-        #   1. Replace `\"` with `"` (and similarly for single quotes)
-        #   2. Replace `\\` with `\`
-        # The order is important so that `\\"` is replaced with an escaped quote `\"`.
-        # We also remove the start and end quotes.
-        esc_quote = f"\\{quote_type}"
-        quoted_content = (
-            quoted[1:-1].replace(esc_quote, quote_type).replace("\\\\", "\\")
-        )
+        # Remove enclosing quotes.
+        content = quoted[1:-1]
+
+        # Un-escape quotes then trailing backslashes.
+        content = self._unescape_quotes(content, quote_type)
+        content = self._unescape_trailing_backslashes(content)
 
         # Parse the string.
-        return self.quoted_string_callback(quoted_content)
+        return self.quoted_string_callback(content)
 
-    def _unescape(
+    def _unescape_from_sequence(
         self,
         seq: Iterable[Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]],
     ) -> str:
@@ -374,3 +410,59 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 assert isinstance(node, OmegaConfGrammarParser.InterpolationContext)
                 chrs.append(str(self.visitInterpolation(node)))
         return "".join(chrs)
+
+    def _unescape_quotes(self, expr: str, quote_type: str) -> str:
+        """
+        Un-escape escaped quotes from an expression.
+
+        Examples:
+            abc              -> abc
+            abc\'def         -> abc'def
+            abc\'\'def\\\'gh -> abc''def\'gh
+        """
+        pattern = ESCAPED_QUOTE[quote_type]
+        match = pattern.search(expr)
+
+        if match is None:
+            return expr
+
+        tokens = []
+        while match is not None:
+            start, stop = match.span()
+            size = stop - start
+            # An escaped quote is made of an odd number of backslashes followed by a
+            # quote, so the total number of matching characters should be even.
+            assert size % 2 == 0
+            # Add characters before the escaped quote.
+            tokens.append(expr[0:start])
+            # Add the escaped quote (un-escaping the backslashes, which can be achieved
+            # by extracting the proper subset of the string).
+            tokens.append(expr[stop - size // 2 : stop])
+            # Move on to next match.
+            expr = expr[stop:]
+            match = pattern.search(expr)
+
+        # Add characters after the last match.
+        tokens.append(expr)
+
+        return "".join(tokens)
+
+    def _unescape_trailing_backslashes(self, expr: str) -> str:
+        """
+        Un-escape trailing backslashes from `expr`.
+
+        Examples:
+            abc          -> abc
+            abc\\        -> abc\
+            abc\\def     -> abc\\def
+            abc\\def\\\\ -> abc\\def\\
+        """
+        match = TRAILING_BACKSLASHES.search(expr)
+        if match is None:
+            return expr
+        start, end = match.span()
+        n_backslashes = end - start
+        # Sanity check: there should be an even number of backslashes at end of string.
+        assert n_backslashes % 2 == 0
+        # Un-escaping backslashes <=> removing half of them.
+        return expr[0 : start + n_backslashes // 2]
