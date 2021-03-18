@@ -800,7 +800,8 @@ as DictConfig, allowing attribute style access on the resulting node.
 
     >>> from omegaconf import SCMode
     >>> conf = OmegaConf.create({"structured_config": MyConfig})
-    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
+    >>> container = OmegaConf.to_container(conf,
+    ...     structured_config_mode=SCMode.DICT_CONFIG)
     >>> show(container)
     type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
     >>> show(container["structured_config"])
