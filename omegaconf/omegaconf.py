@@ -121,7 +121,7 @@ def register_default_resolvers() -> None:
             and default is not None
             and not isinstance(default, str)
         ):
-            raise ValidationError(
+            raise TypeError(
                 f"The default value of the `oc.env` resolver must be a string or "
                 f"None, but `{default}` is of type {type(default).__name__}"
             )

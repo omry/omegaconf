@@ -474,7 +474,7 @@ def test_env_non_str_default(monkeypatch: Any, has_var: bool) -> None:
     with pytest.raises(
         InterpolationResolutionError,
         match=re.escape(
-            "ValidationError raised while resolving interpolation: The default value "
+            "TypeError raised while resolving interpolation: The default value "
             "of the `oc.env` resolver must be a string or None, but `123` is of type int"
         ),
     ):
