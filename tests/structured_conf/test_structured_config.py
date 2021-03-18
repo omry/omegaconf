@@ -1010,26 +1010,6 @@ class TestDictSubclass:
             # bad key
             cfg[Color.BLUE] = "nope"
 
-    def test_str2user_with_field(self, module: Any) -> None:
-        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
-
-        assert cfg.foo.name == "Bond"
-        assert cfg.foo.age == 7
-        assert isinstance(cfg.foo, DictConfig)
-
-        cfg.mp = module.User(name="Moneypenny", age=11)
-        assert cfg.mp.name == "Moneypenny"
-        assert cfg.mp.age == 11
-        assert isinstance(cfg.mp, DictConfig)
-
-        with raises(ValidationError):
-            # bad value
-            cfg.hello = "world"
-
-        with raises(KeyValidationError):
-            # bad key
-            cfg[Color.BLUE] = cfg.mp
-
     def test_str2str_with_field(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
         assert cfg.foo == "bar"
