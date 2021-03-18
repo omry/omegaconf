@@ -4,7 +4,7 @@ from enum import Enum
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
-import pytest
+from pytest import mark, param, raises
 
 import tests
 from omegaconf import (
@@ -104,7 +104,7 @@ params = [
     # DictConfig #
     ##############
     # update
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", "hello", merge=True),
@@ -117,7 +117,7 @@ params = [
         ),
         id="structured:update_with_invalid_value",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", None, merge=True),
@@ -130,7 +130,7 @@ params = [
         ),
         id="structured:update:none_to_non_optional",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({}),
             op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType(), merge=True),
@@ -141,7 +141,7 @@ params = [
         id="dict:update:object_of_illegal_type",
     ),
     # pop
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly({"foo": "bar"}),
             op=lambda cfg: cfg.pop("foo"),
@@ -152,7 +152,7 @@ params = [
         ),
         id="dict,readonly:pop",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "bar"}),
             op=lambda cfg: cfg.pop("not_found"),
@@ -162,7 +162,7 @@ params = [
         ),
         id="dict:pop_invalid",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": {}}),
             op=lambda cfg: cfg.foo.pop("not_found"),
@@ -174,7 +174,7 @@ params = [
         ),
         id="dict:pop_invalid_nested",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "bar"}),
             op=lambda cfg: cfg.__delitem__("not_found"),
@@ -184,7 +184,7 @@ params = [
         ),
         id="dict:del_invalid",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": {}}),
             op=lambda cfg: cfg.foo.__delitem__("not_found"),
@@ -196,7 +196,7 @@ params = [
         ),
         id="dict:del_invalid_nested",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: getattr(cfg, "fail"),
@@ -208,7 +208,7 @@ params = [
         id="structured:access_invalid_attribute",
     ),
     # getattr
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: getattr(cfg, "fail"),
@@ -218,7 +218,7 @@ params = [
         ),
         id="dict,struct:access_invalid_attribute",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
@@ -229,7 +229,7 @@ params = [
         ),
         id="dict,accessing_missing_interpolation",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
@@ -240,7 +240,7 @@ params = [
         ),
         id="dict,accessing_missing_str_interpolation",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
@@ -253,7 +253,7 @@ params = [
         ),
         id="dict,accessing_missing_relative_interpolation",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "${..missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
@@ -264,7 +264,7 @@ params = [
         ),
         id="dict,accessing_invalid_double_relative_interpolation",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create({"foo": "${int.missing}", "int": 0}),
             op=lambda cfg: getattr(cfg, "foo"),
@@ -278,7 +278,7 @@ params = [
         ),
         id="dict,accessing_non_container_interpolation",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(
                 {"foo": "${${missing_val}}", "missing_val": "???"}
@@ -295,7 +295,7 @@ params = [
         id="dict,accessing_missing_nested_interpolation",
     ),
     # setattr
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: setattr(cfg, "zlonk", "zlank"),
@@ -305,7 +305,7 @@ params = [
         ),
         id="dict,struct:set_invalid_attribute",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: setattr(cfg, "params", 20),
@@ -317,7 +317,7 @@ params = [
         ),
         id="structured:setattr,invalid_type_assigned_to_structured",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly({"foo": "bar"}),
             op=lambda cfg: setattr(cfg, "foo", 20),
@@ -328,7 +328,7 @@ params = [
         ),
         id="dict,readonly:set_attribute",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(
                 {"foo": DictConfig(is_optional=False, content={})}
@@ -342,7 +342,7 @@ params = [
         ),
         id="dict:setattr:not_optional:set_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: cfg.params.__setattr__("foo", "bar"),
@@ -358,7 +358,7 @@ params = [
         id="structured:setattr,invalid_type_assigned_to_field",
     ),
     # setitem
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: cfg.__setitem__("zoo", "zonk"),
@@ -368,7 +368,7 @@ params = [
         ),
         id="dict,struct:setitem_on_none_existing_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__setitem__("foo", "bar"),
@@ -379,7 +379,7 @@ params = [
         ),
         id="DictConfig[Color,str]:setitem_bad_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__setitem__(None, "bar"),
@@ -389,7 +389,7 @@ params = [
         ),
         id="DictConfig[Color,str]:setitem_bad_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=str, element_type=Color, content={}),
             op=lambda cfg: cfg.__setitem__("foo", "bar"),
@@ -400,7 +400,7 @@ params = [
         ),
         id="DictConfig[str,Color]:setitem_bad_value",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(User),
             op=lambda cfg: cfg.__setitem__("name", [1, 2]),
@@ -413,7 +413,7 @@ params = [
         id="DictConfig[Any,Any]:setitem_stringnode_bad_value",
     ),
     # getitem
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: cfg.__getitem__("zoo"),
@@ -423,7 +423,7 @@ params = [
         ),
         id="dict,struct:getitem_key_not_in_struct",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__("foo"),
@@ -433,7 +433,7 @@ params = [
         ),
         id="DictConfig[Color,str]:getitem_str_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=Color, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__(None),
@@ -443,7 +443,7 @@ params = [
         ),
         id="DictConfig[Color,str]:getitem_str_key_None",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(key_type=str, element_type=str, content={}),
             op=lambda cfg: cfg.__getitem__(Color.RED),
@@ -454,7 +454,7 @@ params = [
         ),
         id="DictConfig[str,str]:getitem_color_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly({"foo1": "bar"}),
             op=lambda cfg: cfg.merge_with({"foo2": "bar"}),
@@ -464,7 +464,7 @@ params = [
         ),
         id="dict,readonly:merge_with",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: OmegaConf.merge(cfg, {"params": {"foo": "bar"}}),
@@ -479,7 +479,7 @@ params = [
         ),
         id="structured:merge,invalid_field_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: OmegaConf.merge(cfg, {"params": {"zlonk": 10}}),
@@ -493,7 +493,7 @@ params = [
         ),
         id="structured:merge,adding_an_invalid_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(Package),
             op=lambda cfg: OmegaConf.merge(cfg, {"modules": [{"foo": "var"}]}),
@@ -507,7 +507,7 @@ params = [
         id="structured:merge,bad_key_merge",
     ),
     # merge_with
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: cfg.merge_with(Plugin),
@@ -518,7 +518,7 @@ params = [
         id="structured:merge_invalid_dataclass",
     ),
     # get
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(),
             op=lambda cfg: cfg.get(IllegalType),
@@ -529,7 +529,7 @@ params = [
         ),
         id="dict:get_illegal_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(),
             op=lambda cfg: cfg.get(IllegalType()),
@@ -539,7 +539,7 @@ params = [
         ),
         id="dict:get_object_of_illegal_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig({}, key_type=int),
             op=lambda cfg: cfg.get("foo"),
@@ -550,7 +550,7 @@ params = [
         ),
         id="dict[int,Any]:mistyped_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig({}, key_type=float),
             op=lambda cfg: cfg.get("foo"),
@@ -561,7 +561,7 @@ params = [
         ),
         id="dict[float,Any]:mistyped_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig({}, key_type=bool),
             op=lambda cfg: cfg.get("foo"),
@@ -573,7 +573,7 @@ params = [
         id="dict[bool,Any]:mistyped_key",
     ),
     # dict:create
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
@@ -584,7 +584,7 @@ params = [
         ),
         id="dict:create_none_optional_with_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
@@ -595,7 +595,7 @@ params = [
         ),
         id="dict:create:not_optional_int_field_with_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(NotOptionalA),
@@ -609,7 +609,7 @@ params = [
         ),
         id="dict:create:not_optional_A_field_with_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(IllegalType),
@@ -620,7 +620,7 @@ params = [
         ),
         id="dict_create_from_illegal_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(
@@ -633,7 +633,7 @@ params = [
         ),
         id="structured:create_with_invalid_value",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(IllegalType()),
@@ -644,7 +644,7 @@ params = [
         ),
         id="structured:create_from_unsupported_object",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(UnionError),
@@ -655,7 +655,7 @@ params = [
         id="structured:create_with_union_error",
     ),
     # assign
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(ref_type=ConcretePlugin, content="???"),
             op=lambda cfg: cfg._set_value(1),
@@ -666,7 +666,7 @@ params = [
         ),
         id="dict:set_value:reftype_mismatch",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: DictConfig(
                 key_type=str, element_type=int, content={"foo": 10, "bar": 20}
@@ -678,7 +678,7 @@ params = [
         ),
         id="DictConfig[str,int]:assigned_str_value",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
             op=lambda cfg: cfg.__setitem__("dict_str", 1),
@@ -690,7 +690,7 @@ params = [
         ),
         id="DictConfig[str,int]:assigned_primitive_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
             op=lambda cfg: cfg.__setitem__("dict_str", User(age=2, name="bar")),
@@ -702,7 +702,7 @@ params = [
         ),
         id="DictConfig[str,int]:assigned_structured_config",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
             op=lambda cfg: cfg.__setitem__("dict_int", "fail"),
@@ -714,7 +714,7 @@ params = [
         ),
         id="DictConfig[int,int]:assigned_primitive_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(SubscriptedDict),
             op=lambda cfg: cfg.__setitem__("dict_int", User(age=2, name="bar")),
@@ -727,7 +727,7 @@ params = [
         id="DictConfig[int,int]:assigned_structured_config",
     ),
     # delete
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly({"foo": "bar"}),
             op=lambda cfg: cfg.__delitem__("foo"),
@@ -738,7 +738,7 @@ params = [
         ),
         id="dict,readonly:del",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: cfg.__delitem__("foo"),
@@ -749,7 +749,7 @@ params = [
         ),
         id="dict,struct:del",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(User(name="bond")),
             op=lambda cfg: cfg.__delitem__("name"),
@@ -765,7 +765,7 @@ params = [
     # ListConfig #
     ##############
     # getattr
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: setattr(cfg, "foo", 10),
@@ -777,7 +777,7 @@ params = [
         id="list:setattr",
     ),
     # setattr
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: getattr(cfg, "foo"),
@@ -789,7 +789,7 @@ params = [
         id="list:setattr",
     ),
     # get node
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg._get_node("foo"),
@@ -800,7 +800,7 @@ params = [
         ),
         id="list:get_nox_ex:invalid_index_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg._get_node(20),
@@ -811,7 +811,7 @@ params = [
         ),
         id="list:get_node_ex:index_out_of_range",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg._get_node(20),
@@ -822,7 +822,7 @@ params = [
         ),
         id="list:get_node_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: cfg._get_node(20),
@@ -834,7 +834,7 @@ params = [
         id="list:get_node_missing",
     ),
     # list:create
-    pytest.param(
+    param(
         Expected(
             create=lambda: None,
             op=lambda cfg: ListConfig(is_optional=False, content=None),
@@ -847,7 +847,7 @@ params = [
         id="list:create:not_optional_with_none",
     ),
     # append
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([]),
             op=lambda cfg: cfg.append(IllegalType()),
@@ -859,7 +859,7 @@ params = [
         id="list:append_value_of_illegal_type",
     ),
     # pop
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.pop(0),
@@ -871,7 +871,7 @@ params = [
         ),
         id="list:readonly:pop",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg.pop("Invalid_key_type"),
@@ -882,7 +882,7 @@ params = [
         ),
         id="list:pop_invalid_key",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_struct({"foo": "bar"}),
             op=lambda cfg: cfg.pop("foo"),
@@ -893,7 +893,7 @@ params = [
         ),
         id="dict,struct:pop",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: cfg.pop("name"),
@@ -904,7 +904,7 @@ params = [
         ),
         id="dict,structured:pop",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg.pop(0),
@@ -915,7 +915,7 @@ params = [
         ),
         id="list:pop_from_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: cfg.pop(0),
@@ -927,7 +927,7 @@ params = [
         id="list:pop_from_missing",
     ),
     # getitem
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(["???"]),
             op=lambda cfg: cfg.__getitem__(slice(0, 1)),
@@ -939,7 +939,7 @@ params = [
         ),
         id="list:subscript_slice_with_missing",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([10, "???"]),
             op=lambda cfg: cfg.__getitem__(1),
@@ -951,7 +951,7 @@ params = [
         ),
         id="list:subscript_index_with_missing",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg.__getitem__(20),
@@ -962,7 +962,7 @@ params = [
         ),
         id="list:subscript:index_out_of_range",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg.__getitem__("foo"),
@@ -973,7 +973,7 @@ params = [
         ),
         id="list:getitem,illegal_key_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg.__getitem__(0),
@@ -985,7 +985,7 @@ params = [
         id="list:getitem,illegal_key_type",
     ),
     # setitem
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([None]),
             op=lambda cfg: cfg.__setitem__(0, IllegalType()),
@@ -996,7 +996,7 @@ params = [
         ),
         id="list:setitem,illegal_value_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create([1, 2, 3]),
             op=lambda cfg: cfg.__setitem__("foo", 4),
@@ -1007,7 +1007,7 @@ params = [
         ),
         id="list:setitem,illegal_key_type",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.__setitem__(0, 4),
@@ -1020,7 +1020,7 @@ params = [
         id="list,readonly:setitem",
     ),
     # _set_value
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(is_optional=False, element_type=int, content=[]),
             op=lambda cfg: cfg._set_value(None),
@@ -1031,7 +1031,7 @@ params = [
         ),
         id="list:create_not_optional:_set_value(None)",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=[1, 2]),
             op=lambda cfg: cfg._set_value(True),
@@ -1044,7 +1044,7 @@ params = [
         id="list:create_not_optional:_set_value(True)",
     ),
     # assign
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(element_type=int, content=[1, 2, 3]),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
@@ -1056,7 +1056,7 @@ params = [
         ),
         id="list,int_elements:assigned_str_element",
     ),
-    pytest.param(
+    param(
         Expected(
             # make sure OmegaConf.create is not losing critical metadata.
             create=lambda: OmegaConf.create(
@@ -1071,7 +1071,7 @@ params = [
         ),
         id="list,int_elements:assigned_str_element",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: OmegaConf.create(
                 [IntegerNode(is_optional=False, value=0), 2, 3]
@@ -1086,7 +1086,7 @@ params = [
         id="list,not_optional:null_assignment",
     ),
     # index
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.index(99),
@@ -1096,7 +1096,7 @@ params = [
         id="list,readonly:index_not_found",
     ),
     # insert
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.insert(1, 99),
@@ -1108,7 +1108,7 @@ params = [
         ),
         id="list,readonly:insert",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg.insert(1, 99),
@@ -1119,7 +1119,7 @@ params = [
         ),
         id="list:insert_into_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: cfg.insert(1, 99),
@@ -1132,7 +1132,7 @@ params = [
         id="list:insert_into_missing",
     ),
     # get
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg.get(0),
@@ -1143,7 +1143,7 @@ params = [
         ),
         id="list:get_from_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: cfg.get(0),
@@ -1155,7 +1155,7 @@ params = [
         id="list:get_from_missing",
     ),
     # sort
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.sort(),
@@ -1164,7 +1164,7 @@ params = [
         ),
         id="list:readonly:sort",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: cfg.sort(),
@@ -1173,7 +1173,7 @@ params = [
         ),
         id="list:sort_from_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: cfg.sort(),
@@ -1183,7 +1183,7 @@ params = [
         id="list:sort_from_missing",
     ),
     #     # iter
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.sort(),
@@ -1192,7 +1192,7 @@ params = [
         ),
         id="list:readonly:sort",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content=None),
             op=lambda cfg: iter(cfg),
@@ -1201,7 +1201,7 @@ params = [
         ),
         id="list:iter_none",
     ),
-    pytest.param(
+    param(
         Expected(
             create=lambda: ListConfig(content="???"),
             op=lambda cfg: iter(cfg),
@@ -1211,7 +1211,7 @@ params = [
         id="list:iter_missing",
     ),
     # delete
-    pytest.param(
+    param(
         Expected(
             create=lambda: create_readonly([1, 2, 3]),
             op=lambda cfg: cfg.__delitem__(0),
@@ -1238,13 +1238,13 @@ def create_readonly(cfg: Any) -> Any:
     return cfg
 
 
-@pytest.mark.parametrize("expected", params)
+@mark.parametrize("expected", params)
 def test_errors(expected: Expected, monkeypatch: Any) -> None:
     monkeypatch.setenv("OC_CAUSE", "0")
     cfg = expected.create()
     expected.finalize(cfg)
     msg = expected.msg
-    with pytest.raises(expected.exception_type, match=re.escape(msg)) as einfo:
+    with raises(expected.exception_type, match=re.escape(msg)) as einfo:
         try:
             expected.op(cfg)
         except Exception as e:
@@ -1301,7 +1301,7 @@ def test_assertion_error() -> None:
             assert False
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
 )
 def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
@@ -1316,11 +1316,11 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
             full_key: div_by_zero
             object_type=dict"""
     )
-    with pytest.raises(InterpolationResolutionError, match=re.escape(expected_msg)):
+    with raises(InterpolationResolutionError, match=re.escape(expected_msg)):
         c.div_by_zero
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ["create_func", "arg"],
     [
         (OmegaConf.create, {"a": "${b"}),
@@ -1329,7 +1329,7 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     ],
 )
 def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
-    with pytest.raises(
+    with raises(
         GrammarParseError, match=re.escape("no viable alternative at input '${b'")
     ):
         create_func(arg)
@@ -1340,7 +1340,7 @@ def test_cycle_when_iterating_over_parents() -> None:
     x_node = c._get_node("x")
     assert isinstance(x_node, DictConfig)
     c._set_parent(x_node)
-    with pytest.raises(
+    with raises(
         OmegaConfBaseException,
         match=re.escape("Cycle when iterating over parents of key `x`"),
     ):
@@ -1365,5 +1365,5 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
         "Cycle when iterating over parents of key `x`>"
     )
 
-    with pytest.raises(RecursionError, match=match):
+    with raises(RecursionError, match=match):
         c.x

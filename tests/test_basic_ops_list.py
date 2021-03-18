@@ -3,7 +3,7 @@ import re
 from textwrap import dedent
 from typing import Any, List, Optional
 
-import pytest
+from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
@@ -31,8 +31,8 @@ def test_list_of_dicts() -> None:
     assert c[1].key2 == "value2"
 
 
-@pytest.mark.parametrize("default", [None, 0, "default"])
-@pytest.mark.parametrize(
+@mark.parametrize("default", [None, 0, "default"])
+@mark.parametrize(
     ("cfg", "key"),
     [
         (["???"], 0),
@@ -46,8 +46,8 @@ def test_list_get_return_default(cfg: List[Any], key: int, default: Any) -> None
     assert val is default
 
 
-@pytest.mark.parametrize("default", [None, 0, "default"])
-@pytest.mark.parametrize(
+@mark.parametrize("default", [None, 0, "default"])
+@mark.parametrize(
     ("cfg", "key", "expected"),
     [
         (["found"], 0, "found"),
@@ -64,33 +64,33 @@ def test_list_get_do_not_return_default(
     assert val == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, expected, expected_no_resolve, list_key",
     [
-        pytest.param([1, 2], [1, 2], [1, 2], None, id="simple"),
-        pytest.param(["${1}", 2], [2, 2], ["${1}", 2], None, id="interpolation"),
-        pytest.param(
+        param([1, 2], [1, 2], [1, 2], None, id="simple"),
+        param(["${1}", 2], [2, 2], ["${1}", 2], None, id="interpolation"),
+        param(
             [ListConfig(None), ListConfig("${.2}"), [1, 2]],
             [None, ListConfig([1, 2]), ListConfig([1, 2])],
             [None, ListConfig("${.2}"), ListConfig([1, 2])],
             None,
             id="iter_over_lists",
         ),
-        pytest.param(
+        param(
             [DictConfig(None), DictConfig("${.2}"), {"a": 10}],
             [None, DictConfig({"a": 10}), DictConfig({"a": 10})],
             [None, DictConfig("${.2}"), DictConfig({"a": 10})],
             None,
             id="iter_over_dicts",
         ),
-        pytest.param(
+        param(
             ["???", ListConfig("???"), DictConfig("???")],
-            pytest.raises(MissingMandatoryValue),
+            raises(MissingMandatoryValue),
             ["???", ListConfig("???"), DictConfig("???")],
             None,
             id="iter_over_missing",
         ),
-        pytest.param(
+        param(
             {
                 "defaults": [
                     {"optimizer": "adam"},
@@ -143,7 +143,7 @@ def test_iterate_list_with_missing_interpolation() -> None:
     c = OmegaConf.create([1, "${10}"])
     itr = iter(c)
     assert 1 == next(itr)
-    with pytest.raises(InterpolationKeyError):
+    with raises(InterpolationKeyError):
         next(itr)
 
 
@@ -151,7 +151,7 @@ def test_iterate_list_with_missing() -> None:
     c = OmegaConf.create([1, "???"])
     itr = iter(c)
     assert 1 == next(itr)
-    with pytest.raises(MissingMandatoryValue):
+    with raises(MissingMandatoryValue):
         next(itr)
 
 
@@ -160,13 +160,13 @@ def test_items_with_interpolation() -> None:
     assert c == ["foo", "foo"]
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ["cfg", "key", "expected_out", "expected_cfg"],
     [
-        pytest.param([1, 2, 3], 0, 1, [2, 3]),
-        pytest.param([1, 2, 3], None, 3, [1, 2]),
-        pytest.param(["???", 2, 3], 0, None, [2, 3]),
-        pytest.param([1, None, 3], 1, None, [1, 3]),
+        param([1, 2, 3], 0, 1, [2, 3]),
+        param([1, 2, 3], None, 3, [1, 2]),
+        param(["???", 2, 3], 0, None, [2, 3]),
+        param([1, None, 3], 1, None, [1, 3]),
     ],
 )
 def test_list_pop(
@@ -179,17 +179,17 @@ def test_list_pop(
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ["cfg", "key", "exc"],
     [
-        pytest.param([1, 2, 3], 100, IndexError),
-        pytest.param(["${4}", 2, 3], 0, InterpolationKeyError),
-        pytest.param(["${1}", "???", 3], 0, InterpolationToMissingValueError),
+        param([1, 2, 3], 100, IndexError),
+        param(["${4}", 2, 3], 0, InterpolationKeyError),
+        param(["${1}", "???", 3], 0, InterpolationToMissingValueError),
     ],
 )
 def test_list_pop_errors(cfg: List[Any], key: int, exc: type) -> None:
     c = OmegaConf.create(cfg)
-    with pytest.raises(exc):
+    with raises(exc):
         c.pop(key)
     assert c == cfg
     validate_list_keys(c)
@@ -199,7 +199,7 @@ def test_list_pop_on_unexpected_exception_not_modifying() -> None:
     src = [1, 2, 3, 4]
     c = OmegaConf.create(src)
 
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         c.pop("foo")  # type: ignore
     assert c == src
 
@@ -217,20 +217,20 @@ def test_in_with_interpolation() -> None:
     assert 10 in c.a
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ("lst", "expected"),
     [
-        pytest.param(
+        param(
             ListConfig(content=None),
-            pytest.raises(
+            raises(
                 TypeError,
                 match="Cannot check if an item is in a ListConfig object representing None",
             ),
             id="ListConfig(None)",
         ),
-        pytest.param(
+        param(
             ListConfig(content="???"),
-            pytest.raises(
+            raises(
                 MissingMandatoryValue,
                 match="Cannot check if an item is in missing ListConfig",
             ),
@@ -255,7 +255,7 @@ def test_list_config_with_tuple() -> None:
 
 def test_items_on_list() -> None:
     c = OmegaConf.create([1, 2])
-    with pytest.raises(AttributeError):
+    with raises(AttributeError):
         c.items()
 
 
@@ -276,13 +276,13 @@ def test_list_delitem() -> None:
     assert c == [1, 2, 3]
     del c[0]
     assert c == [2, 3]
-    with pytest.raises(IndexError):
+    with raises(IndexError):
         del c[100]
 
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lst,expected",
     [
         (OmegaConf.create([1, 2]), 2),
@@ -298,7 +298,7 @@ def test_list_len(lst: Any, expected: Any) -> None:
 
 def test_nested_list_assign_illegal_value() -> None:
     c = OmegaConf.create({"a": [None]})
-    with pytest.raises(
+    with raises(
         UnsupportedValueType,
         match=re.escape(
             dedent(
@@ -322,22 +322,22 @@ def test_list_append() -> None:
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lc,element,expected",
     [
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=int),
             "foo",
-            pytest.raises(
+            raises(
                 ValidationError,
                 match=re.escape("Value 'foo' could not be converted to Integer"),
             ),
             id="append_str_to_list[int]",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=Color),
             "foo",
-            pytest.raises(
+            raises(
                 ValidationError,
                 match=re.escape(
                     "Invalid value 'foo', expected one of [RED, GREEN, BLUE]"
@@ -345,10 +345,10 @@ def test_list_append() -> None:
             ),
             id="append_str_to_list[Color]",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=User),
             "foo",
-            pytest.raises(
+            raises(
                 ValidationError,
                 match=re.escape(
                     "Invalid type assigned : str is not a subclass of User. value: foo"
@@ -356,10 +356,10 @@ def test_list_append() -> None:
             ),
             id="append_str_to_list[User]",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=User),
             {"name": "Bond", "age": 7},
-            pytest.raises(
+            raises(
                 ValidationError,
                 match=re.escape(
                     "Invalid type assigned : dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}"
@@ -367,10 +367,10 @@ def test_list_append() -> None:
             ),
             id="list:convert_dict_to_user",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=User),
             {},
-            pytest.raises(
+            raises(
                 ValidationError,
                 match=re.escape(
                     "Invalid type assigned : dict is not a subclass of User. value: {}"
@@ -387,22 +387,22 @@ def test_append_invalid_element_type(
         lc.append(element)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lc,element,expected",
     [
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=int),
             "10",
             10,
             id="list:convert_str_to_int",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=float),
             "10",
             10.0,
             id="list:convert_str_to_float",
         ),
-        pytest.param(
+        param(
             ListConfig(content=[], element_type=Color),
             "RED",
             Color.RED,
@@ -417,7 +417,7 @@ def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     assert type(value) == type(expected)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "index, expected", [(slice(1, 3), [11, 12]), (slice(0, 3, 2), [10, 12]), (-1, 13)]
 )
 def test_list_index(index: Any, expected: Any) -> None:
@@ -425,7 +425,7 @@ def test_list_index(index: Any, expected: Any) -> None:
     assert c[index] == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, expected",
     [
         (OmegaConf.create([1, 2, 3]), ["0", "1", "2"]),
@@ -443,7 +443,7 @@ def validate_list_keys(c: Any) -> None:
         assert c._get_node(i)._metadata.key == i
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, index, value, expected, expected_node_type, expectation",
     [
         (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode, None),
@@ -488,16 +488,16 @@ def test_insert(
         assert c == expected
         assert type(c._get_node(index)) == expected_node_type
     else:
-        with pytest.raises(expectation):
+        with raises(expectation):
             c.insert(index, value)
     validate_list_keys(c)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lst,idx,value,expectation",
     [
-        (ListConfig(content=None), 0, 10, pytest.raises(TypeError)),
-        (ListConfig(content="???"), 0, 10, pytest.raises(MissingMandatoryValue)),
+        (ListConfig(content=None), 0, 10, raises(TypeError)),
+        (ListConfig(content="???"), 0, 10, raises(MissingMandatoryValue)),
     ],
 )
 def test_insert_special_list(lst: Any, idx: Any, value: Any, expectation: Any) -> None:
@@ -505,7 +505,7 @@ def test_insert_special_list(lst: Any, idx: Any, value: Any, expectation: Any) -
         lst.insert(idx, value)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, append, result",
     [
         ([], [], []),
@@ -519,11 +519,11 @@ def test_extend(src: List[Any], append: List[Any], result: List[Any]) -> None:
     assert lst == result
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, remove, result, expectation",
     [
         ([10], 10, [], does_not_raise()),
-        ([], "oops", None, pytest.raises(ValueError)),
+        ([], "oops", None, raises(ValueError)),
         ([0, dict(a="blah"), 10], dict(a="blah"), [0, 10], does_not_raise()),
         ([1, 2, 1, 2], 2, [1, 1, 2], does_not_raise()),
     ],
@@ -536,8 +536,8 @@ def test_remove(src: List[Any], remove: Any, result: Any, expectation: Any) -> N
         assert lst == result
 
 
-@pytest.mark.parametrize("src", [[], [1, 2, 3], [None, dict(foo="bar")]])
-@pytest.mark.parametrize("num_clears", [1, 2])
+@mark.parametrize("src", [[], [1, 2, 3], [None, dict(foo="bar")]])
+@mark.parametrize("num_clears", [1, 2])
 def test_clear(src: List[Any], num_clears: int) -> None:
     lst = OmegaConf.create(src)
     for i in range(num_clears):
@@ -545,10 +545,10 @@ def test_clear(src: List[Any], num_clears: int) -> None:
     assert lst == []
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, item, expected_index, expectation",
     [
-        ([], 20, -1, pytest.raises(ValueError)),
+        ([], 20, -1, raises(ValueError)),
         ([10, 20], 10, 0, does_not_raise()),
         ([10, 20], 20, 1, does_not_raise()),
     ],
@@ -566,14 +566,14 @@ def test_index_with_range() -> None:
     assert lst.index(x=30) == 2
     assert lst.index(x=30, start=1) == 2
     assert lst.index(x=30, start=1, end=3) == 2
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         lst.index(x=30, start=3)
 
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         lst.index(x=30, end=2)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, item, count",
     [([], 10, 0), ([10], 10, 1), ([10, 2, 10], 10, 2), ([10, 2, 10], None, 0)],
 )
@@ -597,7 +597,7 @@ def test_sort() -> None:
 def test_insert_throws_not_changing_list() -> None:
     c = OmegaConf.create([])
     iv = IllegalType()
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         c.insert(0, iv)
     assert len(c) == 0
     assert c == []
@@ -610,7 +610,7 @@ def test_insert_throws_not_changing_list() -> None:
 def test_append_throws_not_changing_list() -> None:
     c = OmegaConf.create([])
     iv = IllegalType()
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         c.append(iv)
     assert len(c) == 0
     assert c == []
@@ -629,7 +629,7 @@ def test_hash() -> None:
     assert hash(c1) != hash(c2)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "in_list1, in_list2,in_expected",
     [
         ([], [], []),
@@ -665,11 +665,11 @@ def test_deep_add() -> None:
 
 def test_set_with_invalid_key() -> None:
     cfg = OmegaConf.create([1, 2, 3])
-    with pytest.raises(KeyValidationError):
+    with raises(KeyValidationError):
         cfg["foo"] = 4  # type: ignore
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lst,idx,expected",
     [
         (OmegaConf.create([1, 2]), 0, 1),
@@ -679,13 +679,13 @@ def test_set_with_invalid_key() -> None:
 )
 def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
     if isinstance(expected, type):
-        with pytest.raises(expected):
+        with raises(expected):
             lst.__getitem__(idx)
     else:
         assert lst.__getitem__(idx) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "sli",
     [
         (slice(None, None, None)),
@@ -708,7 +708,7 @@ def test_getitem_slice(sli: slice) -> None:
     assert olst.__getitem__(sli) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "lst,idx,expected",
     [
         (OmegaConf.create([1, 2]), 0, 1),
@@ -721,7 +721,7 @@ def test_getitem_slice(sli: slice) -> None:
 )
 def test_get(lst: Any, idx: Any, expected: Any) -> None:
     if isinstance(expected, type):
-        with pytest.raises(expected):
+        with raises(expected):
             lst.get(idx)
     else:
         assert lst.__getitem__(idx) == expected
@@ -730,7 +730,7 @@ def test_get(lst: Any, idx: Any, expected: Any) -> None:
 def test_getattr() -> None:
     src = ["a", "b", "c"]
     cfg = OmegaConf.create(src)
-    with pytest.raises(AttributeError):
+    with raises(AttributeError):
         getattr(cfg, "foo")
     assert getattr(cfg, "0") == src[0]
     assert getattr(cfg, "1") == src[1]
@@ -762,7 +762,7 @@ def test_shallow_copy_none() -> None:
     assert cfg._is_none()
 
 
-@pytest.mark.parametrize("flag", ["struct", "readonly"])
+@mark.parametrize("flag", ["struct", "readonly"])
 def test_listconfig_creation_with_parent_flag(flag: str) -> None:
     parent = OmegaConf.create([])
     parent._set_flag(flag, True)

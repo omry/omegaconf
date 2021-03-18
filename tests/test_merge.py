@@ -2,7 +2,7 @@ import copy
 import sys
 from typing import Any, Dict, List, MutableMapping, MutableSequence, Tuple, Union
 
-import pytest
+from pytest import mark, param, raises
 
 from omegaconf import (
     MISSING,
@@ -35,23 +35,21 @@ from tests import (
 )
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ("merge_function", "input_unchanged"),
     [
-        pytest.param(OmegaConf.merge, True, id="merge"),
-        pytest.param(OmegaConf.unsafe_merge, False, id="unsafe_merge"),
+        param(OmegaConf.merge, True, id="merge"),
+        param(OmegaConf.unsafe_merge, False, id="unsafe_merge"),
     ],
 )
-@pytest.mark.parametrize(
+@mark.parametrize(
     "inputs, expected",
     [
         # dictionaries
-        pytest.param([{}, {"a": 1}], {"a": 1}, id="dict"),
-        pytest.param(
-            [{"a": None}, {"b": None}], {"a": None, "b": None}, id="dict:none"
-        ),
-        pytest.param([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}, id="dict"),
-        pytest.param(
+        param([{}, {"a": 1}], {"a": 1}, id="dict"),
+        param([{"a": None}, {"b": None}], {"a": None, "b": None}, id="dict:none"),
+        param([{"a": 1}, {"b": 2}], {"a": 1, "b": 2}, id="dict"),
+        param(
             [
                 {"a": {"a1": 1, "a2": 2}},
                 {"a": {"a1": 2}},
@@ -59,40 +57,38 @@ from tests import (
             {"a": {"a1": 2, "a2": 2}},
             id="dict",
         ),
-        pytest.param([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}, id="dict"),
-        pytest.param(
+        param([{"a": 1, "b": 2}, {"b": 3}], {"a": 1, "b": 3}, id="dict"),
+        param(
             ({"a": 1}, {"a": {"b": 3}}), {"a": {"b": 3}}, id="dict:merge_dict_into_int"
         ),
-        pytest.param(({"b": {"c": 1}}, {"b": 1}), {"b": 1}, id="dict:merge_int_dict"),
-        pytest.param(({"list": [1, 2, 3]}, {"list": [4, 5, 6]}), {"list": [4, 5, 6]}),
-        pytest.param(({"a": 1}, {"a": IntegerNode(10)}), {"a": 10}),
-        pytest.param(({"a": 1}, {"a": IntegerNode(10)}), {"a": IntegerNode(10)}),
-        pytest.param(({"a": IntegerNode(10)}, {"a": 1}), {"a": 1}),
-        pytest.param(({"a": IntegerNode(10)}, {"a": 1}), {"a": IntegerNode(1)}),
-        pytest.param(
-            ({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"
-        ),
-        pytest.param(
+        param(({"b": {"c": 1}}, {"b": 1}), {"b": 1}, id="dict:merge_int_dict"),
+        param(({"list": [1, 2, 3]}, {"list": [4, 5, 6]}), {"list": [4, 5, 6]}),
+        param(({"a": 1}, {"a": IntegerNode(10)}), {"a": 10}),
+        param(({"a": 1}, {"a": IntegerNode(10)}), {"a": IntegerNode(10)}),
+        param(({"a": IntegerNode(10)}, {"a": 1}), {"a": 1}),
+        param(({"a": IntegerNode(10)}, {"a": 1}), {"a": IntegerNode(1)}),
+        param(({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"),
+        param(
             ({"a": "???"}, {"a": {"b": 10}}),
             {"a": {"b": 10}},
             id="dict_merge_into_missing",
         ),
-        pytest.param(
+        param(
             ({"a": {"b": 10}}, {"a": "???"}),
             {"a": {"b": 10}},
             id="dict_merge_missing_onto",
         ),
-        pytest.param(
+        param(
             ({"a": {"b": 10}}, {"a": DictConfig(content="???")}),
             {"a": {"b": 10}},
             id="dict_merge_missing_onto",
         ),
-        pytest.param(
+        param(
             ({}, {"a": "???"}),
             {"a": "???"},
             id="dict_merge_missing_onto_no_node",
         ),
-        pytest.param(
+        param(
             (
                 {"a": 0, "b": 1},
                 {"a": "${b}", "b": "???"},
@@ -100,7 +96,7 @@ from tests import (
             {"a": "${b}", "b": 1},
             id="dict_merge_inter_to_missing",
         ),
-        pytest.param(
+        param(
             (
                 {"a": [0], "b": [1]},
                 {"a": ListConfig(content="${b}"), "b": "???"},
@@ -112,83 +108,81 @@ from tests import (
         (([1, 2, 3], [4, 5, 6]), [4, 5, 6]),
         (([[1, 2, 3]], [[4, 5, 6]]), [[4, 5, 6]]),
         (([1, 2, {"a": 10}], [4, 5, {"b": 20}]), [4, 5, {"b": 20}]),
-        pytest.param(
-            ({"a": "???"}, {"a": []}), {"a": []}, id="list_merge_into_missing"
-        ),
-        pytest.param(
+        param(({"a": "???"}, {"a": []}), {"a": []}, id="list_merge_into_missing"),
+        param(
             ({"a": "???"}, {"a": [1, 2, 3]}),
             {"a": [1, 2, 3]},
             id="list_merge_into_missing",
         ),
-        pytest.param(
+        param(
             ({"a": [1, 2, 3]}, {"a": "???"}),
             {"a": [1, 2, 3]},
             id="list_merge_missing_onto",
         ),
-        pytest.param(
+        param(
             ([1, 2, 3], ListConfig(content=MISSING)),
             ListConfig(content=[1, 2, 3]),
             id="list_merge_missing_onto",
         ),
-        pytest.param(
+        param(
             ({"a": 10, "list": []}, {"list": ["${a}"]}),
             {"a": 10, "list": [10]},
             id="merge_list_with_interpolation",
         ),
         # Interpolations
         # value interpolation
-        pytest.param(
+        param(
             ({"d1": 1, "inter": "${d1}"}, {"d1": 2}),
             {"d1": 2, "inter": 2},
             id="inter:updating_data",
         ),
-        pytest.param(
+        param(
             ({"d1": 1, "d2": 2, "inter": "${d1}"}, {"inter": "${d2}"}),
             {"d1": 1, "d2": 2, "inter": 2},
             id="inter:value_inter_over_value_inter",
         ),
-        pytest.param(
+        param(
             ({"inter": "${d1}"}, {"inter": 123}),
             {"inter": 123},
             id="inter:data_over_value_inter",
         ),
-        pytest.param(
+        param(
             ({"inter": "${d1}", "d1": 1, "n1": {"foo": "bar"}}, {"inter": "${n1}"}),
             {"inter": {"foo": "bar"}, "d1": 1, "n1": {"foo": "bar"}},
             id="inter:node_inter_over_value_inter",
         ),
-        pytest.param(
+        param(
             ({"inter": 123}, {"inter": "${data}"}),
             {"inter": "${data}"},
             id="inter:inter_over_data",
         ),
         # node interpolation
-        pytest.param(
+        param(
             ({"n": {"a": 10}, "i": "${n}"}, {"n": {"a": 20}}),
             {"n": {"a": 20}, "i": {"a": 20}},
             id="node_inter:node_update",
         ),
-        pytest.param(
+        param(
             ({"d": 20, "n": {"a": 10}, "i": "${n}"}, {"i": "${d}"}),
             {"d": 20, "n": {"a": 10}, "i": 20},
             id="node_inter:value_inter_over_node_inter",
         ),
-        pytest.param(
+        param(
             ({"n": {"a": 10}, "i": "${n}"}, {"i": 30}),
             {"n": {"a": 10}, "i": 30},
             id="node_inter:data_over_node_inter",
         ),
-        pytest.param(
+        param(
             ({"n1": {"a": 10}, "n2": {"b": 20}, "i": "${n1}"}, {"i": "${n2}"}),
             {"n1": {"a": 10}, "n2": {"b": 20}, "i": {"b": 20}},
             id="node_inter:node_inter_over_node_inter",
         ),
-        pytest.param(
+        param(
             ({"v": 10, "n": {"a": 20}}, {"v": "${n}"}),
             {"v": {"a": 20}, "n": {"a": 20}},
             id="inter:node_inter_over_data",
         ),
-        pytest.param(
+        param(
             (
                 {"n": {"a": 10}, "i": "${n}"},
                 {"i": {"b": 20}},
@@ -218,46 +212,46 @@ from tests import (
             [Users, {"name2user": {"joe": User(name="joe")}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
         ),
-        pytest.param(
+        param(
             [Users, {"name2user": {"joe": {"name": "joe"}}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
             id="users_merge_with_missing_age",
         ),
-        pytest.param(
+        param(
             [ConfWithMissingDict, {"dict": {"foo": "bar"}}],
             {"dict": {"foo": "bar"}},
             id="conf_missing_dict",
         ),
-        pytest.param(
+        param(
             [{}, ConfWithMissingDict],
             {"dict": "???"},
             id="merge_missing_dict_into_missing_dict",
         ),
-        pytest.param(
+        param(
             [{"user": User}, {"user": Group}],
-            pytest.raises(ValidationError),
+            raises(ValidationError),
             id="merge_group_onto_user_error",
         ),
-        pytest.param(
+        param(
             [Plugin, ConcretePlugin], ConcretePlugin, id="merge_subclass_on_superclass"
         ),
-        pytest.param(
+        param(
             [{"user": "???"}, {"user": Group}],
             {"user": Group},
             id="merge_into_missing_node",
         ),
-        pytest.param(
+        param(
             [{"admin": {"name": "joe", "age": 42}}, Group(admin=None)],
             {"admin": None},
             id="merge_none_into_existing_node",
         ),
-        pytest.param(
+        param(
             [{"user": User()}, {"user": {"foo": "bar"}}],
-            pytest.raises(ConfigKeyError),
+            raises(ConfigKeyError),
             id="merge_unknown_key_into_structured_node",
         ),
         # DictConfig with element_type of Structured Config
-        pytest.param(
+        param(
             (
                 DictConfig({}, element_type=User),
                 {"user007": {"age": 99}},
@@ -265,7 +259,7 @@ from tests import (
             {"user007": {"name": "???", "age": 99}},
             id="dict:merge_into_sc_element_type:expanding_new_element",
         ),
-        pytest.param(
+        param(
             (
                 DictConfig({"user007": "???"}, element_type=User),
                 {"user007": {"age": 99}},
@@ -273,7 +267,7 @@ from tests import (
             {"user007": {"name": "???", "age": 99}},
             id="dict:merge_into_sc_element_type:into_missing_element",
         ),
-        pytest.param(
+        param(
             (
                 DictConfig({"user007": User("bond", 7)}, element_type=User),
                 {"user007": {"age": 99}},
@@ -281,7 +275,7 @@ from tests import (
             {"user007": {"name": "bond", "age": 99}},
             id="dict:merge_into_sc_element_type:merging_with_existing_element",
         ),
-        pytest.param(
+        param(
             (
                 DictConfig({"user007": None}, element_type=User),
                 {"user007": {"age": 99}},
@@ -290,51 +284,49 @@ from tests import (
             id="dict:merge_into_sc_element_type:merging_into_none",
         ),
         # missing DictConfig
-        pytest.param(
+        param(
             [{"dict": DictConfig(content="???")}, {"dict": {"foo": "bar"}}],
             {"dict": {"foo": "bar"}},
             id="merge_into_missing_DictConfig",
         ),
         # missing Dict[str, str]
-        pytest.param(
+        param(
             [MissingDict, {"dict": {"foo": "bar"}}],
             {"dict": {"foo": "bar"}},
             id="merge_into_missing_Dict[str,str]",
         ),
         # missing ListConfig
-        pytest.param(
+        param(
             [{"list": ListConfig(content="???")}, {"list": [1, 2, 3]}],
             {"list": [1, 2, 3]},
             id="merge_into_missing_ListConfig",
         ),
         # missing List[str]
-        pytest.param(
+        param(
             [MissingList, {"list": ["a", "b", "c"]}],
             {"list": ["a", "b", "c"]},
             id="merge_into_missing_List[str]",
         ),
         # merging compatible dict into MISSING structured config expands it
         # to ensure the resulting node follows the protocol set by the underlying type
-        pytest.param(
-            [B, {"x": {}}], {"x": {"a": 10}}, id="structured_merge_into_missing"
-        ),
-        pytest.param(
+        param([B, {"x": {}}], {"x": {"a": 10}}, id="structured_merge_into_missing"),
+        param(
             [B, {"x": {"a": 20}}], {"x": {"a": 20}}, id="structured_merge_into_missing"
         ),
-        pytest.param([C, {"x": A}], {"x": {"a": 10}}, id="structured_merge_into_none"),
-        pytest.param([C, C], {"x": None}, id="none_not_expanding"),
+        param([C, {"x": A}], {"x": {"a": 10}}, id="structured_merge_into_none"),
+        param([C, C], {"x": None}, id="none_not_expanding"),
         # Merge into list with Structured Config
-        pytest.param(
+        param(
             [ListConfig(content=[], element_type=User), [{}]],
             [User()],
             id="list_sc_element_merge_dict",
         ),
-        pytest.param(
+        param(
             [ListConfig(content=[], element_type=User), [{"name": "Bond", "age": 7}]],
             [User(name="Bond", age=7)],
             id="list_sc_element_merge_dict",
         ),
-        pytest.param(
+        param(
             [ListConfig(content=[], element_type=User), [{"name": "Bond"}]],
             [User(name="Bond", age=MISSING)],
             id="list_sc_element_merge_dict",
@@ -369,12 +361,12 @@ def test_merge(
 
 def test_merge_error_retains_type() -> None:
     cfg = OmegaConf.structured(ConcretePlugin)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         cfg.merge_with({"params": {"foo": "error"}})
     assert OmegaConf.get_type(cfg) == ConcretePlugin
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 def test_primitive_dicts(merge: Any) -> None:
     c1 = {"a": 10}
     c2 = {"b": 20}
@@ -382,8 +374,8 @@ def test_primitive_dicts(merge: Any) -> None:
     assert merged == {"a": 10, "b": 20}
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
 def test_merge_no_eq_verify(
     merge: Any, a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
 ) -> None:
@@ -394,7 +386,7 @@ def test_merge_no_eq_verify(
     assert expected == c
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "c1,c2,expected",
     [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
 )
@@ -405,7 +397,7 @@ def test_merge_with(c1: Any, c2: Any, expected: Any) -> None:
     assert a == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "c1,c2,expected",
     [({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}), ({"a": 1}, {"b": 2}, {"a": 1, "b": 2})],
 )
@@ -418,7 +410,7 @@ def test_merge_with_c2_readonly(c1: Any, c2: Any, expected: Any) -> None:
     assert OmegaConf.is_readonly(a)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 def test_3way_dict_merge(merge: Any) -> None:
     c1 = OmegaConf.create("{a: 1, b: 2}")
     c2 = OmegaConf.create("{b: 3}")
@@ -434,8 +426,8 @@ def test_merge_list_list() -> None:
     assert a == b
 
 
-@pytest.mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "base, merge, exception",
     [
         ({}, [], TypeError),
@@ -448,16 +440,16 @@ def test_merge_list_list() -> None:
 def test_merge_error(merge_func: Any, base: Any, merge: Any, exception: Any) -> None:
     base = OmegaConf.create(base)
     merge = None if merge is None else OmegaConf.create(merge)
-    with pytest.raises(exception):
+    with raises(exception):
         merge_func(base, merge)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "c1, c2",
     [
-        pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
-        pytest.param([1, 2, 3], [4, 5, 6], id="list"),
+        param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
+        param([1, 2, 3], [4, 5, 6], id="list"),
     ],
 )
 def test_with_readonly_c1(merge: Any, c1: Any, c2: Any) -> None:
@@ -468,12 +460,12 @@ def test_with_readonly_c1(merge: Any, c1: Any, c2: Any) -> None:
     assert OmegaConf.is_readonly(cfg3)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "c1, c2",
     [
-        pytest.param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
-        pytest.param([1, 2, 3], [4, 5, 6], id="list"),
+        param({"foo": "bar"}, {"zoo": "foo"}, id="dict"),
+        param([1, 2, 3], [4, 5, 6], id="list"),
     ],
 )
 def test_with_readonly_c2(merge: Any, c1: Any, c2: Any) -> None:
@@ -484,18 +476,16 @@ def test_with_readonly_c2(merge: Any, c1: Any, c2: Any) -> None:
     assert OmegaConf.is_readonly(cfg3)
 
 
-@pytest.mark.parametrize(
-    "c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])]
-)
+@mark.parametrize("c1, c2", [({"foo": "bar"}, {"zoo": "foo"}), ([1, 2, 3], [4, 5, 6])])
 def test_into_readonly(c1: Any, c2: Any) -> None:
     cfg = OmegaConf.create(c1)
     OmegaConf.set_readonly(cfg, True)
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         cfg.merge_with(c2)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "c1, c2, expected",
     [
         (
@@ -511,14 +501,14 @@ def test_dict_merge_readonly_into_readwrite(
     c1 = OmegaConf.create(c1)
     c2 = OmegaConf.create(c2)
     OmegaConf.set_readonly(c2.node, True)
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         c2.node.foo = 10
     assert OmegaConf.merge(c1, c2) == expected
     c1.merge_with(c2)
     assert c1 == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "c1, c2, expected",
     [({"node": [1, 2, 3]}, {"node": [4, 5, 6]}, {"node": [4, 5, 6]})],
 )
@@ -526,7 +516,7 @@ def test_list_merge_readonly_into_readwrite(c1: Any, c2: Any, expected: Any) -> 
     c1 = OmegaConf.create(c1)
     c2 = OmegaConf.create(c2)
     OmegaConf.set_readonly(c2.node, True)
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         c2.node.append(10)
     assert OmegaConf.merge(c1, c2) == expected
     c1.merge_with(c2)
@@ -546,7 +536,7 @@ def test_parent_maintained() -> None:
     assert c3.a._get_parent() is c3
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg,overrides,expected",
     [
         ([1, 2, 3], ["0=bar", "2.a=100"], ["bar", 2, dict(a=100)]),
@@ -571,7 +561,7 @@ def test_merge_with_cli() -> None:
     assert c == ["bar", 2, dict(a=100)]
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "dotlist, expected",
     [([], {}), (["foo=1"], {"foo": 1}), (["foo=1", "bar"], {"foo": 1, "bar": None})],
 )
@@ -581,18 +571,18 @@ def test_merge_empty_with_dotlist(dotlist: List[str], expected: Dict[str, Any]) 
     assert c == expected
 
 
-@pytest.mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])
+@mark.parametrize("dotlist", ["foo=10", ["foo=1", 10]])
 def test_merge_with_dotlist_errors(dotlist: List[str]) -> None:
     c = OmegaConf.create()
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         c.merge_with_dotlist(dotlist)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 def test_merge_allow_objects(merge: Any) -> None:
     iv = IllegalType()
     cfg = OmegaConf.create({"a": 10})
-    with pytest.raises(UnsupportedValueType):
+    with raises(UnsupportedValueType):
         merge(cfg, {"foo": iv})
 
     cfg._set_flag("allow_objects", True)
@@ -606,18 +596,18 @@ def test_merge_with_allow_Dataframe() -> None:
     assert isinstance(ret.a, Dataframe)
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "dst, other, expected, node",
     [
-        pytest.param(
+        param(
             OmegaConf.structured(InterpolationList),
             OmegaConf.create({"list": [0.1]}),
             {"list": [0.1]},
             "list",
             id="merge_interpolation_list_with_list",
         ),
-        pytest.param(
+        param(
             OmegaConf.structured(InterpolationDict),
             OmegaConf.create({"dict": {"a": 4}}),
             {"dict": {"a": 4}},
@@ -633,17 +623,17 @@ def test_merge_with_src_as_interpolation(
     assert res == expected
 
 
-@pytest.mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@pytest.mark.parametrize(
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
     "dst, other, node",
     [
-        pytest.param(
+        param(
             OmegaConf.structured(InterpolationDict),
             OmegaConf.structured(InterpolationDict),
             "dict",
             id="merge_interpolation_dict_with_interpolation_dict",
         ),
-        pytest.param(
+        param(
             OmegaConf.structured(InterpolationList),
             OmegaConf.structured(InterpolationList),
             "list",
@@ -658,10 +648,10 @@ def test_merge_with_other_as_interpolation(
     assert OmegaConf.is_interpolation(res, node)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ("c1", "c2"),
     [
-        pytest.param(
+        param(
             ListConfig(content=[1, 2, 3], element_type=int),
             ["a", "b", "c"],
             id="merge_with_list",
@@ -670,12 +660,12 @@ def test_merge_with_other_as_interpolation(
 )
 def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
     backup = copy.deepcopy(c1)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         c1.merge_with(c2)
     assert c1 == backup
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
 )
 def test_into_custom_resolver_that_throws(

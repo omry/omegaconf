@@ -4,7 +4,7 @@ import re
 import tempfile
 from typing import Any, Dict, List, Optional, Union
 
-import pytest
+from pytest import mark, param, raises
 
 from omegaconf import (
     MISSING,
@@ -74,44 +74,44 @@ def test_getattr_dict() -> None:
     assert {"b": 1} == c.a
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "key,match",
     [
-        pytest.param("a", "a", id="str"),
-        pytest.param(1, "1", id="int"),
-        pytest.param(123.45, "123.45", id="float"),
-        pytest.param(True, "True", id="bool-T"),
-        pytest.param(False, "False", id="bool-F"),
-        pytest.param(Enum1.FOO, "FOO", id="enum"),
+        param("a", "a", id="str"),
+        param(1, "1", id="int"),
+        param(123.45, "123.45", id="float"),
+        param(True, "True", id="bool-T"),
+        param(False, "False", id="bool-F"),
+        param(Enum1.FOO, "FOO", id="enum"),
     ],
 )
 class TestDictKeyTypes:
     def test_mandatory_value(self, key: DictKeyType, match: str) -> None:
         c = OmegaConf.create({key: "???"})
-        with pytest.raises(MissingMandatoryValue, match=match):
+        with raises(MissingMandatoryValue, match=match):
             c[key]
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue, match=match):
+            with raises(MissingMandatoryValue, match=match):
                 getattr(c, key)
 
     def test_nested_dict_mandatory_value_inner(
         self, key: DictKeyType, match: str
     ) -> None:
         c = OmegaConf.create({"b": {key: "???"}})
-        with pytest.raises(MissingMandatoryValue, match=match):
+        with raises(MissingMandatoryValue, match=match):
             c.b[key]
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue, match=match):
+            with raises(MissingMandatoryValue, match=match):
                 getattr(c.b, key)
 
     def test_nested_dict_mandatory_value_outer(
         self, key: DictKeyType, match: str
     ) -> None:
         c = OmegaConf.create({key: {"b": "???"}})
-        with pytest.raises(MissingMandatoryValue, match=match):
+        with raises(MissingMandatoryValue, match=match):
             c[key].b
         if isinstance(key, str):
-            with pytest.raises(MissingMandatoryValue, match=match):
+            with raises(MissingMandatoryValue, match=match):
                 getattr(c, key).b
 
     def test_subscript_get(self, key: DictKeyType, match: str) -> None:
@@ -125,7 +125,7 @@ class TestDictKeyTypes:
         assert {key: "b"} == c
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src,key,expected",
     [
         ({"a": 10, "b": 11}, "a", {"b": 11}),
@@ -147,7 +147,7 @@ class TestDelitemKeyTypes:
     ) -> None:
         c = OmegaConf.create(expected)
         assert c == expected
-        with pytest.raises(KeyError):
+        with raises(KeyError):
             del c[key]
 
     def test_dict_struct_delitem(
@@ -155,7 +155,7 @@ class TestDelitemKeyTypes:
     ) -> None:
         c = OmegaConf.create(src)
         OmegaConf.set_struct(c, True)
-        with pytest.raises(ConfigTypeError):
+        with raises(ConfigTypeError):
             del c[key]
         with open_dict(c):
             del c[key]
@@ -164,11 +164,11 @@ class TestDelitemKeyTypes:
 
 def test_attribute_error() -> None:
     c = OmegaConf.create()
-    with pytest.raises(ConfigAttributeError):
+    with raises(ConfigAttributeError):
         assert c.missing_key
 
 
-@pytest.mark.parametrize("c", [{}, OmegaConf.create()])
+@mark.parametrize("c", [{}, OmegaConf.create()])
 def test_get_default_value(c: Any) -> None:
     assert c.get("missing_key", "a default value") == "a default value"
 
@@ -179,10 +179,10 @@ def test_scientific_notation_float() -> None:
     assert 10e-3 == c.a
 
 
-@pytest.mark.parametrize("struct", [None, True, False])
-@pytest.mark.parametrize("default_val", [4, True, False, None])
+@mark.parametrize("struct", [None, True, False])
+@mark.parametrize("default_val", [4, True, False, None])
 class TestGetWithDefault:
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "d,select,key",
         [
             ({"key": {"subkey": 2}}, "", "missing"),
@@ -200,7 +200,7 @@ class TestGetWithDefault:
         OmegaConf.set_struct(c, struct)
         assert c.get(key, default_val) == default_val
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         ("d", "select", "key", "expected"),
         [
             ({"key": "value"}, "", "key", "value"),
@@ -224,7 +224,7 @@ class TestGetWithDefault:
         OmegaConf.set_struct(c, struct)
         assert c.get(key, default_val) == expected
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "d,exc",
         [
             ({"key": "${foo}"}, InterpolationKeyError),
@@ -240,7 +240,7 @@ class TestGetWithDefault:
     ) -> None:
         c = OmegaConf.create(d)
         OmegaConf.set_struct(c, struct)
-        with pytest.raises(exc):
+        with raises(exc):
             c.get("key", default_value=123)
 
 
@@ -265,7 +265,7 @@ def test_items() -> None:
     items2 = iter(c.items())
     assert next(items2) == ("a", 2)
     assert next(items2) == ("b", 10)
-    with pytest.raises(StopIteration):
+    with raises(StopIteration):
         next(items2)
 
 
@@ -339,33 +339,29 @@ def test_iterate_dict_with_interpolation() -> None:
         i = i + 1
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key, default_, expected",
     [
         # string key
-        pytest.param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
-        pytest.param({"a": 1, "b": 2}, "not_found", None, None, id="none_default"),
-        pytest.param(
-            {"a": 1, "b": 2}, "not_found", "default", "default", id="with_default"
-        ),
-        pytest.param({"a": None}, "a", "default", None, id="none_value"),
-        pytest.param({"a": "???"}, "a", "default", "default", id="missing_value"),
+        param({"a": 1, "b": 2}, "a", "__NO_DEFAULT__", 1, id="no_default"),
+        param({"a": 1, "b": 2}, "not_found", None, None, id="none_default"),
+        param({"a": 1, "b": 2}, "not_found", "default", "default", id="with_default"),
+        param({"a": None}, "a", "default", None, id="none_value"),
+        param({"a": "???"}, "a", "default", "default", id="missing_value"),
         # Interpolations
-        pytest.param(
-            {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
-        ),
+        param({"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"),
         # enum key
-        pytest.param(
+        param(
             {Enum1.FOO: "bar"},
             Enum1.FOO,
             "__NO_DEFAULT__",
             "bar",
             id="enum_key_no_default",
         ),
-        pytest.param(
+        param(
             {Enum1.FOO: "bar"}, Enum1.BAR, None, None, id="enum_key_with_none_default"
         ),
-        pytest.param(
+        param(
             {Enum1.FOO: "bar"},
             Enum1.BAR,
             "default",
@@ -373,28 +369,28 @@ def test_iterate_dict_with_interpolation() -> None:
             id="enum_key_with_default",
         ),
         # other key types
-        pytest.param(
+        param(
             {123.45: "a", 67.89: "b"},
             67.89,
             "__NO_DEFAULT__",
             "b",
             id="float_key_no_default",
         ),
-        pytest.param(
+        param(
             {123.45: "a", 67.89: "b"},
             "not found",
             None,
             None,
             id="float_key_with_default",
         ),
-        pytest.param(
+        param(
             {True: "a", False: "b"},
             False,
             "__NO_DEFAULT__",
             "b",
             id="bool_key_no_default",
         ),
-        pytest.param(
+        param(
             {True: "a", False: "b"}, "not found", None, None, id="bool_key_with_default"
         ),
     ],
@@ -414,29 +410,29 @@ def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -
 def test_dict_struct_mode_pop() -> None:
     cfg = OmegaConf.create({"name": "Bond", "age": 7})
     cfg._set_flag("struct", True)
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.pop("name")
 
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.pop("bar")
 
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.pop("bar", "not even with default")
 
 
 def test_dict_structured_mode_pop() -> None:
     cfg = OmegaConf.create({"user": User(name="Bond")})
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.user.pop("name")
 
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.user.pop("bar")
 
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         cfg.user.pop("bar", "not even with default")
 
     # Unlocking the top level node is not enough.
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         with open_dict(cfg):
             cfg.user.pop("name")
 
@@ -446,30 +442,30 @@ def test_dict_structured_mode_pop() -> None:
     assert "name" not in cfg.user
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key, expectation",
     [
         # key not found
-        ({"a": 1, "b": 2}, "not_found", pytest.raises(KeyError)),
-        ({1: "a", 2: "b"}, 3, pytest.raises(KeyError)),
-        ({123.45: "a", 67.89: "b"}, 10.11, pytest.raises(KeyError)),
-        ({True: "a"}, False, pytest.raises(KeyError)),
-        ({Enum1.FOO: "bar"}, Enum1.BAR, pytest.raises(KeyError)),
+        ({"a": 1, "b": 2}, "not_found", raises(KeyError)),
+        ({1: "a", 2: "b"}, 3, raises(KeyError)),
+        ({123.45: "a", 67.89: "b"}, 10.11, raises(KeyError)),
+        ({True: "a"}, False, raises(KeyError)),
+        ({Enum1.FOO: "bar"}, Enum1.BAR, raises(KeyError)),
         # Interpolations
-        ({"a": "???", "b": 2}, "a", pytest.raises(MissingMandatoryValue)),
-        ({1: "???", 2: "b"}, 1, pytest.raises(MissingMandatoryValue)),
-        ({123.45: "???", 67.89: "b"}, 123.45, pytest.raises(MissingMandatoryValue)),
-        ({"a": "${b}"}, "a", pytest.raises(InterpolationKeyError)),
-        ({True: "???", False: "b"}, True, pytest.raises(MissingMandatoryValue)),
+        ({"a": "???", "b": 2}, "a", raises(MissingMandatoryValue)),
+        ({1: "???", 2: "b"}, 1, raises(MissingMandatoryValue)),
+        ({123.45: "???", 67.89: "b"}, 123.45, raises(MissingMandatoryValue)),
+        ({"a": "${b}"}, "a", raises(InterpolationKeyError)),
+        ({True: "???", False: "b"}, True, raises(MissingMandatoryValue)),
         (
             {Enum1.FOO: "???", Enum1.BAR: "bar"},
             Enum1.FOO,
-            pytest.raises(MissingMandatoryValue),
+            raises(MissingMandatoryValue),
         ),
         (
             {"a": "${b}", "b": "???"},
             "a",
-            pytest.raises(InterpolationToMissingValueError),
+            raises(InterpolationToMissingValueError),
         ),
     ],
 )
@@ -480,7 +476,7 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
     assert c == cfg
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "conf,key,expected",
     [
         # str key type
@@ -574,7 +570,7 @@ def test_dict_config() -> None:
 
 def test_dict_structured_delitem() -> None:
     c = OmegaConf.structured(User(name="Bond"))
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         del c["name"]
 
     with open_dict(c):
@@ -584,11 +580,11 @@ def test_dict_structured_delitem() -> None:
 
 def test_dict_nested_structured_delitem() -> None:
     c = OmegaConf.create({"user": User(name="Bond")})
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         del c.user["name"]
 
     # Unlocking the top level node is not enough.
-    with pytest.raises(ConfigTypeError):
+    with raises(ConfigTypeError):
         with open_dict(c):
             del c.user["name"]
 
@@ -598,19 +594,19 @@ def test_dict_nested_structured_delitem() -> None:
     assert "name" not in c.user
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "d, expected",
     [
-        pytest.param(DictConfig({}), 0, id="empty"),
-        pytest.param(DictConfig({"a": 10}), 1, id="full"),
-        pytest.param(DictConfig(None), 0, id="none"),
-        pytest.param(DictConfig("???"), 0, id="missing"),
-        pytest.param(
+        param(DictConfig({}), 0, id="empty"),
+        param(DictConfig({"a": 10}), 1, id="full"),
+        param(DictConfig(None), 0, id="none"),
+        param(DictConfig("???"), 0, id="missing"),
+        param(
             DictConfig("${foo}", parent=OmegaConf.create({"foo": {"a": 10}})),
             0,
             id="interpolation",
         ),
-        pytest.param(DictConfig("${foo}"), 0, id="broken_interpolation"),
+        param(DictConfig("${foo}"), 0, id="broken_interpolation"),
     ],
 )
 def test_dict_len(d: DictConfig, expected: Any) -> None:
@@ -620,7 +616,7 @@ def test_dict_len(d: DictConfig, expected: Any) -> None:
 def test_dict_assign_illegal_value() -> None:
     c = OmegaConf.create()
     iv = IllegalType()
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
+    with raises(UnsupportedValueType, match=re.escape("key: a")):
         c.a = iv
 
     with flag_override(c, "allow_objects", True):
@@ -631,7 +627,7 @@ def test_dict_assign_illegal_value() -> None:
 def test_dict_assign_illegal_value_nested() -> None:
     c = OmegaConf.create({"a": {}})
     iv = IllegalType()
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: a.b")):
+    with raises(UnsupportedValueType, match=re.escape("key: a.b")):
         c.a.b = iv
 
     with flag_override(c, "allow_objects", True):
@@ -647,11 +643,11 @@ def test_assign_dict_in_dict() -> None:
 
 
 def test_instantiate_config_fails() -> None:
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         BaseContainer()  # type: ignore
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key, expected",
     [
         ({"a": 1, "b": 2, "c": 3}, None, ["a", "b", "c"]),
@@ -675,22 +671,22 @@ def test_hash() -> None:
     assert hash(c1) != hash(c2)
 
 
-@pytest.mark.parametrize("default", ["default", 0, None])
+@mark.parametrize("default", ["default", 0, None])
 def test_get_with_default_from_struct_not_throwing(default: Any) -> None:
     c = OmegaConf.create({"a": 10, "b": 20})
     OmegaConf.set_struct(c, True)
     assert c.get("z", default) == default
 
 
-@pytest.mark.parametrize("cfg", [{"foo": {}}, [1, 2, 3]])
+@mark.parametrize("cfg", [{"foo": {}}, [1, 2, 3]])
 def test_members(cfg: Any) -> None:
     # Make sure accessing __members__ does not return None or throw.
     c = OmegaConf.create(cfg)
-    with pytest.raises(AttributeError):
+    with raises(AttributeError):
         c.__members__
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "in_cfg, mask_keys, expected",
     [
         ({}, [], {}),
@@ -716,7 +712,7 @@ def test_masked_copy_is_deep() -> None:
     cfg.a.b = 2
     assert cfg != expected
 
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         OmegaConf.masked_copy("fail", [])  # type: ignore
 
 
@@ -744,11 +740,11 @@ def test_shallow_copy_none() -> None:
     assert cfg._is_none()
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "copy_method",
     [
-        pytest.param(copy.copy),
-        pytest.param(lambda x: x.copy(), id="obj.copy"),
+        param(copy.copy),
+        param(lambda x: x.copy(), id="obj.copy"),
     ],
 )
 def test_dict_shallow_copy_is_deepcopy(copy_method: Any) -> None:
@@ -759,19 +755,19 @@ def test_dict_shallow_copy_is_deepcopy(copy_method: Any) -> None:
 
 
 def test_creation_with_invalid_key() -> None:
-    with pytest.raises(KeyValidationError):
+    with raises(KeyValidationError):
         OmegaConf.create({object(): "a"})
 
 
 def test_setitem_with_invalid_key() -> None:
     cfg = OmegaConf.create()
-    with pytest.raises(KeyValidationError):
+    with raises(KeyValidationError):
         cfg.__setitem__(object(), "a")  # type: ignore
 
 
 def test_getitem_with_invalid_key() -> None:
     cfg = OmegaConf.create()
-    with pytest.raises(KeyValidationError):
+    with raises(KeyValidationError):
         cfg.__getitem__(object())  # type: ignore
 
 
@@ -785,14 +781,14 @@ def test_hasattr() -> None:
 def test_struct_mode_missing_key_getitem() -> None:
     cfg = OmegaConf.create({"foo": "bar"})
     OmegaConf.set_struct(cfg, True)
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         cfg.__getitem__("zoo")
 
 
 def test_struct_mode_missing_key_setitem() -> None:
     cfg = OmegaConf.create({"foo": "bar"})
     OmegaConf.set_struct(cfg, True)
-    with pytest.raises(KeyError):
+    with raises(KeyError):
         cfg.__setitem__("zoo", 10)
 
 
@@ -809,7 +805,7 @@ def test_get_type() -> None:
     assert OmegaConf.get_type(cfg.inter) == User
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, expected_ref_type",
     [
         (
@@ -864,15 +860,15 @@ def test_is_missing() -> None:
     assert not cfg._get_node("missing_node_inter")._is_missing()  # type: ignore
 
 
-@pytest.mark.parametrize("ref_type", [None, Any])
-@pytest.mark.parametrize("assign", [None, {}, {"foo": "bar"}, [1, 2, 3]])
+@mark.parametrize("ref_type", [None, Any])
+@mark.parametrize("assign", [None, {}, {"foo": "bar"}, [1, 2, 3]])
 def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
     cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content={})})
     cfg.foo = assign
     assert cfg.foo == assign
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "ref_type,assign",
     [
         (Plugin, None),
@@ -881,8 +877,8 @@ def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
         (Plugin, ConcretePlugin),
         (Plugin, ConcretePlugin()),
         (ConcretePlugin, None),
-        pytest.param(ConcretePlugin, ConcretePlugin, id="subclass=subclass_obj"),
-        pytest.param(ConcretePlugin, ConcretePlugin(), id="subclass=subclass_obj"),
+        param(ConcretePlugin, ConcretePlugin, id="subclass=subclass_obj"),
+        param(ConcretePlugin, ConcretePlugin(), id="subclass=subclass_obj"),
     ],
 )
 class TestAssignAndMergeIntoReftypePlugin:
@@ -904,7 +900,7 @@ class TestAssignAndMergeIntoReftypePlugin:
         self._test_assign(ref_type, ref_type, assign)
         self._test_assign(ref_type, ref_type(), assign)
 
-    @pytest.mark.parametrize("value", [None, "???"])
+    @mark.parametrize("value", [None, "???"])
     def test_assign_to_reftype_plugin(
         self, ref_type: Any, value: Any, assign: Any
     ) -> None:
@@ -914,32 +910,32 @@ class TestAssignAndMergeIntoReftypePlugin:
         self._test_merge(ref_type, ref_type, assign)
         self._test_merge(ref_type, ref_type(), assign)
 
-    @pytest.mark.parametrize("value", [None, "???"])
+    @mark.parametrize("value", [None, "???"])
     def test_merge_into_reftype_plugin(
         self, ref_type: Any, value: Any, assign: Any
     ) -> None:
         self._test_merge(ref_type, value, assign)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "ref_type,assign,expectation",
     [
-        pytest.param(
+        param(
             Plugin,
             10,
-            pytest.raises(ValidationError),
+            raises(ValidationError),
             id="assign_primitive_to_typed",
         ),
-        pytest.param(
+        param(
             ConcretePlugin,
             Plugin,
-            pytest.raises(ValidationError),
+            raises(ValidationError),
             id="assign_base_type_to_subclass",
         ),
-        pytest.param(
+        param(
             ConcretePlugin,
             Plugin(),
-            pytest.raises(ValidationError),
+            raises(ValidationError),
             id="assign_base_instance_to_subclass",
         ),
     ],
@@ -965,7 +961,7 @@ class TestAssignAndMergeIntoReftypePlugin_Errors:
         self._test_assign(ref_type, ref_type, assign, expectation)
         self._test_assign(ref_type, ref_type(), assign, expectation)
 
-    @pytest.mark.parametrize("value", [None, "???"])
+    @mark.parametrize("value", [None, "???"])
     def test_assign_to_reftype_plugin(
         self, ref_type: Any, value: Any, assign: Any, expectation: Any
     ) -> None:
@@ -977,7 +973,7 @@ class TestAssignAndMergeIntoReftypePlugin_Errors:
         self._test_merge(ref_type, ref_type, assign, expectation)
         self._test_merge(ref_type, ref_type(), assign, expectation)
 
-    @pytest.mark.parametrize("value", [None, "???"])
+    @mark.parametrize("value", [None, "???"])
     def test_merge_into_reftype_plugin(
         self, ref_type: Any, value: Any, assign: Any, expectation: Any
     ) -> None:
@@ -993,7 +989,7 @@ def test_setdefault() -> None:
 
     cfg = OmegaConf.create({})
     OmegaConf.set_struct(cfg, True)
-    with pytest.raises(ConfigKeyError):
+    with raises(ConfigKeyError):
         assert cfg.setdefault("foo", 10) == 10
     assert cfg == {}
     with open_dict(cfg):
@@ -1005,11 +1001,11 @@ def test_setdefault() -> None:
     assert cfg["foo"] == 10
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "c",
     [
-        pytest.param({"a": ListConfig([1, 2, 3], ref_type=list)}, id="list_value"),
-        pytest.param({"a": DictConfig({"b": 10}, ref_type=dict)}, id="dict_value"),
+        param({"a": ListConfig([1, 2, 3], ref_type=list)}, id="list_value"),
+        param({"a": DictConfig({"b": 10}, ref_type=dict)}, id="dict_value"),
     ],
 )
 def test_self_assign_list_value_with_ref_type(c: Any) -> None:
@@ -1020,7 +1016,7 @@ def test_self_assign_list_value_with_ref_type(c: Any) -> None:
 
 def test_assign_to_sc_field_without_ref_type() -> None:
     cfg = OmegaConf.create({"plugin": ConcretePlugin})
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         cfg.plugin.params.foo = "bar"
 
     cfg.plugin = 10
@@ -1029,7 +1025,7 @@ def test_assign_to_sc_field_without_ref_type() -> None:
 
 def test_dict_getitem_not_found() -> None:
     cfg = OmegaConf.create()
-    with pytest.raises(ConfigKeyError):
+    with raises(ConfigKeyError):
         cfg["aaa"]
 
 
@@ -1038,8 +1034,8 @@ def test_dict_getitem_none_output() -> None:
     assert cfg["a"] is None
 
 
-@pytest.mark.parametrize("data", [{"b": 0}, User])
-@pytest.mark.parametrize("flag", ["struct", "readonly"])
+@mark.parametrize("data", [{"b": 0}, User])
+@mark.parametrize("flag", ["struct", "readonly"])
 def test_dictconfig_creation_with_parent_flag(flag: str, data: Any) -> None:
     parent = OmegaConf.create({"a": 10})
     parent._set_flag(flag, True)

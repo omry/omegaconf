@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import pytest
+from pytest import raises
 
 from omegaconf import (
     MISSING,
@@ -41,7 +41,7 @@ def test_simple_types_class() -> None:
 def test_static_typing() -> None:
     conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
     assert conf.description == "text"  # passes static type checking
-    with pytest.raises(AttributeError):
+    with raises(AttributeError):
         # This will fail both the static type checking and at runtime
         # noinspection PyStatementEffect
         conf.no_such_attribute  # type: ignore
@@ -69,7 +69,7 @@ def test_conversions() -> None:
     conf.num = "20"  # type: ignore
 
     assert conf.num == 20
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         # ValidationError: "one" cannot be converted to an integer
         conf.num = "one"  # type: ignore
 
@@ -108,7 +108,7 @@ class Modifiers:
 def test_modifiers() -> None:
     conf: Modifiers = OmegaConf.structured(Modifiers)
     # regular fields cannot take None
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         conf.num = None  # type: ignore
 
     # but Optional fields can
@@ -116,7 +116,7 @@ def test_modifiers() -> None:
     assert conf.optional_num is None
 
     # Accessing a missing field will trigger MissingMandatoryValue exception
-    with pytest.raises(MissingMandatoryValue):
+    with raises(MissingMandatoryValue):
         # noinspection PyStatementEffect
         conf.another_num
 
@@ -163,11 +163,11 @@ manager:
 
     # you can assign a different object of the same type
     conf.admin = User(name="omry", height=Height.TALL)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         # but not incompatible types
         conf.admin = 10
 
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         # You can't assign a dict even if the field matches
         conf.manager = {"name": "secret", "height": Height.TALL}
 
@@ -193,7 +193,7 @@ def test_typed_list_runtime_validation() -> None:
     conf.int_list[0] = "1000"  # also ok!
     assert conf.int_list[0] == 1000
 
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         conf.int_list[0] = "fail"
 
 
@@ -216,7 +216,7 @@ def test_typed_dict_runtime_validation() -> None:
     conf = OmegaConf.structured(Dicts)
     conf.untyped_dict["foo"] = "buzz"  # okay, list can hold any primitive type
     conf.str_to_height["Shorty"] = Height.SHORT  # Okay
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         # runtime failure, cannot convert True to Height
         conf.str_to_height["Yoda"] = True
 
@@ -232,11 +232,11 @@ def test_frozen() -> None:
     # frozen classes are read only, attempts to modify them at runtime
     # will result in a ReadonlyConfigError
     conf = OmegaConf.structured(FrozenClass)
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.x = 20
 
     # Read-only flag is recursive
-    with pytest.raises(ReadonlyConfigError):
+    with raises(ReadonlyConfigError):
         conf.list[0] = 20
 
 
@@ -277,7 +277,7 @@ def test_enum_key() -> None:
 def test_dict_of_objects() -> None:
     conf: WebServer = OmegaConf.structured(WebServer)
     conf.domains["blog"] = Domain(name="blog.example.com", path="/www/blog.example.com")
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         conf.domains.foo = 10  # type: ignore
 
     assert conf.domains["blog"].name == "blog.example.com"
@@ -300,7 +300,7 @@ def test_list_of_objects() -> None:
     conf.domains_list.append(
         Domain(name="blog.example.com", path="/www/blog.example.com")
     )
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         conf.domains_list.append(10)  # type: ignore
 
     assert conf.domains_list[0].name == "blog.example.com"
@@ -370,12 +370,12 @@ def test_merge_example() -> None:
         numbers: List[int] = field(default_factory=list)
 
     schema = OmegaConf.structured(MyConfig)
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         OmegaConf.merge(schema, OmegaConf.create({"log": {"rotation": "foo"}}))
 
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         cfg = schema.copy()
         cfg.numbers.append("fo")
 
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         OmegaConf.merge(schema, OmegaConf.create({"numbers": ["foo"]}))

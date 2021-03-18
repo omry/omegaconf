@@ -5,7 +5,7 @@ from __future__ import annotations  # type: ignore # noqa  # Python 3.6 linters 
 from dataclasses import dataclass, fields
 from enum import Enum
 
-import pytest
+from pytest import raises
 
 from omegaconf import OmegaConf, ValidationError
 
@@ -46,6 +46,6 @@ def conversions() -> None:
     conf.num = "20"  # type: ignore
     assert conf.num == 20
 
-    with pytest.raises(ValidationError):
+    with raises(ValidationError):
         # ValidationError: "one" cannot be converted to an integer
         conf.num = "one"  # type: ignore
