@@ -74,11 +74,13 @@ from tests import Group, User
         param({"foo": DictConfig(content=None)}, {"foo": None}, id="dictconfig_none"),
         param({"foo": ListConfig(content=None)}, {"foo": None}, id="listconfig_none"),
         # Missing containers
+        param(DictConfig("???"), DictConfig("???"), id="missing_dictconfig"),
+        param(ListConfig("???"), ListConfig("???"), id="missing_listconfig"),
         param(
-            {"foo": DictConfig(content="???")}, {"foo": "???"}, id="dictconfig_missing"
+            {"foo": DictConfig("???")}, {"foo": "???"}, id="nested_missing_dictconfig"
         ),
         param(
-            {"foo": ListConfig(content="???")}, {"foo": "???"}, id="listconfig_missing"
+            {"foo": ListConfig("???")}, {"foo": "???"}, id="nested_missing_listconfig"
         ),
     ],
 )
