@@ -16,6 +16,7 @@ from typing import (
 )
 
 from ._utils import (
+    _DEFAULT_MARKER_,
     ValueKind,
     _get_value,
     _is_interpolation,
@@ -35,7 +36,7 @@ from ._utils import (
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
-from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
+from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -345,7 +346,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise AttributeError()
 
         try:
-            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+            return self._get_impl(key=key, default_value=_DEFAULT_MARKER_)
         except ConfigKeyError as e:
             self._format_and_raise(
                 key=key, value=None, cause=e, type_override=ConfigAttributeError
@@ -361,7 +362,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         """
 
         try:
-            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+            return self._get_impl(key=key, default_value=_DEFAULT_MARKER_)
         except AttributeError as e:
             self._format_and_raise(
                 key=key, value=None, cause=e, type_override=ConfigKeyError
@@ -414,7 +415,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         try:
             node = self._get_node(key=key, throw_on_missing_key=True)
         except (ConfigAttributeError, ConfigKeyError):
-            if default_value is not DEFAULT_VALUE_MARKER:
+            if default_value is not _DEFAULT_MARKER_:
                 return default_value
             else:
                 raise
@@ -449,7 +450,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise MissingMandatoryValue("Missing mandatory value")
         return value
 
-    def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def pop(self, key: DictKeyType, default: Any = _DEFAULT_MARKER_) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
@@ -470,7 +471,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 del self[key]
                 return value
             else:
-                if default is not DEFAULT_VALUE_MARKER:
+                if default is not _DEFAULT_MARKER_:
                     return default
                 else:
                     full = self._get_full_key(key=key)

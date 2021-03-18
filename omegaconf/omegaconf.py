@@ -28,7 +28,7 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
-    Marker,
+    _DEFAULT_MARKER_,
     _ensure_container,
     _get_value,
     _is_none,
@@ -73,12 +73,6 @@ from .nodes import (
 
 MISSING: Any = "???"
 
-# Marker used:
-# -  in OmegaConf.create() to differentiate between creating an empty {} DictConfig
-#    and creating a DictConfig with None content
-# - in env() to detect between no default value vs a default value set to None
-_EMPTY_MARKER_: Any = Marker("_EMPTY_MARKER_")
-
 Resolver = Callable[..., Any]
 
 
@@ -115,9 +109,9 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    def env(key: str, default: Optional[str] = _EMPTY_MARKER_) -> Optional[str]:
+    def env(key: str, default: Optional[str] = _DEFAULT_MARKER_) -> Optional[str]:
         if (
-            default is not _EMPTY_MARKER_
+            default is not _DEFAULT_MARKER_
             and default is not None
             and not isinstance(default, str)
         ):
@@ -129,7 +123,7 @@ def register_default_resolvers() -> None:
         try:
             return os.environ[key]
         except KeyError:
-            if default is not _EMPTY_MARKER_:
+            if default is not _DEFAULT_MARKER_:
                 return default
             else:
                 raise KeyError(f"Environment variable '{key}' not found")
@@ -219,7 +213,7 @@ class OmegaConf:
 
     @staticmethod
     def create(  # noqa F811
-        obj: Any = _EMPTY_MARKER_,
+        obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
@@ -684,7 +678,7 @@ class OmegaConf:
         cfg: Container,
         key: str,
         *,
-        default: Any = _EMPTY_MARKER_,
+        default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
     ) -> Any:
@@ -696,13 +690,13 @@ class OmegaConf:
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
             except ConfigKeyError:
-                if default is not _EMPTY_MARKER_:
+                if default is not _DEFAULT_MARKER_:
                     return default
                 else:
                     raise
 
             if (
-                default is not _EMPTY_MARKER_
+                default is not _DEFAULT_MARKER_
                 and _root is not None
                 and _last_key is not None
                 and _last_key not in _root
@@ -806,7 +800,7 @@ class OmegaConf:
 
     @staticmethod
     def _create_impl(  # noqa F811
-        obj: Any = _EMPTY_MARKER_,
+        obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
@@ -815,7 +809,7 @@ class OmegaConf:
             from .dictconfig import DictConfig
             from .listconfig import ListConfig
 
-            if obj is _EMPTY_MARKER_:
+            if obj is _DEFAULT_MARKER_:
                 obj = {}
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())

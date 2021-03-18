@@ -63,6 +63,18 @@ YAML_BOOL_TYPES = [
 _CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
+class Marker:
+    def __init__(self, desc: str):
+        self.desc = desc
+
+    def __repr__(self) -> str:
+        return self.desc
+
+
+# To be used as default value when `None` is not an option.
+_DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
+
+
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
     str_representer_added = False
 
@@ -74,14 +86,6 @@ class OmegaConfDumper(yaml.Dumper):  # type: ignore
             data,
             style=("'" if with_quotes else None),
         )
-
-
-class Marker:
-    def __init__(self, desc: str):
-        self.desc = desc
-
-    def __repr__(self) -> str:
-        return self.desc
 
 
 def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
