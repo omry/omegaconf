@@ -65,10 +65,31 @@ def test_list_get_do_not_return_default(
 
 
 @pytest.mark.parametrize(
-    "input_, expected, list_key",
+    "input_, expected, expected_no_resolve, list_key",
     [
-        pytest.param([1, 2], [1, 2], None, id="simple"),
-        pytest.param(["${1}", 2], [2, 2], None, id="interpolation"),
+        pytest.param([1, 2], [1, 2], [1, 2], None, id="simple"),
+        pytest.param(["${1}", 2], [2, 2], ["${1}", 2], None, id="interpolation"),
+        pytest.param(
+            [ListConfig(None), ListConfig("${.2}"), [1, 2]],
+            [None, ListConfig([1, 2]), ListConfig([1, 2])],
+            [None, ListConfig("${.2}"), ListConfig([1, 2])],
+            None,
+            id="iter_over_lists",
+        ),
+        pytest.param(
+            [DictConfig(None), DictConfig("${.2}"), {"a": 10}],
+            [None, DictConfig({"a": 10}), DictConfig({"a": 10})],
+            [None, DictConfig("${.2}"), DictConfig({"a": 10})],
+            None,
+            id="iter_over_dicts",
+        ),
+        pytest.param(
+            ["???", ListConfig("???"), DictConfig("???")],
+            pytest.raises(MissingMandatoryValue),
+            ["???", ListConfig("???"), DictConfig("???")],
+            None,
+            id="iter_over_missing",
+        ),
         pytest.param(
             {
                 "defaults": [
@@ -77,20 +98,45 @@ def test_list_get_do_not_return_default(
                     {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"},
                 ]
             },
-            [{"optimizer": "adam"}, {"dataset": "imagenet"}, {"foo": "adam_imagenet"}],
+            [
+                OmegaConf.create({"optimizer": "adam"}),
+                OmegaConf.create({"dataset": "imagenet"}),
+                OmegaConf.create({"foo": "adam_imagenet"}),
+            ],
+            [
+                OmegaConf.create({"optimizer": "adam"}),
+                OmegaConf.create({"dataset": "imagenet"}),
+                OmegaConf.create(
+                    {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"}
+                ),
+            ],
             "defaults",
             id="str_interpolation",
         ),
     ],
 )
-def test_iterate_list(input_: Any, expected: Any, list_key: str) -> None:
+def test_iterate_list(
+    input_: Any, expected: Any, expected_no_resolve: Any, list_key: str
+) -> None:
     c = OmegaConf.create(input_)
     if list_key is not None:
         lst = c.get(list_key)
     else:
         lst = c
-    items = [x for x in lst]
-    assert items == expected
+
+    def test_iter(iterator: Any, expected_output: Any) -> None:
+        if isinstance(expected_output, list):
+            items = [x for x in iterator]
+            assert items == expected_output
+            for idx in range(len(items)):
+                assert type(items[idx]) is type(expected_output[idx])  # noqa
+        else:
+            with expected_output:
+                for _ in iterator:
+                    pass
+
+    test_iter(iter(lst), expected)
+    test_iter(lst._iter_ex(resolve=False), expected_no_resolve)
 
 
 def test_iterate_list_with_missing_interpolation() -> None:
@@ -242,6 +288,8 @@ def test_list_delitem() -> None:
         (OmegaConf.create([1, 2]), 2),
         (ListConfig(content=None), 0),
         (ListConfig(content="???"), 0),
+        (ListConfig(content="${foo}"), 0),
+        (ListConfig(content="${foo}", parent=DictConfig({"foo": [1, 2]})), 0),
     ],
 )
 def test_list_len(lst: Any, expected: Any) -> None:

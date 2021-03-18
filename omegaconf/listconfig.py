@@ -16,7 +16,6 @@ from typing import (
 
 from ._utils import (
     ValueKind,
-    _get_value,
     _is_none,
     format_and_raise,
     get_value_kind,
@@ -152,14 +151,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if self._is_missing() or self._is_none():
             return []
         return [str(x) for x in range(0, len(self))]
-
-    def __len__(self) -> int:
-        if self._is_none():
-            return 0
-        if self._is_missing():
-            return 0
-        assert isinstance(self.__dict__["_content"], list)
-        return len(self.__dict__["_content"])
 
     def __setattr__(self, key: str, value: Any) -> None:
         self._format_and_raise(
@@ -500,20 +491,32 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     class ListIterator(Iterator[Any]):
         def __init__(self, lst: Any, resolve: bool) -> None:
-            self.iter = iter(lst.__dict__["_content"])
             self.resolve = resolve
+            self.iterator = iter(lst.__dict__["_content"])
             self.index = 0
+            from .nodes import ValueNode
+
+            self.ValueNode = ValueNode
 
         def __next__(self) -> Any:
-            v = next(self.iter)
 
+            x = next(self.iterator)
             if self.resolve:
-                v = v._dereference_node()
+                x = x._dereference_node()
+                if x._is_missing():
+                    raise MissingMandatoryValue(f"Missing value at index {self.index}")
 
-            if v._is_missing():
-                raise MissingMandatoryValue(f"Missing value at index {self.index}")
             self.index = self.index + 1
-            return _get_value(v)
+            if isinstance(x, self.ValueNode):
+                return x._value()
+            else:
+                # Must be omegaconf.Container. not checking for perf reasons.
+                if x._is_none():
+                    return None
+                return x
+
+        def __repr__(self) -> str:  # pragma: no cover
+            return f"ListConfig.ListIterator(resolve={self.resolve})"
 
     def _iter_ex(self, resolve: bool) -> Iterator[Any]:
         try:
@@ -523,7 +526,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot iterate a missing ListConfig")
 
             return ListConfig.ListIterator(self, resolve)
-        except (ReadonlyConfigError, TypeError, MissingMandatoryValue) as e:
+        except (TypeError, MissingMandatoryValue) as e:
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
 

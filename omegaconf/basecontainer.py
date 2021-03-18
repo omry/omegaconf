@@ -124,7 +124,10 @@ class BaseContainer(Container, ABC):
         ...
 
     def __len__(self) -> int:
-        return self.__dict__["_content"].__len__()  # type: ignore
+        if self._is_none() or self._is_missing() or self._is_interpolation():
+            return 0
+        content = self.__dict__["_content"]
+        return len(content)
 
     def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]

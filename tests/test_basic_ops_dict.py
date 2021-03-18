@@ -598,10 +598,23 @@ def test_dict_nested_structured_delitem() -> None:
     assert "name" not in c.user
 
 
-@pytest.mark.parametrize("d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)])
-def test_dict_len(d: Any, expected: Any) -> None:
-    c = OmegaConf.create(d)
-    assert len(c) == expected
+@pytest.mark.parametrize(
+    "d, expected",
+    [
+        pytest.param(DictConfig({}), 0, id="empty"),
+        pytest.param(DictConfig({"a": 10}), 1, id="full"),
+        pytest.param(DictConfig(None), 0, id="none"),
+        pytest.param(DictConfig("???"), 0, id="missing"),
+        pytest.param(
+            DictConfig("${foo}", parent=OmegaConf.create({"foo": {"a": 10}})),
+            0,
+            id="interpolation",
+        ),
+        pytest.param(DictConfig("${foo}"), 0, id="broken_interpolation"),
+    ],
+)
+def test_dict_len(d: DictConfig, expected: Any) -> None:
+    assert d.__len__() == expected
 
 
 def test_dict_assign_illegal_value() -> None:
