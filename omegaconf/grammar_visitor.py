@@ -403,7 +403,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 if s.type == OmegaConfGrammarLexer.ESC:
                     chrs.append(s.text[1::2])
                 elif s.type == OmegaConfGrammarLexer.ESC_INTER:
-                    chrs.append(s.text[1:])
+                    assert False  # escaped interpolations are handled elsewhere
                 else:
                     chrs.append(s.text)
             else:
