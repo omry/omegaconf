@@ -285,13 +285,8 @@ class BaseContainer(Container, ABC):
                 nonfield_items[k] = v
 
         result = object_type(**field_items)
-        if not issubclass(object_type, dict):
-            # normal structured config
-            for k, v in nonfield_items.items():
-                setattr(result, k, v)
-        else:
-            # Extending dict as a subclass
-            result.update(nonfield_items)
+        for k, v in nonfield_items.items():
+            setattr(result, k, v)
         return result
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:

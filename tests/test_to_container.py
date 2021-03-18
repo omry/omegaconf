@@ -339,8 +339,8 @@ class TestInstantiateStructuredConfigs:
         data = self.round_trip_to_object(cfg)
 
         assert type(data) is module.DictSubclass.Str2User
-        assert type(data["bond"]) is module.User
-        assert data["bond"] == module.User("James Bond", 7)
+        assert type(data.bond) is module.User
+        assert data.bond == module.User("James Bond", 7)
 
     def test_str2user_with_field_instantiate(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
@@ -350,8 +350,8 @@ class TestInstantiateStructuredConfigs:
         assert type(data) is module.DictSubclass.Str2UserWithField
         assert type(data.foo) is module.User
         assert data.foo == module.User("Bond", 7)
-        assert type(data["mp"]) is module.User
-        assert data["mp"] == module.User("Moneypenny", 11)
+        assert type(data.mp) is module.User
+        assert data.mp == module.User("Moneypenny", 11)
 
     def test_str2str_with_field_instantiate(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
@@ -360,7 +360,7 @@ class TestInstantiateStructuredConfigs:
 
         assert type(data) is module.DictSubclass.Str2StrWithField
         assert data.foo == "bar"
-        assert data["hello"] == "world"
+        assert data.hello == "world"
 
     def test_setattr_for_user_with_extra_field(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.User(name="James Bond", age=7))
