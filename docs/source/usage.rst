@@ -814,10 +814,10 @@ The ``OmegaConf.to_object`` method is very similar to the
 .. doctest::
 
     >>> container = OmegaConf.to_object(conf)
-    >>> print(container)
-    {'structured_config': MyConfig(port=80, host='localhost')}
-    >>> assert type(container["structured_config"]) is MyConfig
-    >>> assert container["structured_config"].port == 80
+    >>> show(container)
+    type: dict, value: {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> show(container["structured_config"])
+    type: MyConfig, value: MyConfig(port=80, host='localhost')
 
 Note that here, ``container.structured_config`` is actually an instance of
 ``MyConfig``, whereas in the previous examples we had a ``dict`` or
