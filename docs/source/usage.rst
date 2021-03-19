@@ -819,7 +819,7 @@ The ``OmegaConf.to_object`` method is very similar to the
     >>> show(container["structured_config"])
     type: MyConfig, value: MyConfig(port=80, host='localhost')
 
-Note that here, ``container.structured_config`` is actually an instance of
+Note that here, ``container["structured_config"]`` is actually an instance of
 ``MyConfig``, whereas in the previous examples we had a ``dict`` or
 ``DictConfig`` object that was duck-typed to look like an instance of
 ``MyConfig``.
