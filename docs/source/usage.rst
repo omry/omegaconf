@@ -726,53 +726,6 @@ You can temporarily remove the struct flag from a config object:
 Utility functions
 -----------------
 
-OmegaConf.is_missing
-^^^^^^^^^^^^^^^^^^^^
-
-Tests if a value is missing ('???').
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...         "foo" : 10, 
-    ...         "bar": "???"
-    ...     })
-    >>> assert not OmegaConf.is_missing(cfg, "foo")
-    >>> assert OmegaConf.is_missing(cfg, "bar")
-
-OmegaConf.is_interpolation
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Tests if a value is an interpolation.
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...         "foo" : 10, 
-    ...         "bar": "${foo}"
-    ...     })
-    >>> assert not OmegaConf.is_interpolation(cfg, "foo")
-    >>> assert OmegaConf.is_interpolation(cfg, "bar")
-
-
-OmegaConf.{is_config, is_dict, is_list}
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
-
-.. doctest::
-
-    >>> # dict:
-    >>> d = OmegaConf.create({"foo": "bar"})
-    >>> assert OmegaConf.is_config(d)
-    >>> assert OmegaConf.is_dict(d)
-    >>> assert not OmegaConf.is_list(d)
-    >>> # list:
-    >>> l = OmegaConf.create([1,2,3])
-    >>> assert OmegaConf.is_config(l)
-    >>> assert OmegaConf.is_list(l)
-    >>> assert not OmegaConf.is_dict(l)
-
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and list, but in fact are not.
@@ -879,6 +832,53 @@ Creates a copy of a DictConfig that contains only specific keys.
     a:
       b: 10
     <BLANKLINE>
+
+OmegaConf.is_missing
+^^^^^^^^^^^^^^^^^^^^
+
+Tests if a value is missing ('???').
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "???"
+    ...     })
+    >>> assert not OmegaConf.is_missing(cfg, "foo")
+    >>> assert OmegaConf.is_missing(cfg, "bar")
+
+OmegaConf.is_interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if a value is an interpolation.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "${foo}"
+    ...     })
+    >>> assert not OmegaConf.is_interpolation(cfg, "foo")
+    >>> assert OmegaConf.is_interpolation(cfg, "bar")
+
+
+OmegaConf.{is_config, is_dict, is_list}
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
+
+.. doctest::
+
+    >>> # dict:
+    >>> d = OmegaConf.create({"foo": "bar"})
+    >>> assert OmegaConf.is_config(d)
+    >>> assert OmegaConf.is_dict(d)
+    >>> assert not OmegaConf.is_list(d)
+    >>> # list:
+    >>> l = OmegaConf.create([1,2,3])
+    >>> assert OmegaConf.is_config(l)
+    >>> assert OmegaConf.is_list(l)
+    >>> assert not OmegaConf.is_dict(l)
 
 Debugger integration
 ^^^^^^^^^^^^^^^^^^^^
