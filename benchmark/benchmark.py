@@ -134,6 +134,7 @@ def test_list_iter(lst: List[Any], benchmark: Any) -> None:
         ("${a:b,c,d}", ValueKind.INTERPOLATION),
         ("${${b}}", ValueKind.INTERPOLATION),
         ("${a:${b}}", ValueKind.INTERPOLATION),
+        ("${foooooooooooooooooooo}_${bar}", ValueKind.INTERPOLATION),
     ],
 )
 def test_get_value_kind(
