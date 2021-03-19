@@ -250,7 +250,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("nested_select", "${options.${choice}}", "A"),
     ("nested_select_getitem", "${options[${choice}]}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
-    ("str_quoted_nested", r"'AB${test:\'CD${test:\\'EF\\'}GH\'}'", "ABCDEFGH"),
+    ("str_quoted_nested", r"'AB${test:\'CD${test:\\\'EF\\\'}GH\'}'", "ABCDEFGH"),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
@@ -282,8 +282,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
 ]
 
-# Parameters for tests of the "configValue" rule (may contain node
-# interpolations, but no resolvers).
+# Parameters for tests of the "configValue" rule (may contain interpolations).
 PARAMS_CONFIG_VALUE = [
     # String interpolations (top-level).
     ("str_top_basic", "bonjour ${str}", "bonjour hi"),
@@ -319,6 +318,7 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_escapes", r"abc\\\\\${str}", r"abc\\${str}"),
     ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 3),
     ("str_top_concat_interpolations", "${null}${float}", "None1.2"),
+    ("str_top_issue_617", r""" ${test: "hi\\" }"} """, ' hi\\"} '),
     # Whitespaces.
     ("ws_toplevel", "  \tab  ${str} cd  ${int}\t", "  \tab  hi cd  123\t"),
     # Unmatched braces.
@@ -387,6 +387,7 @@ class TestOmegaConfGrammar:
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
+        OmegaConf.register_new_resolver("test", self._resolver_test)
         self._visit_with_config(parse_tree, expected_visit)
 
     @parametrize_from(
