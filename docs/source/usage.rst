@@ -551,17 +551,19 @@ the inputs themselves:
     >>> c = OmegaConf.create(
     ...     {
     ...         "cached_1": "${cached:0,10000}",
+    ...         "cached_2": "${cached:0, 10000}",
     ...         "uncached": "${uncached:0,10000}",
-    ...         "cached_2": "${cached:0,${uncached}}",
+    ...         "cached_3": "${cached:0,${uncached}}",
     ...     }
     ... )
     >>> # same value on repeated access thanks to the cache
     >>> assert c.cached_1 == c.cached_1 == 7220
+    >>> # same input as `cached_1` => same value
+    >>> assert c.cached_2 == c.cached_1 == 7220
     >>> # not the same since the cache is disabled
     >>> assert c.uncached != c.uncached
     >>> # same string literal "${uncached}" => same value
-    >>> assert c.cached_2 == c.cached_2 == 1192
-
+    >>> assert c.cached_3 == c.cached_3 == 1192
 
 
 Custom interpolations can also receive the following special parameters:
