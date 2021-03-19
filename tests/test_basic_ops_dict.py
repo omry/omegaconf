@@ -185,14 +185,11 @@ class TestGetWithDefault:
     @pytest.mark.parametrize(
         "d,select,key",
         [
-            ({"hello": {"a": 2}}, "", "missing"),
-            ({"hello": {"a": 2}}, "hello", "missing"),
-            ({"hello": "???"}, "", "hello"),
-            ({"hello": None}, "", "hello"),
-            ({"hello": DictConfig(is_optional=True, content=None)}, "", "hello"),
-            ({"hello": DictConfig(content="???")}, "", "hello"),
-            ({"hello": ListConfig(is_optional=True, content=None)}, "", "hello"),
-            ({"hello": ListConfig(content="???")}, "", "hello"),
+            ({"key": {"subkey": 2}}, "", "missing"),
+            ({"key": {"subkey": 2}}, "key", "missing"),
+            ({"key": "???"}, "", "key"),
+            ({"key": DictConfig(content="???")}, "", "key"),
+            ({"key": ListConfig(content="???")}, "", "key"),
         ],
     )
     def test_dict_get_with_default(
@@ -204,14 +201,38 @@ class TestGetWithDefault:
         assert c.get(key, default_val) == default_val
 
     @pytest.mark.parametrize(
+        ("d", "select", "key", "expected"),
+        [
+            ({"key": "value"}, "", "key", "value"),
+            ({"key": None}, "", "key", None),
+            ({"key": {"subkey": None}}, "key", "subkey", None),
+            ({"key": DictConfig(is_optional=True, content=None)}, "", "key", None),
+            ({"key": ListConfig(is_optional=True, content=None)}, "", "key", None),
+        ],
+    )
+    def test_dict_get_not_returning_default(
+        self,
+        d: Any,
+        select: Any,
+        key: Any,
+        expected: Any,
+        default_val: Any,
+        struct: Optional[bool],
+    ) -> None:
+        c = OmegaConf.create(d)
+        c = OmegaConf.select(c, select)
+        OmegaConf.set_struct(c, struct)
+        assert c.get(key, default_val) == expected
+
+    @pytest.mark.parametrize(
         "d,exc",
         [
-            ({"hello": "${foo}"}, InterpolationKeyError),
+            ({"key": "${foo}"}, InterpolationKeyError),
             (
-                {"hello": "${foo}", "foo": "???"},
+                {"key": "${foo}", "foo": "???"},
                 InterpolationToMissingValueError,
             ),
-            ({"hello": DictConfig(content="${foo}")}, InterpolationKeyError),
+            ({"key": DictConfig(content="${foo}")}, InterpolationKeyError),
         ],
     )
     def test_dict_get_with_default_errors(
@@ -220,7 +241,7 @@ class TestGetWithDefault:
         c = OmegaConf.create(d)
         OmegaConf.set_struct(c, struct)
         with pytest.raises(exc):
-            c.get("hello", default_value=123)
+            c.get("key", default_value=123)
 
 
 def test_map_expansion() -> None:
@@ -327,6 +348,8 @@ def test_iterate_dict_with_interpolation() -> None:
         pytest.param(
             {"a": 1, "b": 2}, "not_found", "default", "default", id="with_default"
         ),
+        pytest.param({"a": None}, "a", "default", None, id="none_value"),
+        pytest.param({"a": "???"}, "a", "default", "default", id="missing_value"),
         # Interpolations
         pytest.param(
             {"a": "${b}", "b": 2}, "a", "__NO_DEFAULT__", 2, id="interpolation"
@@ -575,10 +598,23 @@ def test_dict_nested_structured_delitem() -> None:
     assert "name" not in c.user
 
 
-@pytest.mark.parametrize("d, expected", [({}, 0), ({"a": 10, "b": 11}, 2)])
-def test_dict_len(d: Any, expected: Any) -> None:
-    c = OmegaConf.create(d)
-    assert len(c) == expected
+@pytest.mark.parametrize(
+    "d, expected",
+    [
+        pytest.param(DictConfig({}), 0, id="empty"),
+        pytest.param(DictConfig({"a": 10}), 1, id="full"),
+        pytest.param(DictConfig(None), 0, id="none"),
+        pytest.param(DictConfig("???"), 0, id="missing"),
+        pytest.param(
+            DictConfig("${foo}", parent=OmegaConf.create({"foo": {"a": 10}})),
+            0,
+            id="interpolation",
+        ),
+        pytest.param(DictConfig("${foo}"), 0, id="broken_interpolation"),
+    ],
+)
+def test_dict_len(d: DictConfig, expected: Any) -> None:
+    assert d.__len__() == expected
 
 
 def test_dict_assign_illegal_value() -> None:
@@ -1000,3 +1036,12 @@ def test_dict_getitem_not_found() -> None:
 def test_dict_getitem_none_output() -> None:
     cfg = OmegaConf.create({"a": None})
     assert cfg["a"] is None
+
+
+@pytest.mark.parametrize("data", [{"b": 0}, User])
+@pytest.mark.parametrize("flag", ["struct", "readonly"])
+def test_dictconfig_creation_with_parent_flag(flag: str, data: Any) -> None:
+    parent = OmegaConf.create({"a": 10})
+    parent._set_flag(flag, True)
+    cfg = DictConfig(data, parent=parent)
+    assert cfg == data

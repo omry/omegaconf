@@ -1,40 +1,45 @@
 import copy
 import random
 import re
-from typing import Any, Optional, Tuple
+from textwrap import dedent
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 from _pytest.python_api import RaisesContext
 
 from omegaconf import (
     II,
+    SI,
     Container,
     DictConfig,
     IntegerNode,
+    ListConfig,
     Node,
     OmegaConf,
     Resolver,
     ValidationError,
-    grammar_parser,
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
-    GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
-    OmegaConfBaseException,
-    UnsupportedInterpolationType,
+    InterpolationValidationError,
 )
 
-from . import StructuredWithMissing
+from . import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
 
 # file deepcode ignore CopyPasteError:
 # The above comment is a statement to stop DeepCode from raising a warning on
 # lines that do equality checks of the form
 #       c.k == c.k
 
-# Characters that are not allowed by the grammar in config key names.
-INVALID_CHARS_IN_KEY_NAMES = "\\${}()[].: '\""
+
+def dereference(cfg: Container, key: Any) -> Node:
+    node = cfg._get_node(key)
+    assert isinstance(node, Node)
+    node = node._dereference_node()
+    assert isinstance(node, Node)
+    return node
 
 
 @pytest.mark.parametrize(
@@ -206,71 +211,210 @@ def test_type_inherit_type(cfg: Any) -> None:
     assert type(cfg.s) == str  # check that string interpolations are always strings
 
 
+@pytest.mark.parametrize("env_func", ["env", "oc.env"])
+class TestEnvInterpolation:
+    @pytest.mark.parametrize(
+        ("cfg", "env_name", "env_val", "key", "expected"),
+        [
+            pytest.param(
+                {"path": "/test/${${env_func}:foo}"},
+                "foo",
+                "1234",
+                "path",
+                "/test/1234",
+                id="simple",
+            ),
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found,ZZZ}"},
+                None,
+                None,
+                "path",
+                "/test/ZZZ",
+                id="not_found_with_default",
+            ),
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found,a/b}"},
+                None,
+                None,
+                "path",
+                "/test/a/b",
+                id="not_found_with_default",
+            ),
+        ],
+    )
+    def test_env_interpolation(
+        self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
+        monkeypatch: Any,
+        env_func: str,
+        cfg: Any,
+        env_name: Optional[str],
+        env_val: str,
+        key: str,
+        expected: Any,
+    ) -> None:
+        if env_name is not None:
+            monkeypatch.setenv(env_name, env_val)
+
+        cfg["env_func"] = env_func  # allows choosing which env resolver to use
+        cfg = OmegaConf.create(cfg)
+
+        assert OmegaConf.select(cfg, key) == expected
+
+    @pytest.mark.parametrize(
+        ("cfg", "key", "expected"),
+        [
+            pytest.param(
+                {"path": "/test/${${env_func}:not_found}"},
+                "path",
+                pytest.raises(
+                    InterpolationResolutionError,
+                    match=re.escape("Environment variable 'not_found' not found"),
+                ),
+                id="not_found",
+            ),
+        ],
+    )
+    def test_env_interpolation_error(
+        self,
+        # DEPRECATED: remove in 2.2 with the legacy env resolver
+        recwarn: Any,
+        env_func: str,
+        cfg: Any,
+        key: str,
+        expected: Any,
+    ) -> None:
+        cfg["env_func"] = env_func  # allows choosing which env resolver to use
+        cfg = _ensure_container(cfg)
+
+        with expected:
+            OmegaConf.select(cfg, key)
+
+
+def test_legacy_env_is_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("FOOBAR", "1234")
+    c = OmegaConf.create({"foobar": "${env:FOOBAR}"})
+    with pytest.warns(UserWarning):
+        before = c.foobar
+        monkeypatch.setenv("FOOBAR", "3456")
+        assert c.foobar == before
+
+
+def test_env_is_not_cached(monkeypatch: Any) -> None:
+    monkeypatch.setenv("FOOBAR", "1234")
+    c = OmegaConf.create({"foobar": "${oc.env:FOOBAR}"})
+    before = c.foobar
+    monkeypatch.setenv("FOOBAR", "3456")
+    assert c.foobar != before
+
+
 @pytest.mark.parametrize(
-    "cfg,env_name,env_val,key,expected",
+    "value,expected",
+    [
+        # We only test a few typical cases: more extensive grammar tests are
+        # found in `test_grammar.py`.
+        # bool
+        ("false", False),
+        ("true", True),
+        # int
+        ("10", 10),
+        ("-10", -10),
+        # float
+        ("10.0", 10.0),
+        ("-10.0", -10.0),
+        # null
+        ("null", None),
+        ("NulL", None),
+        # strings
+        ("hello", "hello"),
+        ("hello world", "hello world"),
+        ("  123  ", "  123  "),
+        ('"123"', "123"),
+        # lists and dicts
+        ("[1, 2, 3]", [1, 2, 3]),
+        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
+        ("[\t1, 2, 3\t]", [1, 2, 3]),
+        ("{   a: b\t  }", {"a": "b"}),
+        # interpolations
+        ("${parent.sibling}", 1),
+        ("${.sibling}", 1),
+        ("${..parent.sibling}", 1),
+        ("${uncle}", 2),
+        ("${..uncle}", 2),
+        ("${oc.env:MYKEY}", 456),
+    ],
+)
+def test_decode(monkeypatch: Any, value: Optional[str], expected: Any) -> None:
+    monkeypatch.setenv("MYKEY", "456")
+    c = OmegaConf.create(
+        {
+            # The node of interest is "node" (others are used to test interpolations).
+            "parent": {
+                "node": f"${{oc.decode:'{value}'}}",
+                "sibling": 1,
+            },
+            "uncle": 2,
+        }
+    )
+    assert c.parent.node == expected
+
+
+def test_decode_none() -> None:
+    c = OmegaConf.create({"x": "${oc.decode:null}"})
+    assert c.x is None
+
+
+@pytest.mark.parametrize(
+    ("value", "exc"),
     [
         pytest.param(
-            {"path": "/test/${env:foo}"},
-            "foo",
-            "1234",
-            "path",
-            "/test/1234",
-            id="simple",
-        ),
-        pytest.param(
-            {"path": "/test/${env:not_found}"},
-            None,
-            None,
-            "path",
+            123,
             pytest.raises(
                 InterpolationResolutionError,
-                match=re.escape("Environment variable 'not_found' not found"),
+                match=re.escape(
+                    "TypeError raised while resolving interpolation: "
+                    "`oc.decode` can only take strings or None as input, but `123` is of type int"
+                ),
             ),
-            id="not_found",
+            id="bad_type",
         ),
         pytest.param(
-            {"path": "/test/${env:not_found,ZZZ}"},
-            None,
-            None,
-            "path",
-            "/test/ZZZ",
-            id="not_found_with_default",
+            "'[1, '",
+            pytest.raises(
+                InterpolationResolutionError,
+                match=re.escape(
+                    "GrammarParseError raised while resolving interpolation: "
+                    "missing BRACKET_CLOSE at '<EOF>'"
+                ),
+            ),
+            id="parse_error",
         ),
         pytest.param(
-            {"path": "/test/${env:not_found,a/b}"},
-            None,
-            None,
-            "path",
-            "/test/a/b",
-            id="not_found_with_default",
+            # Must be escaped to prevent resolution before feeding it to `oc.decode`.
+            "'\\${foo}'",
+            pytest.raises(
+                InterpolationResolutionError,
+                match=re.escape("Interpolation key 'foo' not found"),
+            ),
+            id="interpolation_not_found",
         ),
     ],
 )
-def test_env_interpolation(
-    monkeypatch: Any,
-    cfg: Any,
-    env_name: Optional[str],
-    env_val: str,
-    key: str,
-    expected: Any,
-) -> None:
-    if env_name is not None:
-        monkeypatch.setenv(env_name, env_val)
-
-    cfg = _ensure_container(cfg)
-    if isinstance(expected, RaisesContext):
-        with expected:
-            OmegaConf.select(cfg, key)
-    else:
-        assert OmegaConf.select(cfg, key) == expected
+def test_decode_error(monkeypatch: Any, value: Any, exc: Any) -> None:
+    c = OmegaConf.create({"x": f"${{oc.decode:{value}}}"})
+    with exc:
+        c.x
 
 
-def test_env_is_cached(monkeypatch: Any) -> None:
-    monkeypatch.setenv("foobar", "1234")
-    c = OmegaConf.create({"foobar": "${env:foobar}"})
-    before = c.foobar
-    monkeypatch.setenv("foobar", "3456")
-    assert c.foobar == before
+@pytest.mark.parametrize(
+    "value",
+    ["false", "true", "10", "1.5", "null", "None", "${foo}"],
+)
+def test_env_preserves_string(monkeypatch: Any, value: str) -> None:
+    monkeypatch.setenv("MYKEY", value)
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY}"})
+    assert c.my_key == value
 
 
 @pytest.mark.parametrize(
@@ -299,45 +443,42 @@ def test_env_is_cached(monkeypatch: Any) -> None:
         # more advanced uses of the grammar
         ("ab \\{foo} cd", "ab \\{foo} cd"),
         ("ab \\\\{foo} cd", "ab \\\\{foo} cd"),
-        ("'\\${other_key}'", "${other_key}"),  # escaped interpolation
-        ("'ab \\${other_key} cd'", "ab ${other_key} cd"),  # escaped interpolation
-        ("[1, 2, 3]", [1, 2, 3]),
-        ("{a: 0, b: 1}", {"a": 0, "b": 1}),
-        ("  123  ", "  123  "),
         ("  1 2 3  ", "  1 2 3  "),
         ("\t[1, 2, 3]\t", "\t[1, 2, 3]\t"),
-        ("[\t1, 2, 3\t]", [1, 2, 3]),
         ("   {a: b}\t  ", "   {a: b}\t  "),
-        ("{   a: b\t  }", {"a": "b"}),
-        ("'123'", "123"),
-        ("${env:my_key_2}", 456),  # can call another resolver
     ],
 )
-def test_env_values_are_typed(monkeypatch: Any, value: Any, expected: Any) -> None:
-    monkeypatch.setenv("my_key", value)
-    monkeypatch.setenv("my_key_2", "456")
-    c = OmegaConf.create({"my_key": "${env:my_key}"})
-    assert c.my_key == expected
-
-
-def test_env_node_interpolation(monkeypatch: Any) -> None:
-    # Test that node interpolations are not supported in env variables.
-    monkeypatch.setenv("MYKEY", "${other_key}")
-    c = OmegaConf.create({"my_key": "${env:MYKEY}", "other_key": 123})
-    with pytest.raises(
-        InterpolationKeyError,
-        match=re.escape(
-            "When attempting to resolve env variable 'MYKEY', a node interpolation caused "
-            "the following exception: Interpolation key 'other_key' not found."
-        ),
-    ):
-        c.my_key
+def test_legacy_env_values_are_typed(
+    monkeypatch: Any, value: Any, expected: Any
+) -> None:
+    monkeypatch.setenv("MYKEY", value)
+    c = OmegaConf.create({"my_key": "${env:MYKEY}"})
+    with pytest.warns(UserWarning, match=re.escape("The `env` resolver is deprecated")):
+        assert c.my_key == expected
 
 
 def test_env_default_none(monkeypatch: Any) -> None:
-    monkeypatch.delenv("my_key", raising=False)
-    c = OmegaConf.create({"my_key": "${env:my_key, null}"})
+    monkeypatch.delenv("MYKEY", raising=False)
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY, null}"})
     assert c.my_key is None
+
+
+@pytest.mark.parametrize("has_var", [True, False])
+def test_env_non_str_default(monkeypatch: Any, has_var: bool) -> None:
+    if has_var:
+        monkeypatch.setenv("MYKEY", "456")
+    else:
+        monkeypatch.delenv("MYKEY", raising=False)
+
+    c = OmegaConf.create({"my_key": "${oc.env:MYKEY, 123}"})
+    with pytest.raises(
+        InterpolationResolutionError,
+        match=re.escape(
+            "TypeError raised while resolving interpolation: The default value "
+            "of the `oc.env` resolver must be a string or None, but `123` is of type int"
+        ),
+    ):
+        c.my_key
 
 
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
@@ -358,20 +499,27 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
         OmegaConf.register_new_resolver("foo", lambda: 10)
 
 
-def test_clear_resolvers(restore_resolvers: Any) -> None:
-    assert OmegaConf.get_resolver("foo") is None
+def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
+    assert not OmegaConf.has_resolver("foo")
     OmegaConf.register_new_resolver("foo", lambda x: x + 10)
-    assert OmegaConf.get_resolver("foo") is not None
+    assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
-    assert OmegaConf.get_resolver("foo") is None
+    assert not OmegaConf.has_resolver("foo")
 
 
-def test_clear_resolvers_legacy(restore_resolvers: Any) -> None:
-    assert OmegaConf.get_resolver("foo") is None
+def test_clear_resolvers_and_has_resolver_legacy(restore_resolvers: Any) -> None:
+    assert not OmegaConf.has_resolver("foo")
     OmegaConf.legacy_register_resolver("foo", lambda x: int(x) + 10)
-    assert OmegaConf.get_resolver("foo") is not None
+    assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
-    assert OmegaConf.get_resolver("foo") is None
+    assert not OmegaConf.has_resolver("foo")
+
+
+def test_get_resolver_deprecation() -> None:
+    with pytest.warns(
+        UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/608")
+    ):
+        assert OmegaConf.get_resolver("foo") is None
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
@@ -466,11 +614,10 @@ def test_resolver_no_cache(restore_resolvers: Any) -> None:
     assert c.k != c.k
 
 
-def test_resolver_dot_start(restore_resolvers: Any) -> None:
+def test_resolver_dot_start(common_resolvers: Any) -> None:
     """
     Regression test for #373
     """
-    OmegaConf.register_new_resolver("identity", lambda x: x)
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -478,8 +625,7 @@ def test_resolver_dot_start(restore_resolvers: Any) -> None:
     assert c.foo_dot == ".bar"
 
 
-def test_resolver_dot_start_legacy(restore_resolvers: Any) -> None:
-    OmegaConf.legacy_register_resolver("identity", lambda x: x)
+def test_resolver_dot_start_legacy(common_resolvers: Any) -> None:
     c = OmegaConf.create(
         {"foo_nodot": "${identity:bar}", "foo_dot": "${identity:.bar}"}
     )
@@ -597,49 +743,6 @@ def test_clear_cache(restore_resolvers: Any) -> None:
     assert old != c.k
 
 
-def test_supported_chars() -> None:
-    supported_chars = "abc123_/:-\\+.$%*@"
-    c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
-
-    OmegaConf.register_new_resolver("copy", lambda x: x)
-    assert c.dir1 == supported_chars
-
-
-def test_valid_chars_in_key_names() -> None:
-    valid_chars = "".join(
-        chr(i) for i in range(33, 128) if chr(i) not in INVALID_CHARS_IN_KEY_NAMES
-    )
-    cfg_dict = {valid_chars: 123, "inter": f"${{{valid_chars}}}"}
-    cfg = OmegaConf.create(cfg_dict)
-    # Test that we can access the node made of all valid characters, both
-    # directly and through interpolations.
-    assert cfg[valid_chars] == 123
-    assert cfg.inter == 123
-
-
-@pytest.mark.parametrize("c", list(INVALID_CHARS_IN_KEY_NAMES))
-def test_invalid_chars_in_key_names(c: str) -> None:
-    def create() -> DictConfig:
-        return OmegaConf.create({"invalid": f"${{ab{c}de}}"})
-
-    # Test that all invalid characters trigger errors in interpolations.
-    if c in [".", "}"]:
-        # With '.', we try to access `${ab.de}`.
-        # With '}', we try to access `${ab}`.
-        cfg = create()
-        with pytest.raises(InterpolationKeyError):
-            cfg.invalid
-    elif c == ":":
-        # With ':', we try to run a resolver `${ab:de}`
-        cfg = create()
-        with pytest.raises(UnsupportedInterpolationType):
-            cfg.invalid
-    else:
-        # Other invalid characters should be detected at creation time.
-        with pytest.raises(GrammarParseError):
-            create()
-
-
 def test_interpolation_in_list_key_error() -> None:
     # Test that a KeyError is thrown if an str_interpolation key is not available
     c = OmegaConf.create(["${10}"])
@@ -702,8 +805,16 @@ def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
 
 
 def test_resolve_interpolation_without_parent() -> None:
-    with pytest.raises(OmegaConfBaseException):
+    with pytest.raises(
+        InterpolationResolutionError,
+        match=re.escape("Cannot resolve interpolation for a node without a parent"),
+    ):
         DictConfig(content="${foo}")._dereference_node()
+
+
+def test_resolve_interpolation_without_parent_no_throw() -> None:
+    cfg = DictConfig(content="${foo}")
+    assert cfg._dereference_node(throw_on_resolution_failure=False) is None
 
 
 def test_optional_after_interpolation() -> None:
@@ -711,14 +822,6 @@ def test_optional_after_interpolation() -> None:
     # Ensure that we can set an optional field to `None` even when it currently
     # points to a non-optional field.
     cfg.opt_num = None
-
-
-def test_empty_stack() -> None:
-    """
-    Check that an empty stack during ANTLR parsing raises a `GrammarParseError`.
-    """
-    with pytest.raises(GrammarParseError):
-        grammar_parser.parse("ab}", lexer_mode="VALUE_MODE")
 
 
 @pytest.mark.parametrize("ref", ["missing", "invalid"])
@@ -747,3 +850,325 @@ def test_invalid_intermediate_result_when_not_throwing(
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
     assert x_node._dereference_node(throw_on_resolution_failure=False) is None
+
+
+def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver("test", lambda x: x)
+    cfg = OmegaConf.create({"x": "${test:'${missing}'}", "missing": None})
+    assert cfg.x == "None"
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected_value", "expected_node_type"),
+    [
+        pytest.param(
+            User(name="Bond", age=SI("${cast:int,'7'}")),
+            "age",
+            7,
+            IntegerNode,
+            id="expected_type",
+        ),
+        pytest.param(
+            # This example specifically test the case where intermediate resolver results
+            # cannot be cast to the same type as the key.
+            User(name="Bond", age=SI("${cast:int,${drop_last:${drop_last:7xx}}}")),
+            "age",
+            7,
+            IntegerNode,
+            id="intermediate_type_mismatch_ok",
+        ),
+        pytest.param(
+            # This example relies on the automatic casting of a string to int when
+            # assigned to an IntegerNode.
+            User(name="Bond", age=SI("${cast:str,'7'}")),
+            "age",
+            7,
+            IntegerNode,
+            id="convert_str_to_int",
+        ),
+        pytest.param(
+            MissingList(list=SI("${identity:[a, b, c]}")),
+            "list",
+            ["a", "b", "c"],
+            ListConfig,
+            id="list_str",
+        ),
+        pytest.param(
+            MissingList(list=SI("${identity:[0, 1, 2]}")),
+            "list",
+            ["0", "1", "2"],
+            ListConfig,
+            id="list_int_to_str",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{key1: val1, key2: val2}}")),
+            "dict",
+            {"key1": "val1", "key2": "val2"},
+            DictConfig,
+            id="dict_str",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{a: 0, b: 1}}")),
+            "dict",
+            {"a": "0", "b": "1"},
+            DictConfig,
+            id="dict_int_to_str",
+        ),
+    ],
+)
+def test_interpolation_type_validated_ok(
+    cfg: Any,
+    key: str,
+    expected_value: Any,
+    expected_node_type: Any,
+    common_resolvers: Any,
+) -> Any:
+    def drop_last(s: str) -> str:
+        return s[0:-1]  # drop last character from string `s`
+
+    OmegaConf.register_new_resolver("drop_last", drop_last)
+
+    cfg = OmegaConf.structured(cfg)
+
+    val = cfg[key]
+    assert val == expected_value
+
+    node = cfg._get_node(key)
+    assert isinstance(node, Node)
+    assert isinstance(node._dereference_node(), expected_node_type)
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected_error"),
+    [
+        pytest.param(
+            User(name="Bond", age=SI("${cast:str,seven}")),
+            "age",
+            pytest.raises(
+                InterpolationValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        Value 'seven' could not be converted to Integer
+                            full_key: age
+                        """
+                    )
+                ),
+            ),
+            id="type_mismatch_resolver",
+        ),
+        pytest.param(
+            User(name="Bond", age=SI("${name}")),
+            "age",
+            pytest.raises(
+                InterpolationValidationError,
+                match=re.escape("'Bond' could not be converted to Integer"),
+            ),
+            id="type_mismatch_node_interpolation",
+        ),
+        pytest.param(
+            StructuredWithMissing(opt_num=None, num=II("opt_num")),
+            "num",
+            pytest.raises(
+                InterpolationValidationError,
+                match=re.escape("Non optional field cannot be assigned None"),
+            ),
+            id="non_optional_node_interpolation",
+        ),
+        pytest.param(
+            SubscriptedList(list=SI("${identity:[a, b]}")),
+            "list",
+            pytest.raises(
+                InterpolationValidationError,
+                match=re.escape("Value 'a' could not be converted to Integer"),
+            ),
+            id="list_type_mismatch",
+        ),
+        pytest.param(
+            MissingDict(dict=SI("${identity:{0: b, 1: d}}")),
+            "dict",
+            pytest.raises(
+                InterpolationValidationError,
+                match=re.escape("Key 0 (int) is incompatible with (str)"),
+            ),
+            id="dict_key_type_mismatch",
+        ),
+    ],
+)
+def test_interpolation_type_validated_error(
+    cfg: Any,
+    key: str,
+    expected_error: Any,
+    common_resolvers: Any,
+) -> None:
+    cfg = OmegaConf.structured(cfg)
+
+    with expected_error:
+        cfg[key]
+
+    assert OmegaConf.select(cfg, key, throw_on_resolution_failure=False) is None
+
+
+@pytest.mark.parametrize(
+    ("cfg", "key"),
+    [
+        pytest.param({"dict": "${identity:{a: 0, b: 1}}"}, "dict.a", id="dict"),
+        pytest.param(
+            {"dict": "${identity:{a: 0, b: {c: 1}}}"},
+            "dict.b.c",
+            id="dict_nested",
+        ),
+        pytest.param({"list": "${identity:[0, 1]}"}, "list.0", id="list"),
+        pytest.param({"list": "${identity:[0, [1, 2]]}"}, "list.1.1", id="list_nested"),
+    ],
+)
+def test_interpolation_readonly_resolver_output(
+    common_resolvers: Any, cfg: Any, key: str
+) -> None:
+    cfg = OmegaConf.create(cfg)
+    sub_key: Any
+    parent_key, sub_key = key.rsplit(".", 1)
+    try:
+        sub_key = int(sub_key)  # convert list index to integer
+    except ValueError:
+        pass
+    parent_node = OmegaConf.select(cfg, parent_key)
+    assert parent_node._get_flag("readonly")
+
+
+def test_interpolation_readonly_node() -> None:
+    cfg = OmegaConf.structured(User(name="7", age=II("name")))
+    resolved = dereference(cfg, "age")
+    assert resolved == 7
+    # The `resolved` node must be read-only because `age` is an integer, so the
+    # interpolation cannot return directly the `name` node.
+    assert resolved._get_flag("readonly")
+
+
+def test_type_validation_error_no_throw() -> None:
+    cfg = OmegaConf.structured(User(name="Bond", age=SI("${name}")))
+    bad_node = cfg._get_node("age")
+    assert bad_node._dereference_node(throw_on_resolution_failure=False) is None
+
+
+@pytest.mark.parametrize(
+    ("cfg", "expected"),
+    [
+        ({"a": 0, "b": 1}, {"a": 0, "b": 1}),
+        ({"a": "${y}"}, {"a": -1}),
+        ({"a": 0, "b": "${x.a}"}, {"a": 0, "b": 0}),
+        ({"a": 0, "b": "${.a}"}, {"a": 0, "b": 0}),
+        ({"a": "${..y}"}, {"a": -1}),
+    ],
+)
+def test_resolver_output_dict_to_dictconfig(
+    restore_resolvers: Any, cfg: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    OmegaConf.register_new_resolver("dict", lambda: cfg)
+    c = OmegaConf.create({"x": "${dict:}", "y": -1})
+    assert isinstance(c.x, DictConfig)
+    assert c.x == expected
+    assert dereference(c, "x")._get_flag("readonly")
+
+
+@pytest.mark.parametrize(
+    ("cfg", "expected"),
+    [
+        ([0, 1], [0, 1]),
+        (["${y}"], [-1]),
+        ([0, "${x.0}"], [0, 0]),
+        ([0, "${.0}"], [0, 0]),
+        (["${..y}"], [-1]),
+    ],
+)
+def test_resolver_output_list_to_listconfig(
+    restore_resolvers: Any, cfg: List[Any], expected: List[Any]
+) -> None:
+    OmegaConf.register_new_resolver("list", lambda: cfg)
+    c = OmegaConf.create({"x": "${list:}", "y": -1})
+    assert isinstance(c.x, ListConfig)
+    assert c.x == expected
+    assert dereference(c, "x")._get_flag("readonly")
+
+
+def test_register_cached_resolver_with_keyword_unsupported() -> None:
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("root", lambda _root_: None, use_cache=True)
+    with pytest.raises(ValueError):
+        OmegaConf.register_new_resolver("parent", lambda _parent_: None, use_cache=True)
+
+
+def test_resolver_with_parent(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver(
+        "parent", lambda _parent_: _parent_, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "a": 10,
+            "b": {
+                "c": 20,
+                "parent": "${parent:}",
+            },
+            "parent": "${parent:}",
+        }
+    )
+
+    assert cfg.parent is cfg
+    assert cfg.b.parent is cfg.b
+
+
+def test_resolver_with_root(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver("root", lambda _root_: _root_, use_cache=False)
+    cfg = OmegaConf.create(
+        {
+            "a": 10,
+            "b": {
+                "c": 20,
+                "root": "${root:}",
+            },
+            "root": "${root:}",
+        }
+    )
+
+    assert cfg.root is cfg
+    assert cfg.b.root is cfg
+
+
+def test_resolver_with_root_and_parent(restore_resolvers: Any) -> None:
+    OmegaConf.register_new_resolver(
+        "both", lambda _root_, _parent_: _root_.add + _parent_.add, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "add": 10,
+            "b": {
+                "add": 20,
+                "both": "${both:}",
+            },
+            "both": "${both:}",
+        }
+    )
+    assert cfg.both == 20
+    assert cfg.b.both == 30
+
+
+def test_resolver_with_parent_and_default_value(restore_resolvers: Any) -> None:
+    def parent_and_default(default: int = 10, *, _parent_: Any) -> Any:
+        return _parent_.add + default
+
+    OmegaConf.register_new_resolver(
+        "parent_and_default", parent_and_default, use_cache=False
+    )
+
+    cfg = OmegaConf.create(
+        {
+            "add": 10,
+            "no_param": "${parent_and_default:}",
+            "param": "${parent_and_default:20}",
+        }
+    )
+
+    assert cfg.no_param == 20
+    assert cfg.param == 30

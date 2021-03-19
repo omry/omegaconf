@@ -16,10 +16,12 @@ from typing import (
 )
 
 from ._utils import (
+    _DEFAULT_MARKER_,
     ValueKind,
     _get_value,
     _is_interpolation,
     _is_missing_value,
+    _is_none,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -34,7 +36,7 @@ from ._utils import (
     valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
-from .basecontainer import DEFAULT_VALUE_MARKER, BaseContainer
+from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
     ConfigKeyError,
@@ -225,7 +227,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             dest_obj_type is not None
             and src_obj_type is not None
             and is_structured_config(dest_obj_type)
-            and not OmegaConf.is_none(src)
+            and not src._is_none()
             and not is_dict(src_obj_type)
             and not issubclass(src_obj_type, dest_obj_type)
         )
@@ -237,9 +239,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise ValidationError(msg)
 
     def _validate_non_optional(self, key: Any, value: Any) -> None:
-        from omegaconf import OmegaConf
-
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True, throw_on_resolution_failure=False):
             if key is not None:
                 child = self._get_node(key)
                 if child is not None:
@@ -292,11 +292,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return key  # type: ignore
         elif issubclass(key_type, Enum):
             try:
-                ret = EnumNode.validate_and_convert_to_enum(
-                    key_type, key, allow_none=False
-                )
-                assert ret is not None
-                return ret
+                return EnumNode.validate_and_convert_to_enum(key_type, key)
             except ValidationError:
                 valid = ", ".join([x for x in key_type.__members__.keys()])
                 raise KeyValidationError(
@@ -350,7 +346,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise AttributeError()
 
         try:
-            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+            return self._get_impl(key=key, default_value=_DEFAULT_MARKER_)
         except ConfigKeyError as e:
             self._format_and_raise(
                 key=key, value=None, cause=e, type_override=ConfigAttributeError
@@ -366,7 +362,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         """
 
         try:
-            return self._get_impl(key=key, default_value=DEFAULT_VALUE_MARKER)
+            return self._get_impl(key=key, default_value=_DEFAULT_MARKER_)
         except AttributeError as e:
             self._format_and_raise(
                 key=key, value=None, cause=e, type_override=ConfigKeyError
@@ -419,10 +415,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         try:
             node = self._get_node(key=key, throw_on_missing_key=True)
         except (ConfigAttributeError, ConfigKeyError):
-            if default_value is not DEFAULT_VALUE_MARKER:
-                node = default_value
+            if default_value is not _DEFAULT_MARKER_:
+                return default_value
             else:
                 raise
+        assert isinstance(node, Node)
         return self._resolve_with_default(
             key=key, value=node, default_value=default_value
         )
@@ -453,7 +450,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise MissingMandatoryValue("Missing mandatory value")
         return value
 
-    def pop(self, key: DictKeyType, default: Any = DEFAULT_VALUE_MARKER) -> Any:
+    def pop(self, key: DictKeyType, default: Any = _DEFAULT_MARKER_) -> Any:
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot pop from read-only node")
@@ -466,6 +463,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             key = self._validate_and_normalize_key(key)
             node = self._get_node(key=key, validate_access=False)
             if node is not None:
+                assert isinstance(node, Node)
                 value = self._resolve_with_default(
                     key=key, value=node, default_value=default
                 )
@@ -473,7 +471,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 del self[key]
                 return value
             else:
-                if default is not DEFAULT_VALUE_MARKER:
+                if default is not _DEFAULT_MARKER_:
                     return default
                 else:
                     full = self._get_full_key(key=key)
@@ -606,7 +604,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import MISSING, OmegaConf, flag_override
+        from omegaconf import MISSING, flag_override
 
         if flags is None:
             flags = {}
@@ -614,7 +612,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert not isinstance(value, ValueNode)
         self._validate_set(key=None, value=value)
 
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True):
             self.__dict__["_content"] = None
             self._metadata.object_type = None
         elif _is_interpolation(value, strict_interpolation_validation=True):
@@ -627,26 +625,25 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self.__dict__["_content"] = {}
             if is_structured_config(value):
                 self._metadata.object_type = None
-                data = get_structured_config_data(
-                    value,
-                    allow_objects=self._get_flag("allow_objects"),
-                )
-                for k, v in data.items():
-                    self.__setitem__(k, v)
+                ao = self._get_flag("allow_objects")
+                data = get_structured_config_data(value, allow_objects=ao)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for k, v in data.items():
+                        self.__setitem__(k, v)
                 self._metadata.object_type = get_type_of(value)
+
             elif isinstance(value, DictConfig):
                 self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
                 self._metadata.flags = copy.deepcopy(flags)
-                # disable struct and readonly for the construction phase
-                # retaining other flags like allow_objects. The real flags are restored at the end of this function
-                with flag_override(self, "struct", False):
-                    with flag_override(self, "readonly", False):
-                        for k, v in value.__dict__["_content"].items():
-                            self.__setitem__(k, v)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for k, v in value.__dict__["_content"].items():
+                        self.__setitem__(k, v)
 
             elif isinstance(value, dict):
-                for k, v in value.items():
-                    self.__setitem__(k, v)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for k, v in value.items():
+                        self.__setitem__(k, v)
+
             else:  # pragma: no cover
                 msg = f"Unsupported value type : {value}"
                 raise ValidationError(msg)

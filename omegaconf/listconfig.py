@@ -16,7 +16,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
-    _get_value,
+    _is_none,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -151,14 +151,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if self._is_missing() or self._is_none():
             return []
         return [str(x) for x in range(0, len(self))]
-
-    def __len__(self) -> int:
-        if self._is_none():
-            return 0
-        if self._is_missing():
-            return 0
-        assert isinstance(self.__dict__["_content"], list)
-        return len(self.__dict__["_content"])
 
     def __setattr__(self, key: str, value: Any) -> None:
         self._format_and_raise(
@@ -434,9 +426,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot pop from a missing ListConfig")
 
             assert isinstance(self.__dict__["_content"], list)
-            ret = self._resolve_with_default(
-                key=index, value=self._get_node(index), default_value=None
-            )
+            node = self._get_node(index)
+            assert isinstance(node, Node)
+            ret = self._resolve_with_default(key=index, value=node, default_value=None)
             del self.__dict__["_content"][index]
             self._update_keys()
             return ret
@@ -499,20 +491,32 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     class ListIterator(Iterator[Any]):
         def __init__(self, lst: Any, resolve: bool) -> None:
-            self.iter = iter(lst.__dict__["_content"])
             self.resolve = resolve
+            self.iterator = iter(lst.__dict__["_content"])
             self.index = 0
+            from .nodes import ValueNode
+
+            self.ValueNode = ValueNode
 
         def __next__(self) -> Any:
-            v = next(self.iter)
 
+            x = next(self.iterator)
             if self.resolve:
-                v = v._dereference_node()
+                x = x._dereference_node()
+                if x._is_missing():
+                    raise MissingMandatoryValue(f"Missing value at index {self.index}")
 
-            if v._is_missing():
-                raise MissingMandatoryValue(f"Missing value at index {self.index}")
             self.index = self.index + 1
-            return _get_value(v)
+            if isinstance(x, self.ValueNode):
+                return x._value()
+            else:
+                # Must be omegaconf.Container. not checking for perf reasons.
+                if x._is_none():
+                    return None
+                return x
+
+        def __repr__(self) -> str:  # pragma: no cover
+            return f"ListConfig.ListIterator(resolve={self.resolve})"
 
     def _iter_ex(self, resolve: bool) -> Iterator[Any]:
         try:
@@ -522,7 +526,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot iterate a missing ListConfig")
 
             return ListConfig.ListIterator(self, resolve)
-        except (ReadonlyConfigError, TypeError, MissingMandatoryValue) as e:
+        except (TypeError, MissingMandatoryValue) as e:
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
 
@@ -565,13 +569,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
-        from omegaconf import MISSING, OmegaConf, flag_override
+        from omegaconf import MISSING, flag_override
 
         if flags is None:
             flags = {}
 
         vk = get_value_kind(value, strict_interpolation_validation=True)
-        if OmegaConf.is_none(value):
+        if _is_none(value, resolve=True):
             if not self._is_optional():
                 raise ValidationError(
                     "Non optional ListConfig cannot be constructed from None"
@@ -593,13 +597,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 self._metadata.flags = copy.deepcopy(flags)
                 # disable struct and readonly for the construction phase
                 # retaining other flags like allow_objects. The real flags are restored at the end of this function
-                with flag_override(self, "struct", False):
-                    with flag_override(self, "readonly", False):
-                        for item in value._iter_ex(resolve=False):
-                            self.append(item)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for item in value._iter_ex(resolve=False):
+                        self.append(item)
             elif is_primitive_list(value):
-                for item in value:
-                    self.append(item)
+                with flag_override(self, ["struct", "readonly"], False):
+                    for item in value:
+                        self.append(item)
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:

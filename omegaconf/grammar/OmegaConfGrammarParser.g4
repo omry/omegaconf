@@ -2,17 +2,11 @@
 
 // Maintenance guidelines when modifying this grammar:
 //
-// - For initial testing of the parsing abilities of the modified grammer before
-//   writing all the support visitor code, change the test
-//        `tests/test_interpolation.py::test_all_interpolations`
-//   by setting `dbg_test_access_only = True`, and run it. You will also probably
-//   need to comment / hijack the code accesssing the visitor. Tests that expect
-//   errors raised from the visitor will obviously fail.
+// - Consider whether the regex pattern `SIMPLE_INTERPOLATION_PATTERN` found in
+//   `grammar_parser.py` should be updated as well.
 //
-// - Update Hydra's grammar accordingly, and if you added more cases to the test
-//   mentioned above, copy the latest version of `TEST_CONFIG_DATA` to Hydra (see
-//   Hydra's test: `tests/test_overrides_parser.py::test_omegaconf_interpolations`).
-
+// - Update Hydra's grammar accordingly.
+//
 // - Keep up-to-date the comments in the visitor (in `grammar_visitor.py`)
 //   that contain grammar excerpts (within each `visit...()` method).
 //
@@ -47,7 +41,7 @@ sequence: (element (COMMA element?)*) | (COMMA element?)+;
 // Interpolations.
 
 interpolation: interpolationNode | interpolationResolver;
-interpolationNode: INTER_OPEN DOT* configKey (DOT configKey)* INTER_CLOSE;
+interpolationNode: INTER_OPEN DOT* (configKey (DOT configKey)*)? INTER_CLOSE;
 interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
 resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f

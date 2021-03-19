@@ -9,11 +9,13 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ._utils import (
+    _DEFAULT_MARKER_,
     _ensure_container,
     _get_value,
     _is_interpolation,
     _is_missing_literal,
     _is_missing_value,
+    _is_none,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
@@ -26,12 +28,15 @@ from ._utils import (
     is_structured_config,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
-from .errors import MissingMandatoryValue, ReadonlyConfigError, ValidationError
+from .errors import (
+    ConfigCycleDetectedException,
+    MissingMandatoryValue,
+    ReadonlyConfigError,
+    ValidationError,
+)
 
 if TYPE_CHECKING:
     from .dictconfig import DictConfig  # pragma: no cover
-
-DEFAULT_VALUE_MARKER: Any = str("__DEFAULT_VALUE_MARKER__")
 
 
 class BaseContainer(Container, ABC):
@@ -45,18 +50,12 @@ class BaseContainer(Container, ABC):
     def _resolve_with_default(
         self,
         key: Union[DictKeyType, int],
-        value: Any,
-        default_value: Any = DEFAULT_VALUE_MARKER,
+        value: Node,
+        default_value: Any = _DEFAULT_MARKER_,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
-
-        has_default = default_value is not DEFAULT_VALUE_MARKER
-
-        if has_default and _get_value(value) is None:
-            return default_value
-
         if _is_missing_value(value):
-            if has_default:
+            if default_value is not _DEFAULT_MARKER_:
                 return default_value
             raise MissingMandatoryValue("Missing mandatory value: $FULL_KEY")
 
@@ -66,7 +65,6 @@ class BaseContainer(Container, ABC):
             value=value,
             throw_on_resolution_failure=True,
         )
-        assert resolved_node is not None
 
         return _get_value(resolved_node)
 
@@ -125,7 +123,10 @@ class BaseContainer(Container, ABC):
         ...
 
     def __len__(self) -> int:
-        return self.__dict__["_content"].__len__()  # type: ignore
+        if self._is_none() or self._is_missing() or self._is_interpolation():
+            return 0
+        content = self.__dict__["_content"]
+        return len(content)
 
     def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]
@@ -307,7 +308,7 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import AnyNode, DictConfig, OmegaConf, ValueNode
+        from omegaconf import AnyNode, DictConfig, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -316,9 +317,9 @@ class BaseContainer(Container, ABC):
         assert src_ref_type is not None
 
         # If source DictConfig is:
-        #  - an interpolation => set the destination DictConfig to be the same interpolation
         #  - None => set the destination DictConfig to None
-        if src._is_interpolation() or src._is_none():
+        #  - an interpolation => set the destination DictConfig to be the same interpolation
+        if src._is_none() or src._is_interpolation():
             dest._set_value(src._value())
             _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
@@ -369,9 +370,9 @@ class BaseContainer(Container, ABC):
 
             if (
                 isinstance(dest_node, Container)
-                and OmegaConf.is_none(dest, key)
+                and dest_node._is_none()
                 and not missing_src_value
-                and not OmegaConf.is_none(src_value)
+                and not _is_none(src_value, resolve=True)
             ):
                 expand(dest_node)
 
@@ -448,14 +449,14 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, ListConfig)
         assert isinstance(src, ListConfig)
 
-        if src._is_interpolation():
-            dest._set_value(src._value())
-        elif src._is_none():
+        if src._is_none():
             dest._set_value(None)
         elif src._is_missing():
             # do not change dest if src is MISSING.
             if dest._metadata.element_type is Any:
                 dest._metadata.element_type = src._metadata.element_type
+        elif src._is_interpolation():
+            dest._set_value(src._value())
         else:
             temp_target = ListConfig(content=[], parent=dest._get_parent())
             temp_target.__dict__["_metadata"] = copy.deepcopy(
@@ -685,9 +686,6 @@ class BaseContainer(Container, ABC):
             assert isinstance(ret, bool)
             return ret
 
-    def _is_none(self) -> bool:
-        return self.__dict__["_content"] is None
-
     def _is_optional(self) -> bool:
         return self.__dict__["_metadata"].optional is True
 
@@ -765,11 +763,16 @@ class BaseContainer(Container, ABC):
             full_key = self._key()
 
         assert cur is not None
+        memo = {id(cur)}  # remember already visited nodes so as to detect cycles
         while cur._get_parent() is not None:
             cur = cur._get_parent()
+            if id(cur) in memo:
+                raise ConfigCycleDetectedException(
+                    f"Cycle when iterating over parents of key `{key}`"
+                )
+            memo.add(id(cur))
             assert cur is not None
-            key = cur._key()
-            if key is not None:
+            if cur._key() is not None:
                 full_key = prepand(
                     full_key, type(cur._get_parent()), type(cur), cur._key()
                 )

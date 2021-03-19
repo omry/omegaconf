@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -7,7 +8,8 @@ from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, _utils
 from omegaconf._utils import (
-    SIMPLE_INTERPOLATION_PATTERN,
+    Marker,
+    _ensure_container,
     _get_value,
     _make_hashable,
     is_dict_annotation,
@@ -49,7 +51,7 @@ from tests import Color, ConcretePlugin, Dataframe, IllegalType, Plugin, User
         param(float, 1, FloatNode(1), id="float"),
         param(float, 1.0, FloatNode(1.0), id="float"),
         param(float, Color.RED, ValidationError, id="float"),
-        # # bool
+        # bool
         param(bool, "foo", ValidationError, id="bool"),
         param(bool, True, BooleanNode(True), id="bool"),
         param(bool, 1, BooleanNode(True), id="bool"),
@@ -621,37 +623,19 @@ def test_make_hashable_type_error() -> None:
         _make_hashable({...: 0, None: 0})
 
 
-@mark.parametrize(
-    "expression",
-    [
-        "${foo}",
-        "${foo.bar}",
-        "${a_b.c123}",
-        "${  foo \t}",
-        "x ${ab.cd.ef.gh} y",
-        "$ ${foo} ${bar} ${boz} $",
-        "${foo:bar}",
-        "${foo : bar, baz, boz}",
-        "${foo:bar,0,a-b+c*d/$.%@}",
-        "\\${foo}",
-        "${foo.bar:boz}",
-    ],
-)
-def test_match_simple_interpolation_pattern(expression: str) -> None:
-    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+def test_ensure_container_raises_ValueError() -> None:
+    """Some values cannot be converted to a container.
+    On these inputs, _ensure_container should raise a ValueError."""
+    with raises(
+        ValueError,
+        match=re.escape(
+            "Invalid input. Supports one of "
+            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+        ),
+    ):
+        _ensure_container("abc")
 
 
-@mark.parametrize(
-    "expression",
-    [
-        "${foo",
-        "${0foo}",
-        "${0foo:bar}",
-        "${foo.${bar}}",
-        "${foo:${bar}}",
-        "${foo:'hello'}",
-        "\\${foo",
-    ],
-)
-def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
-    assert SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+def test_marker_string_representation() -> None:
+    marker = Marker("marker")
+    assert repr(marker) == "marker"

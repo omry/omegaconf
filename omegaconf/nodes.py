@@ -1,6 +1,7 @@
 import copy
 import math
 import sys
+from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional, Type, Union
 
@@ -40,17 +41,24 @@ class ValueNode(Node):
         ):
             self._val = value
         else:
-            if not self._metadata.optional and value is None:
-                raise ValidationError("Non optional field cannot be assigned None")
             self._val = self.validate_and_convert(value)
 
     def validate_and_convert(self, value: Any) -> Any:
         """
         Validates input and converts to canonical form
         :param value: input value
-        :return:  converted value ("100" may be converted to 100 for example)
+        :return: converted value ("100" may be converted to 100 for example)
         """
-        return value
+        if value is None:
+            if self._is_optional():
+                return None
+            raise ValidationError("Non optional field cannot be assigned None")
+        # Subclasses can assume that `value` is not None in `_validate_and_convert_impl()`.
+        return self._validate_and_convert_impl(value)
+
+    @abstractmethod
+    def _validate_and_convert_impl(self, value: Any) -> Any:
+        ...
 
     def __str__(self) -> str:
         return str(self._val)
@@ -80,16 +88,6 @@ class ValueNode(Node):
         # parent is retained, but not copied
         res.__dict__["_parent"] = self._parent
 
-    def _is_none(self) -> bool:
-        if self._is_interpolation():
-            node = self._dereference_node(throw_on_resolution_failure=False)
-            if node is None:
-                # resolution failure
-                return False
-        else:
-            node = self
-        return node._value() is None
-
     def _is_optional(self) -> bool:
         return self._metadata.optional
 
@@ -113,17 +111,14 @@ class AnyNode(ValueNode):
         value: Any = None,
         key: Any = None,
         parent: Optional[Container] = None,
-        is_optional: bool = True,
     ):
         super().__init__(
             parent=parent,
             value=value,
-            metadata=Metadata(
-                ref_type=Any, object_type=None, key=key, optional=is_optional
-            ),
+            metadata=Metadata(ref_type=Any, object_type=None, key=key, optional=True),
         )
 
-    def validate_and_convert(self, value: Any) -> Any:
+    def _validate_and_convert_impl(self, value: Any) -> Any:
         from ._utils import is_primitive_type
 
         # allow_objects is internal and not an official API. use at your own risk.
@@ -159,12 +154,12 @@ class StringNode(ValueNode):
             ),
         )
 
-    def validate_and_convert(self, value: Any) -> Optional[str]:
+    def _validate_and_convert_impl(self, value: Any) -> str:
         from omegaconf import OmegaConf
 
         if OmegaConf.is_config(value) or is_primitive_container(value):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string : '$VALUE'")
-        return str(value) if value is not None else None
+        return str(value)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "StringNode":
         res = StringNode()
@@ -188,11 +183,9 @@ class IntegerNode(ValueNode):
             ),
         )
 
-    def validate_and_convert(self, value: Any) -> Optional[int]:
+    def _validate_and_convert_impl(self, value: Any) -> int:
         try:
-            if value is None:
-                val = None
-            elif type(value) in (str, int):
+            if type(value) in (str, int):
                 val = int(value)
             else:
                 raise ValueError()
@@ -222,9 +215,7 @@ class FloatNode(ValueNode):
             ),
         )
 
-    def validate_and_convert(self, value: Any) -> Optional[float]:
-        if value is None:
-            return None
+    def _validate_and_convert_impl(self, value: Any) -> float:
         try:
             if type(value) in (float, str, int):
                 return float(value)
@@ -273,16 +264,14 @@ class BooleanNode(ValueNode):
             ),
         )
 
-    def validate_and_convert(self, value: Any) -> Optional[bool]:
+    def _validate_and_convert_impl(self, value: Any) -> bool:
         if isinstance(value, bool):
             return value
         if isinstance(value, int):
             return value != 0
-        elif value is None:
-            return None
         elif isinstance(value, str):
             try:
-                return self.validate_and_convert(int(value))
+                return self._validate_and_convert_impl(int(value))
             except ValueError as e:
                 if value.lower() in ("yes", "y", "on", "true"):
                     return True
@@ -335,16 +324,11 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             ),
         )
 
-    def validate_and_convert(self, value: Any) -> Optional[Enum]:
+    def _validate_and_convert_impl(self, value: Any) -> Enum:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
 
     @staticmethod
-    def validate_and_convert_to_enum(
-        enum_type: Type[Enum], value: Any, allow_none: bool = True
-    ) -> Optional[Enum]:
-        if allow_none and value is None:
-            return None
-
+    def validate_and_convert_to_enum(enum_type: Type[Enum], value: Any) -> Enum:
         if not isinstance(value, (str, int)) and not isinstance(value, enum_type):
             raise ValidationError(
                 f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"

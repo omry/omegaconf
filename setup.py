@@ -50,7 +50,13 @@ with open("README.md", "r") as fh:
         tests_require=["pytest"],
         url="https://github.com/omry/omegaconf",
         keywords="yaml configuration config",
-        packages=["omegaconf", "omegaconf.grammar", "omegaconf.grammar.gen"],
+        packages=[
+            "omegaconf",
+            "omegaconf.grammar",
+            "omegaconf.grammar.gen",
+            "pydevd_plugins",
+            "pydevd_plugins.extensions",
+        ],
         python_requires=">=3.6",
         classifiers=[
             "Programming Language :: Python :: 3.6",

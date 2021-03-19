@@ -5,6 +5,7 @@ import pytest
 from pytest import raises
 
 from omegaconf import (
+    AnyNode,
     Container,
     DictConfig,
     IntegerNode,
@@ -320,6 +321,15 @@ def test_flag_override(
             func(c)
 
 
+def test_nested_flag_override() -> None:
+    c = OmegaConf.create({"a": {"b": 1}})
+    with flag_override(c, "test", True):
+        assert c._get_flag("test") is True
+        with flag_override(c.a, "test", False):
+            assert c.a._get_flag("test") is False
+    assert c.a._get_flag("test") is None
+
+
 def test_multiple_flags_override() -> None:
     c = OmegaConf.create({"foo": "bar"})
     with flag_override(c, ["readonly"], True):
@@ -510,7 +520,7 @@ def test_resolve_str_interpolation(query: str, result: Any) -> None:
         cfg._maybe_resolve_interpolation(
             parent=None,
             key=None,
-            value=StringNode(value=query),
+            value=AnyNode(value=query),
             throw_on_resolution_failure=True,
         )
         == result
@@ -572,3 +582,12 @@ def test_string_interpolation_with_readonly_parent(cfg: Any, key: Any) -> None:
     cfg = OmegaConf.create(cfg)
     with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
         cfg._get_node(key, throw_on_missing_value=True)
+
+
+def test_flags_root() -> None:
+    cfg = OmegaConf.create({"a": {"b": 10}})
+    cfg._set_flag("flag", True)
+    assert cfg.a._get_flag_no_cache("flag") is True
+
+    cfg.a._set_flags_root(True)
+    assert cfg.a._get_flag_no_cache("flag") is None

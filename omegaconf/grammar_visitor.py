@@ -39,7 +39,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def __init__(
         self,
         node_interpolation_callback: Callable[[str], Optional["Node"]],
-        resolver_interpolation_callback: Callable[..., Optional["Node"]],
+        resolver_interpolation_callback: Callable[..., Any],
         quoted_string_callback: Callable[[str], str],
         **kw: Dict[Any, Any],
     ):
@@ -96,9 +96,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             )
             return child.symbol.text
 
-    def visitConfigValue(
-        self, ctx: OmegaConfGrammarParser.ConfigValueContext
-    ) -> Union[str, Optional["Node"]]:
+    def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
         # Visit all children (except last one which is EOF)
         vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
@@ -106,12 +104,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if len(vals) == 1 and isinstance(
             ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
         ):
-            from .base import Node  # noqa F811
-
-            # Single interpolation: return the resulting node "as is".
-            ret = vals[0]
-            assert ret is None or isinstance(ret, Node), ret
-            return ret
+            # Single interpolation: return the result "as is".
+            return vals[0]
         # Concatenation of multiple components.
         return "".join(map(str, vals))
 
@@ -135,19 +129,15 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitInterpolation(
         self, ctx: OmegaConfGrammarParser.InterpolationContext
-    ) -> Optional["Node"]:
-        from .base import Node  # noqa F811
-
+    ) -> Any:
         assert ctx.getChildCount() == 1  # interpolationNode | interpolationResolver
-        ret = self.visit(ctx.getChild(0))
-        assert ret is None or isinstance(ret, Node)
-        return ret
+        return self.visit(ctx.getChild(0))
 
     def visitInterpolationNode(
         self, ctx: OmegaConfGrammarParser.InterpolationNodeContext
     ) -> Optional["Node"]:
-        # INTER_OPEN DOT* configKey (DOT configKey)* INTER_CLOSE
-        assert ctx.getChildCount() >= 3
+        # INTER_OPEN DOT* (configKey (DOT configKey)*)? INTER_CLOSE
+        assert ctx.getChildCount() >= 2
 
         inter_key_tokens = []  # parsed elements of the dot path
         for child in ctx.getChildren():
@@ -168,7 +158,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitInterpolationResolver(
         self, ctx: OmegaConfGrammarParser.InterpolationResolverContext
-    ) -> Optional["Node"]:
+    ) -> Any:
 
         # INTER_OPEN resolverName COLON sequence? BRACE_CLOSE
         assert 4 <= ctx.getChildCount() <= 5

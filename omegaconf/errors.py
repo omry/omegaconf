@@ -81,6 +81,12 @@ class InterpolationToMissingValueError(InterpolationResolutionError):
     """
 
 
+class InterpolationValidationError(InterpolationResolutionError, ValidationError):
+    """
+    Thrown when the result of an interpolation fails the validation step.
+    """
+
+
 class ConfigKeyError(OmegaConfBaseException, KeyError):
     """
     Thrown from DictConfig when a regular dict access would have caused a KeyError.
@@ -120,6 +126,12 @@ class ConfigIndexError(OmegaConfBaseException, IndexError):
 class ConfigValueError(OmegaConfBaseException, ValueError):
     """
     Thrown from a config object when a regular access would have caused a ValueError.
+    """
+
+
+class ConfigCycleDetectedException(OmegaConfBaseException):
+    """
+    Thrown when a cycle is detected in the graph made by config nodes.
     """
 
 

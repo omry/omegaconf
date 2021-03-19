@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from omegaconf import MISSING, AnyNode, ListConfig, OmegaConf, flag_override
+from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -31,18 +31,65 @@ def test_list_of_dicts() -> None:
     assert c[1].key2 == "value2"
 
 
-def test_list_get_with_default() -> None:
-    c = OmegaConf.create([None, "???", "found"])
-    assert c.get(0, "default_value") == "default_value"
-    assert c.get(1, "default_value") == "default_value"
-    assert c.get(2, "default_value") == "found"
+@pytest.mark.parametrize("default", [None, 0, "default"])
+@pytest.mark.parametrize(
+    ("cfg", "key"),
+    [
+        (["???"], 0),
+        ([DictConfig(content="???")], 0),
+        ([ListConfig(content="???")], 0),
+    ],
+)
+def test_list_get_return_default(cfg: List[Any], key: int, default: Any) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.get(key, default_value=default)
+    assert val is default
+
+
+@pytest.mark.parametrize("default", [None, 0, "default"])
+@pytest.mark.parametrize(
+    ("cfg", "key", "expected"),
+    [
+        (["found"], 0, "found"),
+        ([None], 0, None),
+        ([DictConfig(content=None)], 0, None),
+        ([ListConfig(content=None)], 0, None),
+    ],
+)
+def test_list_get_do_not_return_default(
+    cfg: List[Any], key: int, expected: Any, default: Any
+) -> None:
+    c = OmegaConf.create(cfg)
+    val = c.get(key, default_value=default)
+    assert val == expected
 
 
 @pytest.mark.parametrize(
-    "input_, expected, list_key",
+    "input_, expected, expected_no_resolve, list_key",
     [
-        pytest.param([1, 2], [1, 2], None, id="simple"),
-        pytest.param(["${1}", 2], [2, 2], None, id="interpolation"),
+        pytest.param([1, 2], [1, 2], [1, 2], None, id="simple"),
+        pytest.param(["${1}", 2], [2, 2], ["${1}", 2], None, id="interpolation"),
+        pytest.param(
+            [ListConfig(None), ListConfig("${.2}"), [1, 2]],
+            [None, ListConfig([1, 2]), ListConfig([1, 2])],
+            [None, ListConfig("${.2}"), ListConfig([1, 2])],
+            None,
+            id="iter_over_lists",
+        ),
+        pytest.param(
+            [DictConfig(None), DictConfig("${.2}"), {"a": 10}],
+            [None, DictConfig({"a": 10}), DictConfig({"a": 10})],
+            [None, DictConfig("${.2}"), DictConfig({"a": 10})],
+            None,
+            id="iter_over_dicts",
+        ),
+        pytest.param(
+            ["???", ListConfig("???"), DictConfig("???")],
+            pytest.raises(MissingMandatoryValue),
+            ["???", ListConfig("???"), DictConfig("???")],
+            None,
+            id="iter_over_missing",
+        ),
         pytest.param(
             {
                 "defaults": [
@@ -51,20 +98,45 @@ def test_list_get_with_default() -> None:
                     {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"},
                 ]
             },
-            [{"optimizer": "adam"}, {"dataset": "imagenet"}, {"foo": "adam_imagenet"}],
+            [
+                OmegaConf.create({"optimizer": "adam"}),
+                OmegaConf.create({"dataset": "imagenet"}),
+                OmegaConf.create({"foo": "adam_imagenet"}),
+            ],
+            [
+                OmegaConf.create({"optimizer": "adam"}),
+                OmegaConf.create({"dataset": "imagenet"}),
+                OmegaConf.create(
+                    {"foo": "${defaults.0.optimizer}_${defaults.1.dataset}"}
+                ),
+            ],
             "defaults",
             id="str_interpolation",
         ),
     ],
 )
-def test_iterate_list(input_: Any, expected: Any, list_key: str) -> None:
+def test_iterate_list(
+    input_: Any, expected: Any, expected_no_resolve: Any, list_key: str
+) -> None:
     c = OmegaConf.create(input_)
     if list_key is not None:
         lst = c.get(list_key)
     else:
         lst = c
-    items = [x for x in lst]
-    assert items == expected
+
+    def test_iter(iterator: Any, expected_output: Any) -> None:
+        if isinstance(expected_output, list):
+            items = [x for x in iterator]
+            assert items == expected_output
+            for idx in range(len(items)):
+                assert type(items[idx]) is type(expected_output[idx])  # noqa
+        else:
+            with expected_output:
+                for _ in iterator:
+                    pass
+
+    test_iter(iter(lst), expected)
+    test_iter(lst._iter_ex(resolve=False), expected_no_resolve)
 
 
 def test_iterate_list_with_missing_interpolation() -> None:
@@ -94,6 +166,7 @@ def test_items_with_interpolation() -> None:
         pytest.param([1, 2, 3], 0, 1, [2, 3]),
         pytest.param([1, 2, 3], None, 3, [1, 2]),
         pytest.param(["???", 2, 3], 0, None, [2, 3]),
+        pytest.param([1, None, 3], 1, None, [1, 3]),
     ],
 )
 def test_list_pop(
@@ -215,6 +288,8 @@ def test_list_delitem() -> None:
         (OmegaConf.create([1, 2]), 2),
         (ListConfig(content=None), 0),
         (ListConfig(content="???"), 0),
+        (ListConfig(content="${foo}"), 0),
+        (ListConfig(content="${foo}", parent=DictConfig({"foo": [1, 2]})), 0),
     ],
 )
 def test_list_len(lst: Any, expected: Any) -> None:
@@ -685,3 +760,12 @@ def test_shallow_copy_none() -> None:
     c._set_value([1])
     assert c[0] == 1
     assert cfg._is_none()
+
+
+@pytest.mark.parametrize("flag", ["struct", "readonly"])
+def test_listconfig_creation_with_parent_flag(flag: str) -> None:
+    parent = OmegaConf.create([])
+    parent._set_flag(flag, True)
+    d = [1, 2, 3]
+    cfg = ListConfig(d, parent=parent)
+    assert cfg == d

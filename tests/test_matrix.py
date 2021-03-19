@@ -1,6 +1,6 @@
 import copy
 import re
-from typing import Any
+from typing import Any, Optional
 
 import pytest
 
@@ -28,8 +28,12 @@ def verify(
     opt: bool,
     missing: bool,
     inter: bool,
+    none_public: Optional[bool] = None,
     exp: Any = SKIP,
 ) -> None:
+    if none_public is None:
+        none_public = none
+
     target_node = cfg._get_node(key)
     assert target_node._key() == key
     assert target_node._is_none() == none
@@ -41,7 +45,8 @@ def verify(
         assert cfg.get(key) == exp
 
     assert OmegaConf.is_missing(cfg, key) == missing
-    assert OmegaConf.is_none(cfg, key) == none
+    with pytest.warns(UserWarning):
+        assert OmegaConf.is_none(cfg, key) == none_public
     assert OmegaConf.is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
 
@@ -159,13 +164,13 @@ class TestNodeTypesMatrix:
             assert node._value() is None
             assert node._is_optional()
         assert node.__eq__(None)
-        assert OmegaConf.is_none(node)
+        assert node._is_none()
 
         for value in values:
             node._set_value(value)
             assert node.__eq__(value)
             assert not node.__eq__(None)
-            assert not OmegaConf.is_none(node)
+            assert not node._is_none()
 
         with pytest.raises(ValidationError):
             node_type(value=None, is_optional=False)
@@ -176,7 +181,7 @@ class TestNodeTypesMatrix:
     def test_interpolation(
         self, node_type: Any, values: Any, restore_resolvers: Any, register_func: Any
     ) -> None:
-        resolver_output = 9999
+        resolver_output = "9999"
         register_func("func", lambda: resolver_output)
         values = copy.deepcopy(values)
         for value in values:
@@ -292,7 +297,8 @@ class TestNodeTypesMatrix:
             verify(
                 cfg,
                 "int_opt_none",
-                none=True,
+                none=False,
+                none_public=True,
                 opt=True,
                 missing=False,
                 inter=True,

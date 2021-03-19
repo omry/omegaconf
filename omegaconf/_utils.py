@@ -15,8 +15,9 @@ from .errors import (
     ConfigTypeError,
     ConfigValueError,
     OmegaConfBaseException,
+    ValidationError,
 )
-from .grammar_parser import parse
+from .grammar_parser import SIMPLE_INTERPOLATION_PATTERN, parse
 
 try:
     import dataclasses
@@ -30,19 +31,6 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
-# Build regex pattern to efficiently identify typical interpolations.
-# See test `test_match_simple_interpolation_pattern` for examples.
-_id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
-_dot_path = f"{_id}(\\.{_id})*"  # foo, foo.bar3, foo_.b4r.b0z
-_inter_node = f"\\${{\\s*{_dot_path}\\s*}}"  # node interpolation
-_arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
-_args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
-_inter_res = f"\\${{\\s*{_dot_path}\\s*:\\s*{_args}?\\s*}}"  # resolver interpolation
-_inter = f"({_inter_node}|{_inter_res})"  # any kind of interpolation
-_outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
-SIMPLE_INTERPOLATION_PATTERN = re.compile(
-    f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
-)
 
 # source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [
@@ -73,6 +61,18 @@ YAML_BOOL_TYPES = [
 # Define an arbitrary (but fixed) ordering over the types of dictionary keys
 # that may be encountered when calling `_make_hashable()` on a dict.
 _CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
+
+
+class Marker:
+    def __init__(self, desc: str):
+        self.desc = desc
+
+    def __repr__(self) -> str:
+        return self.desc
+
+
+# To be used as default value when `None` is not an option.
+_DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 
 class OmegaConfDumper(yaml.Dumper):  # type: ignore
@@ -223,13 +223,16 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
@@ -267,13 +270,16 @@ def get_dataclass_data(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
-        d[name] = _maybe_wrap(
-            ref_type=type_,
-            is_optional=is_optional,
-            key=name,
-            value=value,
-            parent=dummy_parent,
-        )
+        try:
+            d[name] = _maybe_wrap(
+                ref_type=type_,
+                is_optional=is_optional,
+                key=name,
+                value=value,
+                parent=dummy_parent,
+            )
+        except ValidationError as ex:
+            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
     return d
 
@@ -370,6 +376,26 @@ def _is_missing_literal(value: Any) -> bool:
     return ret
 
 
+def _is_none(
+    value: Any, resolve: bool = False, throw_on_resolution_failure: bool = True
+) -> bool:
+    from omegaconf import Node
+
+    if not isinstance(value, Node):
+        return value is None
+
+    if resolve:
+        value = value._dereference_node(
+            throw_on_resolution_failure=throw_on_resolution_failure
+        )
+        if not throw_on_resolution_failure and value is None:
+            # Resolution failure: consider that it is *not* None.
+            return False
+        assert isinstance(value, Node)
+
+    return value._is_none()
+
+
 def get_value_kind(
     value: Any, strict_interpolation_validation: bool = False
 ) -> ValueKind:
@@ -409,6 +435,12 @@ def get_value_kind(
         return ValueKind.VALUE
 
 
+# DEPRECATED: remove in 2.2
+def is_bool(st: str) -> bool:
+    st = str.lower(st)
+    return st == "true" or st == "false"
+
+
 def is_float(st: str) -> bool:
     try:
         float(st)
@@ -423,6 +455,20 @@ def is_int(st: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+# DEPRECATED: remove in 2.2
+def decode_primitive(s: str) -> Any:
+    if is_bool(s):
+        return str.lower(s) == "true"
+
+    if is_int(s):
+        return int(s)
+
+    if is_float(s):
+        return float(s)
+
+    return s
 
 
 def is_primitive_list(obj: Any) -> bool:
@@ -537,12 +583,14 @@ def _get_value(value: Any) -> Any:
     from .base import Container
     from .nodes import ValueNode
 
-    if isinstance(value, Container) and (
-        value._is_none() or value._is_interpolation() or value._is_missing()
-    ):
-        return value._value()
     if isinstance(value, ValueNode):
-        value = value._value()
+        return value._value()
+    elif isinstance(value, Container):
+        boxed = value._value()
+        if boxed is None or _is_missing_literal(boxed) or _is_interpolation(boxed):
+            return boxed
+
+    # return primitives and regular OmegaConf Containers as is
     return value
 
 
@@ -612,10 +660,15 @@ def format_and_raise(
         ref_type = None
         ref_type_str = None
     else:
-        if key is not None and not OmegaConf.is_none(node):
+        if key is not None and not node._is_none():
             child_node = node._get_node(key, validate_access=False)
 
-        full_key = node._get_full_key(key=key)
+        try:
+            full_key = node._get_full_key(key=key)
+        except Exception as exc:
+            # Since we are handling an exception, raising a different one here would
+            # be misleading. Instead, we display it in the key.
+            full_key = f"<unresolvable due to {type(exc).__name__}: {exc}>"
 
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)
@@ -727,7 +780,12 @@ def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> A
         target = OmegaConf.create(target, flags=flags)
     elif is_structured_config(target):
         target = OmegaConf.structured(target, flags=flags)
-    assert OmegaConf.is_config(target)
+    elif not OmegaConf.is_config(target):
+        raise ValueError(
+            "Invalid input. Supports one of "
+            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+        )
+
     return target
 
 

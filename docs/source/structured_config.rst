@@ -309,7 +309,7 @@ Optional fields
 Interpolations
 ^^^^^^^^^^^^^^
 
-:ref:`interpolation` works normally with Structured configs but static type checkers may object to you assigning a string to an other types.
+:ref:`interpolation` works normally with Structured configs but static type checkers may object to you assigning a string to another type.
 To work around it, use SI and II described below.
 
 .. doctest::
@@ -333,18 +333,38 @@ To work around it, use SI and II described below.
     >>> assert conf.c == 100
 
 
-Type validation is performed on assignment, but not on values returned by interpolation, e.g:
+Interpolated values are validated, and converted when possible, to the annotated type when the interpolation is accessed, e.g:
 
 .. doctest::
 
-    >>> from omegaconf import SI
+    >>> from omegaconf import II
     >>> @dataclass
     ... class Interpolation:
-    ...     int_key: int = II("str_key")
     ...     str_key: str = "string"
+    ...     int_key: int = II("str_key")
 
     >>> cfg = OmegaConf.structured(Interpolation)
-    >>> assert cfg.int_key == "string"
+    >>> cfg.int_key  # fails due to type mismatch
+    Traceback (most recent call last):
+      ...
+    omegaconf.errors.InterpolationValidationError: Value 'string' could not be converted to Integer
+        full_key: int_key
+        object_type=Interpolation
+    >>> cfg.str_key = "1234"  # string value
+    >>> assert cfg.int_key == 1234  # automatically convert str to int
+
+Note however that this validation step is currently skipped for container node interpolations:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class NotValidated:
+    ...     some_int: int = 0
+    ...     some_dict: Dict[str, str] = II("some_int")
+
+    >>> cfg = OmegaConf.structured(NotValidated)
+    >>> assert cfg.some_dict == 0  # type mismatch, but no error
+
 
 Frozen
 ^^^^^^
