@@ -531,6 +531,8 @@ class TestOmegaConfGrammar:
         "\\${foo}",
         "${foo.bar:boz}",
         "${$foo.bar$.x$y}",
+        "${$0.1.2$}",
+        "${0foo}",
         # relative interpolations
         "${.}",
         "${..}",
@@ -548,7 +550,6 @@ def test_match_simple_interpolation_pattern(expression: str) -> None:
     "expression",
     [
         "${foo",
-        "${0foo}",
         "${0foo:bar}",
         "${foo.${bar}}",
         "${foo:${bar}}",
