@@ -726,53 +726,6 @@ You can temporarily remove the struct flag from a config object:
 Utility functions
 -----------------
 
-OmegaConf.is_missing
-^^^^^^^^^^^^^^^^^^^^
-
-Tests if a value is missing ('???').
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...         "foo" : 10, 
-    ...         "bar": "???"
-    ...     })
-    >>> assert not OmegaConf.is_missing(cfg, "foo")
-    >>> assert OmegaConf.is_missing(cfg, "bar")
-
-OmegaConf.is_interpolation
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Tests if a value is an interpolation.
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...         "foo" : 10, 
-    ...         "bar": "${foo}"
-    ...     })
-    >>> assert not OmegaConf.is_interpolation(cfg, "foo")
-    >>> assert OmegaConf.is_interpolation(cfg, "bar")
-
-
-OmegaConf.{is_config, is_dict, is_list}
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
-
-.. doctest::
-
-    >>> # dict:
-    >>> d = OmegaConf.create({"foo": "bar"})
-    >>> assert OmegaConf.is_config(d)
-    >>> assert OmegaConf.is_dict(d)
-    >>> assert not OmegaConf.is_list(d)
-    >>> # list:
-    >>> l = OmegaConf.create([1,2,3])
-    >>> assert OmegaConf.is_config(l)
-    >>> assert OmegaConf.is_list(l)
-    >>> assert not OmegaConf.is_dict(l)
-
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and list, but in fact are not.
@@ -790,17 +743,18 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> show(resolved)
     type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
-You can customize the treatment of **OmegaConf.to_container()** for
-Structured Config nodes using the `structured_config_mode` option.
+You can customize the treatment of ``OmegaConf.to_container()`` for
+Structured Config nodes using the ``structured_config_mode`` option.
 By default, Structured Config nodes are converted to plain dict.
-Using **structured_config_mode=SCMode.DICT_CONFIG** causes such nodes to remain
+Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as DictConfig, allowing attribute style access on the resulting node.
 
 .. doctest::
 
     >>> from omegaconf import SCMode
     >>> conf = OmegaConf.create({"structured_config": MyConfig})
-    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
+    >>> container = OmegaConf.to_container(conf,
+    ...     structured_config_mode=SCMode.DICT_CONFIG)
     >>> show(container)
     type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
     >>> show(container["structured_config"])
@@ -879,8 +833,57 @@ Creates a copy of a DictConfig that contains only specific keys.
       b: 10
     <BLANKLINE>
 
-Debugger integration
+OmegaConf.is_missing
 ^^^^^^^^^^^^^^^^^^^^
+
+Tests if a value is missing ('???').
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "???"
+    ...     })
+    >>> assert not OmegaConf.is_missing(cfg, "foo")
+    >>> assert OmegaConf.is_missing(cfg, "bar")
+
+OmegaConf.is_interpolation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if a value is an interpolation.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "foo" : 10, 
+    ...         "bar": "${foo}"
+    ...     })
+    >>> assert not OmegaConf.is_interpolation(cfg, "foo")
+    >>> assert OmegaConf.is_interpolation(cfg, "bar")
+
+
+OmegaConf.{is_config, is_dict, is_list}
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
+
+.. doctest::
+
+    >>> # dict:
+    >>> d = OmegaConf.create({"foo": "bar"})
+    >>> assert OmegaConf.is_config(d)
+    >>> assert OmegaConf.is_dict(d)
+    >>> assert not OmegaConf.is_list(d)
+    >>> # list:
+    >>> l = OmegaConf.create([1,2,3])
+    >>> assert OmegaConf.is_config(l)
+    >>> assert OmegaConf.is_list(l)
+    >>> assert not OmegaConf.is_dict(l)
+
+
+Debugger integration
+--------------------
+
 OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
 VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
 
