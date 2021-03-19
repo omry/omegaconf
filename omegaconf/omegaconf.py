@@ -430,10 +430,13 @@ class OmegaConf:
             name not in BaseContainer._resolvers
         ), "resolver {} is already registered".format(name)
 
-        sig = inspect.signature(resolver)
+        try:
+            sig: Optional[inspect.Signature] = inspect.signature(resolver)
+        except ValueError:
+            sig = None
 
         def _should_pass(special: str) -> bool:
-            ret = special in sig.parameters
+            ret = sig is not None and special in sig.parameters
             if ret and use_cache:
                 raise ValueError(
                     f"use_cache=True is incompatible with functions that receive the {special}"

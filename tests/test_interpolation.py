@@ -497,6 +497,18 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
         OmegaConf.register_new_resolver("foo", lambda: 10)
 
 
+def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) -> None:
+    # When a function `f()` is not inspectable (e.g., some built-in CPython functions),
+    # `inspect.signature(f)` will raise a `ValueError`. We want to make sure this does
+    # not prevent us from using `f()` as a resolver.
+    def signature_not_inspectable(*args: Any, **kw: Any) -> None:
+        raise ValueError
+
+    mocker.patch("inspect.signature", signature_not_inspectable)
+    OmegaConf.register_new_resolver("not_inspectable", lambda: 123)
+    assert OmegaConf.create({"x": "${not_inspectable:}"}).x == 123
+
+
 def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
     assert not OmegaConf.has_resolver("foo")
     OmegaConf.register_new_resolver("foo", lambda x: x + 10)
