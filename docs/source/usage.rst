@@ -880,8 +880,10 @@ Tests if an object is an OmegaConf object, or if it's representing a list or a d
     >>> assert OmegaConf.is_list(l)
     >>> assert not OmegaConf.is_dict(l)
 
+
 Debugger integration
-^^^^^^^^^^^^^^^^^^^^
+--------------------
+
 OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
 VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
 
