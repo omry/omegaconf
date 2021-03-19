@@ -410,6 +410,7 @@ class OmegaConf:
     def register_new_resolver(
         name: str,
         resolver: Resolver,
+        *,
         use_cache: Optional[bool] = False,
     ) -> None:
         """
