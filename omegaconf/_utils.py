@@ -349,11 +349,8 @@ def _is_missing_value(value: Any) -> bool:
 
 
 def _is_missing_literal(value: Any) -> bool:
-    from omegaconf import MISSING
-
-    ret = isinstance(value, str) and value == MISSING
-    assert isinstance(ret, bool)
-    return ret
+    # Uses literal '???' instead of the MISSING const for performance reasons.
+    return isinstance(value, str) and value == "???"
 
 
 def _is_none(
