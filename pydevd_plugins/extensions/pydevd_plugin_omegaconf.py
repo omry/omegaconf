@@ -1,7 +1,7 @@
 # based on https://github.com/fabioz/PyDev.Debugger/tree/main/pydevd_plugins/extensions
 import os
 import sys
-from typing import Any, Dict, Sequence
+from typing import Any, Dict
 
 from _pydevd_bundle.pydevd_extension_api import (  # type: ignore
     StrPresentationProvider,
@@ -47,11 +47,11 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
         return self.Node is not None and issubclass(type_object, self.Node)
 
     def resolve(self, obj: Any, attribute: Any) -> Any:
-        if isinstance(obj, Sequence) and isinstance(attribute, str):
+        if isinstance(obj, self.ListConfig) and isinstance(attribute, str):
             attribute = int(attribute)
 
         if isinstance(obj, self.Node):
-            obj = obj._dereference_node(throw_on_resolution_failure=False)
+            obj = obj._dereference_node()
 
         val = obj.__dict__["_content"][attribute]
 
