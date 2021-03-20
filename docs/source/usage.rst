@@ -559,9 +559,9 @@ the inputs themselves:
     >>> # not the same since the cache is disabled by default
     >>> assert c.uncached != c.uncached
     >>> # same value on repeated access thanks to the cache
-    >>> assert c.cached_1 == c.cached_1 == 7220
+    >>> assert c.cached_1 == c.cached_1 == 122
     >>> # same input as `cached_1` => same value
-    >>> assert c.cached_2 == c.cached_1 == 7220
+    >>> assert c.cached_2 == c.cached_1 == 122
     >>> # same string literal "${uncached}" => same value
     >>> assert c.cached_3 == c.cached_3 == 1192
 
