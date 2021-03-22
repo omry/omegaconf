@@ -435,16 +435,17 @@ class OmegaConf:
 
         existing = OmegaConf._get_resolver(name)
         if existing is not None:
-            if (
-                # DEPRECATED: remove the very first check in 2.2
-                # (it is only there because some resolvers may be registered with
-                # the legacy function and thus would not be `partial` objects)
-                # Also the typing may be updated accordingly.
-                hasattr(existing, "keywords")
-                and existing.keywords["resolver"] is resolver  # type: ignore
-                and existing.keywords["use_cache"] == use_cache  # type: ignore
-            ):
-                return  # already registered with the same settings => ignore
+            # DEPRECATED: remove this check in 2.2
+            # (it is only there because some resolvers may be registered with
+            # the legacy function and thus would not be `partial` objects)
+            # Also the typing may be updated accordingly.
+            if hasattr(existing, "keywords"):
+                kw = existing.keywords  # type: ignore
+                if (
+                    kw["resolver"] is resolver  # lgtm [py/comparison-using-is]
+                    and kw["use_cache"] == use_cache
+                ):
+                    return  # already registered with the same settings => ignore
             raise ValueError(f"resolver '{name}' is already registered")
 
         try:
