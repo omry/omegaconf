@@ -534,23 +534,36 @@ namespace, and to use interpolations in the name itself. The following example d
     4
 
 
-By default a custom resolver's output is cached, so that when it is called with the same
-inputs we always return the same value. This behavior may be disabled by setting ``use_cache=False``:
+By default a custom resolver is called on every access, but it is possible to cache its output
+by registering it with ``use_cache=True``.
+This may be useful either for performance reasons or to ensure the same value is always returned.
+Note that the cache is based on the string literals representing the resolver's inputs, and not
+the inputs themselves:
 
 .. doctest::
 
     >>> import random
     >>> random.seed(1234)
-    >>> OmegaConf.register_new_resolver("cached", random.randint)
     >>> OmegaConf.register_new_resolver(
-    ...              "uncached", random.randint, use_cache=False)
-    >>> c = OmegaConf.create({"cached": "${cached:0,10000}",
-    ...                       "uncached": "${uncached:0,10000}"})
-    >>> # same value on repeated access thanks to the cache
-    >>> assert c.cached == c.cached == 7220
-    >>> # not the same since the cache is disabled
+    ...    "cached", random.randint, use_cache=True
+    ... )
+    >>> OmegaConf.register_new_resolver("uncached", random.randint)
+    >>> c = OmegaConf.create(
+    ...     {
+    ...         "uncached": "${uncached:0,10000}",
+    ...         "cached_1": "${cached:0,10000}",
+    ...         "cached_2": "${cached:0, 10000}",
+    ...         "cached_3": "${cached:0,${uncached}}",
+    ...     }
+    ... )
+    >>> # not the same since the cache is disabled by default
     >>> assert c.uncached != c.uncached
-
+    >>> # same value on repeated access thanks to the cache
+    >>> assert c.cached_1 == c.cached_1 == 122
+    >>> # same input as `cached_1` => same value
+    >>> assert c.cached_2 == c.cached_1 == 122
+    >>> # same string literal "${uncached}" => same value
+    >>> assert c.cached_3 == c.cached_3 == 1192
 
 
 Custom interpolations can also receive the following special parameters:

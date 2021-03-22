@@ -32,7 +32,6 @@ from ._utils import (
     _ensure_container,
     _get_value,
     _is_none,
-    _make_hashable,
     decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
@@ -372,7 +371,7 @@ class OmegaConf:
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
-        ), f"resolver {name} is already registered"
+        ), f"resolver '{name}' is already registered"
 
         def resolver_wrapper(
             config: BaseContainer,
@@ -399,7 +398,7 @@ class OmegaConf:
                     f"`register_new_resolver()` instead (see "
                     f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
                 )
-            key = args
+            key = args_str
             val = cache[key] if key in cache else resolver(*args_unesc)
             cache[key] = val
             return val
@@ -411,7 +410,8 @@ class OmegaConf:
     def register_new_resolver(
         name: str,
         resolver: Resolver,
-        use_cache: Optional[bool] = True,
+        *,
+        use_cache: Optional[bool] = False,
     ) -> None:
         """
         Register a resolver.
@@ -421,8 +421,9 @@ class OmegaConf:
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
-            based only on the list of arguments given in the interpolation, i.e., for a
-            given list of arguments, the same value will always be returned.
+            based only on the string literals representing the resolver arguments, e.g.,
+            ${foo:${bar}} will always return the same value regardless of the value of
+            `bar` if the cache is enabled for `foo`.
         """
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
@@ -454,9 +455,8 @@ class OmegaConf:
         ) -> Any:
             if use_cache:
                 cache = OmegaConf.get_cache(config)[name]
-                hashable_key = _make_hashable(args)
                 try:
-                    return cache[hashable_key]
+                    return cache[args_str]
                 except KeyError:
                     pass
 
@@ -470,7 +470,7 @@ class OmegaConf:
             ret = resolver(*args, **kwargs)
 
             if use_cache:
-                cache[hashable_key] = ret
+                cache[args_str] = ret
             return ret
 
         # noinspection PyProtectedMember
