@@ -7,18 +7,18 @@ from omegaconf.errors import InterpolationToMissingValueError
 def _resolve(cfg: Any) -> Any:
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():
-            node = cfg._get_node(k)
-            cfg[k] = _resolve(node)
+            _resolve(cfg._get_node(k))
 
     if isinstance(cfg, ListConfig):
         for i in range(len(cfg)):
-            node = cfg._get_node(i)
-            cfg[i] = _resolve(node)
+            _resolve(cfg._get_node(i))
 
     elif isinstance(cfg, ValueNode):
         try:
-            cfg = cfg._dereference_node()
+            resolved = cfg._dereference_node()
+            assert resolved is not None
+            cfg._set_value(resolved._value())
         except InterpolationToMissingValueError:
-            cfg = MISSING
+            cfg._set_value(MISSING)
 
     return cfg
