@@ -8,27 +8,13 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, Resolver
 from tests.interpolation import dereference_node
 
 
-def test_register_resolver_twice_error_new_callable(restore_resolvers: Any) -> None:
+def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
     def foo(_: Any) -> int:
         return 10
 
     OmegaConf.register_new_resolver("foo", foo)
     with raises(ValueError, match=re.escape("resolver 'foo' is already registered")):
-        OmegaConf.register_new_resolver("foo", lambda _: 10)
-
-
-@mark.parametrize("first_use_cache", [True, False])
-@mark.parametrize("second_use_cache", [True, False])
-def test_register_resolver_twice_same_callable(
-    restore_resolvers: Any, first_use_cache: bool, second_use_cache: bool
-) -> None:
-    def foo(_: Any) -> int:
-        return 10
-
-    OmegaConf.register_new_resolver("foo", foo, use_cache=first_use_cache)
-
-    with raises(ValueError, match=re.escape("resolver 'foo' is already registered")):
-        OmegaConf.register_new_resolver("foo", foo, use_cache=second_use_cache)
+        OmegaConf.register_new_resolver("foo", foo)
 
 
 def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
