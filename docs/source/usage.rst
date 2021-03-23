@@ -324,6 +324,8 @@ Interpolations are absolute by default. Relative interpolation are prefixed by o
 The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
 e.g. **${..foo}** points to the **foo** sibling of the parent of the current node.
 
+NOTE: Interpolations may cause config cycles. Such cycles are discouraged and may cause undefined behavior.
+
 
 Input YAML file:
 
