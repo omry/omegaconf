@@ -411,7 +411,8 @@ class OmegaConf:
         name: str,
         resolver: Resolver,
         *,
-        use_cache: Optional[bool] = False,
+        replace: bool = False,
+        use_cache: bool = False,
     ) -> None:
         """
         Register a resolver.
@@ -420,16 +421,23 @@ class OmegaConf:
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
+        :param replace: If set to `False` (default), then a `ValueError` is raised if
+            an existing resolver has already been registered with the same name.
+            If set to `True`, then the new resolver replaces the previous one.
+            NOTE: The cache on existing config objects is not affected, use
+            `OmegaConf.clear_cache(cfg)` to clear it.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
             based only on the string literals representing the resolver arguments, e.g.,
             ${foo:${bar}} will always return the same value regardless of the value of
             `bar` if the cache is enabled for `foo`.
         """
-        assert callable(resolver), "resolver must be callable"
-        # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), "resolver {} is already registered".format(name)
+        if not callable(resolver):
+            raise TypeError("resolver must be callable")
+        if not name:
+            raise ValueError("cannot use an empty resolver name")
+
+        if not replace and OmegaConf.has_resolver(name):
+            raise ValueError(f"resolver '{name}' is already registered")
 
         try:
             sig: Optional[inspect.Signature] = inspect.signature(resolver)

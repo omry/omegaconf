@@ -24,7 +24,6 @@ from omegaconf.errors import (
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
 
-
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
     {

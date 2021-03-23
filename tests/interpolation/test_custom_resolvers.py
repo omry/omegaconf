@@ -13,8 +13,8 @@ def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
         return 10
 
     OmegaConf.register_new_resolver("foo", foo)
-    with raises(AssertionError):
-        OmegaConf.register_new_resolver("foo", lambda _: 10)
+    with raises(ValueError, match=re.escape("resolver 'foo' is already registered")):
+        OmegaConf.register_new_resolver("foo", foo)
 
 
 def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
@@ -23,7 +23,28 @@ def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
 
     OmegaConf.legacy_register_resolver("foo", foo)
     with raises(AssertionError):
-        OmegaConf.register_new_resolver("foo", lambda: 10)
+        OmegaConf.legacy_register_resolver("foo", lambda: 10)
+
+
+def test_register_resolver_twice_error_legacy_and_regular(
+    restore_resolvers: Any,
+) -> None:
+    def foo() -> int:
+        return 10
+
+    OmegaConf.legacy_register_resolver("foo", foo)
+    with raises(ValueError):
+        OmegaConf.register_new_resolver("foo", foo)
+
+
+def test_register_resolver_error_non_callable(restore_resolvers: Any) -> None:
+    with raises(TypeError, match=re.escape("resolver must be callable")):
+        OmegaConf.register_new_resolver("foo", 0)  # type: ignore
+
+
+def test_register_resolver_error_empty_name(restore_resolvers: Any) -> None:
+    with raises(ValueError, match=re.escape("cannot use an empty resolver name")):
+        OmegaConf.register_new_resolver("", lambda: None)
 
 
 def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) -> None:
@@ -36,6 +57,30 @@ def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) 
     mocker.patch("inspect.signature", signature_not_inspectable)
     OmegaConf.register_new_resolver("not_inspectable", lambda: 123)
     assert OmegaConf.create({"x": "${not_inspectable:}"}).x == 123
+
+
+@mark.parametrize(
+    ("use_cache_1", "use_cache_2", "expected"),
+    [
+        (False, False, 2),
+        (False, True, 2),
+        (True, False, 2),
+        (True, True, 1),  # value is obtained from cache (see also #637)
+    ],
+)
+def test_register_resolver_with_replace(
+    restore_resolvers: Any,
+    use_cache_1: bool,
+    use_cache_2: bool,
+    expected: Any,
+) -> None:
+    OmegaConf.register_new_resolver("foo", lambda: 1, use_cache=use_cache_1)
+    cfg = OmegaConf.create({"x": "${foo:}"})
+    assert cfg.x == 1
+    OmegaConf.register_new_resolver(
+        "foo", lambda: 2, use_cache=use_cache_2, replace=True
+    )
+    assert cfg.x == expected
 
 
 def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:

@@ -461,7 +461,20 @@ This can be useful for instance to parse environment variables:
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
 
-You can add additional interpolation types using custom resolvers.
+You can add additional interpolation types by registering custom resolvers with ``OmegaConf.register_new_resolver()``:
+
+.. code-block:: python
+
+    def register_new_resolver(
+        name: str,
+        resolver: Resolver,
+        *,
+        replace: bool = False,
+        use_cache: bool = False,
+    ) -> None
+
+Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``.
+
 The example below creates a resolver that adds 10 to the given value.
 
 .. doctest::
@@ -470,7 +483,6 @@ The example below creates a resolver that adds 10 to the given value.
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
-
 
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
