@@ -784,7 +784,7 @@ OmegaConf.resolve
                     Raises a ValueError if the input object is not an OmegaConf container.
         """
 
-Normally interpolations are resolved on access time (lazily). 
+Normally interpolations are resolved lazily, at access time. 
 This function eagerly resolves all interpolations in the given config object in-place.
 Example:
 
