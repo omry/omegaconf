@@ -783,6 +783,17 @@ class OmegaConf:
             Dumper=get_omega_conf_dumper(),
         )
 
+    @staticmethod
+    def resolve(cfg: Any) -> None:
+        """
+        Resolves all interpolations in the given config object in-place.
+        Input config is converted to a DictConfig as needed.
+        """
+        import omegaconf._impl
+
+        cfg = _ensure_container(cfg)
+        omegaconf._impl._resolve(cfg)
+
     # === private === #
 
     @staticmethod

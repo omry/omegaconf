@@ -469,3 +469,35 @@ def test_is_issubclass() -> None:
     cfg = OmegaConf.structured(ConcretePlugin)
     t = OmegaConf.get_type(cfg)
     assert t is not None and issubclass(t, ConcretePlugin)
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        # dict
+        param({}, {}, id="dict"),
+        param({"a": 10, "b": "${a}"}, {"a": 10, "b": 10}, id="dict"),
+        param({"a": 10, "b": {"a": "${a}"}}, {"a": 10, "b": {"a": 10}}, id="dict"),
+        param({"a": "${b.a}", "b": {"a": 10}}, {"a": 10, "b": {"a": 10}}, id="dict"),
+        param({"a": "???"}, {"a": "???"}, id="dict:missing"),
+        param({"a": "???", "b": "${a}"}, {"a": "???", "b": "???"}, id="dict:missing"),
+        param({"a": 10, "b": "a_${a}"}, {"a": 10, "b": "a_10"}, id="dict:str_inter"),
+        # This seems like a reasonable resolution for a string interpolation pointing to a missing node:
+        param(
+            {"a": "???", "b": "a_${a}"},
+            {"a": "???", "b": "???"},
+            id="dict:str_inter_missing",
+        ),
+        # lists
+        param([], [], id="list"),
+        param([10, "${0}"], [10, 10], id="list"),
+        param(["???"], ["???"], id="list:missing"),
+        param(["${1}", "???"], ["???", "???"], id="list:missing"),
+    ],
+)
+def test_resolve(cfg: Any, expected: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    OmegaConf.resolve(cfg)
+    # convert output to plain dict to avoid smart OmegaConf eq logic
+    resolved_plain = OmegaConf.to_container(cfg, resolve=False)
+    assert resolved_plain == expected
