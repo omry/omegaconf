@@ -65,7 +65,7 @@ def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) 
         (False, False, 2),
         (False, True, 2),
         (True, False, 2),
-        (True, True, 1),  # potentially controversial, see #637
+        (True, True, 1),  # value is obtained from cache (see also #637)
     ],
 )
 def test_register_resolver_with_replace(
