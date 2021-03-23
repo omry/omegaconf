@@ -424,6 +424,8 @@ class OmegaConf:
         :param replace: If set to `False` (default), then a `ValueError` is raised if
             an existing resolver has already been registered with the same name.
             If set to `True`, then the new resolver replaces the previous one.
+            NOTE: The cache on existing config objects is not affected, use
+            `OmegaConf.clear_cache(cfg)` to clear it.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
             based only on the string literals representing the resolver arguments, e.g.,
             ${foo:${bar}} will always return the same value regardless of the value of
