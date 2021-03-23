@@ -469,6 +469,19 @@ The example below creates a resolver that adds 10 to the given value.
     >>> c.key
     1000
 
+Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``:
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver("plus_10", lambda x: x + 10.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: resolver 'plus_10' is already registered
+    >>> OmegaConf.register_new_resolver(
+    ...     "plus_10",
+    ...     lambda x: x + 10.0,
+    ...     replace=True,  # OK: replace previous resolver
+    ... )
 
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
