@@ -784,14 +784,20 @@ class OmegaConf:
         )
 
     @staticmethod
-    def resolve(cfg: Any) -> None:
+    def resolve(cfg: Container) -> None:
         """
         Resolves all interpolations in the given config object in-place.
-        Input config is converted to a DictConfig as needed.
+        :param cfg: An OmegaConf container (DictConfig, ListConfig)
+                    Raises a ValueError if the input object is not an OmegaConf container.
         """
         import omegaconf._impl
 
-        cfg = _ensure_container(cfg)
+        if not OmegaConf.is_config(cfg):
+            # Since this function is mutating the input object in-place, it doesn't make sense to
+            # auto-convert the input object to an OmegaConf container
+            raise ValueError(
+                f"Invalid config type ({type(cfg).__name__}), expected an OmegaConf Container"
+            )
         omegaconf._impl._resolve(cfg)
 
     # === private === #

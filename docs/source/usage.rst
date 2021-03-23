@@ -775,25 +775,27 @@ as DictConfig, allowing attribute style access on the resulting node.
 
 OmegaConf.resolve
 ^^^^^^^^^^^^^^^^^
+.. code-block:: python
+
+    def resolve(cfg: Container) -> None:
+        """
+        Resolves all interpolations in the given config object in-place.
+        :param cfg: An OmegaConf container (DictConfig, ListConfig)
+                    Raises a ValueError if the input object is not an OmegaConf container.
+        """
 
 Normally interpolations are resolved on access time (lazily). 
 This function eagerly resolves all interpolations in the given config object in-place.
-
-.. code-block:: python
-
-    def resolve(cfg: Any) -> Container:
-        """
-        Resolves all interpolations in the given config object in-place.
-        Input config is converted to a DictConfig as needed.
-        """
-
 Example:
 
 .. doctest::
 
-    >>> conf = OmegaConf.create({"a": 10, "b": "${a}"})
-    >>> OmegaConf.resolve(conf)
-    >>> show(conf)
+    >>> cfg = OmegaConf.create({"a": 10, "b": "${a}"})
+    >>> show(cfg)
+    type: DictConfig, value: {'a': 10, 'b': '${a}'}
+    >>> assert cfg.a == cfg.b == 10 # lazily resolving interpolation
+    >>> OmegaConf.resolve(cfg)
+    >>> show(cfg)
     type: DictConfig, value: {'a': 10, 'b': 10}
 
 OmegaConf.select
