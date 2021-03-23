@@ -509,6 +509,11 @@ def test_is_issubclass() -> None:
             {"b": 10},
             id="inter_dict",
         ),
+        param(
+            DictConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            "???",
+            id="inter_dict_to_missing",
+        ),
         param(DictConfig(None), None, id="none_dict"),
         # comparing to ??? because to_container returns it.
         param(DictConfig("???"), "???", id="missing_dict"),
@@ -521,6 +526,11 @@ def test_is_issubclass() -> None:
             ListConfig("${a}", parent=OmegaConf.create({"a": [1, 2]})),
             [1, 2],
             id="inter_list",
+        ),
+        param(
+            ListConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            "???",
+            id="inter_list_to_missing",
         ),
         param(ListConfig(None), None, id="none_list"),
         # comparing to ??? because to_container returns it.
