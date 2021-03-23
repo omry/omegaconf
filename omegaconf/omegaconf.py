@@ -416,7 +416,8 @@ class OmegaConf:
         """
         Register a resolver.
 
-        :param name: Name of the resolver.
+        :param name: Name of the resolver. If this name has already been registered,
+            then a `ValueError` is raised.
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
@@ -425,11 +426,13 @@ class OmegaConf:
             ${foo:${bar}} will always return the same value regardless of the value of
             `bar` if the cache is enabled for `foo`.
         """
-        assert callable(resolver), "resolver must be callable"
-        # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), "resolver {} is already registered".format(name)
+        if not callable(resolver):
+            raise TypeError("resolver must be callable")
+        if not name:
+            raise ValueError("cannot use an empty resolver name")
+
+        if OmegaConf.has_resolver(name):
+            raise ValueError(f"resolver '{name}' is already registered")
 
         try:
             sig: Optional[inspect.Signature] = inspect.signature(resolver)
