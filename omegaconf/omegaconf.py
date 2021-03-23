@@ -411,16 +411,19 @@ class OmegaConf:
         name: str,
         resolver: Resolver,
         *,
+        replace: bool = False,
         use_cache: bool = False,
     ) -> None:
         """
         Register a resolver.
 
-        :param name: Name of the resolver. If this name has already been registered,
-            then a `ValueError` is raised.
+        :param name: Name of the resolver.
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
+        :param replace: If set to `False` (default), then a `ValueError` is raised if
+            an existing resolver has already been registered with the same name.
+            If set to `True`, then the new resolver replaces the previous one.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
             based only on the string literals representing the resolver arguments, e.g.,
             ${foo:${bar}} will always return the same value regardless of the value of
@@ -431,7 +434,7 @@ class OmegaConf:
         if not name:
             raise ValueError("cannot use an empty resolver name")
 
-        if OmegaConf.has_resolver(name):
+        if not replace and OmegaConf.has_resolver(name):
             raise ValueError(f"resolver '{name}' is already registered")
 
         try:

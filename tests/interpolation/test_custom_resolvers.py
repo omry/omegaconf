@@ -59,6 +59,30 @@ def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) 
     assert OmegaConf.create({"x": "${not_inspectable:}"}).x == 123
 
 
+@mark.parametrize(
+    ("use_cache_1", "use_cache_2", "expected"),
+    [
+        (False, False, 2),
+        (False, True, 2),
+        (True, False, 2),
+        (True, True, 1),  # potentially controversial, see #637
+    ],
+)
+def test_register_resolver_with_replace(
+    restore_resolvers: Any,
+    use_cache_1: bool,
+    use_cache_2: bool,
+    expected: Any,
+) -> None:
+    OmegaConf.register_new_resolver("foo", lambda: 1, use_cache=use_cache_1)
+    cfg = OmegaConf.create({"x": "${foo:}"})
+    assert cfg.x == 1
+    OmegaConf.register_new_resolver(
+        "foo", lambda: 2, use_cache=use_cache_2, replace=True
+    )
+    assert cfg.x == expected
+
+
 def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
     assert not OmegaConf.has_resolver("foo")
     OmegaConf.register_new_resolver("foo", lambda x: x + 10)
