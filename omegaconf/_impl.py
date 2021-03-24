@@ -4,11 +4,15 @@ from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNod
 from omegaconf.errors import InterpolationToMissingValueError
 
 
-def _resolve_container_value(cfg: Container, node: Node, index: Any) -> None:
+def _resolve_container_value(cfg: Container, index: Any) -> None:
+    node = cfg._get_node(index)
+    assert isinstance(node, Node)
     if node._is_interpolation():
         try:
             resolved = node._dereference_node()
             assert resolved is not None
+            if isinstance(resolved, Container):
+                _resolve(resolved)
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
                 cfg[index] = resolved
             else:
@@ -31,14 +35,10 @@ def _resolve(cfg: Node) -> Node:
 
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():
-            node = cfg._get_node(k)
-            assert isinstance(node, Node)
-            _resolve_container_value(cfg, node, k)
+            _resolve_container_value(cfg, k)
 
     elif isinstance(cfg, ListConfig):
         for i in range(len(cfg)):
-            node = cfg._get_node(i)
-            assert isinstance(node, Node)
-            _resolve_container_value(cfg, node, i)
+            _resolve_container_value(cfg, i)
 
     return cfg
