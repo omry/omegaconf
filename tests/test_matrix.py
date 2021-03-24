@@ -176,7 +176,8 @@ class TestNodeTypesMatrix:
             node_type(value=None, is_optional=False)
 
     @mark.parametrize(
-        "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+        "register_func",
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
     )
     def test_interpolation(
         self, node_type: Any, values: Any, restore_resolvers: Any, register_func: Any
