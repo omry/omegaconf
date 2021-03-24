@@ -5,9 +5,22 @@ from typing import Any, Optional
 
 from omegaconf import Container, Node
 from omegaconf._utils import _DEFAULT_MARKER_, _get_value
+from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError
 from omegaconf.grammar_parser import parse
 from omegaconf.resolvers.oc import dict
+
+
+def create(obj: Any, _parent_: Container) -> Any:
+    """Create a config object from `obj`, similar to `OmegaConf.create`"""
+    from omegaconf import OmegaConf
+
+    assert isinstance(_parent_, BaseContainer)
+    ret = OmegaConf.create(obj, parent=_parent_)
+    # Since this node is re-generated on-the-fly, changes would be lost: we mark it
+    # as read-only to avoid mistakes.
+    ret._set_flag("readonly", True)
+    return ret
 
 
 def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
@@ -85,6 +98,7 @@ def deprecated(
 
 
 __all__ = [
+    "create",
     "decode",
     "deprecated",
     "dict",

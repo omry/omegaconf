@@ -278,14 +278,14 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             id="convert_str_to_int",
         ),
         param(
-            MissingList(list=SI("${identity:[a, b, c]}")),  # BROKEN
+            MissingList(list=SI("${oc.create:[a, b, c]}")),
             "list",
             ["a", "b", "c"],
             ListConfig,
             id="list_str",
         ),
         param(
-            MissingDict(dict=SI("${identity:{key1: val1, key2: val2}}")),  # BROKEN
+            MissingDict(dict=SI("${oc.create:{key1: val1, key2: val2}}")),
             "dict",
             {"key1": "val1", "key2": "val2"},
             DictConfig,
@@ -372,28 +372,28 @@ def test_interpolation_type_validated_error(
     ("cfg", "key", "expected_value", "expected_node_type"),
     [
         param(
-            MissingList(list=SI("${identity:[0, 1, 2]}")),
+            MissingList(list=SI("${oc.create:[0, 1, 2]}")),
             "list",
             [0, 1, 2],
             ListConfig,
             id="list_int_to_str",
         ),
         param(
-            MissingDict(dict=SI("${identity:{a: 0, b: 1}}")),
+            MissingDict(dict=SI("${oc.create:{a: 0, b: 1}}")),
             "dict",
             {"a": 0, "b": 1},
             DictConfig,
             id="dict_int_to_str",
         ),
         param(
-            SubscriptedList(list=SI("${identity:[a, b]}")),
+            SubscriptedList(list=SI("${oc.create:[a, b]}")),
             "list",
             ["a", "b"],
             ListConfig,
             id="list_type_mismatch",
         ),
         param(
-            MissingDict(dict=SI("${identity:{0: b, 1: d}}")),
+            MissingDict(dict=SI("${oc.create:{0: b, 1: d}}")),
             "dict",
             {0: "b", 1: "d"},
             DictConfig,
@@ -402,7 +402,6 @@ def test_interpolation_type_validated_error(
     ],
 )
 def test_interpolation_type_not_validated(
-    common_resolvers: Any,
     cfg: Any,
     key: str,
     expected_value: Any,
@@ -415,7 +414,7 @@ def test_interpolation_type_not_validated(
 
     node = cfg._get_node(key)
     assert isinstance(node, Node)
-    # assert isinstance(node._dereference_node(), expected_node_type)  BROKEN
+    assert isinstance(node._dereference_node(), expected_node_type)
 
 
 def test_type_validation_error_no_throw() -> None:

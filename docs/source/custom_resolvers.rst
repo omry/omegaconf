@@ -60,19 +60,6 @@ simply use quotes to bypass character limitations in strings.
     'Hello, World'
 
 
-Custom resolvers can return lists or dictionaries, that are automatically converted into DictConfig and ListConfig:
-
-.. doctest::
-
-    >>> OmegaConf.register_new_resolver(
-    ...     "min_max", lambda *a: {"min": min(a), "max": max(a)}
-    ... )
-    >>> c = OmegaConf.create({'stats': '${min_max: -1, 3, 2, 5, -10}'})
-    >>> assert isinstance(c.stats, DictConfig)
-    >>> c.stats.min, c.stats.max
-    (-10, 5)
-
-
 You can take advantage of nested interpolations to perform custom operations over variables:
 
 .. doctest::
@@ -212,6 +199,29 @@ The following example falls back to default passwords when ``DB_PASSWORD`` is no
     >>> # unless it's None
     >>> show(cfg.database.password3)
     type: NoneType, value: None
+
+
+.. _oc.create:
+
+oc.create
+^^^^^^^^^
+
+``oc.create`` may be used for dynamic generation of config nodes
+(typically from Python ``dict`` / ``list`` objects or YAML strings, similar to :ref:`OmegaConf.create<creating>`).
+The following example combines ``oc.create`` with ``oc.decode`` and ``oc.env`` to generate
+a sub-config from an environment variable:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "model": "${oc.create:${oc.decode:${oc.env:MODEL}}}",
+    ...     }
+    ... )
+    >>> os.environ["MODEL"] = "{name: my_model, layer_size: [100, 200]}"
+    >>> show(cfg.model.layer_size)
+    type: ListConfig, value: [100, 200]
+
 
 .. _oc.deprecated:
 
