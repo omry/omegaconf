@@ -466,6 +466,34 @@ This can be useful for instance to parse environment variables:
     type: int, value: 3308
 
 
+Extracting lists of keys / values from a dictionary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some config options that are stored as a ``DictConfig`` may sometimes be easier to manipulate as lists,
+when we care only about the keys or the associated values.
+
+The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by extracting respectively
+the list of keys and values from ``dict``-like objects like ``DictConfig``:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "machines": {
+    ...             "node007": "10.0.0.7",
+    ...             "node012": "10.0.0.3",
+    ...             "node075": "10.0.1.8",
+    ...         },
+    ...         "nodes": "${oc.dict.keys:${machines}}",
+    ...         "ips": "${oc.dict.values:${machines}}",
+    ...     }
+    ... )
+    >>> show(cfg.nodes)
+    type: ListConfig, value: ['node007', 'node012', 'node075']
+    >>> show(cfg.ips)
+    type: ListConfig, value: ['10.0.0.7', '10.0.0.3', '10.0.1.8']
+
+
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
 
