@@ -1,11 +1,16 @@
 import os
 import warnings
-from typing import Any, Dict, List, Optional
+
+# from collections.abc import Mapping, MutableMapping
+from typing import Any, Mapping, Optional, Union
 
 from ._utils import _DEFAULT_MARKER_, _get_value, decode_primitive
 from .base import Container
+from .basecontainer import BaseContainer
 from .errors import ValidationError
 from .grammar_parser import parse
+from .listconfig import ListConfig
+from .omegaconf import OmegaConf
 
 
 def decode(expr: Optional[str], _parent_: Container) -> Any:
@@ -28,12 +33,22 @@ def decode(expr: Optional[str], _parent_: Container) -> Any:
     return _get_value(val)
 
 
-def dict_keys(in_dict: Dict[Any, Any]) -> List[Any]:
-    return list(in_dict.keys())
+def dict_keys(
+    in_dict: Union[str, Mapping[Any, Any]],
+    _root_: BaseContainer,
+    _parent_: Container,
+) -> ListConfig:
+    return _dict_impl(
+        keys_or_values="keys", in_dict=in_dict, _root_=_root_, _parent_=_parent_
+    )
 
 
-def dict_values(in_dict: Dict[Any, Any]) -> List[Any]:
-    return list(in_dict.values())
+def dict_values(
+    in_dict: Union[str, Mapping[Any, Any]], _root_: BaseContainer, _parent_: Container
+) -> ListConfig:
+    return _dict_impl(
+        keys_or_values="values", in_dict=in_dict, _root_=_root_, _parent_=_parent_
+    )
 
 
 def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
@@ -68,3 +83,26 @@ def legacy_env(key: str, default: Optional[str] = None) -> Any:
             return decode_primitive(default)
         else:
             raise ValidationError(f"Environment variable '{key}' not found")
+
+
+def _dict_impl(
+    keys_or_values: str,
+    in_dict: Union[str, Mapping[Any, Any]],
+    _root_: BaseContainer,
+    _parent_: Container,
+) -> ListConfig:
+    if isinstance(in_dict, str):
+        # Path to an existing key in the config: use `select()`.
+        in_dict = OmegaConf.select(_root_, in_dict, throw_on_missing=True)
+
+    if not isinstance(in_dict, Mapping):
+        raise TypeError(
+            f"`oc.dict.{keys_or_values}` cannot be applied to objects of type: "
+            f"{type(in_dict).__name__}"
+        )
+
+    dict_method = getattr(in_dict, keys_or_values)
+    assert isinstance(_parent_, BaseContainer)
+    ret = OmegaConf.create(list(dict_method()), parent=_parent_)
+    assert isinstance(ret, ListConfig)
+    return ret

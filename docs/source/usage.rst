@@ -473,7 +473,8 @@ Some config options that are stored as a ``DictConfig`` may sometimes be easier 
 when we care only about the keys or the associated values.
 
 The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by extracting respectively
-the list of keys and values from ``dict``-like objects like ``DictConfig``:
+the list of keys and values from ``dict``-like objects like ``DictConfig``.
+If a string is given as input, ``OmegaConf.select()`` is used to access the corresponding config node.
 
 .. doctest::
 
@@ -484,8 +485,10 @@ the list of keys and values from ``dict``-like objects like ``DictConfig``:
     ...             "node012": "10.0.0.3",
     ...             "node075": "10.0.1.8",
     ...         },
+    ...         # Explicit interpolation `${machines}` as input.
     ...         "nodes": "${oc.dict.keys:${machines}}",
-    ...         "ips": "${oc.dict.values:${machines}}",
+    ...         # Config node name `machines` as input.
+    ...         "ips": "${oc.dict.values:machines}",
     ...     }
     ... )
     >>> show(cfg.nodes)
