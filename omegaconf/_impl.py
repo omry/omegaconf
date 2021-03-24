@@ -4,8 +4,8 @@ from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNod
 from omegaconf.errors import InterpolationToMissingValueError
 
 
-def _resolve_container_value(cfg: Container, index: Any) -> None:
-    node = cfg._get_node(index)
+def _resolve_container_value(cfg: Container, key: Any) -> None:
+    node = cfg._get_node(key)
     assert isinstance(node, Node)
     if node._is_interpolation():
         try:
@@ -17,7 +17,7 @@ def _resolve_container_value(cfg: Container, index: Any) -> None:
             if isinstance(resolved, Container):
                 _resolve(resolved)
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
-                cfg[index] = resolved
+                cfg[key] = resolved
             else:
                 node._set_value(resolved._value())
     else:
