@@ -10,6 +10,9 @@ def _resolve_container_value(cfg: Container, index: Any) -> None:
     if node._is_interpolation():
         try:
             resolved = node._dereference_node()
+        except InterpolationToMissingValueError:
+            node._set_value(MISSING)
+        else:
             assert resolved is not None
             if isinstance(resolved, Container):
                 _resolve(resolved)
@@ -17,21 +20,20 @@ def _resolve_container_value(cfg: Container, index: Any) -> None:
                 cfg[index] = resolved
             else:
                 node._set_value(resolved._value())
-        except InterpolationToMissingValueError:
-            node._set_value(MISSING)
     else:
         _resolve(node)
 
 
 def _resolve(cfg: Node) -> Node:
     assert isinstance(cfg, Node)
-    try:
-        if cfg._is_interpolation():
+    if cfg._is_interpolation():
+        try:
             resolved = cfg._dereference_node()
+        except InterpolationToMissingValueError:
+            cfg._set_value(MISSING)
+        else:
             assert resolved is not None
             cfg._set_value(resolved._value())
-    except InterpolationToMissingValueError:
-        cfg._set_value(MISSING)
 
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():
