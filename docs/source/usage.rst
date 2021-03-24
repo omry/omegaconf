@@ -787,6 +787,31 @@ as DictConfig, allowing attribute style access on the resulting node.
     >>> show(container["structured_config"])
     type: DictConfig, value: {'port': 80, 'host': 'localhost'}
 
+OmegaConf.resolve
+^^^^^^^^^^^^^^^^^
+.. code-block:: python
+
+    def resolve(cfg: Container) -> None:
+        """
+        Resolves all interpolations in the given config object in-place.
+        :param cfg: An OmegaConf container (DictConfig, ListConfig)
+                    Raises a ValueError if the input object is not an OmegaConf container.
+        """
+
+Normally interpolations are resolved lazily, at access time. 
+This function eagerly resolves all interpolations in the given config object in-place.
+Example:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"a": 10, "b": "${a}"})
+    >>> show(cfg)
+    type: DictConfig, value: {'a': 10, 'b': '${a}'}
+    >>> assert cfg.a == cfg.b == 10 # lazily resolving interpolation
+    >>> OmegaConf.resolve(cfg)
+    >>> show(cfg)
+    type: DictConfig, value: {'a': 10, 'b': 10}
+
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
 OmegaConf.select() allow you to select a config node or value using a dot-notation key.
