@@ -87,16 +87,17 @@ def test_dict_values(cfg: Any, key: Any, expected: Any) -> None:
     assert val._parent is cfg
 
 
-def test_dict_keys_nested(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("sum", lambda x: sum(x))
-    cfg = OmegaConf.create({"x": "${sum:${oc.dict.keys:{1: one, 2: two}}}"})
-    assert cfg.x == 3
-
-
-def test_dict_values_nested(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("sum", lambda x: sum(x))
-    cfg = OmegaConf.create({"x": "${sum:${oc.dict.values:{one: 1, two: 2}}}"})
-    assert cfg.x == 3
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        param({"x": "${sum:${oc.dict.values:{one: 1, two: 2}}}"}, 3, id="values"),
+        param({"x": "${sum:${oc.dict.keys:{1: one, 2: two}}}"}, 3, id="keys"),
+    ],
+)
+def test_nested_oc_dict(restore_resolvers: Any, cfg: Any, expected: Any) -> None:
+    OmegaConf.register_new_resolver("sum", sum)
+    cfg = OmegaConf.create(cfg)
+    assert cfg.x == expected
 
 
 @mark.parametrize(
