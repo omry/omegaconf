@@ -1,6 +1,6 @@
 .. testsetup:: *
 
-    from omegaconf import OmegaConf, DictConfig, open_dict, read_write
+    from omegaconf import OmegaConf, DictConfig, ListConfig, open_dict, read_write
     import os
     import sys
     import tempfile
@@ -491,10 +491,16 @@ If a string is given as input, ``OmegaConf.select()`` is used to access the corr
     ...         "ips": "${oc.dict.values:machines}",
     ...     }
     ... )
-    >>> show(cfg.nodes)
-    type: ListConfig, value: ['node007', 'node012', 'node075']
-    >>> show(cfg.ips)
-    type: ListConfig, value: ['10.0.0.7', '10.0.0.3', '10.0.1.8']
+    >>> nodes = cfg.nodes
+    >>> ips = cfg.ips
+    >>> # The corresponding lists of keys / values are ListConfig nodes.
+    >>> assert isinstance(nodes, ListConfig)
+    >>> assert isinstance(ips, ListConfig)
+    >>> assert nodes == ['node007', 'node012', 'node075']
+    >>> assert ips == ['10.0.0.7', '10.0.0.3', '10.0.1.8']
+    >>> # Values are dynamically updated with the underlying dict.
+    >>> cfg.machines.node012 = "10.0.0.5"
+    >>> assert ips[1] == "10.0.0.5"
 
 
 Custom interpolations
