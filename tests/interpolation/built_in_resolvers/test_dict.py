@@ -134,3 +134,17 @@ def test_dict_values_invalid_type(cfg: Any) -> None:
     cfg = OmegaConf.create(cfg)
     with raises(InterpolationResolutionError, match="TypeError"):
         cfg.x
+
+
+@mark.parametrize(
+    "cfg",
+    [
+        param({"x": "${oc.dict.keys:y}", "y": "???"}, id="keys_select_missing"),
+        param({"x": "${oc.dict.values:y}", "y": "???"}, id="values_select_missing"),
+        param({"x": "${oc.dict.values:y}", "y": {"m": "???"}}, id="missing_value"),
+    ],
+)
+def test_dict_missing(cfg: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    with raises(InterpolationResolutionError, match="MissingMandatoryValue"):
+        cfg.x
