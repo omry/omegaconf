@@ -485,9 +485,9 @@ If a string is given as input, ``OmegaConf.select()`` is used to access the corr
     ...             "node012": "10.0.0.3",
     ...             "node075": "10.0.1.8",
     ...         },
-    ...         # Explicit interpolation `${machines}` as input.
+    ...         # Obtaining keys with explicit interpolation as input.
     ...         "nodes": "${oc.dict.keys:${machines}}",
-    ...         # Config node name `machines` as input.
+    ...         # Obtaining values with node name as input.
     ...         "ips": "${oc.dict.values:machines}",
     ...     }
     ... )
