@@ -234,33 +234,18 @@ def test_dict_values_dictconfig_resolver_output(
     assert cfg.foo[key] == expected
 
 
-@mark.parametrize(
-    ("make_resolver", "expected_value", "expected_content"),
-    [
-        param(
-            lambda _parent_: OmegaConf.create({"a": 0, "b": 1}, parent=_parent_),
-            [0, 1],
-            ["${y.a}", "${y.b}"],
-            id="dictconfig_with_parent",
-        ),
-        param(
-            lambda: {"a": 0, "b": 1},
-            [0, 1],
-            ["${y.a}", "${y.b}"],
-            id="plain_dict",
-        ),
-    ],
-)
-def test_dict_values_transient_interpolation(
+@mark.parametrize("dict_func", ["oc.dict.values", "oc.dict.keys"])
+def test_extract_from_dict_resolver_output(
     restore_resolvers: Any,
-    make_resolver: Any,
-    expected_value: Any,
-    expected_content: Any,
+    dict_func: str,
 ) -> None:
-    OmegaConf.register_new_resolver("make", make_resolver)
-    cfg = OmegaConf.create({"x": "${oc.dict.values:y}", "y": "${make:}"})
-    assert cfg.x == expected_value
-    assert cfg.x._content == expected_content
+    OmegaConf.register_new_resolver("make_dict", lambda: {"a": 0, "b": 1})
+    cfg = OmegaConf.create({"x": f"${{{dict_func}:y}}", "y": "${make_dict:}"})
+    with raises(
+        InterpolationResolutionError,
+        match="TypeError raised while resolving interpolation",
+    ):
+        cfg.x
 
 
 def test_dict_values_are_typed() -> None:

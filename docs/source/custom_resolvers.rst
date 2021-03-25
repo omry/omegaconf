@@ -245,14 +245,19 @@ It takes two parameters:
 oc.decode
 ^^^^^^^^^
 
-Strings may be converted using ``oc.decode``:
+With ``oc.decode``, strings can be converted into their corresponding data types using the OmegaConf grammar.
+This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``dict`` and ``list``,
+e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
+It will also resolve interpolations like ``"${foo}"``, returning the corresponding value of the node.
 
-- Primitive values (e.g., ``"true"``, ``"1"``, ``"1e-3"``) are automatically converted to their corresponding type (bool, int, float)
-- Dictionaries and lists (e.g., ``"{a: b}"``, ``"[a, b, c]"``)  are returned as transient config nodes (DictConfig and ListConfig)
-- Interpolations (e.g., ``"${foo}"``) are automatically resolved
-- ``None`` is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+Note that:
 
-This can be useful for instance to parse environment variables:
+- When providing as input to ``oc.decode`` a string that is meant to be decoded into another string, in general
+  the input string should be quoted (since only a subset of characters are allowed by the grammar in unquoted
+  strings). For instance, a proper string interpolation could be: ``"'Hi! My name is: ${name}'"`` (with extra quotes).
+- ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+
+This resolver can be useful for instance to parse environment variables:
 
 .. doctest::
 
@@ -269,8 +274,8 @@ This can be useful for instance to parse environment variables:
     >>> show(cfg.database.port)  # converted to int
     type: int, value: 3308
     >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
-    >>> show(cfg.database.nodes)  # converted to a ListConfig
-    type: ListConfig, value: ['host1', 'host2', 'host3']
+    >>> show(cfg.database.nodes)  # converted to a Python list
+    type: list, value: ['host1', 'host2', 'host3']
     >>> show(cfg.database.timeout)  # keeping `None` as is
     type: NoneType, value: None
     >>> os.environ["DB_TIMEOUT"] = "${.port}"

@@ -15,6 +15,7 @@ from ._utils import (
     _is_missing_value,
     format_and_raise,
     get_value_kind,
+    is_primitive_type,
     split_key,
 )
 from .errors import (
@@ -23,7 +24,6 @@ from .errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
     InterpolationValidationError,
-    KeyValidationError,
     MissingMandatoryValue,
     UnsupportedInterpolationType,
     ValidationError,
@@ -552,31 +552,36 @@ class Container(Node):
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
         from .basecontainer import BaseContainer
-        from .omegaconf import _node_wrap
+        from .nodes import AnyNode
+        from .omegaconf import _node_wrap, flag_override
 
         assert parent is None or isinstance(parent, BaseContainer)
-        try:
-            wrapped = _node_wrap(
-                type_=value._metadata.ref_type,
-                parent=parent,
-                is_optional=value._metadata.optional,
-                value=resolved,
-                key=key,
-                ref_type=value._metadata.ref_type,
-            )
-        except (KeyValidationError, ValidationError) as e:
-            if throw_on_resolution_failure:
-                self._format_and_raise(
-                    key=key,
+
+        if is_primitive_type(type(resolved)):
+            # Primitive types get wrapped using the same logic as when setting the
+            # value of a node (i.e., through `_node_wrap()`).
+            try:
+                wrapped = _node_wrap(
+                    type_=value._metadata.ref_type,
+                    parent=parent,
+                    is_optional=value._metadata.optional,
                     value=resolved,
-                    cause=e,
-                    type_override=InterpolationValidationError,
+                    key=key,
+                    ref_type=value._metadata.ref_type,
                 )
-            return None
-        # Since we created a new node on the fly, future changes to this node are
-        # likely to be lost. We thus set the "readonly" flag to `True` to reduce
-        # the risk of accidental modifications.
-        wrapped._set_flag("readonly", True)
+            except ValidationError:  # pragma: no cover
+                # This is not supposed to happen because primitive types that must
+                # be wrapped should have already been validated inside
+                # `_validate_and_convert_interpolation_result()`.
+                assert False
+        else:
+            # Other objects get wrapped into an `AnyNode` with `allow_objects` set
+            # to True.
+            wrapped = AnyNode(value=None, key=key, parent=parent)
+            wrapped._set_flag("allow_objects", True)
+            with flag_override(wrapped, "readonly", False):
+                wrapped._set_value(resolved)
+
         return wrapped
 
     def _validate_not_dereferencing_to_parent(self, node: Node, target: Node) -> None:
