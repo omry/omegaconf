@@ -38,17 +38,25 @@ def dict_keys(
     _root_: BaseContainer,
     _parent_: Container,
 ) -> ListConfig:
-    return _dict_impl(
-        keys_or_values="keys", in_dict=in_dict, _root_=_root_, _parent_=_parent_
+    in_dict = _get_and_validate_dict_input(
+        in_dict, root=_root_, resolver_name="oc.dict.keys"
     )
+    assert isinstance(_parent_, BaseContainer)
+    ret = OmegaConf.create(list(in_dict.keys()), parent=_parent_)
+    assert isinstance(ret, ListConfig)
+    return ret
 
 
 def dict_values(
     in_dict: Union[str, Mapping[Any, Any]], _root_: BaseContainer, _parent_: Container
 ) -> ListConfig:
-    return _dict_impl(
-        keys_or_values="values", in_dict=in_dict, _root_=_root_, _parent_=_parent_
+    in_dict = _get_and_validate_dict_input(
+        in_dict, root=_root_, resolver_name="oc.dict.values"
     )
+    assert isinstance(_parent_, BaseContainer)
+    ret = OmegaConf.create(list(in_dict.values()), parent=_parent_)
+    assert isinstance(ret, ListConfig)
+    return ret
 
 
 def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
@@ -85,24 +93,19 @@ def legacy_env(key: str, default: Optional[str] = None) -> Any:
             raise ValidationError(f"Environment variable '{key}' not found")
 
 
-def _dict_impl(
-    keys_or_values: str,
+def _get_and_validate_dict_input(
     in_dict: Union[str, Mapping[Any, Any]],
-    _root_: BaseContainer,
-    _parent_: Container,
-) -> ListConfig:
+    root: BaseContainer,
+    resolver_name: str,
+) -> Mapping[Any, Any]:
     if isinstance(in_dict, str):
         # Path to an existing key in the config: use `select()`.
-        in_dict = OmegaConf.select(_root_, in_dict, throw_on_missing=True)
+        in_dict = OmegaConf.select(root, in_dict, throw_on_missing=True)
 
     if not isinstance(in_dict, Mapping):
         raise TypeError(
-            f"`oc.dict.{keys_or_values}` cannot be applied to objects of type: "
+            f"`{resolver_name}` cannot be applied to objects of type: "
             f"{type(in_dict).__name__}"
         )
 
-    dict_method = getattr(in_dict, keys_or_values)
-    assert isinstance(_parent_, BaseContainer)
-    ret = OmegaConf.create(list(dict_method()), parent=_parent_)
-    assert isinstance(ret, ListConfig)
-    return ret
+    return in_dict
