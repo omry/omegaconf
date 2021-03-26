@@ -41,7 +41,13 @@ sequence: (element (COMMA element?)*) | (COMMA element?)+;
 // Interpolations.
 
 interpolation: interpolationNode | interpolationResolver;
-interpolationNode: INTER_OPEN DOT* (configKey (DOT configKey)*)? INTER_CLOSE;
+interpolationNode:
+      INTER_OPEN DOT*                                            // dots for relative interpolations
+      (
+        configKey                                                // first config key
+        (DOT configKey | BRACKET_OPEN configKey BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
+      )?  
+      INTER_CLOSE;                                               // }
 interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
 resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f

@@ -19,7 +19,8 @@ _grammar_cache = None
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
 _config_key = r"[$\w]+"  # foo, $0, $bar, $foo_$bar123$
-_node_path = f"(\\.)*({_config_key}(\\.{_config_key})*)?"  # foo, .foo.$bar
+_node_access = f"\\.{_config_key}|\\[{_config_key}\\]"  # .foo, [foo], [$bar]
+_node_path = f"(\\.)*({_config_key}({_node_access})*)?"  # foo, .foo.$bar, foo[bar]
 _node_inter = f"\\${{\\s*{_node_path}\\s*}}"  # node interpolation ${foo.bar}
 _id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
 _resolver_name = f"({_id}(\\.{_id})*)?"  # foo, ns.bar3, ns_1.ns_2.b0z

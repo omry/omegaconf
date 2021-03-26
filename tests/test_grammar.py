@@ -31,7 +31,7 @@ BASE_TEST_CFG = OmegaConf.create(
         "str": "hi",
         "int": 123,
         "float": 1.2,
-        "dict": {"a": 0},
+        "dict": {"a": 0, "b": {"c": 1}},
         "list": [x - 1 for x in range(11)],
         "null": None,
         # Special cases.
@@ -193,6 +193,12 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Node interpolations.
     ("dict_access", "${dict.a}", 0),
     ("list_access", "${list.0}", -1),
+    ("dict_access_getitem", "${dict[a]}", 0),
+    ("list_access_getitem", "${list[0]}", -1),
+    ("dict_access_deep_1", "${dict.b.c}", 1),
+    ("dict_access_deep_2", "${dict[b].c}", 1),
+    ("dict_access_deep_3", "${dict.b[c]}", 1),
+    ("dict_access_deep_4", "${dict[b][c]}", 1),
     ("list_access_underscore", "${list.1_0}", 9),
     ("list_access_bad_negative", "${list.-1}", InterpolationKeyError),
     ("dict_access_list_like_1", "${0}", 0),
@@ -238,6 +244,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Nested interpolations.
     ("nested_simple", "${${ref_str}}", "hi"),
     ("nested_select", "${options.${choice}}", "A"),
+    ("nested_select_getitem", "${options[${choice}]}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
     ("str_quoted_nested", r"'AB${test:\'CD${test:\\'EF\\'}GH\'}'", "ABCDEFGH"),
     # Resolver interpolations.
@@ -532,11 +539,17 @@ class TestOmegaConfGrammar:
         "${$foo.bar$.x$y}",
         "${$0.1.2$}",
         "${0foo}",
+        # getitem syntax
+        "${foo[bar]}",
+        "${foo.bar[baz]}",
+        "${foo[bar].baz}",
+        "${foo[bar].baz[boz]}",
         # relative interpolations
         "${.}",
         "${..}",
         "${..foo}",
         "${..foo.bar}",
+        "${..foo[bar]}",
         # config root
         "${}",
     ],

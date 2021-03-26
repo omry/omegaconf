@@ -19,6 +19,7 @@ from tests import Package
         param({}, "a", {}, {"a": {}}, id="dict:value:empty_dict"),
         param({}, "a", {"b": 1}, {"a": {"b": 1}}, id="value:dict"),
         param({}, "a.b", 1, {"a": {"b": 1}}, id="dict:deep"),
+        param({}, "a[b]", 1, {"a": {"b": 1}}, id="dict:deep:getitem"),
         param({"a": "b"}, "a.b", {"c": 1}, {"a": {"b": {"c": 1}}}, id="dict:deep:map"),
         param({}, "a", 1, {"a": 1}, id="dict:value"),
         param({}, "a.b", 1, {"a": {"b": 1}}, id="dict:deep:value"),

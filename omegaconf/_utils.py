@@ -31,6 +31,17 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 
+# Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
+# We begin by matching the first key (in these examples: a, a, ..a).
+# This can be read as "dots followed by any character but `.` or `[`"
+KEY_PATH_FIRST = re.compile(r"(\.)*[^.[]*")
+# Then we match other keys. The following expression matches one key and can
+# be read as a choice between two syntaxes:
+#   - `.` followed by anything except `.` or `[` (ex: .b, .d)
+#   - `[` followed by anything then `]` (ex: [b], [c])
+KEY_PATH_OTHER = re.compile(r"\.([^.[]*)|\[(.*?)\]")
+
+
 # source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [
     "y",
@@ -789,3 +800,35 @@ def is_generic_dict(type_: Any) -> bool:
 
 def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
+
+
+def split_key(key: str) -> List[str]:
+    """
+    Split a full key path into its individual components.
+
+    This is similar to `key.split(".")` but also works with the getitem syntax:
+        "a.b"       -> ["a", b]
+        "a[b]"      -> ["a, "b"]
+        ".a.b[c].d" -> ["", "a", "b", "c", "d"]
+    """
+    # Obtain the first part of the key (in docstring examples: a, a, .a)
+    first = KEY_PATH_FIRST.match(key)
+    assert first is not None
+    first_stop = first.span()[1]
+
+    # `tokens` will contain all elements composing the key.
+    tokens = key[0:first_stop].split(".")
+
+    # Optimization in case `key` has no other component: we are done.
+    if first_stop == len(key):
+        return tokens
+
+    # Identify other key elements (in docstring examples: b, b, b/c/d)
+    others = KEY_PATH_OTHER.findall(key[first_stop:])
+
+    # There are two groups in the `KEY_PATH_OTHER` regex: one for keys starting
+    # with a dot (.b, .d) and one for keys starting with a bracket ([b], [c]).
+    # Only one group can be non-empty.
+    tokens += [dot_key if dot_key else bracket_key for dot_key, bracket_key in others]
+
+    return tokens

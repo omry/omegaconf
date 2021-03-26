@@ -814,7 +814,7 @@ Example:
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
-OmegaConf.select() allow you to select a config node or value using a dot-notation key.
+OmegaConf.select() allow you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
 
 .. doctest::
 
@@ -835,7 +835,8 @@ OmegaConf.select() allow you to select a config node or value using a dot-notati
     >>> assert OmegaConf.select(cfg, "foo.bar") == {
     ...     "zonk" : 10, 
     ... }
-    >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10
+    >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10    # dots
+    >>> assert OmegaConf.select(cfg, "foo[bar][zonk]") == 10  # brackets
     >>> assert OmegaConf.select(cfg, "no_such_key", default=99) == 99
     >>> assert OmegaConf.select(cfg, "foo.missing") is None
     >>> assert OmegaConf.select(cfg, "foo.missing", default=99) == 99
@@ -850,7 +851,7 @@ OmegaConf.select() allow you to select a config node or value using a dot-notati
 
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
-OmegaConf.update() allow you to update values in your config using a dot-notation key.
+OmegaConf.update() allow you to update values in your config using either a dot-notation or brackets to denote sub-keys.
 
 The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
 being assigned.
@@ -858,11 +859,14 @@ being assigned.
 .. doctest::
 
     >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True) # merge has no effect because the value is a primitive
+    >>> # Merge flag has no effect because the value is a primitive
+    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True)
     >>> assert cfg.foo.bar == 20
-    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False) # set   
+    >>> # Set dictionary value (using dot notation)
+    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
     >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> OmegaConf.update(cfg, "foo.bar", {"oompa" : 40}, merge=True) # merge
+    >>> # Merge dictionary value (using bracket notation)
+    >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
     >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
 
 
