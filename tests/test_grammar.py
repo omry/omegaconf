@@ -195,6 +195,8 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("list_access", "${list.0}", -1),
     ("dict_access_getitem", "${dict[a]}", 0),
     ("list_access_getitem", "${list[0]}", -1),
+    ("getitem_first_1", "${[dict].a}", 0),
+    ("getitem_first_2", "${[list][0]}", -1),
     ("dict_access_deep_1", "${dict.b.c}", 1),
     ("dict_access_deep_2", "${dict[b].c}", 1),
     ("dict_access_deep_3", "${dict.b[c]}", 1),
@@ -544,12 +546,16 @@ class TestOmegaConfGrammar:
         "${foo.bar[baz]}",
         "${foo[bar].baz}",
         "${foo[bar].baz[boz]}",
+        "${[foo]}",
+        "${[foo].bar}",
+        "${[foo][bar]}",
         # relative interpolations
         "${.}",
         "${..}",
         "${..foo}",
         "${..foo.bar}",
         "${..foo[bar]}",
+        "${..[foo].bar}",
         # config root
         "${}",
     ],
@@ -626,6 +632,7 @@ def test_empty_stack() -> None:
             id="relative:list_from_dict",
         ),
         param("${..list.1}", "dict", 2, id="up_down"),
+        param("${..[list][1]}", "dict", 2, id="up_down_getitem"),
     ],
 )
 def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:

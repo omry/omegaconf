@@ -32,9 +32,12 @@ except ImportError:  # pragma: no cover
 
 
 # Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
-# We begin by matching the first key (in these examples: a, a, ..a).
+# We begin by matching the head (in these examples: a, a, ..a).
 # This can be read as "dots followed by any character but `.` or `[`"
-KEY_PATH_FIRST = re.compile(r"(\.)*[^.[]*")
+# Note that a key starting with brackets, like [a], is purposedly *not*
+# matched here and will instead be handled in the next regex below (this
+# is to keep this regex simple).
+KEY_PATH_HEAD = re.compile(r"(\.)*[^.[]*")
 # Then we match other keys. The following expression matches one key and can
 # be read as a choice between two syntaxes:
 #   - `.` followed by anything except `.` or `[` (ex: .b, .d)
@@ -810,9 +813,10 @@ def split_key(key: str) -> List[str]:
         "a.b"       -> ["a", b]
         "a[b]"      -> ["a, "b"]
         ".a.b[c].d" -> ["", "a", "b", "c", "d"]
+        "[a].b"     -> ["a", "b"]
     """
-    # Obtain the first part of the key (in docstring examples: a, a, .a)
-    first = KEY_PATH_FIRST.match(key)
+    # Obtain the first part of the key (in docstring examples: a, a, .a, '')
+    first = KEY_PATH_HEAD.match(key)
     assert first is not None
     first_stop = first.span()[1]
 
@@ -823,7 +827,15 @@ def split_key(key: str) -> List[str]:
     if first_stop == len(key):
         return tokens
 
-    # Identify other key elements (in docstring examples: b, b, b/c/d)
+    if key[first_stop] == "[" and not tokens[-1]:
+        # This is a special case where the first key starts with brackets, e.g.
+        # [a] or ..[a]. In that case there is an extra "" in `tokens` that we
+        # need to get rid of:
+        #   [a]   -> tokens = [""] but we would like []
+        #   ..[a] -> tokens = ["", "", ""] but we would like ["", ""]
+        tokens.pop()
+
+    # Identify other key elements (in docstring examples: b, b, b/c/d, b)
     others = KEY_PATH_OTHER.findall(key[first_stop:])
 
     # There are two groups in the `KEY_PATH_OTHER` regex: one for keys starting

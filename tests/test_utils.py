@@ -623,6 +623,10 @@ def test_marker_string_representation() -> None:
         (".foo", ["", "foo"]),
         ("..foo", ["", "", "foo"]),
         (".foo[bar]", ["", "foo", "bar"]),
+        ("[foo]", ["foo"]),
+        ("[foo][bar]", ["foo", "bar"]),
+        (".[foo][bar]", ["", "foo", "bar"]),
+        ("..[foo][bar]", ["", "", "foo", "bar"]),
         (
             "...a[b][c].d.e[f].g[h]",
             ["", "", "", "a", "b", "c", "d", "e", "f", "g", "h"],
