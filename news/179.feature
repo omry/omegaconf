@@ -1,1 +1,2 @@
-Brackets may be used to access sub-keys (instead of the dot notation), e.g. foo.bar -> foo[bar], or foo.0.1 -> foo[0][1]
+Bracketed keys may be used as an alternative form to dot notation, e.g. foo.1 is equivalent to foo[1], [foo].1 and [foo][1].
+This affects OmegaConf.{update, select} and interpolation usage.
