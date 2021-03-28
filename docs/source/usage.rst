@@ -317,8 +317,9 @@ OmegaConf supports variable interpolation. Interpolations are evaluated lazily o
 
 Config node interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-The interpolated variable can be the dot-path to another node in the configuration, and in that case
+The interpolated variable can be the path to another node in the configuration, and in that case
 the value will be the value of that node.
+This path may use either dot-notation (``foo.1``), brackets (``[foo][1]``) or a mix of both (``foo[1]``, ``[foo].1``).
 
 Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
 The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
@@ -361,7 +362,7 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
     ...            "B": "plan B",
     ...        },
     ...        "selected_plan": "A",
-    ...        "plan": "${plans.${selected_plan}}",
+    ...        "plan": "${plans[${selected_plan}]}",
     ...    }
     ... )
     >>> cfg.plan # default plan
@@ -814,7 +815,7 @@ Example:
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
-OmegaConf.select() allow you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
+OmegaConf.select() allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
 
 .. doctest::
 
@@ -851,7 +852,7 @@ OmegaConf.select() allow you to select a config node or value, using either a do
 
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
-OmegaConf.update() allow you to update values in your config using either a dot-notation or brackets to denote sub-keys.
+OmegaConf.update() allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
 
 The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
 being assigned.
