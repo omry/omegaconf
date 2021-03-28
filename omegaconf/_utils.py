@@ -810,7 +810,7 @@ def split_key(key: str) -> List[str]:
     Split a full key path into its individual components.
 
     This is similar to `key.split(".")` but also works with the getitem syntax:
-        "a.b"       -> ["a", b]
+        "a.b"       -> ["a", "b"]
         "a[b]"      -> ["a, "b"]
         ".a.b[c].d" -> ["", "a", "b", "c", "d"]
         "[a].b"     -> ["a", "b"]
