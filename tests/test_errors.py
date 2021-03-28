@@ -231,6 +231,17 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: OmegaConf.create({"foo": "${missing[a].b[c]}"}),
+            op=lambda cfg: getattr(cfg, "foo"),
+            exception_type=InterpolationKeyError,
+            msg="Interpolation key 'missing[a].b[c]' not found",
+            key="foo",
+            child_node=lambda cfg: cfg._get_node("foo"),
+        ),
+        id="dict,accessing_missing_interpolation_with_full_path",
+    ),
+    param(
+        Expected(
             create=lambda: OmegaConf.create({"foo": "foo_${missing}"}),
             op=lambda cfg: getattr(cfg, "foo"),
             exception_type=InterpolationKeyError,

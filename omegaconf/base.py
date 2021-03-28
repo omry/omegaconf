@@ -15,6 +15,7 @@ from ._utils import (
     _is_missing_value,
     format_and_raise,
     get_value_kind,
+    split_key,
 )
 from .errors import (
     ConfigKeyError,
@@ -367,7 +368,7 @@ class Container(Node):
         if key == "":
             return self, "", self
 
-        split = key.split(".")
+        split = split_key(key)
         root: Optional[Container] = self
         for i in range(len(split) - 1):
             if root is None:

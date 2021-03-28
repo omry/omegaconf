@@ -13,6 +13,7 @@ from omegaconf._utils import (
     _get_value,
     is_dict_annotation,
     is_list_annotation,
+    split_key,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
@@ -610,3 +611,27 @@ def test_ensure_container_raises_ValueError() -> None:
 def test_marker_string_representation() -> None:
     marker = Marker("marker")
     assert repr(marker) == "marker"
+
+
+@mark.parametrize(
+    ("key", "expected"),
+    [
+        ("", [""]),
+        ("foo", ["foo"]),
+        ("foo.bar", ["foo", "bar"]),
+        ("foo[bar]", ["foo", "bar"]),
+        (".foo", ["", "foo"]),
+        ("..foo", ["", "", "foo"]),
+        (".foo[bar]", ["", "foo", "bar"]),
+        ("[foo]", ["foo"]),
+        ("[foo][bar]", ["foo", "bar"]),
+        (".[foo][bar]", ["", "foo", "bar"]),
+        ("..[foo][bar]", ["", "", "foo", "bar"]),
+        (
+            "...a[b][c].d.e[f].g[h]",
+            ["", "", "", "a", "b", "c", "d", "e", "f", "g", "h"],
+        ),
+    ],
+)
+def test_split_key(key: str, expected: List[str]) -> None:
+    assert split_key(key) == expected

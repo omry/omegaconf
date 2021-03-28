@@ -75,6 +75,8 @@ INTER_COLON: WS? ':' WS? -> type(COLON), mode(VALUE_MODE);
 INTER_CLOSE: WS? '}' -> popMode;
 
 DOT: '.';
+INTER_BRACKET_OPEN: '[' -> type(BRACKET_OPEN);
+INTER_BRACKET_CLOSE: ']' -> type(BRACKET_CLOSE);
 INTER_ID: ID -> type(ID);
 
 // Interpolation key, may contain any non special character.

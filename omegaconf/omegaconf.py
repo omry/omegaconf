@@ -48,6 +48,7 @@ from ._utils import (
     is_primitive_list,
     is_structured_config,
     is_tuple_annotation,
+    split_key,
     type_str,
 )
 from .base import Container, Node, SCMode
@@ -733,7 +734,7 @@ class OmegaConf:
             )
             merge = False
 
-        split = key.split(".")
+        split = split_key(key)
         root = cfg
         for i in range(len(split) - 1):
             k = split[i]
