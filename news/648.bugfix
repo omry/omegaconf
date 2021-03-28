@@ -1,1 +1,1 @@
-OmegaConf.create() was ignoring the `parent` argument when taking a string as input
+Fix OmegaConf.create() to set the provided `parent` when creating a config from a YAML string.
