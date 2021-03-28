@@ -860,18 +860,16 @@ being assigned.
 .. doctest::
 
     >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> # Set dictionary value (dot notation).
-    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
-    >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> # Set dictionary value (bracket notation).
-    >>> OmegaConf.update(cfg, "foo[bar]", {"zonk" : 30}, merge=False)
-    >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> # Merge dictionary value.
-    >>> OmegaConf.update(cfg, "foo.bar", {"oompa" : 40}, merge=True)
-    >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
     >>> # Merge flag has no effect because the value is a primitive
     >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True)
     >>> assert cfg.foo.bar == 20
+    >>> # Set dictionary value (using dot notation)
+    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
+    >>> assert cfg.foo.bar == {"zonk" : 30}
+    >>> # Merge dictionary value (using bracket notation)
+    >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
+    >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
+
 
 
 OmegaConf.masked_copy
