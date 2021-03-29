@@ -808,8 +808,10 @@ as DictConfig, allowing attribute style access on the resulting node.
 
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
-The ``OmegaConf.to_object`` method is very similar to the
-``OmegaConf.to_container`` method.
+The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
+into dicts and lists, with the execption that Structured Config objects are
+converted into instances of the backing dataclass or attr class.  All OmegaConf
+interpolations are resolved before conversion to python containers.
 
 .. doctest::
 
