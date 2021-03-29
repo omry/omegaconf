@@ -776,6 +776,11 @@ Structured Config nodes using the ``structured_config_mode`` option.
 By default, Structured Config nodes are converted to plain dict.
 Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as DictConfig, allowing attribute style access on the resulting node.
+Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
+are converted to instances of the backing dataclass or attrs class. Note that
+typically ``structured_config_mode=SCMode.INSTANTIATE`` makes the most sense
+when combined with ``resolve=True``, so that interpolations are resolved before
+being using to instantiate dataclass/attr class instances.
 
 .. doctest::
 
