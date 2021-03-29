@@ -21,5 +21,5 @@ A clear and concise description of what you expected to happen.
 **Additional context**
 - [ ] OmegaConf version: <__FILL__>
 - [ ] Python version: <__FILL__>
-- [ ] Operating system : <__FILL__>
+- [ ] Operating system: <__FILL__>
 - [ ] Please provide a minimal repro

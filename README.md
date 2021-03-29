@@ -21,4 +21,4 @@ OmegaConf 2.0 stable version.
 Install with `pip install --upgrade omegaconf`
 
 ## Live tutorial
-Run the live tutorial : [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
+Run the live tutorial: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)

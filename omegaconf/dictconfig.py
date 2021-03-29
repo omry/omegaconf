@@ -86,7 +86,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if not valid_value_annotation_type(
                 element_type
             ) and not is_structured_config(element_type):
-                raise ValidationError(f"Unsupported value type : {element_type}")
+                raise ValidationError(f"Unsupported value type: {element_type}")
 
             if not _valid_dict_key_annotation_type(key_type):
                 raise KeyValidationError(f"Unsupported key type {key_type}")
@@ -233,7 +233,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         )
         if validation_error:
             msg = (
-                f"Merge error : {type_str(src_obj_type)} is not a "
+                f"Merge error: {type_str(src_obj_type)} is not a "
                 f"subclass of {type_str(dest_obj_type)}. value: {src}"
             )
             raise ValidationError(msg)
@@ -264,7 +264,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert value_type is not None
         assert target_type is not None
         msg = (
-            f"Invalid type assigned : {type_str(value_type)} is not a "
+            f"Invalid type assigned: {type_str(value_type)} is not a "
             f"subclass of {type_str(target_type)}. value: {value}"
         )
         raise ValidationError(msg)
@@ -591,7 +591,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if type_or_prototype is None:
             return
         if not is_structured_config(type_or_prototype):
-            raise ValueError(f"Expected structured config class : {type_or_prototype}")
+            raise ValueError(f"Expected structured config class: {type_or_prototype}")
 
         from omegaconf import OmegaConf
 
@@ -655,7 +655,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         self.__setitem__(k, v)
 
             else:  # pragma: no cover
-                msg = f"Unsupported value type : {value}"
+                msg = f"Unsupported value type: {value}"
                 raise ValidationError(msg)
 
     @staticmethod

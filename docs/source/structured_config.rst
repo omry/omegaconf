@@ -30,11 +30,11 @@ in the input class.
 Simple types
 ^^^^^^^^^^^^
 Simple types include
- - int : numeric integers
- - float : numeric floating point values
- - bool : boolean values (True, False, On, Off etc)
- - str : Any string
- - Enums : User defined enums
+ - int: numeric integers
+ - float: numeric floating point values
+ - bool: boolean values (True, False, On, Off etc)
+ - str: Any string
+ - Enums: User defined enums
 
 The following class defines fields with all simple types:
 
@@ -91,7 +91,7 @@ You can create a config with specified fields that can also accept arbitrary val
 
     >>> @dataclass
     ... class DictWithFields(Dict[str, Any]):
-    ...     num : int = 10
+    ...     num: int = 10
     >>>
     >>> conf = OmegaConf.structured(DictWithFields)
     >>> assert conf.num == 10
@@ -188,7 +188,7 @@ Structured configs can be nested.
     ...     # You can also specify different defaults for nested classes
     ...     manager: User = User(name="manager", height=Height.TALL)
 
-    >>> conf : Group = OmegaConf.structured(Group)
+    >>> conf: Group = OmegaConf.structured(Group)
     >>> print(OmegaConf.to_yaml(conf))
     name: ???
     admin:
@@ -242,7 +242,7 @@ OmegaConf verifies at runtime that your Lists contains only values of the correc
 
 .. doctest::
 
-    >>> conf : Lists = OmegaConf.structured(Lists)
+    >>> conf: Lists = OmegaConf.structured(Lists)
 
     >>> # Okay, 10 is an int
     >>> conf.ints.append(10)
@@ -276,7 +276,7 @@ OmegaConf supports field modifiers such as MISSING and Optional.
     ...     optional_num: Optional[int] = 10
     ...     another_num: int = MISSING
 
-    >>> conf : Modifiers = OmegaConf.structured(Modifiers)
+    >>> conf: Modifiers = OmegaConf.structured(Modifiers)
 
 Mandatory missing values
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -327,7 +327,7 @@ To work around it, use SI and II described below.
     ...     # wrapped with ${} automatically.
     ...     c: int = II("val")
 
-    >>> conf : Interpolation = OmegaConf.structured(Interpolation)
+    >>> conf: Interpolation = OmegaConf.structured(Interpolation)
     >>> assert conf.a == 100
     >>> assert conf.b == 100
     >>> assert conf.c == 100
@@ -407,18 +407,18 @@ A Schema for the above config can be defined like this.
 
     >>> @dataclass
     ... class Server:
-    ...     port : int = MISSING
+    ...     port: int = MISSING
 
     >>> @dataclass
     ... class Log:
-    ...     file : str = MISSING
+    ...     file: str = MISSING
     ...     rotation: int = MISSING
 
     >>> @dataclass
     ... class MyConfig:
-    ...     server : Server = Server()
-    ...     log : Log = Log()
-    ...     users : List[int] = field(default_factory=list)
+    ...     server: Server = Server()
+    ...     log: Log = Log()
+    ...     users: List[int] = field(default_factory=list)
 
 
 I intentionally made an error in the type of the users list (List[int] should be List[str]).

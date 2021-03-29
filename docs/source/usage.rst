@@ -757,7 +757,7 @@ Utility functions
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and list, but in fact are not.
-Use OmegaConf.to_container(cfg : Container, resolve : bool) to convert to a primitive container.
+Use OmegaConf.to_container(cfg: Container, resolve: bool) to convert to a primitive container.
 If resolve is set to True, interpolations will be resolved during conversion.
 
 .. doctest::

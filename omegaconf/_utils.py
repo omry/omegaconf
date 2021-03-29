@@ -139,7 +139,7 @@ def get_yaml_loader() -> Any:
             re.X,
         ),
         list("-+0123456789."),
-    )  # type : ignore
+    )
     loader.yaml_implicit_resolvers = {
         key: [
             (tag, regexp)
@@ -388,8 +388,8 @@ def get_value_kind(
     """
     Determine the kind of a value
     Examples:
-    VALUE : "10", "20", True
-    MANDATORY_MISSING : "???"
+    VALUE: "10", "20", True
+    MANDATORY_MISSING: "???"
     INTERPOLATION: "${foo.bar}", "${foo.${bar}}", "${foo:bar}", "[${foo}, ${bar}]",
                    "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 
