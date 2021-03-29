@@ -822,7 +822,7 @@ interpolations are resolved before conversion to python containers.
     type: MyConfig, value: MyConfig(port=80, host='localhost')
 
 Note that here, ``container["structured_config"]`` is actually an instance of
-``MyConfig``, whereas in the previous examples we had a ``dict`` or
+``MyConfig``, whereas in the previous examples we had a ``dict`` or a
 ``DictConfig`` object that was duck-typed to look like an instance of
 ``MyConfig``.
 
