@@ -1,8 +1,7 @@
 import copy
 from typing import Any, Dict, Union
 
-import pytest
-from pytest import raises
+from pytest import mark, param, raises
 
 from omegaconf import (
     AnyNode,
@@ -22,7 +21,7 @@ from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandat
 from tests import StructuredWithMissing, does_not_raise
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, key, value, expected",
     [
         # dict
@@ -48,7 +47,7 @@ def test_set_value(
     assert c == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, key, value",
     [
         # dict
@@ -63,7 +62,7 @@ def test_set_value_validation_fail(input_: Any, key: Any, value: Any) -> None:
         c[key] = value
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, key, value",
     [
         # dict
@@ -81,7 +80,7 @@ def test_replace_value_node_type_with_another(
     assert c[key] == value._value()
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, is_empty",
     [
         ([], True),
@@ -95,18 +94,18 @@ def test_empty(input_: Any, is_empty: bool) -> None:
     assert c.is_empty() == is_empty
 
 
-@pytest.mark.parametrize("func", [str, repr])
-@pytest.mark.parametrize(
+@mark.parametrize("func", [str, repr])
+@mark.parametrize(
     "input_, expected",
     [
-        pytest.param([], "[]", id="list"),
-        pytest.param({}, "{}", id="dict"),
-        pytest.param([1, 2, 3], "[1, 2, 3]", id="list"),
-        pytest.param([1, 2, {"a": 3}], "[1, 2, {'a': 3}]", id="dict_in_list"),
-        pytest.param([1, 2, [10, 20]], "[1, 2, [10, 20]]", id="list_in_list"),
-        pytest.param({"b": {"b": 10}}, "{'b': {'b': 10}}", id="dict"),
-        pytest.param({"b": [1, 2, 3]}, "{'b': [1, 2, 3]}", id="list_in_dict"),
-        pytest.param(
+        param([], "[]", id="list"),
+        param({}, "{}", id="dict"),
+        param([1, 2, 3], "[1, 2, 3]", id="list"),
+        param([1, 2, {"a": 3}], "[1, 2, {'a': 3}]", id="dict_in_list"),
+        param([1, 2, [10, 20]], "[1, 2, [10, 20]]", id="list_in_list"),
+        param({"b": {"b": 10}}, "{'b': {'b': 10}}", id="dict"),
+        param({"b": [1, 2, 3]}, "{'b': [1, 2, 3]}", id="list_in_dict"),
+        param(
             StructuredWithMissing,
             (
                 "{'num': '???', 'opt_num': '???', 'dict': '???', 'opt_dict': '???', 'list': "
@@ -123,7 +122,7 @@ def test_str(func: Any, input_: Any, expected: str) -> None:
     assert string == expected
 
 
-@pytest.mark.parametrize("flag", ["readonly", "struct"])
+@mark.parametrize("flag", ["readonly", "struct"])
 def test_flag_dict(flag: str) -> None:
     c = OmegaConf.create()
     assert c._get_flag(flag) is None
@@ -135,7 +134,7 @@ def test_flag_dict(flag: str) -> None:
     assert c._get_flag(flag) is None
 
 
-@pytest.mark.parametrize("flag", ["readonly", "struct"])
+@mark.parametrize("flag", ["readonly", "struct"])
 def test_freeze_nested_dict(flag: str) -> None:
     c = OmegaConf.create({"a": {"b": 2}})
     assert not c._get_flag(flag)
@@ -166,12 +165,12 @@ def test_set_flags() -> None:
     assert not c._get_flag("readonly")
     assert c._get_flag("struct")
 
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         c._set_flag(["readonly", "struct"], [True, False, False])
 
 
-@pytest.mark.parametrize("no_deepcopy_set_nodes", [True, False])
-@pytest.mark.parametrize("node", [20, {"b": 10}, [1, 2]])
+@mark.parametrize("no_deepcopy_set_nodes", [True, False])
+@mark.parametrize("node", [20, {"b": 10}, [1, 2]])
 def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) -> None:
     cfg = OmegaConf.create({"c": node})
     cfg._set_flag("foo", True)
@@ -189,9 +188,7 @@ def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) 
     assert nc._get_flag("foo") is False
 
 
-@pytest.mark.parametrize(
-    "src", [[], [1, 2, 3], dict(), dict(a=10), StructuredWithMissing]
-)
+@mark.parametrize("src", [[], [1, 2, 3], dict(), dict(a=10), StructuredWithMissing])
 class TestDeepCopy:
     def test_deepcopy(self, src: Any) -> None:
         c1 = OmegaConf.create(src)
@@ -274,7 +271,7 @@ def test_deepcopy_and_merge_and_flags() -> None:
         OmegaConf.merge(c2, OmegaConf.from_dotlist(["dataset.bad_key=yes"]))
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg", [ListConfig(element_type=int, content=[]), DictConfig(content={})]
 )
 def test_deepcopy_preserves_container_type(cfg: Container) -> None:
@@ -282,24 +279,24 @@ def test_deepcopy_preserves_container_type(cfg: Container) -> None:
     assert cp._metadata.element_type == cfg._metadata.element_type
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, flag_name, func, expectation",
     [
-        pytest.param(
+        param(
             {},
             "struct",
             lambda c: c.__setitem__("foo", 1),
             raises(KeyError),
             id="struct_setiitem",
         ),
-        pytest.param(
+        param(
             {},
             "struct",
             lambda c: c.__setattr__("foo", 1),
             raises(AttributeError),
             id="struct_setattr",
         ),
-        pytest.param(
+        param(
             {},
             "readonly",
             lambda c: c.__setitem__("foo", 1),
@@ -333,22 +330,22 @@ def test_nested_flag_override() -> None:
 def test_multiple_flags_override() -> None:
     c = OmegaConf.create({"foo": "bar"})
     with flag_override(c, ["readonly"], True):
-        with pytest.raises(ReadonlyConfigError):
+        with raises(ReadonlyConfigError):
             c.foo = 10
 
     with flag_override(c, ["struct"], True):
-        with pytest.raises(ConfigAttributeError):
+        with raises(ConfigAttributeError):
             c.x = 10
 
     with flag_override(c, ["struct", "readonly"], True):
-        with pytest.raises(ConfigAttributeError):
+        with raises(ConfigAttributeError):
             c.x = 10
 
-        with pytest.raises(ReadonlyConfigError):
+        with raises(ReadonlyConfigError):
             c.foo = 20
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, func, expectation",
     [
         ({}, lambda c: c.__setitem__("foo", 1), raises(ReadonlyConfigError)),
@@ -367,7 +364,7 @@ def test_read_write_override(src: Any, func: Any, expectation: Any) -> None:
             func(c)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, func, expectation",
     [({}, lambda c: c.__setattr__("foo", 1), raises(AttributeError))],
 )
@@ -383,9 +380,7 @@ def test_struct_override(src: Any, func: Any, expectation: Any) -> None:
             func(c)
 
 
-@pytest.mark.parametrize(
-    "flag_name,ctx", [("struct", open_dict), ("readonly", read_write)]
-)
+@mark.parametrize("flag_name,ctx", [("struct", open_dict), ("readonly", read_write)])
 def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
     """
     Tests that internal flags are restored properly when applying context on a child node
@@ -400,28 +395,28 @@ def test_open_dict_restore(flag_name: str, ctx: Any) -> None:
     assert not cfg.foo._get_node_flag(flag_name)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "copy_method",
     [
-        pytest.param(lambda x: copy.copy(x), id="copy.copy"),
-        pytest.param(lambda x: x.copy(), id="obj.copy"),
+        param(lambda x: copy.copy(x), id="copy.copy"),
+        param(lambda x: x.copy(), id="obj.copy"),
     ],
 )
 class TestCopy:
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "src",
         [
             # lists
-            pytest.param(OmegaConf.create([]), id="list_empty"),
-            pytest.param(OmegaConf.create([1, 2]), id="list"),
-            pytest.param(OmegaConf.create(["a", "b", "c"]), id="list"),
-            pytest.param(ListConfig(content=None), id="list_none"),
-            pytest.param(ListConfig(content="???"), id="list_missing"),
+            param(OmegaConf.create([]), id="list_empty"),
+            param(OmegaConf.create([1, 2]), id="list"),
+            param(OmegaConf.create(["a", "b", "c"]), id="list"),
+            param(ListConfig(content=None), id="list_none"),
+            param(ListConfig(content="???"), id="list_missing"),
             # dicts
-            pytest.param(OmegaConf.create({}), id="dict_empty"),
-            pytest.param(OmegaConf.create({"a": "b"}), id="dict"),
-            pytest.param(OmegaConf.create({"a": {"b": []}}), id="dict"),
-            pytest.param(DictConfig(content=None), id="dict_none"),
+            param(OmegaConf.create({}), id="dict_empty"),
+            param(OmegaConf.create({"a": "b"}), id="dict"),
+            param(OmegaConf.create({"a": {"b": []}}), id="dict"),
+            param(DictConfig(content=None), id="dict_none"),
         ],
     )
     def test_copy(self, copy_method: Any, src: Any) -> None:
@@ -429,10 +424,10 @@ class TestCopy:
         assert src is not cp
         assert src == cp
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "src",
         [
-            pytest.param(
+            param(
                 DictConfig(content={"a": {"c": 10}, "b": DictConfig(content="${a}")}),
                 id="dict_inter",
             )
@@ -450,7 +445,7 @@ class TestCopy:
         cp2 = copy_method(src)
         assert OmegaConf.is_interpolation(cp2, "b")
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "src,interpolating_key,interpolated_key",
         [([1, 2, "${0}"], 2, 0), ({"a": 10, "b": "${a}"}, "b", "a")],
     )
@@ -479,7 +474,7 @@ class TestCopy:
         assert cfg[0] is not cp[0]
 
 
-@pytest.mark.parametrize("copy_func", [copy.copy, copy.deepcopy])
+@mark.parametrize("copy_func", [copy.copy, copy.deepcopy])
 class TestParentAfterCopy:
     def test_dict_copy(self, copy_func: Any) -> None:
         cfg = OmegaConf.create({"a": {"b": 10}})
@@ -504,7 +499,7 @@ def test_omegaconf_init_not_implemented() -> None:
         OmegaConf()
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "query, result",
     [
         ("a", "a"),
@@ -534,7 +529,7 @@ def test_omegaconf_create() -> None:
         assert OmegaConf.create(10)  # type: ignore
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "parent, key, value, expected",
     [
         ([10, 11], 0, ["a", "b"], [["a", "b"], 11]),
@@ -551,7 +546,7 @@ def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) ->
     assert c == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key, expected",
     [
         # dict
@@ -568,19 +563,19 @@ def test_get_node(cfg: Any, key: Any, expected: Any) -> None:
     assert cfg._get_node(key) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key",
     [
         # dict
-        pytest.param({"foo": "???"}, "foo", id="dict"),
+        param({"foo": "???"}, "foo", id="dict"),
         # list
-        pytest.param([10, "???", 30], 1, id="list_int"),
-        pytest.param([10, "???", 30], slice(1, 2), id="list_slice"),
+        param([10, "???", 30], 1, id="list_int"),
+        param([10, "???", 30], slice(1, 2), id="list_slice"),
     ],
 )
 def test_string_interpolation_with_readonly_parent(cfg: Any, key: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    with pytest.raises(MissingMandatoryValue, match="Missing mandatory value"):
+    with raises(MissingMandatoryValue, match="Missing mandatory value"):
         cfg._get_node(key, throw_on_missing_value=True)
 
 

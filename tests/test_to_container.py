@@ -3,7 +3,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, Dict, List
 
-from pytest import fixture, mark, param, raises, warns
+from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     DictConfig,
@@ -87,20 +87,12 @@ class TestSCMode:
         assert ret == ex_dict
         assert isinstance(ret[key], dict)
 
-        with warns(UserWarning):
-            ret = OmegaConf.to_container(cfg, exclude_structured_configs=False)
-        assert ret == ex_dict
-
     def test_scmode_dict_config(
         self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
     ) -> None:
         ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
         assert ret == ex_dict_config
         assert isinstance(ret[key], DictConfig)
-
-        with warns(UserWarning):
-            ret = OmegaConf.to_container(cfg, exclude_structured_configs=True)
-        assert ret == ex_dict_config
 
     def test_scmode_instantiate(
         self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any

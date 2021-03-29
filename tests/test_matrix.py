@@ -2,7 +2,7 @@ import copy
 import re
 from typing import Any, Optional
 
-import pytest
+from pytest import mark, raises, warns
 
 from omegaconf import (
     BooleanNode,
@@ -45,7 +45,7 @@ def verify(
         assert cfg.get(key) == exp
 
     assert OmegaConf.is_missing(cfg, key) == missing
-    with pytest.warns(UserWarning):
+    with warns(UserWarning):
         assert OmegaConf.is_none(cfg, key) == none_public
     assert OmegaConf.is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
@@ -53,7 +53,7 @@ def verify(
 
 # for each type Node type : int, bool, str, float, Color (enum) and User (@dataclass), DictConfig, ListConfig
 #   for each MISSING, None, Optional and interpolation:
-@pytest.mark.parametrize(
+@mark.parametrize(
     "node_type, values",
     [
         (BooleanNode, [True, False]),
@@ -111,10 +111,10 @@ class TestNodeTypesMatrix:
             cfg = OmegaConf.create(obj=data)
             verify(cfg, "node", none=False, opt=False, missing=False, inter=False)
             msg = "child 'node' is not Optional"
-            with pytest.raises(ValidationError, match=re.escape(msg)):
+            with raises(ValidationError, match=re.escape(msg)):
                 cfg.node = None
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 OmegaConf.merge(cfg, {"node": None})
 
     def test_dict_non_none_assignment(self, node_type: Any, values: Any) -> None:
@@ -143,7 +143,7 @@ class TestNodeTypesMatrix:
             cfg = OmegaConf.create([d])
             verify(cfg, key, none=False, opt=False, missing=False, inter=False)
 
-            with pytest.raises(ValidationError):
+            with raises(ValidationError):
                 cfg[key] = None
 
     def test_list_non_none_assignment(self, node_type: Any, values: Any) -> None:
@@ -172,11 +172,12 @@ class TestNodeTypesMatrix:
             assert not node.__eq__(None)
             assert not node._is_none()
 
-        with pytest.raises(ValidationError):
+        with raises(ValidationError):
             node_type(value=None, is_optional=False)
 
-    @pytest.mark.parametrize(
-        "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+    @mark.parametrize(
+        "register_func",
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
     )
     def test_interpolation(
         self, node_type: Any, values: Any, restore_resolvers: Any, register_func: Any

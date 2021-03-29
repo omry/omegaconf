@@ -4,7 +4,6 @@ import re
 import string
 import sys
 from enum import Enum
-from functools import cmp_to_key
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
@@ -32,6 +31,20 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 
+# Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
+# We begin by matching the head (in these examples: a, a, ..a).
+# This can be read as "dots followed by any character but `.` or `[`"
+# Note that a key starting with brackets, like [a], is purposedly *not*
+# matched here and will instead be handled in the next regex below (this
+# is to keep this regex simple).
+KEY_PATH_HEAD = re.compile(r"(\.)*[^.[]*")
+# Then we match other keys. The following expression matches one key and can
+# be read as a choice between two syntaxes:
+#   - `.` followed by anything except `.` or `[` (ex: .b, .d)
+#   - `[` followed by anything then `]` (ex: [b], [c])
+KEY_PATH_OTHER = re.compile(r"\.([^.[]*)|\[(.*?)\]")
+
+
 # source: https://yaml.org/type/bool.html
 YAML_BOOL_TYPES = [
     "y",
@@ -57,10 +70,6 @@ YAML_BOOL_TYPES = [
     "Off",
     "OFF",
 ]
-
-# Define an arbitrary (but fixed) ordering over the types of dictionary keys
-# that may be encountered when calling `_make_hashable()` on a dict.
-_CMP_TYPES = {t: i for i, t in enumerate([float, int, bool, str, type(None)])}
 
 
 class Marker:
@@ -368,12 +377,8 @@ def _is_missing_value(value: Any) -> bool:
 
 
 def _is_missing_literal(value: Any) -> bool:
-    from omegaconf import MISSING, Node
-
-    assert not isinstance(value, Node)
-    ret = isinstance(value, str) and value == MISSING
-    assert isinstance(ret, bool)
-    return ret
+    # Uses literal '???' instead of the MISSING const for performance reasons.
+    return isinstance(value, str) and value == "???"
 
 
 def _is_none(
@@ -819,62 +824,42 @@ def is_container_annotation(type_: Any) -> bool:
     return is_list_annotation(type_) or is_dict_annotation(type_)
 
 
-def _make_hashable(x: Any) -> Any:
+def split_key(key: str) -> List[str]:
     """
-    Obtain a hashable version of `x`.
+    Split a full key path into its individual components.
 
-    This is achieved by turning into tuples the lists and dicts that may be
-    stored within `x`.
-    Note that dicts are sorted, so that two dicts ordered differently will
-    lead to the same resulting hashable key.
-
-    :return: a hashable version of `x` (which may be `x` itself if already hashable).
+    This is similar to `key.split(".")` but also works with the getitem syntax:
+        "a.b"       -> ["a", "b"]
+        "a[b]"      -> ["a, "b"]
+        ".a.b[c].d" -> ["", "a", "b", "c", "d"]
+        "[a].b"     -> ["a", "b"]
     """
-    # Hopefully it is already hashable and we have nothing to do!
-    try:
-        hash(x)
-        return x
-    except TypeError:
-        pass
+    # Obtain the first part of the key (in docstring examples: a, a, .a, '')
+    first = KEY_PATH_HEAD.match(key)
+    assert first is not None
+    first_stop = first.span()[1]
 
-    if isinstance(x, (list, tuple)):
-        return tuple(_make_hashable(y) for y in x)
-    elif isinstance(x, dict):
-        # We sort the dictionary so that the order of keys does not matter.
-        # Note that since keys might be of different types, and comparisons
-        # between different types are not always allowed, we use a custom
-        # `_safe_items_sort_key()` function to order keys.
-        return _make_hashable(tuple(sorted(x.items(), key=_safe_items_sort_key)))
-    else:
-        raise NotImplementedError(f"type {type(x)} cannot be made hashable")
+    # `tokens` will contain all elements composing the key.
+    tokens = key[0:first_stop].split(".")
 
+    # Optimization in case `key` has no other component: we are done.
+    if first_stop == len(key):
+        return tokens
 
-def _safe_cmp(x: Any, y: Any) -> int:
-    """
-    Compare two elements `x` and `y` in a "safe" way.
+    if key[first_stop] == "[" and not tokens[-1]:
+        # This is a special case where the first key starts with brackets, e.g.
+        # [a] or ..[a]. In that case there is an extra "" in `tokens` that we
+        # need to get rid of:
+        #   [a]   -> tokens = [""] but we would like []
+        #   ..[a] -> tokens = ["", "", ""] but we would like ["", ""]
+        tokens.pop()
 
-    By default, this function uses regular comparison operators (== and <), but
-    if an exception is raised (due to not being able to compare x and y), we instead
-    use `_CMP_TYPES` to decide which order to use.
-    """
-    try:
-        return 0 if x == y else -1 if x < y else 1
-    except Exception:
-        type_x, type_y = type(x), type(y)
-        try:
-            idx_x = _CMP_TYPES[type_x]
-            idx_y = _CMP_TYPES[type_y]
-        except KeyError:
-            bad_type = type_x if type_y in _CMP_TYPES else type_y
-            raise TypeError(f"Invalid data type: `{bad_type}`")
-        if idx_x == idx_y:  # cannot compare two elements of the same type?!
-            raise  # pragma: no cover
-        return -1 if idx_x < idx_y else 1
+    # Identify other key elements (in docstring examples: b, b, b/c/d, b)
+    others = KEY_PATH_OTHER.findall(key[first_stop:])
 
+    # There are two groups in the `KEY_PATH_OTHER` regex: one for keys starting
+    # with a dot (.b, .d) and one for keys starting with a bracket ([b], [c]).
+    # Only one group can be non-empty.
+    tokens += [dot_key if dot_key else bracket_key for dot_key, bracket_key in others]
 
-_safe_key = cmp_to_key(_safe_cmp)
-
-
-def _safe_items_sort_key(kv: Tuple[Any, Any]) -> Any:
-    """Safe function to use as sort key when sorting items in a dictionary"""
-    return _safe_key(kv[0])
+    return tokens

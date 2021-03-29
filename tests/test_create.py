@@ -4,15 +4,15 @@ import sys
 from textwrap import dedent
 from typing import Any, Dict, List, Optional
 
-import pytest
 import yaml
+from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType
 from tests import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_,expected",
     [
         # No content
@@ -53,7 +53,7 @@ def test_create_value(input_: Any, expected: Any) -> None:
     assert OmegaConf.create(input_) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_",
     [
         # top level dict
@@ -81,7 +81,7 @@ def test_create_allow_objects(input_: Any) -> None:
     assert cfg == input_
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_",
     [
         # top level dict
@@ -109,11 +109,11 @@ def test_create_allow_objects_non_copyable(input_: Any) -> None:
     assert cfg == input_
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_",
     [
-        pytest.param({"foo": "bar"}, id="dict"),
-        pytest.param([1, 2, 3], id="list"),
+        param({"foo": "bar"}, id="dict"),
+        param([1, 2, 3], id="list"),
     ],
 )
 def test_create_flags_overriding(input_: Any) -> Any:
@@ -143,7 +143,7 @@ def test_cli_passing() -> None:
     assert {"a": 1, "b": {"c": 2}} == c
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_,expected",
     [
         # simple
@@ -160,23 +160,23 @@ def test_dotlist(input_: List[str], expected: Dict[str, Any]) -> None:
 
 
 def test_create_list_with_illegal_value_idx0() -> None:
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: [0]")):
+    with raises(UnsupportedValueType, match=re.escape("key: [0]")):
         OmegaConf.create([IllegalType()])
 
 
 def test_create_list_with_illegal_value_idx1() -> None:
     lst = [1, IllegalType(), 3]
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: [1]")):
+    with raises(UnsupportedValueType, match=re.escape("key: [1]")):
         OmegaConf.create(lst)
 
 
 def test_create_dict_with_illegal_value() -> None:
-    with pytest.raises(UnsupportedValueType, match=re.escape("key: a")):
+    with raises(UnsupportedValueType, match=re.escape("key: a")):
         OmegaConf.create({"a": IllegalType()})
 
 
 def test_create_nested_dict_with_illegal_value() -> None:
-    with pytest.raises(ValueError, match=re.escape("key: a.b")):
+    with raises(ValueError, match=re.escape("key: a.b")):
         OmegaConf.create({"a": {"b": IllegalType()}})
 
 
@@ -213,7 +213,7 @@ def test_create_from_listconfig_preserves_metadata() -> None:
     assert cfg1._metadata == cfg2._metadata
 
 
-@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
+@mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
 def test_create_node_parent_retained_on_create(node: Any) -> None:
     cfg1 = OmegaConf.create({"foo": node})
     cfg2 = OmegaConf.create({"zonk": cfg1.foo})
@@ -222,7 +222,7 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     assert cfg1.foo._get_parent() is cfg1
 
 
-@pytest.mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
+@mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
 def test_create_node_parent_retained_on_assign(node: Any) -> None:
     cfg1 = OmegaConf.create({"foo": node})
     cfg2 = OmegaConf.create()
@@ -231,7 +231,7 @@ def test_create_node_parent_retained_on_assign(node: Any) -> None:
     assert cfg2.zonk._get_parent() is cfg2
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "node",
     [
         {"a": 0},
@@ -245,7 +245,7 @@ def test_dict_assignment_deepcopy_semantics(node: Any) -> None:
     assert cfg.foo.a == 0
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "node",
     [
         [1, 2],
@@ -259,7 +259,7 @@ def test_list_assignment_deepcopy_semantics(node: Any) -> None:
     assert cfg.foo[1] == 2
 
 
-@pytest.mark.parametrize("d", [{"a": {"b": 10}}, {"a": {"b": {"c": 10}}}])
+@mark.parametrize("d", [{"a": {"b": 10}}, {"a": {"b": {"c": 10}}}])
 def test_assign_does_not_modify_src_config(d: Any) -> None:
     cfg1 = OmegaConf.create(d)
     cfg2 = OmegaConf.create({})
@@ -295,7 +295,7 @@ def test_create_untyped_dict() -> None:
     assert get_ref_type(cfg) == Optional[Dict]
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_",
     [
         dedent(
@@ -317,7 +317,7 @@ def test_create_untyped_dict() -> None:
     ],
 )
 def test_yaml_duplicate_keys(input_: str) -> None:
-    with pytest.raises(yaml.constructor.ConstructorError):
+    with raises(yaml.constructor.ConstructorError):
         OmegaConf.create(input_)
 
 
@@ -338,3 +338,18 @@ def test_yaml_merge() -> None:
         )
     )
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
+
+
+@mark.parametrize(
+    "data",
+    [
+        param("", id="empty"),
+        param("hello", id="name_only"),
+        param("a: b", id="dictconfig"),
+        param("- a", id="listconfig"),
+    ],
+)
+def test_create_from_str_check_parent(data: str) -> None:
+    parent = OmegaConf.create({})
+    cfg = OmegaConf.create(data, parent=parent)
+    assert cfg._get_parent() is parent

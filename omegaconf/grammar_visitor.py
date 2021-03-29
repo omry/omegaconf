@@ -136,16 +136,27 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitInterpolationNode(
         self, ctx: OmegaConfGrammarParser.InterpolationNodeContext
     ) -> Optional["Node"]:
-        # INTER_OPEN DOT* (configKey (DOT configKey)*)? INTER_CLOSE
+        # INTER_OPEN
+        #   DOT*                                                       // relative interpolation?
+        #   (
+        #     (configKey | BRACKET_OPEN configKey BRACKET_CLOSE)       // foo, [foo]
+        #     (DOT configKey | BRACKET_OPEN configKey BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
+        #   )?
+        #   INTER_CLOSE;
         assert ctx.getChildCount() >= 2
 
         inter_key_tokens = []  # parsed elements of the dot path
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
-                if child.symbol.type == OmegaConfGrammarLexer.DOT:
-                    inter_key_tokens.append(".")  # preserve dots
+                s = child.symbol
+                if s.type in [
+                    OmegaConfGrammarLexer.DOT,
+                    OmegaConfGrammarLexer.BRACKET_OPEN,
+                    OmegaConfGrammarLexer.BRACKET_CLOSE,
+                ]:
+                    inter_key_tokens.append(s.text)
                 else:
-                    assert child.symbol.type in (
+                    assert s.type in (
                         OmegaConfGrammarLexer.INTER_OPEN,
                         OmegaConfGrammarLexer.INTER_CLOSE,
                     )

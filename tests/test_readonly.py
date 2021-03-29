@@ -1,74 +1,71 @@
 import re
 from typing import Any, Callable, Dict, List, Union
 
-import pytest
-from pytest import raises
+from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "src, func, expectation",
     [
-        pytest.param(
+        param(
             {},
             lambda c: c.__setitem__("a", 1),
             raises(ReadonlyConfigError, match="a"),
             id="dict_setitem",
         ),
-        pytest.param(
+        param(
             {"a": None},
             lambda c: c.__setitem__("a", {"b": 10}),
             raises(ReadonlyConfigError, match="a"),
             id="dict_setitem",
         ),
-        pytest.param(
+        param(
             {"a": {"b": {"c": 1}}},
             lambda c: c.__getattr__("a").__getattr__("b").__setitem__("c", 1),
             raises(ReadonlyConfigError, match="a.b.c"),
             id="dict_nested_setitem",
         ),
-        pytest.param(
+        param(
             {},
             lambda c: OmegaConf.update(c, "a.b", 10, merge=True),
             raises(ReadonlyConfigError, match="a"),
             id="dict_update",
         ),
-        pytest.param(
+        param(
             {"a": 10},
             lambda c: c.__setattr__("a", 1),
             raises(ReadonlyConfigError, match="a"),
             id="dict_setattr",
         ),
-        pytest.param(
+        param(
             {"a": 10},
             lambda c: c.pop("a"),
             raises(ReadonlyConfigError, match="a"),
             id="dict_pop",
         ),
-        pytest.param(
+        param(
             {"a": 10},
             lambda c: c.__delitem__("a"),
             raises(ReadonlyConfigError, match="a"),
             id="dict_delitem",
         ),
         # list
-        pytest.param(
+        param(
             [],
             lambda c: c.__setitem__(0, 1),
             raises(ReadonlyConfigError, match="0"),
             id="list_setitem",
         ),
-        pytest.param(
+        param(
             [],
             lambda c: OmegaConf.update(c, "0.b", 10, merge=True),
             raises(ReadonlyConfigError, match="[0]"),
             id="list_update",
         ),
-        pytest.param(
-            [10], lambda c: c.pop(), raises(ReadonlyConfigError), id="list_pop"
-        ),
-        pytest.param(
+        param([10], lambda c: c.pop(), raises(ReadonlyConfigError), id="list_pop"),
+        param(
             [0],
             lambda c: c.__delitem__(0),
             raises(ReadonlyConfigError, match="[0]"),
@@ -86,7 +83,7 @@ def test_readonly(
     assert c == src
 
 
-@pytest.mark.parametrize("src", [{}, []])
+@mark.parametrize("src", [{}, []])
 def test_readonly_flag(src: Union[Dict[str, Any], List[Any]]) -> None:
     c = OmegaConf.create(src)
     assert not OmegaConf.is_readonly(c)
@@ -189,13 +186,13 @@ def test_readonly_from_cli() -> None:
     assert OmegaConf.is_readonly(cfg2)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg1, cfg2",
     [
-        pytest.param({"foo": {"bar": 10}}, {"foo": {"bar": 20}}, id="override_value"),
-        pytest.param({"foo": {"bar": 10}}, {"foo": {"yup": 20}}, id="adding_key"),
-        pytest.param({"a": 1}, {"b": 2}, id="adding_key"),
-        pytest.param({"a": 1}, OmegaConf.create({"b": 2}), id="adding_key"),
+        param({"foo": {"bar": 10}}, {"foo": {"bar": 20}}, id="override_value"),
+        param({"foo": {"bar": 10}}, {"foo": {"yup": 20}}, id="adding_key"),
+        param({"a": 1}, {"b": 2}, id="adding_key"),
+        param({"a": 1}, OmegaConf.create({"b": 2}), id="adding_key"),
     ],
 )
 def test_merge_with_readonly(cfg1: Dict[str, Any], cfg2: Dict[str, Any]) -> None:
@@ -205,17 +202,17 @@ def test_merge_with_readonly(cfg1: Dict[str, Any], cfg2: Dict[str, Any]) -> None
         c.merge_with(cfg2)
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "readonly_key, cfg1, cfg2, expected",
     [
-        pytest.param(
+        param(
             "",
             {"foo": {"bar": 10}},
             {"foo": {}},
             {"foo": {"bar": 10}},
             id="merge_empty_dict",
         ),
-        pytest.param(
+        param(
             "foo",
             {"foo": {"bar": 10}},
             {"xyz": 10},

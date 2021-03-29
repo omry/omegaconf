@@ -607,7 +607,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:
-
         l1_none = l1.__dict__["_content"] is None
         l2_none = l2.__dict__["_content"] is None
         if l1_none and l2_none:

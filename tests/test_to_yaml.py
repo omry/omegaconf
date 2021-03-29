@@ -2,13 +2,13 @@ import re
 from textwrap import dedent
 from typing import Any
 
-import pytest
+from pytest import mark, warns
 
 from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
 from tests import Enum1, User
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, expected",
     [
         (["item1", "item2", {"key3": "value3"}], "- item1\n- item2\n- key3: value3\n"),
@@ -25,7 +25,7 @@ def test_to_yaml(input_: Any, expected: str) -> None:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, expected",
     [
         (["item一", "item二", dict(key三="value三")], "- item一\n- item二\n- key三: value三\n"),
@@ -38,7 +38,7 @@ def test_to_yaml_unicode(input_: Any, expected: str) -> None:
     assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, expected, type_",
     [
         (["1", 1], "- '1'\n- 1\n", int),
@@ -60,7 +60,7 @@ def test_to_yaml_string_primitive_types_list(
         assert OmegaConf.to_yaml(c) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, expected, type_",
     [
         ({"b": "1", "a": 1}, "b: '1'\na: 1\n", int),
@@ -80,7 +80,7 @@ def test_to_yaml_string_primitive_types_dict(
         assert OmegaConf.to_yaml(c) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "input_, resolve, expected",
     [
         (dict(a1="${ref}", ref="bar"), True, "bar"),
@@ -138,7 +138,7 @@ def test_to_yaml_with_enum_key() -> None:
 
 def test_pretty_deprecated() -> None:
     c = OmegaConf.create({"foo": "bar"})
-    with pytest.warns(
+    with warns(
         expected_warning=UserWarning,
         match=re.escape(
             dedent(
@@ -152,7 +152,7 @@ def test_pretty_deprecated() -> None:
         assert c.pretty() == "foo: bar\n"
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "user",
     [
         User(name="Bond", age=7),

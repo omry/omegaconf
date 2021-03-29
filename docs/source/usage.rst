@@ -317,12 +317,15 @@ OmegaConf supports variable interpolation. Interpolations are evaluated lazily o
 
 Config node interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-The interpolated variable can be the dot-path to another node in the configuration, and in that case
+The interpolated variable can be the path to another node in the configuration, and in that case
 the value will be the value of that node.
+This path may use either dot-notation (``foo.1``), brackets (``[foo][1]``) or a mix of both (``foo[1]``, ``[foo].1``).
 
 Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
 The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
 e.g. **${..foo}** points to the **foo** sibling of the parent of the current node.
+
+NOTE: Interpolations may cause config cycles. Such cycles are discouraged and may cause undefined behavior.
 
 
 Input YAML file:
@@ -359,7 +362,7 @@ Interpolations may be nested, enabling more advanced behavior like dynamically s
     ...            "B": "plan B",
     ...        },
     ...        "selected_plan": "A",
-    ...        "plan": "${plans.${selected_plan}}",
+    ...        "plan": "${plans[${selected_plan}]}",
     ...    }
     ... )
     >>> cfg.plan # default plan
@@ -459,7 +462,20 @@ This can be useful for instance to parse environment variables:
 Custom interpolations
 ^^^^^^^^^^^^^^^^^^^^^
 
-You can add additional interpolation types using custom resolvers.
+You can add additional interpolation types by registering custom resolvers with ``OmegaConf.register_new_resolver()``:
+
+.. code-block:: python
+
+    def register_new_resolver(
+        name: str,
+        resolver: Resolver,
+        *,
+        replace: bool = False,
+        use_cache: bool = False,
+    ) -> None
+
+Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``.
+
 The example below creates a resolver that adds 10 to the given value.
 
 .. doctest::
@@ -468,7 +484,6 @@ The example below creates a resolver that adds 10 to the given value.
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
-
 
 Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
 Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
@@ -534,23 +549,36 @@ namespace, and to use interpolations in the name itself. The following example d
     4
 
 
-By default a custom resolver's output is cached, so that when it is called with the same
-inputs we always return the same value. This behavior may be disabled by setting ``use_cache=False``:
+By default a custom resolver is called on every access, but it is possible to cache its output
+by registering it with ``use_cache=True``.
+This may be useful either for performance reasons or to ensure the same value is always returned.
+Note that the cache is based on the string literals representing the resolver's inputs, and not
+the inputs themselves:
 
 .. doctest::
 
     >>> import random
     >>> random.seed(1234)
-    >>> OmegaConf.register_new_resolver("cached", random.randint)
     >>> OmegaConf.register_new_resolver(
-    ...              "uncached", random.randint, use_cache=False)
-    >>> c = OmegaConf.create({"cached": "${cached:0,10000}",
-    ...                       "uncached": "${uncached:0,10000}"})
-    >>> # same value on repeated access thanks to the cache
-    >>> assert c.cached == c.cached == 7220
-    >>> # not the same since the cache is disabled
+    ...    "cached", random.randint, use_cache=True
+    ... )
+    >>> OmegaConf.register_new_resolver("uncached", random.randint)
+    >>> c = OmegaConf.create(
+    ...     {
+    ...         "uncached": "${uncached:0,10000}",
+    ...         "cached_1": "${cached:0,10000}",
+    ...         "cached_2": "${cached:0, 10000}",
+    ...         "cached_3": "${cached:0,${uncached}}",
+    ...     }
+    ... )
+    >>> # not the same since the cache is disabled by default
     >>> assert c.uncached != c.uncached
-
+    >>> # same value on repeated access thanks to the cache
+    >>> assert c.cached_1 == c.cached_1 == 122
+    >>> # same input as `cached_1` => same value
+    >>> assert c.cached_2 == c.cached_1 == 122
+    >>> # same string literal "${uncached}" => same value
+    >>> assert c.cached_3 == c.cached_3 == 1192
 
 
 Custom interpolations can also receive the following special parameters:
@@ -726,6 +754,166 @@ You can temporarily remove the struct flag from a config object:
 Utility functions
 -----------------
 
+OmegaConf.to_container
+^^^^^^^^^^^^^^^^^^^^^^
+OmegaConf config objects looks very similar to python dict and list, but in fact are not.
+Use OmegaConf.to_container(cfg : Container, resolve : bool) to convert to a primitive container.
+If resolve is set to True, interpolations will be resolved during conversion.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
+    >>> assert type(conf) == DictConfig
+    >>> primitive = OmegaConf.to_container(conf)
+    >>> show(primitive)
+    type: dict, value: {'foo': 'bar', 'foo2': '${foo}'}
+    >>> resolved = OmegaConf.to_container(conf, resolve=True)
+    >>> show(resolved)
+    type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
+
+You can customize the treatment of ``OmegaConf.to_container()`` for
+Structured Config nodes using the ``structured_config_mode`` option.
+By default, Structured Config nodes are converted to plain dict.
+Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
+as DictConfig, allowing attribute style access on the resulting node.
+
+.. doctest::
+
+    >>> from omegaconf import SCMode
+    >>> conf = OmegaConf.create({"structured_config": MyConfig})
+    >>> container = OmegaConf.to_container(conf,
+    ...     structured_config_mode=SCMode.DICT_CONFIG)
+    >>> show(container)
+    type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
+    >>> show(container["structured_config"])
+    type: DictConfig, value: {'port': 80, 'host': 'localhost'}
+
+OmegaConf.to_object
+^^^^^^^^^^^^^^^^^^^^^^
+The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
+into dicts and lists, with the execption that Structured Config objects are
+converted into instances of the backing dataclass or attr class.  All OmegaConf
+interpolations are resolved before conversion to python containers.
+
+.. doctest::
+
+    >>> container = OmegaConf.to_object(conf)
+    >>> show(container)
+    type: dict, value: {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> show(container["structured_config"])
+    type: MyConfig, value: MyConfig(port=80, host='localhost')
+
+Note that here, ``container["structured_config"]`` is actually an instance of
+``MyConfig``, whereas in the previous examples we had a ``dict`` or a
+``DictConfig`` object that was duck-typed to look like an instance of
+``MyConfig``.
+
+The call ``OmegaConf.to_object(conf)`` is equivalent to
+``OmegaConf.to_container(conf, resolve=True,
+structured_config_mode=SCMode.INSTANTIATE)``.
+
+OmegaConf.resolve
+^^^^^^^^^^^^^^^^^
+.. code-block:: python
+
+    def resolve(cfg: Container) -> None:
+        """
+        Resolves all interpolations in the given config object in-place.
+        :param cfg: An OmegaConf container (DictConfig, ListConfig)
+                    Raises a ValueError if the input object is not an OmegaConf container.
+        """
+
+Normally interpolations are resolved lazily, at access time. 
+This function eagerly resolves all interpolations in the given config object in-place.
+Example:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"a": 10, "b": "${a}"})
+    >>> show(cfg)
+    type: DictConfig, value: {'a': 10, 'b': '${a}'}
+    >>> assert cfg.a == cfg.b == 10 # lazily resolving interpolation
+    >>> OmegaConf.resolve(cfg)
+    >>> show(cfg)
+    type: DictConfig, value: {'a': 10, 'b': 10}
+
+OmegaConf.select
+^^^^^^^^^^^^^^^^
+OmegaConf.select() allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...     "foo" : {
+    ...         "missing" : "???",
+    ...         "bar": {
+    ...             "zonk" : 10,
+    ...         }
+    ...     }
+    ... })
+    >>> assert OmegaConf.select(cfg, "foo") == {
+    ...     "missing" : "???",    
+    ...     "bar":  {
+    ...         "zonk" : 10, 
+    ...     }
+    ... }
+    >>> assert OmegaConf.select(cfg, "foo.bar") == {
+    ...     "zonk" : 10, 
+    ... }
+    >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10    # dots
+    >>> assert OmegaConf.select(cfg, "foo[bar][zonk]") == 10  # brackets
+    >>> assert OmegaConf.select(cfg, "no_such_key", default=99) == 99
+    >>> assert OmegaConf.select(cfg, "foo.missing") is None
+    >>> assert OmegaConf.select(cfg, "foo.missing", default=99) == 99
+    >>> OmegaConf.select(cfg,
+    ...     "foo.missing", 
+    ...     throw_on_missing=True
+    ... )
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.MissingMandatoryValue: missing node selected
+        full_key: foo.missing
+
+OmegaConf.update
+^^^^^^^^^^^^^^^^
+OmegaConf.update() allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
+
+The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
+being assigned.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
+    >>> # Merge flag has no effect because the value is a primitive
+    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True)
+    >>> assert cfg.foo.bar == 20
+    >>> # Set dictionary value (using dot notation)
+    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
+    >>> assert cfg.foo.bar == {"zonk" : 30}
+    >>> # Merge dictionary value (using bracket notation)
+    >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
+    >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
+
+
+
+OmegaConf.masked_copy
+^^^^^^^^^^^^^^^^^^^^^
+Creates a copy of a DictConfig that contains only specific keys.
+
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create({"a": {"b": 10}, "c":20})
+    >>> print(OmegaConf.to_yaml(conf))
+    a:
+      b: 10
+    c: 20
+    <BLANKLINE>
+    >>> c = OmegaConf.masked_copy(conf, ["a"])
+    >>> print(OmegaConf.to_yaml(c))
+    a:
+      b: 10
+    <BLANKLINE>
+
 OmegaConf.is_missing
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -773,138 +961,10 @@ Tests if an object is an OmegaConf object, or if it's representing a list or a d
     >>> assert OmegaConf.is_list(l)
     >>> assert not OmegaConf.is_dict(l)
 
-OmegaConf.to_container
-^^^^^^^^^^^^^^^^^^^^^^
-OmegaConf config objects looks very similar to python dict and list, but in fact are not.
-Use OmegaConf.to_container(cfg : Container, resolve : bool) to convert to a primitive container.
-If resolve is set to True, interpolations will be resolved during conversion.
-
-.. doctest::
-
-    >>> conf = OmegaConf.create({"foo": "bar", "foo2": "${foo}"})
-    >>> assert type(conf) == DictConfig
-    >>> primitive = OmegaConf.to_container(conf)
-    >>> show(primitive)
-    type: dict, value: {'foo': 'bar', 'foo2': '${foo}'}
-    >>> resolved = OmegaConf.to_container(conf, resolve=True)
-    >>> show(resolved)
-    type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
-
-You can customize the treatment of **OmegaConf.to_container()** for
-Structured Config nodes using the `structured_config_mode` option.
-By default, Structured Config nodes are converted to plain dict.
-Using **structured_config_mode=SCMode.DICT_CONFIG** causes such nodes to remain
-as DictConfig, allowing attribute style access on the resulting node.
-
-.. doctest::
-
-    >>> from omegaconf import SCMode
-    >>> conf = OmegaConf.create({"structured_config": MyConfig})
-    >>> container = OmegaConf.to_container(conf, structured_config_mode=SCMode.DICT_CONFIG)
-    >>> show(container)
-    type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
-    >>> show(container["structured_config"])
-    type: DictConfig, value: {'port': 80, 'host': 'localhost'}
-
-OmegaConf.to_object
-^^^^^^^^^^^^^^^^^^^^^^
-The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
-into dicts and lists, with the execption that Structured Config objects are
-converted into instances of the backing dataclass or attr class.  All OmegaConf
-interpolations are resolved before conversion to python containers.
-
-.. doctest::
-
-    >>> container = OmegaConf.to_object(conf)
-    >>> show(container)
-    type: dict, value: {'structured_config': MyConfig(port=80, host='localhost')}
-    >>> show(container["structured_config"])
-    type: MyConfig, value: MyConfig(port=80, host='localhost')
-
-Note that here, ``container["structured_config"]`` is actually an instance of
-``MyConfig``, whereas in the previous examples we had a ``dict`` or a
-``DictConfig`` object that was duck-typed to look like an instance of
-``MyConfig``.
-
-The call ``OmegaConf.to_object(conf)`` is equivalent to
-``OmegaConf.to_container(conf, resolve=True,
-structured_config_mode=SCMode.INSTANTIATE)``.
-
-OmegaConf.select
-^^^^^^^^^^^^^^^^
-OmegaConf.select() allow you to select a config node or value using a dot-notation key.
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({
-    ...     "foo" : {
-    ...         "missing" : "???",
-    ...         "bar": {
-    ...             "zonk" : 10,
-    ...         }
-    ...     }
-    ... })
-    >>> assert OmegaConf.select(cfg, "foo") == {
-    ...     "missing" : "???",    
-    ...     "bar":  {
-    ...         "zonk" : 10, 
-    ...     }
-    ... }
-    >>> assert OmegaConf.select(cfg, "foo.bar") == {
-    ...     "zonk" : 10, 
-    ... }
-    >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10
-    >>> assert OmegaConf.select(cfg, "no_such_key", default=99) == 99
-    >>> assert OmegaConf.select(cfg, "foo.missing") is None
-    >>> assert OmegaConf.select(cfg, "foo.missing", default=99) == 99
-    >>> OmegaConf.select(cfg,
-    ...     "foo.missing", 
-    ...     throw_on_missing=True
-    ... )
-    Traceback (most recent call last):
-    ...
-    omegaconf.errors.MissingMandatoryValue: missing node selected
-        full_key: foo.missing
-
-OmegaConf.update
-^^^^^^^^^^^^^^^^
-OmegaConf.update() allow you to update values in your config using a dot-notation key.
-
-The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
-being assigned.
-
-.. doctest::
-
-    >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True) # merge has no effect because the value is a primitive
-    >>> assert cfg.foo.bar == 20
-    >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False) # set   
-    >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> OmegaConf.update(cfg, "foo.bar", {"oompa" : 40}, merge=True) # merge
-    >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
-
-
-
-OmegaConf.masked_copy
-^^^^^^^^^^^^^^^^^^^^^
-Creates a copy of a DictConfig that contains only specific keys.
-
-.. doctest:: loaded
-
-    >>> conf = OmegaConf.create({"a": {"b": 10}, "c":20})
-    >>> print(OmegaConf.to_yaml(conf))
-    a:
-      b: 10
-    c: 20
-    <BLANKLINE>
-    >>> c = OmegaConf.masked_copy(conf, ["a"])
-    >>> print(OmegaConf.to_yaml(c))
-    a:
-      b: 10
-    <BLANKLINE>
 
 Debugger integration
-^^^^^^^^^^^^^^^^^^^^
+--------------------
+
 OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
 VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
 

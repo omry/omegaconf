@@ -1,7 +1,6 @@
 from typing import Any
 
-import pytest
-from pytest import raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     MISSING,
@@ -31,42 +30,42 @@ from tests import (
 )
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, key, expected_is_missing, expectation",
     [
         ({}, "foo", False, raises(ConfigKeyError)),
         ({"foo": True}, "foo", False, does_not_raise()),
         ({"foo": "${no_such_key}"}, "foo", False, raises(InterpolationKeyError)),
         ({"foo": MISSING}, "foo", True, raises(MissingMandatoryValue)),
-        pytest.param(
+        param(
             {"foo": "${bar}", "bar": DictConfig(content=MISSING)},
             "foo",
             False,
             raises(InterpolationToMissingValueError),
             id="missing_interpolated_dict",
         ),
-        pytest.param(
+        param(
             {"foo": ListConfig(content="???")},
             "foo",
             True,
             raises(MissingMandatoryValue),
             id="missing_list",
         ),
-        pytest.param(
+        param(
             {"foo": DictConfig(content="???")},
             "foo",
             True,
             raises(MissingMandatoryValue),
             id="missing_dict",
         ),
-        pytest.param(
+        param(
             {"foo": ListConfig(content="${missing}"), "missing": "???"},
             "foo",
             False,
             raises(InterpolationToMissingValueError),
             id="missing_list_interpolation",
         ),
-        pytest.param(
+        param(
             {"foo": DictConfig(content="${missing}"), "missing": "???"},
             "foo",
             False,
@@ -153,7 +152,7 @@ def test_is_missing_resets() -> None:
     assert OmegaConf.is_missing(cfg, "list")
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -176,7 +175,7 @@ def test_is_config(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_config(cfg) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -199,7 +198,7 @@ def test_is_list(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_list(cfg) == expected
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, expected",
     [
         (None, False),
@@ -222,8 +221,8 @@ def test_is_dict(cfg: Any, expected: bool) -> None:
     assert OmegaConf.is_dict(cfg) == expected
 
 
-@pytest.mark.parametrize("is_optional", [True, False])
-@pytest.mark.parametrize(
+@mark.parametrize("is_optional", [True, False])
+@mark.parametrize(
     "fac",
     [
         (
@@ -287,8 +286,8 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
     assert OmegaConf.is_optional(cfg, "node") == is_optional
 
 
-@pytest.mark.parametrize("is_none", [True, False])
-@pytest.mark.parametrize(
+@mark.parametrize("is_none", [True, False])
+@mark.parametrize(
     "fac",
     [
         (lambda none: StringNode(value="foo" if not none else None, is_optional=True)),
@@ -329,7 +328,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
     assert (cfg.node is None) == is_none
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ("cfg", "key", "is_none"),
     [
         ({"foo": "${none}", "none": None}, "foo", True),
@@ -340,7 +339,7 @@ def test_is_none(fac: Any, is_none: bool) -> None:
 )
 def test_is_none_interpolation(cfg: Any, key: str, is_none: bool) -> None:
     cfg = OmegaConf.create(cfg)
-    with pytest.warns(UserWarning):
+    with warns(UserWarning):
         assert OmegaConf.is_none(cfg, key) == is_none
     check = _is_none(
         cfg._get_node(key), resolve=True, throw_on_resolution_failure=False
@@ -350,11 +349,11 @@ def test_is_none_interpolation(cfg: Any, key: str, is_none: bool) -> None:
 
 def test_is_none_invalid_node() -> None:
     cfg = OmegaConf.create({})
-    with pytest.warns(UserWarning):
+    with warns(UserWarning):
         assert OmegaConf.is_none(cfg, "invalid")
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "fac",
     [
         (
@@ -428,7 +427,7 @@ def test_is_interpolation(fac: Any) -> Any:
         assert OmegaConf.is_interpolation(cfg, "node")
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "cfg, type_",
     [
         ({"foo": 10}, int),
@@ -449,7 +448,7 @@ def test_get_type(cfg: Any, type_: Any) -> None:
     assert OmegaConf.get_type(cfg, "foo") == type_
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "obj, type_",
     [
         (10, int),
@@ -470,3 +469,107 @@ def test_is_issubclass() -> None:
     cfg = OmegaConf.structured(ConcretePlugin)
     t = OmegaConf.get_type(cfg)
     assert t is not None and issubclass(t, ConcretePlugin)
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        # dict
+        param(OmegaConf.create(), {}, id="dict"),
+        param(OmegaConf.create({"a": 10, "b": "${a}"}), {"a": 10, "b": 10}, id="dict"),
+        param(
+            OmegaConf.create({"a": 10, "b": {"a": "${a}"}}),
+            {"a": 10, "b": {"a": 10}},
+            id="dict",
+        ),
+        param(
+            OmegaConf.create({"a": "${b.a}", "b": {"a": 10}}),
+            {"a": 10, "b": {"a": 10}},
+            id="dict",
+        ),
+        param(OmegaConf.create({"a": "???"}), {"a": "???"}, id="dict:missing"),
+        param(
+            OmegaConf.create({"a": "???", "b": "${a}"}),
+            {"a": "???", "b": "???"},
+            id="dict:missing",
+        ),
+        param(
+            OmegaConf.create({"a": 10, "b": "a_${a}"}),
+            {"a": 10, "b": "a_10"},
+            id="dict:str_inter",
+        ),
+        # This seems like a reasonable resolution for a string interpolation pointing to a missing node:
+        param(
+            OmegaConf.create({"a": "???", "b": "a_${a}"}),
+            {"a": "???", "b": "???"},
+            id="dict:str_inter_missing",
+        ),
+        param(
+            DictConfig("${a}", parent=OmegaConf.create({"a": {"b": 10}})),
+            {"b": 10},
+            id="inter_dict",
+        ),
+        param(
+            DictConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            "???",
+            id="inter_dict_to_missing",
+        ),
+        param(
+            OmegaConf.create({"x": "${y}", "y": {"z": "${foo}"}, "foo": 0}),
+            {"x": {"z": 0}, "y": {"z": 0}, "foo": 0},
+            id="dict_nested_interpolation",
+        ),
+        param(DictConfig(None), None, id="none_dict"),
+        # comparing to ??? because to_container returns it.
+        param(DictConfig("???"), "???", id="missing_dict"),
+        # lists
+        param(OmegaConf.create([]), [], id="list"),
+        param(OmegaConf.create([10, "${0}"]), [10, 10], id="list"),
+        param(OmegaConf.create(["???"]), ["???"], id="list:missing"),
+        param(OmegaConf.create(["${1}", "???"]), ["???", "???"], id="list:missing"),
+        param(
+            ListConfig("${a}", parent=OmegaConf.create({"a": [1, 2]})),
+            [1, 2],
+            id="inter_list",
+        ),
+        param(
+            ListConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            "???",
+            id="inter_list_to_missing",
+        ),
+        param(ListConfig(None), None, id="none_list"),
+        # comparing to ??? because to_container returns it.
+        param(ListConfig("???"), "???", id="missing_list"),
+        # Tests for cases where an AnyNode with interpolation is promoted to a DictConfig/ListConfig node
+        param(
+            OmegaConf.create({"a": "${z}", "z": {"y": 1}}),
+            {"a": {"y": 1}, "z": {"y": 1}},
+            id="any_in_dict_to_dict",
+        ),
+        param(
+            OmegaConf.create({"a": "${z}", "z": [1, 2]}),
+            {"a": [1, 2], "z": [1, 2]},
+            id="any_in_dict_to_list",
+        ),
+        param(
+            OmegaConf.create(["${1}", {"z": {"y": 1}}]),
+            [{"z": {"y": 1}}, {"z": {"y": 1}}],
+            id="any_in_list_to_dict",
+        ),
+        param(
+            OmegaConf.create(["${1}", [1, 2]]),
+            [[1, 2], [1, 2]],
+            id="any_in_list_to_list",
+        ),
+    ],
+)
+def test_resolve(cfg: Any, expected: Any) -> None:
+    OmegaConf.resolve(cfg)
+    # convert output to plain dict to avoid smart OmegaConf eq logic
+    resolved_plain = OmegaConf.to_container(cfg, resolve=False)
+    assert resolved_plain == expected
+
+
+def test_resolve_invalid_input() -> None:
+    with raises(ValueError):
+        OmegaConf.resolve("aaa")  # type: ignore

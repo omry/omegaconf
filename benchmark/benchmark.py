@@ -4,7 +4,7 @@ from pytest import lazy_fixture  # type: ignore
 from pytest import fixture, mark, param
 
 from omegaconf import OmegaConf
-from omegaconf._utils import ValueKind, get_value_kind
+from omegaconf._utils import ValueKind, _is_missing_literal, get_value_kind
 
 
 def build_dict(
@@ -134,9 +134,18 @@ def test_list_iter(lst: List[Any], benchmark: Any) -> None:
         ("${a:b,c,d}", ValueKind.INTERPOLATION),
         ("${${b}}", ValueKind.INTERPOLATION),
         ("${a:${b}}", ValueKind.INTERPOLATION),
+        ("${long_string1xxx}_${long_string2xxx:${key}}", ValueKind.INTERPOLATION),
+        (
+            "${a[1].a[1].a[1].a[1].a[1].a[1].a[1].a[1].a[1].a[1].a[1]}",
+            ValueKind.INTERPOLATION,
+        ),
     ],
 )
 def test_get_value_kind(
     strict_interpolation_validation: bool, value: Any, expected: Any, benchmark: Any
 ) -> None:
     assert benchmark(get_value_kind, value, strict_interpolation_validation) == expected
+
+
+def test_is_missing_literal(benchmark: Any) -> None:
+    assert benchmark(_is_missing_literal, "???")

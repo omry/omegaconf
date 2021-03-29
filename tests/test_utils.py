@@ -11,9 +11,9 @@ from omegaconf._utils import (
     Marker,
     _ensure_container,
     _get_value,
-    _make_hashable,
     is_dict_annotation,
     is_list_annotation,
+    split_key,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
@@ -597,32 +597,6 @@ def test_get_value_container(content: Any) -> None:
     assert _get_value(cfg) == content
 
 
-@mark.parametrize(
-    "input_1,input_2",
-    [
-        (0, 0),
-        ([0, 1], (0, 1)),
-        ([0, (1, 2)], (0, [1, 2])),
-        ({0: 1, 1: 2}, {1: 2, 0: 1}),
-        ({"": 1, 0: 2}, {0: 2, "": 1}),
-        (
-            {1: 0, 1.1: 2.0, "1": "0", True: False, None: None},
-            {None: None, 1.1: 2.0, True: False, "1": "0", 1: 0},
-        ),
-    ],
-)
-def test_make_hashable(input_1: Any, input_2: Any) -> None:
-    out_1, out_2 = _make_hashable(input_1), _make_hashable(input_2)
-    assert out_1 == out_2
-    hash_1, hash_2 = hash(out_1), hash(out_2)
-    assert hash_1 == hash_2
-
-
-def test_make_hashable_type_error() -> None:
-    with raises(TypeError):
-        _make_hashable({...: 0, None: 0})
-
-
 def test_ensure_container_raises_ValueError() -> None:
     """Some values cannot be converted to a container.
     On these inputs, _ensure_container should raise a ValueError."""
@@ -639,3 +613,27 @@ def test_ensure_container_raises_ValueError() -> None:
 def test_marker_string_representation() -> None:
     marker = Marker("marker")
     assert repr(marker) == "marker"
+
+
+@mark.parametrize(
+    ("key", "expected"),
+    [
+        ("", [""]),
+        ("foo", ["foo"]),
+        ("foo.bar", ["foo", "bar"]),
+        ("foo[bar]", ["foo", "bar"]),
+        (".foo", ["", "foo"]),
+        ("..foo", ["", "", "foo"]),
+        (".foo[bar]", ["", "foo", "bar"]),
+        ("[foo]", ["foo"]),
+        ("[foo][bar]", ["foo", "bar"]),
+        (".[foo][bar]", ["", "foo", "bar"]),
+        ("..[foo][bar]", ["", "", "foo", "bar"]),
+        (
+            "...a[b][c].d.e[f].g[h]",
+            ["", "", "", "a", "b", "c", "d", "e", "f", "g", "h"],
+        ),
+    ],
+)
+def test_split_key(key: str, expected: List[str]) -> None:
+    assert split_key(key) == expected

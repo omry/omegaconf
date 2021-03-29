@@ -157,6 +157,30 @@ def test_get_dictionary_dictconfig(
 @mark.parametrize(
     ("obj", "attribute", "expected"),
     [
+        param(
+            ListConfig("${list}", parent=DictConfig({"list": [{"a": 10}]})),
+            "0",
+            {"a": 10},
+            id="inter_list:dict_element",
+        ),
+        param(
+            DictConfig("${dict}", parent=DictConfig({"dict": {"a": {"b": 10}}})),
+            "a",
+            {"b": 10},
+            id="inter_dict:dict_element",
+        ),
+    ],
+)
+def test_resolve_through_container_interpolation(
+    resolver: Any, obj: Any, attribute: str, expected: Any
+) -> None:
+    res = resolver.resolve(obj, attribute)
+    assert res == expected
+
+
+@mark.parametrize(
+    ("obj", "attribute", "expected"),
+    [
         param(OmegaConf.create(["${.1}", 10]), "0", {}, id="list:inter_value"),
         param(
             OmegaConf.create({"a": ListConfig(None)}),

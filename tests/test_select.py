@@ -1,46 +1,46 @@
 import re
 from typing import Any, Optional
 
-import pytest
 from _pytest.python_api import RaisesContext
-from pytest import raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigKeyError, InterpolationKeyError
 
 
-@pytest.mark.parametrize("struct", [False, True, None])
+@mark.parametrize("struct", [False, True, None])
 class TestSelect:
-    @pytest.mark.parametrize(
-        "register_func", [OmegaConf.register_resolver, OmegaConf.register_new_resolver]
+    @mark.parametrize(
+        "register_func",
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
     )
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         "cfg, key, expected",
         [
-            pytest.param({}, "nope", None, id="dict:none"),
-            pytest.param({}, "not.there", None, id="dict:none"),
-            pytest.param({}, "still.not.there", None, id="dict:none"),
-            pytest.param({"c": 1}, "c", 1, id="dict:int"),
-            pytest.param({"a": {"v": 1}}, "a.v", 1, id="dict:int"),
-            pytest.param({"a": {"v": 1}}, "a", {"v": 1}, id="dict:dict"),
-            pytest.param({"missing": "???"}, "missing", None, id="dict:missing"),
-            pytest.param([], "0", None, id="list:oob"),
-            pytest.param([1, "2"], "0", 1, id="list:int"),
-            pytest.param([1, "2"], "1", "2", id="list:str"),
-            pytest.param(["???"], "0", None, id="list:missing"),
-            pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "0", 1),
-            pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.a", 10),
-            pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.b", None),
-            pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.0", "foo"),
-            pytest.param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.1", "bar"),
-            pytest.param([1, 2, 3], "a", raises(TypeError)),
-            pytest.param({"a": {"v": 1}}, "", {"a": {"v": 1}}, id="select_root"),
-            pytest.param({"a": {"b": 1}, "c": "one=${a.b}"}, "c", "one=1", id="inter"),
-            pytest.param({"a": {"b": "one=${n}"}, "n": 1}, "a.b", "one=1", id="inter"),
-            pytest.param(
-                {"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"
-            ),
+            param({}, "nope", None, id="dict:none"),
+            param({}, "not.there", None, id="dict:none"),
+            param({}, "still.not.there", None, id="dict:none"),
+            param({"c": 1}, "c", 1, id="dict:int"),
+            param({"a": {"v": 1}}, "a.v", 1, id="dict:int"),
+            param({"a": {"v": 1}}, "a", {"v": 1}, id="dict:dict"),
+            param({"missing": "???"}, "missing", None, id="dict:missing"),
+            param([], "0", None, id="list:oob"),
+            param([1, "2"], "0", 1, id="list:int"),
+            param([1, "2"], "1", "2", id="list:str"),
+            param(["???"], "0", None, id="list:missing"),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "0", 1),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1.a", 10),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1.b", None),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.0", "foo"),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1.c.1", "bar"),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1[c].0", "foo"),
+            param([1, {"a": 10, "c": ["foo", "bar"]}], "1[c][1]", "bar"),
+            param([1, 2, 3], "a", raises(TypeError)),
+            param({"a": {"v": 1}}, "", {"a": {"v": 1}}, id="select_root"),
+            param({"a": {"b": 1}, "c": "one=${a.b}"}, "c", "one=1", id="inter"),
+            param({"a": {"b": "one=${n}"}, "n": 1}, "a.b", "one=1", id="inter"),
+            param({"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"),
         ],
     )
     def test_select(
@@ -61,13 +61,13 @@ class TestSelect:
         else:
             assert OmegaConf.select(cfg, key) == expected
 
-    @pytest.mark.parametrize("default", [10, None])
-    @pytest.mark.parametrize(
+    @mark.parametrize("default", [10, None])
+    @mark.parametrize(
         ("cfg", "key"),
         [
-            pytest.param({}, "not_found", id="empty"),
-            pytest.param({"missing": "???"}, "missing", id="missing"),
-            pytest.param({"int": 0}, "int.y", id="non_container"),
+            param({}, "not_found", id="empty"),
+            param({"missing": "???"}, "missing", id="missing"),
+            param({"int": 0}, "int.y", id="non_container"),
         ],
     )
     def test_select_default(
@@ -81,12 +81,12 @@ class TestSelect:
         OmegaConf.set_struct(cfg, struct)
         assert OmegaConf.select(cfg, key, default=default) == default
 
-    @pytest.mark.parametrize("default", [10, None])
-    @pytest.mark.parametrize(
+    @mark.parametrize("default", [10, None])
+    @mark.parametrize(
         "cfg, key",
         [
-            pytest.param({"missing": "???"}, "missing", id="missing_dict"),
-            pytest.param(["???"], "0", id="missing_list"),
+            param({"missing": "???"}, "missing", id="missing_dict"),
+            param(["???"], "0", id="missing_list"),
         ],
     )
     def test_select_default_throw_on_missing(
@@ -100,16 +100,16 @@ class TestSelect:
         OmegaConf.set_struct(cfg, struct)
 
         # throw on missing still throws if default is provided
-        with pytest.raises(MissingMandatoryValue):
+        with raises(MissingMandatoryValue):
             OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         ("cfg", "key", "exc"),
         [
-            pytest.param(
+            param(
                 {"int": 0},
                 "int.y",
-                pytest.raises(
+                raises(
                     ConfigKeyError,
                     match=re.escape(
                         "Error trying to access int.y: node `int` is not a container "
@@ -128,10 +128,10 @@ class TestSelect:
         with exc:
             OmegaConf.select(cfg, key)
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         ("cfg", "key"),
         [
-            pytest.param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
+            param({"inter": "${bad_key}"}, "inter", id="inter_bad_key"),
         ],
     )
     def test_select_default_throw_on_resolution_failure(
@@ -141,18 +141,16 @@ class TestSelect:
         OmegaConf.set_struct(cfg, struct)
 
         # throw on resolution failure still throws if default is provided
-        with pytest.raises(InterpolationKeyError):
+        with raises(InterpolationKeyError):
             OmegaConf.select(cfg, key, default=123, throw_on_resolution_failure=True)
 
-    @pytest.mark.parametrize(
+    @mark.parametrize(
         ("cfg", "node_key", "expected"),
         [
-            pytest.param({"foo": "${bar}", "bar": 10}, "foo", 10, id="simple"),
-            pytest.param({"foo": "${bar}"}, "foo", None, id="no_key"),
-            pytest.param(
-                {"foo": "${bar}", "bar": "???"}, "foo", None, id="key_missing"
-            ),
-            pytest.param(
+            param({"foo": "${bar}", "bar": 10}, "foo", 10, id="simple"),
+            param({"foo": "${bar}"}, "foo", None, id="no_key"),
+            param({"foo": "${bar}", "bar": "???"}, "foo", None, id="key_missing"),
+            param(
                 {"foo": "${bar}", "bar": "${zoo}", "zoo": "???"},
                 "foo",
                 None,
@@ -176,7 +174,7 @@ class TestSelect:
     def test_select_from_dict(self, struct: Optional[bool]) -> None:
         cfg = OmegaConf.create({"missing": "???"})
         OmegaConf.set_struct(cfg, struct)
-        with pytest.raises(MissingMandatoryValue):
+        with raises(MissingMandatoryValue):
             OmegaConf.select(cfg, "missing", throw_on_missing=True)
         assert OmegaConf.select(cfg, "missing", throw_on_missing=False) is None
         assert OmegaConf.select(cfg, "missing") is None
@@ -184,7 +182,7 @@ class TestSelect:
     def test_select_deprecated(self, struct: Optional[bool]) -> None:
         cfg = OmegaConf.create({"foo": "bar"})
         OmegaConf.set_struct(cfg, struct)
-        with pytest.warns(
+        with warns(
             expected_warning=UserWarning,
             match=re.escape(
                 "select() is deprecated, use OmegaConf.select(). (Since 2.0)"

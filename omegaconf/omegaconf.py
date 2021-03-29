@@ -32,7 +32,6 @@ from ._utils import (
     _ensure_container,
     _get_value,
     _is_none,
-    _make_hashable,
     decode_primitive,
     format_and_raise,
     get_dict_key_value_types,
@@ -49,6 +48,7 @@ from ._utils import (
     is_primitive_list,
     is_structured_config,
     is_tuple_annotation,
+    split_key,
     type_str,
 )
 from .base import Container, Node, SCMode
@@ -353,16 +353,15 @@ class OmegaConf:
 
     @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
-        # TODO re-enable warning message before 2.1 release (see also test_resolver_deprecated_behavior)
-        # warnings.warn(
-        #     dedent(
-        #         """\
-        #     register_resolver() is deprecated.
-        #     See https://github.com/omry/omegaconf/issues/426 for migration instructions.
-        #     """
-        #     ),
-        #     stacklevel=2,
-        # )
+        warnings.warn(
+            dedent(
+                """\
+            register_resolver() is deprecated.
+            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            """
+            ),
+            stacklevel=2,
+        )
         return OmegaConf.legacy_register_resolver(name, resolver)
 
     # This function will eventually be deprecated and removed.
@@ -372,7 +371,7 @@ class OmegaConf:
         # noinspection PyProtectedMember
         assert (
             name not in BaseContainer._resolvers
-        ), f"resolver {name} is already registered"
+        ), f"resolver '{name}' is already registered"
 
         def resolver_wrapper(
             config: BaseContainer,
@@ -399,7 +398,7 @@ class OmegaConf:
                     f"`register_new_resolver()` instead (see "
                     f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
                 )
-            key = args
+            key = args_str
             val = cache[key] if key in cache else resolver(*args_unesc)
             cache[key] = val
             return val
@@ -411,7 +410,9 @@ class OmegaConf:
     def register_new_resolver(
         name: str,
         resolver: Resolver,
-        use_cache: Optional[bool] = True,
+        *,
+        replace: bool = False,
+        use_cache: bool = False,
     ) -> None:
         """
         Register a resolver.
@@ -420,20 +421,31 @@ class OmegaConf:
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
             0 (int) and the value of `y.z`.
+        :param replace: If set to `False` (default), then a `ValueError` is raised if
+            an existing resolver has already been registered with the same name.
+            If set to `True`, then the new resolver replaces the previous one.
+            NOTE: The cache on existing config objects is not affected, use
+            `OmegaConf.clear_cache(cfg)` to clear it.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
-            based only on the list of arguments given in the interpolation, i.e., for a
-            given list of arguments, the same value will always be returned.
+            based only on the string literals representing the resolver arguments, e.g.,
+            ${foo:${bar}} will always return the same value regardless of the value of
+            `bar` if the cache is enabled for `foo`.
         """
-        assert callable(resolver), "resolver must be callable"
-        # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), "resolver {} is already registered".format(name)
+        if not callable(resolver):
+            raise TypeError("resolver must be callable")
+        if not name:
+            raise ValueError("cannot use an empty resolver name")
 
-        sig = inspect.signature(resolver)
+        if not replace and OmegaConf.has_resolver(name):
+            raise ValueError(f"resolver '{name}' is already registered")
+
+        try:
+            sig: Optional[inspect.Signature] = inspect.signature(resolver)
+        except ValueError:
+            sig = None
 
         def _should_pass(special: str) -> bool:
-            ret = special in sig.parameters
+            ret = sig is not None and special in sig.parameters
             if ret and use_cache:
                 raise ValueError(
                     f"use_cache=True is incompatible with functions that receive the {special}"
@@ -451,9 +463,8 @@ class OmegaConf:
         ) -> Any:
             if use_cache:
                 cache = OmegaConf.get_cache(config)[name]
-                hashable_key = _make_hashable(args)
                 try:
-                    return cache[hashable_key]
+                    return cache[args_str]
                 except KeyError:
                     pass
 
@@ -467,7 +478,7 @@ class OmegaConf:
             ret = resolver(*args, **kwargs)
 
             if use_cache:
-                cache[hashable_key] = ret
+                cache[args_str] = ret
             return ret
 
         # noinspection PyProtectedMember
@@ -560,7 +571,6 @@ class OmegaConf:
         resolve: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
-        exclude_structured_configs: Optional[bool] = None,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
@@ -573,23 +583,8 @@ class OmegaConf:
             If `structured_config_mode=SCMode.INSTANTIATE`, this function will instantiate structured configs
                (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
                See also OmegaConf.to_object.
-        :param exclude_structured_configs: (DEPRECATED) If true, do not convert structured configs.
-            Equivalent to `structured_config_mode=SCMode.DICT_CONFIG`.
         :return: A dict or a list representing this config as a primitive container.
         """
-        if exclude_structured_configs is not None:
-            warnings.warn(
-                dedent(
-                    """\
-                The exclude_structured_configs argument to to_container is deprecated.
-                See https://github.com/omry/omegaconf/issues/548 for migration instructions.
-                """
-                ),
-                UserWarning,
-                stacklevel=2,
-            )
-            if exclude_structured_configs is True:
-                structured_config_mode = SCMode.DICT_CONFIG
         if not OmegaConf.is_config(cfg):
             raise ValueError(
                 f"Input cfg is not an OmegaConf config object ({type_str(type(cfg))})"
@@ -766,7 +761,7 @@ class OmegaConf:
             )
             merge = False
 
-        split = key.split(".")
+        split = split_key(key)
         root = cfg
         for i in range(len(split) - 1):
             k = split[i]
@@ -823,6 +818,23 @@ class OmegaConf:
             Dumper=get_omega_conf_dumper(),
         )
 
+    @staticmethod
+    def resolve(cfg: Container) -> None:
+        """
+        Resolves all interpolations in the given config object in-place.
+        :param cfg: An OmegaConf container (DictConfig, ListConfig)
+                    Raises a ValueError if the input object is not an OmegaConf container.
+        """
+        import omegaconf._impl
+
+        if not OmegaConf.is_config(cfg):
+            # Since this function is mutating the input object in-place, it doesn't make sense to
+            # auto-convert the input object to an OmegaConf container
+            raise ValueError(
+                f"Invalid config type ({type(cfg).__name__}), expected an OmegaConf Container"
+            )
+        omegaconf._impl._resolve(cfg)
+
     # === private === #
 
     @staticmethod
@@ -841,12 +853,12 @@ class OmegaConf:
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())
                 if obj is None:
-                    return OmegaConf.create({}, flags=flags)
+                    return OmegaConf.create({}, parent=parent, flags=flags)
                 elif isinstance(obj, str):
-                    return OmegaConf.create({obj: None}, flags=flags)
+                    return OmegaConf.create({obj: None}, parent=parent, flags=flags)
                 else:
                     assert isinstance(obj, (list, dict))
-                    return OmegaConf.create(obj, flags=flags)
+                    return OmegaConf.create(obj, parent=parent, flags=flags)
 
             else:
                 if (
