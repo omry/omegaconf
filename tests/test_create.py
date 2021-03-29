@@ -338,3 +338,18 @@ def test_yaml_merge() -> None:
         )
     )
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
+
+
+@mark.parametrize(
+    "data",
+    [
+        param("", id="empty"),
+        param("hello", id="name_only"),
+        param("a: b", id="dictconfig"),
+        param("- a", id="listconfig"),
+    ],
+)
+def test_create_from_str_check_parent(data: str) -> None:
+    parent = OmegaConf.create({})
+    cfg = OmegaConf.create(data, parent=parent)
+    assert cfg._get_parent() is parent
