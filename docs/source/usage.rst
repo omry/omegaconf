@@ -828,11 +828,7 @@ Note that here, ``container["structured_config"]`` is actually an instance of
 
 The call ``OmegaConf.to_object(conf)`` is equivalent to
 ``OmegaConf.to_container(conf, resolve=True,
-structured_config_mode=SCMode.INSTANTIATE)``.  The ``resolve=True`` keyword
-argument means that string interpolations are resolved before conversion to a
-container, and ``structured_config_mode=SCMode.INSTANTIATE`` means that each
-structured config node is converted into an actual instance of the underlying
-structured config type.
+structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
