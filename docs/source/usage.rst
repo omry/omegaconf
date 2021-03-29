@@ -780,7 +780,7 @@ Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
 are converted to instances of the backing dataclass or attrs class. Note that
 typically ``structured_config_mode=SCMode.INSTANTIATE`` makes the most sense
 when combined with ``resolve=True``, so that interpolations are resolved before
-being using to instantiate dataclass/attr class instances.
+being used to instantiate dataclass/attr class instances.
 
 .. doctest::
 
@@ -796,9 +796,9 @@ being using to instantiate dataclass/attr class instances.
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
 The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
-into dicts and lists, with the execption that Structured Config objects are
+into dicts and lists, with the exception that Structured Config objects are
 converted into instances of the backing dataclass or attr class.  All OmegaConf
-interpolations are resolved before conversion to python containers.
+interpolations are resolved before conversion to Python containers.
 
 .. doctest::
 
