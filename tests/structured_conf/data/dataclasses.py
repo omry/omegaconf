@@ -430,6 +430,10 @@ class DictSubclass:
         pass
 
     @dataclass
+    class Str2Int(Dict[str, int]):
+        pass
+
+    @dataclass
     class Int2Str(Dict[int, str]):
         pass
 

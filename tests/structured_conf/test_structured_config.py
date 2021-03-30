@@ -910,6 +910,12 @@ class TestDictSubclass:
         cfg = OmegaConf.structured(src)
         assert cfg.baz == "qux"
 
+    def test_create_dict_subclass_with_bad_value_type(self, module: Any) -> None:
+        src = module.DictSubclass.Str2Int()
+        src["baz"] = "qux"
+        with raises(ValidationError):
+            OmegaConf.structured(src)
+
     def test_str2str_as_sub_node(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
