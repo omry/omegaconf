@@ -16,11 +16,7 @@ def create(obj: Any, _parent_: Container) -> Any:
     from omegaconf import OmegaConf
 
     assert isinstance(_parent_, BaseContainer)
-    ret = OmegaConf.create(obj, parent=_parent_)
-    # Since this node is re-generated on-the-fly, changes would be lost: we mark it
-    # as read-only to avoid mistakes.
-    ret._set_flag("readonly", True)
-    return ret
+    return OmegaConf.create(obj, parent=_parent_)
 
 
 def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
