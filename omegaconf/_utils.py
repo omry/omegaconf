@@ -237,6 +237,23 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         except ValidationError as ex:
             format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
+    if is_dict_subclass(obj_type) and not isinstance(obj, type):
+        key_type, element_type = get_dict_key_value_types(obj_type)
+        for name, value in obj.items():
+            is_optional, type_ = _resolve_optional(element_type)
+            type_ = _resolve_forward(type_, element_type.__module__)
+            try:
+                d[name] = _maybe_wrap(
+                    ref_type=type_,
+                    is_optional=is_optional,
+                    key=name,
+                    value=value,
+                    parent=dummy_parent,
+                )
+            except ValidationError as ex:
+                format_and_raise(
+                    node=None, key=name, value=value, cause=ex, msg=str(ex)
+                )
     return d
 
 
@@ -248,7 +265,8 @@ def get_dataclass_data(
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     dummy_parent = OmegaConf.create({}, flags=flags)
     d = {}
-    resolved_hints = get_type_hints(get_type_of(obj))
+    obj_type = get_type_of(obj)
+    resolved_hints = get_type_hints(obj_type)
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
@@ -280,6 +298,23 @@ def get_dataclass_data(
         except ValidationError as ex:
             format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
+    if is_dict_subclass(obj_type) and not isinstance(obj, type):
+        key_type, element_type = get_dict_key_value_types(obj_type)
+        for name, value in obj.items():
+            is_optional, type_ = _resolve_optional(element_type)
+            type_ = _resolve_forward(type_, element_type.__module__)
+            try:
+                d[name] = _maybe_wrap(
+                    ref_type=type_,
+                    is_optional=is_optional,
+                    key=name,
+                    value=value,
+                    parent=dummy_parent,
+                )
+            except ValidationError as ex:
+                format_and_raise(
+                    node=None, key=name, value=value, cause=ex, msg=str(ex)
+                )
     return d
 
 

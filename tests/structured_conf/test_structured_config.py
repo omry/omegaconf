@@ -904,6 +904,12 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg[Color.RED]
 
+    def test_dict_subclass_data_preserved_upon_node_creation(self, module: Any) -> None:
+        src = module.DictSubclass.Str2Str()
+        src["baz"] = "qux"
+        cfg = OmegaConf.structured(src)
+        assert cfg.baz == "qux"
+
     def test_str2str_as_sub_node(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
