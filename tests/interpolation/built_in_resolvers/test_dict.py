@@ -54,7 +54,7 @@ def test_dict_keys(cfg: Any, key: Any, expected: Any) -> None:
                 InterpolationResolutionError,
                 match=re.escape(
                     "MissingMandatoryValue raised while resolving interpolation: "
-                    "Missing mandatory value : y"
+                    "Missing mandatory value: y"
                 ),
             ),
             id="select_missing",
