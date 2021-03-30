@@ -61,8 +61,8 @@ ESC: (ESC_BACKSLASH | '\\(' | '\\)' | '\\[' | '\\]' | '\\{' | '\\}' |
 WS: [ \t]+;
 
 QUOTED_VALUE:
-      '\'' ('\\\''|.)*? '\'' // Single quotes, can contain escaped single quote : /'
-    | '"' ('\\"'|.)*? '"' ;  // Double quotes, can contain escaped double quote : /"
+      '\'' ('\\\''|.)*? '\'' // Single quotes, can contain escaped single quote: /'
+    | '"' ('\\"'|.)*? '"' ;  // Double quotes, can contain escaped double quote: /"
 
 ////////////////////////
 // INTERPOLATION_MODE //

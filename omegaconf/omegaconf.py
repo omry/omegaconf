@@ -237,7 +237,7 @@ class OmegaConf:
 
         if obj is not None and not isinstance(obj, (list, dict, str)):
             raise IOError(  # pragma: no cover
-                f"Invalid loaded object type : {type(obj).__name__}"
+                f"Invalid loaded object type: {type(obj).__name__}"
             )
 
         ret: Union[DictConfig, ListConfig]
@@ -748,7 +748,7 @@ class OmegaConf:
 
         assert isinstance(
             root, Container
-        ), f"Unexpected type for root : {type(root).__name__}"
+        ), f"Unexpected type for root: {type(root).__name__}"
 
         last_key: Union[str, int] = last
         if isinstance(root, ListConfig):
@@ -1034,7 +1034,7 @@ def _node_wrap(
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)
         else:
-            raise ValidationError(f"Unexpected object type : {type_str(type_)}")
+            raise ValidationError(f"Unexpected object type: {type_str(type_)}")
     return node
 
 
@@ -1069,7 +1069,7 @@ def _select_one(
     from .listconfig import ListConfig
 
     ret_key: Union[str, int] = key
-    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
+    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type: {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
@@ -1096,7 +1096,7 @@ def _select_one(
         if val._is_missing():
             if throw_on_missing:
                 raise MissingMandatoryValue(
-                    f"Missing mandatory value : {c._get_full_key(ret_key)}"
+                    f"Missing mandatory value: {c._get_full_key(ret_key)}"
                 )
             else:
                 return val, ret_key

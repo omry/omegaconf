@@ -298,7 +298,7 @@ params = [
             exception_type=InterpolationToMissingValueError,
             msg=(
                 "MissingMandatoryValue while resolving interpolation: "
-                "Missing mandatory value : missing_val"
+                "Missing mandatory value: missing_val"
             ),
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -321,7 +321,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: setattr(cfg, "params", 20),
             exception_type=ValidationError,
-            msg="Invalid type assigned : int is not a subclass of FoobarParams. value: 20",
+            msg="Invalid type assigned: int is not a subclass of FoobarParams. value: 20",
             key="params",
             object_type=ConcretePlugin,
             child_node=lambda cfg: cfg.params,
@@ -416,7 +416,7 @@ params = [
             create=lambda: OmegaConf.structured(User),
             op=lambda cfg: cfg.__setitem__("name", [1, 2]),
             exception_type=ValidationError,
-            msg="Cannot convert 'list' to string : '[1, 2]'",
+            msg="Cannot convert 'list' to string: '[1, 2]'",
             full_key="name",
             key="name",
             low_level=True,
@@ -671,7 +671,7 @@ params = [
             create=lambda: DictConfig(ref_type=ConcretePlugin, content="???"),
             op=lambda cfg: cfg._set_value(1),
             exception_type=ValidationError,
-            msg="Invalid type assigned : int is not a subclass of ConcretePlugin. value: 1",
+            msg="Invalid type assigned: int is not a subclass of ConcretePlugin. value: 1",
             low_level=True,
             ref_type=Optional[ConcretePlugin],
         ),
@@ -1048,7 +1048,7 @@ params = [
             op=lambda cfg: cfg._set_value(True),
             exception_type=ValidationError,
             object_type=None,
-            msg="Invalid value assigned : bool is not a ListConfig, list or tuple.",
+            msg="Invalid value assigned: bool is not a ListConfig, list or tuple.",
             ref_type=List[int],
             low_level=True,
         ),

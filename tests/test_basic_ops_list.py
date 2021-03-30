@@ -351,7 +351,7 @@ def test_list_append() -> None:
             raises(
                 ValidationError,
                 match=re.escape(
-                    "Invalid type assigned : str is not a subclass of User. value: foo"
+                    "Invalid type assigned: str is not a subclass of User. value: foo"
                 ),
             ),
             id="append_str_to_list[User]",
@@ -362,7 +362,7 @@ def test_list_append() -> None:
             raises(
                 ValidationError,
                 match=re.escape(
-                    "Invalid type assigned : dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}"
+                    "Invalid type assigned: dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}"
                 ),
             ),
             id="list:convert_dict_to_user",
@@ -373,7 +373,7 @@ def test_list_append() -> None:
             raises(
                 ValidationError,
                 match=re.escape(
-                    "Invalid type assigned : dict is not a subclass of User. value: {}"
+                    "Invalid type assigned: dict is not a subclass of User. value: {}"
                 ),
             ),
             id="list:convert_empty_dict_to_user",
