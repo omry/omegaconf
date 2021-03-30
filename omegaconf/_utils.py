@@ -241,7 +241,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         key_type, element_type = get_dict_key_value_types(obj_type)
         for name, value in obj.items():
             is_optional, type_ = _resolve_optional(element_type)
-            type_ = _resolve_forward(type_, element_type.__module__)
+            type_ = _resolve_forward(type_, obj.__module__)
             try:
                 d[name] = _maybe_wrap(
                     ref_type=type_,
@@ -302,7 +302,7 @@ def get_dataclass_data(
         key_type, element_type = get_dict_key_value_types(obj_type)
         for name, value in obj.items():
             is_optional, type_ = _resolve_optional(element_type)
-            type_ = _resolve_forward(type_, element_type.__module__)
+            type_ = _resolve_forward(type_, obj.__module__)
             try:
                 d[name] = _maybe_wrap(
                     ref_type=type_,
