@@ -81,7 +81,7 @@ def dict_values(
         if dict_key is None:
             # No path to `in_dict` in the existing config.
             raise NotImplementedError(
-                "`oc.dict.values` currently only supports input config nodes that "
+                "`oc.dict.values` only supports input config nodes that "
                 "are accessible through the root config. See "
                 "https://github.com/omry/omegaconf/issues/650 for details."
             )
