@@ -116,7 +116,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
         ),
     ],
 )
-def test_SCMode(
+def test_scmode(
     src: Any,
     structured_config_mode: Optional[SCMode],
     expected: Any,
