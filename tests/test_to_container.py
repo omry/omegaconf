@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 from importlib import import_module
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pytest import fixture, mark, param, raises
 
@@ -48,58 +48,88 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "src,ex_dict,ex_dict_config,ex_instantiate,key",
+    "structured_config_mode,src,expected,key,expected_value_type",
     [
         param(
+            SCMode.DICT,
             {"user": User(age=7, name="Bond")},
             {"user": {"name": "Bond", "age": 7}},
+            "user",
+            dict,
+            id="DICT-dict",
+        ),
+        param(
+            SCMode.DICT,
+            [1, User(age=7, name="Bond")],
+            [1, {"name": "Bond", "age": 7}],
+            1,
+            dict,
+            id="DICT-list",
+        ),
+        param(
+            SCMode.DICT_CONFIG,
             {"user": User(age=7, name="Bond")},
             {"user": User(age=7, name="Bond")},
             "user",
-            id="structured-inside-dict",
+            DictConfig,
+            id="DICT_CONFIG-dict",
         ),
         param(
-            [1, User(age=7, name="Bond")],
-            [1, {"name": "Bond", "age": 7}],
+            SCMode.DICT_CONFIG,
             [1, User(age=7, name="Bond")],
             [1, User(age=7, name="Bond")],
             1,
-            id="structured-inside-list",
+            DictConfig,
+            id="DICT_CONFIG-list",
+        ),
+        param(
+            SCMode.INSTANTIATE,
+            {"user": User(age=7, name="Bond")},
+            {"user": User(age=7, name="Bond")},
+            "user",
+            User,
+            id="INSTANTIATE-dict",
+        ),
+        param(
+            SCMode.INSTANTIATE,
+            [1, User(age=7, name="Bond")],
+            [1, User(age=7, name="Bond")],
+            1,
+            User,
+            id="INSTANTIATE-list",
+        ),
+        param(
+            None,
+            {"user": User(age=7, name="Bond")},
+            {"user": {"name": "Bond", "age": 7}},
+            "user",
+            dict,
+            id="default-dict",
+        ),
+        param(
+            None,
+            [1, User(age=7, name="Bond")],
+            [1, {"name": "Bond", "age": 7}],
+            1,
+            dict,
+            id="default-list",
         ),
     ],
 )
-class TestSCMode:
-    @fixture
-    def cfg(self, src: Any) -> Any:
-        return OmegaConf.create(src)
-
-    def test_exclude_structured_configs_default(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
-    ) -> None:
+def test_SCMode(
+    src: Any,
+    structured_config_mode: Optional[SCMode],
+    expected: Any,
+    expected_value_type: Any,
+    key: Any,
+) -> None:
+    cfg = OmegaConf.create(src)
+    if structured_config_mode is None:
         ret = OmegaConf.to_container(cfg)
-        assert ret == ex_dict
-        assert isinstance(ret[key], dict)
-
-    def test_scmode_dict(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
-    ) -> None:
-        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
-        assert ret == ex_dict
-        assert isinstance(ret[key], dict)
-
-    def test_scmode_dict_config(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
-    ) -> None:
-        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
-        assert ret == ex_dict_config
-        assert isinstance(ret[key], DictConfig)
-
-    def test_scmode_instantiate(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, ex_instantiate: Any, key: Any
-    ) -> None:
-        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
-        assert ret == ex_instantiate
-        assert isinstance(ret[key], User)
+    else:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=structured_config_mode)
+    assert ret == expected
+    assert isinstance(ret[key], expected_value_type)
 
 
 @mark.parametrize(
