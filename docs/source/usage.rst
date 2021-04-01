@@ -480,27 +480,23 @@ If a string is given as input, ``OmegaConf.select()`` is used to access the corr
 
     >>> cfg = OmegaConf.create(
     ...     {
-    ...         "machines": {
-    ...             "node007": "10.0.0.7",
-    ...             "node012": "10.0.0.3",
-    ...             "node075": "10.0.1.8",
+    ...         "workers": {
+    ...             "node3": "10.0.0.2",
+    ...             "node7": "10.0.0.9",
     ...         },
     ...         # Obtaining keys with explicit interpolation as input.
-    ...         "nodes": "${oc.dict.keys:${machines}}",
+    ...         "nodes": "${oc.dict.keys:${workers}}",
     ...         # Obtaining values with node name as input.
-    ...         "ips": "${oc.dict.values:machines}",
+    ...         "ips": "${oc.dict.values:workers}",
     ...     }
     ... )
-    >>> nodes = cfg.nodes
-    >>> ips = cfg.ips
-    >>> # The corresponding lists of keys / values are ListConfig nodes.
-    >>> assert isinstance(nodes, ListConfig)
-    >>> assert isinstance(ips, ListConfig)
-    >>> assert nodes == ['node007', 'node012', 'node075']
-    >>> assert ips == ['10.0.0.7', '10.0.0.3', '10.0.1.8']
-    >>> # Values are dynamically updated with the underlying dict.
-    >>> cfg.machines.node012 = "10.0.0.5"
-    >>> assert ips[1] == "10.0.0.5"
+    >>> # Keys are copied from the DictConfig:
+    >>> show(cfg.nodes)
+    type: ListConfig, value: ['node3', 'node7']
+    >>> # Values are dynamically fetched through interpolations:
+    >>> show(cfg.ips)
+    type: ListConfig, value: ['${workers.node3}', '${workers.node7}']
+    >>> assert cfg.ips == ["10.0.0.2", "10.0.0.9"]
 
 
 Custom interpolations
