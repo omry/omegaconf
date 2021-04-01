@@ -104,6 +104,15 @@ def test_dict_keys(cfg: Any, key: Any, expected: Any) -> None:
             ),
             id="type_error_dictconfig",
         ),
+        param(
+            {"foo": "${oc.dict.keys_or_values:.bar}", "bar": {"x": 0}},
+            "foo",
+            raises(
+                InterpolationResolutionError,
+                match=re.escape("NotImplementedError"),
+            ),
+            id="relative_with_select",
+        ),
     ],
 )
 def test_get_and_validate_dict_input(

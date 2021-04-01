@@ -151,11 +151,17 @@ def _get_and_validate_dict_input(
     if isinstance(in_dict, str):
         # Path to an existing key in the config: use `select()`.
         key = in_dict
+        if key.startswith("."):
+            raise NotImplementedError(
+                f"To use relative interpolations with `{resolver_name}`, please use "
+                f"the explicit interpolation syntax: ${{{resolver_name}:${{{key}}}}}"
+            )
         in_dict = OmegaConf.select(
             root, key, throw_on_missing=True, default=_DEFAULT_SELECT_MARKER_
         )
         if in_dict is _DEFAULT_SELECT_MARKER_:
             raise ConfigKeyError(f"Key not found: '{key}'")
+        assert in_dict is not None
 
     if not isinstance(in_dict, Mapping):
         raise TypeError(
