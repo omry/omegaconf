@@ -201,6 +201,37 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
         return type_
 
 
+def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]]:
+    """Check if obj is an instance of a subclass of Dict. If so, extract the Dict keys/values."""
+    from omegaconf.omegaconf import _maybe_wrap
+
+    if isinstance(obj, type):
+        return None
+
+    obj_type = type(obj)
+    if is_dict_subclass(obj_type):
+        dict_subclass_data = {}
+        key_type, element_type = get_dict_key_value_types(obj_type)
+        for name, value in obj.items():
+            is_optional, type_ = _resolve_optional(element_type)
+            type_ = _resolve_forward(type_, obj.__module__)
+            try:
+                dict_subclass_data[name] = _maybe_wrap(
+                    ref_type=type_,
+                    is_optional=is_optional,
+                    key=name,
+                    value=value,
+                    parent=parent,
+                )
+            except ValidationError as ex:
+                format_and_raise(
+                    node=None, key=name, value=value, cause=ex, msg=str(ex)
+                )
+        return dict_subclass_data
+
+    return None
+
+
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -237,23 +268,9 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         except ValidationError as ex:
             format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
-    if is_dict_subclass(obj_type) and not isinstance(obj, type):
-        key_type, element_type = get_dict_key_value_types(obj_type)
-        for name, value in obj.items():
-            is_optional, type_ = _resolve_optional(element_type)
-            type_ = _resolve_forward(type_, obj.__module__)
-            try:
-                d[name] = _maybe_wrap(
-                    ref_type=type_,
-                    is_optional=is_optional,
-                    key=name,
-                    value=value,
-                    parent=dummy_parent,
-                )
-            except ValidationError as ex:
-                format_and_raise(
-                    node=None, key=name, value=value, cause=ex, msg=str(ex)
-                )
+    dict_subclass_data = extract_dict_subclass_data(obj=obj, parent=dummy_parent)
+    if dict_subclass_data is not None:
+        d.update(dict_subclass_data)
     return d
 
 
@@ -298,23 +315,9 @@ def get_dataclass_data(
         except ValidationError as ex:
             format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
         d[name]._set_parent(None)
-    if is_dict_subclass(obj_type) and not isinstance(obj, type):
-        key_type, element_type = get_dict_key_value_types(obj_type)
-        for name, value in obj.items():
-            is_optional, type_ = _resolve_optional(element_type)
-            type_ = _resolve_forward(type_, obj.__module__)
-            try:
-                d[name] = _maybe_wrap(
-                    ref_type=type_,
-                    is_optional=is_optional,
-                    key=name,
-                    value=value,
-                    parent=dummy_parent,
-                )
-            except ValidationError as ex:
-                format_and_raise(
-                    node=None, key=name, value=value, cause=ex, msg=str(ex)
-                )
+    dict_subclass_data = extract_dict_subclass_data(obj=obj, parent=dummy_parent)
+    if dict_subclass_data is not None:
+        d.update(dict_subclass_data)
     return d
 
 
