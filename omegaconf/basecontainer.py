@@ -237,7 +237,6 @@ class BaseContainer(Container, ABC):
                     )
                 else:
                     retdict[key] = convert(node)
-
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
