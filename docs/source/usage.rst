@@ -778,9 +778,15 @@ Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as DictConfig, allowing attribute style access on the resulting node.
 Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
 are converted to instances of the backing dataclass or attrs class. Note that
-typically ``structured_config_mode=SCMode.INSTANTIATE`` makes the most sense
-when combined with ``resolve=True``, so that interpolations are resolved before
-being used to instantiate dataclass/attr class instances.
+when ``structured_config_mode=SCMode.INSTANTIATE``, interpolations nested within
+a structured config node will be resolved, even if ``OmegaConf.to_container`` is called
+with the the keyword argument ``resolve=False``, so that interpolations are resolved before
+being used to instantiate dataclass/attr class instances. Interpolations within
+non-structured parent nodes will be resolved (or not) as usual, according to
+the ``resolve`` keyword arg.
+Similarly, when ``structured_config_mode=SCMode.INSTANTIATE``, enum values nested within a
+structured config node will not be converted to ``str``, even if ``OmegaConf.to_container``
+is called with ``enum_to_str=True``.
 
 .. doctest::
 

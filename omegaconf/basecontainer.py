@@ -213,8 +213,12 @@ class BaseContainer(Container, ABC):
                 and structured_config_mode == SCMode.DICT_CONFIG
             ):
                 return conf
+            if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
+                conf._metadata.object_type
+            ):
+                return conf._to_object()
 
-            ret: Any = {}
+            retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
@@ -225,20 +229,16 @@ class BaseContainer(Container, ABC):
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
                 if isinstance(node, Container):
-                    ret[key] = BaseContainer._to_content(
+                    retdict[key] = BaseContainer._to_content(
                         node,
                         resolve=resolve,
                         enum_to_str=enum_to_str,
                         structured_config_mode=structured_config_mode,
                     )
                 else:
-                    ret[key] = convert(node)
+                    retdict[key] = convert(node)
 
-            if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
-                conf._metadata.object_type
-            ):
-                ret = conf._instantiate_structured_config_impl(instance_data=ret)
-            return ret
+            return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
@@ -261,34 +261,6 @@ class BaseContainer(Container, ABC):
             return retlist
 
         assert False
-
-    def _instantiate_structured_config_impl(self, instance_data: Dict[str, Any]) -> Any:
-        """Instantiate an instance of `self._metadata.object_type`, populated by `instance_data`."""
-        from ._utils import get_structured_config_field_names
-
-        object_type = self._metadata.object_type
-        object_type_field_names = set(get_structured_config_field_names(object_type))
-
-        field_items: Dict[str, Any] = {}
-        nonfield_items: Dict[str, Any] = {}
-        for k, v in instance_data.items():
-            if _is_missing_literal(v):
-                self._format_and_raise(
-                    key=k,
-                    value=None,
-                    cause=MissingMandatoryValue(
-                        "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
-                    ),
-                )
-            if k in object_type_field_names:
-                field_items[k] = v
-            else:
-                nonfield_items[k] = v
-
-        result = object_type(**field_items)
-        for k, v in nonfield_items.items():
-            setattr(result, k, v)
-        return result
 
     def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
         from omegaconf import OmegaConf

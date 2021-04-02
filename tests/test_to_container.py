@@ -328,19 +328,40 @@ class TestInstantiateStructuredConfigs:
 
     def test_to_container_INSTANTIATE_resolve_False(self, module: Any) -> None:
         """Test the lower level `to_container` API with SCMode.INSTANTIATE and resolve=False"""
-        serialized = OmegaConf.structured(module.Interpolation)
-        interp = OmegaConf.to_container(
-            serialized, resolve=False, structured_config_mode=SCMode.INSTANTIATE
+        src = dict(
+            obj=module.RelativeInterpolation(),
+            interp_x="${obj.x}",
+            interp_x_y="${obj.x}_${obj.x}",
         )
-        assert isinstance(interp, module.Interpolation)
-        assert type(interp) is module.Interpolation
+        nested = OmegaConf.create(src)
+        container = OmegaConf.to_container(
+            nested, resolve=False, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, dict)
+        assert container["interp_x"] == "${obj.x}"
+        assert container["interp_x_y"] == "${obj.x}_${obj.x}"
+        assert container["obj"].z1 == 100
+        assert container["obj"].z2 == "100_200"
 
-        assert interp.z1 == "${x}"
-        assert interp.z2 == "${x}_${y}"
+    def test_to_container_INSTANTIATE_enum_to_str_True(self, module: Any) -> None:
+        """Test the lower level `to_container` API with SCMode.INSTANTIATE and resolve=False"""
+        src = dict(
+            color=Color.BLUE,
+            obj=module.EnumOptional(),
+        )
+        nested = OmegaConf.create(src)
+        container = OmegaConf.to_container(
+            nested, enum_to_str=True, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, dict)
+        assert container["color"] == "BLUE"
+        assert container["obj"].not_optional is Color.BLUE
 
     def test_to_object_InterpolationResolutionError(self, module: Any) -> None:
         with raises(InterpolationResolutionError):
-            self.round_trip_to_object(module.NestedWithAny)
+            cfg = OmegaConf.structured(module.NestedWithAny)
+            cfg.var.mandatory_missing = 123
+            OmegaConf.to_object(cfg)
 
     def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithAny())

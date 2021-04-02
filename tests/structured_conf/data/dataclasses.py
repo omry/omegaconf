@@ -240,6 +240,14 @@ class Interpolation:
 
 
 @dataclass
+class RelativeInterpolation:
+    x: int = 100
+    y: int = 200
+    z1: int = II(".x")
+    z2: str = SI("${.x}_${.y}")
+
+
+@dataclass
 class BoolOptional:
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
