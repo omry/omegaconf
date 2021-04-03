@@ -905,9 +905,10 @@ class TestDictSubclass:
             cfg[Color.RED]
 
     def test_dict_subclass_data_preserved_upon_node_creation(self, module: Any) -> None:
-        src = module.DictSubclass.Str2Str()
+        src = module.DictSubclass.Str2StrWithField()
         src["baz"] = "qux"
         cfg = OmegaConf.structured(src)
+        assert cfg.foo == "bar"
         assert cfg.baz == "qux"
 
     def test_create_dict_subclass_with_bad_value_type(self, module: Any) -> None:
