@@ -198,10 +198,11 @@ class TestSelect:
             {"a": {"b": {"c": 10}}, "z": 10},
         )
         OmegaConf.set_struct(cfg, struct)
-        assert OmegaConf.select(cfg.a, ".") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, "..") == {"a": {"b": {"c": 10}}, "z": 10}
-        assert OmegaConf.select(cfg.a, "..a") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, "..z") == 10
+        assert OmegaConf.select(cfg.a, "") == {"b": {"c": 10}}
+        assert OmegaConf.select(cfg.a, "b") == {"c": 10}
+        assert OmegaConf.select(cfg.a, ".") == {"a": {"b": {"c": 10}}, "z": 10}
+        assert OmegaConf.select(cfg.a, ".a") == {"b": {"c": 10}}
+        assert OmegaConf.select(cfg.a, ".z") == 10
 
 
 @mark.parametrize(
@@ -261,13 +262,3 @@ def test_select_resolves_interpolation(cfg: Any, key: str, expected: Any) -> Non
             OmegaConf.select(cfg, key)
     else:
         assert OmegaConf.select(cfg, key) == expected
-
-
-def test_select_relative_from_nested_node() -> None:
-    cfg = OmegaConf.create(
-        {"a": {"b": {"c": 10}}, "z": 10},
-    )
-    assert OmegaConf.select(cfg.a, ".") == {"b": {"c": 10}}
-    assert OmegaConf.select(cfg.a, "..") == {"a": {"b": {"c": 10}}, "z": 10}
-    assert OmegaConf.select(cfg.a, "..a") == {"b": {"c": 10}}
-    assert OmegaConf.select(cfg.a, "..z") == 10
