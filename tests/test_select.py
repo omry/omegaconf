@@ -257,10 +257,10 @@ inp: Any = {"a": {"b": {"c": 10}}, "z": 10}
 
 
 class TestSelectFromNestedNode:
-    # all selects are performed on cfg.a:
     @mark.parametrize(
         ("key", "expected"),
         [
+            # all selects are performed on cfg.a:
             # relative keys
             (".", inp["a"]),
             (".b", inp["a"]["b"]),
@@ -279,10 +279,10 @@ class TestSelectFromNestedNode:
         assert OmegaConf.select(cfg.a, key, absolute_key=False) == expected
         assert OmegaConf.select(cfg.a, key, absolute_key=True) == expected
 
-    # all selects are performed on cfg.a:
     @mark.parametrize(
         ("key", "expected"),
         [
+            # all selects are performed on cfg.a:
             # absolute keys are relative to the calling node
             ("", inp["a"]),
             ("b", inp["a"]["b"]),
@@ -298,6 +298,7 @@ class TestSelectFromNestedNode:
     @mark.parametrize(
         ("key", "expected"),
         [
+            # all selects are performed on cfg.a:
             # absolute keys are relative to the config root
             ("", inp),
             ("a", inp["a"]),
