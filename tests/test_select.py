@@ -193,16 +193,6 @@ class TestSelect:
         ):
             cfg.select("foo")
 
-    def test_select_relative_from_nested_node(self, struct: Optional[bool]) -> None:
-        cfg = OmegaConf.create(
-            {"a": {"b": {"c": 10}}, "z": 10},
-        )
-        OmegaConf.set_struct(cfg, struct)
-        assert OmegaConf.select(cfg.a, ".") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, "..") == {"a": {"b": {"c": 10}}, "z": 10}
-        assert OmegaConf.select(cfg.a, "..a") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, "..z") == 10
-
 
 @mark.parametrize(
     "cfg,key,expected",
@@ -263,11 +253,62 @@ def test_select_resolves_interpolation(cfg: Any, key: str, expected: Any) -> Non
         assert OmegaConf.select(cfg, key) == expected
 
 
-def test_select_relative_from_nested_node() -> None:
-    cfg = OmegaConf.create(
-        {"a": {"b": {"c": 10}}, "z": 10},
+inp: Any = {"a": {"b": {"c": 10}}, "z": 10}
+
+
+class TestSelectFromNestedNode:
+    @mark.parametrize(
+        ("key", "expected"),
+        [
+            # all selects are performed on cfg.a:
+            # relative keys
+            (".", inp["a"]),
+            (".b", inp["a"]["b"]),
+            (".b.c", inp["a"]["b"]["c"]),
+            ("..", inp),
+            ("..a", inp["a"]),
+            ("..a.b", inp["a"]["b"]),
+            ("..z", inp["z"]),
+        ],
     )
-    assert OmegaConf.select(cfg.a, ".") == {"b": {"c": 10}}
-    assert OmegaConf.select(cfg.a, "..") == {"a": {"b": {"c": 10}}, "z": 10}
-    assert OmegaConf.select(cfg.a, "..a") == {"b": {"c": 10}}
-    assert OmegaConf.select(cfg.a, "..z") == 10
+    def test_select_from_nested_node_with_a_relative_key(
+        self, key: str, expected: Any
+    ) -> None:
+        cfg = OmegaConf.create(inp)
+        # select returns the same result when a key is relative independent of absolute_key flag.
+        assert OmegaConf.select(cfg.a, key, absolute_key=False) == expected
+        assert OmegaConf.select(cfg.a, key, absolute_key=True) == expected
+
+    @mark.parametrize(
+        ("key", "expected"),
+        [
+            # all selects are performed on cfg.a:
+            # absolute keys are relative to the calling node
+            ("", inp["a"]),
+            ("b", inp["a"]["b"]),
+            ("b.c", inp["a"]["b"]["c"]),
+        ],
+    )
+    def test_select_from_nested_node_relative_key_interpretation(
+        self, key: str, expected: Any
+    ) -> None:
+        cfg = OmegaConf.create(inp)
+        assert OmegaConf.select(cfg.a, key, absolute_key=False) == expected
+
+    @mark.parametrize(
+        ("key", "expected"),
+        [
+            # all selects are performed on cfg.a:
+            # absolute keys are relative to the config root
+            ("", inp),
+            ("a", inp["a"]),
+            ("a.b", inp["a"]["b"]),
+            ("a.b.c", inp["a"]["b"]["c"]),
+            ("z", inp["z"]),
+        ],
+    )
+    def test_select_from_nested_node_absolute_key_interpretation(
+        self, key: str, expected: Any
+    ) -> None:
+        cfg = OmegaConf.create(inp)
+        assert OmegaConf.select(cfg.a, key, absolute_key=True) == expected

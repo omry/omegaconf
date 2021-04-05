@@ -676,9 +676,29 @@ class OmegaConf:
         default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
+        absolute_key: bool = False,
     ) -> Any:
+        """
+        :param cfg: Config node to select from
+        :param key: Key to select
+        :param default: Default value to return if key is not found
+        :param throw_on_resolution_failure: Raise an exception if an interpolation
+               resolution error occurs, otherwise return None
+        :param throw_on_missing: Raise an exception if an attempt to select a missing key (with the value '???')
+               is made, otherwise return None
+        :param absolute_key: True to treat non-relative keys as relative to the config root
+                             False (default) to treat non-relative keys as relative to cfg
+        :return: selected value or None if not found.
+        """
         try:
             try:
+                # for non relative keys, the interpretation can be:
+                # 1. relative to cfg
+                # 2. relative to the config root
+                # This is controlled by the absolute_key flag. By default, such keys are relative to cfg.
+                if not absolute_key and not key.startswith("."):
+                    key = f".{key}"
+
                 cfg, key = cfg._resolve_key_and_root(key)
                 _root, _last_key, value = cfg._select_impl(
                     key,
