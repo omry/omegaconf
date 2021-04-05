@@ -676,14 +676,14 @@ class OmegaConf:
         default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
+        absolute_key: bool = False,
     ) -> Any:
         try:
             try:
-                # keys are interpreted relative by default.
-                # If provided key is not relative, prepend the first .
-                if not key.startswith("."):
-                    key = f".{key}"
-
+                if not absolute_key:
+                    # keys are interpreted relative. If provided key is not relative, prepend the first `.`
+                    if not key.startswith("."):
+                        key = f".{key}"
                 cfg, key = cfg._resolve_key_and_root(key)
                 _root, _last_key, value = cfg._select_impl(
                     key,
