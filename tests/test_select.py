@@ -194,15 +194,21 @@ class TestSelect:
             cfg.select("foo")
 
     def test_select_relative_from_nested_node(self, struct: Optional[bool]) -> None:
-        cfg = OmegaConf.create(
-            {"a": {"b": {"c": 10}}, "z": 10},
-        )
+        input_cfg: Any = {"a": {"b": {"c": 10}}, "z": 10}
+        cfg = OmegaConf.create(input_cfg)
         OmegaConf.set_struct(cfg, struct)
-        assert OmegaConf.select(cfg.a, "") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, "b") == {"c": 10}
-        assert OmegaConf.select(cfg.a, ".") == {"a": {"b": {"c": 10}}, "z": 10}
-        assert OmegaConf.select(cfg.a, ".a") == {"b": {"c": 10}}
-        assert OmegaConf.select(cfg.a, ".z") == 10
+        # absolute keys are relative to the calling node
+        assert OmegaConf.select(cfg.a, "") == input_cfg["a"]
+        assert OmegaConf.select(cfg.a, "b") == input_cfg["a"]["b"]
+        assert OmegaConf.select(cfg.a, "b.c") == input_cfg["a"]["b"]["c"]
+        # relative keys
+        assert OmegaConf.select(cfg.a, ".") == input_cfg["a"]
+        assert OmegaConf.select(cfg.a, ".b") == input_cfg["a"]["b"]
+        assert OmegaConf.select(cfg.a, ".b.c") == input_cfg["a"]["b"]["c"]
+        assert OmegaConf.select(cfg.a, "..") == input_cfg
+        assert OmegaConf.select(cfg.a, "..a") == input_cfg["a"]
+        assert OmegaConf.select(cfg.a, "..a.b") == input_cfg["a"]["b"]
+        assert OmegaConf.select(cfg.a, "..z") == input_cfg["z"]
 
 
 @mark.parametrize(

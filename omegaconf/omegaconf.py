@@ -679,10 +679,11 @@ class OmegaConf:
     ) -> Any:
         try:
             try:
-                if cfg._parent is not None:
-                    # select is relative to the node its called on.
-                    # if called on none-root, prepend dot.
+                # keys are interpreted relative by default.
+                # If provided key is not relative, prepend the first .
+                if not key.startswith("."):
                     key = f".{key}"
+
                 cfg, key = cfg._resolve_key_and_root(key)
                 _root, _last_key, value = cfg._select_impl(
                     key,
