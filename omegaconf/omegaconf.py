@@ -98,7 +98,7 @@ def register_default_resolvers() -> None:
     # DEPRECATED: remove in 2.2
     def legacy_env(key: str, default: Optional[str] = None) -> Any:
         warnings.warn(
-            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573",
+            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573"
         )
 
         try:
@@ -109,22 +109,21 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    def env(key: str, default: Optional[str] = _DEFAULT_MARKER_) -> Optional[str]:
-        if (
-            default is not _DEFAULT_MARKER_
-            and default is not None
-            and not isinstance(default, str)
-        ):
-            raise TypeError(
-                f"The default value of the `oc.env` resolver must be a string or "
-                f"None, but `{default}` is of type {type(default).__name__}"
-            )
-
+    def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
+        """
+        :param key: Environment variable key
+        :param default: Optional default value to use in case the key environment variable is not set.
+                        If default is not a string, it is converted with str(default).
+                        None default is returned as is.
+        :return: The environment variable 'key'. If the environment variable is not set and a default is
+                provided, the default is used. If used, the default is converted to a string with str(default).
+                If the default is None, None is returned (without a string conversion).
+        """
         try:
             return os.environ[key]
         except KeyError:
             if default is not _DEFAULT_MARKER_:
-                return default
+                return str(default) if default is not None else None
             else:
                 raise KeyError(f"Environment variable '{key}' not found")
 

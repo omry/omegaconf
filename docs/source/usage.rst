@@ -403,8 +403,9 @@ Input YAML file:
     >>> conf.user.home
     '/home/omry'
 
-You can specify a default value to use in case the environment variable is not defined.
-This default value can be a string or ``null`` (representing Python ``None``). Passing a default with a different type will result in an error.
+You can specify a default value to use in case the environment variable is not set.
+In such a case, the default value is converted to a string using ``str(default)``, unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned. 
+
 The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
 .. doctest::
@@ -412,15 +413,21 @@ The following example falls back to default passwords when ``DB_PASSWORD`` is no
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "database": {
-    ...             "password1": "${oc.env:DB_PASSWORD,abc123}",
-    ...             "password2": "${oc.env:DB_PASSWORD,'12345'}",
+    ...             "password1": "${oc.env:DB_PASSWORD,password}",
+    ...             "password2": "${oc.env:DB_PASSWORD,12345}",
+    ...             "password3": "${oc.env:DB_PASSWORD,null}",
     ...         },
     ...     }
     ... )
-    >>> cfg.database.password1  # the string 'abc123'
-    'abc123'
-    >>> cfg.database.password2  # the string '12345'
-    '12345'
+    >>> # default is already a string
+    >>> show(cfg.database.password1)
+    type: str, value: 'password'
+    >>> # default is converted to a string automatically
+    >>> show(cfg.database.password2)
+    type: str, value: '12345'
+    >>> # unless it's None
+    >>> show(cfg.database.password3)
+    type: NoneType, value: None
 
 
 Decoding strings with interpolations

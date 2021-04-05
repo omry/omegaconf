@@ -162,19 +162,11 @@ def test_env_default_none(monkeypatch: Any) -> None:
     assert c.my_key is None
 
 
-@mark.parametrize("has_var", [True, False])
-def test_env_non_str_default(monkeypatch: Any, has_var: bool) -> None:
-    if has_var:
-        monkeypatch.setenv("MYKEY", "456")
-    else:
-        monkeypatch.delenv("MYKEY", raising=False)
-
+def test_env_non_str_default(monkeypatch: Any) -> None:
     c = OmegaConf.create({"my_key": "${oc.env:MYKEY, 123}"})
-    with raises(
-        InterpolationResolutionError,
-        match=re.escape(
-            "TypeError raised while resolving interpolation: The default value "
-            "of the `oc.env` resolver must be a string or None, but `123` is of type int"
-        ),
-    ):
-        c.my_key
+
+    monkeypatch.setenv("MYKEY", "456")
+    assert c.my_key == "456"
+
+    monkeypatch.delenv("MYKEY")
+    assert c.my_key == "123"
