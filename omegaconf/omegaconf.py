@@ -692,7 +692,10 @@ class OmegaConf:
         """
         try:
             try:
-                # keys are interpreted relative. If provided key is not relative, prepend the first `.`
+                # for non relative keys, the interpretation can be:
+                # 1. relative to cfg
+                # 2. relative to the config root
+                # This is controlled by the absolute_key flag. By default, such keys are relative to cfg.
                 if not absolute_key and not key.startswith("."):
                     key = f".{key}"
 
