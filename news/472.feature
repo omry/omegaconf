@@ -1,1 +1,1 @@
-Add the OmegaConf.to_object method, which converts Structured Config objects back to native dataclasses or attrs classes.
+Add the OmegaConf.to_object method, which converts Structured Configs to native instances of the underlying `@dataclass` or `@attr.s` class.
