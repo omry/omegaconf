@@ -790,14 +790,16 @@ class OmegaConf:
         split = split_key(key)
         root = cfg
         for i in range(len(split) - 1):
-            struct_override = False if force_add else root._get_node_flag("struct")
-            with flag_override(root, "struct", struct_override):
-                k = split[i]
-                # if next_root is a primitive (string, int etc) replace it with an empty map
-                next_root, key_ = _select_one(root, k, throw_on_missing=False)
-                if not isinstance(next_root, Container):
+            k = split[i]
+            # if next_root is a primitive (string, int etc) replace it with an empty map
+            next_root, key_ = _select_one(root, k, throw_on_missing=False)
+            if not isinstance(next_root, Container):
+                if force_add:
+                    with flag_override(root, "struct", False):
+                        root[key_] = {}
+                else:
                     root[key_] = {}
-                root = root[key_]
+            root = root[key_]
 
         last = split[-1]
 
