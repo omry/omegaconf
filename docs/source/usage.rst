@@ -784,9 +784,6 @@ with the the keyword argument ``resolve=False``, so that interpolations are reso
 being used to instantiate dataclass/attr class instances. Interpolations within
 non-structured parent nodes will be resolved (or not) as usual, according to
 the ``resolve`` keyword arg.
-Similarly, when ``structured_config_mode=SCMode.INSTANTIATE``, enum values nested within a
-structured config node will not be converted to ``str``, even if ``OmegaConf.to_container``
-is called with ``enum_to_str=True``.
 
 .. doctest::
 
