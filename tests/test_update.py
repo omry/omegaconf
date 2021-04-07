@@ -7,7 +7,7 @@ from pytest import mark, param, raises, warns
 from omegaconf import ListConfig, OmegaConf, ValidationError
 from omegaconf._utils import _ensure_container, is_primitive_container
 from omegaconf.errors import ConfigAttributeError, ConfigKeyError
-from tests import Package
+from tests import Package, User
 
 
 @mark.parametrize(
@@ -207,6 +207,13 @@ def test_merge_deprecation() -> None:
         param({}, "a.b", {"c": 10}, {"a": {"b": {"c": 10}}}, id="add_dict"),
         param({}, "a", [1, 2], {"a": [1, 2]}, id="add_list"),
         param({}, "a.b", [1, 2], {"a": {"b": [1, 2]}}, id="add_list"),
+        param(
+            {"user": User(name="Bond", age=7)},
+            "user.location",
+            "London",
+            {"user": {"name": "Bond", "age": 7, "location": "London"}},
+            id="inserting_into_nested_structured_config",
+        ),
     ],
 )
 def test_update_force_add(cfg: Any, key: str, value: Any, expected: Any) -> None:

@@ -863,7 +863,7 @@ OmegaConf.update() allows you to update values in your config using either a dot
 
 The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
 being assigned.
-The force_add flag ensures a the path is created even if it will result in insertion of new values into struct nodes.
+The force_add flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
 
 .. doctest::
 
