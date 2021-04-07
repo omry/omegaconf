@@ -517,16 +517,6 @@ class Container(Node):
             )
         else:
             assert isinstance(resolved, Node)
-            if (
-                parent is not None
-                and resolved._parent is parent
-                and resolved._key() is None
-                and value._key() is not None
-            ):
-                # The interpolation is returning a transient (key-less) node attached
-                # to the current parent. By setting its key to this node's key, we make
-                # it possible to refer to it through an interpolation path.
-                resolved._set_key(value._key())
             return resolved
 
     def _wrap_interpolation_result(

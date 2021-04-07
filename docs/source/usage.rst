@@ -473,8 +473,9 @@ Some config options that are stored as a ``DictConfig`` may sometimes be easier 
 when we care only about the keys or the associated values.
 
 The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by extracting respectively
-the list of keys and values from ``dict``-like objects like ``DictConfig``.
-If a string is given as input, ``OmegaConf.select()`` is used to access the corresponding config node.
+the list of keys and values from existing config nodes.
+They take as input a string that is the path to another config node (using the same syntax
+as interpolations) and return a ``ListConfig`` with its keys / values.
 
 .. doctest::
 
@@ -484,10 +485,8 @@ If a string is given as input, ``OmegaConf.select()`` is used to access the corr
     ...             "node3": "10.0.0.2",
     ...             "node7": "10.0.0.9",
     ...         },
-    ...         # Obtaining keys with explicit interpolation as input.
-    ...         "nodes": "${oc.dict.keys:${workers}}",
-    ...         # Obtaining values with node name as input.
-    ...         "ips": "${oc.dict.values:workers}",
+    ...         "nodes": "${oc.dict.keys: workers}",
+    ...         "ips": "${oc.dict.values: workers}",
     ...     }
     ... )
     >>> # Keys are copied from the DictConfig:

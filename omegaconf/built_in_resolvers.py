@@ -58,10 +58,10 @@ def dict_values(key: str, _root_: BaseContainer, _parent_: Container) -> ListCon
         key, parent=_parent_, resolver_name="oc.dict.values"
     )
 
-    ret = ListConfig([])
     content = in_dict._content
     assert isinstance(content, dict)
 
+    ret = ListConfig([])
     for k, node in content.items():
         ref_node = AnyNode(f"${{{key}.{k}}}")
         ret.append(ref_node)
@@ -130,7 +130,6 @@ def _get_and_validate_dict_input(
 
     if in_dict is _DEFAULT_SELECT_MARKER_:
         raise ConfigKeyError(f"Key not found: '{key}'")
-    assert in_dict is not None
 
     if not isinstance(in_dict, DictConfig):
         raise TypeError(
