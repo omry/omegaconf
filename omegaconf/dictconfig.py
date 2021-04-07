@@ -686,7 +686,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         return True
 
     def _to_object(self) -> Any:
-        """Instantiate an instance of `self._metadata.object_type`.
+        """
+        Instantiate an instance of `self._metadata.object_type`.
         This requires `self` to be a structured config.
         Nested subconfigs are converted to_container with resolve=True.
         """
