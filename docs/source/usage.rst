@@ -900,6 +900,7 @@ OmegaConf.update() allows you to update values in your config using either a dot
 
 The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
 being assigned.
+The force_add flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
 
 .. doctest::
 
@@ -913,6 +914,10 @@ being assigned.
     >>> # Merge dictionary value (using bracket notation)
     >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
     >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
+    >>> # force_add ignores nodes in struct mode and updates anyway.
+    >>> OmegaConf.set_struct(cfg, True)
+    >>> OmegaConf.update(cfg, "a.b.c.d", 10, merge=True, force_add=True)
+    >>> assert cfg.a.b.c.d == 10
 
 
 

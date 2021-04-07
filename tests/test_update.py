@@ -6,7 +6,8 @@ from pytest import mark, param, raises, warns
 
 from omegaconf import ListConfig, OmegaConf, ValidationError
 from omegaconf._utils import _ensure_container, is_primitive_container
-from tests import Package
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError
+from tests import Package, User
 
 
 @mark.parametrize(
@@ -195,3 +196,32 @@ def test_merge_deprecation() -> None:
     with warns(UserWarning, match=re.escape(msg)):
         OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
         assert cfg == {"a": {"c": 20}}
+
+
+@mark.parametrize(
+    "cfg,key,value,expected",
+    [
+        param({}, "a", 10, {"a": 10}, id="add_value"),
+        param({}, "a.b", 10, {"a": {"b": 10}}, id="add_value"),
+        param({}, "a", {"b": 10}, {"a": {"b": 10}}, id="add_dict"),
+        param({}, "a.b", {"c": 10}, {"a": {"b": {"c": 10}}}, id="add_dict"),
+        param({}, "a", [1, 2], {"a": [1, 2]}, id="add_list"),
+        param({}, "a.b", [1, 2], {"a": {"b": [1, 2]}}, id="add_list"),
+        param(
+            {"user": User(name="Bond", age=7)},
+            "user.location",
+            "London",
+            {"user": {"name": "Bond", "age": 7, "location": "London"}},
+            id="inserting_into_nested_structured_config",
+        ),
+    ],
+)
+def test_update_force_add(cfg: Any, key: str, value: Any, expected: Any) -> None:
+    cfg = _ensure_container(cfg)
+    OmegaConf.set_struct(cfg, True)
+
+    with raises((ConfigAttributeError, ConfigKeyError)):  # type: ignore
+        OmegaConf.update(cfg, key, value, merge=True, force_add=False)
+
+    OmegaConf.update(cfg, key, value, merge=True, force_add=True)
+    assert cfg == expected

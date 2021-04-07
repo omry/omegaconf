@@ -754,7 +754,12 @@ class OmegaConf:
 
     @staticmethod
     def update(
-        cfg: Container, key: str, value: Any = None, merge: Optional[bool] = None
+        cfg: Container,
+        key: str,
+        value: Any = None,
+        *,
+        merge: Optional[bool] = None,
+        force_add: bool = False,
     ) -> None:
         """
         Updates a dot separated key sequence to a value
@@ -766,7 +771,8 @@ class OmegaConf:
         :param merge: If value is a dict or a list, True for merge, False for set.
             True to merge
             False to set
-            None (default) : deprecation warning and default to False
+            None (default): deprecation warning and default to False
+        :param force_add: insert the entire path regardless of Struct flag or Structured Config nodes.
         """
 
         if merge is None:
@@ -784,12 +790,14 @@ class OmegaConf:
         split = split_key(key)
         root = cfg
         for i in range(len(split) - 1):
-            k = split[i]
-            # if next_root is a primitive (string, int etc) replace it with an empty map
-            next_root, key_ = _select_one(root, k, throw_on_missing=False)
-            if not isinstance(next_root, Container):
-                root[key_] = {}
-            root = root[key_]
+            struct_override = False if force_add else root._get_node_flag("struct")
+            with flag_override(root, "struct", struct_override):
+                k = split[i]
+                # if next_root is a primitive (string, int etc) replace it with an empty map
+                next_root, key_ = _select_one(root, k, throw_on_missing=False)
+                if not isinstance(next_root, Container):
+                    root[key_] = {}
+                root = root[key_]
 
         last = split[-1]
 
@@ -801,22 +809,24 @@ class OmegaConf:
         if isinstance(root, ListConfig):
             last_key = int(last)
 
-        if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
-            assert isinstance(root, BaseContainer)
-            node = root._get_node(last_key)
-            if OmegaConf.is_config(node):
-                assert isinstance(node, BaseContainer)
-                node.merge_with(value)
-                return
+        struct_override = False if force_add else root._get_node_flag("struct")
+        with flag_override(root, "struct", struct_override):
+            if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
+                assert isinstance(root, BaseContainer)
+                node = root._get_node(last_key)
+                if OmegaConf.is_config(node):
+                    assert isinstance(node, BaseContainer)
+                    node.merge_with(value)
+                    return
 
-        if OmegaConf.is_dict(root):
-            assert isinstance(last_key, str)
-            root.__setattr__(last_key, value)
-        elif OmegaConf.is_list(root):
-            assert isinstance(last_key, int)
-            root.__setitem__(last_key, value)
-        else:
-            assert False
+            if OmegaConf.is_dict(root):
+                assert isinstance(last_key, str)
+                root.__setattr__(last_key, value)
+            elif OmegaConf.is_list(root):
+                assert isinstance(last_key, int)
+                root.__setitem__(last_key, value)
+            else:
+                assert False
 
     @staticmethod
     def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
