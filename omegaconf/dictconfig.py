@@ -687,7 +687,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _to_object(self) -> Any:
         """Instantiate an instance of `self._metadata.object_type`.
         This requires `self` to be a structured config.
-        Nested subconfigs are converted to_container with resolve=True."""
+        Nested subconfigs are converted to_container with resolve=True.
+        """
         from ._utils import get_structured_config_field_names
 
         object_type = self._metadata.object_type
