@@ -158,6 +158,14 @@ def test_update_force_add(
     if force_add:
         OmegaConf.set_struct(large_dict_config, True)
 
+    def recursive_is_struct(node: Any) -> None:
+        if OmegaConf.is_config(node):
+            OmegaConf.is_struct(node)
+            for val in node.values():
+                recursive_is_struct(val)
+
+    recursive_is_struct(large_dict_config)
+
     benchmark(
         OmegaConf.update,
         large_dict_config,
