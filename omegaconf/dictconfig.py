@@ -707,7 +707,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     resolve=True,
                     enum_to_str=False,
                     structured_config_mode=SCMode.INSTANTIATE,
-                    # TODO: throw_on_missing=True,
                 )
             else:
                 v = node._value()
