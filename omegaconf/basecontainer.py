@@ -223,9 +223,8 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(throw_on_resolution_failure=True)
+                    node = node._dereference_node()
 
-                assert node is not None
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
                 if isinstance(node, Container):
@@ -244,8 +243,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(index)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(throw_on_resolution_failure=True)
-                assert node is not None
+                    node = node._dereference_node()
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(
                         node,

@@ -201,13 +201,10 @@ class Node(ABC):
     def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
         ...
 
-    def _dereference_node(
-        self,
-        throw_on_resolution_failure: bool = True,
-    ) -> Optional["Node"]:
-        return self._dereference_node_impl(
-            throw_on_resolution_failure=throw_on_resolution_failure
-        )
+    def _dereference_node(self) -> "Node":
+        node = self._dereference_node_impl(throw_on_resolution_failure=True)
+        assert node is not None
+        return node
 
     def _maybe_dereference_node(
         self,
