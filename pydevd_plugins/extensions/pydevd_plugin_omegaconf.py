@@ -76,7 +76,7 @@ class OmegaConfUserResolver(StrPresentationProvider):  # type: ignore
 
     def _get_dictionary(self, obj: Any) -> Dict[str, Any]:
         if isinstance(obj, self.Node):
-            obj = obj._dereference_node(throw_on_resolution_failure=False)
+            obj = obj._maybe_dereference_node()
             if obj is None or obj._is_none() or obj._is_missing():
                 return {}
 

@@ -349,9 +349,7 @@ class BaseContainer(Container, ABC):
                 expand(dest_node)
 
             if dest_node is not None and dest_node._is_interpolation():
-                target_node = dest_node._dereference_node(
-                    throw_on_resolution_failure=False
-                )
+                target_node = dest_node._maybe_dereference_node()
                 if isinstance(target_node, Container):
                     dest[key] = target_node
                     dest_node = dest._get_node(key)
@@ -630,9 +628,9 @@ class BaseContainer(Container, ABC):
         dv2: Optional[Node] = v2
 
         if v1_inter:
-            dv1 = v1._dereference_node(throw_on_resolution_failure=False)
+            dv1 = v1._maybe_dereference_node()
         if v2_inter:
-            dv2 = v2._dereference_node(throw_on_resolution_failure=False)
+            dv2 = v2._maybe_dereference_node()
 
         if v1_inter and v2_inter:
             if dv1 is None or dv2 is None:

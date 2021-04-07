@@ -209,6 +209,14 @@ class Node(ABC):
             throw_on_resolution_failure=throw_on_resolution_failure
         )
 
+    def _maybe_dereference_node(
+        self,
+        throw_on_resolution_failure: bool = False,
+    ) -> Optional["Node"]:
+        return self._dereference_node_impl(
+            throw_on_resolution_failure=throw_on_resolution_failure
+        )
+
     def _dereference_node_impl(
         self,
         throw_on_resolution_failure: bool = True,
@@ -390,7 +398,7 @@ class Container(Node):
                 throw_on_type_error=throw_on_resolution_failure,
             )
             if isinstance(ret, Node):
-                ret = ret._dereference_node(
+                ret = ret._maybe_dereference_node(
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
 
