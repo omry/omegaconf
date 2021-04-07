@@ -778,11 +778,24 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> show(resolved)
     type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
+
+Using ``structured_config_mode``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can customize the treatment of ``OmegaConf.to_container()`` for
 Structured Config nodes using the ``structured_config_mode`` option.
 By default, Structured Config nodes are converted to plain dict.
+
 Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as DictConfig, allowing attribute style access on the resulting node.
+
+Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
+are converted to instances of the backing dataclass or attrs class. Note that
+when ``structured_config_mode=SCMode.INSTANTIATE``, interpolations nested within
+a structured config node will be resolved, even if ``OmegaConf.to_container`` is called
+with the the keyword argument ``resolve=False``, so that interpolations are resolved before
+being used to instantiate dataclass/attr class instances. Interpolations within
+non-structured parent nodes will be resolved (or not) as usual, according to
+the ``resolve`` keyword arg.
 
 .. doctest::
 
@@ -794,6 +807,30 @@ as DictConfig, allowing attribute style access on the resulting node.
     type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
     >>> show(container["structured_config"])
     type: DictConfig, value: {'port': 80, 'host': 'localhost'}
+
+OmegaConf.to_object
+^^^^^^^^^^^^^^^^^^^^^^
+The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
+into dicts and lists, with the exception that Structured Config objects are
+converted into instances of the backing dataclass or attr class.  All OmegaConf
+interpolations are resolved before conversion to Python containers.
+
+.. doctest::
+
+    >>> container = OmegaConf.to_object(conf)
+    >>> show(container)
+    type: dict, value: {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> show(container["structured_config"])
+    type: MyConfig, value: MyConfig(port=80, host='localhost')
+
+Note that here, ``container["structured_config"]`` is actually an instance of
+``MyConfig``, whereas in the previous examples we had a ``dict`` or a
+``DictConfig`` object that was duck-typed to look like an instance of
+``MyConfig``.
+
+The call ``OmegaConf.to_object(conf)`` is equivalent to
+``OmegaConf.to_container(conf, resolve=True,
+structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.resolve
 ^^^^^^^^^^^^^^^^^

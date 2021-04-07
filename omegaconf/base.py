@@ -728,5 +728,6 @@ class Container(Node):
 
 
 class SCMode(Enum):
-    DICT = 1  # convert to plain dict
+    DICT = 1  # Convert to plain dict
     DICT_CONFIG = 2  # Keep as OmegaConf DictConfig
+    INSTANTIATE = 3  # Create a dataclass or attrs class instance

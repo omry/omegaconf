@@ -213,6 +213,10 @@ class BaseContainer(Container, ABC):
                 and structured_config_mode == SCMode.DICT_CONFIG
             ):
                 return conf
+            if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
+                conf._metadata.object_type
+            ):
+                return conf._to_object()
 
             retdict: Dict[str, Any] = {}
             for key in conf.keys():

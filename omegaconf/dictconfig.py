@@ -20,11 +20,13 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
+    get_structured_config_field_names,
     get_type_of,
     get_value_kind,
     is_container_annotation,
@@ -35,7 +37,7 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -682,3 +684,48 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 return False
 
         return True
+
+    def _to_object(self) -> Any:
+        """
+        Instantiate an instance of `self._metadata.object_type`.
+        This requires `self` to be a structured config.
+        Nested subconfigs are converted to_container with resolve=True.
+        """
+        object_type = self._metadata.object_type
+        assert is_structured_config(object_type)
+        object_type_field_names = set(get_structured_config_field_names(object_type))
+
+        field_items: Dict[str, Any] = {}
+        nonfield_items: Dict[str, Any] = {}
+        for k in self.keys():
+            node = self._get_node(k)
+            assert isinstance(node, Node)
+            node = node._dereference_node(throw_on_resolution_failure=True)
+            assert node is not None
+            if isinstance(node, Container):
+                v = BaseContainer._to_content(
+                    node,
+                    resolve=True,
+                    enum_to_str=False,
+                    structured_config_mode=SCMode.INSTANTIATE,
+                )
+            else:
+                v = node._value()
+
+            if _is_missing_literal(v):
+                self._format_and_raise(
+                    key=k,
+                    value=None,
+                    cause=MissingMandatoryValue(
+                        "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
+                    ),
+                )
+            if k in object_type_field_names:
+                field_items[k] = v
+            else:
+                nonfield_items[k] = v
+
+        result = object_type(**field_items)
+        for k, v in nonfield_items.items():
+            setattr(result, k, v)
+        return result
