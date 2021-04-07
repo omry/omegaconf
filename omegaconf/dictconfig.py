@@ -26,6 +26,7 @@ from ._utils import (
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
+    get_structured_config_field_names,
     get_type_of,
     get_value_kind,
     is_container_annotation,
@@ -689,8 +690,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         This requires `self` to be a structured config.
         Nested subconfigs are converted to_container with resolve=True.
         """
-        from ._utils import get_structured_config_field_names
-
         object_type = self._metadata.object_type
         assert is_structured_config(object_type)
         object_type_field_names = set(get_structured_config_field_names(object_type))
