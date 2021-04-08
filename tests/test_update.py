@@ -186,7 +186,7 @@ def test_update_list_index_error() -> None:
 
 def test_update_merge_by_default() -> None:
     cfg = OmegaConf.create({"a": {"b": 10}})
-    OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
+    OmegaConf.update(cfg, "a", {"c": 20})
     assert cfg == {"a": {"b": 10, "c": 20}}
 
 
