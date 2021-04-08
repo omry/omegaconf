@@ -1,5 +1,4 @@
 import re
-from textwrap import dedent
 from typing import Any
 
 from pytest import mark, param, raises, warns
@@ -83,7 +82,7 @@ from tests import Package, User
 )
 def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
     cfg = _ensure_container(cfg)
-    OmegaConf.update(cfg, key, value, merge=True)
+    OmegaConf.update(cfg, key, value)
     assert cfg == expected
 
 
@@ -157,10 +156,10 @@ def test_update_merge_set(
 def test_update_list_make_dict() -> None:
     c = OmegaConf.create([None, None])
     assert isinstance(c, ListConfig)
-    OmegaConf.update(c, "0.a.a", "aa", merge=True)
-    OmegaConf.update(c, "0.a.b", "ab", merge=True)
-    OmegaConf.update(c, "1.b.a", "ba", merge=True)
-    OmegaConf.update(c, "1.b.b", "bb", merge=True)
+    OmegaConf.update(c, "0.a.a", "aa")
+    OmegaConf.update(c, "0.a.b", "ab")
+    OmegaConf.update(c, "1.b.a", "ba")
+    OmegaConf.update(c, "1.b.b", "bb")
     assert c == [{"a": {"a": "aa", "b": "ab"}}, {"b": {"a": "ba", "b": "bb"}}]
 
 
@@ -168,22 +167,15 @@ def test_update_list_index_error() -> None:
     c = OmegaConf.create([1, 2, 3])
     assert isinstance(c, ListConfig)
     with raises(IndexError):
-        OmegaConf.update(c, "4", "abc", merge=True)
+        OmegaConf.update(c, "4", "abc")
 
     assert c == [1, 2, 3]
 
 
-def test_merge_deprecation() -> None:
+def test_update_merge_by_default() -> None:
     cfg = OmegaConf.create({"a": {"b": 10}})
-    msg = dedent(
-        """\
-            update() merge flag is is not specified, defaulting to False.
-            For more details, see https://github.com/omry/omegaconf/issues/367"""
-    )
-
-    with warns(UserWarning, match=re.escape(msg)):
-        OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
-        assert cfg == {"a": {"c": 20}}
+    OmegaConf.update(cfg, "a", {"c": 20})
+    assert cfg == {"a": {"b": 10, "c": 20}}
 
 
 @mark.parametrize(
@@ -209,7 +201,7 @@ def test_update_force_add(cfg: Any, key: str, value: Any, expected: Any) -> None
     OmegaConf.set_struct(cfg, True)
 
     with raises((ConfigAttributeError, ConfigKeyError)):  # type: ignore
-        OmegaConf.update(cfg, key, value, merge=True, force_add=False)
+        OmegaConf.update(cfg, key, value, force_add=False)
 
-    OmegaConf.update(cfg, key, value, merge=True, force_add=True)
+    OmegaConf.update(cfg, key, value, force_add=True)
     assert cfg == expected

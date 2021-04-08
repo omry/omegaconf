@@ -107,7 +107,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", "hello", merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "num", "hello"),
             exception_type=ValidationError,
             msg="Value 'hello' could not be converted to Integer",
             parent_node=lambda cfg: cfg,
@@ -120,7 +120,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", None, merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "num", None),
             exception_type=ValidationError,
             msg="child 'num' is not Optional",
             parent_node=lambda cfg: cfg,
@@ -133,7 +133,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.create({}),
-            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType(), merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
             key="a",
             exception_type=UnsupportedValueType,
             msg="Value 'IllegalType' is not a supported primitive type",

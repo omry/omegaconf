@@ -758,7 +758,7 @@ class OmegaConf:
         key: str,
         value: Any = None,
         *,
-        merge: Optional[bool] = None,
+        merge: bool = True,
         force_add: bool = False,
     ) -> None:
         """
@@ -768,24 +768,10 @@ class OmegaConf:
         :param key: key to update (can be a dot separated path)
         :param value: value to set, if value if a list or a dict it will be merged or set
             depending on merge_config_values
-        :param merge: If value is a dict or a list, True for merge, False for set.
-            True to merge
-            False to set
-            None (default): deprecation warning and default to False
+        :param merge: If value is a dict or a list, True (default) to merge
+                      into the destination, False to replace the destination.
         :param force_add: insert the entire path regardless of Struct flag or Structured Config nodes.
         """
-
-        if merge is None:
-            warnings.warn(
-                dedent(
-                    """\
-                update() merge flag is is not specified, defaulting to False.
-                For more details, see https://github.com/omry/omegaconf/issues/367"""
-                ),
-                category=UserWarning,
-                stacklevel=1,
-            )
-            merge = False
 
         split = split_key(key)
         root = cfg
