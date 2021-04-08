@@ -155,6 +155,13 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_quoted_esc_quote_double_3", r'"abc\\\\\"def"', r'abc\\"def'),
     ("str_quoted_esc_quote_double_4", r'"a\"b\"cdef\\\""', r'a"b"cdef\"'),
     ("str_quoted_esc_quote_double_bad", r'"abc\\"def"', GrammarParseError),
+    ("str_quoted_empty", "''", ""),
+    ("str_quoted_basic", "'a'", "a"),
+    ("str_quoted_tmp_1", r"'\a'", r"\a"),
+    ("str_quoted_tmp_2", r"'a\'", GrammarParseError),
+    ("str_quoted_inside_quote_different", "'\"'", '"'),
+    ("str_quoted_inside_quote_same", r"'\''", "'"),
+    ("str_quoted_extra_quote", r"'c:\\''", GrammarParseError),
     # Lists and dictionaries.
     ("list", "[0, 1]", [0, 1]),
     (
@@ -248,6 +255,10 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
     ("str_quoted_esc_double_2", '"\'\\\\\\\\\\${foo}\\ "', r"'\${foo}\ "),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
+    ("str_quoted_nested", "'${test:\"b\"}'", "b"),
+    ("str_quoted_nested_esc_quotes", r"'${test:\'b\'}'", "b"),
+    ("str_quoted_esc_inter", "'\\${test:\"b\"}'", '${test:"b"}'),
+    ("str_quoted_esc_inter_and_quotes", r"'\${test:\'b\'}'", "${test:'b'}"),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
     ("ws_inter_node_around_dot", "${dict .\ta}", GrammarParseError),
