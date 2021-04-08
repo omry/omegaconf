@@ -910,7 +910,7 @@ The force_add flag ensures that the path is created even if it will result in in
     >>> # Set dictionary value (using dot notation)
     >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
     >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> # Merge dictionary value (using bracket notation)\
+    >>> # Merge dictionary value (using bracket notation)
     >>> # note that merge is True by default, so you don't really need it here.
     >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
     >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
