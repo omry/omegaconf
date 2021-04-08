@@ -185,17 +185,10 @@ def test_update_list_index_error() -> None:
     assert c == [1, 2, 3]
 
 
-def test_merge_deprecation() -> None:
+def test_update_merge_by_default() -> None:
     cfg = OmegaConf.create({"a": {"b": 10}})
-    msg = dedent(
-        """\
-            update() merge flag is is not specified, defaulting to False.
-            For more details, see https://github.com/omry/omegaconf/issues/367"""
-    )
-
-    with warns(UserWarning, match=re.escape(msg)):
-        OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
-        assert cfg == {"a": {"c": 20}}
+    OmegaConf.update(cfg, "a", {"c": 20})  # default to set, and issue a warning.
+    assert cfg == {"a": {"b": 10, "c": 20}}
 
 
 @mark.parametrize(
