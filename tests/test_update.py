@@ -1,7 +1,6 @@
-import re
 from typing import Any
 
-from pytest import mark, param, raises, warns
+from pytest import mark, param, raises
 
 from omegaconf import ListConfig, OmegaConf, ValidationError
 from omegaconf._utils import _ensure_container, is_primitive_container
