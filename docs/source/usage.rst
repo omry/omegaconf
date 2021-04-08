@@ -898,25 +898,26 @@ OmegaConf.update
 ^^^^^^^^^^^^^^^^
 OmegaConf.update() allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
 
-The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
+The merge flag controls the behavior if the input is a dict or a list. If it's true (the default), those are merged instead of
 being assigned.
 The force_add flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> # Merge flag has no effect because the value is a primitive
-    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True)
+    >>> OmegaConf.update(cfg, "foo.bar", 20)
     >>> assert cfg.foo.bar == 20
     >>> # Set dictionary value (using dot notation)
     >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
     >>> assert cfg.foo.bar == {"zonk" : 30}
-    >>> # Merge dictionary value (using bracket notation)
+    >>> # Merge dictionary value (using bracket notation)\
+    >>> # note that merge is True by default, so you don't really need it here.
     >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
     >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
-    >>> # force_add ignores nodes in struct mode and updates anyway.
+    >>> # force_add ignores nodes in struct mode or Structured Configs nodes 
+    >>> # and updates anyway, inserting keys as needed.
     >>> OmegaConf.set_struct(cfg, True)
-    >>> OmegaConf.update(cfg, "a.b.c.d", 10, merge=True, force_add=True)
+    >>> OmegaConf.update(cfg, "a.b.c.d", 10, force_add=True)
     >>> assert cfg.a.b.c.d == 10
 
 

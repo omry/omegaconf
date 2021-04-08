@@ -171,6 +171,5 @@ def test_update_force_add(
         large_dict_config,
         "a.a.a.a.a.a.a.a.a.a.a",
         10,
-        merge=True,
         force_add=force_add,
     )
