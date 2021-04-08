@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
 
 from antlr4 import ParserRuleContext
 
@@ -209,13 +209,17 @@ class Node(ABC):
     def _maybe_dereference_node(
         self,
         throw_on_resolution_failure: bool = False,
+        memo: Optional[Set[int]] = None,
     ) -> Optional["Node"]:
         return self._dereference_node_impl(
-            throw_on_resolution_failure=throw_on_resolution_failure
+            throw_on_resolution_failure=throw_on_resolution_failure,
+            memo=memo,
         )
 
     def _dereference_node_impl(
-        self, throw_on_resolution_failure: bool
+        self,
+        throw_on_resolution_failure: bool,
+        memo: Optional[Set[int]] = None,
     ) -> Optional["Node"]:
         if not self._is_interpolation():
             return self
@@ -235,6 +239,7 @@ class Node(ABC):
             value=self,
             parse_tree=parse(_get_value(self)),
             throw_on_resolution_failure=throw_on_resolution_failure,
+            memo=memo,
         )
 
     def _get_root(self) -> "Container":
@@ -358,7 +363,11 @@ class Container(Node):
             return root, key
 
     def _select_impl(
-        self, key: str, throw_on_missing: bool, throw_on_resolution_failure: bool
+        self,
+        key: str,
+        throw_on_missing: bool,
+        throw_on_resolution_failure: bool,
+        memo: Optional[Set[int]] = None,
     ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
         """
         Select a value using dot separated key sequence
@@ -384,6 +393,7 @@ class Container(Node):
             if isinstance(ret, Node):
                 ret = ret._maybe_dereference_node(
                     throw_on_resolution_failure=throw_on_resolution_failure,
+                    memo=memo,
                 )
 
             if ret is not None and not isinstance(ret, Container):
@@ -407,12 +417,27 @@ class Container(Node):
         )
         if value is None:
             return root, last_key, None
-        value = root._maybe_resolve_interpolation(
-            parent=root,
-            key=last_key,
-            value=value,
-            throw_on_resolution_failure=throw_on_resolution_failure,
-        )
+
+        if memo is not None:
+            vid = id(value)
+            if vid in memo:
+                raise InterpolationResolutionError("Recursive interpolation detected")
+            # push to memo "stack"
+            memo.add(vid)
+
+        try:
+            value = root._maybe_resolve_interpolation(
+                parent=root,
+                key=last_key,
+                value=value,
+                throw_on_resolution_failure=throw_on_resolution_failure,
+                memo=memo,
+            )
+        finally:
+            if memo is not None:
+                # pop from memo "stack"
+                memo.remove(vid)
+
         return root, last_key, value
 
     def _resolve_interpolation_from_parse_tree(
@@ -422,6 +447,7 @@ class Container(Node):
         key: Any,
         parse_tree: OmegaConfGrammarParser.ConfigValueContext,
         throw_on_resolution_failure: bool,
+        memo: Optional[Set[int]],
     ) -> Optional["Node"]:
         """
         Resolve an interpolation.
@@ -454,9 +480,7 @@ class Container(Node):
 
         try:
             resolved = self.resolve_parse_tree(
-                parse_tree=parse_tree,
-                key=key,
-                parent=parent,
+                parse_tree=parse_tree, key=key, parent=parent, memo=memo
             )
         except InterpolationResolutionError:
             if throw_on_resolution_failure:
@@ -555,9 +579,17 @@ class Container(Node):
         wrapped._set_flag("readonly", True)
         return wrapped
 
+    def _validate_not_dereferencing_to_parent(self, node: Node, target: Node) -> None:
+        parent: Optional[Node] = node
+        while parent is not None:
+            if parent is target:
+                raise InterpolationResolutionError(
+                    "Interpolation to parent node detected"
+                )
+            parent = parent._get_parent()
+
     def _resolve_node_interpolation(
-        self,
-        inter_key: str,
+        self, inter_key: str, memo: Optional[Set[int]]
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
         try:
@@ -572,6 +604,7 @@ class Container(Node):
                 inter_key,
                 throw_on_missing=True,
                 throw_on_resolution_failure=True,
+                memo=memo,
             )
         except MissingMandatoryValue as exc:
             raise InterpolationToMissingValueError(
@@ -585,6 +618,7 @@ class Container(Node):
         if parent is None or value is None:
             raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
         else:
+            self._validate_not_dereferencing_to_parent(node=self, target=value)
             return value
 
     def _evaluate_custom_resolver(
@@ -611,6 +645,7 @@ class Container(Node):
         key: Any,
         value: "Node",
         throw_on_resolution_failure: bool,
+        memo: Optional[Set[int]] = None,
     ) -> Any:
         value_kind = get_value_kind(value)
         if value_kind != ValueKind.INTERPOLATION:
@@ -623,11 +658,13 @@ class Container(Node):
             key=key,
             parse_tree=parse_tree,
             throw_on_resolution_failure=throw_on_resolution_failure,
+            memo=memo if memo is not None else set(),
         )
 
     def resolve_parse_tree(
         self,
         parse_tree: ParserRuleContext,
+        memo: Optional[Set[int]] = None,
         key: Optional[Any] = None,
         parent: Optional["Container"] = None,
     ) -> Any:
@@ -639,8 +676,10 @@ class Container(Node):
         """
         from .nodes import StringNode
 
-        def node_interpolation_callback(inter_key: str) -> Optional["Node"]:
-            return self._resolve_node_interpolation(inter_key=inter_key)
+        def node_interpolation_callback(
+            inter_key: str, memo: Optional[Set[int]]
+        ) -> Optional["Node"]:
+            return self._resolve_node_interpolation(inter_key=inter_key, memo=memo)
 
         def resolver_interpolation_callback(
             name: str, args: Tuple[Any, ...], args_str: Tuple[str, ...]
@@ -652,7 +691,7 @@ class Container(Node):
                 inter_args_str=args_str,
             )
 
-        def quoted_string_callback(quoted_str: str) -> str:
+        def quoted_string_callback(quoted_str: str, memo: Optional[Set[int]]) -> str:
             quoted_val = self._maybe_resolve_interpolation(
                 key=key,
                 parent=parent,
@@ -663,6 +702,7 @@ class Container(Node):
                     is_optional=True,
                 ),
                 throw_on_resolution_failure=True,
+                memo=memo,
             )
             return str(quoted_val)
 
@@ -670,6 +710,7 @@ class Container(Node):
             node_interpolation_callback=node_interpolation_callback,
             resolver_interpolation_callback=resolver_interpolation_callback,
             quoted_string_callback=quoted_string_callback,
+            memo=memo,
         )
         try:
             return visitor.visit(parse_tree)
