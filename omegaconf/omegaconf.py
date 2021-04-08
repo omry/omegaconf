@@ -99,7 +99,6 @@ def register_default_resolvers() -> None:
     OmegaConf.register_new_resolver("oc.dict.keys", dict_keys)
     OmegaConf.register_new_resolver("oc.dict.values", dict_values)
     OmegaConf.register_new_resolver("oc.env", env)
-
     OmegaConf.legacy_register_resolver("env", legacy_env)
 
 

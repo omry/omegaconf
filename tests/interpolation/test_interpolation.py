@@ -17,11 +17,9 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import (
-    InterpolationKeyError,
-    InterpolationResolutionError,
-    InterpolationValidationError,
-)
+from omegaconf.errors import InterpolationKeyError
+from omegaconf.errors import InterpolationResolutionError as IRE
+from omegaconf.errors import InterpolationValidationError
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
 
 # file deepcode ignore CopyPasteError:
@@ -200,8 +198,7 @@ def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
 
 def test_resolve_interpolation_without_parent() -> None:
     with raises(
-        InterpolationResolutionError,
-        match=re.escape("Cannot resolve interpolation for a node without a parent"),
+        IRE, match=re.escape("Cannot resolve interpolation for a node without a parent")
     ):
         DictConfig(content="${foo}")._dereference_node()
 
@@ -444,3 +441,49 @@ def test_type_validation_error_no_throw() -> None:
     cfg = OmegaConf.structured(User(name="Bond", age=SI("${name}")))
     bad_node = cfg._get_node("age")
     assert bad_node._maybe_dereference_node() is None
+
+
+@mark.parametrize(
+    ("cfg", "key"),
+    [
+        param({"a": "${}"}, "a"),
+        param({"a": "${.}"}, "a"),
+        param({"a": {"a": "${}"}}, "a.a"),
+        param({"a": {"a": "${.}"}}, "a.a"),
+        param({"a": {"a": "${..}"}}, "a.a"),
+        param({"a": {"a": "${a}"}}, "a.a"),
+        param({"a": {"a": "${..a}"}}, "a.a"),
+    ],
+)
+def test_parent_interpolation(cfg: Any, key: str) -> None:
+    cfg = OmegaConf.create(cfg)
+    with raises(IRE, match=re.escape("Interpolation to parent node detected")):
+        OmegaConf.select(cfg, key)
+
+
+@mark.parametrize(
+    ("cfg", "key", "expected"),
+    [
+        param({"a": "${a}"}, "a", IRE, id="self_interpolation"),
+        param({"a": "${b}", "b": "${a}"}, "a", IRE, id="ping-pong"),
+        param({"a": {"a": "${b}"}, "b": "${a.a}"}, "a.a", IRE, id="ping-pong"),
+        param({"a": {"a": "${.a}"}}, "a.a", IRE, id="self-relative"),
+        param({"a": "${b}", "b": "${a.a}"}, "a.a", IRE, id="pass-through"),
+        # quoted strings
+        param({"a": "${oc.decode:'${a}'}"}, "a", IRE, id="quoted"),
+        # custom resolver
+        param({"a": "${foo:${a}}"}, "a", IRE, id="custom-resolver"),
+        param({"a": "${foo:${foo:${a}}}"}, "a", IRE, id="custom-resolver"),
+        # string interpolation
+        param({"a": "x ${a}"}, "a", IRE, id="str-inter"),
+        param({"a": "${b}_${c}", "b": "10", "c": 20}, "a", "10_20", id="str-inter"),
+        param({"a": "A", "b": "${a}_${a}"}, "b", "A_A", id="str-inter"),
+    ],
+)
+def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    if isinstance(expected, type):
+        with raises(expected, match=re.escape("Recursive interpolation detected")):
+            OmegaConf.select(cfg, key)
+    else:
+        assert OmegaConf.select(cfg, key) == expected

@@ -1,6 +1,6 @@
 import math
 import re
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Set, Tuple
 
 import antlr4
 from pytest import mark, param, raises, warns
@@ -363,7 +363,8 @@ class TestOmegaConfGrammar:
         visitor = grammar_visitor.GrammarVisitor(
             node_interpolation_callback=None,  # type: ignore
             resolver_interpolation_callback=None,  # type: ignore
-            quoted_string_callback=lambda s: s,
+            quoted_string_callback=lambda s, memo: s,
+            memo=None,
         )
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)
 
@@ -595,36 +596,12 @@ def test_empty_stack() -> None:
     ("inter", "key", "expected"),
     [
         # config root
-        param(
-            "${}",
-            "",
-            {"dict": {"bar": 20}, "list": [1, 2]},
-            id="absolute_config_root",
-        ),
         # simple
         param("${dict.bar}", "", 20, id="dict_value"),
         param("${dict}", "", {"bar": 20}, id="dict_node"),
         param("${list}", "", [1, 2], id="list_node"),
         param("${list.0}", "", 1, id="list_value"),
         # relative
-        param(
-            "${.}",
-            "",
-            {"dict": {"bar": 20}, "list": [1, 2]},
-            id="relative:root_from_root",
-        ),
-        param(
-            "${.}",
-            "dict",
-            {"bar": 20},
-            id="relative:root_from_dict",
-        ),
-        param(
-            "${..}",
-            "dict",
-            {"dict": {"bar": 20}, "list": [1, 2]},
-            id="relative:parent_from_dict",
-        ),
         param(
             "${..list}",
             "dict",
@@ -651,15 +628,16 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
         lexer_mode="VALUE_MODE",
     )
 
-    def callback(inter_key: Any) -> Any:
+    def callback(inter_key: Any, memo: Optional[Set[int]]) -> Any:
         assert isinstance(root, Container)
-        ret = root._resolve_node_interpolation(inter_key=inter_key)
+        ret = root._resolve_node_interpolation(inter_key=inter_key, memo=memo)
         return ret
 
     visitor = grammar_visitor.GrammarVisitor(
         node_interpolation_callback=callback,
         resolver_interpolation_callback=None,  # type: ignore
-        quoted_string_callback=lambda s: s,
+        quoted_string_callback=lambda s, memo: s,
+        memo=None,
     )
     ret = visitor.visit(tree)
     assert ret == expected

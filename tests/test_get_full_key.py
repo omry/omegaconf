@@ -99,7 +99,9 @@ def test_get_full_key_from_config(
 ) -> None:
     c = OmegaConf.create(cfg)
     _root, _last_key, node = c._select_impl(
-        select, throw_on_missing=True, throw_on_resolution_failure=True
+        select,
+        throw_on_missing=True,
+        throw_on_resolution_failure=True,
     )
     assert node is not None
     assert node._get_full_key(key) == expected

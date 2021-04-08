@@ -9,6 +9,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Set,
     Tuple,
     Union,
 )
@@ -38,9 +39,16 @@ except ModuleNotFoundError:  # pragma: no cover
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def __init__(
         self,
-        node_interpolation_callback: Callable[[str], Optional["Node"]],
+        node_interpolation_callback: Callable[
+            [str, Optional[Set[int]]],
+            Optional["Node"],
+        ],
         resolver_interpolation_callback: Callable[..., Any],
-        quoted_string_callback: Callable[[str], str],
+        quoted_string_callback: Callable[
+            [str, Optional[Set[int]]],
+            str,
+        ],
+        memo: Optional[Set[int]],
         **kw: Dict[Any, Any],
     ):
         """
@@ -67,6 +75,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         self.node_interpolation_callback = node_interpolation_callback
         self.resolver_interpolation_callback = resolver_interpolation_callback
         self.quoted_string_callback = quoted_string_callback
+        self.memo = memo
 
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
         raise NotImplementedError
@@ -165,7 +174,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 inter_key_tokens.append(self.visitConfigKey(child))
 
         inter_key = "".join(inter_key_tokens)
-        return self.node_interpolation_callback(inter_key)
+        return self.node_interpolation_callback(inter_key, self.memo)
 
     def visitInterpolationResolver(
         self, ctx: OmegaConfGrammarParser.InterpolationResolverContext
@@ -358,7 +367,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         )
 
         # Parse the string.
-        return self.quoted_string_callback(quoted_content)
+        return self.quoted_string_callback(quoted_content, self.memo)
 
     def _unescape(
         self,
