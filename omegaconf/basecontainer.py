@@ -1,9 +1,7 @@
 import copy
 import sys
-import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
-from textwrap import dedent
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import yaml
@@ -156,28 +154,6 @@ class BaseContainer(Container, ABC):
 
             OmegaConf.update(self, key, value, merge=True)
 
-    def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            "select() is deprecated, use OmegaConf.select(). (Since 2.0)",
-            category=UserWarning,
-            stacklevel=2,
-        )
-
-        return OmegaConf.select(self, key, throw_on_missing=throw_on_missing)
-
-    def update_node(self, key: str, value: Any = None) -> None:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)",
-            category=UserWarning,
-            stacklevel=2,
-        )
-
-        OmegaConf.update(self, key, value, merge=False)
-
     def is_empty(self) -> bool:
         """return true if config is empty"""
         return len(self.__dict__["_content"]) == 0
@@ -260,21 +236,6 @@ class BaseContainer(Container, ABC):
             return retlist
 
         assert False
-
-    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            dedent(
-                """\
-            cfg.pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml(cfg)
-            """
-            ),
-            category=UserWarning,
-        )
-
-        return OmegaConf.to_yaml(self, resolve=resolve, sort_keys=sort_keys)
 
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:

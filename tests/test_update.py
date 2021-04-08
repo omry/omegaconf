@@ -164,18 +164,6 @@ def test_update_list_make_dict() -> None:
     assert c == [{"a": {"a": "aa", "b": "ab"}}, {"b": {"a": "ba", "b": "bb"}}]
 
 
-def test_update_node_deprecated() -> None:
-    c = OmegaConf.create()
-    with warns(
-        expected_warning=UserWarning,
-        match=re.escape(
-            "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)"
-        ),
-    ):
-        c.update_node("foo", "bar")
-    assert c.foo == "bar"
-
-
 def test_update_list_index_error() -> None:
     c = OmegaConf.create([1, 2, 3])
     assert isinstance(c, ListConfig)

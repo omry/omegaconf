@@ -298,18 +298,6 @@ class Container(Node):
 
     _metadata: ContainerMetadata
 
-    @abstractmethod
-    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        ...
-
-    @abstractmethod
-    def update_node(self, key: str, value: Any = None) -> None:
-        ...
-
-    @abstractmethod
-    def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        ...
-
     def _get_node(
         self,
         key: Any,

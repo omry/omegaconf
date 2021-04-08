@@ -2,7 +2,7 @@ import re
 from typing import Any, Optional
 
 from _pytest.python_api import RaisesContext
-from pytest import mark, param, raises, warns
+from pytest import mark, param, raises
 
 from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._utils import _ensure_container
@@ -181,17 +181,6 @@ class TestSelect:
             OmegaConf.select(cfg, "missing", throw_on_missing=True)
         assert OmegaConf.select(cfg, "missing", throw_on_missing=False) is None
         assert OmegaConf.select(cfg, "missing") is None
-
-    def test_select_deprecated(self, struct: Optional[bool]) -> None:
-        cfg = OmegaConf.create({"foo": "bar"})
-        OmegaConf.set_struct(cfg, struct)
-        with warns(
-            expected_warning=UserWarning,
-            match=re.escape(
-                "select() is deprecated, use OmegaConf.select(). (Since 2.0)"
-            ),
-        ):
-            cfg.select("foo")
 
 
 @mark.parametrize(

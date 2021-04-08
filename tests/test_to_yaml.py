@@ -1,8 +1,7 @@
-import re
 from textwrap import dedent
 from typing import Any
 
-from pytest import mark, warns
+from pytest import mark
 
 from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
 from tests import Enum1, User
@@ -134,22 +133,6 @@ def test_to_yaml_with_enum_key() -> None:
 """
     s = OmegaConf.to_yaml(cfg)
     assert s == expected
-
-
-def test_pretty_deprecated() -> None:
-    c = OmegaConf.create({"foo": "bar"})
-    with warns(
-        expected_warning=UserWarning,
-        match=re.escape(
-            dedent(
-                """\
-            cfg.pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml(cfg)
-            """,
-            )
-        ),
-    ):
-        assert c.pretty() == "foo: bar\n"
 
 
 @mark.parametrize(
