@@ -14,13 +14,13 @@ from omegaconf import (
     grammar_parser,
     grammar_visitor,
 )
+from omegaconf._utils import nullcontext
 from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
-from tests import does_not_raise
 
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
@@ -596,7 +596,7 @@ class TestDoNotMatchSimpleInterpolationPattern:
         assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
 
     def test_grammar_consistency(self, expression: str, is_valid_grammar: bool) -> None:
-        ctx: Any = does_not_raise() if is_valid_grammar else raises(GrammarParseError)
+        ctx: Any = nullcontext() if is_valid_grammar else raises(GrammarParseError)
         with ctx:
             grammar_parser.parse(
                 value=expression,

@@ -17,8 +17,9 @@ from omegaconf import (
     open_dict,
     read_write,
 )
+from omegaconf._utils import nullcontext
 from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandatoryValue
-from tests import StructuredWithMissing, does_not_raise
+from tests import StructuredWithMissing
 
 
 @mark.parametrize(
@@ -313,7 +314,7 @@ def test_flag_override(
     with expectation:
         func(c)
 
-    with does_not_raise():
+    with nullcontext():
         with flag_override(c, flag_name, False):
             func(c)
 
@@ -359,7 +360,7 @@ def test_read_write_override(src: Any, func: Any, expectation: Any) -> None:
     with expectation:
         func(c)
 
-    with does_not_raise():
+    with nullcontext():
         with read_write(c):
             func(c)
 
@@ -375,7 +376,7 @@ def test_struct_override(src: Any, func: Any, expectation: Any) -> None:
     with expectation:
         func(c)
 
-    with does_not_raise():
+    with nullcontext():
         with open_dict(c):
             func(c)
 

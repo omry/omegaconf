@@ -14,27 +14,21 @@ from omegaconf import (
     OmegaConf,
     StringNode,
 )
-from omegaconf._utils import _is_none
+from omegaconf._utils import _is_none, nullcontext
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
     InterpolationToMissingValueError,
     UnsupportedInterpolationType,
 )
-from tests import (
-    Color,
-    ConcretePlugin,
-    IllegalType,
-    StructuredWithMissing,
-    does_not_raise,
-)
+from tests import Color, ConcretePlugin, IllegalType, StructuredWithMissing
 
 
 @mark.parametrize(
     "cfg, key, expected_is_missing, expectation",
     [
         ({}, "foo", False, raises(ConfigKeyError)),
-        ({"foo": True}, "foo", False, does_not_raise()),
+        ({"foo": True}, "foo", False, nullcontext()),
         ({"foo": "${no_such_key}"}, "foo", False, raises(InterpolationKeyError)),
         ({"foo": MISSING}, "foo", True, raises(MissingMandatoryValue)),
         param(

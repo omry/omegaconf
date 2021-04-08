@@ -56,6 +56,12 @@ def large_dict_config(large_dict: Any) -> Any:
     return OmegaConf.create(large_dict)
 
 
+# Use this version if you intend to modify the config in a test.
+@fixture(scope="function")
+def large_dict_config_by_test(large_dict: Any) -> Any:
+    return OmegaConf.create(large_dict)
+
+
 @fixture(scope="module")
 def merge_data(small_dict: Any) -> Any:
     return [OmegaConf.create(small_dict) for _ in range(5)]
@@ -152,11 +158,13 @@ def test_is_missing_literal(benchmark: Any) -> None:
 
 
 @mark.parametrize("force_add", [False, True])
+@mark.parametrize("key", ["a", "a.a.a.a.a.a.a.a.a.a.a"])
 def test_update_force_add(
-    large_dict_config: Any, force_add: bool, benchmark: Any
+    large_dict_config_by_test: Any, key: str, force_add: bool, benchmark: Any
 ) -> None:
+    cfg = large_dict_config_by_test
     if force_add:
-        OmegaConf.set_struct(large_dict_config, True)
+        OmegaConf.set_struct(cfg, True)
 
     def recursive_is_struct(node: Any) -> None:
         if OmegaConf.is_config(node):
@@ -164,12 +172,6 @@ def test_update_force_add(
             for val in node.values():
                 recursive_is_struct(val)
 
-    recursive_is_struct(large_dict_config)
+    recursive_is_struct(cfg)
 
-    benchmark(
-        OmegaConf.update,
-        large_dict_config,
-        "a.a.a.a.a.a.a.a.a.a.a",
-        10,
-        force_add=force_add,
-    )
+    benchmark(OmegaConf.update, cfg, key, 10, force_add=force_add)
