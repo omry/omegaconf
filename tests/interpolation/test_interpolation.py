@@ -208,7 +208,7 @@ def test_resolve_interpolation_without_parent() -> None:
 
 def test_resolve_interpolation_without_parent_no_throw() -> None:
     cfg = DictConfig(content="${foo}")
-    assert cfg._dereference_node(throw_on_resolution_failure=False) is None
+    assert cfg._maybe_dereference_node() is None
 
 
 def test_optional_after_interpolation() -> None:
@@ -227,7 +227,8 @@ def test_invalid_intermediate_result_when_not_throwing(
 
     The main goal of this test is to make sure that the resolution of an interpolation
     is stopped immediately when a missing / resolution failure occurs, even if
-    `throw_on_resolution_failure` is set to False.
+    `_maybe_dereference_node(throw_on_resolution_failure=False)` is used
+    instead of `_dereference_node`.
     When this happens while dereferencing a node, the result should be `None`.
     """
 
@@ -243,7 +244,7 @@ def test_invalid_intermediate_result_when_not_throwing(
     )
     x_node = cfg._get_node("x")
     assert isinstance(x_node, Node)
-    assert x_node._dereference_node(throw_on_resolution_failure=False) is None
+    assert x_node._maybe_dereference_node(throw_on_resolution_failure=False) is None
 
 
 def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
@@ -442,4 +443,4 @@ def test_interpolation_readonly_node() -> None:
 def test_type_validation_error_no_throw() -> None:
     cfg = OmegaConf.structured(User(name="Bond", age=SI("${name}")))
     bad_node = cfg._get_node("age")
-    assert bad_node._dereference_node(throw_on_resolution_failure=False) is None
+    assert bad_node._maybe_dereference_node() is None

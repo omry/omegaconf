@@ -390,7 +390,7 @@ def _is_none(
         return value is None
 
     if resolve:
-        value = value._dereference_node(
+        value = value._maybe_dereference_node(
             throw_on_resolution_failure=throw_on_resolution_failure
         )
         if not throw_on_resolution_failure and value is None:

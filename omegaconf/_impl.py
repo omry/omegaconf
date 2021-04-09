@@ -13,7 +13,6 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
         except InterpolationToMissingValueError:
             node._set_value(MISSING)
         else:
-            assert resolved is not None
             if isinstance(resolved, Container):
                 _resolve(resolved)
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
@@ -32,7 +31,6 @@ def _resolve(cfg: Node) -> Node:
         except InterpolationToMissingValueError:
             cfg._set_value(MISSING)
         else:
-            assert resolved is not None
             cfg._set_value(resolved._value())
 
     if isinstance(cfg, DictConfig):

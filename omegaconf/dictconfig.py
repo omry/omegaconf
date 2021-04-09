@@ -700,8 +700,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         for k in self.keys():
             node = self._get_node(k)
             assert isinstance(node, Node)
-            node = node._dereference_node(throw_on_resolution_failure=True)
-            assert node is not None
+            node = node._dereference_node()
             if isinstance(node, Container):
                 v = BaseContainer._to_content(
                     node,
