@@ -342,12 +342,3 @@ def test_dict_values_invalid_type(cfg: Any) -> None:
     cfg = OmegaConf.create(cfg)
     with raises(InterpolationResolutionError, match="TypeError"):
         cfg.x
-
-
-def test_dict_values_of_root(restore_resolvers: Any) -> None:
-    cfg = OmegaConf.create({"x": {"a": "${oc.dict.values:z}"}, "y": 0, "z": "${}"})
-    a = cfg.x.a
-    assert a._content == ["${z.x}", "${z.y}", "${z.z}"]
-    assert a[1] == 0
-    # We can recurse indefinitely within the first value if we fancy it.
-    assert cfg.x.a[0].a[0].a[1] == 0

@@ -446,11 +446,6 @@ def test_type_validation_error_no_throw() -> None:
 @mark.parametrize(
     ("cfg", "key"),
     [
-        param({"a": "${}"}, "a"),
-        param({"a": "${.}"}, "a"),
-        param({"a": {"a": "${}"}}, "a.a"),
-        param({"a": {"a": "${.}"}}, "a.a"),
-        param({"a": {"a": "${..}"}}, "a.a"),
         param({"a": {"a": "${a}"}}, "a.a"),
         param({"a": {"a": "${..a}"}}, "a.a"),
     ],

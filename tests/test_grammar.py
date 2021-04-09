@@ -20,6 +20,7 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
+from tests import does_not_raise
 
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
@@ -551,37 +552,57 @@ class TestOmegaConfGrammar:
         "${[foo].bar}",
         "${[foo][bar]}",
         # relative interpolations
-        "${.}",
-        "${..}",
         "${..foo}",
         "${..foo.bar}",
         "${..foo[bar]}",
         "${..[foo].bar}",
-        # config root
-        "${}",
     ],
 )
-def test_match_simple_interpolation_pattern(expression: str) -> None:
-    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+class TestMatchSimpleInterpolationPattern:
+    def test_regex(self, expression: str) -> None:
+        assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is not None
+
+    def test_grammar_consistency(self, expression: str) -> None:
+        # The expression should be valid according to the grammar.
+        grammar_parser.parse(
+            value=expression,
+            parser_rule="configValue",
+            lexer_mode="DEFAULT_MODE",
+        )
 
 
 @mark.parametrize(
-    "expression",
+    ("expression", "is_valid_grammar"),
     [
-        "${foo",
-        "${0foo:bar}",
-        "${foo.${bar}}",
-        "${foo:${bar}}",
-        "${foo:'hello'}",
-        "\\${foo",
-        "${foo . bar}",
-        "${ns . f:var}",
-        "${$foo:bar}",
-        "${.foo:bar}",
+        # Also invalid according to the grammar.
+        ("${.}", False),
+        ("${..}", False),
+        ("${}", False),
+        ("${foo", False),
+        ("${0foo:bar}", False),
+        ("${foo . bar}", False),
+        ("${ns . f:var}", False),
+        ("${$foo:bar}", False),
+        ("${.foo:bar}", False),
+        # Valid according to the grammar but not matched by the regex.
+        ("${foo.${bar}}", True),
+        ("${foo:${bar}}", True),
+        ("${foo:'hello'}", True),
+        ("\\${foo", True),
     ],
 )
-def test_do_not_match_simple_interpolation_pattern(expression: str) -> None:
-    assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+class TestDoNotMatchSimpleInterpolationPattern:
+    def test_regex(self, expression: str, is_valid_grammar: bool) -> None:
+        assert grammar_parser.SIMPLE_INTERPOLATION_PATTERN.match(expression) is None
+
+    def test_grammar_consistency(self, expression: str, is_valid_grammar: bool) -> None:
+        ctx: Any = does_not_raise() if is_valid_grammar else raises(GrammarParseError)
+        with ctx:
+            grammar_parser.parse(
+                value=expression,
+                parser_rule="configValue",
+                lexer_mode="DEFAULT_MODE",
+            )
 
 
 def test_empty_stack() -> None:
