@@ -201,9 +201,21 @@ class Node(ABC):
     def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
         ...
 
-    def _dereference_node(
+    def _dereference_node(self) -> "Node":
+        node = self._dereference_node_impl(throw_on_resolution_failure=True)
+        assert node is not None
+        return node
+
+    def _maybe_dereference_node(
         self,
-        throw_on_resolution_failure: bool = True,
+        throw_on_resolution_failure: bool = False,
+    ) -> Optional["Node"]:
+        return self._dereference_node_impl(
+            throw_on_resolution_failure=throw_on_resolution_failure
+        )
+
+    def _dereference_node_impl(
+        self, throw_on_resolution_failure: bool
     ) -> Optional["Node"]:
         if not self._is_interpolation():
             return self
@@ -298,18 +310,6 @@ class Container(Node):
 
     _metadata: ContainerMetadata
 
-    @abstractmethod
-    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        ...
-
-    @abstractmethod
-    def update_node(self, key: str, value: Any = None) -> None:
-        ...
-
-    @abstractmethod
-    def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        ...
-
     def _get_node(
         self,
         key: Any,
@@ -382,7 +382,7 @@ class Container(Node):
                 throw_on_type_error=throw_on_resolution_failure,
             )
             if isinstance(ret, Node):
-                ret = ret._dereference_node(
+                ret = ret._maybe_dereference_node(
                     throw_on_resolution_failure=throw_on_resolution_failure,
                 )
 
@@ -728,5 +728,6 @@ class Container(Node):
 
 
 class SCMode(Enum):
-    DICT = 1  # convert to plain dict
+    DICT = 1  # Convert to plain dict
     DICT_CONFIG = 2  # Keep as OmegaConf DictConfig
+    INSTANTIATE = 3  # Create a dataclass or attrs class instance

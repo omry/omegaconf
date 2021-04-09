@@ -1116,11 +1116,11 @@ class TestDictSubclass:
     ) -> None:
         cfg = OmegaConf.structured(module.UserList)
         if isinstance(expected, dict):
-            OmegaConf.update(cfg, "list", update_value, merge=True)
+            OmegaConf.update(cfg, "list", update_value)
             assert cfg == expected
         else:
             with raises(ValidationError):
-                OmegaConf.update(cfg, "list", update_value, merge=True)
+                OmegaConf.update(cfg, "list", update_value)
 
     def test_merge_missing_list_promotes_target_type(self, module: Any) -> None:
         c1 = OmegaConf.create({"missing": []})

@@ -149,3 +149,27 @@ def test_get_value_kind(
 
 def test_is_missing_literal(benchmark: Any) -> None:
     assert benchmark(_is_missing_literal, "???")
+
+
+@mark.parametrize("force_add", [False, True])
+def test_update_force_add(
+    large_dict_config: Any, force_add: bool, benchmark: Any
+) -> None:
+    if force_add:
+        OmegaConf.set_struct(large_dict_config, True)
+
+    def recursive_is_struct(node: Any) -> None:
+        if OmegaConf.is_config(node):
+            OmegaConf.is_struct(node)
+            for val in node.values():
+                recursive_is_struct(val)
+
+    recursive_is_struct(large_dict_config)
+
+    benchmark(
+        OmegaConf.update,
+        large_dict_config,
+        "a.a.a.a.a.a.a.a.a.a.a",
+        10,
+        force_add=force_add,
+    )

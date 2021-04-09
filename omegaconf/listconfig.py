@@ -70,7 +70,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
             if not (valid_value_annotation_type(self._metadata.element_type)):
                 raise ValidationError(
-                    f"Unsupported value type : {self._metadata.element_type}"
+                    f"Unsupported value type: {self._metadata.element_type}"
                 )
 
             self.__dict__["_content"] = None
@@ -110,7 +110,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 and not issubclass(value_type, target_type)
             ):
                 msg = (
-                    f"Invalid type assigned : {type_str(value_type)} is not a "
+                    f"Invalid type assigned: {type_str(value_type)} is not a "
                     f"subclass of {type_str(target_type)}. value: {value}"
                 )
                 raise ValidationError(msg)
@@ -588,7 +588,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
                 type_ = type(value)
-                msg = f"Invalid value assigned : {type_.__name__} is not a ListConfig, list or tuple."
+                msg = f"Invalid value assigned: {type_.__name__} is not a ListConfig, list or tuple."
                 raise ValidationError(msg)
 
             self.__dict__["_content"] = []

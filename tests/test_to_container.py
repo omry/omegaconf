@@ -1,10 +1,19 @@
 import re
 from enum import Enum
-from typing import Any, Dict, List
+from importlib import import_module
+from typing import Any, Dict, List, Optional
 
 from pytest import fixture, mark, param, raises
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, SCMode
+from omegaconf import (
+    DictConfig,
+    ListConfig,
+    MissingMandatoryValue,
+    OmegaConf,
+    SCMode,
+    open_dict,
+)
+from omegaconf.errors import InterpolationResolutionError
 from tests import Color, User
 
 
@@ -39,49 +48,88 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
 
 @mark.parametrize(
-    "src,ex_dict,ex_dict_config,key",
+    "structured_config_mode,src,expected,key,expected_value_type",
     [
         param(
+            SCMode.DICT,
             {"user": User(age=7, name="Bond")},
             {"user": {"name": "Bond", "age": 7}},
-            {"user": User(age=7, name="Bond")},
             "user",
-            id="structured-inside-dict",
+            dict,
+            id="DICT-dict",
         ),
         param(
+            SCMode.DICT,
             [1, User(age=7, name="Bond")],
             [1, {"name": "Bond", "age": 7}],
+            1,
+            dict,
+            id="DICT-list",
+        ),
+        param(
+            SCMode.DICT_CONFIG,
+            {"user": User(age=7, name="Bond")},
+            {"user": User(age=7, name="Bond")},
+            "user",
+            DictConfig,
+            id="DICT_CONFIG-dict",
+        ),
+        param(
+            SCMode.DICT_CONFIG,
+            [1, User(age=7, name="Bond")],
             [1, User(age=7, name="Bond")],
             1,
-            id="structured-inside-list",
+            DictConfig,
+            id="DICT_CONFIG-list",
+        ),
+        param(
+            SCMode.INSTANTIATE,
+            {"user": User(age=7, name="Bond")},
+            {"user": User(age=7, name="Bond")},
+            "user",
+            User,
+            id="INSTANTIATE-dict",
+        ),
+        param(
+            SCMode.INSTANTIATE,
+            [1, User(age=7, name="Bond")],
+            [1, User(age=7, name="Bond")],
+            1,
+            User,
+            id="INSTANTIATE-list",
+        ),
+        param(
+            None,
+            {"user": User(age=7, name="Bond")},
+            {"user": {"name": "Bond", "age": 7}},
+            "user",
+            dict,
+            id="default-dict",
+        ),
+        param(
+            None,
+            [1, User(age=7, name="Bond")],
+            [1, {"name": "Bond", "age": 7}],
+            1,
+            dict,
+            id="default-list",
         ),
     ],
 )
-class TestSCMode:
-    @fixture
-    def cfg(self, src: Any) -> Any:
-        return OmegaConf.create(src)
-
-    def test_exclude_structured_configs_default(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
-    ) -> None:
+def test_scmode(
+    src: Any,
+    structured_config_mode: Optional[SCMode],
+    expected: Any,
+    expected_value_type: Any,
+    key: Any,
+) -> None:
+    cfg = OmegaConf.create(src)
+    if structured_config_mode is None:
         ret = OmegaConf.to_container(cfg)
-        assert ret == ex_dict
-        assert isinstance(ret[key], dict)
-
-    def test_scmode_dict(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
-    ) -> None:
-        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT)
-        assert ret == ex_dict
-        assert isinstance(ret[key], dict)
-
-    def test_scmode_dict_config(
-        self, cfg: Any, ex_dict: Any, ex_dict_config: Any, key: Any
-    ) -> None:
-        ret = OmegaConf.to_container(cfg, structured_config_mode=SCMode.DICT_CONFIG)
-        assert ret == ex_dict_config
-        assert isinstance(ret[key], DictConfig)
+    else:
+        ret = OmegaConf.to_container(cfg, structured_config_mode=structured_config_mode)
+    assert ret == expected
+    assert isinstance(ret[key], expected_value_type)
 
 
 @mark.parametrize(
@@ -149,6 +197,8 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
     cfg = OmegaConf.create(src)
     container = OmegaConf.to_container(cfg)
     assert container == expected
+    container = OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
+    assert container == expected
     container = OmegaConf.to_container(cfg, resolve=True)
     assert container == expected_with_resolve
 
@@ -184,6 +234,185 @@ def test_string_interpolation_with_readonly_parent() -> None:
 def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
     res = OmegaConf.to_container(src, resolve=False)
     assert res == expected
+
+
+class TestInstantiateStructuredConfigs:
+    @fixture(
+        params=[
+            "tests.structured_conf.data.dataclasses",
+            "tests.structured_conf.data.attr_classes",
+        ]
+    )
+    def module(self, request: Any) -> Any:
+        return import_module(request.param)
+
+    def round_trip_to_object(self, input_data: Any, **kwargs: Any) -> Any:
+        serialized = OmegaConf.create(input_data)
+        round_tripped = OmegaConf.to_object(serialized, **kwargs)
+        return round_tripped
+
+    def test_basic(self, module: Any) -> None:
+        user = self.round_trip_to_object(module.User("Bond", 7))
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_basic_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.User())
+
+    def test_nested(self, module: Any) -> None:
+        data = self.round_trip_to_object({"user": module.User("Bond", 7)})
+        user = data["user"]
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_nested_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object({"user": module.User()})
+
+    def test_list(self, module: Any) -> None:
+        lst = self.round_trip_to_object(module.UserList([module.User("Bond", 7)]))
+        assert type(lst) is module.UserList
+        assert len(lst.list) == 1
+        user = lst.list[0]
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_list_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.UserList)
+
+    def test_dict(self, module: Any) -> None:
+        user_dict = self.round_trip_to_object(
+            module.UserDict({"user007": module.User("Bond", 7)})
+        )
+        assert type(user_dict) is module.UserDict
+        assert len(user_dict.dict) == 1
+        user = user_dict.dict["user007"]
+        assert type(user) is module.User
+        assert user.name == "Bond"
+        assert user.age == 7
+
+    def test_dict_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.UserDict)
+
+    def test_nested_object(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.NestedConfig)
+        # fill in missing values:
+        cfg.default_value = module.NestedSubclass(mandatory_missing=123)
+        cfg.user_provided_default.mandatory_missing = 456
+
+        nested: Any = OmegaConf.to_object(cfg)
+        assert type(nested) is module.NestedConfig
+        assert type(nested.default_value) is module.NestedSubclass
+        assert type(nested.user_provided_default) is module.Nested
+
+        assert nested.default_value.mandatory_missing == 123
+        assert nested.default_value.additional == 20
+        assert nested.user_provided_default.mandatory_missing == 456
+
+    def test_nested_object_with_missing(self, module: Any) -> None:
+        with raises(MissingMandatoryValue):
+            self.round_trip_to_object(module.NestedConfig)
+
+    def test_to_object_resolve_is_True_by_default(self, module: Any) -> None:
+        interp = self.round_trip_to_object(module.Interpolation)
+        assert type(interp) is module.Interpolation
+
+        assert interp.z1 == 100
+        assert interp.z2 == "100_200"
+
+    def test_to_container_INSTANTIATE_resolve_False(self, module: Any) -> None:
+        """Test the lower level `to_container` API with SCMode.INSTANTIATE and resolve=False"""
+        src = dict(
+            obj=module.RelativeInterpolation(),
+            interp_x="${obj.x}",
+            interp_x_y="${obj.x}_${obj.x}",
+        )
+        nested = OmegaConf.create(src)
+        container = OmegaConf.to_container(
+            nested, resolve=False, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, dict)
+        assert container["interp_x"] == "${obj.x}"
+        assert container["interp_x_y"] == "${obj.x}_${obj.x}"
+        assert container["obj"].z1 == 100
+        assert container["obj"].z2 == "100_200"
+
+    def test_to_container_INSTANTIATE_enum_to_str_True(self, module: Any) -> None:
+        """Test the lower level `to_container` API with SCMode.INSTANTIATE and resolve=False"""
+        src = dict(
+            color=Color.BLUE,
+            obj=module.EnumOptional(),
+        )
+        nested = OmegaConf.create(src)
+        container = OmegaConf.to_container(
+            nested, enum_to_str=True, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, dict)
+        assert container["color"] == "BLUE"
+        assert container["obj"].not_optional is Color.BLUE
+
+    def test_to_object_InterpolationResolutionError(self, module: Any) -> None:
+        with raises(InterpolationResolutionError):
+            cfg = OmegaConf.structured(module.NestedWithAny)
+            cfg.var.mandatory_missing = 123
+            OmegaConf.to_object(cfg)
+
+    def test_nested_object_with_Any_ref_type(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.NestedWithAny())
+        cfg.var.mandatory_missing = 123
+        with open_dict(cfg):
+            cfg.value_at_root = 456
+        nested = self.round_trip_to_object(cfg)
+        assert type(nested) is module.NestedWithAny
+
+        assert type(nested.var) is module.Nested
+        assert nested.var.with_default == 10
+        assert nested.var.mandatory_missing == 123
+        assert nested.var.interpolation == 456
+
+    def test_str2user_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+        cfg.bond = module.User(name="James Bond", age=7)
+        data = self.round_trip_to_object(cfg)
+
+        assert type(data) is module.DictSubclass.Str2User
+        assert type(data.bond) is module.User
+        assert data.bond == module.User("James Bond", 7)
+
+    def test_str2user_with_field_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+        cfg.mp = module.User(name="Moneypenny", age=11)
+        data = self.round_trip_to_object(cfg)
+
+        assert type(data) is module.DictSubclass.Str2UserWithField
+        assert type(data.foo) is module.User
+        assert data.foo == module.User("Bond", 7)
+        assert type(data.mp) is module.User
+        assert data.mp == module.User("Moneypenny", 11)
+
+    def test_str2str_with_field_instantiate(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+        cfg.hello = "world"
+        data = self.round_trip_to_object(cfg)
+
+        assert type(data) is module.DictSubclass.Str2StrWithField
+        assert data.foo == "bar"
+        assert data.hello == "world"
+
+    def test_setattr_for_user_with_extra_field(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.User(name="James Bond", age=7))
+        with open_dict(cfg):
+            cfg.extra_field = 123
+
+        user: Any = OmegaConf.to_object(cfg)
+        assert type(user) is module.User
+        assert user.extra_field == 123
 
 
 class TestEnumToStr:

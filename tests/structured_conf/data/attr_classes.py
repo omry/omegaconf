@@ -239,6 +239,14 @@ class Interpolation:
 
 
 @attr.s(auto_attribs=True)
+class RelativeInterpolation:
+    x: int = 100
+    y: int = 200
+    z1: int = II(".x")
+    z2: str = SI("${.x}_${.y}")
+
+
+@attr.s(auto_attribs=True)
 class BoolOptional:
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
@@ -443,6 +451,10 @@ class DictSubclass:
     @attr.s(auto_attribs=True)
     class Str2IntWithStrField(Dict[str, int]):
         foo: int = 1
+
+    @attr.s(auto_attribs=True)
+    class Str2UserWithField(Dict[str, User]):
+        foo: User = User("Bond", 7)
 
     class Error:
         @attr.s(auto_attribs=True)

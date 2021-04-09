@@ -403,8 +403,9 @@ Input YAML file:
     >>> conf.user.home
     '/home/omry'
 
-You can specify a default value to use in case the environment variable is not defined.
-This default value can be a string or ``null`` (representing Python ``None``). Passing a default with a different type will result in an error.
+You can specify a default value to use in case the environment variable is not set.
+In such a case, the default value is converted to a string using ``str(default)``, unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned. 
+
 The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
 .. doctest::
@@ -412,15 +413,21 @@ The following example falls back to default passwords when ``DB_PASSWORD`` is no
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "database": {
-    ...             "password1": "${oc.env:DB_PASSWORD,abc123}",
-    ...             "password2": "${oc.env:DB_PASSWORD,'12345'}",
+    ...             "password1": "${oc.env:DB_PASSWORD,password}",
+    ...             "password2": "${oc.env:DB_PASSWORD,12345}",
+    ...             "password3": "${oc.env:DB_PASSWORD,null}",
     ...         },
     ...     }
     ... )
-    >>> cfg.database.password1  # the string 'abc123'
-    'abc123'
-    >>> cfg.database.password2  # the string '12345'
-    '12345'
+    >>> # default is already a string
+    >>> show(cfg.database.password1)
+    type: str, value: 'password'
+    >>> # default is converted to a string automatically
+    >>> show(cfg.database.password2)
+    type: str, value: '12345'
+    >>> # unless it's None
+    >>> show(cfg.database.password3)
+    type: NoneType, value: None
 
 
 Decoding strings with interpolations
@@ -757,7 +764,7 @@ Utility functions
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and list, but in fact are not.
-Use OmegaConf.to_container(cfg : Container, resolve : bool) to convert to a primitive container.
+Use OmegaConf.to_container(cfg: Container, resolve: bool) to convert to a primitive container.
 If resolve is set to True, interpolations will be resolved during conversion.
 
 .. doctest::
@@ -771,11 +778,24 @@ If resolve is set to True, interpolations will be resolved during conversion.
     >>> show(resolved)
     type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
+
+Using ``structured_config_mode``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can customize the treatment of ``OmegaConf.to_container()`` for
 Structured Config nodes using the ``structured_config_mode`` option.
 By default, Structured Config nodes are converted to plain dict.
+
 Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as DictConfig, allowing attribute style access on the resulting node.
+
+Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
+are converted to instances of the backing dataclass or attrs class. Note that
+when ``structured_config_mode=SCMode.INSTANTIATE``, interpolations nested within
+a structured config node will be resolved, even if ``OmegaConf.to_container`` is called
+with the the keyword argument ``resolve=False``, so that interpolations are resolved before
+being used to instantiate dataclass/attr class instances. Interpolations within
+non-structured parent nodes will be resolved (or not) as usual, according to
+the ``resolve`` keyword arg.
 
 .. doctest::
 
@@ -787,6 +807,30 @@ as DictConfig, allowing attribute style access on the resulting node.
     type: dict, value: {'structured_config': {'port': 80, 'host': 'localhost'}}
     >>> show(container["structured_config"])
     type: DictConfig, value: {'port': 80, 'host': 'localhost'}
+
+OmegaConf.to_object
+^^^^^^^^^^^^^^^^^^^^^^
+The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
+into dicts and lists, with the exception that Structured Config objects are
+converted into instances of the backing dataclass or attr class.  All OmegaConf
+interpolations are resolved before conversion to Python containers.
+
+.. doctest::
+
+    >>> container = OmegaConf.to_object(conf)
+    >>> show(container)
+    type: dict, value: {'structured_config': MyConfig(port=80, host='localhost')}
+    >>> show(container["structured_config"])
+    type: MyConfig, value: MyConfig(port=80, host='localhost')
+
+Note that here, ``container["structured_config"]`` is actually an instance of
+``MyConfig``, whereas in the previous examples we had a ``dict`` or a
+``DictConfig`` object that was duck-typed to look like an instance of
+``MyConfig``.
+
+The call ``OmegaConf.to_object(conf)`` is equivalent to
+``OmegaConf.to_container(conf, resolve=True,
+structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.resolve
 ^^^^^^^^^^^^^^^^^
@@ -854,21 +898,27 @@ OmegaConf.update
 ^^^^^^^^^^^^^^^^
 OmegaConf.update() allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
 
-The merge flag controls the behavior if the input is a dict or a list. If it's true, those are merged instead of
+The merge flag controls the behavior if the input is a dict or a list. If it's true (the default), those are merged instead of
 being assigned.
+The force_add flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
 
 .. doctest::
 
     >>> cfg = OmegaConf.create({"foo" : {"bar": 10}})
-    >>> # Merge flag has no effect because the value is a primitive
-    >>> OmegaConf.update(cfg, "foo.bar", 20, merge=True)
+    >>> OmegaConf.update(cfg, "foo.bar", 20)
     >>> assert cfg.foo.bar == 20
     >>> # Set dictionary value (using dot notation)
     >>> OmegaConf.update(cfg, "foo.bar", {"zonk" : 30}, merge=False)
     >>> assert cfg.foo.bar == {"zonk" : 30}
     >>> # Merge dictionary value (using bracket notation)
+    >>> # note that merge is True by default, so you don't really need it here.
     >>> OmegaConf.update(cfg, "foo[bar]", {"oompa" : 40}, merge=True)
     >>> assert cfg.foo.bar == {"zonk" : 30, "oompa" : 40}
+    >>> # force_add ignores nodes in struct mode or Structured Configs nodes 
+    >>> # and updates anyway, inserting keys as needed.
+    >>> OmegaConf.set_struct(cfg, True)
+    >>> OmegaConf.update(cfg, "a.b.c.d", 10, force_add=True)
+    >>> assert cfg.a.b.c.d == 10
 
 
 

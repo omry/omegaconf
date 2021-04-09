@@ -38,7 +38,7 @@ class TestStructured:
         def test_error_on_non_structured_nested_config_class(self, module: Any) -> None:
             with raises(
                 ValidationError,
-                match=re.escape("Unexpected object type : NotStructuredConfig"),
+                match=re.escape("Unexpected object type: NotStructuredConfig"),
             ):
                 OmegaConf.structured(module.StructuredWithInvalidField)
 

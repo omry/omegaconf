@@ -139,7 +139,7 @@ def get_yaml_loader() -> Any:
             re.X,
         ),
         list("-+0123456789."),
-    )  # type : ignore
+    )
     loader.yaml_implicit_resolvers = {
         key: [
             (tag, regexp)
@@ -232,6 +232,12 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
     return None
 
 
+def get_attr_class_field_names(obj: Any) -> List[str]:
+    is_type = isinstance(obj, type)
+    obj_type = obj if is_type else type(obj)
+    return list(attr.fields_dict(obj_type))
+
+
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -272,6 +278,10 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     if dict_subclass_data is not None:
         d.update(dict_subclass_data)
     return d
+
+
+def get_dataclass_field_names(obj: Any) -> List[str]:
+    return [field.name for field in dataclasses.fields(obj)]
 
 
 def get_dataclass_data(
@@ -370,6 +380,15 @@ def is_structured_config_frozen(obj: Any) -> bool:
     return False
 
 
+def get_structured_config_field_names(obj: Any) -> List[str]:
+    if is_dataclass(obj):
+        return get_dataclass_field_names(obj)
+    elif is_attr_class(obj):
+        return get_attr_class_field_names(obj)
+    else:
+        raise ValueError(f"Unsupported type: {type(obj).__name__}")
+
+
 def get_structured_config_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
@@ -409,7 +428,7 @@ def _is_none(
         return value is None
 
     if resolve:
-        value = value._dereference_node(
+        value = value._maybe_dereference_node(
             throw_on_resolution_failure=throw_on_resolution_failure
         )
         if not throw_on_resolution_failure and value is None:
@@ -426,8 +445,8 @@ def get_value_kind(
     """
     Determine the kind of a value
     Examples:
-    VALUE : "10", "20", True
-    MANDATORY_MISSING : "???"
+    VALUE: "10", "20", True
+    MANDATORY_MISSING: "???"
     INTERPOLATION: "${foo.bar}", "${foo.${bar}}", "${foo:bar}", "[${foo}, ${bar}]",
                    "ftp://${host}/path", "${foo:${bar}, [true], {'baz': ${baz}}}"
 

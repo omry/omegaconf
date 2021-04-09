@@ -20,11 +20,13 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
+    get_structured_config_field_names,
     get_type_of,
     get_value_kind,
     is_container_annotation,
@@ -35,7 +37,7 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node
+from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -86,7 +88,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if not valid_value_annotation_type(
                 element_type
             ) and not is_structured_config(element_type):
-                raise ValidationError(f"Unsupported value type : {element_type}")
+                raise ValidationError(f"Unsupported value type: {element_type}")
 
             if not _valid_dict_key_annotation_type(key_type):
                 raise KeyValidationError(f"Unsupported key type {key_type}")
@@ -233,7 +235,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         )
         if validation_error:
             msg = (
-                f"Merge error : {type_str(src_obj_type)} is not a "
+                f"Merge error: {type_str(src_obj_type)} is not a "
                 f"subclass of {type_str(dest_obj_type)}. value: {src}"
             )
             raise ValidationError(msg)
@@ -264,7 +266,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert value_type is not None
         assert target_type is not None
         msg = (
-            f"Invalid type assigned : {type_str(value_type)} is not a "
+            f"Invalid type assigned: {type_str(value_type)} is not a "
             f"subclass of {type_str(target_type)}. value: {value}"
         )
         raise ValidationError(msg)
@@ -591,7 +593,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if type_or_prototype is None:
             return
         if not is_structured_config(type_or_prototype):
-            raise ValueError(f"Expected structured config class : {type_or_prototype}")
+            raise ValueError(f"Expected structured config class: {type_or_prototype}")
 
         from omegaconf import OmegaConf
 
@@ -655,7 +657,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         self.__setitem__(k, v)
 
             else:  # pragma: no cover
-                msg = f"Unsupported value type : {value}"
+                msg = f"Unsupported value type: {value}"
                 raise ValidationError(msg)
 
     @staticmethod
@@ -682,3 +684,47 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 return False
 
         return True
+
+    def _to_object(self) -> Any:
+        """
+        Instantiate an instance of `self._metadata.object_type`.
+        This requires `self` to be a structured config.
+        Nested subconfigs are converted to_container with resolve=True.
+        """
+        object_type = self._metadata.object_type
+        assert is_structured_config(object_type)
+        object_type_field_names = set(get_structured_config_field_names(object_type))
+
+        field_items: Dict[str, Any] = {}
+        nonfield_items: Dict[str, Any] = {}
+        for k in self.keys():
+            node = self._get_node(k)
+            assert isinstance(node, Node)
+            node = node._dereference_node()
+            if isinstance(node, Container):
+                v = BaseContainer._to_content(
+                    node,
+                    resolve=True,
+                    enum_to_str=False,
+                    structured_config_mode=SCMode.INSTANTIATE,
+                )
+            else:
+                v = node._value()
+
+            if _is_missing_literal(v):
+                self._format_and_raise(
+                    key=k,
+                    value=None,
+                    cause=MissingMandatoryValue(
+                        "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
+                    ),
+                )
+            if k in object_type_field_names:
+                field_items[k] = v
+            else:
+                nonfield_items[k] = v
+
+        result = object_type(**field_items)
+        for k, v in nonfield_items.items():
+            setattr(result, k, v)
+        return result

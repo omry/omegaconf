@@ -1,9 +1,7 @@
 import copy
 import sys
-import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
-from textwrap import dedent
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import yaml
@@ -154,29 +152,7 @@ class BaseContainer(Container, ABC):
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
 
-            OmegaConf.update(self, key, value, merge=True)
-
-    def select(self, key: str, throw_on_missing: bool = False) -> Any:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            "select() is deprecated, use OmegaConf.select(). (Since 2.0)",
-            category=UserWarning,
-            stacklevel=2,
-        )
-
-        return OmegaConf.select(self, key, throw_on_missing=throw_on_missing)
-
-    def update_node(self, key: str, value: Any = None) -> None:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            "update_node() is deprecated, use OmegaConf.update(). (Since 2.0)",
-            category=UserWarning,
-            stacklevel=2,
-        )
-
-        OmegaConf.update(self, key, value, merge=False)
+            OmegaConf.update(self, key, value)
 
     def is_empty(self) -> bool:
         """return true if config is empty"""
@@ -213,15 +189,18 @@ class BaseContainer(Container, ABC):
                 and structured_config_mode == SCMode.DICT_CONFIG
             ):
                 return conf
+            if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
+                conf._metadata.object_type
+            ):
+                return conf._to_object()
 
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(throw_on_resolution_failure=True)
+                    node = node._dereference_node()
 
-                assert node is not None
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
                 if isinstance(node, Container):
@@ -240,8 +219,7 @@ class BaseContainer(Container, ABC):
                 node = conf._get_node(index)
                 assert isinstance(node, Node)
                 if resolve:
-                    node = node._dereference_node(throw_on_resolution_failure=True)
-                assert node is not None
+                    node = node._dereference_node()
                 if isinstance(node, Container):
                     item = BaseContainer._to_content(
                         node,
@@ -256,21 +234,6 @@ class BaseContainer(Container, ABC):
             return retlist
 
         assert False
-
-    def pretty(self, resolve: bool = False, sort_keys: bool = False) -> str:
-        from omegaconf import OmegaConf
-
-        warnings.warn(
-            dedent(
-                """\
-            cfg.pretty() is deprecated and will be removed in a future version.
-            Use OmegaConf.to_yaml(cfg)
-            """
-            ),
-            category=UserWarning,
-        )
-
-        return OmegaConf.to_yaml(self, resolve=resolve, sort_keys=sort_keys)
 
     @staticmethod
     def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
@@ -345,9 +308,7 @@ class BaseContainer(Container, ABC):
                 expand(dest_node)
 
             if dest_node is not None and dest_node._is_interpolation():
-                target_node = dest_node._dereference_node(
-                    throw_on_resolution_failure=False
-                )
+                target_node = dest_node._maybe_dereference_node()
                 if isinstance(target_node, Container):
                     dest[key] = target_node
                     dest_node = dest._get_node(key)
@@ -626,9 +587,9 @@ class BaseContainer(Container, ABC):
         dv2: Optional[Node] = v2
 
         if v1_inter:
-            dv1 = v1._dereference_node(throw_on_resolution_failure=False)
+            dv1 = v1._maybe_dereference_node()
         if v2_inter:
-            dv2 = v2._dereference_node(throw_on_resolution_failure=False)
+            dv2 = v2._maybe_dereference_node()
 
         if v1_inter and v2_inter:
             if dv1 is None or dv2 is None:

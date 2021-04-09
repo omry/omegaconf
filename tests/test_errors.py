@@ -107,7 +107,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", "hello", merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "num", "hello"),
             exception_type=ValidationError,
             msg="Value 'hello' could not be converted to Integer",
             parent_node=lambda cfg: cfg,
@@ -120,7 +120,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.structured(StructuredWithMissing),
-            op=lambda cfg: OmegaConf.update(cfg, "num", None, merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "num", None),
             exception_type=ValidationError,
             msg="child 'num' is not Optional",
             parent_node=lambda cfg: cfg,
@@ -133,7 +133,7 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.create({}),
-            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType(), merge=True),
+            op=lambda cfg: OmegaConf.update(cfg, "a", IllegalType()),
             key="a",
             exception_type=UnsupportedValueType,
             msg="Value 'IllegalType' is not a supported primitive type",
@@ -298,7 +298,7 @@ params = [
             exception_type=InterpolationToMissingValueError,
             msg=(
                 "MissingMandatoryValue while resolving interpolation: "
-                "Missing mandatory value : missing_val"
+                "Missing mandatory value: missing_val"
             ),
             key="foo",
             child_node=lambda cfg: cfg._get_node("foo"),
@@ -321,7 +321,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: setattr(cfg, "params", 20),
             exception_type=ValidationError,
-            msg="Invalid type assigned : int is not a subclass of FoobarParams. value: 20",
+            msg="Invalid type assigned: int is not a subclass of FoobarParams. value: 20",
             key="params",
             object_type=ConcretePlugin,
             child_node=lambda cfg: cfg.params,
@@ -416,7 +416,7 @@ params = [
             create=lambda: OmegaConf.structured(User),
             op=lambda cfg: cfg.__setitem__("name", [1, 2]),
             exception_type=ValidationError,
-            msg="Cannot convert 'list' to string : '[1, 2]'",
+            msg="Cannot convert 'list' to string: '[1, 2]'",
             full_key="name",
             key="name",
             low_level=True,
@@ -671,7 +671,7 @@ params = [
             create=lambda: DictConfig(ref_type=ConcretePlugin, content="???"),
             op=lambda cfg: cfg._set_value(1),
             exception_type=ValidationError,
-            msg="Invalid type assigned : int is not a subclass of ConcretePlugin. value: 1",
+            msg="Invalid type assigned: int is not a subclass of ConcretePlugin. value: 1",
             low_level=True,
             ref_type=Optional[ConcretePlugin],
         ),
@@ -1048,7 +1048,7 @@ params = [
             op=lambda cfg: cfg._set_value(True),
             exception_type=ValidationError,
             object_type=None,
-            msg="Invalid value assigned : bool is not a ListConfig, list or tuple.",
+            msg="Invalid value assigned: bool is not a ListConfig, list or tuple.",
             ref_type=List[int],
             low_level=True,
         ),
@@ -1233,6 +1233,18 @@ params = [
             child_node=lambda cfg: cfg._get_node(0),
         ),
         id="list,readonly:del",
+    ),
+    # to_object
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(User),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=MissingMandatoryValue,
+            msg="Structured config of type `User` has missing mandatory value: name",
+            key="name",
+            child_node=lambda cfg: cfg._get_node("name"),
+        ),
+        id="to_object:structured-missing-field",
     ),
 ]
 

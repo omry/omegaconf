@@ -98,7 +98,7 @@ def register_default_resolvers() -> None:
     # DEPRECATED: remove in 2.2
     def legacy_env(key: str, default: Optional[str] = None) -> Any:
         warnings.warn(
-            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573",
+            "The `env` resolver is deprecated, see https://github.com/omry/omegaconf/issues/573"
         )
 
         try:
@@ -109,22 +109,21 @@ def register_default_resolvers() -> None:
             else:
                 raise ValidationError(f"Environment variable '{key}' not found")
 
-    def env(key: str, default: Optional[str] = _DEFAULT_MARKER_) -> Optional[str]:
-        if (
-            default is not _DEFAULT_MARKER_
-            and default is not None
-            and not isinstance(default, str)
-        ):
-            raise TypeError(
-                f"The default value of the `oc.env` resolver must be a string or "
-                f"None, but `{default}` is of type {type(default).__name__}"
-            )
-
+    def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
+        """
+        :param key: Environment variable key
+        :param default: Optional default value to use in case the key environment variable is not set.
+                        If default is not a string, it is converted with str(default).
+                        None default is returned as is.
+        :return: The environment variable 'key'. If the environment variable is not set and a default is
+                provided, the default is used. If used, the default is converted to a string with str(default).
+                If the default is None, None is returned (without a string conversion).
+        """
         try:
             return os.environ[key]
         except KeyError:
             if default is not _DEFAULT_MARKER_:
-                return default
+                return str(default) if default is not None else None
             else:
                 raise KeyError(f"Environment variable '{key}' not found")
 
@@ -237,7 +236,7 @@ class OmegaConf:
 
         if obj is not None and not isinstance(obj, (list, dict, str)):
             raise IOError(  # pragma: no cover
-                f"Invalid loaded object type : {type(obj).__name__}"
+                f"Invalid loaded object type: {type(obj).__name__}"
             )
 
         ret: Union[DictConfig, ListConfig]
@@ -580,6 +579,9 @@ class OmegaConf:
         :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
             By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
             If `structured_config_mode=SCMode.DICT_CONFIG`, structured config nodes will remain as DictConfig.
+            If `structured_config_mode=SCMode.INSTANTIATE`, this function will instantiate structured configs
+               (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
+               See also OmegaConf.to_object.
         :return: A dict or a list representing this config as a primitive container.
         """
         if not OmegaConf.is_config(cfg):
@@ -592,6 +594,30 @@ class OmegaConf:
             resolve=resolve,
             enum_to_str=enum_to_str,
             structured_config_mode=structured_config_mode,
+        )
+
+    @staticmethod
+    def to_object(
+        cfg: Any,
+        *,
+        enum_to_str: bool = False,
+    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
+        """
+        Resursively converts an OmegaConf config to a primitive container (dict or list).
+        Any DictConfig objects backed by dataclasses or attrs classes are instantiated
+        as instances of those backing classes.
+
+        This is an alias for OmegaConf.to_container(..., resolve=True, structured_config_mode=SCMode.INSTANTIATE)
+
+        :param cfg: the config to convert
+        :param enum_to_str: True to convert Enum values to strings
+        :return: A dict or a list or dataclass representing this config.
+        """
+        return OmegaConf.to_container(
+            cfg=cfg,
+            resolve=True,
+            enum_to_str=enum_to_str,
+            structured_config_mode=SCMode.INSTANTIATE,
         )
 
     @staticmethod
@@ -676,9 +702,30 @@ class OmegaConf:
         default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
+        absolute_key: bool = False,
     ) -> Any:
+        """
+        :param cfg: Config node to select from
+        :param key: Key to select
+        :param default: Default value to return if key is not found
+        :param throw_on_resolution_failure: Raise an exception if an interpolation
+               resolution error occurs, otherwise return None
+        :param throw_on_missing: Raise an exception if an attempt to select a missing key (with the value '???')
+               is made, otherwise return None
+        :param absolute_key: True to treat non-relative keys as relative to the config root
+                             False (default) to treat non-relative keys as relative to cfg
+        :return: selected value or None if not found.
+        """
         try:
             try:
+                # for non relative keys, the interpretation can be:
+                # 1. relative to cfg
+                # 2. relative to the config root
+                # This is controlled by the absolute_key flag. By default, such keys are relative to cfg.
+                if not absolute_key and not key.startswith("."):
+                    key = f".{key}"
+
+                cfg, key = cfg._resolve_key_and_root(key)
                 _root, _last_key, value = cfg._select_impl(
                     key,
                     throw_on_missing=throw_on_missing,
@@ -707,7 +754,12 @@ class OmegaConf:
 
     @staticmethod
     def update(
-        cfg: Container, key: str, value: Any = None, merge: Optional[bool] = None
+        cfg: Container,
+        key: str,
+        value: Any = None,
+        *,
+        merge: bool = True,
+        force_add: bool = False,
     ) -> None:
         """
         Updates a dot separated key sequence to a value
@@ -716,23 +768,10 @@ class OmegaConf:
         :param key: key to update (can be a dot separated path)
         :param value: value to set, if value if a list or a dict it will be merged or set
             depending on merge_config_values
-        :param merge: If value is a dict or a list, True for merge, False for set.
-            True to merge
-            False to set
-            None (default) : deprecation warning and default to False
+        :param merge: If value is a dict or a list, True (default) to merge
+                      into the destination, False to replace the destination.
+        :param force_add: insert the entire path regardless of Struct flag or Structured Config nodes.
         """
-
-        if merge is None:
-            warnings.warn(
-                dedent(
-                    """\
-                update() merge flag is is not specified, defaulting to False.
-                For more details, see https://github.com/omry/omegaconf/issues/367"""
-                ),
-                category=UserWarning,
-                stacklevel=1,
-            )
-            merge = False
 
         split = split_key(key)
         root = cfg
@@ -741,35 +780,41 @@ class OmegaConf:
             # if next_root is a primitive (string, int etc) replace it with an empty map
             next_root, key_ = _select_one(root, k, throw_on_missing=False)
             if not isinstance(next_root, Container):
-                root[key_] = {}
+                if force_add:
+                    with flag_override(root, "struct", False):
+                        root[key_] = {}
+                else:
+                    root[key_] = {}
             root = root[key_]
 
         last = split[-1]
 
         assert isinstance(
             root, Container
-        ), f"Unexpected type for root : {type(root).__name__}"
+        ), f"Unexpected type for root: {type(root).__name__}"
 
         last_key: Union[str, int] = last
         if isinstance(root, ListConfig):
             last_key = int(last)
 
-        if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
-            assert isinstance(root, BaseContainer)
-            node = root._get_node(last_key)
-            if OmegaConf.is_config(node):
-                assert isinstance(node, BaseContainer)
-                node.merge_with(value)
-                return
+        struct_override = False if force_add else root._get_node_flag("struct")
+        with flag_override(root, "struct", struct_override):
+            if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
+                assert isinstance(root, BaseContainer)
+                node = root._get_node(last_key)
+                if OmegaConf.is_config(node):
+                    assert isinstance(node, BaseContainer)
+                    node.merge_with(value)
+                    return
 
-        if OmegaConf.is_dict(root):
-            assert isinstance(last_key, str)
-            root.__setattr__(last_key, value)
-        elif OmegaConf.is_list(root):
-            assert isinstance(last_key, int)
-            root.__setitem__(last_key, value)
-        else:
-            assert False
+            if OmegaConf.is_dict(root):
+                assert isinstance(last_key, str)
+                root.__setattr__(last_key, value)
+            elif OmegaConf.is_list(root):
+                assert isinstance(last_key, int)
+                root.__setitem__(last_key, value)
+            else:
+                assert False
 
     @staticmethod
     def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
@@ -1034,7 +1079,7 @@ def _node_wrap(
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)
         else:
-            raise ValidationError(f"Unexpected object type : {type_str(type_)}")
+            raise ValidationError(f"Unexpected object type: {type_str(type_)}")
     return node
 
 
@@ -1069,7 +1114,7 @@ def _select_one(
     from .listconfig import ListConfig
 
     ret_key: Union[str, int] = key
-    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type : {c}"
+    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type: {c}"
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
@@ -1096,7 +1141,7 @@ def _select_one(
         if val._is_missing():
             if throw_on_missing:
                 raise MissingMandatoryValue(
-                    f"Missing mandatory value : {c._get_full_key(ret_key)}"
+                    f"Missing mandatory value: {c._get_full_key(ret_key)}"
                 )
             else:
                 return val, ret_key

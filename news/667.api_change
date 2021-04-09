@@ -1,0 +1,1 @@
+OmegaConf.update() is now merging dict/list values into the destination node by default. Call with merge=False to replace instead.
