@@ -215,8 +215,7 @@ class Node(ABC):
         )
 
     def _dereference_node_impl(
-        self,
-        throw_on_resolution_failure: bool = True,
+        self, throw_on_resolution_failure: bool
     ) -> Optional["Node"]:
         if not self._is_interpolation():
             return self
