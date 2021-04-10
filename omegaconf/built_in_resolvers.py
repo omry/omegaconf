@@ -62,7 +62,7 @@ def dict_values(key: str, _root_: BaseContainer, _parent_: Container) -> ListCon
     assert isinstance(content, dict)
 
     ret = ListConfig([])
-    for k, node in content.items():
+    for k in content:
         ref_node = AnyNode(f"${{{key}.{k}}}")
         ret.append(ref_node)
 
