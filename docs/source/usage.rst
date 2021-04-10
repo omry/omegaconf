@@ -472,8 +472,8 @@ Extracting lists of keys / values from a dictionary
 Some config options that are stored as a ``DictConfig`` may sometimes be easier to manipulate as lists,
 when we care only about the keys or the associated values.
 
-The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by extracting respectively
-the list of keys and values from existing config nodes.
+The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by offering an alternative
+view of a dictionary's keys or values as a list.
 They take as input a string that is the path to another config node (using the same syntax
 as interpolations) and return a ``ListConfig`` with its keys / values.
 
