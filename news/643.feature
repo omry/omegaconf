@@ -1,2 +1,1 @@
-New resolvers `oc.dict.keys` and `oc.dict.values` allow extracting the lists of keys and values of config nodes
-
+New resolvers `oc.dict.keys` and `oc.dict.values` provide a list view of the keys or values of a DictConfig node.
