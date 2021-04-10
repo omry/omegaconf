@@ -1,5 +1,6 @@
 -r base.txt
 black
+build
 coveralls
 flake8
 isort~=5.0
@@ -15,3 +16,4 @@ sphinx
 towncrier
 twine
 pydevd
+

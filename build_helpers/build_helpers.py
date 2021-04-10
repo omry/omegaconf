@@ -84,7 +84,6 @@ class CleanCommand(Command):  # type: ignore  # pragma: no cover
                 ".*/__pycache__$",
                 "^__pycache__$",
                 "^build$",
-                "^dist$",
             ],
             scan_exclude=["^.git$", "^.nox/.*$"],
             excludes=[".*\\.gitignore$", ".*/__init__.py"],
