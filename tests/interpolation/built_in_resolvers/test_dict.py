@@ -4,11 +4,11 @@ from typing import Any, List
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from omegaconf.built_in_resolvers import _get_and_validate_dict_input
 from omegaconf.errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
 )
+from omegaconf.resolvers.oc.dict._common import _get_and_validate_dict_input
 from tests import User, Users
 
 

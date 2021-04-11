@@ -93,7 +93,9 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    from .built_in_resolvers import decode, dict_keys, dict_values, env, legacy_env
+    from .resolvers import legacy_env
+    from .resolvers.oc import decode, env
+    from .resolvers.oc.dict import dict_keys, dict_values
 
     OmegaConf.register_new_resolver("oc.decode", decode)
     OmegaConf.register_new_resolver("oc.dict.keys", dict_keys)
