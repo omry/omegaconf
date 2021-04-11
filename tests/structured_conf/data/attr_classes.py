@@ -417,6 +417,10 @@ class DictSubclass:
         pass
 
     @attr.s(auto_attribs=True)
+    class Str2Int(Dict[str, int]):
+        pass
+
+    @attr.s(auto_attribs=True)
     class Int2Str(Dict[int, str]):
         pass
 

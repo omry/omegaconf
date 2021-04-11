@@ -211,3 +211,8 @@ class InterpolationList:
 @dataclass
 class InterpolationDict:
     dict: Dict[str, int] = II("optimization.lr")
+
+
+@dataclass
+class Str2Int(Dict[str, int]):
+    pass
