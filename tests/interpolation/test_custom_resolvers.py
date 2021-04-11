@@ -2,7 +2,7 @@ import random
 import re
 from typing import Any, Dict, List
 
-from pytest import mark, raises, warns
+from pytest import mark, param, raises, warns
 
 from omegaconf import DictConfig, ListConfig, OmegaConf, Resolver
 from tests.interpolation import dereference_node
@@ -466,3 +466,25 @@ def test_resolver_with_parent_and_default_value(restore_resolvers: Any) -> None:
 
     assert cfg.no_param == 20
     assert cfg.param == 30
+
+
+@mark.parametrize(
+    ("cfg2", "expected"),
+    [
+        param({"foo": {"b": 1}}, {"foo": {"a": 0, "b": 1}}, id="extend"),
+        param({"foo": {"b": "${.a}"}}, {"foo": {"a": 0, "b": 0}}, id="extend_inter"),
+        param({"foo": {"a": 1}}, {"foo": {"a": 1}}, id="override_int"),
+        param({"foo": {"a": {"b": 1}}}, {"foo": {"a": {"b": 1}}}, id="override_dict"),
+        param({"foo": 10}, {"foo": 10}, id="replace_interpolation"),
+        param({"bar": 10}, {"foo": {"a": 0}, "bar": 10}, id="other_node"),
+    ],
+)
+def test_merge_into_resolver_output(
+    restore_resolvers: Any, cfg2: Any, expected: Any
+) -> None:
+    OmegaConf.register_new_resolver(
+        "make", lambda _parent_: OmegaConf.create({"a": 0}, parent=_parent_)
+    )
+
+    cfg = OmegaConf.create({"foo": "${make:}"})
+    assert OmegaConf.merge(cfg, cfg2) == expected

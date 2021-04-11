@@ -451,6 +451,7 @@ class Container(Node):
             node that is created to wrap the interpolated value. It is `None` if and only if
             `throw_on_resolution_failure` is `False` and an error occurs during resolution.
         """
+
         try:
             resolved = self.resolve_parse_tree(
                 parse_tree=parse_tree,

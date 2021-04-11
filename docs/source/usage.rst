@@ -1,6 +1,6 @@
 .. testsetup:: *
 
-    from omegaconf import OmegaConf, DictConfig, open_dict, read_write
+    from omegaconf import OmegaConf, DictConfig, ListConfig, open_dict, read_write
     import os
     import sys
     import tempfile
@@ -464,6 +464,38 @@ This can be useful for instance to parse environment variables:
     >>> os.environ["DB_TIMEOUT"] = "${.port}"
     >>> show(cfg.database.timeout)  # resolving interpolation
     type: int, value: 3308
+
+
+Extracting lists of keys / values from a dictionary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some config options that are stored as a ``DictConfig`` may sometimes be easier to manipulate as lists,
+when we care only about the keys or the associated values.
+
+The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by offering an alternative
+view of a dictionary's keys or values as a list.
+They take as input a string that is the path to another config node (using the same syntax
+as interpolations) and return a ``ListConfig`` with its keys / values.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "workers": {
+    ...             "node3": "10.0.0.2",
+    ...             "node7": "10.0.0.9",
+    ...         },
+    ...         "nodes": "${oc.dict.keys: workers}",
+    ...         "ips": "${oc.dict.values: workers}",
+    ...     }
+    ... )
+    >>> # Keys are copied from the DictConfig:
+    >>> show(cfg.nodes)
+    type: ListConfig, value: ['node3', 'node7']
+    >>> # Values are dynamically fetched through interpolations:
+    >>> show(cfg.ips)
+    type: ListConfig, value: ['${workers.node3}', '${workers.node7}']
+    >>> assert cfg.ips == ["10.0.0.2", "10.0.0.9"]
 
 
 Custom interpolations
