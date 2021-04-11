@@ -8,7 +8,7 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
 )
-from omegaconf.resolvers.oc.dict._common import _get_and_validate_dict_input
+from omegaconf.resolvers.oc.dict import _get_and_validate_dict_input
 from tests import User, Users
 
 
