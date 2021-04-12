@@ -1,7 +1,9 @@
 from typing import Any
 
 from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNode
-from omegaconf.errors import InterpolationToMissingValueError
+from omegaconf.errors import ConfigKeyError, InterpolationToMissingValueError
+
+from ._utils import _DEFAULT_MARKER_, _get_value
 
 
 def _resolve_container_value(cfg: Container, key: Any) -> None:
@@ -42,3 +44,68 @@ def _resolve(cfg: Node) -> Node:
             _resolve_container_value(cfg, i)
 
     return cfg
+
+
+def select_value(
+    cfg: Container,
+    key: str,
+    *,
+    default: Any = _DEFAULT_MARKER_,
+    throw_on_resolution_failure: bool = True,
+    throw_on_missing: bool = False,
+    absolute_key: bool = False,
+) -> Any:
+    ret = select_node(
+        cfg=cfg,
+        key=key,
+        default=default,
+        throw_on_resolution_failure=throw_on_resolution_failure,
+        throw_on_missing=throw_on_missing,
+        absolute_key=absolute_key,
+    )
+    if isinstance(ret, Node) and ret._is_missing():
+        return None
+
+    return _get_value(ret)
+
+
+def select_node(
+    cfg: Container,
+    key: str,
+    *,
+    default: Any = _DEFAULT_MARKER_,
+    throw_on_resolution_failure: bool = True,
+    throw_on_missing: bool = False,
+    absolute_key: bool = False,
+) -> Any:
+    try:
+        # for non relative keys, the interpretation can be:
+        # 1. relative to cfg
+        # 2. relative to the config root
+        # This is controlled by the absolute_key flag. By default, such keys are relative to cfg.
+        if not absolute_key and not key.startswith("."):
+            key = f".{key}"
+
+        cfg, key = cfg._resolve_key_and_root(key)
+        _root, _last_key, value = cfg._select_impl(
+            key,
+            throw_on_missing=throw_on_missing,
+            throw_on_resolution_failure=throw_on_resolution_failure,
+        )
+    except ConfigKeyError:
+        if default is not _DEFAULT_MARKER_:
+            return default
+        else:
+            raise
+
+    if (
+        default is not _DEFAULT_MARKER_
+        and _root is not None
+        and _last_key is not None
+        and _last_key not in _root
+    ):
+        return default
+
+    if value is not None and value._is_missing():
+        return None
+    return value
