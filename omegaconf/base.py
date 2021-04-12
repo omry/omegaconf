@@ -633,7 +633,17 @@ class Container(Node):
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            return resolver(root_node, self, inter_args, inter_args_str)
+            node = None
+            if key is not None:
+                node = self._get_node(key, validate_access=True)
+            assert node is None or isinstance(node, Node)
+            return resolver(
+                root_node,
+                self,
+                node,
+                inter_args,
+                inter_args_str,
+            )
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"

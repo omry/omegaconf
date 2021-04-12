@@ -1,8 +1,11 @@
 import os
+import string
+import warnings
 from typing import Any, Optional
 
-from omegaconf import Container
+from omegaconf import Container, Node
 from omegaconf._utils import _DEFAULT_MARKER_, _get_value
+from omegaconf.errors import ConfigKeyError
 from omegaconf.grammar_parser import parse
 from omegaconf.resolvers.oc import dict
 
@@ -46,8 +49,44 @@ def decode(expr: Optional[str], _parent_: Container) -> Any:
     return _get_value(val)
 
 
+def deprecated(
+    key: str,
+    message: str = "'$OLD_KEY' is deprecated. Change your code and config to use '$NEW_KEY'",
+    *,
+    _parent_: Container,
+    _node_: Optional[Node],
+) -> Any:
+    from omegaconf._impl import select_node
+
+    if not isinstance(key, str):
+        raise TypeError(
+            f"oc.deprecated: interpolation key type is not a string ({type(key).__name__})"
+        )
+
+    if not isinstance(message, str):
+        raise TypeError(
+            f"oc.deprecated: interpolation message type is not a string ({type(message).__name__})"
+        )
+
+    assert _node_ is not None
+    full_key = _node_._get_full_key(key=None)
+    target_node = select_node(_parent_, key, absolute_key=True)
+    if target_node is None:
+        raise ConfigKeyError(
+            f"In oc.deprecated resolver at '{full_key}': Key not found: '{key}'"
+        )
+    new_key = target_node._get_full_key(key=None)
+    msg = string.Template(message).safe_substitute(
+        OLD_KEY=full_key,
+        NEW_KEY=new_key,
+    )
+    warnings.warn(category=UserWarning, message=msg)
+    return target_node
+
+
 __all__ = [
     "decode",
+    "deprecated",
     "dict",
     "env",
 ]
