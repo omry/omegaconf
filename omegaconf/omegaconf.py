@@ -95,6 +95,7 @@ def register_default_resolvers() -> None:
     from omegaconf.resolvers import env, oc
 
     OmegaConf.register_new_resolver("oc.decode", oc.decode)
+    OmegaConf.register_new_resolver("oc.deprecated", oc.deprecated)
     OmegaConf.register_new_resolver("oc.env", oc.env)
     OmegaConf.register_new_resolver("oc.dict.keys", oc.dict.keys)
     OmegaConf.register_new_resolver("oc.dict.values", oc.dict.values)
@@ -324,7 +325,8 @@ class OmegaConf:
 
         def resolver_wrapper(
             config: BaseContainer,
-            node: BaseContainer,
+            parent: BaseContainer,
+            node: Node,
             args: Tuple[Any, ...],
             args_str: Tuple[str, ...],
         ) -> Any:
@@ -402,11 +404,13 @@ class OmegaConf:
             return ret
 
         pass_parent = _should_pass("_parent_")
+        pass_node = _should_pass("_node_")
         pass_root = _should_pass("_root_")
 
         def resolver_wrapper(
             config: BaseContainer,
             parent: Container,
+            node: Node,
             args: Tuple[Any, ...],
             args_str: Tuple[str, ...],
         ) -> Any:
@@ -418,9 +422,11 @@ class OmegaConf:
                     pass
 
             # Call resolver.
-            kwargs = {}
+            kwargs: Dict[str, Node] = {}
             if pass_parent:
                 kwargs["_parent_"] = parent
+            if pass_node:
+                kwargs["_node_"] = node
             if pass_root:
                 kwargs["_root_"] = config
 
@@ -443,7 +449,7 @@ class OmegaConf:
         cls,
         name: str,
     ) -> Optional[
-        Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
+        Callable[[Container, Container, Node, Tuple[Any, ...], Tuple[str, ...]], Any]
     ]:
         warnings.warn(
             "`OmegaConf.get_resolver()` is deprecated (see https://github.com/omry/omegaconf/issues/608)",
@@ -878,7 +884,10 @@ class OmegaConf:
     def _get_resolver(
         name: str,
     ) -> Optional[
-        Callable[[Container, Container, Tuple[Any, ...], Tuple[str, ...]], Any]
+        Callable[
+            [Container, Container, Optional[Node], Tuple[Any, ...], Tuple[str, ...]],
+            Any,
+        ]
     ]:
         # noinspection PyProtectedMember
         return (

@@ -63,7 +63,9 @@ def select_value(
         throw_on_missing=throw_on_missing,
         absolute_key=absolute_key,
     )
+
     if isinstance(ret, Node) and ret._is_missing():
+        assert not throw_on_missing  # would have raised an exception in select_node
         return None
 
     return _get_value(ret)
@@ -106,6 +108,4 @@ def select_node(
     ):
         return default
 
-    if value is not None and value._is_missing():
-        return None
     return value

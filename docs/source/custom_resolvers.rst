@@ -2,6 +2,9 @@
 
     from omegaconf import OmegaConf, DictConfig
     import os
+    import pytest
+    os.environ['USER'] = 'omry'
+
     def show(x):
       print(f"type: {type(x).__name__}, value: {repr(x)}")
 
@@ -131,14 +134,14 @@ the inputs themselves:
 
 Custom interpolations can also receive the following special parameters:
 
-- ``_parent_`` : the parent node of an interpolation.
+- ``_parent_``: the parent node of an interpolation.
 - ``_root_``: The config root.
 
 This can be achieved by adding the special parameters to the resolver signature.
-Note that special parameters must be defined as named keywords (after the `*`):
+Note that special parameters must be defined as named keywords (after the `*`).
 
-In this example, we use ``_parent_`` to implement a sum function that defaults to 0 if the node does not exist.
-(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}`` will result in an error).
+In the example below, we use ``_parent_`` to implement a sum function that defaults to 0 if the node does not exist.
+(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}`` would result in an error).
 
 .. doctest::
 
@@ -189,6 +192,53 @@ In such a case, the default value is converted to a string using ``str(default)`
 
 The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
+.. doctest::
+
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "database": {
+    ...             "password1": "${oc.env:DB_PASSWORD,password}",
+    ...             "password2": "${oc.env:DB_PASSWORD,12345}",
+    ...             "password3": "${oc.env:DB_PASSWORD,null}",
+    ...         },
+    ...     }
+    ... )
+    >>> # default is already a string
+    >>> show(cfg.database.password1)
+    type: str, value: 'password'
+    >>> # default is converted to a string automatically
+    >>> show(cfg.database.password2)
+    type: str, value: '12345'
+    >>> # unless it's None
+    >>> show(cfg.database.password3)
+    type: NoneType, value: None
+
+.. _oc.deprecated:
+
+oc.deprecated
+^^^^^^^^^^^^^
+``oc.deprecated`` enables you to deprecate a config node.
+It takes two parameters:
+
+- ``key``: An interpolation key representing the new key you are migrating to. This parameter is required.
+- ``message``: A message to use as the warning when the config node is being accessed. The default message is
+  ``'$OLD_KEY' is deprecated. Change your code and config to use '$NEW_KEY'``.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({
+    ...   "rusty_key": "${oc.deprecated:shiny_key}", 
+    ...   "custom_msg": "${oc.deprecated:shiny_key, 'Use $NEW_KEY'}",
+    ...   "shiny_key": 10
+    ... })
+    >>> # Accessing rusty_key will issue a deprecation warning 
+    >>> # and return the new value automatically
+    >>> warning = "'rusty_key' is deprecated. Change your" \
+    ...           " code and config to use 'shiny_key'"
+    >>> with pytest.warns(UserWarning, match=warning):
+    ...   assert conf.rusty_key == 10
+    >>> with pytest.warns(UserWarning, match="Use shiny_key"):
+    ...   assert conf.custom_msg == 10
 
 .. _oc.decode:
 

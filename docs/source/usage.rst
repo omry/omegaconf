@@ -5,7 +5,6 @@
     import sys
     import tempfile
     import pickle
-    os.environ['USER'] = 'omry'
     # ensures that DB_TIMEOUT is not set in the doc.
     os.environ.pop('DB_TIMEOUT', None)
 
@@ -385,9 +384,9 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
 
 Resolvers
 ^^^^^^^^^
-You can add additional interpolation types by registering resolvers using ``OmegaConf.register_new_resolver()``.
+Add new interpolation types by registering resolvers using ``OmegaConf.register_new_resolver()``.
 Such resolvers are called when the config node is accessed.
-See :doc:`custom_resolvers` for more details, or keep reading for a minimal example.
+The minimal example below shows its most basic usage, see :doc:`custom_resolvers` for more details.
 
 .. doctest::
 
@@ -403,7 +402,8 @@ Built-in resolvers
 OmegaConf comes with a set of built-in custom resolvers:
 
 * :ref:`oc.decode`: Parsing an input string using interpolation grammar
-* :ref:`oc.env`: Accessing environment variables.
+* :ref:`oc.deprecated`: Deprecate a key in your config
+* :ref:`oc.env`: Accessing environment variables
 * :ref:`oc.dict.{keys,values}`: Viewing the keys or the values of a dictionary as a list
 
 
