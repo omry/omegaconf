@@ -5,6 +5,7 @@ from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import MissingMandatoryValue, OmegaConf
+from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigKeyError, InterpolationKeyError
 
@@ -265,8 +266,8 @@ class TestSelectFromNestedNode:
     ) -> None:
         cfg = OmegaConf.create(inp)
         # select returns the same result when a key is relative independent of absolute_key flag.
-        assert OmegaConf.select(cfg.a, key, absolute_key=False) == expected
-        assert OmegaConf.select(cfg.a, key, absolute_key=True) == expected
+        assert select_value(cfg.a, key, absolute_key=False) == expected
+        assert select_value(cfg.a, key, absolute_key=True) == expected
 
     @mark.parametrize(
         ("key", "expected"),
@@ -282,7 +283,7 @@ class TestSelectFromNestedNode:
         self, key: str, expected: Any
     ) -> None:
         cfg = OmegaConf.create(inp)
-        assert OmegaConf.select(cfg.a, key, absolute_key=False) == expected
+        assert select_value(cfg.a, key, absolute_key=False) == expected
 
     @mark.parametrize(
         ("key", "expected"),
@@ -300,4 +301,4 @@ class TestSelectFromNestedNode:
         self, key: str, expected: Any
     ) -> None:
         cfg = OmegaConf.create(inp)
-        assert OmegaConf.select(cfg.a, key, absolute_key=True) == expected
+        assert select_value(cfg.a, key, absolute_key=True) == expected

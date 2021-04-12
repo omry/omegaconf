@@ -30,7 +30,6 @@ from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _DEFAULT_MARKER_,
     _ensure_container,
-    _get_value,
     _is_none,
     format_and_raise,
     get_dict_key_value_types,
@@ -54,7 +53,6 @@ from ._utils import (
 from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
-    ConfigKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -654,7 +652,6 @@ class OmegaConf:
         default: Any = _DEFAULT_MARKER_,
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
-        absolute_key: bool = False,
     ) -> Any:
         """
         :param cfg: Config node to select from
@@ -664,43 +661,18 @@ class OmegaConf:
                resolution error occurs, otherwise return None
         :param throw_on_missing: Raise an exception if an attempt to select a missing key (with the value '???')
                is made, otherwise return None
-        :param absolute_key: True to treat non-relative keys as relative to the config root
-                             False (default) to treat non-relative keys as relative to cfg
         :return: selected value or None if not found.
         """
+        from ._impl import select_value
+
         try:
-            try:
-                # for non relative keys, the interpretation can be:
-                # 1. relative to cfg
-                # 2. relative to the config root
-                # This is controlled by the absolute_key flag. By default, such keys are relative to cfg.
-                if not absolute_key and not key.startswith("."):
-                    key = f".{key}"
-
-                cfg, key = cfg._resolve_key_and_root(key)
-                _root, _last_key, value = cfg._select_impl(
-                    key,
-                    throw_on_missing=throw_on_missing,
-                    throw_on_resolution_failure=throw_on_resolution_failure,
-                )
-            except ConfigKeyError:
-                if default is not _DEFAULT_MARKER_:
-                    return default
-                else:
-                    raise
-
-            if (
-                default is not _DEFAULT_MARKER_
-                and _root is not None
-                and _last_key is not None
-                and _last_key not in _root
-            ):
-                return default
-
-            if value is not None and value._is_missing():
-                return None
-
-            return _get_value(value)
+            return select_value(
+                cfg=cfg,
+                key=key,
+                default=default,
+                throw_on_resolution_failure=throw_on_resolution_failure,
+                throw_on_missing=throw_on_missing,
+            )
         except Exception as e:
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 

@@ -53,7 +53,7 @@ def _get_and_validate_dict_input(
     parent: BaseContainer,
     resolver_name: str,
 ) -> DictConfig:
-    from omegaconf import OmegaConf
+    from omegaconf._impl import select_value
 
     if not isinstance(key, str):
         raise TypeError(
@@ -61,7 +61,7 @@ def _get_and_validate_dict_input(
             f"of type: {type(key).__name__}"
         )
 
-    in_dict = OmegaConf.select(
+    in_dict = select_value(
         parent,
         key,
         throw_on_missing=True,
