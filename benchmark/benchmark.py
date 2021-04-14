@@ -1,3 +1,4 @@
+import copy
 from typing import Any, Dict, List
 
 from pytest import lazy_fixture  # type: ignore
@@ -53,12 +54,6 @@ def dict_config_with_list_leaf(dict_with_list_leaf: Any) -> Any:
 
 @fixture(scope="module")
 def large_dict_config(large_dict: Any) -> Any:
-    return OmegaConf.create(large_dict)
-
-
-# Use this version if you intend to modify the config in a test.
-@fixture(scope="function")
-def large_dict_config_by_test(large_dict: Any) -> Any:
     return OmegaConf.create(large_dict)
 
 
@@ -160,9 +155,9 @@ def test_is_missing_literal(benchmark: Any) -> None:
 @mark.parametrize("force_add", [False, True])
 @mark.parametrize("key", ["a", "a.a.a.a.a.a.a.a.a.a.a"])
 def test_update_force_add(
-    large_dict_config_by_test: Any, key: str, force_add: bool, benchmark: Any
+    large_dict_config: Any, key: str, force_add: bool, benchmark: Any
 ) -> None:
-    cfg = large_dict_config_by_test
+    cfg = copy.deepcopy(large_dict_config)  # this test modifies the config
     if force_add:
         OmegaConf.set_struct(cfg, True)
 
