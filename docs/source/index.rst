@@ -11,7 +11,9 @@ OmegaConf also offers runtime type safety via Structured Configs.
    :maxdepth: 2
 
    usage
+   custom_resolvers
    structured_config
+
 
 
 Indices and tables

@@ -158,7 +158,7 @@ texinfo_documents = [
         "OmegaConf Documentation",
         author,
         "OmegaConf",
-        "Flexible python configuration system.",
+        "Flexible Python configuration system. The last one you will ever need.",
         "Miscellaneous",
     )
 ]
