@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
+from omegaconf._utils import nullcontext
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -16,7 +17,7 @@ from omegaconf.errors import (
     ValidationError,
 )
 from omegaconf.nodes import IntegerNode, StringNode
-from tests import Color, IllegalType, User, does_not_raise
+from tests import Color, IllegalType, User
 
 
 def test_list_value() -> None:
@@ -522,10 +523,10 @@ def test_extend(src: List[Any], append: List[Any], result: List[Any]) -> None:
 @mark.parametrize(
     "src, remove, result, expectation",
     [
-        ([10], 10, [], does_not_raise()),
+        ([10], 10, [], nullcontext()),
         ([], "oops", None, raises(ValueError)),
-        ([0, dict(a="blah"), 10], dict(a="blah"), [0, 10], does_not_raise()),
-        ([1, 2, 1, 2], 2, [1, 1, 2], does_not_raise()),
+        ([0, dict(a="blah"), 10], dict(a="blah"), [0, 10], nullcontext()),
+        ([1, 2, 1, 2], 2, [1, 1, 2], nullcontext()),
     ],
 )
 def test_remove(src: List[Any], remove: Any, result: Any, expectation: Any) -> None:
@@ -549,8 +550,8 @@ def test_clear(src: List[Any], num_clears: int) -> None:
     "src, item, expected_index, expectation",
     [
         ([], 20, -1, raises(ValueError)),
-        ([10, 20], 10, 0, does_not_raise()),
-        ([10, 20], 20, 1, does_not_raise()),
+        ([10, 20], 10, 0, nullcontext()),
+        ([10, 20], 20, 1, nullcontext()),
     ],
 )
 def test_index(

@@ -1,7 +1,6 @@
-from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import attr
 
@@ -47,11 +46,6 @@ class Dataframe:
     def __bool__(self) -> None:
         """Mimic pandas DataFrame __bool__, which raises a ValueError"""
         raise ValueError
-
-
-@contextmanager
-def does_not_raise(enter_result: Any = None) -> Iterator[Any]:
-    yield enter_result
 
 
 class Color(Enum):

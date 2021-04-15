@@ -47,6 +47,7 @@ from ._utils import (
     is_primitive_list,
     is_structured_config,
     is_tuple_annotation,
+    nullcontext,
     split_key,
     type_str,
 )
@@ -748,8 +749,8 @@ class OmegaConf:
         if isinstance(root, ListConfig):
             last_key = int(last)
 
-        struct_override = False if force_add else root._get_node_flag("struct")
-        with flag_override(root, "struct", struct_override):
+        ctx = flag_override(root, "struct", False) if force_add else nullcontext()
+        with ctx:
             if merge and (OmegaConf.is_config(value) or is_primitive_container(value)):
                 assert isinstance(root, BaseContainer)
                 node = root._get_node(last_key)

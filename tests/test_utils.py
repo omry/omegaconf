@@ -13,6 +13,7 @@ from omegaconf._utils import (
     _get_value,
     is_dict_annotation,
     is_list_annotation,
+    nullcontext,
     split_key,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
@@ -637,3 +638,12 @@ def test_marker_string_representation() -> None:
 )
 def test_split_key(key: str, expected: List[str]) -> None:
     assert split_key(key) == expected
+
+
+def test_nullcontext() -> None:
+    with nullcontext() as x:
+        assert x is None
+
+    obj = object()
+    with nullcontext(obj) as x:
+        assert x is obj

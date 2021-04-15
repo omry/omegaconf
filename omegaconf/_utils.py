@@ -3,9 +3,20 @@ import os
 import re
 import string
 import sys
+from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    get_type_hints,
+)
 
 import yaml
 
@@ -901,3 +912,10 @@ def split_key(key: str) -> List[str]:
     tokens += [dot_key if dot_key else bracket_key for dot_key, bracket_key in others]
 
     return tokens
+
+
+# Similar to Python 3.7+'s `contextlib.nullcontext` (which should be used instead,
+# once support for Python 3.6 is dropped).
+@contextmanager
+def nullcontext(enter_result: Any = None) -> Iterator[Any]:
+    yield enter_result
