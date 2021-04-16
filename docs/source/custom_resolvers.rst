@@ -269,9 +269,7 @@ e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
 
 Note that:
 
-- When providing as input to ``oc.decode`` a string that is meant to be decoded into another string, in general
-  the input string should be quoted (since only a subset of characters are allowed by the grammar in unquoted
-  strings). For instance: ``"'Hello, world!'"`` (with extra quotes).
+- In general input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings
 - ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
 
 This resolver can be useful for instance to parse environment variables:
