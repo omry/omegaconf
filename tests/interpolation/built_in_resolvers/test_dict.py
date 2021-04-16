@@ -274,7 +274,7 @@ def test_dict_values_are_typed() -> None:
 )
 def test_readonly_parent(cfg: Any, expected: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    cfg._set_flag("readonly", True)
+    OmegaConf.set_readonly(cfg, True)
     assert cfg.x == expected
 
 

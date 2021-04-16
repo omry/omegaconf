@@ -351,7 +351,7 @@ def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
     some_dict = {"a": 0, "b": "${y}"}
     OmegaConf.register_new_resolver("dict", lambda: some_dict)
     c = OmegaConf.create({"x": "${dict:}", "y": -1})
-    c._set_flag("readonly", readonly)
+    OmegaConf.set_readonly(c, readonly)
     assert c.x == some_dict
     x_node = dereference_node(c, "x")
     assert isinstance(x_node, AnyNode)
@@ -363,7 +363,7 @@ def test_resolver_output_list(restore_resolvers: Any, readonly: bool) -> None:
     some_list = ["a", 0, "${y}"]
     OmegaConf.register_new_resolver("list", lambda: some_list)
     c = OmegaConf.create({"x": "${list:}", "y": -1})
-    c._set_flag("readonly", readonly)
+    OmegaConf.set_readonly(c, readonly)
     assert c.x == some_list
     x_node = dereference_node(c, "x")
     assert isinstance(x_node, AnyNode)
