@@ -208,19 +208,27 @@ oc.create
 
 ``oc.create`` may be used for dynamic generation of config nodes
 (typically from Python ``dict`` / ``list`` objects or YAML strings, similar to :ref:`OmegaConf.create<creating>`).
-The following example combines ``oc.create`` with ``oc.decode`` and ``oc.env`` to generate
-a sub-config from an environment variable:
 
 .. doctest::
 
+
+    >>> OmegaConf.register_new_resolver("make_dict", lambda: {"a": 10})
     >>> cfg = OmegaConf.create(
     ...     {
-    ...         "model": "${oc.create:${oc.decode:${oc.env:MODEL}}}",
+    ...         "plain_dict": "${make_dict:}",
+    ...         "dict_config": "${oc.create:${make_dict:}}",
+    ...         "dict_config_env": "${oc.create:${oc.env:YAML_ENV}}",
     ...     }
     ... )
-    >>> os.environ["MODEL"] = "{name: my_model, layer_size: [100, 200]}"
-    >>> show(cfg.model.layer_size)
-    type: ListConfig, value: [100, 200]
+    >>> os.environ["YAML_ENV"] = "A: 10\nb: 20\nC: ${.A}" 
+    >>> show(cfg.plain_dict)  # `make_dict` returns a Python dict
+    type: dict, value: {'a': 10}
+    >>> show(cfg.dict_config)  # `oc.create` converts it to DictConfig
+    type: DictConfig, value: {'a': 10}
+    >>> show(cfg.dict_config_env)  # YAML string to DictConfig
+    type: DictConfig, value: {'A': 10, 'b': 20, 'C': '${.A}'}
+    >>> cfg.dict_config_env.C  # interpolations work in a DictConfig
+    10
 
 
 .. _oc.deprecated:
