@@ -258,13 +258,12 @@ oc.decode
 With ``oc.decode``, strings can be converted into their corresponding data types using the OmegaConf grammar.
 This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``dict`` and ``list``,
 e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
-It will also resolve interpolations like ``"${foo}"``, returning the corresponding value of the node.
 
 Note that:
 
 - When providing as input to ``oc.decode`` a string that is meant to be decoded into another string, in general
   the input string should be quoted (since only a subset of characters are allowed by the grammar in unquoted
-  strings). For instance, a proper string interpolation could be: ``"'Hi! My name is: ${name}'"`` (with extra quotes).
+  strings). For instance: ``"'Hello, world!'"`` (with extra quotes).
 - ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
 
 This resolver can be useful for instance to parse environment variables:
