@@ -10,12 +10,8 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigKeyError, InterpolationKeyError
 
 
-@mark.parametrize("struct", [False, True, None])
+@mark.parametrize("struct", [False, True])
 class TestSelect:
-    @mark.parametrize(
-        "register_func",
-        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
-    )
     @mark.parametrize(
         "cfg, key, expected",
         [
@@ -41,13 +37,38 @@ class TestSelect:
             param({"a": {"v": 1}}, "", {"a": {"v": 1}}, id="select_root"),
             param({"a": {"b": 1}, "c": "one=${a.b}"}, "c", "one=1", id="inter"),
             param({"a": {"b": "one=${n}"}, "n": 1}, "a.b", "one=1", id="inter"),
-            param({"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"),
             # relative selection
             param({"a": {"b": {"c": 10}}}, ".a", {"b": {"c": 10}}, id="relative"),
             param({"a": {"b": {"c": 10}}}, ".a.b", {"c": 10}, id="relative"),
         ],
     )
     def test_select(
+        self,
+        restore_resolvers: Any,
+        cfg: Any,
+        key: Any,
+        expected: Any,
+        struct: Optional[bool],
+    ) -> None:
+        cfg = _ensure_container(cfg)
+        OmegaConf.set_struct(cfg, struct)
+        if isinstance(expected, RaisesContext):
+            with expected:
+                OmegaConf.select(cfg, key)
+        else:
+            assert OmegaConf.select(cfg, key) == expected
+
+    @mark.parametrize(
+        "register_func",
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
+    )
+    @mark.parametrize(
+        "cfg, key, expected",
+        [
+            param({"a": {"b": "one=${func:1}"}}, "a.b", "one=_1_", id="resolver"),
+        ],
+    )
+    def test_select_resolver(
         self,
         restore_resolvers: Any,
         cfg: Any,
