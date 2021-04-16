@@ -119,7 +119,8 @@ class TestSelect:
         ("cfg", "key", "expected"),
         [
             param({"x": None}, "x", None, id="none"),
-            param({"x": None}, "", {"x": None}, id="root"),
+            param({"x": DictConfig(None)}, "x", None, id="DictConfig(none)"),
+            param({"x": None}, "", DictConfig({"x": None}), id="root"),
         ],
     )
     def test_select_default_not_used(
@@ -132,7 +133,9 @@ class TestSelect:
     ) -> None:
         cfg = _ensure_container(cfg)
         OmegaConf.set_struct(cfg, struct)
-        assert OmegaConf.select(cfg, key, default=default) == expected
+        selected = OmegaConf.select(cfg, key, default=default)
+        assert selected == expected
+        assert type(selected) is type(expected)
 
     @mark.parametrize("default", [10, None])
     @mark.parametrize(

@@ -89,7 +89,7 @@ def select_node(
             key = f".{key}"
 
         cfg, key = cfg._resolve_key_and_root(key)
-        _root, _last_key, value = cfg._select_impl(
+        _root, _last_key, node = cfg._select_impl(
             key,
             throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
@@ -100,12 +100,8 @@ def select_node(
         else:
             return None
 
-    if (
-        default is not _DEFAULT_MARKER_
-        and _root is not None
-        and _last_key is not None
-        and _last_key not in _root
-    ):
+    default_provided = default is not _DEFAULT_MARKER_
+    if default_provided and (node is None or node._is_missing()):
         return default
 
-    return value
+    return node
