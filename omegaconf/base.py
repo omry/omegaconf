@@ -553,7 +553,7 @@ class Container(Node):
     ) -> Optional["Node"]:
         from .basecontainer import BaseContainer
         from .nodes import AnyNode
-        from .omegaconf import _node_wrap, flag_override
+        from .omegaconf import _node_wrap
 
         assert parent is None or isinstance(parent, BaseContainer)
 
@@ -571,10 +571,10 @@ class Container(Node):
         else:
             # Other objects get wrapped into an `AnyNode` with `allow_objects` set
             # to True.
-            wrapped = AnyNode(value=None, key=key, parent=parent)
-            wrapped._set_flag("allow_objects", True)
-            with flag_override(wrapped, "readonly", False):
-                wrapped._set_value(resolved)
+            wrapped = AnyNode(
+                value=resolved, key=key, parent=None, flags={"allow_objects": True}
+            )
+            wrapped._set_parent(parent)
 
         return wrapped
 
