@@ -611,10 +611,6 @@ class Container(Node):
             raise InterpolationToMissingValueError(
                 f"MissingMandatoryValue while resolving interpolation: {exc}"
             ).with_traceback(sys.exc_info()[2])
-        except ConfigKeyError as exc:
-            raise InterpolationKeyError(
-                f"ConfigKeyError while resolving interpolation: {exc}"
-            ).with_traceback(sys.exc_info()[2])
 
         if parent is None or value is None:
             raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")

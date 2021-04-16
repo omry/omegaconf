@@ -53,7 +53,6 @@ from ._utils import (
 from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
-    ConfigTypeError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -1048,7 +1047,10 @@ def _select_one(
     from .listconfig import ListConfig
 
     ret_key: Union[str, int] = key
-    assert isinstance(c, (DictConfig, ListConfig)), f"Unexpected type: {c}"
+    assert isinstance(c, Container), f"Unexpected type: {c}"
+    if c._is_none():
+        return None, ret_key
+
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_node(ret_key, validate_access=False)
