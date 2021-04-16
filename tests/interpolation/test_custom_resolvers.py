@@ -346,7 +346,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
     assert old != c.k
 
 
-@mark.parametrize("readonly", [True, False, None])
+@mark.parametrize("readonly", [True, False])
 def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
     some_dict = {"a": 0, "b": "${y}"}
     OmegaConf.register_new_resolver("dict", lambda: some_dict)
@@ -358,7 +358,7 @@ def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
     assert x_node._get_flag("allow_objects")
 
 
-@mark.parametrize("readonly", [True, False, None])
+@mark.parametrize("readonly", [True, False])
 def test_resolver_output_list(restore_resolvers: Any, readonly: bool) -> None:
     some_list = ["a", 0, "${y}"]
     OmegaConf.register_new_resolver("list", lambda: some_list)
