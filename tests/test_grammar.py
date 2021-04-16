@@ -6,6 +6,7 @@ import antlr4
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
+    AnyNode,
     Container,
     DictConfig,
     ListConfig,
@@ -518,6 +519,9 @@ class TestOmegaConfGrammar:
             return _utils._get_value(
                 cfg.resolve_parse_tree(
                     parse_tree,
+                    # Create a dummy `AnyNode` (it should not actually be used in these
+                    # grammer tests, but `resolve_parse_tree()` requires it).
+                    node=AnyNode(None, parent=cfg),
                     key=None,
                     parent=cfg,
                 )

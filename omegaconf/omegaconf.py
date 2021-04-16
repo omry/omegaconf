@@ -885,7 +885,7 @@ class OmegaConf:
         name: str,
     ) -> Optional[
         Callable[
-            [Container, Container, Optional[Node], Tuple[Any, ...], Tuple[str, ...]],
+            [Container, Container, Node, Tuple[Any, ...], Tuple[str, ...]],
             Any,
         ]
     ]:

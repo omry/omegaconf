@@ -481,7 +481,7 @@ class Container(Node):
 
         try:
             resolved = self.resolve_parse_tree(
-                parse_tree=parse_tree, key=key, parent=parent, memo=memo
+                parse_tree=parse_tree, node=value, key=key, parent=parent, memo=memo
             )
         except InterpolationResolutionError:
             if throw_on_resolution_failure:
@@ -547,7 +547,7 @@ class Container(Node):
     def _wrap_interpolation_result(
         self,
         parent: Optional["Container"],
-        value: "Node",
+        value: Node,
         key: Any,
         resolved: Any,
         throw_on_resolution_failure: bool,
@@ -621,6 +621,7 @@ class Container(Node):
     def _evaluate_custom_resolver(
         self,
         key: Any,
+        node: Node,
         inter_type: str,
         inter_args: Tuple[Any, ...],
         inter_args_str: Tuple[str, ...],
@@ -630,10 +631,6 @@ class Container(Node):
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            node = None
-            if key is not None:
-                node = self._get_node(key, validate_access=True)
-            assert node is None or isinstance(node, Node)
             return resolver(
                 root_node,
                 self,
@@ -671,6 +668,7 @@ class Container(Node):
     def resolve_parse_tree(
         self,
         parse_tree: ParserRuleContext,
+        node: Node,
         memo: Optional[Set[int]] = None,
         key: Optional[Any] = None,
         parent: Optional["Container"] = None,
@@ -693,6 +691,7 @@ class Container(Node):
         ) -> Any:
             return self._evaluate_custom_resolver(
                 key=key,
+                node=node,
                 inter_type=name,
                 inter_args=args,
                 inter_args_str=args_str,
