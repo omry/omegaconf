@@ -360,13 +360,23 @@ def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
 
 
 @mark.parametrize("readonly", [True, False])
-def test_resolver_output_list(restore_resolvers: Any, readonly: bool) -> None:
-    some_list = ["a", 0, "${y}"]
-    OmegaConf.register_new_resolver("list", lambda: some_list)
-    c = OmegaConf.create({"x": "${list:}", "y": -1})
+@mark.parametrize(
+    ("data", "expected_type"),
+    [
+        param({"a": 0, "b": "${y}"}, dict, id="dict"),
+        param(["a", 0, "${y}"], list, id="list"),
+    ],
+)
+def test_resolver_output_plain_dict_list(
+    restore_resolvers: Any, readonly: bool, data: Any, expected_type: type
+) -> None:
+    OmegaConf.register_new_resolver("get_data", lambda: data)
+    c = OmegaConf.create({"x": "${get_data:}", "y": -1})
     OmegaConf.set_readonly(c, readonly)
-    assert isinstance(c.x, list)
-    assert c.x == some_list
+
+    assert isinstance(c.x, expected_type)
+    assert c.x == data
+
     x_node = dereference_node(c, "x")
     assert isinstance(x_node, AnyNode)
     assert x_node._get_flag("allow_objects")
