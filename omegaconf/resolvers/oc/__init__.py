@@ -29,7 +29,7 @@ def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
             raise KeyError(f"Environment variable '{key}' not found")
 
 
-def decode(expr: Optional[str], _parent_: Container) -> Any:
+def decode(expr: Optional[str], _parent_: Container, _node_: Node) -> Any:
     """
     Parse and evaluate `expr` according to the `singleElement` rule of the grammar.
 
@@ -45,7 +45,7 @@ def decode(expr: Optional[str], _parent_: Container) -> Any:
         )
 
     parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")
-    val = _parent_.resolve_parse_tree(parse_tree)
+    val = _parent_.resolve_parse_tree(parse_tree, node=_node_)
     return _get_value(val)
 
 
@@ -54,7 +54,7 @@ def deprecated(
     message: str = "'$OLD_KEY' is deprecated. Change your code and config to use '$NEW_KEY'",
     *,
     _parent_: Container,
-    _node_: Optional[Node],
+    _node_: Node,
 ) -> Any:
     from omegaconf._impl import select_node
 
@@ -68,7 +68,6 @@ def deprecated(
             f"oc.deprecated: interpolation message type is not a string ({type(message).__name__})"
         )
 
-    assert _node_ is not None
     full_key = _node_._get_full_key(key=None)
     target_node = select_node(_parent_, key, absolute_key=True)
     if target_node is None:
