@@ -5,9 +5,18 @@ from typing import Any, Optional
 
 from omegaconf import Container, Node
 from omegaconf._utils import _DEFAULT_MARKER_, _get_value
+from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError
 from omegaconf.grammar_parser import parse
 from omegaconf.resolvers.oc import dict
+
+
+def create(obj: Any, _parent_: Container) -> Any:
+    """Create a config object from `obj`, similar to `OmegaConf.create`"""
+    from omegaconf import OmegaConf
+
+    assert isinstance(_parent_, BaseContainer)
+    return OmegaConf.create(obj, parent=_parent_)
 
 
 def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
@@ -84,6 +93,7 @@ def deprecated(
 
 
 __all__ = [
+    "create",
     "decode",
     "deprecated",
     "dict",

@@ -111,11 +111,14 @@ class AnyNode(ValueNode):
         value: Any = None,
         key: Any = None,
         parent: Optional[Container] = None,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
             parent=parent,
             value=value,
-            metadata=Metadata(ref_type=Any, object_type=None, key=key, optional=True),
+            metadata=Metadata(
+                ref_type=Any, object_type=None, key=key, optional=True, flags=flags
+            ),
         )
 
     def _validate_and_convert_impl(self, value: Any) -> Any:
@@ -145,12 +148,17 @@ class StringNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
-                key=key, optional=is_optional, ref_type=str, object_type=str
+                key=key,
+                optional=is_optional,
+                ref_type=str,
+                object_type=str,
+                flags=flags,
             ),
         )
 
@@ -174,12 +182,17 @@ class IntegerNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
-                key=key, optional=is_optional, ref_type=int, object_type=int
+                key=key,
+                optional=is_optional,
+                ref_type=int,
+                object_type=int,
+                flags=flags,
             ),
         )
 
@@ -206,12 +219,17 @@ class FloatNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
-                key=key, optional=is_optional, ref_type=float, object_type=float
+                key=key,
+                optional=is_optional,
+                ref_type=float,
+                object_type=float,
+                flags=flags,
             ),
         )
 
@@ -255,12 +273,17 @@ class BooleanNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
-                key=key, optional=is_optional, ref_type=bool, object_type=bool
+                key=key,
+                optional=is_optional,
+                ref_type=bool,
+                object_type=bool,
+                flags=flags,
             ),
         )
 
@@ -307,6 +330,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         key: Any = None,
         parent: Optional[Container] = None,
         is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
     ):
         if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
             raise ValidationError(
@@ -320,7 +344,11 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             parent=parent,
             value=value,
             metadata=Metadata(
-                key=key, optional=is_optional, ref_type=enum_type, object_type=enum_type
+                key=key,
+                optional=is_optional,
+                ref_type=enum_type,
+                object_type=enum_type,
+                flags=flags,
             ),
         )
 

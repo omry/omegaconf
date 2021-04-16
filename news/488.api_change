@@ -1,1 +1,1 @@
-When resolving an interpolation of a typed config value, the interpolated value is validated and possibly converted based on the node's type.
+When resolving an interpolation of a config value with a primitive type, the interpolated value is validated and possibly converted based on the node's type.

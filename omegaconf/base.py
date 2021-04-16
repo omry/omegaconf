@@ -15,6 +15,7 @@ from ._utils import (
     _is_missing_value,
     format_and_raise,
     get_value_kind,
+    is_primitive_type,
     split_key,
 )
 from .errors import (
@@ -24,7 +25,6 @@ from .errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
     InterpolationValidationError,
-    KeyValidationError,
     MissingMandatoryValue,
     UnsupportedInterpolationType,
     ValidationError,
@@ -553,10 +553,14 @@ class Container(Node):
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
         from .basecontainer import BaseContainer
+        from .nodes import AnyNode
         from .omegaconf import _node_wrap
 
         assert parent is None or isinstance(parent, BaseContainer)
-        try:
+
+        if is_primitive_type(type(resolved)):
+            # Primitive types get wrapped using `_node_wrap()`, ensuring value is
+            # validated and potentially converted.
             wrapped = _node_wrap(
                 type_=value._metadata.ref_type,
                 parent=parent,
@@ -565,19 +569,14 @@ class Container(Node):
                 key=key,
                 ref_type=value._metadata.ref_type,
             )
-        except (KeyValidationError, ValidationError) as e:
-            if throw_on_resolution_failure:
-                self._format_and_raise(
-                    key=key,
-                    value=resolved,
-                    cause=e,
-                    type_override=InterpolationValidationError,
-                )
-            return None
-        # Since we created a new node on the fly, future changes to this node are
-        # likely to be lost. We thus set the "readonly" flag to `True` to reduce
-        # the risk of accidental modifications.
-        wrapped._set_flag("readonly", True)
+        else:
+            # Other objects get wrapped into an `AnyNode` with `allow_objects` set
+            # to True.
+            wrapped = AnyNode(
+                value=resolved, key=key, parent=None, flags={"allow_objects": True}
+            )
+            wrapped._set_parent(parent)
+
         return wrapped
 
     def _validate_not_dereferencing_to_parent(self, node: Node, target: Node) -> None:

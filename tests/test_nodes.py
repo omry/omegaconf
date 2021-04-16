@@ -1,4 +1,5 @@
 import copy
+import functools
 import re
 from enum import Enum
 from typing import Any, Dict, Tuple, Type
@@ -596,3 +597,29 @@ def test_dereference_interpolation_to_missing() -> None:
     assert x_node._maybe_dereference_node() is None
     with raises(InterpolationToMissingValueError):
         cfg.x
+
+
+@mark.parametrize(
+    "flags",
+    [
+        {},
+        {"flag": True},
+        {"flag": False},
+        {"flag1": True, "flag2": False},
+    ],
+)
+@mark.parametrize(
+    "type_",
+    [
+        AnyNode,
+        BooleanNode,
+        functools.partial(EnumNode, enum_type=Color),
+        FloatNode,
+        IntegerNode,
+        StringNode,
+    ],
+)
+def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:
+    node = type_(value=None, flags=flags)
+    for f, v in flags.items():
+        assert node._get_flag(f) is v

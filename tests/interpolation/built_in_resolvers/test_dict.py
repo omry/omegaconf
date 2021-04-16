@@ -234,35 +234,6 @@ def test_dict_values_dictconfig_resolver_output(
     assert cfg.foo[key] == expected
 
 
-@mark.parametrize(
-    ("make_resolver", "expected_value", "expected_content"),
-    [
-        param(
-            lambda _parent_: OmegaConf.create({"a": 0, "b": 1}, parent=_parent_),
-            [0, 1],
-            ["${y.a}", "${y.b}"],
-            id="dictconfig_with_parent",
-        ),
-        param(
-            lambda: {"a": 0, "b": 1},
-            [0, 1],
-            ["${y.a}", "${y.b}"],
-            id="plain_dict",
-        ),
-    ],
-)
-def test_dict_values_transient_interpolation(
-    restore_resolvers: Any,
-    make_resolver: Any,
-    expected_value: Any,
-    expected_content: Any,
-) -> None:
-    OmegaConf.register_new_resolver("make", make_resolver)
-    cfg = OmegaConf.create({"x": "${oc.dict.values:y}", "y": "${make:}"})
-    assert cfg.x == expected_value
-    assert cfg.x._content == expected_content
-
-
 def test_dict_values_are_typed() -> None:
     cfg = OmegaConf.create(
         {
@@ -289,7 +260,7 @@ def test_dict_values_are_typed() -> None:
 )
 def test_readonly_parent(cfg: Any, expected: Any) -> None:
     cfg = OmegaConf.create(cfg)
-    cfg._set_flag("readonly", True)
+    OmegaConf.set_readonly(cfg, True)
     assert cfg.x == expected
 
 

@@ -94,6 +94,7 @@ def SI(interpolation: str) -> Any:
 def register_default_resolvers() -> None:
     from omegaconf.resolvers import env, oc
 
+    OmegaConf.register_new_resolver("oc.create", oc.create)
     OmegaConf.register_new_resolver("oc.decode", oc.decode)
     OmegaConf.register_new_resolver("oc.deprecated", oc.deprecated)
     OmegaConf.register_new_resolver("oc.env", oc.env)

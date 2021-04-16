@@ -60,19 +60,6 @@ simply use quotes to bypass character limitations in strings.
     'Hello, World'
 
 
-Custom resolvers can return lists or dictionaries, that are automatically converted into DictConfig and ListConfig:
-
-.. doctest::
-
-    >>> OmegaConf.register_new_resolver(
-    ...     "min_max", lambda *a: {"min": min(a), "max": max(a)}
-    ... )
-    >>> c = OmegaConf.create({'stats': '${min_max: -1, 3, 2, 5, -10}'})
-    >>> assert isinstance(c.stats, DictConfig)
-    >>> c.stats.min, c.stats.max
-    (-10, 5)
-
-
 You can take advantage of nested interpolations to perform custom operations over variables:
 
 .. doctest::
@@ -213,6 +200,37 @@ The following example falls back to default passwords when ``DB_PASSWORD`` is no
     >>> show(cfg.database.password3)
     type: NoneType, value: None
 
+
+.. _oc.create:
+
+oc.create
+^^^^^^^^^
+
+``oc.create`` may be used for dynamic generation of config nodes
+(typically from Python ``dict`` / ``list`` objects or YAML strings, similar to :ref:`OmegaConf.create<creating>`).
+
+.. doctest::
+
+
+    >>> OmegaConf.register_new_resolver("make_dict", lambda: {"a": 10})
+    >>> cfg = OmegaConf.create(
+    ...     {
+    ...         "plain_dict": "${make_dict:}",
+    ...         "dict_config": "${oc.create:${make_dict:}}",
+    ...         "dict_config_env": "${oc.create:${oc.env:YAML_ENV}}",
+    ...     }
+    ... )
+    >>> os.environ["YAML_ENV"] = "A: 10\nb: 20\nC: ${.A}" 
+    >>> show(cfg.plain_dict)  # `make_dict` returns a Python dict
+    type: dict, value: {'a': 10}
+    >>> show(cfg.dict_config)  # `oc.create` converts it to DictConfig
+    type: DictConfig, value: {'a': 10}
+    >>> show(cfg.dict_config_env)  # YAML string to DictConfig
+    type: DictConfig, value: {'A': 10, 'b': 20, 'C': '${.A}'}
+    >>> cfg.dict_config_env.C  # interpolations work in a DictConfig
+    10
+
+
 .. _oc.deprecated:
 
 oc.deprecated
@@ -245,14 +263,16 @@ It takes two parameters:
 oc.decode
 ^^^^^^^^^
 
-Strings may be converted using ``oc.decode``:
+With ``oc.decode``, strings can be converted into their corresponding data types using the OmegaConf grammar.
+This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``dict`` and ``list``,
+e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
 
-- Primitive values (e.g., ``"true"``, ``"1"``, ``"1e-3"``) are automatically converted to their corresponding type (bool, int, float)
-- Dictionaries and lists (e.g., ``"{a: b}"``, ``"[a, b, c]"``)  are returned as transient config nodes (DictConfig and ListConfig)
-- Interpolations (e.g., ``"${foo}"``) are automatically resolved
-- ``None`` is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+Note that:
 
-This can be useful for instance to parse environment variables:
+- In general input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings
+- ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+
+This resolver can be useful for instance to parse environment variables:
 
 .. doctest::
 
@@ -269,8 +289,8 @@ This can be useful for instance to parse environment variables:
     >>> show(cfg.database.port)  # converted to int
     type: int, value: 3308
     >>> os.environ["DB_NODES"] = "[host1, host2, host3]"
-    >>> show(cfg.database.nodes)  # converted to a ListConfig
-    type: ListConfig, value: ['host1', 'host2', 'host3']
+    >>> show(cfg.database.nodes)  # converted to a Python list
+    type: list, value: ['host1', 'host2', 'host3']
     >>> show(cfg.database.timeout)  # keeping `None` as is
     type: NoneType, value: None
     >>> os.environ["DB_TIMEOUT"] = "${.port}"

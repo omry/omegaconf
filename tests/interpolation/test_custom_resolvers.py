@@ -1,10 +1,11 @@
 import random
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from pytest import mark, param, raises, warns
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, Resolver
+from omegaconf import OmegaConf, Resolver
+from omegaconf.nodes import AnyNode
 from tests.interpolation import dereference_node
 
 
@@ -345,44 +346,40 @@ def test_clear_cache(restore_resolvers: Any) -> None:
     assert old != c.k
 
 
-@mark.parametrize(
-    ("cfg", "expected"),
-    [
-        ({"a": 0, "b": 1}, {"a": 0, "b": 1}),
-        ({"a": "${y}"}, {"a": -1}),
-        ({"a": 0, "b": "${x.a}"}, {"a": 0, "b": 0}),
-        ({"a": 0, "b": "${.a}"}, {"a": 0, "b": 0}),
-        ({"a": "${..y}"}, {"a": -1}),
-    ],
-)
-def test_resolver_output_dict_to_dictconfig(
-    restore_resolvers: Any, cfg: Dict[str, Any], expected: Dict[str, Any]
-) -> None:
-    OmegaConf.register_new_resolver("dict", lambda: cfg)
+@mark.parametrize("readonly", [True, False])
+def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
+    some_dict = {"a": 0, "b": "${y}"}
+    OmegaConf.register_new_resolver("dict", lambda: some_dict)
     c = OmegaConf.create({"x": "${dict:}", "y": -1})
-    assert isinstance(c.x, DictConfig)
-    assert c.x == expected
-    assert dereference_node(c, "x")._get_flag("readonly")
+    OmegaConf.set_readonly(c, readonly)
+    assert isinstance(c.x, dict)
+    assert c.x == some_dict
+    x_node = dereference_node(c, "x")
+    assert isinstance(x_node, AnyNode)
+    assert x_node._get_flag("allow_objects")
 
 
+@mark.parametrize("readonly", [True, False])
 @mark.parametrize(
-    ("cfg", "expected"),
+    ("data", "expected_type"),
     [
-        ([0, 1], [0, 1]),
-        (["${y}"], [-1]),
-        ([0, "${x.0}"], [0, 0]),
-        ([0, "${.0}"], [0, 0]),
-        (["${..y}"], [-1]),
+        param({"a": 0, "b": "${y}"}, dict, id="dict"),
+        param(["a", 0, "${y}"], list, id="list"),
     ],
 )
-def test_resolver_output_list_to_listconfig(
-    restore_resolvers: Any, cfg: List[Any], expected: List[Any]
+def test_resolver_output_plain_dict_list(
+    restore_resolvers: Any, readonly: bool, data: Any, expected_type: type
 ) -> None:
-    OmegaConf.register_new_resolver("list", lambda: cfg)
-    c = OmegaConf.create({"x": "${list:}", "y": -1})
-    assert isinstance(c.x, ListConfig)
-    assert c.x == expected
-    assert dereference_node(c, "x")._get_flag("readonly")
+    OmegaConf.register_new_resolver("get_data", lambda: data)
+    c = OmegaConf.create({"x": "${get_data:}", "y": -1})
+    OmegaConf.set_readonly(c, readonly)
+
+    assert isinstance(c.x, expected_type)
+    assert c.x == data
+
+    x_node = dereference_node(c, "x")
+    assert isinstance(x_node, AnyNode)
+    assert x_node._get_flag("allow_objects")
 
 
 def test_register_cached_resolver_with_keyword_unsupported() -> None:

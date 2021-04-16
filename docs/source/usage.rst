@@ -22,6 +22,8 @@ Just pip install::
 
 OmegaConf requires Python 3.6 and newer.
 
+.. _creating:
+
 Creating
 --------
 You can create OmegaConf objects from multiple sources.
@@ -401,6 +403,7 @@ Built-in resolvers
 ^^^^^^^^^^^^^^^^^^
 OmegaConf comes with a set of built-in custom resolvers:
 
+* :ref:`oc.create`: Dynamically generating config nodes
 * :ref:`oc.decode`: Parsing an input string using interpolation grammar
 * :ref:`oc.deprecated`: Deprecate a key in your config
 * :ref:`oc.env`: Accessing environment variables
