@@ -560,20 +560,14 @@ class Container(Node):
         if is_primitive_type(type(resolved)):
             # Primitive types get wrapped using `_node_wrap()`, ensuring value is
             # validated and potentially converted.
-            try:
-                wrapped = _node_wrap(
-                    type_=value._metadata.ref_type,
-                    parent=parent,
-                    is_optional=value._metadata.optional,
-                    value=resolved,
-                    key=key,
-                    ref_type=value._metadata.ref_type,
-                )
-            except ValidationError:  # pragma: no cover
-                # This is not supposed to happen because primitive types that must
-                # be wrapped should have already been validated inside
-                # `_validate_and_convert_interpolation_result()`.
-                assert False
+            wrapped = _node_wrap(
+                type_=value._metadata.ref_type,
+                parent=parent,
+                is_optional=value._metadata.optional,
+                value=resolved,
+                key=key,
+                ref_type=value._metadata.ref_type,
+            )
         else:
             # Other objects get wrapped into an `AnyNode` with `allow_objects` set
             # to True.
