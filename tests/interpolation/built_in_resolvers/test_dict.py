@@ -234,20 +234,6 @@ def test_dict_values_dictconfig_resolver_output(
     assert cfg.foo[key] == expected
 
 
-@mark.parametrize("dict_func", ["oc.dict.values", "oc.dict.keys"])
-def test_extract_from_dict_resolver_output(
-    restore_resolvers: Any,
-    dict_func: str,
-) -> None:
-    OmegaConf.register_new_resolver("make_dict", lambda: {"a": 0, "b": 1})
-    cfg = OmegaConf.create({"x": f"${{{dict_func}:y}}", "y": "${make_dict:}"})
-    with raises(
-        InterpolationResolutionError,
-        match="TypeError raised while resolving interpolation",
-    ):
-        cfg.x
-
-
 def test_dict_values_are_typed() -> None:
     cfg = OmegaConf.create(
         {
