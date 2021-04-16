@@ -1,7 +1,7 @@
 from typing import Any
 
 from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNode
-from omegaconf.errors import ConfigKeyError, InterpolationToMissingValueError
+from omegaconf.errors import ConfigTypeError, InterpolationToMissingValueError
 
 from ._utils import _DEFAULT_MARKER_, _get_value
 
@@ -94,11 +94,11 @@ def select_node(
             throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
-    except ConfigKeyError:
+    except ConfigTypeError:
         if default is not _DEFAULT_MARKER_:
             return default
         else:
-            raise
+            return None
 
     if (
         default is not _DEFAULT_MARKER_

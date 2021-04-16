@@ -1,13 +1,12 @@
-import re
 from typing import Any, Optional
 
 from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
-from omegaconf import MissingMandatoryValue, OmegaConf
+from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigTypeError, InterpolationKeyError
+from omegaconf.errors import InterpolationKeyError
 
 
 @mark.parametrize("struct", [False, True])
@@ -15,9 +14,15 @@ class TestSelect:
     @mark.parametrize(
         "cfg, key, expected",
         [
+            # None returned
             param({}, "nope", None, id="dict:none"),
             param({}, "not.there", None, id="dict:none"),
             param({}, "still.not.there", None, id="dict:none"),
+            param({"a": 10}, "a.b", None, id="dict:nesting_into_value"),
+            param({"a": None}, "a.b", None, id="dict:nesting_into_none"),
+            param({"a": DictConfig(None)}, "a.b", None, id="dict:nesting_into_none"),
+            param({"a": ListConfig(None)}, "a.b", None, id="dict:nesting_into_none"),
+            # value returned
             param({"c": 1}, "c", 1, id="dict:int"),
             param({"a": {"v": 1}}, "a.v", 1, id="dict:int"),
             param({"a": {"v": 1}}, "a", {"v": 1}, id="dict:dict"),
@@ -127,31 +132,6 @@ class TestSelect:
         # throw on missing still throws if default is provided
         with raises(MissingMandatoryValue):
             OmegaConf.select(cfg, key, default=default, throw_on_missing=True)
-
-    @mark.parametrize(
-        ("cfg", "key", "exc"),
-        [
-            param(
-                {"int": 0},
-                "int.y",
-                raises(
-                    ConfigTypeError,
-                    match=re.escape(
-                        "Error trying to access int.y: node `int` is not a container "
-                        "and thus cannot contain `y`"
-                    ),
-                ),
-                id="non_container",
-            ),
-        ],
-    )
-    def test_select_error(
-        self, cfg: Any, key: Any, exc: Any, struct: Optional[bool]
-    ) -> None:
-        cfg = _ensure_container(cfg)
-        OmegaConf.set_struct(cfg, struct)
-        with exc:
-            OmegaConf.select(cfg, key)
 
     @mark.parametrize(
         ("cfg", "key"),
