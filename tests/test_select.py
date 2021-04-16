@@ -7,7 +7,7 @@ from pytest import mark, param, raises
 from omegaconf import MissingMandatoryValue, OmegaConf
 from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import ConfigKeyError, InterpolationKeyError
+from omegaconf.errors import ConfigTypeError, InterpolationKeyError
 
 
 @mark.parametrize("struct", [False, True])
@@ -135,7 +135,7 @@ class TestSelect:
                 {"int": 0},
                 "int.y",
                 raises(
-                    ConfigKeyError,
+                    ConfigTypeError,
                     match=re.escape(
                         "Error trying to access int.y: node `int` is not a container "
                         "and thus cannot contain `y`"

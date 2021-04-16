@@ -18,6 +18,7 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
+from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.errors import InterpolationValidationError
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
@@ -85,7 +86,7 @@ def test_merge_with_interpolation() -> None:
 
 def test_non_container_interpolation() -> None:
     cfg = OmegaConf.create({"foo": 0, "bar": "${foo.baz}"})
-    with raises(InterpolationKeyError):
+    with raises(InterpolationResolutionError):
         cfg.bar
 
 

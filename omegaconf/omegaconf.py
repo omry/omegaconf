@@ -53,6 +53,7 @@ from ._utils import (
 from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigTypeError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,

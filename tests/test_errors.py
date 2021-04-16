@@ -280,9 +280,9 @@ params = [
         Expected(
             create=lambda: OmegaConf.create({"foo": "${int.missing}", "int": 0}),
             op=lambda cfg: getattr(cfg, "foo"),
-            exception_type=InterpolationKeyError,
+            exception_type=InterpolationResolutionError,
             msg=(
-                "ConfigKeyError while resolving interpolation: Error trying to access int.missing: "
+                "ConfigTypeError raised while resolving interpolation: Error trying to access int.missing: "
                 "node `int` is not a container and thus cannot contain `missing`"
             ),
             key="foo",
