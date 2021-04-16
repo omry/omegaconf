@@ -558,8 +558,8 @@ class Container(Node):
         assert parent is None or isinstance(parent, BaseContainer)
 
         if is_primitive_type(type(resolved)):
-            # Primitive types get wrapped using the same logic as when setting the
-            # value of a node (i.e., through `_node_wrap()`).
+            # Primitive types get wrapped using `_node_wrap()`, ensuring value is
+            # validated and potentially converted.
             try:
                 wrapped = _node_wrap(
                     type_=value._metadata.ref_type,
