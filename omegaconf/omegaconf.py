@@ -98,6 +98,7 @@ def register_default_resolvers() -> None:
     OmegaConf.register_new_resolver("oc.decode", oc.decode)
     OmegaConf.register_new_resolver("oc.deprecated", oc.deprecated)
     OmegaConf.register_new_resolver("oc.env", oc.env)
+    OmegaConf.register_new_resolver("oc.select", oc.select)
     OmegaConf.register_new_resolver("oc.dict.keys", oc.dict.keys)
     OmegaConf.register_new_resolver("oc.dict.values", oc.dict.values)
     OmegaConf.legacy_register_resolver("env", env)

@@ -407,6 +407,7 @@ OmegaConf comes with a set of built-in custom resolvers:
 * :ref:`oc.decode`: Parsing an input string using interpolation grammar
 * :ref:`oc.deprecated`: Deprecate a key in your config
 * :ref:`oc.env`: Accessing environment variables
+* :ref:`oc.select`: Selecting an interpolation key, similar to interpolation but more flexible
 * :ref:`oc.dict.{keys,values}`: Viewing the keys or the values of a dictionary as a list
 
 
