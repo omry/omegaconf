@@ -646,10 +646,10 @@ class Container(Node):
         self,
         parent: Optional["Container"],
         key: Any,
-        value: "Node",
+        value: Node,
         throw_on_resolution_failure: bool,
         memo: Optional[Set[int]] = None,
-    ) -> Any:
+    ) -> Optional[Node]:
         value_kind = get_value_kind(value)
         if value_kind != ValueKind.INTERPOLATION:
             return value
