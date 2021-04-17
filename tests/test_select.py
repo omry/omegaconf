@@ -142,7 +142,7 @@ class TestSelect:
         ("cfg", "key", "expected"),
         [
             param({"x": {"y": None}}, "y", None, id="none"),
-            param({"x": {"y": 99}}, "y", 99, id="none"),
+            param({"x": {"y": 99}}, "y", 99, id="value"),
             param({"x": {"y": None}}, "..", {"x": {"y": None}}, id="root"),
         ],
     )

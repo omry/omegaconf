@@ -55,27 +55,28 @@ def select_value(
     throw_on_missing: bool = False,
     absolute_key: bool = False,
 ) -> Any:
-    ret = select_node(
+    node = select_node(
         cfg=cfg,
         key=key,
-        default=default,
         throw_on_resolution_failure=throw_on_resolution_failure,
         throw_on_missing=throw_on_missing,
         absolute_key=absolute_key,
     )
 
-    if isinstance(ret, Node) and ret._is_missing():
-        assert not throw_on_missing  # would have raised an exception in select_node
-        return None
+    node_not_found = node is None
+    if node_not_found or node._is_missing():
+        if default is not _DEFAULT_MARKER_:
+            return default
+        else:
+            return None
 
-    return _get_value(ret)
+    return _get_value(node)
 
 
 def select_node(
     cfg: Container,
     key: str,
     *,
-    default: Any = _DEFAULT_MARKER_,
     throw_on_resolution_failure: bool = True,
     throw_on_missing: bool = False,
     absolute_key: bool = False,
@@ -95,13 +96,6 @@ def select_node(
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
     except ConfigTypeError:
-        if default is not _DEFAULT_MARKER_:
-            return default
-        else:
-            return None
-
-    default_provided = default is not _DEFAULT_MARKER_
-    if default_provided and (node is None or node._is_missing()):
-        return default
+        return None
 
     return node
