@@ -92,10 +92,22 @@ def deprecated(
     return target_node
 
 
+def select(
+    key: str,
+    default: Any = _DEFAULT_MARKER_,
+    *,
+    _parent_: Container,
+) -> Any:
+    from omegaconf._impl import select_value
+
+    return select_value(cfg=_parent_, key=key, absolute_key=True, default=default)
+
+
 __all__ = [
     "create",
     "decode",
     "deprecated",
     "dict",
     "env",
+    "select",
 ]

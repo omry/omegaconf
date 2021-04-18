@@ -298,6 +298,65 @@ This resolver can be useful for instance to parse environment variables:
     type: int, value: 3308
 
 
+.. _oc.select:
+
+oc.select
+^^^^^^^^^
+``oc.select`` enables selection similar to that performed with node interpolation, but is a bit more flexible.
+Using ``oc.select``, you can provide a default value to use in case the primary interpolation key is not found.
+The following example uses "/tmp" as the default value for the node output:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...  "a": "Saving output to ${oc.select:output,/tmp}"
+    ... })
+    >>> print(cfg.a)
+    Saving output to /tmp
+    >>> cfg.output = "/etc/config"
+    >>> print(cfg.a)
+    Saving output to /etc/config
+
+``oc.select`` can also be used to select keys that are otherwise illegal interpolation keys.
+The following example has a key with a colon. Such a key looks like a custom resolver and therefore
+cannot be accessed using a regular interpolation:
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...    # yes, there is a : in this key
+    ...    "a:b": 10,
+    ...    "bad": "${a:b}",
+    ...    "good": "${oc.select:'a:b'}",
+    ... })
+    >>> print(cfg.bad)
+    Traceback (most recent call last):
+    ...
+    UnsupportedInterpolationType: Unsupported interpolation type a
+    >>> print(cfg.good)
+    10
+
+Another scenario where ``oc.select`` can be useful is if you want to select a missing value.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...         "missing": "???",
+    ...         "interpolation": "${missing}",
+    ...         "select": "${oc.select:missing}",
+    ...         "with_default": "${oc.select:missing,default value}",
+    ...     }
+    ... )
+    ... 
+    >>> print(cfg.interpolation)
+    Traceback (most recent call last):
+    ...
+    InterpolationToMissingValueError: MissingMandatoryValue while ...
+    >>> print(cfg.select)
+    None
+    >>> print(cfg.with_default)
+    default value
+
 .. _oc.dict.{keys,values}:
 
 oc.dict.{keys,value}
