@@ -20,5 +20,16 @@ OmegaConf 2.0 stable version.
 
 Install with `pip install --upgrade omegaconf`
 
+### Dev release (2.1)
+OmegaConf 2.1 dev release is in good shape and is approaching a release candidate.
+Users are encouraged to try it out.
+
+* [Documentation](https://omegaconf.readthedocs.io/en/latest/)
+* [Source code](https://github.com/omry/omegaconf/tree/master)
+* [Milestone progress](https://github.com/omry/omegaconf/milestone/3)
+
+Install with `pip install --upgrade omegaconf --pre`
+
+
 ## Live tutorial
 Run the live tutorial: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
