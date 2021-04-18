@@ -55,27 +55,28 @@ def select_value(
     throw_on_missing: bool = False,
     absolute_key: bool = False,
 ) -> Any:
-    ret = select_node(
+    node = select_node(
         cfg=cfg,
         key=key,
-        default=default,
         throw_on_resolution_failure=throw_on_resolution_failure,
         throw_on_missing=throw_on_missing,
         absolute_key=absolute_key,
     )
 
-    if isinstance(ret, Node) and ret._is_missing():
-        assert not throw_on_missing  # would have raised an exception in select_node
-        return None
+    node_not_found = node is None
+    if node_not_found or node._is_missing():
+        if default is not _DEFAULT_MARKER_:
+            return default
+        else:
+            return None
 
-    return _get_value(ret)
+    return _get_value(node)
 
 
 def select_node(
     cfg: Container,
     key: str,
     *,
-    default: Any = _DEFAULT_MARKER_,
     throw_on_resolution_failure: bool = True,
     throw_on_missing: bool = False,
     absolute_key: bool = False,
@@ -89,23 +90,12 @@ def select_node(
             key = f".{key}"
 
         cfg, key = cfg._resolve_key_and_root(key)
-        _root, _last_key, value = cfg._select_impl(
+        _root, _last_key, node = cfg._select_impl(
             key,
             throw_on_missing=throw_on_missing,
             throw_on_resolution_failure=throw_on_resolution_failure,
         )
     except ConfigTypeError:
-        if default is not _DEFAULT_MARKER_:
-            return default
-        else:
-            return None
+        return None
 
-    if (
-        default is not _DEFAULT_MARKER_
-        and _root is not None
-        and _last_key is not None
-        and _last_key not in _root
-    ):
-        return default
-
-    return value
+    return node

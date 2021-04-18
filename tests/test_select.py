@@ -9,7 +9,10 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
 
 
-@mark.parametrize("struct", [False, True])
+@mark.parametrize(
+    "struct",
+    [param(False, id="not_struct"), param(True, id="struct")],
+)
 class TestSelect:
     @mark.parametrize(
         "cfg, key, expected",
@@ -100,7 +103,7 @@ class TestSelect:
             param({"int": 0}, "int.y", id="non_container"),
         ],
     )
-    def test_select_default(
+    def test_select_default_returned(
         self,
         cfg: Any,
         struct: Optional[bool],
@@ -110,6 +113,50 @@ class TestSelect:
         cfg = _ensure_container(cfg)
         OmegaConf.set_struct(cfg, struct)
         assert OmegaConf.select(cfg, key, default=default) == default
+
+    @mark.parametrize("default", [10, None])
+    @mark.parametrize(
+        ("cfg", "key", "expected"),
+        [
+            param({"x": None}, "x", None, id="none"),
+            param({"x": DictConfig(None)}, "x", None, id="DictConfig(none)"),
+            param({"x": None}, "", DictConfig({"x": None}), id="root"),
+        ],
+    )
+    def test_select_default_not_used(
+        self,
+        cfg: Any,
+        struct: Optional[bool],
+        key: Any,
+        default: Any,
+        expected: Any,
+    ) -> None:
+        cfg = _ensure_container(cfg)
+        OmegaConf.set_struct(cfg, struct)
+        selected = OmegaConf.select(cfg, key, default=default)
+        assert selected == expected
+        assert type(selected) is type(expected)
+
+    @mark.parametrize("default", [10, None])
+    @mark.parametrize(
+        ("cfg", "key", "expected"),
+        [
+            param({"x": {"y": None}}, "y", None, id="none"),
+            param({"x": {"y": 99}}, "y", 99, id="value"),
+            param({"x": {"y": None}}, "..", {"x": {"y": None}}, id="root"),
+        ],
+    )
+    def test_nested_select_default_not_used(
+        self,
+        cfg: Any,
+        struct: Optional[bool],
+        key: Any,
+        default: Any,
+        expected: Any,
+    ) -> None:
+        cfg = _ensure_container(cfg)
+        OmegaConf.set_struct(cfg, struct)
+        assert OmegaConf.select(cfg.x, key, default=default) == expected
 
     @mark.parametrize("default", [10, None])
     @mark.parametrize(

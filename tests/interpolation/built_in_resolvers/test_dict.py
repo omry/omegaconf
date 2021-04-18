@@ -27,6 +27,12 @@ from tests import User, Users
             ["a", "b"],
             id="dictconfig_chained_interpolation",
         ),
+        param(
+            {"a": "${oc.dict.keys:''}", "b": 10},
+            "a",
+            ["a", "b"],
+            id="select_keys_of_root",
+        ),
     ],
 )
 def test_dict_keys(cfg: Any, key: Any, expected: Any) -> None:
@@ -63,19 +69,6 @@ def test_dict_keys(cfg: Any, key: Any, expected: Any) -> None:
                 ),
             ),
             id="config_key_error",
-        ),
-        param(
-            # This might be allowed in the future. Currently it fails.
-            {"foo": "${oc.dict.keys_or_values:''}"},
-            "foo",
-            raises(
-                InterpolationResolutionError,
-                match=re.escape(
-                    "ConfigKeyError raised while resolving interpolation: "
-                    "Key not found: ''"
-                ),
-            ),
-            id="config_key_error_empty",
         ),
         param(
             {"foo": "${oc.dict.keys_or_values:bar}", "bar": 0},
