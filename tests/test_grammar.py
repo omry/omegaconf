@@ -254,9 +254,11 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Interpolations in quoted strings.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", r"""'"\\\\\${foo}\ '""", r'"\${foo}\ '),
+    ("str_quoted_esc_single_2", r"""'\\\\\${foo}'""", r"\${foo}"),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", r'''"'\\\\\${foo}\ "''', r"'\${foo}\ "),
+    ("str_quoted_esc_double_2", r'''"\\\\\${foo}"''', r"\${foo}"),
+    ("str_quoted_other_quote_double", """'double"'""", 'double"'),
+    ("str_quoted_other_quote_single", '''"single'"''', "single'"),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     ("str_quoted_nested", "'${test:\"b\"}'", "b"),
     ("str_quoted_nested_esc_quotes", r"'${test:\'b\'}'", "b"),
