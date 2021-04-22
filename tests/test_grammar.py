@@ -103,6 +103,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("float_plus_nan", "+nan", math.nan),
     ("float_minus_nan", "-nan", math.nan),
     # Unquoted strings.
+    # Note: raw strings do not allow trailing \, adding a space and stripping it.
     ("str_legal", r" a/-\+.$*@?\\ ".strip(), r" a/-\+.$*@?\ ".strip()),
     ("str_illegal_1", "a,=b", GrammarParseError),
     ("str_illegal_2", f"{chr(200)}", GrammarParseError),
