@@ -564,7 +564,6 @@ class OmegaConf:
         This is an alias for OmegaConf.to_container(..., resolve=True, structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
-        :param enum_to_str: True to convert Enum values to strings
         :return: A dict or a list or dataclass representing this config.
         """
         return OmegaConf.to_container(
