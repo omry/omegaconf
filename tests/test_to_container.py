@@ -246,9 +246,9 @@ class TestInstantiateStructuredConfigs:
     def module(self, request: Any) -> Any:
         return import_module(request.param)
 
-    def round_trip_to_object(self, input_data: Any, **kwargs: Any) -> Any:
+    def round_trip_to_object(self, input_data: Any) -> Any:
         serialized = OmegaConf.create(input_data)
-        round_tripped = OmegaConf.to_object(serialized, **kwargs)
+        round_tripped = OmegaConf.to_object(serialized)
         return round_tripped
 
     def test_basic(self, module: Any) -> None:
