@@ -254,16 +254,17 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Interpolations in quoted strings.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", r"""'\\\\\${foo}'""", r"\${foo}"),
+    ("str_quoted_esc_single_2", r"""'\\\${foo}'""", r"\${foo}"),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", r'''"\\\\\${foo}"''', r"\${foo}"),
+    ("str_quoted_esc_double_2", r'''"\\\${foo}"''', r"\${foo}"),
     ("str_quoted_other_quote_double", """'double"'""", 'double"'),
     ("str_quoted_other_quote_single", '''"single'"''', "single'"),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     ("str_quoted_nested", "'${test:\"b\"}'", "b"),
-    ("str_quoted_nested_esc_quotes", r"'${test:\'b\'}'", "b"),
+    ("str_quoted_nested_esc_quotes", "'${test:'b'}'", "b"),
     ("str_quoted_esc_inter", r"""'\${test:"b"}'""", '${test:"b"}'),
     ("str_quoted_esc_inter_and_quotes", r"'\${test:\'b\'}'", "${test:'b'}"),
+    ("str_quoted_error_inside_quotes", "'${missing_brace'", GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
     ("ws_inter_node_around_dot", "${dict .\ta}", GrammarParseError),
@@ -283,7 +284,14 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("nested_select", "${options.${choice}}", "A"),
     ("nested_select_getitem", "${options[${choice}]}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
-    ("str_quoted_nested", r"'AB${test:\'CD${test:\\\'EF\\\'}GH\'}'", "ABCDEFGH"),
+    ("str_quoted_nested_deep_single", r"'AB${test:'CD${test:'EF'}GH'}'", "ABCDEFGH"),
+    ("str_quoted_nested_deep_double", r'"AB${test:"CD${test:"EF"}GH"}"', "ABCDEFGH"),
+    ("str_quoted_nested_deep_mixed", r'''"AB${test:'CD${test:"EF"}GH'}"''', "ABCDEFGH"),
+    (
+        "str_quoted_issue_615",
+        r'${test:"The root drive is: \\${str}:\\"}',
+        r" The root drive is: \hi:\ ".strip(),
+    ),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
@@ -398,7 +406,6 @@ class TestOmegaConfGrammar:
         visitor = grammar_visitor.GrammarVisitor(
             node_interpolation_callback=None,  # type: ignore
             resolver_interpolation_callback=None,  # type: ignore
-            quoted_string_callback=lambda s, memo: s,
             memo=None,
         )
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)
@@ -695,7 +702,6 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
     visitor = grammar_visitor.GrammarVisitor(
         node_interpolation_callback=callback,
         resolver_interpolation_callback=None,  # type: ignore
-        quoted_string_callback=lambda s, memo: s,
         memo=None,
     )
     ret = visitor.visit(tree)

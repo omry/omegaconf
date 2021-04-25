@@ -52,10 +52,17 @@ interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
 resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f
 
+// Quoted values.
+
+// Ex: "hello world", 'hello ${world}'
+quotedValue: QUOTE_OPEN
+                  (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)*
+             QUOTE_CLOSE;
+
 // Primitive types.
 
 primitive:
-      QUOTED_VALUE                               // 'hello world', "hello world"
+      quotedValue
     | (   ID                                     // foo_10
         | NULL                                   // null, NULL
         | INT                                    // 0, 10, -20, 1_000_000
@@ -70,7 +77,7 @@ primitive:
 
 // Same as `primitive` except that `COLON` and interpolations are not allowed.
 dictKey:
-      QUOTED_VALUE                               // 'hello world', "hello world"
+      quotedValue
     | (   ID                                     // foo_10
         | NULL                                   // null, NULL
         | INT                                    // 0, 10, -20, 1_000_000
