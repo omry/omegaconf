@@ -301,7 +301,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self.visit(ctx.getChild(0))
 
     def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
-        # (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+
+        # (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
         return self._unescape(ctx.getChildren())
 
     def _createPrimitive(

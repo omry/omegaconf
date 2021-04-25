@@ -21,8 +21,8 @@ TOP_ESC: ESC_BACKSLASH+ -> type(ESC);
 
 // The backslash and dollar characters must not be grouped with others, so that
 // we can properly detect the tokens above.
-TOP_CHAR: [\\$];
-TOP_STR: ~[\\$]+;  // anything else
+SPECIAL_CHAR: [\\$];
+ANY_STR: ~[\\$]+;  // anything else
 
 ////////////////
 // VALUE_MODE //

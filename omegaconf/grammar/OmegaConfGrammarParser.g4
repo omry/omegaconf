@@ -21,7 +21,7 @@ configValue: (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF;
 singleElement: element EOF;
 
 // Top-level string (that does not need to be parsed).
-toplevelStr: (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+;
+toplevelStr: (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
 
 // Elements.
 
