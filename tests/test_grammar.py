@@ -23,8 +23,10 @@ from omegaconf.errors import (
     UnsupportedInterpolationType,
 )
 
+TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
+
 # Characters that are not allowed by the grammar in config key names.
-INVALID_CHARS_IN_KEY_NAMES = "\\{}()[].: '\""
+INVALID_CHARS_IN_KEY_NAMES = r"""\{}()[].:"' """
 
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
@@ -101,7 +103,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("float_plus_nan", "+nan", math.nan),
     ("float_minus_nan", "-nan", math.nan),
     # Unquoted strings.
-    ("str_legal", "a/-\\+.$*@?\\\\", "a/-\\+.$*@?\\"),
+    # Note: raw strings do not allow trailing \, adding a space and stripping it.
+    ("str_legal", r" a/-\+.$*@?\\ ".strip(), r" a/-\+.$*@?\ ".strip()),
     ("str_illegal_1", "a,=b", GrammarParseError),
     ("str_illegal_2", f"{chr(200)}", GrammarParseError),
     ("str_illegal_3", f"{chr(129299)}", GrammarParseError),
@@ -111,17 +114,17 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_ws_1", "hello world", "hello world"),
     ("str_ws_2", "a b\tc  \t\t  d", "a b\tc  \t\t  d"),
     ("str_esc_ws_1", r"\ hello\ world\ ", " hello world "),
-    ("str_esc_ws_2", "\\ \\\t\\\t", " \t\t"),
+    ("str_esc_ws_2", fr"\ \{TAB}\{TAB}", f" {TAB}{TAB}"),
     ("str_esc_comma", r"hello\, world", "hello, world"),
     ("str_esc_colon", r"a\:b", "a:b"),
     ("str_esc_equal", r"a\=b", "a=b"),
     ("str_esc_parentheses", r"\(foo\)", "(foo)"),
     ("str_esc_brackets", r"\[foo\]", "[foo]"),
     ("str_esc_braces", r"\{foo\}", "{foo}"),
-    ("str_esc_backslash", r"\\", "\\"),
+    ("str_esc_backslash", r" \ ".strip(), r" \ ".strip()),
     ("str_backslash_noesc", r"ab\cd", r"ab\cd"),
     ("str_esc_illegal_1", r"\#", GrammarParseError),
-    ("str_esc_illegal_2", "\\'\\\"", GrammarParseError),
+    ("str_esc_illegal_2", r""" \'\" """.strip(), GrammarParseError),
     # Quoted strings.
     ("str_quoted_single", "'!@#$%^&*()[]:.,\"'", '!@#$%^&*()[]:.,"'),
     ("str_quoted_double", '"!@#$%^&*()[]:.,\'"', "!@#$%^&*()[]:.,'"),
@@ -138,6 +141,30 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_quoted_too_many_1", "''a'", GrammarParseError),
     ("str_quoted_too_many_2", "'a''", GrammarParseError),
     ("str_quoted_too_many_3", "''a''", GrammarParseError),
+    ("str_quoted_trailing_esc_1", r"'abc\\'", r" abc\ ".strip()),
+    ("str_quoted_trailing_esc_2", r"'abc\\\\'", r" abc\\ ".strip()),
+    ("str_quoted_no_esc_1", r'"abc\def"', r"abc\def"),
+    ("str_quoted_no_esc_2", r'"abc\\def"', r"abc\def"),
+    ("str_quoted_no_esc_3", r'"\\\abc\def"', r"\\abc\def"),
+    ("str_quoted_bad_1", r'"abc\"', GrammarParseError),
+    ("str_quoted_bad_2", r'"abc\\\"', GrammarParseError),
+    ("str_quoted_esc_quote_single_1", r"'abc\'def'", "abc'def"),
+    ("str_quoted_esc_quote_single_2", r"'abc\\\'def'", r"abc\'def"),
+    ("str_quoted_esc_quote_single_3", r"'abc\\\\\'def'", r"abc\\'def"),
+    ("str_quoted_esc_quote_single_4", r"'a\'b\'cdef\\\''", r"a'b'cdef\'"),
+    ("str_quoted_esc_quote_single_bad", r"'abc\\'def'", GrammarParseError),
+    ("str_quoted_esc_quote_double_1", r'"abc\"def"', 'abc"def'),
+    ("str_quoted_esc_quote_double_2", r'"abc\\\"def"', r"abc\"def"),
+    ("str_quoted_esc_quote_double_3", r'"abc\\\\\"def"', r'abc\\"def'),
+    ("str_quoted_esc_quote_double_4", r'"a\"b\"cdef\\\""', r'a"b"cdef\"'),
+    ("str_quoted_esc_quote_double_bad", r'"abc\\"def"', GrammarParseError),
+    ("str_quoted_empty", "''", ""),
+    ("str_quoted_basic", "'a'", "a"),
+    ("str_quoted_tmp_1", r"'\a'", r"\a"),
+    ("str_quoted_tmp_2", r"'a\'", GrammarParseError),
+    ("str_quoted_inside_quote_different", "'\"'", '"'),
+    ("str_quoted_inside_quote_same", r"'\''", "'"),
+    ("str_quoted_extra_quote", r"'c:\\''", GrammarParseError),
     # Lists and dictionaries.
     ("list", "[0, 1]", [0, 1]),
     (
@@ -147,8 +174,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        "{a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@\\(\\)\\[\\]\\{\\}\\:\\=\\ \\\t\\,:0}",
-        {"a0-null-1-3.14-NaN- \t-true-False-/\\+.$%*@()[]{}:= \t,": 0},
+        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@()[]{{}}:= {TAB},": 0},
     ),
     (
         "dict_quoted",
@@ -227,10 +254,16 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Interpolations in quoted strings.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", "'\"\\\\\\\\\\${foo}\\ '", r'"\${foo}\ '),
+    ("str_quoted_esc_single_2", r"""'\\\\\${foo}'""", r"\${foo}"),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", '"\'\\\\\\\\\\${foo}\\ "', r"'\${foo}\ "),
+    ("str_quoted_esc_double_2", r'''"\\\\\${foo}"''', r"\${foo}"),
+    ("str_quoted_other_quote_double", """'double"'""", 'double"'),
+    ("str_quoted_other_quote_single", '''"single'"''', "single'"),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
+    ("str_quoted_nested", "'${test:\"b\"}'", "b"),
+    ("str_quoted_nested_esc_quotes", r"'${test:\'b\'}'", "b"),
+    ("str_quoted_esc_inter", r"""'\${test:"b"}'""", '${test:"b"}'),
+    ("str_quoted_esc_inter_and_quotes", r"'\${test:\'b\'}'", "${test:'b'}"),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
     ("ws_inter_node_around_dot", "${dict .\ta}", GrammarParseError),
@@ -250,7 +283,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("nested_select", "${options.${choice}}", "A"),
     ("nested_select_getitem", "${options[${choice}]}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
-    ("str_quoted_nested", r"'AB${test:\'CD${test:\\'EF\\'}GH\'}'", "ABCDEFGH"),
+    ("str_quoted_nested", r"'AB${test:\'CD${test:\\\'EF\\\'}GH\'}'", "ABCDEFGH"),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
@@ -282,8 +315,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("dict_nan_key_2", "${first:{${test:nan}: 0}}", GrammarParseError),
 ]
 
-# Parameters for tests of the "configValue" rule (may contain node
-# interpolations, but no resolvers).
+# Parameters for tests of the "configValue" rule (may contain interpolations).
 PARAMS_CONFIG_VALUE = [
     # String interpolations (top-level).
     ("str_top_basic", "bonjour ${str}", "bonjour hi"),
@@ -307,7 +339,7 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_quote_double", 'I"d like ${str}', 'I"d like hi'),
     ("str_top_middle_quotes_single", "I like '${str}'", "I like 'hi'"),
     ("str_top_middle_quotes_double", 'I like "${str}"', 'I like "hi"'),
-    ("str_top_any_char", "${str} !@\\#$%^&*})][({,/?;", "hi !@\\#$%^&*})][({,/?;"),
+    ("str_top_any_char", r"${str} !@\#$%^&*})][({,/?;", r"hi !@\#$%^&*})][({,/?;"),
     ("str_top_esc_inter", r"Esc: \${str}", "Esc: ${str}"),
     ("str_top_esc_inter_wrong_1", r"Wrong: $\{str\}", r"Wrong: $\{str\}"),
     ("str_top_esc_inter_wrong_2", r"Wrong: \${str\}", r"Wrong: ${str\}"),
@@ -319,6 +351,7 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_escapes", r"abc\\\\\${str}", r"abc\\${str}"),
     ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 3),
     ("str_top_concat_interpolations", "${null}${float}", "None1.2"),
+    ("str_top_issue_617", r""" ${test: "hi\\" }"} """, r" hi\"} "),
     # Whitespaces.
     ("ws_toplevel", "  \tab  ${str} cd  ${int}\t", "  \tab  hi cd  123\t"),
     # Unmatched braces.
@@ -387,6 +420,7 @@ class TestOmegaConfGrammar:
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
+        OmegaConf.register_new_resolver("test", self._resolver_test)
         self._visit_with_config(parse_tree, expected_visit)
 
     @parametrize_from(
@@ -542,7 +576,7 @@ class TestOmegaConfGrammar:
         "${foo:bar}",
         "${foo : bar, baz, boz}",
         "${foo:bar,0,a-b+c*d/$.%@}",
-        "\\${foo}",
+        r"\${foo}",
         "${foo.bar:boz}",
         "${$foo.bar$.x$y}",
         "${$0.1.2$}",
@@ -592,7 +626,7 @@ class TestMatchSimpleInterpolationPattern:
         ("${foo.${bar}}", True),
         ("${foo:${bar}}", True),
         ("${foo:'hello'}", True),
-        ("\\${foo", True),
+        (r"\${foo", True),
     ],
 )
 class TestDoNotMatchSimpleInterpolationPattern:
@@ -669,7 +703,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
 
 def test_custom_resolver_param_supported_chars() -> None:
-    supported_chars = "abc123_/:-\\+.$%*@"
+    supported_chars = r"abc123_/:-\+.$%*@"
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
