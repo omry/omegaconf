@@ -255,7 +255,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
                 value=item,
-                is_optional=OmegaConf.is_optional(item),
+                is_optional=OmegaConf.is_optional(self),
                 parent=self,
             )
             self.__dict__["_content"].append(node)

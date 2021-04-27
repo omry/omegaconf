@@ -512,7 +512,9 @@ class BaseContainer(Container, ABC):
         )
 
         def wrap(key: Any, val: Any) -> Node:
-            is_optional = True
+            from omegaconf import OmegaConf
+
+            is_optional = OmegaConf.is_optional(self)
             if not is_structured_config(val):
                 ref_type = self._metadata.element_type
             else:
