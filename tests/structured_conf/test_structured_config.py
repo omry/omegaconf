@@ -799,7 +799,9 @@ class TestConfigs:
         assert cfg.list == value
         assert cfg.tuple == value
 
-    @mark.parametrize("value", [1, True, "str", 3.1415, ["foo", True, 1.2], User()])
+    @mark.parametrize(
+        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], User(), [None]]
+    )
     def test_assign_wrong_type_to_list(self, module: Any, value: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
         with raises(ValidationError):
