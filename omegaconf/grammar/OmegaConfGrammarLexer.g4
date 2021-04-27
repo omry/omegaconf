@@ -33,7 +33,7 @@ mode VALUE_MODE;
 INTER_OPEN: '${' WS? -> pushMode(INTERPOLATION_MODE);
 BRACE_OPEN: '{' WS? -> pushMode(VALUE_MODE);  // must keep track of braces to detect end of interpolation
 BRACE_CLOSE: WS? '}' -> popMode;
-QUOTE_SINGLE: '\'' -> type(QUOTE_OPEN), pushMode(QUOTED_SINGLE_MODE);
+QUOTE_OPEN: '\'' -> pushMode(QUOTED_SINGLE_MODE);
 QUOTE_DOUBLE: '"' -> type(QUOTE_OPEN), pushMode(QUOTED_DOUBLE_MODE);
 
 COMMA: WS? ',' WS?;
@@ -94,7 +94,7 @@ mode QUOTED_SINGLE_MODE;
 // This mode is very similar to `DEFAULT_MODE` except for the handling of quotes.
 
 QSINGLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
-QSINGLE_CLOSE: '\'' -> type(QUOTE_CLOSE), popMode;
+QUOTE_CLOSE: '\'' -> popMode;
 
 QSINGLE_ESC: ('\\\'' | ESC_BACKSLASH)+ -> type(ESC);
 QSINGLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
@@ -119,17 +119,3 @@ QDOUBLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
 
 QDOUBLE_SPECIAL_CHAR: SPECIAL_CHAR -> type(SPECIAL_CHAR);
 QDOUBLE_STR: ~["\\$]+ -> type(ANY_STR);
-
-
-////////////////
-// DUMMY_MODE //
-////////////////
-
-mode DUMMY_MODE;
-
-// This mode is not actually used for parsing: it is only there to define some
-// token types that may be re-used in other modes through the `type()` command
-// (as a result, we do not care what they match and just use a whitespace).
-
-QUOTE_OPEN: ' ';
-QUOTE_CLOSE: ' ';
