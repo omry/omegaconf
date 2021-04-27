@@ -264,6 +264,12 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("str_quoted_nested_esc_quotes", "'${test:'b'}'", "b"),
     ("str_quoted_esc_inter", r"""'\${test:"b"}'""", '${test:"b"}'),
     ("str_quoted_esc_inter_and_quotes", r"'\${test:\'b\'}'", "${test:'b'}"),
+    ("str_quoted_esc_inter_nested_single_1", r"""'${test:'\${str}'}'""", "${str}"),
+    ("str_quoted_esc_inter_nested_single_2", r"""'${test:'\\${str}'}'""", r"\hi"),
+    ("str_quoted_esc_inter_nested_single_3", r"""'${test:'\\\${str}'}'""", r"\${str}"),
+    ("str_quoted_esc_inter_nested_double_1", r'''"${test:"\${str}"}"''', "${str}"),
+    ("str_quoted_esc_inter_nested_double_2", r'''"${test:"\\${str}"}"''', r"\hi"),
+    ("str_quoted_esc_inter_nested_double_3", r'''"${test:"\\\${str}"}"''', r"\${str}"),
     ("str_quoted_error_inside_quotes", "'${missing_brace'", GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
