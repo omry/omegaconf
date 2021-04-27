@@ -336,6 +336,15 @@ def test_list_append() -> None:
             id="append_str_to_list[int]",
         ),
         param(
+            ListConfig(content=[], element_type=int),
+            None,
+            raises(
+                ValidationError,
+                match=re.escape("Value 'None' could not be converted to Integer"),
+            ),
+            id="append_None_to_list[int]",
+        ),
+        param(
             ListConfig(content=[], element_type=Color),
             "foo",
             raises(
