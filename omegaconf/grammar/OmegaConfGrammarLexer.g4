@@ -94,7 +94,7 @@ mode QUOTED_SINGLE_MODE;
 // This mode is very similar to `DEFAULT_MODE` except for the handling of quotes.
 
 QSINGLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
-QUOTE_CLOSE: '\'' -> popMode;
+MATCHING_QUOTE_CLOSE: '\'' -> popMode;
 
 QSINGLE_ESC: ('\\\'' | ESC_BACKSLASH)+ -> type(ESC);
 QSINGLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
@@ -112,7 +112,7 @@ mode QUOTED_DOUBLE_MODE;
 // Same as `QUOTED_SINGLE_MODE` but for double quotes.
 
 QDOUBLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
-QDOUBLE_CLOSE: '"' -> type(QUOTE_CLOSE), popMode;
+QDOUBLE_CLOSE: '"' -> type(MATCHING_QUOTE_CLOSE), popMode;
 
 QDOUBLE_ESC: ('\\"' | ESC_BACKSLASH)+ -> type(ESC);
 QDOUBLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
