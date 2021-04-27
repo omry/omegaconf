@@ -280,6 +280,11 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
     assert OmegaConf.is_optional(cfg, "node") == is_optional
 
 
+def test_is_optional_non_node() -> None:
+    assert OmegaConf.is_optional("not_a_node")
+    assert OmegaConf.is_optional("???")
+
+
 @mark.parametrize("is_none", [True, False])
 @mark.parametrize(
     "fac",
