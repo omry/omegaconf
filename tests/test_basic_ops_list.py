@@ -482,6 +482,14 @@ def validate_list_keys(c: Any) -> None:
             None,
             ValidationError,
         ),
+        (
+            ListConfig(element_type=int, content=[], is_optional=False),
+            0,
+            None,
+            None,
+            None,
+            ValidationError,
+        ),
     ],
 )
 def test_insert(

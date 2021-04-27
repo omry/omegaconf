@@ -414,6 +414,19 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: DictConfig(
+                key_type=str, element_type=int, content={}, is_optional=False
+            ),
+            op=lambda cfg: cfg.__setitem__("foo", None),
+            exception_type=ValidationError,
+            msg="Non optional field cannot be assigned None",
+            full_key="foo",
+            key="foo",
+        ),
+        id="DictConfig[str,non-optional-int]:setitem_None_value",
+    ),
+    param(
+        Expected(
             create=lambda: OmegaConf.structured(User),
             op=lambda cfg: cfg.__setitem__("name", [1, 2]),
             exception_type=ValidationError,
