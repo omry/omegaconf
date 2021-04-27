@@ -55,7 +55,7 @@ resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myf
 // Quoted values.
 
 // Ex: "hello world", 'hello ${world}'
-quotedValue: QUOTE_OPEN
+quotedValue: (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE)
                   (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)*
              QUOTE_CLOSE;
 

@@ -220,7 +220,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self._createPrimitive(ctx)
 
     def visitQuotedValue(self, ctx: OmegaConfGrammarParser.QuotedValueContext) -> str:
-        # QUOTE_OPEN
+        # (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE)
         #     (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)*
         # QUOTE_CLOSE;
         assert ctx.getChildCount() >= 2

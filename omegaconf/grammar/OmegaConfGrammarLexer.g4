@@ -33,8 +33,8 @@ mode VALUE_MODE;
 INTER_OPEN: '${' WS? -> pushMode(INTERPOLATION_MODE);
 BRACE_OPEN: '{' WS? -> pushMode(VALUE_MODE);  // must keep track of braces to detect end of interpolation
 BRACE_CLOSE: WS? '}' -> popMode;
-QUOTE_OPEN: '\'' -> pushMode(QUOTED_SINGLE_MODE);
-QUOTE_DOUBLE: '"' -> type(QUOTE_OPEN), pushMode(QUOTED_DOUBLE_MODE);
+QUOTE_OPEN_SINGLE: '\'' -> pushMode(QUOTED_SINGLE_MODE);
+QUOTE_OPEN_DOUBLE: '"' -> pushMode(QUOTED_DOUBLE_MODE);
 
 COMMA: WS? ',' WS?;
 BRACKET_OPEN: '[' WS?;
