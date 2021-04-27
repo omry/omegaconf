@@ -1,1 +1,1 @@
-Improve type validation of assignment to structured configs.
+Prevent assignment of List[NoneType] or Dict[..., NoneType] to a ListConfig/DictConfig whose values are typed as non-optional.
