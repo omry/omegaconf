@@ -819,6 +819,7 @@ class TestConfigs:
             3.1415,
             ["foo", True, 1.2],
             {"foo": True},
+            {"foo": None},
             User(age=1, name="foo"),
             {"user": User(age=1, name="foo")},
             ListConfig(content=[1, 2], ref_type=List[int], element_type=int),
