@@ -336,11 +336,11 @@ def test_list_append() -> None:
             id="append_str_to_list[int]",
         ),
         param(
-            ListConfig(content=[], element_type=int),
+            ListConfig(content=[], element_type=int, is_optional=False),
             None,
             raises(
                 ValidationError,
-                match=re.escape("Value 'None' could not be converted to Integer"),
+                match=re.escape("Non optional field cannot be assigned None"),
             ),
             id="append_None_to_list[int]",
         ),
