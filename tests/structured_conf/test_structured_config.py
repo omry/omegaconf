@@ -810,6 +810,12 @@ class TestConfigs:
             cfg.tuple = value
         assert cfg == OmegaConf.structured(module.ListClass)
 
+    @mark.parametrize("value", [None, True, "str", 3.1415, User()])
+    def test_insert_wrong_type_to_list(self, module: Any, value: Any) -> None:
+        cfg = OmegaConf.structured(module.ListClass)
+        with raises(ValidationError):
+            cfg.list.insert(0, value)
+
     @mark.parametrize(
         "value",
         [
