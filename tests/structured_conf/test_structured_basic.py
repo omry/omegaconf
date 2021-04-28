@@ -13,7 +13,7 @@ from omegaconf import (
     _utils,
     flag_override,
 )
-from omegaconf._utils import get_ref_type
+from omegaconf._utils import _is_optional, get_ref_type
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
@@ -251,24 +251,24 @@ class TestStructured:
         def test_plugin_holder(self, module: Any) -> None:
             cfg = OmegaConf.create(module.PluginHolder)
 
-            assert OmegaConf.is_optional(cfg, "none")
+            assert _is_optional(cfg, "none")
             assert _utils.get_ref_type(cfg, "none") == Optional[module.Plugin]
             assert OmegaConf.get_type(cfg, "none") is None
 
-            assert not OmegaConf.is_optional(cfg, "missing")
+            assert not _is_optional(cfg, "missing")
             assert _utils.get_ref_type(cfg, "missing") == module.Plugin
             assert OmegaConf.get_type(cfg, "missing") is None
 
-            assert not OmegaConf.is_optional(cfg, "plugin")
+            assert not _is_optional(cfg, "plugin")
             assert _utils.get_ref_type(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
 
             cfg.plugin = module.ConcretePlugin()
-            assert not OmegaConf.is_optional(cfg, "plugin")
+            assert not _is_optional(cfg, "plugin")
             assert _utils.get_ref_type(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.ConcretePlugin
 
-            assert not OmegaConf.is_optional(cfg, "plugin2")
+            assert not _is_optional(cfg, "plugin2")
             assert _utils.get_ref_type(cfg, "plugin2") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
 

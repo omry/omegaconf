@@ -14,7 +14,7 @@ from omegaconf import (
     OmegaConf,
     StringNode,
 )
-from omegaconf._utils import _is_none, nullcontext
+from omegaconf._utils import _is_none, _is_optional, nullcontext
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
@@ -268,21 +268,21 @@ def test_is_dict(cfg: Any, expected: bool) -> None:
 )
 def test_is_optional(fac: Any, is_optional: bool) -> None:
     obj = fac(is_optional, False)
-    assert OmegaConf.is_optional(obj) == is_optional
+    assert _is_optional(obj) == is_optional
 
     cfg = OmegaConf.create({"node": obj})
-    assert OmegaConf.is_optional(cfg, "node") == is_optional
+    assert _is_optional(cfg, "node") == is_optional
 
     obj = fac(is_optional, True)
-    assert OmegaConf.is_optional(obj) == is_optional
+    assert _is_optional(obj) == is_optional
 
     cfg = OmegaConf.create({"node": obj})
-    assert OmegaConf.is_optional(cfg, "node") == is_optional
+    assert _is_optional(cfg, "node") == is_optional
 
 
 def test_is_optional_non_node() -> None:
-    assert OmegaConf.is_optional("not_a_node")
-    assert OmegaConf.is_optional("???")
+    assert _is_optional("not_a_node")
+    assert _is_optional("???")
 
 
 @mark.parametrize("is_none", [True, False])

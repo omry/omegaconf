@@ -17,6 +17,7 @@ from typing import (
 from ._utils import (
     ValueKind,
     _is_none,
+    _is_optional,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -246,7 +247,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def append(self, item: Any) -> None:
         try:
-            from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+            from omegaconf.omegaconf import _maybe_wrap
 
             index = len(self)
             self._validate_set(key=index, value=item)
@@ -255,7 +256,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
                 value=item,
-                is_optional=OmegaConf.is_optional(self),
+                is_optional=_is_optional(self),
                 parent=self,
             )
             self.__dict__["_content"].append(node)
@@ -271,7 +272,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
-        from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+        from omegaconf.omegaconf import _maybe_wrap
 
         try:
             if self._get_flag("readonly"):
@@ -291,7 +292,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     ref_type=self.__dict__["_metadata"].element_type,
                     key=index,
                     value=item,
-                    is_optional=OmegaConf.is_optional(self),
+                    is_optional=_is_optional(self),
                     parent=self,
                 )
                 self._validate_set(key=index, value=node)

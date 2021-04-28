@@ -16,6 +16,7 @@ from omegaconf import (
     ValidationError,
     ValueNode,
 )
+from omegaconf._utils import _is_optional
 from tests import Color, Group
 
 SKIP = object()
@@ -47,7 +48,7 @@ def verify(
     assert OmegaConf.is_missing(cfg, key) == missing
     with warns(UserWarning):
         assert OmegaConf.is_none(cfg, key) == none_public
-    assert OmegaConf.is_optional(cfg, key) == opt
+    assert _is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
 
 
