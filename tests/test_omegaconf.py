@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from pytest import mark, param, raises, warns
@@ -283,6 +284,11 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
 def test_is_optional_non_node() -> None:
     assert _is_optional("not_a_node")
     assert _is_optional("???")
+
+
+def test_is_optional_deprecation() -> None:
+    with warns(UserWarning, match=re.escape("`OmegaConf.is_optional()` is deprecated")):
+        OmegaConf.is_optional("xxx")
 
 
 @mark.parametrize("is_none", [True, False])
