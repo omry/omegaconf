@@ -180,7 +180,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     (
         "dict_quoted",
         "{0: 1, 'a': 'b', 1.1: 1e2, null: 0.1, true: false, -inf: true}",
-        {0: 1, "a": "b", 1.1: 100.0, None: 0.1, True: False, -math.inf: True},
+        GrammarParseError,
     ),
     (
         "structured_mixed",
@@ -201,7 +201,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("dict_int_key", "{0: 0}", {0: 0}),
     ("dict_float_key", "{1.1: 0}", {1.1: 0}),
     ("dict_null_key", "{null: 0}", {None: 0}),
-    ("dict_nan_like_key", "{'nan': 0}", {"nan": 0}),
+    ("dict_nan_like_key", "{'nan': 0}", GrammarParseError),
     ("dict_list_as_key", "{[0]: 1}", GrammarParseError),
     (
         "dict_bool_key",
@@ -303,7 +303,7 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
     ("list_as_input", "${test:[a, b], 0, [1.1]}", [["a", "b"], 0, [1.1]]),
     ("dict_as_input", "${test:{a: 1.1, b: b}}", {"a": 1.1, "b": "b"}),
-    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", {"a": 1.1, "b": "b"}),
+    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", GrammarParseError),
     ("dict_typo_colons", "${test:{a: 1.1, b:: b}}", {"a": 1.1, "b": ": b"}),
     ("missing_resolver", "${MiSsInG_ReSoLvEr:0}", UnsupportedInterpolationType),
     ("at_in_resolver", "${y@z:}", GrammarParseError),
