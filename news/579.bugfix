@@ -1,1 +1,1 @@
-Prevent assignment of List[NoneType] or Dict[..., NoneType] to a ListConfig/DictConfig whose values are typed as non-optional.
+Prevent appending or inserting None in a ListConfig/DictConfig with non-optional element_type.
