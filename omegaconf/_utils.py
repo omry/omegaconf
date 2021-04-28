@@ -144,7 +144,7 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
         args = type_.__args__
         if len(args) == 2 and args[1] == type(None):  # noqa E721
             return True, args[0]
-    if type_ is Any:
+    if type_ is Any:  # lgtm [py/comparison-using-is]
         return True, Any
 
     return False, type_

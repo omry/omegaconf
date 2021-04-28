@@ -1,4 +1,4 @@
-import dataclasses
+import dataclasses  # lgtm [py/import-and-import-from]
 from dataclasses import dataclass
 from typing import Any, Optional, get_type_hints
 
