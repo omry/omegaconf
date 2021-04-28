@@ -397,6 +397,12 @@ def test_append_invalid_element_type(
         lc.append(element)
 
 
+def test_assign_none_to_non_optional() -> None:
+    cfg = ListConfig(content=["abc"], element_type=str, is_optional=False)
+    with raises(ValidationError):
+        cfg[0] = None
+
+
 @mark.parametrize(
     "lc,element,expected",
     [
