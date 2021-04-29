@@ -718,3 +718,10 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
 def test_is_optional_non_node() -> None:
     assert _is_optional("not_a_node")
     assert _is_optional("???")
+
+
+def test_coverage_for_deprecated_OmegaConf_is_optional() -> None:
+    cfg = OmegaConf.create({"node": 123})
+    assert OmegaConf.is_optional(cfg)
+    assert OmegaConf.is_optional(cfg, "node")
+    assert OmegaConf.is_optional("not_a_node")
