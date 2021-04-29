@@ -31,7 +31,6 @@ from ._utils import (
     _DEFAULT_MARKER_,
     _ensure_container,
     _is_none,
-    _is_optional,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -593,7 +592,13 @@ class OmegaConf:
             "`OmegaConf.is_optional()` is deprecated, see https://github.com/omry/omegaconf/issues/698",
             stacklevel=2,
         )
-        return _is_optional(obj, key)
+        if key is not None:
+            assert isinstance(obj, Container)
+            obj = obj._get_node(key)
+        if isinstance(obj, Node):
+            return obj._is_optional()
+        else:
+            return True
 
     # DEPRECATED: remove in 2.2
     @staticmethod
