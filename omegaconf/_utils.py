@@ -24,6 +24,7 @@ from .errors import (
     ConfigIndexError,
     ConfigTypeError,
     ConfigValueError,
+    GrammarParseError,
     OmegaConfBaseException,
     ValidationError,
 )
@@ -253,12 +254,15 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
-    dummy_parent = OmegaConf.create(flags=flags)
+
     from omegaconf import MISSING
 
     d = {}
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
+    dummy_parent = OmegaConf.create({}, flags=flags)
+    dummy_parent._metadata.object_type = obj_type
+
     for name, attrib in attr.fields_dict(obj_type).items():
         is_optional, type_ = _resolve_optional(attrib.type)
         type_ = _resolve_forward(type_, obj.__module__)
@@ -282,8 +286,10 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                 value=value,
                 parent=dummy_parent,
             )
-        except ValidationError as ex:
-            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
+        except (ValidationError, GrammarParseError) as ex:
+            format_and_raise(
+                node=dummy_parent, key=name, value=value, cause=ex, msg=str(ex)
+            )
         d[name]._set_parent(None)
     dict_subclass_data = extract_dict_subclass_data(obj=obj, parent=dummy_parent)
     if dict_subclass_data is not None:
@@ -301,9 +307,10 @@ def get_dataclass_data(
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
-    dummy_parent = OmegaConf.create({}, flags=flags)
     d = {}
     obj_type = get_type_of(obj)
+    dummy_parent = OmegaConf.create({}, flags=flags)
+    dummy_parent._metadata.object_type = obj_type
     resolved_hints = get_type_hints(obj_type)
     for field in dataclasses.fields(obj):
         name = field.name
@@ -333,8 +340,10 @@ def get_dataclass_data(
                 value=value,
                 parent=dummy_parent,
             )
-        except ValidationError as ex:
-            format_and_raise(node=None, key=name, value=value, cause=ex, msg=str(ex))
+        except (ValidationError, GrammarParseError) as ex:
+            format_and_raise(
+                node=dummy_parent, key=name, value=value, cause=ex, msg=str(ex)
+            )
         d[name]._set_parent(None)
     dict_subclass_data = extract_dict_subclass_data(obj=obj, parent=dummy_parent)
     if dict_subclass_data is not None:
@@ -709,7 +718,7 @@ def format_and_raise(
 
     child_node: Optional[Node] = None
     if node is None:
-        full_key = ""
+        full_key = key if key is not None else ""
         object_type = None
         ref_type = None
         ref_type_str = None
