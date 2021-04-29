@@ -8,6 +8,7 @@ from pytest import mark, param, raises
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf._utils import nullcontext
 from omegaconf.errors import (
+    ConfigKeyError,
     ConfigTypeError,
     InterpolationKeyError,
     InterpolationToMissingValueError,
@@ -736,6 +737,16 @@ def test_getattr() -> None:
     assert getattr(cfg, "0") == src[0]
     assert getattr(cfg, "1") == src[1]
     assert getattr(cfg, "2") == src[2]
+
+
+def test_delattr() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2})
+    delattr(cfg, "a")
+    assert cfg == {"b": 2}
+    with raises(ConfigKeyError):
+        delattr(cfg, "c")
+    with raises(AttributeError):
+        delattr(cfg, "__name__")
 
 
 def test_shallow_copy() -> None:

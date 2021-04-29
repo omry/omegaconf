@@ -201,6 +201,28 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: OmegaConf.create({"foo": "bar"}),
+            op=lambda cfg: cfg.__delattr__("not_found"),
+            key="not_found",
+            exception_type=ConfigKeyError,
+            msg="Key not found: 'not_found'",
+        ),
+        id="dict:delattr_invalid",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.create({"foo": {}}),
+            op=lambda cfg: cfg.foo.__delattr__("not_found"),
+            key="not_found",
+            full_key="foo.not_found",
+            parent_node=lambda cfg: cfg.foo,
+            exception_type=ConfigKeyError,
+            msg="Key not found: 'not_found'",
+        ),
+        id="dict:delattr_invalid_nested",
+    ),
+    param(
+        Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: getattr(cfg, "fail"),
             exception_type=ConfigAttributeError,
@@ -780,6 +802,40 @@ params = [
             child_node=lambda cfg: cfg.name,
         ),
         id="dict,structured:del",
+    ),
+    param(
+        Expected(
+            create=lambda: create_readonly({"foo": "bar"}),
+            op=lambda cfg: cfg.__delattr__("foo"),
+            exception_type=ReadonlyConfigError,
+            msg="DictConfig in read-only mode does not support deletion",
+            key="foo",
+            child_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,readonly:delattr",
+    ),
+    param(
+        Expected(
+            create=lambda: create_struct({"foo": "bar"}),
+            op=lambda cfg: cfg.__delattr__("foo"),
+            exception_type=ConfigTypeError,
+            msg="DictConfig in struct mode does not support deletion",
+            key="foo",
+            child_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,struct:delattr",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(User(name="bond")),
+            op=lambda cfg: cfg.__delattr__("name"),
+            exception_type=ConfigTypeError,
+            msg="User (DictConfig) does not support deletion",
+            object_type=User,
+            key="name",
+            child_node=lambda cfg: cfg.name,
+        ),
+        id="dict,structured:delattr",
     ),
     # creating structured config
     param(

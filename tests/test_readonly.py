@@ -51,6 +51,12 @@ from omegaconf import DictConfig, ListConfig, OmegaConf, ReadonlyConfigError
             raises(ReadonlyConfigError, match="a"),
             id="dict_delitem",
         ),
+        param(
+            {"a": 10},
+            lambda c: c.__delattr__("a"),
+            raises(ReadonlyConfigError, match="a"),
+            id="dict_delattr",
+        ),
         # list
         param(
             [],

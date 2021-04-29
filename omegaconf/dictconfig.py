@@ -372,8 +372,21 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
+    def __delattr__(self, key: str) -> None:
+        """
+        Allow deleting dictionary values as attributes
+        :param key:
+        :return:
+        """
+        if key == "__name__":
+            raise AttributeError()
+        self._delkey(key)
+
     def __delitem__(self, key: DictKeyType) -> None:
         key = self._validate_and_normalize_key(key)
+        self._delkey(key)
+
+    def _delkey(self, key: DictKeyType) -> None:
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
