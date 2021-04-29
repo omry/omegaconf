@@ -197,10 +197,8 @@ def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
     if key is not None:
         assert isinstance(obj, Container)
         obj = obj._get_node(key)
-    if isinstance(obj, Node):
-        return obj._is_optional()
-    else:
-        return True
+    assert isinstance(obj, Node)  # raises if key could not be found
+    return obj._is_optional()
 
 
 def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
