@@ -585,8 +585,13 @@ class OmegaConf:
         except (UnsupportedInterpolationType, KeyError, AttributeError):
             return False
 
+    # DEPRECATED: remove in 2.2
     @staticmethod
     def is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+        warnings.warn(
+            "`OmegaConf.is_optional()` is deprecated, see https://github.com/omry/omegaconf/issues/698",
+            stacklevel=2,
+        )
         if key is not None:
             assert isinstance(obj, Container)
             obj = obj._get_node(key)

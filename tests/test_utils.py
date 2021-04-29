@@ -11,6 +11,7 @@ from omegaconf._utils import (
     Marker,
     _ensure_container,
     _get_value,
+    _is_optional,
     is_dict_annotation,
     is_list_annotation,
     nullcontext,
@@ -647,3 +648,68 @@ def test_nullcontext() -> None:
     obj = object()
     with nullcontext(obj) as x:
         assert x is obj
+
+
+@mark.parametrize("is_optional", [True, False])
+@mark.parametrize(
+    "fac",
+    [
+        (
+            lambda is_optional, missing: StringNode(
+                value="foo" if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: IntegerNode(
+                value=10 if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: FloatNode(
+                value=10 if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: BooleanNode(
+                value=True if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: EnumNode(
+                enum_type=Color,
+                value=Color.RED if not missing else "???",
+                is_optional=is_optional,
+            )
+        ),
+        (
+            lambda is_optional, missing: ListConfig(
+                content=[1, 2, 3] if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: DictConfig(
+                content={"foo": "bar"} if not missing else "???",
+                is_optional=is_optional,
+            )
+        ),
+        (
+            lambda is_optional, missing: DictConfig(
+                ref_type=ConcretePlugin,
+                content=ConcretePlugin() if not missing else "???",
+                is_optional=is_optional,
+            )
+        ),
+    ],
+)
+def test_is_optional(fac: Any, is_optional: bool) -> None:
+    obj = fac(is_optional, False)
+    assert _is_optional(obj) == is_optional
+
+    cfg = OmegaConf.create({"node": obj})
+    assert _is_optional(cfg, "node") == is_optional
+
+    obj = fac(is_optional, True)
+    assert _is_optional(obj) == is_optional
+
+    cfg = OmegaConf.create({"node": obj})
+    assert _is_optional(cfg, "node") == is_optional

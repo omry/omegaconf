@@ -179,6 +179,7 @@ def _is_union(type_: Any) -> bool:
 
 
 def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
+    """Check whether `type_` is equivalent to `typing.Optional[T]` for some T."""
     if getattr(type_, "__origin__", None) is Union:
         args = type_.__args__
         if len(args) == 2 and args[1] == type(None):  # noqa E721
@@ -187,6 +188,17 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
         return True, Any
 
     return False, type_
+
+
+def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+    """Check `obj` metadata to see if the given node is optional."""
+    from .base import Container, Node
+
+    if key is not None:
+        assert isinstance(obj, Container)
+        obj = obj._get_node(key)
+    assert isinstance(obj, Node)  # raises if key could not be found
+    return obj._is_optional()
 
 
 def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
