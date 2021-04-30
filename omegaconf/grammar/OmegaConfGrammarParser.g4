@@ -30,6 +30,7 @@ text: (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
 
 element:
       primitive
+    | quotedValue
     | listContainer
     | dictContainer
 ;
@@ -64,20 +65,19 @@ resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myf
 quotedValue: (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE) text? MATCHING_QUOTE_CLOSE;
 
 primitive:
-      quotedValue
-    | (   ID                                     // foo_10
-        | NULL                                   // null, NULL
-        | INT                                    // 0, 10, -20, 1_000_000
-        | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
-        | BOOL                                   // true, TrUe, false, False
-        | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
-        | COLON                                  // :
-        | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
-        | WS                                     // whitespaces
-        | interpolation
-      )+;
+    (   ID                                     // foo_10
+      | NULL                                   // null, NULL
+      | INT                                    // 0, 10, -20, 1_000_000
+      | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
+      | BOOL                                   // true, TrUe, false, False
+      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
+      | COLON                                  // :
+      | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
+      | WS                                     // whitespaces
+      | interpolation
+    )+;
 
-// Same as `primitive` except that `COLON`, interpolations and quoted values are not allowed.
+// Same as `primitive` except that `COLON` and interpolations are not allowed.
 dictKey:
     (   ID                                     // foo_10
       | NULL                                   // null, NULL

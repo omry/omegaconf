@@ -114,7 +114,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         )
 
     def visitElement(self, ctx: OmegaConfGrammarParser.ElementContext) -> Any:
-        # primitive | listContainer | dictContainer
+        # primitive | quotedValue | listContainer | dictContainer
         assert ctx.getChildCount() == 1
         return self.visit(ctx.getChild(0))
 
@@ -307,14 +307,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             OmegaConfGrammarParser.DictKeyContext,
         ],
     ) -> Any:
-        # quotedValue |
         # (ID | NULL | INT | FLOAT | BOOL | UNQUOTED_CHAR | COLON | ESC | WS | interpolation)+
         if ctx.getChildCount() == 1:
             child = ctx.getChild(0)
             if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
                 return self.visitInterpolation(child)
-            elif isinstance(child, OmegaConfGrammarParser.QuotedValueContext):
-                return self.visitQuotedValue(child)
             assert isinstance(child, TerminalNode)
             symbol = child.symbol
             # Parse primitive types.
