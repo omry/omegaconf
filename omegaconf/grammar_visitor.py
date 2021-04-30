@@ -96,9 +96,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             return child.symbol.text
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
-        # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
-        # Visit all children (except last one which is EOF)
-        vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
+        # text EOF
+        assert ctx.getChildCount() == 2
+        return self.visit(ctx.getChild(0))
+
+    def visitText(self, ctx: OmegaConfGrammarParser.TextContext) -> Any:
+        # (simpleText | (simpleText? (interpolation simpleText?)+))
+        vals = [self.visit(c) for c in list(ctx.getChildren())]
         assert vals
         if len(vals) == 1 and isinstance(
             ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
@@ -220,11 +224,10 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self._createPrimitive(ctx)
 
     def visitQuotedValue(self, ctx: OmegaConfGrammarParser.QuotedValueContext) -> str:
-        # (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE)
-        #     (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)*
-        # MATCHING_QUOTE_CLOSE;
-        assert ctx.getChildCount() >= 2
-        return self._unescape(list(ctx.getChildren())[1:-1])
+        # (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE) text? MATCHING_QUOTE_CLOSE
+        n = ctx.getChildCount()
+        assert n in [2, 3]
+        return str(self.visit(ctx.getChild(1))) if n == 3 else ""
 
     def visitResolverName(self, ctx: OmegaConfGrammarParser.ResolverNameContext) -> str:
         from ._utils import _get_value
@@ -297,7 +300,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() == 2
         return self.visit(ctx.getChild(0))
 
-    def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
+    def visitSimpleText(self, ctx: OmegaConfGrammarParser.SimpleTextContext) -> str:
         # (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
         return self._unescape(ctx.getChildren())
 

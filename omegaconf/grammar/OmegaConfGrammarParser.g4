@@ -17,11 +17,15 @@ options {tokenVocab = OmegaConfGrammarLexer;}
 
 // Main rules used to parse OmegaConf strings.
 
-configValue: (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF;
+configValue: text EOF;
 singleElement: element EOF;
 
-// Top-level string (that does not need to be parsed).
-toplevelStr: (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
+
+// Text expressions.
+
+simpleText: (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;          // without interpolations
+text: (simpleText | (simpleText? (interpolation simpleText?)+));  // with interpolations
+
 
 // Elements.
 
@@ -31,12 +35,14 @@ element:
     | dictContainer
 ;
 
+
 // Data structures.
 
 listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                         // [], [1,2,3], [a,b,[1,2]]
 dictContainer: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
 dictKeyValuePair: dictKey COLON element;
 sequence: (element (COMMA element?)*) | (COMMA element?)+;
+
 
 // Interpolations.
 
@@ -52,14 +58,11 @@ interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
 resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f
 
-// Quoted values.
-
-// Ex: "hello world", 'hello ${world}'
-quotedValue: (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE)
-                  (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)*
-             MATCHING_QUOTE_CLOSE;
 
 // Primitive types.
+
+// Ex: "hello world", 'hello ${world}'
+quotedValue: (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE) text? MATCHING_QUOTE_CLOSE;
 
 primitive:
       quotedValue
