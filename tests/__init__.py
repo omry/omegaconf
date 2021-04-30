@@ -118,6 +118,16 @@ class UnionError:
 
 
 @dataclass
+class StructuredWithBadDict:
+    foo: Dict[str, str] = 123  # type: ignore
+
+
+@dataclass
+class StructuredWithBadList:
+    foo: List[str] = 123  # type: ignore
+
+
+@dataclass
 class MissingList:
     list: List[str] = MISSING
 

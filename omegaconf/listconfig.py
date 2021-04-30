@@ -77,7 +77,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = None
             self._set_value(value=content, flags=flags)
         except Exception as ex:
-            format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+            format_and_raise(node=None, key=key, value=None, cause=ex, msg=str(ex))
 
     def _validate_get(self, key: Any, value: Any = None) -> None:
         if not isinstance(key, (int, slice)):
