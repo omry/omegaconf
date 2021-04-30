@@ -336,15 +336,6 @@ def test_list_append() -> None:
             id="append_str_to_list[int]",
         ),
         param(
-            ListConfig(content=[], element_type=int, is_optional=False),
-            None,
-            raises(
-                ValidationError,
-                match=re.escape("Non optional field cannot be assigned None"),
-            ),
-            id="append_None_to_list[int]",
-        ),
-        param(
             ListConfig(content=[], element_type=Color),
             "foo",
             raises(
@@ -396,11 +387,6 @@ def test_append_invalid_element_type(
     with expected:
         lc.append(element)
 
-
-def test_assign_none_to_non_optional() -> None:
-    cfg = ListConfig(content=["abc"], element_type=str, is_optional=False)
-    with raises(ValidationError):
-        cfg[0] = None
 
 
 @mark.parametrize(
@@ -484,14 +470,6 @@ def validate_list_keys(c: Any) -> None:
             ListConfig(element_type=int, content=[]),
             0,
             "foo",
-            None,
-            None,
-            ValidationError,
-        ),
-        (
-            ListConfig(element_type=int, content=[], is_optional=False),
-            0,
-            None,
             None,
             None,
             ValidationError,

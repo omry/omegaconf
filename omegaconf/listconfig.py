@@ -17,7 +17,6 @@ from typing import (
 from ._utils import (
     ValueKind,
     _is_none,
-    _is_optional,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -256,7 +255,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
                 value=item,
-                is_optional=_is_optional(self),
+                is_optional=True,
                 parent=self,
             )
             self.__dict__["_content"].append(node)
@@ -292,7 +291,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     ref_type=self.__dict__["_metadata"].element_type,
                     key=index,
                     value=item,
-                    is_optional=_is_optional(self),
+                    is_optional=True,
                     parent=self,
                 )
                 self._validate_set(key=index, value=node)
