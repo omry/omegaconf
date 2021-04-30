@@ -845,6 +845,7 @@ def test_getitem_with_invalid_key() -> None:
     with raises(KeyValidationError):
         cfg.__getitem__(object())  # type: ignore
 
+
 def test_hasattr() -> None:
     cfg = OmegaConf.create({"foo": "bar"})
     OmegaConf.set_struct(cfg, True)

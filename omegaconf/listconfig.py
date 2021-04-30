@@ -255,7 +255,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
                 value=item,
-                is_optional=True,
+                is_optional=item._is_optional() if isinstance(item, Node) else True,
                 parent=self,
             )
             self.__dict__["_content"].append(node)
@@ -291,7 +291,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     ref_type=self.__dict__["_metadata"].element_type,
                     key=index,
                     value=item,
-                    is_optional=True,
+                    is_optional=item._is_optional() if isinstance(item, Node) else True,
                     parent=self,
                 )
                 self._validate_set(key=index, value=node)

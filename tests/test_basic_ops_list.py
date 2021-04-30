@@ -388,7 +388,6 @@ def test_append_invalid_element_type(
         lc.append(element)
 
 
-
 @mark.parametrize(
     "lc,element,expected",
     [
