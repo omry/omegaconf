@@ -17,19 +17,24 @@ options {tokenVocab = OmegaConfGrammarLexer;}
 
 // Main rules used to parse OmegaConf strings.
 
-configValue: (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF;
+configValue: text EOF;
 singleElement: element EOF;
 
-// Top-level string (that does not need to be parsed).
-toplevelStr: (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+;
+
+// Composite text expression (may contain interpolations).
+
+text: (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
+
 
 // Elements.
 
 element:
       primitive
+    | quotedValue
     | listContainer
     | dictContainer
 ;
+
 
 // Data structures.
 
@@ -37,6 +42,7 @@ listContainer: BRACKET_OPEN sequence? BRACKET_CLOSE;                         // 
 dictContainer: BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE;  // {}, {a:10,b:20}
 dictKeyValuePair: dictKey COLON element;
 sequence: (element (COMMA element?)*) | (COMMA element?)+;
+
 
 // Interpolations.
 
@@ -52,31 +58,33 @@ interpolationResolver: INTER_OPEN resolverName COLON sequence? BRACE_CLOSE;
 configKey: interpolation | ID | INTER_KEY;
 resolverName: (interpolation | ID) (DOT (interpolation | ID))* ;  // oc.env, myfunc, ns.${x}, ns1.ns2.f
 
+
 // Primitive types.
 
+// Ex: "hello world", 'hello ${world}'
+quotedValue: (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE) text? MATCHING_QUOTE_CLOSE;
+
 primitive:
-      QUOTED_VALUE                               // 'hello world', "hello world"
-    | (   ID                                     // foo_10
-        | NULL                                   // null, NULL
-        | INT                                    // 0, 10, -20, 1_000_000
-        | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
-        | BOOL                                   // true, TrUe, false, False
-        | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
-        | COLON                                  // :
-        | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
-        | WS                                     // whitespaces
-        | interpolation
-      )+;
+    (   ID                                     // foo_10
+      | NULL                                   // null, NULL
+      | INT                                    // 0, 10, -20, 1_000_000
+      | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
+      | BOOL                                   // true, TrUe, false, False
+      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
+      | COLON                                  // :
+      | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
+      | WS                                     // whitespaces
+      | interpolation
+    )+;
 
 // Same as `primitive` except that `COLON` and interpolations are not allowed.
 dictKey:
-      QUOTED_VALUE                               // 'hello world', "hello world"
-    | (   ID                                     // foo_10
-        | NULL                                   // null, NULL
-        | INT                                    // 0, 10, -20, 1_000_000
-        | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
-        | BOOL                                   // true, TrUe, false, False
-        | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
-        | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
-        | WS                                     // whitespaces
-      )+;
+    (   ID                                     // foo_10
+      | NULL                                   // null, NULL
+      | INT                                    // 0, 10, -20, 1_000_000
+      | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
+      | BOOL                                   // true, TrUe, false, False
+      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
+      | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
+      | WS                                     // whitespaces
+    )+;

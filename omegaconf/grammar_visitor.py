@@ -44,10 +44,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             Optional["Node"],
         ],
         resolver_interpolation_callback: Callable[..., Any],
-        quoted_string_callback: Callable[
-            [str, Optional[Set[int]]],
-            str,
-        ],
         memo: Optional[Set[int]],
         **kw: Dict[Any, Any],
     ):
@@ -64,17 +60,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             `args` (tuple, the inputs to the resolver), and `args_str` (tuple,
             the string representation of the inputs to the resolver).
 
-        :param quoted_string_callback: Callback function that is called when needing to
-            resolve a quoted string (that may or may not contain interpolations). This
-            function should take a single string input which is the content of the quoted
-            string (without its enclosing quotes).
-
         :param kw: Additional keyword arguments to be forwarded to parent class.
         """
         super().__init__(**kw)
         self.node_interpolation_callback = node_interpolation_callback
         self.resolver_interpolation_callback = resolver_interpolation_callback
-        self.quoted_string_callback = quoted_string_callback
         self.memo = memo
 
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
@@ -106,17 +96,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             return child.symbol.text
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
-        # (toplevelStr | (toplevelStr? (interpolation toplevelStr?)+)) EOF
-        # Visit all children (except last one which is EOF)
-        vals = [self.visit(c) for c in list(ctx.getChildren())[:-1]]
-        assert vals
-        if len(vals) == 1 and isinstance(
-            ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
-        ):
-            # Single interpolation: return the result "as is".
-            return vals[0]
-        # Concatenation of multiple components.
-        return "".join(map(str, vals))
+        # text EOF
+        assert ctx.getChildCount() == 2
+        return self.visit(ctx.getChild(0))
 
     def visitDictKey(self, ctx: OmegaConfGrammarParser.DictKeyContext) -> Any:
         return self._createPrimitive(ctx)
@@ -132,7 +114,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         )
 
     def visitElement(self, ctx: OmegaConfGrammarParser.ElementContext) -> Any:
-        # primitive | listContainer | dictContainer
+        # primitive | quotedValue | listContainer | dictContainer
         assert ctx.getChildCount() == 1
         return self.visit(ctx.getChild(0))
 
@@ -229,6 +211,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitPrimitive(self, ctx: OmegaConfGrammarParser.PrimitiveContext) -> Any:
         return self._createPrimitive(ctx)
 
+    def visitQuotedValue(self, ctx: OmegaConfGrammarParser.QuotedValueContext) -> str:
+        # (QUOTE_OPEN_SINGLE | QUOTE_OPEN_DOUBLE) text? MATCHING_QUOTE_CLOSE
+        n = ctx.getChildCount()
+        assert n in [2, 3]
+        return str(self.visit(ctx.getChild(1))) if n == 3 else ""
+
     def visitResolverName(self, ctx: OmegaConfGrammarParser.ResolverNameContext) -> str:
         from ._utils import _get_value
 
@@ -300,8 +288,16 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() == 2
         return self.visit(ctx.getChild(0))
 
-    def visitToplevelStr(self, ctx: OmegaConfGrammarParser.ToplevelStrContext) -> str:
-        # (ESC | ESC_INTER | TOP_CHAR | TOP_STR)+
+    def visitText(self, ctx: OmegaConfGrammarParser.TextContext) -> Any:
+        # (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
+
+        # Single interpolation? If yes, return its resolved value "as is".
+        if ctx.getChildCount() == 1:
+            c = ctx.getChild(0)
+            if isinstance(c, OmegaConfGrammarParser.InterpolationContext):
+                return self.visitInterpolation(c)
+
+        # Otherwise, concatenate string representations together.
         return self._unescape(ctx.getChildren())
 
     def _createPrimitive(
@@ -311,7 +307,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             OmegaConfGrammarParser.DictKeyContext,
         ],
     ) -> Any:
-        # QUOTED_VALUE |
         # (ID | NULL | INT | FLOAT | BOOL | UNQUOTED_CHAR | COLON | ESC | WS | interpolation)+
         if ctx.getChildCount() == 1:
             child = ctx.getChild(0)
@@ -320,9 +315,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             assert isinstance(child, TerminalNode)
             symbol = child.symbol
             # Parse primitive types.
-            if symbol.type == OmegaConfGrammarLexer.QUOTED_VALUE:
-                return self._resolve_quoted_string(symbol.text)
-            elif symbol.type in (
+            if symbol.type in (
                 OmegaConfGrammarLexer.ID,
                 OmegaConfGrammarLexer.UNQUOTED_CHAR,
                 OmegaConfGrammarLexer.COLON,
@@ -344,29 +337,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             assert False, symbol.type
         # Concatenation of multiple items ==> un-escape the concatenation.
         return self._unescape(ctx.getChildren())
-
-    def _resolve_quoted_string(self, quoted: str) -> str:
-        """
-        Parse a quoted string.
-        """
-        # Identify quote type.
-        assert len(quoted) >= 2 and quoted[0] == quoted[-1]
-        quote_type = quoted[0]
-        assert quote_type in ["'", '"']
-
-        # Un-escape quotes and backslashes within the string (the two kinds of
-        # escapable characters in quoted strings). We do it in two passes:
-        #   1. Replace `\"` with `"` (and similarly for single quotes)
-        #   2. Replace `\\` with `\`
-        # The order is important so that `\\"` is replaced with an escaped quote `\"`.
-        # We also remove the start and end quotes.
-        esc_quote = f"\\{quote_type}"
-        quoted_content = (
-            quoted[1:-1].replace(esc_quote, quote_type).replace("\\\\", "\\")
-        )
-
-        # Parse the string.
-        return self.quoted_string_callback(quoted_content, self.memo)
 
     def _unescape(
         self,

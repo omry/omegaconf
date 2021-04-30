@@ -180,7 +180,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     (
         "dict_quoted",
         "{0: 1, 'a': 'b', 1.1: 1e2, null: 0.1, true: false, -inf: true}",
-        {0: 1, "a": "b", 1.1: 100.0, None: 0.1, True: False, -math.inf: True},
+        GrammarParseError,
     ),
     (
         "structured_mixed",
@@ -201,7 +201,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("dict_int_key", "{0: 0}", {0: 0}),
     ("dict_float_key", "{1.1: 0}", {1.1: 0}),
     ("dict_null_key", "{null: 0}", {None: 0}),
-    ("dict_nan_like_key", "{'nan': 0}", {"nan": 0}),
+    ("dict_nan_like_key", "{'nan': 0}", GrammarParseError),
     ("dict_list_as_key", "{[0]: 1}", GrammarParseError),
     (
         "dict_bool_key",
@@ -254,16 +254,23 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     # Interpolations in quoted strings.
     ("str_quoted_inter", "'${null}'", "None"),
     ("str_quoted_esc_single_1", r"'ab\'cd\'\'${str}'", "ab'cd''hi"),
-    ("str_quoted_esc_single_2", r"""'\\\\\${foo}'""", r"\${foo}"),
+    ("str_quoted_esc_single_2", r"""'\\\${foo}'""", r"\${foo}"),
     ("str_quoted_esc_double_1", r'"ab\"cd\"\"${str}"', 'ab"cd""hi'),
-    ("str_quoted_esc_double_2", r'''"\\\\\${foo}"''', r"\${foo}"),
+    ("str_quoted_esc_double_2", r'''"\\\${foo}"''', r"\${foo}"),
     ("str_quoted_other_quote_double", """'double"'""", 'double"'),
     ("str_quoted_other_quote_single", '''"single'"''', "single'"),
     ("str_quoted_concat_bad_1", '"Hi "${str}', GrammarParseError),
     ("str_quoted_nested", "'${test:\"b\"}'", "b"),
-    ("str_quoted_nested_esc_quotes", r"'${test:\'b\'}'", "b"),
+    ("str_quoted_nested_esc_quotes", "'${test:'b'}'", "b"),
     ("str_quoted_esc_inter", r"""'\${test:"b"}'""", '${test:"b"}'),
     ("str_quoted_esc_inter_and_quotes", r"'\${test:\'b\'}'", "${test:'b'}"),
+    ("str_quoted_esc_inter_nested_single_1", r"""'${test:'\${str}'}'""", "${str}"),
+    ("str_quoted_esc_inter_nested_single_2", r"""'${test:'\\${str}'}'""", r"\hi"),
+    ("str_quoted_esc_inter_nested_single_3", r"""'${test:'\\\${str}'}'""", r"\${str}"),
+    ("str_quoted_esc_inter_nested_double_1", r'''"${test:"\${str}"}"''', "${str}"),
+    ("str_quoted_esc_inter_nested_double_2", r'''"${test:"\\${str}"}"''', r"\hi"),
+    ("str_quoted_esc_inter_nested_double_3", r'''"${test:"\\\${str}"}"''', r"\${str}"),
+    ("str_quoted_error_inside_quotes", "'${missing_brace'", GrammarParseError),
     # Whitespaces.
     ("ws_inter_node_outer", "${ \tdict.a  \t}", 0),
     ("ws_inter_node_around_dot", "${dict .\ta}", GrammarParseError),
@@ -283,13 +290,20 @@ PARAMS_SINGLE_ELEMENT_WITH_INTERPOLATION = [
     ("nested_select", "${options.${choice}}", "A"),
     ("nested_select_getitem", "${options[${choice}]}", "A"),
     ("nested_relative", "${${rel_opt}.b}", "B"),
-    ("str_quoted_nested", r"'AB${test:\'CD${test:\\\'EF\\\'}GH\'}'", "ABCDEFGH"),
+    ("str_quoted_nested_deep_single", r"'AB${test:'CD${test:'EF'}GH'}'", "ABCDEFGH"),
+    ("str_quoted_nested_deep_double", r'"AB${test:"CD${test:"EF"}GH"}"', "ABCDEFGH"),
+    ("str_quoted_nested_deep_mixed", r'''"AB${test:'CD${test:"EF"}GH'}"''', "ABCDEFGH"),
+    (
+        "str_quoted_issue_615",
+        r'${test:"The root drive is: \\${str}:\\"}',
+        r" The root drive is: \hi:\ ".strip(),
+    ),
     # Resolver interpolations.
     ("no_args", "${test:}", []),
     ("space_in_args", "${test:a, b c}", ["a", "b c"]),
     ("list_as_input", "${test:[a, b], 0, [1.1]}", [["a", "b"], 0, [1.1]]),
     ("dict_as_input", "${test:{a: 1.1, b: b}}", {"a": 1.1, "b": "b"}),
-    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", {"a": 1.1, "b": "b"}),
+    ("dict_as_input_quotes", "${test:{'a': 1.1, b: b}}", GrammarParseError),
     ("dict_typo_colons", "${test:{a: 1.1, b:: b}}", {"a": 1.1, "b": ": b"}),
     ("missing_resolver", "${MiSsInG_ReSoLvEr:0}", UnsupportedInterpolationType),
     ("at_in_resolver", "${y@z:}", GrammarParseError),
@@ -398,7 +412,6 @@ class TestOmegaConfGrammar:
         visitor = grammar_visitor.GrammarVisitor(
             node_interpolation_callback=None,  # type: ignore
             resolver_interpolation_callback=None,  # type: ignore
-            quoted_string_callback=lambda s, memo: s,
             memo=None,
         )
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)
@@ -695,7 +708,6 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
     visitor = grammar_visitor.GrammarVisitor(
         node_interpolation_callback=callback,
         resolver_interpolation_callback=None,  # type: ignore
-        quoted_string_callback=lambda s, memo: s,
         memo=None,
     )
     ret = visitor.visit(tree)

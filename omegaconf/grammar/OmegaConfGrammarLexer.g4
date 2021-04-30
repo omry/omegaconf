@@ -21,8 +21,8 @@ TOP_ESC: ESC_BACKSLASH+ -> type(ESC);
 
 // The backslash and dollar characters must not be grouped with others, so that
 // we can properly detect the tokens above.
-TOP_CHAR: [\\$];
-TOP_STR: ~[\\$]+;  // anything else
+SPECIAL_CHAR: [\\$];
+ANY_STR: ~[\\$]+;  // anything else
 
 ////////////////
 // VALUE_MODE //
@@ -33,6 +33,8 @@ mode VALUE_MODE;
 INTER_OPEN: '${' WS? -> pushMode(INTERPOLATION_MODE);
 BRACE_OPEN: '{' WS? -> pushMode(VALUE_MODE);  // must keep track of braces to detect end of interpolation
 BRACE_CLOSE: WS? '}' -> popMode;
+QUOTE_OPEN_SINGLE: '\'' -> pushMode(QUOTED_SINGLE_MODE);
+QUOTE_OPEN_DOUBLE: '"' -> pushMode(QUOTED_DOUBLE_MODE);
 
 COMMA: WS? ',' WS?;
 BRACKET_OPEN: '[' WS?;
@@ -60,21 +62,6 @@ ESC: (ESC_BACKSLASH | '\\(' | '\\)' | '\\[' | '\\]' | '\\{' | '\\}' |
       '\\:' | '\\=' | '\\,' | '\\ ' | '\\\t')+;
 WS: [ \t]+;
 
-// Quoted values for both types of quotes.
-// A quoted value is made of the enclosing quotes, and either:
-//   - nothing else
-//   - an even number of backslashes (meaning they are escaped)
-//   - a sequence of any character, followed by any non-backslash character, and optionally
-//     an even number of backslashes (i.e., also escaped)
-// Examples (right hand side: expected content of the resulting string, after processing):
-//    ""                    -> <empty>
-//    '\\'                  -> \
-//    "\\\\"                -> \\
-//    'abc\\'               -> abc\
-//    "abc\"def\\\'ghi\\\\" -> abc"def\\\'ghi\\
-QUOTED_VALUE:
-      '"' (('\\\\')* | (.)*? ~[\\] ('\\\\')*) '"'     // double quotes
-    | '\'' (('\\\\')* | (.)*? ~[\\] ('\\\\')*) '\'';  // single quotes
 
 ////////////////////////
 // INTERPOLATION_MODE //
@@ -96,3 +83,39 @@ INTER_ID: ID -> type(ID);
 // are only part of a key name, i.e., "${foo${bar}}" is not allowed. As a result, it
 // is ok to "consume" all '$' characters within the `INTER_KEY` token.
 INTER_KEY: ~[\\{}()[\]:. \t'"]+;
+
+
+////////////////////////
+// QUOTED_SINGLE_MODE //
+////////////////////////
+
+mode QUOTED_SINGLE_MODE;
+
+// This mode is very similar to `DEFAULT_MODE` except for the handling of quotes.
+
+QSINGLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
+MATCHING_QUOTE_CLOSE: '\'' -> popMode;
+
+QSINGLE_ESC: ('\\\'' | ESC_BACKSLASH)+ -> type(ESC);
+QSINGLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
+
+QSINGLE_SPECIAL_CHAR: SPECIAL_CHAR -> type(SPECIAL_CHAR);
+QSINGLE_STR: ~['\\$]+ -> type(ANY_STR);
+
+
+////////////////////////
+// QUOTED_DOUBLE_MODE //
+////////////////////////
+
+mode QUOTED_DOUBLE_MODE;
+
+// Same as `QUOTED_SINGLE_MODE` but for double quotes.
+
+QDOUBLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
+QDOUBLE_CLOSE: '"' -> type(MATCHING_QUOTE_CLOSE), popMode;
+
+QDOUBLE_ESC: ('\\"' | ESC_BACKSLASH)+ -> type(ESC);
+QDOUBLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
+
+QDOUBLE_SPECIAL_CHAR: SPECIAL_CHAR -> type(SPECIAL_CHAR);
+QDOUBLE_STR: ~["\\$]+ -> type(ANY_STR);

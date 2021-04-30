@@ -678,7 +678,6 @@ class Container(Node):
         We make no assumption here on the type of the tree's root, so that the
         return value may be of any type.
         """
-        from .nodes import StringNode
 
         def node_interpolation_callback(
             inter_key: str, memo: Optional[Set[int]]
@@ -696,25 +695,9 @@ class Container(Node):
                 inter_args_str=args_str,
             )
 
-        def quoted_string_callback(quoted_str: str, memo: Optional[Set[int]]) -> str:
-            quoted_val = self._maybe_resolve_interpolation(
-                key=key,
-                parent=parent,
-                value=StringNode(
-                    value=quoted_str,
-                    key=key,
-                    parent=parent,
-                    is_optional=True,
-                ),
-                throw_on_resolution_failure=True,
-                memo=memo,
-            )
-            return str(quoted_val)
-
         visitor = GrammarVisitor(
             node_interpolation_callback=node_interpolation_callback,
             resolver_interpolation_callback=resolver_interpolation_callback,
-            quoted_string_callback=quoted_string_callback,
             memo=memo,
         )
         try:
