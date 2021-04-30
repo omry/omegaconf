@@ -288,21 +288,17 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() == 2
         return self.visit(ctx.getChild(0))
 
-    def visitSimpleText(self, ctx: OmegaConfGrammarParser.SimpleTextContext) -> str:
-        # (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
-        return self._unescape(ctx.getChildren())
-
     def visitText(self, ctx: OmegaConfGrammarParser.TextContext) -> Any:
-        # (simpleText | (simpleText? (interpolation simpleText?)+))
-        vals = [self.visit(c) for c in list(ctx.getChildren())]
-        assert vals
-        if len(vals) == 1 and isinstance(
-            ctx.getChild(0), OmegaConfGrammarParser.InterpolationContext
-        ):
-            # Single interpolation: return the result "as is".
-            return vals[0]
-        # Concatenation of multiple components.
-        return "".join(map(str, vals))
+        # (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
+
+        # Single interpolation? If yes, return its resolved value "as is".
+        if ctx.getChildCount() == 1:
+            c = ctx.getChild(0)
+            if isinstance(c, OmegaConfGrammarParser.InterpolationContext):
+                return self.visitInterpolation(c)
+
+        # Otherwise, concatenate string representations together.
+        return self._unescape(ctx.getChildren())
 
     def _createPrimitive(
         self,

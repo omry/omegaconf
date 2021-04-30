@@ -21,10 +21,9 @@ configValue: text EOF;
 singleElement: element EOF;
 
 
-// Text expressions.
+// Composite text expression (may contain interpolations).
 
-simpleText: (ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;          // without interpolations
-text: (simpleText | (simpleText? (interpolation simpleText?)+));  // with interpolations
+text: (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
 
 
 // Elements.
