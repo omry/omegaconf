@@ -39,6 +39,8 @@ from tests import (
     Package,
     Plugin,
     Str2Int,
+    StructuredWithBadDict,
+    StructuredWithBadList,
     StructuredWithMissing,
     SubscriptedDict,
     UnionError,
@@ -792,6 +794,26 @@ params = [
             parent_node=lambda cfg: None,
         ),
         id="structured,Dict_subclass:bad_value_type",
+    ),
+    param(
+        Expected(
+            create=lambda: None,
+            op=lambda _: OmegaConf.structured(StructuredWithBadDict),
+            exception_type=ValidationError,
+            msg="Cannot assign int to Dict[str, str]",
+            key="foo",
+        ),
+        id="structured,bad_default_value_for_dict",
+    ),
+    param(
+        Expected(
+            create=lambda: None,
+            op=lambda _: OmegaConf.structured(StructuredWithBadList),
+            exception_type=ValidationError,
+            msg="Invalid value assigned: int is not a ListConfig, list or tuple.",
+            key="foo",
+        ),
+        id="structured,bad_default_value_for_list",
     ),
     ##############
     # ListConfig #
