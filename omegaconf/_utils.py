@@ -191,15 +191,20 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     return False, type_
 
 
-def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+def _is_optional(obj: Any, key: Optional[Union[int, str]] = _DEFAULT_MARKER_) -> bool:
     """Check `obj` metadata to see if the given node is optional."""
     from .base import Container, Node
 
-    if key is not None:
+    if key is not _DEFAULT_MARKER_:
         assert isinstance(obj, Container)
         obj = obj._get_node(key)
-    assert isinstance(obj, Node)  # raises if key could not be found
-    return obj._is_optional()
+    if isinstance(obj, Node):
+        return obj._is_optional()
+    else:
+        # In case `obj` is not a Node, treat it as optional by default.
+        # This is used in `ListConfig.append` and `ListConfig.insert`
+        # where the appended/inserted value might or might not be a Node.
+        return True
 
 
 def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
