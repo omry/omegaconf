@@ -191,11 +191,11 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     return False, type_
 
 
-def _is_optional(obj: Any, key: Optional[Union[int, str]] = _DEFAULT_MARKER_) -> bool:
+def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
     """Check `obj` metadata to see if the given node is optional."""
     from .base import Container, Node
 
-    if key is not _DEFAULT_MARKER_:
+    if key is not None:
         assert isinstance(obj, Container)
         obj = obj._get_node(key)
     if isinstance(obj, Node):
