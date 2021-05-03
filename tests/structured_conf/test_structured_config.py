@@ -800,7 +800,19 @@ class TestConfigs:
         assert cfg.tuple == value
 
     @mark.parametrize(
-        "value", [1, True, "str", 3.1415, ["foo", True, 1.2], User(), [None]]
+        "value",
+        [
+            1,
+            True,
+            "str",
+            3.1415,
+            ["foo", True, 1.2],
+            User(),
+            param(
+                [None],
+                marks=mark.xfail,  # https://github.com/omry/omegaconf/issues/579
+            ),
+        ],
     )
     def test_assign_wrong_type_to_list(self, module: Any, value: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
@@ -810,7 +822,19 @@ class TestConfigs:
             cfg.tuple = value
         assert cfg == OmegaConf.structured(module.ListClass)
 
-    @mark.parametrize("value", [None, True, "str", 3.1415, User()])
+    @mark.parametrize(
+        "value",
+        [
+            param(
+                None,
+                marks=mark.xfail,  # https://github.com/omry/omegaconf/issues/579
+            ),
+            True,
+            "str",
+            3.1415,
+            User(),
+        ],
+    )
     def test_insert_wrong_type_to_list(self, module: Any, value: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
         with raises(ValidationError):
@@ -825,7 +849,10 @@ class TestConfigs:
             3.1415,
             ["foo", True, 1.2],
             {"foo": True},
-            {"foo": None},
+            param(
+                {"foo": None},
+                marks=mark.xfail,  # expected failure, https://github.com/omry/omegaconf/issues/579
+            ),
             User(age=1, name="foo"),
             {"user": User(age=1, name="foo")},
             ListConfig(content=[1, 2], ref_type=List[int], element_type=int),

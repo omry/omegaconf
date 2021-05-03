@@ -846,12 +846,6 @@ def test_getitem_with_invalid_key() -> None:
         cfg.__getitem__(object())  # type: ignore
 
 
-def test_assign_none_to_non_optional() -> None:
-    cfg = DictConfig(content={}, element_type=str, is_optional=False)
-    with raises(ValidationError):
-        cfg["key"] = None
-
-
 def test_hasattr() -> None:
     cfg = OmegaConf.create({"foo": "bar"})
     OmegaConf.set_struct(cfg, True)
