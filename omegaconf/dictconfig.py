@@ -378,8 +378,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         :param key:
         :return:
         """
-        if key == "__name__":
-            raise AttributeError()
         self._delkey(key)
 
     def __delitem__(self, key: DictKeyType) -> None:

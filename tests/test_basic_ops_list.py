@@ -745,8 +745,6 @@ def test_delattr() -> None:
     assert cfg == {"b": 2}
     with raises(ConfigKeyError):
         delattr(cfg, "c")
-    with raises(AttributeError):
-        delattr(cfg, "__name__")
 
 
 def test_shallow_copy() -> None:
