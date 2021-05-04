@@ -8,7 +8,7 @@ from pytest import mark, param, raises
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
 from omegaconf._utils import nullcontext
 from omegaconf.errors import (
-    ConfigKeyError,
+    ConfigAttributeError,
     ConfigTypeError,
     InterpolationKeyError,
     InterpolationToMissingValueError,
@@ -743,7 +743,7 @@ def test_delattr() -> None:
     cfg = OmegaConf.create({"a": 1, "b": 2})
     delattr(cfg, "a")
     assert cfg == {"b": 2}
-    with raises(ConfigKeyError):
+    with raises(ConfigAttributeError):
         delattr(cfg, "c")
 
 

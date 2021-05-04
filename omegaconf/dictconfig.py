@@ -378,13 +378,13 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         :param key:
         :return:
         """
-        self._delkey(key)
+        self._delkey(key, attr=True)
 
     def __delitem__(self, key: DictKeyType) -> None:
         key = self._validate_and_normalize_key(key)
         self._delkey(key)
 
-    def _delkey(self, key: DictKeyType) -> None:
+    def _delkey(self, key: DictKeyType, attr: bool = False) -> None:
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -414,7 +414,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             del self.__dict__["_content"][key]
         except KeyError:
             msg = "Key not found: '$KEY'"
-            self._format_and_raise(key=key, value=None, cause=ConfigKeyError(msg))
+            error = ConfigAttributeError if attr else ConfigKeyError
+            self._format_and_raise(key=key, value=None, cause=error(msg))
 
     def get(self, key: DictKeyType, default_value: Any = None) -> Any:
         """Return the value for `key` if `key` is in the dictionary, else
