@@ -781,6 +781,17 @@ params = [
         ),
         id="dict,structured:del",
     ),
+    param(
+        Expected(
+            create=lambda: create_readonly({"foo": "bar"}),
+            op=lambda cfg: cfg.__delattr__("foo"),
+            exception_type=ReadonlyConfigError,
+            msg="DictConfig in read-only mode does not support deletion",
+            key="foo",
+            child_node=lambda cfg: cfg.foo,
+        ),
+        id="dict,readonly:delattr",
+    ),
     # creating structured config
     param(
         Expected(

@@ -739,10 +739,20 @@ def test_getattr() -> None:
     assert getattr(cfg, "2") == src[2]
 
 
-def test_delattr() -> None:
-    cfg = OmegaConf.create({"a": 1, "b": 2})
-    delattr(cfg, "a")
-    assert cfg == {"b": 2}
+@mark.parametrize(
+    "getconfig, struct",
+    [
+        (lambda: OmegaConf.create({"name": "alice", "age": 1}), False),
+        (lambda: OmegaConf.create({"name": "alice", "age": 1}), True),
+        (lambda: OmegaConf.structured(User(name="alice", age=1)), False),
+    ],
+)
+def test_delattr(getconfig: Any, struct: bool) -> None:
+    cfg = getconfig()
+    if struct:
+        OmegaConf.set_struct(cfg, True)
+    delattr(cfg, "name")
+    assert cfg == {"age": 1}
     with raises(ConfigAttributeError):
         delattr(cfg, "c")
 
