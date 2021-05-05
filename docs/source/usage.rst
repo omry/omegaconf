@@ -521,8 +521,11 @@ You can temporarily remove the read only flag from a config object:
 Struct flag
 ^^^^^^^^^^^
 By default, OmegaConf dictionaries allow read and write access to unknown fields.
-If a field does not exist, accessing it will return None and writing it will create the field.
-It's sometime useful to change this behavior.
+If a field does not exist, writing it will create the field, and attempting to
+access the field before creation will raise an exception (either ``ConfigKeyError``
+or ``ConfigAttributeError``, depending on the mode of access).
+It's sometime useful to change this behavior.  Using ``OmegaConf.set_struct``,
+it is possible to prevent writing to fields that do not exist:
 
 
 .. doctest:: loaded
