@@ -75,17 +75,17 @@ def test_getattr_dict() -> None:
     assert {"b": 1} == c.a
 
 
+@mark.parametrize("struct", [False, True])
 @mark.parametrize(
-    "cfg, struct",
+    "cfg",
     [
-        (OmegaConf.create({"name": "alice", "age": 1}), False),
-        (OmegaConf.create({"name": "alice", "age": 1}), True),
-        (OmegaConf.structured(User(name="alice", age=1)), False),
+        param({"name": "alice", "age": 1}, id="dict"),
+        param(User(name="alice", age=1), id="structured_config"),
     ],
 )
-def test_delattr(cfg: DictConfig, struct: bool) -> None:
-    if struct:
-        OmegaConf.set_struct(cfg, True)
+def test_delattr(cfg: Any, struct: bool) -> None:
+    cfg = OmegaConf.create(cfg)
+    OmegaConf.set_struct(cfg, struct)
     delattr(cfg, "name")
     assert cfg == {"age": 1}
     with raises(ConfigAttributeError):
