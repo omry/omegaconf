@@ -3,6 +3,7 @@ import os
 import re
 import string
 import sys
+import warnings
 from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
@@ -234,10 +235,17 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
     """Check if obj is an instance of a subclass of Dict. If so, extract the Dict keys/values."""
     from omegaconf.omegaconf import _maybe_wrap
 
+    obj_type = type(obj)
+    if is_dict_subclass(obj) or is_dict_subclass(obj_type):
+        warnings.warn(
+            "Subclassing of `Dict` by Structured Config classes is deprecated",
+            UserWarning,
+            stacklevel=2,
+        )
+
     if isinstance(obj, type):
         return None
 
-    obj_type = type(obj)
     if is_dict_subclass(obj_type):
         dict_subclass_data = {}
         key_type, element_type = get_dict_key_value_types(obj_type)
