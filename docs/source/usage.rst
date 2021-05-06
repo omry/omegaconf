@@ -70,7 +70,7 @@ Here is an example of various supported key types:
     >>> print(conf)
     {'key': 'str', 123: 'int', True: 'bool', 3.14: 'float', <Color.RED: 1>: 'Color'}
 
-OmegaConf supports `str`, `int`, `bool`, `float` and Enums as dictionary key types.
+OmegaConf supports ``str``, ``int``, ``bool``, ``float`` and Enums as dictionary key types.
 
 From a list
 ^^^^^^^^^^^
@@ -86,7 +86,7 @@ From a list
         123: int_key
     <BLANKLINE>
 
-Tuples are supported as an valid option too.
+Tuples are supported as a valid option too.
 
 From a YAML file
 ^^^^^^^^^^^^^^^^
@@ -194,7 +194,7 @@ You can use an object to initialize the config as well:
     host: localhost
     <BLANKLINE>
 
-OmegaConf objects constructed from Structured classes offers runtime type safety:
+OmegaConf objects constructed from Structured classes offer runtime type safety:
 
 .. doctest::
 
@@ -249,7 +249,7 @@ You can provide default values directly in the accessing code:
 
 Mandatory values
 ^^^^^^^^^^^^^^^^
-Use the value ??? to indicate parameters that need to be set prior to access
+Use the value ``"???"`` to indicate parameters that need to be set prior to access
 
 .. doctest:: loaded
 
@@ -295,7 +295,7 @@ Note that this does not retain type information.
 Save/Load pickle file
 ^^^^^^^^^^^^^^^^^^^^^
 Use pickle to save and load while retaining the type information.
-Note that the saved file may be incompatible across different major versions of OmegaConf.
+Note that the saved file may be incompatible across different versions of OmegaConf.
 
 .. doctest:: loaded
 
@@ -323,7 +323,7 @@ This path may use either dot-notation (``foo.1``), brackets (``[foo][1]``) or a 
 
 Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
 The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.
-e.g. **${..foo}** points to the **foo** sibling of the parent of the current node.
+e.g. ``${..foo}`` points to the ``foo`` sibling of the parent of the current node.
 
 NOTE: Interpolations may cause config cycles. Such cycles are forbidden and may cause undefined behavior.
 
@@ -557,8 +557,8 @@ Utility functions
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf config objects looks very similar to python dict and list, but in fact are not.
-Use OmegaConf.to_container(cfg: Container, resolve: bool) to convert to a primitive container.
-If resolve is set to True, interpolations will be resolved during conversion.
+Use ``OmegaConf.to_container(cfg: Container, resolve: bool)`` to convert to a primitive container.
+If ``resolve`` is set to ``True``, interpolations will be resolved during conversion.
 
 .. doctest::
 
@@ -579,7 +579,7 @@ Structured Config nodes using the ``structured_config_mode`` option.
 By default, Structured Config nodes are converted to plain dict.
 
 Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
-as DictConfig, allowing attribute style access on the resulting node.
+as ``DictConfig``, allowing attribute style access on the resulting node.
 
 Using ``structured_config_mode=SCMode.INSTANTIATE``, Structured Config nodes
 are converted to instances of the backing dataclass or attrs class. Note that
@@ -603,8 +603,8 @@ the ``resolve`` keyword arg.
 
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
-The ``OmegaConf.to_object`` method recursively converts DictConfig and ListConfig objects
-into dicts and lists, with the exception that Structured Config objects are
+The ``OmegaConf.to_object`` method recursively converts ``DictConfig`` and ``ListConfig`` objects
+into native Python dicts and lists, with the exception that Structured Config objects are
 converted into instances of the backing dataclass or attr class.  All OmegaConf
 interpolations are resolved before conversion to Python containers.
 
@@ -652,7 +652,7 @@ Example:
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
-OmegaConf.select() allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
+``OmegaConf.select()`` allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
 
 .. doctest::
 
@@ -689,11 +689,11 @@ OmegaConf.select() allows you to select a config node or value, using either a d
 
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
-OmegaConf.update() allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
+``OmegaConf.update()`` allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
 
-The merge flag controls the behavior if the input is a dict or a list. If it's true (the default), those are merged instead of
-being assigned.
-The force_add flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
+The merge flag controls the behavior if the input is a ``dict`` or a ``list``.
+If ``merge=True`` true (the default), dicts and lists are merged instead of being assigned.
+The ``force_add`` flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
 
 .. doctest::
 
@@ -717,7 +717,7 @@ The force_add flag ensures that the path is created even if it will result in in
 
 OmegaConf.masked_copy
 ^^^^^^^^^^^^^^^^^^^^^
-Creates a copy of a DictConfig that contains only specific keys.
+Creates a copy of a ``DictConfig`` that contains only specific keys.
 
 .. doctest:: loaded
 
@@ -736,7 +736,7 @@ Creates a copy of a DictConfig that contains only specific keys.
 OmegaConf.is_missing
 ^^^^^^^^^^^^^^^^^^^^
 
-Tests if a value is missing ('???').
+Tests if a value is missing (``"???"``).
 
 .. doctest::
 
@@ -765,7 +765,9 @@ Tests if a value is an interpolation.
 OmegaConf.{is_config, is_dict, is_list}
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Tests if an object is an OmegaConf object, or if it's representing a list or a dict.
+``OmegaConf.is_config`` tests whether an object is an OmegaConf object (e.g. ``DictConfig`` or ``ListConfig``).
+``OmegaConf.is_dict(cfg)`` is equivalent to ``isinstance(cfg, DictConfig)``,
+and ``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``.
 
 .. doctest::
 
@@ -789,7 +791,7 @@ VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ po
 
 The debugger extension enables OmegaConf-aware object inspection:
  - providing information about interpolations.
- - properly handling missing values (``???``).
+ - properly handling missing values (``"???"``).
  
 The plugin comes in two flavors:
  - USER: Default behavior, useful when debugging your OmegaConf objects.
