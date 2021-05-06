@@ -289,7 +289,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self.visit(ctx.getChild(0))
 
     def visitText(self, ctx: OmegaConfGrammarParser.TextContext) -> Any:
-        # (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
+        # (interpolation | ESC | ESC_INTER | ANY_STR)+
 
         # Single interpolation? If yes, return its resolved value "as is".
         if ctx.getChildCount() == 1:
@@ -356,7 +356,10 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 if s.type == OmegaConfGrammarLexer.ESC:
                     chrs.append(s.text[1::2])
                 elif s.type == OmegaConfGrammarLexer.ESC_INTER:
-                    chrs.append(s.text[1:])
+                    # `ESC_INTER` is of the form `\\...\${`: the formula below computes
+                    # the number of characters to keep at the end of the string to remove
+                    # the correct number of backslashes.
+                    chrs.append(s.text[-(len(s.text) // 2 + 1) :])
                 else:
                     chrs.append(s.text)
             else:
