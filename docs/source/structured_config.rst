@@ -99,6 +99,8 @@ You can create a config with specified fields that can also accept arbitrary val
     >>> conf.foo = "bar"
     >>> assert conf.foo == "bar"
 
+This feature is deprecated; OmegaConf's ability to handle structured configs
+that subclass ``Dict`` is planned to be removed in a future release.
 
 
 Static type checker support
