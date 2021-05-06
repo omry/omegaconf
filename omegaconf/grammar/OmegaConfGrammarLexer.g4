@@ -23,11 +23,10 @@ ANY_STR: ~[$]* ~[\\$];
 // Escaped interpolation: '\${', optionally preceded by an even number of \
 ESC_INTER: ESC_BACKSLASH* '\\${';
 
-// Escaped backslashes: even number of \ followed by an interpolation.
-// The interpolation must *not* be matched by this rule (this is why we use a predicate lookahead).
-TOP_ESC: ESC_BACKSLASH+ { self._input.LA(1) == ord("$") and self._input.LA(2) == ord("{") }? -> type(ESC);
+// Backslashes that *may* be escaped (even number).
+TOP_ESC: ESC_BACKSLASH+;
 
-// Other backslashes that will not need escaping.
+// Other backslashes that will not need escaping (odd number due to not matching the previous rule).
 BACKSLASHES: '\\'+ -> type(ANY_STR);
 
 // The dollar sign must be singled out so that we can recognize interpolations.
@@ -111,19 +110,10 @@ QSINGLE_STR: ~['$]* ~['\\$] -> type(ANY_STR);
 
 QSINGLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
 
-// In a quoted string we also have the following escape sequences:
-//    - \', optionally preceded by an even number of \ (escaped quote)
-//    - an even number of \ followed by either the closing quote (trailing backslashes) or by
-//      an interpolation (as in `DEFAULT_MODE`) -- which must not be matched by this rule
-QSINGLE_ESC:
-    (
-        ESC_BACKSLASH* '\\\'' |
-        ESC_BACKSLASH+ {(
-            self._input.LA(1) == ord("'") or
-            (self._input.LA(1) == ord("$") and self._input.LA(2) == ord("{"))
-        )}?
-    ) -> type(ESC);
+// Escaped quote (optionally preceded by an even number of backslashes).
+QSINGLE_ESC_QUOTE: ESC_BACKSLASH* '\\\'' -> type(ESC);
 
+QUOTED_ESC: ESC_BACKSLASH+;
 QSINGLE_BACKSLASHES: '\\'+ -> type(ANY_STR);
 QSINGLE_DOLLAR: '$' -> type(ANY_STR);
 
@@ -140,17 +130,8 @@ QDOUBLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE)
 QDOUBLE_CLOSE: '"' -> type(MATCHING_QUOTE_CLOSE), popMode;
 
 QDOUBLE_STR: ~["$]* ~["\\$] -> type(ANY_STR);
-
 QDOUBLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
-
-QDOUBLE_ESC:
-    (
-        ESC_BACKSLASH* '\\"' |
-        ESC_BACKSLASH+ {(
-            self._input.LA(1) == ord('"') or
-            (self._input.LA(1) == ord("$") and self._input.LA(2) == ord("{"))
-        )}?
-    ) -> type(ESC);
-
+QDOUBLE_ESC_QUOTE: ESC_BACKSLASH* '\\"' -> type(ESC);
+QDOUBLE_ESC: ESC_BACKSLASH+ -> type(QUOTED_ESC);
 QDOUBLE_BACKSLASHES: '\\'+ -> type(ANY_STR);
 QDOUBLE_DOLLAR: '$' -> type(ANY_STR);
