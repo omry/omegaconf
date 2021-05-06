@@ -265,6 +265,36 @@ Keys must be strings, ints or enums, and values can
 be any of the types supported by OmegaConf (``Any``, ``int``, ``float``, ``bool``, ``str`` and ``Enum`` as well
 as arbitrary Structured configs)
 
+.. doctest::
+
+    >>> from typing import Dict
+    >>> @dataclass
+    ... class DictExample:
+    ...     # Typed dict keys are strings; values can be typed as Any, int, float, bool, str and Enums or
+    ...     # arbitrary Structured configs
+    ...     ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20, "c": 30})
+    ...     bools: Dict[str, bool] = field(default_factory=lambda: {"Uno": True, "Zoro": False})
+    ...     users: Dict[str, User] = field(default_factory=lambda: {"omry": User(name="omry")})
+
+Like with Lists, the types of values contained in Dicts are verified at runtime.
+
+.. doctest::
+
+    >>> conf: DictExample = OmegaConf.structured(DictExample)
+
+    >>> # Okay, 10 is an int
+    >>> conf.ints["d"] = 10
+    >>> # Okay, "20" can be converted to an int
+    >>> conf.ints["e"] = "20"
+    >>> conf.ints["e"]
+    20
+
+    >>> conf.bools["Dos"] = True
+    >>> conf.users["James"] = User(name="Bond")
+    >>> # Not okay, 10 cannot be converted to a User
+    >>> with raises(ValidationError):
+    ...     conf.users["Joe"] = 10
+
 Misc
 ----
 OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
