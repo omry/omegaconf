@@ -375,7 +375,7 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_leading_escapes_2", r"\\\\ \${str}", r"\\\\ ${str}"),
     ("str_top_middle_escapes_1", r"abc\\\\\${str}", r"abc\\${str}"),
     ("str_top_middle_escapes_2", r"abc\\\\ \${str}", r"abc\\\\ ${str}"),
-    ("str_top_trailing_escapes", "${str}" + "\\" * 5, "hi" + "\\" * 5),
+    ("str_top_trailing_escapes", r" ${str}\\\ ".strip(), r" hi\\\ ".strip()),
     ("str_top_concat_interpolations", "${null}${float}", "None1.2"),
     ("str_top_issue_617", r""" ${test: "hi\\" }"} """, r" hi\"} "),
     # Whitespaces.
