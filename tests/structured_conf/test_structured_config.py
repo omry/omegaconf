@@ -1,9 +1,8 @@
-import re
 import sys
 from importlib import import_module
 from typing import Any, Dict, List, Optional
 
-from pytest import fixture, mark, param, raises, warns
+from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     MISSING,
@@ -18,7 +17,7 @@ from omegaconf import (
     _utils,
 )
 from omegaconf.errors import ConfigKeyError
-from tests import Color, User
+from tests import Color, User, warns_dict_subclass_deprecated
 
 
 @fixture(
@@ -932,15 +931,6 @@ def test_dataclass_frozen() -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
-def warns_dict_subclass_deprecated() -> Any:
-    return warns(
-        UserWarning,
-        match=re.escape(
-            "Subclassing of `Dict` by Structured Config classes is deprecated"
-        ),
-    )
-
-
 class TestDictSubclass:
     def test_str2str(self, module: Any) -> None:
         with warns_dict_subclass_deprecated():
@@ -963,7 +953,8 @@ class TestDictSubclass:
         src = module.DictSubclass.Str2Int()
         src["baz"] = "qux"
         with raises(ValidationError):
-            OmegaConf.structured(src)
+            with warns_dict_subclass_deprecated():
+                OmegaConf.structured(src)
 
     def test_str2str_as_sub_node(self, module: Any) -> None:
         with warns_dict_subclass_deprecated():
