@@ -568,6 +568,9 @@ class Container(Node):
                 value=resolved,
                 key=key,
                 ref_type=value._metadata.ref_type,
+                # Since `resolved` was obtained by resolving an interpolation, it cannot
+                # be itself an interpolation even if may look like one (ex: "${foo}").
+                can_be_interpolation=False,
             )
         else:
             # Other objects get wrapped into an `AnyNode` with `allow_objects` set

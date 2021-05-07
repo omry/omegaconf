@@ -30,14 +30,25 @@ class ValueNode(Node):
         return self._val
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        return self._set_value_impl(value=value, can_be_interpolation=True, flags=flags)
+
+    def _set_value_impl(
+        self,
+        value: Any,
+        can_be_interpolation: bool,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> None:
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        if isinstance(value, str) and get_value_kind(
-            value, strict_interpolation_validation=True
-        ) in (
-            ValueKind.INTERPOLATION,
-            ValueKind.MANDATORY_MISSING,
+        if (
+            can_be_interpolation
+            and isinstance(value, str)
+            and get_value_kind(value, strict_interpolation_validation=True)
+            in (
+                ValueKind.INTERPOLATION,
+                ValueKind.MANDATORY_MISSING,
+            )
         ):
             self._val = value
         else:
@@ -112,13 +123,20 @@ class AnyNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         flags: Optional[Dict[str, bool]] = None,
+        can_be_interpolation: bool = True,
     ):
+        self.can_be_interpolation = can_be_interpolation
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
                 ref_type=Any, object_type=None, key=key, optional=True, flags=flags
             ),
+        )
+
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        return self._set_value_impl(
+            value=value, can_be_interpolation=self.can_be_interpolation, flags=flags
         )
 
     def _validate_and_convert_impl(self, value: Any) -> Any:
@@ -140,6 +158,9 @@ class AnyNode(ValueNode):
         self._deepcopy_impl(res, memo)
         return res
 
+    def _is_interpolation(self) -> bool:
+        return self.can_be_interpolation and super()._is_interpolation()
+
 
 class StringNode(ValueNode):
     def __init__(
@@ -149,7 +170,9 @@ class StringNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
+        can_be_interpolation: bool = True,
     ):
+        self.can_be_interpolation = can_be_interpolation
         super().__init__(
             parent=parent,
             value=value,
@@ -160,6 +183,11 @@ class StringNode(ValueNode):
                 object_type=str,
                 flags=flags,
             ),
+        )
+
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        return self._set_value_impl(
+            value=value, can_be_interpolation=self.can_be_interpolation, flags=flags
         )
 
     def _validate_and_convert_impl(self, value: Any) -> str:
@@ -173,6 +201,9 @@ class StringNode(ValueNode):
         res = StringNode()
         self._deepcopy_impl(res, memo)
         return res
+
+    def _is_interpolation(self) -> bool:
+        return self.can_be_interpolation and super()._is_interpolation()
 
 
 class IntegerNode(ValueNode):
