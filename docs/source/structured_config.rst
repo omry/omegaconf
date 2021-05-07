@@ -85,23 +85,6 @@ The resulting object and will also rejects attempts to access or set fields that
     >>> with raises(AttributeError):
     ...    conf.does_not_exist
 
-You can create a config with specified fields that can also accept arbitrary values by extending Dict:
-
-.. doctest::
-
-    >>> @dataclass
-    ... class DictWithFields(Dict[str, Any]):
-    ...     num: int = 10
-    >>>
-    >>> conf = OmegaConf.structured(DictWithFields)
-    >>> assert conf.num == 10
-    >>>
-    >>> conf.foo = "bar"
-    >>> assert conf.foo == "bar"
-
-This feature is deprecated; OmegaConf's ability to handle structured configs
-that subclass ``Dict`` is planned to be removed in a future release.
-
 
 Static type checker support
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
