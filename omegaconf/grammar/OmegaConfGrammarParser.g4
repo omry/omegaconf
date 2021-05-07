@@ -23,7 +23,7 @@ singleElement: element EOF;
 
 // Composite text expression (may contain interpolations).
 
-text: (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+;
+text: (interpolation | ANY_STR | ESC | ESC_INTER | TOP_ESC | QUOTED_ESC)+;
 
 
 // Elements.

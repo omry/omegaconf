@@ -16,13 +16,22 @@ fragment ESC_BACKSLASH: '\\\\';  // escaped backslash
 
 TOP_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
 
-ESC_INTER: '\\${';
-TOP_ESC: ESC_BACKSLASH+ -> type(ESC);
+// Regular string: anything that does not contain any $ and does not end with \
+// (this ensures this rule will not consume characters required to recognize other tokens).
+ANY_STR: ~[$]* ~[\\$];
 
-// The backslash and dollar characters must not be grouped with others, so that
-// we can properly detect the tokens above.
-SPECIAL_CHAR: [\\$];
-ANY_STR: ~[\\$]+;  // anything else
+// Escaped interpolation: '\${', optionally preceded by an even number of \
+ESC_INTER: ESC_BACKSLASH* '\\${';
+
+// Backslashes that *may* be escaped (even number).
+TOP_ESC: ESC_BACKSLASH+;
+
+// Other backslashes that will not need escaping (odd number due to not matching the previous rule).
+BACKSLASHES: '\\'+ -> type(ANY_STR);
+
+// The dollar sign must be singled out so that we can recognize interpolations.
+DOLLAR: '$' -> type(ANY_STR);
+
 
 ////////////////
 // VALUE_MODE //
@@ -96,11 +105,17 @@ mode QUOTED_SINGLE_MODE;
 QSINGLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
 MATCHING_QUOTE_CLOSE: '\'' -> popMode;
 
-QSINGLE_ESC: ('\\\'' | ESC_BACKSLASH)+ -> type(ESC);
+// Regular string: anything that does not contain any $ *or quote* and does not end with \
+QSINGLE_STR: ~['$]* ~['\\$] -> type(ANY_STR);
+
 QSINGLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
 
-QSINGLE_SPECIAL_CHAR: SPECIAL_CHAR -> type(SPECIAL_CHAR);
-QSINGLE_STR: ~['\\$]+ -> type(ANY_STR);
+// Escaped quote (optionally preceded by an even number of backslashes).
+QSINGLE_ESC_QUOTE: ESC_BACKSLASH* '\\\'' -> type(ESC);
+
+QUOTED_ESC: ESC_BACKSLASH+;
+QSINGLE_BACKSLASHES: '\\'+ -> type(ANY_STR);
+QSINGLE_DOLLAR: '$' -> type(ANY_STR);
 
 
 ////////////////////////
@@ -114,8 +129,9 @@ mode QUOTED_DOUBLE_MODE;
 QDOUBLE_INTER_OPEN: INTER_OPEN -> type(INTER_OPEN), pushMode(INTERPOLATION_MODE);
 QDOUBLE_CLOSE: '"' -> type(MATCHING_QUOTE_CLOSE), popMode;
 
-QDOUBLE_ESC: ('\\"' | ESC_BACKSLASH)+ -> type(ESC);
+QDOUBLE_STR: ~["$]* ~["\\$] -> type(ANY_STR);
 QDOUBLE_ESC_INTER: ESC_INTER -> type(ESC_INTER);
-
-QDOUBLE_SPECIAL_CHAR: SPECIAL_CHAR -> type(SPECIAL_CHAR);
-QDOUBLE_STR: ~["\\$]+ -> type(ANY_STR);
+QDOUBLE_ESC_QUOTE: ESC_BACKSLASH* '\\"' -> type(ESC);
+QDOUBLE_ESC: ESC_BACKSLASH+ -> type(QUOTED_ESC);
+QDOUBLE_BACKSLASHES: '\\'+ -> type(ANY_STR);
+QDOUBLE_DOLLAR: '$' -> type(ANY_STR);
