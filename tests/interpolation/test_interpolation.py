@@ -1,5 +1,6 @@
 import copy
 import re
+from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, Tuple
 
@@ -22,6 +23,7 @@ from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.errors import InterpolationValidationError
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
+from tests.interpolation import dereference_node
 
 # file deepcode ignore CopyPasteError:
 # The above comment is a statement to stop DeepCode from raising a warning on
@@ -463,3 +465,35 @@ def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
             OmegaConf.select(cfg, key)
     else:
         assert OmegaConf.select(cfg, key) == expected
+
+
+@mark.parametrize("node_type", [None, Any, str])
+@mark.parametrize(
+    "value",
+    [
+        param(r"\${foo", id="escaped_interpolation"),
+        param(r"$${y}", id="string_interpolation"),
+        # This passes to `oc.decode` the string with characters: '\${foo' which
+        # is then resolved into: ${foo
+        param(r"${oc.decode:'\'\\\${foo\''}", id="resolver"),
+    ],
+)
+def test_interpolation_result_is_not_an_interpolation(
+    node_type: Any, value: str
+) -> None:
+    if node_type is None:
+        # Non-structured config.
+        cfg = OmegaConf.create({"x": value, "y": "{foo"})
+
+    else:
+        # Structured config.
+
+        @dataclass
+        class Config:
+            x: node_type = value  # type: ignore
+            y: str = "{foo"
+
+        cfg = OmegaConf.structured(Config)
+
+    assert cfg.x == "${foo"
+    assert not dereference_node(cfg, "x")._is_interpolation()

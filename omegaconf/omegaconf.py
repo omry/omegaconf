@@ -952,6 +952,9 @@ def _node_wrap(
     value: Any,
     key: Any,
     ref_type: Any = Any,
+    # Flag indicating whether the input value may be considered to be an interpolation.
+    # It is only used when wrapping a string within an `AnyNode` or `StringNode`.
+    can_be_interpolation: bool = True,
 ) -> Node:
     node: Node
     is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
@@ -993,7 +996,12 @@ def _node_wrap(
             element_type=element_type,
         )
     elif type_ == Any or type_ is None:
-        node = AnyNode(value=value, key=key, parent=parent)
+        node = AnyNode(
+            value=value,
+            key=key,
+            parent=parent,
+            can_be_interpolation=can_be_interpolation,
+        )
     elif issubclass(type_, Enum):
         node = EnumNode(
             enum_type=type_,
@@ -1009,10 +1017,21 @@ def _node_wrap(
     elif type_ == bool:
         node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif type_ == str:
-        node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = StringNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            can_be_interpolation=can_be_interpolation,
+        )
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
-            node = AnyNode(value=value, key=key, parent=parent)
+            node = AnyNode(
+                value=value,
+                key=key,
+                parent=parent,
+                can_be_interpolation=can_be_interpolation,
+            )
         else:
             raise ValidationError(f"Unexpected object type: {type_str(type_)}")
     return node
