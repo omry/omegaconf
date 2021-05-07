@@ -223,9 +223,12 @@ def test_is_optional_deprecation() -> None:
 
 def test_coverage_for_deprecated_OmegaConf_is_optional() -> None:
     cfg = OmegaConf.create({"node": 123})
-    assert OmegaConf.is_optional(cfg)
-    assert OmegaConf.is_optional(cfg, "node")
-    assert OmegaConf.is_optional("not_a_node")
+    with warns(UserWarning):
+        assert OmegaConf.is_optional(cfg)
+    with warns(UserWarning):
+        assert OmegaConf.is_optional(cfg, "node")
+    with warns(UserWarning):
+        assert OmegaConf.is_optional("not_a_node")
 
 
 @mark.parametrize("is_none", [True, False])
