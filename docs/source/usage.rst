@@ -194,7 +194,7 @@ You can use an object to initialize the config as well:
     host: localhost
     <BLANKLINE>
 
-OmegaConf objects constructed from Structured classes offer runtime type safety:
+OmegaConf objects constructed from Structured classes provide runtime type safety:
 
 .. doctest::
 
@@ -524,7 +524,7 @@ If a field does not exist, writing it will create the field, and attempting to
 access the field before creation will raise an exception (either ``ConfigKeyError``
 or ``ConfigAttributeError``, depending on the mode of access).
 It's sometime useful to change this behavior.  Using ``OmegaConf.set_struct``,
-it is possible to prevent writing to fields that do not exist:
+it is possible to prevent the creation of fields that do not exist:
 
 
 .. doctest:: loaded
@@ -604,7 +604,7 @@ the ``resolve`` keyword arg.
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
 The ``OmegaConf.to_object`` method recursively converts ``DictConfig`` and ``ListConfig`` objects
-into native Python dicts and lists, with the exception that Structured Config objects are
+into plain Python dicts and lists, with the exception that Structured Config objects are
 converted into instances of the backing dataclass or attr class.  All OmegaConf
 interpolations are resolved before conversion to Python containers.
 
