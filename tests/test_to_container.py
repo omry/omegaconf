@@ -14,7 +14,7 @@ from omegaconf import (
     open_dict,
 )
 from omegaconf.errors import InterpolationResolutionError
-from tests import Color, User
+from tests import Color, User, warns_dict_subclass_deprecated
 
 
 @mark.parametrize(
@@ -377,7 +377,8 @@ class TestInstantiateStructuredConfigs:
         assert nested.var.interpolation == 456
 
     def test_str2user_instantiate(self, module: Any) -> None:
-        cfg = OmegaConf.structured(module.DictSubclass.Str2User())
+        with warns_dict_subclass_deprecated():
+            cfg = OmegaConf.structured(module.DictSubclass.Str2User())
         cfg.bond = module.User(name="James Bond", age=7)
         data = self.round_trip_to_object(cfg)
 
@@ -386,7 +387,8 @@ class TestInstantiateStructuredConfigs:
         assert data.bond == module.User("James Bond", 7)
 
     def test_str2user_with_field_instantiate(self, module: Any) -> None:
-        cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
+        with warns_dict_subclass_deprecated():
+            cfg = OmegaConf.structured(module.DictSubclass.Str2UserWithField())
         cfg.mp = module.User(name="Moneypenny", age=11)
         data = self.round_trip_to_object(cfg)
 
@@ -397,7 +399,8 @@ class TestInstantiateStructuredConfigs:
         assert data.mp == module.User("Moneypenny", 11)
 
     def test_str2str_with_field_instantiate(self, module: Any) -> None:
-        cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
+        with warns_dict_subclass_deprecated():
+            cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
         cfg.hello = "world"
         data = self.round_trip_to_object(cfg)
 

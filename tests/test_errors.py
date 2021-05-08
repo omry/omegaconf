@@ -38,7 +38,6 @@ from tests import (
     Module,
     Package,
     Plugin,
-    Str2Int,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
@@ -793,19 +792,6 @@ params = [
         id="dict,readonly:delattr",
     ),
     # creating structured config
-    param(
-        Expected(
-            create=lambda: Str2Int(),
-            op=lambda src: (src.__setitem__("bar", "qux"), OmegaConf.structured(src)),
-            exception_type=ValidationError,
-            msg="Value 'qux' could not be converted to Integer",
-            object_type=None,
-            key="bar",
-            full_key="bar",
-            parent_node=lambda cfg: None,
-        ),
-        id="structured,Dict_subclass:bad_value_type",
-    ),
     param(
         Expected(
             create=lambda: None,
