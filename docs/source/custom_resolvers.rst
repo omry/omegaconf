@@ -128,7 +128,7 @@ This can be achieved by adding the special parameters to the resolver signature.
 Note that special parameters must be defined as named keywords (after the ``*``).
 
 In the example below, we use ``_parent_`` to implement a sum function that defaults to ``0`` if the node does not exist.
-(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}``, would result in an error.)
+This is in contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}``, would result in an error.
 
 .. doctest::
 
