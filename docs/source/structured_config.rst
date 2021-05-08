@@ -261,7 +261,7 @@ In the example below, the OmegaConf object ``conf`` (which is actually an instan
 Dictionaries
 ^^^^^^^^^^^^
 Dictionaries are supported via annotation of structured config fields with ``typing.Dict``.
-Keys must be strings, ints or enums, and values can
+Keys must be typed as one of ``str``, ``int``, ``Enum``, ``float``, or ``bool``. Values can
 be any of the types supported by OmegaConf (``Any``, ``int``, ``float``, ``bool``, ``str`` and ``Enum`` as well
 as arbitrary Structured configs)
 
