@@ -228,6 +228,6 @@ def warns_dict_subclass_deprecated() -> Any:
     return warns(
         UserWarning,
         match=re.escape(
-            "Subclassing of `Dict` by Structured Config classes is deprecated"
+            "Subclassing `Dict` in Structured Config classes is deprecated, see github.com/omry/omegaconf/issues/663"
         ),
     )
