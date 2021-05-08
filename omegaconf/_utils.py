@@ -240,7 +240,7 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         warnings.warn(
             "Subclassing of `Dict` by Structured Config classes is deprecated",
             UserWarning,
-            stacklevel=2,
+            stacklevel=1,
         )
 
     if isinstance(obj, type):
