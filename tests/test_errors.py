@@ -38,12 +38,14 @@ from tests import (
     Module,
     Package,
     Plugin,
+    Str2Int,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
     SubscriptedDict,
     UnionError,
     User,
+    warns_dict_subclass_deprecated,
 )
 
 
@@ -1431,3 +1433,24 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
 
     with raises(RecursionError, match=match):
         c.x
+
+
+def test_dict_subclass_error() -> None:
+    src = Str2Int()
+    src["bar"] = "qux"  # type: ignore
+    # expected.finalize(cfg)
+    with raises(
+        ValidationError,
+        match=re.escape("Value 'qux' could not be converted to Integer"),
+    ) as einfo:
+        with warns_dict_subclass_deprecated(Str2Int):
+            OmegaConf.structured(src)
+    ex = einfo.value
+    assert isinstance(ex, OmegaConfBaseException)
+
+    assert ex.key == "bar"
+    assert ex.full_key == "bar"
+    assert ex.ref_type is None
+    assert ex.object_type is None
+    assert ex.parent_node is None
+    assert ex.child_node is None
