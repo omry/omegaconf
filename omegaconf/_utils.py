@@ -240,7 +240,7 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         warnings.warn(
             "Subclassing `Dict` in Structured Config classes is deprecated, see github.com/omry/omegaconf/issues/663",
             UserWarning,
-            stacklevel=1,
+            stacklevel=9,
         )
 
     if isinstance(obj, type):
