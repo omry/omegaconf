@@ -933,7 +933,7 @@ def test_dataclass_frozen() -> None:
 
 class TestDictSubclass:
     def test_str2str(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2Str):
             cfg = OmegaConf.structured(module.DictSubclass.Str2Str())
         cfg.hello = "world"
         assert cfg.hello == "world"
@@ -944,7 +944,7 @@ class TestDictSubclass:
     def test_dict_subclass_data_preserved_upon_node_creation(self, module: Any) -> None:
         src = module.DictSubclass.Str2StrWithField()
         src["baz"] = "qux"
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2StrWithField):
             cfg = OmegaConf.structured(src)
         assert cfg.foo == "bar"
         assert cfg.baz == "qux"
@@ -953,11 +953,11 @@ class TestDictSubclass:
         src = module.DictSubclass.Str2Int()
         src["baz"] = "qux"
         with raises(ValidationError):
-            with warns_dict_subclass_deprecated():
+            with warns_dict_subclass_deprecated(module.DictSubclass.Str2Int):
                 OmegaConf.structured(src)
 
     def test_str2str_as_sub_node(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2Str):
             cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
         assert _utils.get_ref_type(cfg.foo) == Any
@@ -972,7 +972,7 @@ class TestDictSubclass:
             cfg.foo[123] = "fail"
 
     def test_int2str(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Int2Str):
             cfg = OmegaConf.structured(module.DictSubclass.Int2Str())
 
         cfg[10] = "ten"  # okay
@@ -991,7 +991,7 @@ class TestDictSubclass:
             cfg[Color.RED] = "fail"
 
     def test_int2str_as_sub_node(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Int2Str):
             cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
         assert _utils.get_ref_type(cfg.foo) == Any
@@ -1012,7 +1012,7 @@ class TestDictSubclass:
             cfg.foo[Color.RED] = "fail"
 
     def test_color2str(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Color2Str):
             cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
         cfg[Color.RED] = "red"
 
@@ -1023,7 +1023,7 @@ class TestDictSubclass:
             cfg[123] = "nope"
 
     def test_color2color(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Color2Color):
             cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
 
         # add key
@@ -1053,7 +1053,7 @@ class TestDictSubclass:
             cfg.greeen = "nope"
 
     def test_str2user(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2User):
             cfg = OmegaConf.structured(module.DictSubclass.Str2User())
 
         cfg.bond = module.User(name="James Bond", age=7)
@@ -1069,7 +1069,7 @@ class TestDictSubclass:
             cfg[Color.BLUE] = "nope"
 
     def test_str2str_with_field(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated():
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2StrWithField):
             cfg = OmegaConf.structured(module.DictSubclass.Str2StrWithField())
         assert cfg.foo == "bar"
         cfg.hello = "world"
@@ -1084,7 +1084,9 @@ class TestDictSubclass:
                 OmegaConf.structured(module.DictSubclass.Error.User2Str())
 
         def test_str2int_with_field_of_different_type(self, module: Any) -> None:
-            with warns_dict_subclass_deprecated():
+            with warns_dict_subclass_deprecated(
+                module.DictSubclass.Str2IntWithStrField
+            ):
                 cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
             with raises(ValidationError):
                 cfg.foo = "str"

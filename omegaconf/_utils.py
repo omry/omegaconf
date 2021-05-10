@@ -235,18 +235,22 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
     """Check if obj is an instance of a subclass of Dict. If so, extract the Dict keys/values."""
     from omegaconf.omegaconf import _maybe_wrap
 
-    obj_type = type(obj)
-    if is_dict_subclass(obj) or is_dict_subclass(obj_type):
+    is_type = isinstance(obj, type)
+    obj_type = obj if is_type else type(obj)
+    subclasses_dict = is_dict_subclass(obj_type)
+
+    if subclasses_dict:
         warnings.warn(
-            "Subclassing `Dict` in Structured Config classes is deprecated, see github.com/omry/omegaconf/issues/663",
+            f"Class `{obj_type.__name__}` subclasses `Dict`."
+            + " Subclassing `Dict` in Structured Config classes is deprecated,"
+            + " see github.com/omry/omegaconf/issues/663",
             UserWarning,
             stacklevel=9,
         )
 
-    if isinstance(obj, type):
+    if is_type:
         return None
-
-    if is_dict_subclass(obj_type):
+    elif subclasses_dict:
         dict_subclass_data = {}
         key_type, element_type = get_dict_key_value_types(obj_type)
         for name, value in obj.items():
@@ -265,8 +269,8 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
                     node=None, key=name, value=value, cause=ex, msg=str(ex)
                 )
         return dict_subclass_data
-
-    return None
+    else:
+        return None
 
 
 def get_attr_class_field_names(obj: Any) -> List[str]:

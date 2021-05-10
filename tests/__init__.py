@@ -224,10 +224,12 @@ class Str2Int(Dict[str, int]):
     pass
 
 
-def warns_dict_subclass_deprecated() -> Any:
+def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:
     return warns(
         UserWarning,
         match=re.escape(
-            "Subclassing `Dict` in Structured Config classes is deprecated, see github.com/omry/omegaconf/issues/663"
+            f"Class `{dict_subclass.__name__}` subclasses `Dict`."
+            + " Subclassing `Dict` in Structured Config classes is deprecated,"
+            + " see github.com/omry/omegaconf/issues/663"
         ),
     )
