@@ -1,6 +1,5 @@
 import copy
 import re
-from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, Tuple
 
@@ -9,12 +8,14 @@ from pytest import mark, param, raises
 from omegaconf import (
     II,
     SI,
+    AnyNode,
     Container,
     DictConfig,
     IntegerNode,
     ListConfig,
     Node,
     OmegaConf,
+    StringNode,
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
@@ -467,7 +468,14 @@ def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
         assert OmegaConf.select(cfg, key) == expected
 
 
-@mark.parametrize("node_type", [None, Any, str])
+@mark.parametrize(
+    "node_type",
+    [
+        param(lambda x: x, id="untyped"),
+        param(AnyNode, id="any"),
+        param(StringNode, id="str"),
+    ],
+)
 @mark.parametrize(
     ("value", "expected"),
     [
@@ -484,21 +492,7 @@ def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
 def test_interpolation_like_result_is_not_an_interpolation(
     node_type: Any, value: str, expected: str
 ) -> None:
-    if node_type is None:
-        # Non-structured config.
-        cfg = OmegaConf.create({"x": value, "y1": "{foo}", "y2": "{foo"})
-
-    else:
-        # Structured config.
-
-        @dataclass
-        class Config:
-            x: node_type = value  # type: ignore
-            y1: str = "{foo}"
-            y2: str = "{foo"
-
-        cfg = OmegaConf.structured(Config)
-
+    cfg = OmegaConf.create({"x": node_type(value), "y1": "{foo}", "y2": "{foo"})
     assert cfg.x == expected
 
     # Check that the resulting node is not considered to be an interpolation.
