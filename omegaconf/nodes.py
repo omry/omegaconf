@@ -33,20 +33,15 @@ class ValueNode(Node):
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        if self._should_validate(value):
-            self._val = self.validate_and_convert(value)
-        else:
-            self._val = value
-
-    def _should_validate(self, value: Any) -> bool:
-        # If `value` is missing or an interpolation, we do not need to validate it.
-        is_missing_or_inter = isinstance(value, str) and get_value_kind(
+        if isinstance(value, str) and get_value_kind(
             value, strict_interpolation_validation=True
         ) in (
             ValueKind.INTERPOLATION,
             ValueKind.MANDATORY_MISSING,
-        )
-        return not is_missing_or_inter
+        ):
+            self._val = value
+        else:
+            self._val = self.validate_and_convert(value)
 
     def validate_and_convert(self, value: Any) -> Any:
         """
@@ -424,9 +419,10 @@ class StringInterpolationResultNode(ValueNode):
             ),
         )
 
-    def _should_validate(self, value: Any) -> bool:
-        # Always validate to make sure it is a string.
-        return True
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot set value of read-only config node")
+        self._val = self.validate_and_convert(value)
 
     def _validate_and_convert_impl(self, value: Any) -> str:
         if not isinstance(value, str):
