@@ -38,7 +38,7 @@ The example below creates a resolver that adds ``10`` to the given value.
 
 Custom resolvers support variadic argument lists in the form of a comma-separated list of zero or more values.
 In a variadic argument list, whitespace is stripped from the ends of each value ("foo,bar" gives the same result as "foo, bar ").
-You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `), or
+You can use literal commas and spaces anywhere by escaping (``\,`` and :code:`\ `), or
 simply use quotes to bypass character limitations in strings.
 
 .. doctest::
