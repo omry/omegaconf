@@ -1,12 +1,12 @@
 import sys
 import warnings
+from itertools import zip_longest
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     Generator,
-    Iterable,
     List,
     Optional,
     Set,
@@ -289,7 +289,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         return self.visit(ctx.getChild(0))
 
     def visitText(self, ctx: OmegaConfGrammarParser.TextContext) -> Any:
-        # (interpolation | ESC | ESC_INTER | SPECIAL_CHAR | ANY_STR)+
+        # (interpolation | ANY_STR | ESC | ESC_INTER | TOP_ESC | QUOTED_ESC)+
 
         # Single interpolation? If yes, return its resolved value "as is".
         if ctx.getChildCount() == 1:
@@ -298,7 +298,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 return self.visitInterpolation(c)
 
         # Otherwise, concatenate string representations together.
-        return self._unescape(ctx.getChildren())
+        return self._unescape(list(ctx.getChildren()))
 
     def _createPrimitive(
         self,
@@ -336,11 +336,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 raise AssertionError("WS should never be reached")
             assert False, symbol.type
         # Concatenation of multiple items ==> un-escape the concatenation.
-        return self._unescape(ctx.getChildren())
+        return self._unescape(list(ctx.getChildren()))
 
     def _unescape(
         self,
-        seq: Iterable[Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]],
+        seq: List[Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]],
     ) -> str:
         """
         Concatenate all symbols / interpolations in `seq`, unescaping symbols as needed.
@@ -350,16 +350,43 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         resolving of the interpolation).
         """
         chrs = []
-        for node in seq:
+        for node, next_node in zip_longest(seq, seq[1:]):
             if isinstance(node, TerminalNode):
                 s = node.symbol
-                if s.type == OmegaConfGrammarLexer.ESC:
-                    chrs.append(s.text[1::2])
-                elif s.type == OmegaConfGrammarLexer.ESC_INTER:
-                    chrs.append(s.text[1:])
+                if s.type == OmegaConfGrammarLexer.ESC_INTER:
+                    # `ESC_INTER` is of the form `\\...\${`: the formula below computes
+                    # the number of characters to keep at the end of the string to remove
+                    # the correct number of backslashes.
+                    text = s.text[-(len(s.text) // 2 + 1) :]
+                elif (
+                    # Character sequence identified as requiring un-escaping.
+                    s.type == OmegaConfGrammarLexer.ESC
+                    or (
+                        # At top level, we need to un-escape backslashes that precede
+                        # an interpolation.
+                        s.type == OmegaConfGrammarLexer.TOP_ESC
+                        and isinstance(
+                            next_node, OmegaConfGrammarParser.InterpolationContext
+                        )
+                    )
+                    or (
+                        # In a quoted sring, we need to un-escape backslashes that
+                        # either end the string, or are followed by an interpolation.
+                        s.type == OmegaConfGrammarLexer.QUOTED_ESC
+                        and (
+                            next_node is None
+                            or isinstance(
+                                next_node, OmegaConfGrammarParser.InterpolationContext
+                            )
+                        )
+                    )
+                ):
+                    text = s.text[1::2]  # un-escape the sequence
                 else:
-                    chrs.append(s.text)
+                    text = s.text  # keep the original text
             else:
                 assert isinstance(node, OmegaConfGrammarParser.InterpolationContext)
-                chrs.append(str(self.visitInterpolation(node)))
+                text = str(self.visitInterpolation(node))
+            chrs.append(text)
+
         return "".join(chrs)

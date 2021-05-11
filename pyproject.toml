@@ -12,7 +12,7 @@ exclude = '''
 '''
 
 [tool.pytest.ini_options]
-addopts = "--import-mode=append"
+addopts = "--import-mode=append -Werror"
 
 [tool.towncrier]
     package = "omegaconf"

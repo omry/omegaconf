@@ -372,6 +372,26 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
+    def __delattr__(self, key: str) -> None:
+        """
+        Allow deleting dictionary values as attributes
+        :param key:
+        :return:
+        """
+        if self._get_flag("readonly"):
+            self._format_and_raise(
+                key=key,
+                value=None,
+                cause=ReadonlyConfigError(
+                    "DictConfig in read-only mode does not support deletion"
+                ),
+            )
+        try:
+            del self.__dict__["_content"][key]
+        except KeyError:
+            msg = "Attribute not found: '$KEY'"
+            self._format_and_raise(key=key, value=None, cause=ConfigAttributeError(msg))
+
     def __delitem__(self, key: DictKeyType) -> None:
         key = self._validate_and_normalize_key(key)
         if self._get_flag("readonly"):
