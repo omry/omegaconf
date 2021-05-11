@@ -282,16 +282,12 @@ Like with Lists, the types of values contained in Dicts are verified at runtime.
 
     >>> conf: DictExample = OmegaConf.structured(DictExample)
 
-    >>> # Okay, 10 is an int
+    >>> # Okay, correct type is assigned
     >>> conf.ints["d"] = 10
-    >>> # Okay, "20" can be converted to an int
-    >>> conf.ints["e"] = "20"
-    >>> conf.ints["e"]
-    20
-
     >>> conf.bools["Dos"] = True
     >>> conf.users["James"] = User(name="Bond")
-    >>> # Not okay, 10 cannot be converted to a User
+
+    >>> # Not okay, 10 cannot be assigned to a User
     >>> with raises(ValidationError):
     ...     conf.users["Joe"] = 10
 
