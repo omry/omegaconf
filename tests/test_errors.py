@@ -45,6 +45,7 @@ from tests import (
     SubscriptedDict,
     UnionError,
     User,
+    warns_dict_subclass_deprecated,
 )
 
 
@@ -795,19 +796,6 @@ params = [
     # creating structured config
     param(
         Expected(
-            create=lambda: Str2Int(),
-            op=lambda src: (src.__setitem__("bar", "qux"), OmegaConf.structured(src)),
-            exception_type=ValidationError,
-            msg="Value 'qux' could not be converted to Integer",
-            object_type=None,
-            key="bar",
-            full_key="bar",
-            parent_node=lambda cfg: None,
-        ),
-        id="structured,Dict_subclass:bad_value_type",
-    ),
-    param(
-        Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(StructuredWithBadDict),
             exception_type=ValidationError,
@@ -1445,3 +1433,29 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
 
     with raises(RecursionError, match=match):
         c.x
+
+
+def test_dict_subclass_error() -> None:
+    """
+    Test calling OmegaConf.structured(malformed_dict_subclass).
+    We expect a ValueError and a UserWarning (deprecation) to be raised simultaneously.
+    We are using a separate function instead of adding
+    warning support to the giant `test_errors` function above,
+    """
+    src = Str2Int()
+    src["bar"] = "qux"  # type: ignore
+    with raises(
+        ValidationError,
+        match=re.escape("Value 'qux' could not be converted to Integer"),
+    ) as einfo:
+        with warns_dict_subclass_deprecated(Str2Int):
+            OmegaConf.structured(src)
+    ex = einfo.value
+    assert isinstance(ex, OmegaConfBaseException)
+
+    assert ex.key == "bar"
+    assert ex.full_key == "bar"
+    assert ex.ref_type is None
+    assert ex.object_type is None
+    assert ex.parent_node is None
+    assert ex.child_node is None
