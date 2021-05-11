@@ -1436,6 +1436,12 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
 
 
 def test_dict_subclass_error() -> None:
+    """
+    Test calling OmegaConf.structured(malformed_dict_subclass).
+    We expect a ValueError and a UserWarning (deprecation) to be raised simultaneously.
+    We are using a separate function instead of adding
+    warning support to the giant `test_errors` function above,
+    """
     src = Str2Int()
     src["bar"] = "qux"  # type: ignore
     # expected.finalize(cfg)
