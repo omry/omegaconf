@@ -30,29 +30,22 @@ class ValueNode(Node):
         return self._val
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        return self._set_value_impl(value=value, can_be_interpolation=True, flags=flags)
-
-    def _set_value_impl(
-        self,
-        value: Any,
-        can_be_interpolation: bool,
-        flags: Optional[Dict[str, bool]] = None,
-    ) -> None:
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
-        if (
-            can_be_interpolation
-            and isinstance(value, str)
-            and get_value_kind(value, strict_interpolation_validation=True)
-            in (
-                ValueKind.INTERPOLATION,
-                ValueKind.MANDATORY_MISSING,
-            )
-        ):
-            self._val = value
-        else:
+        if self._should_validate(value):
             self._val = self.validate_and_convert(value)
+        else:
+            self._val = value
+
+    def _should_validate(self, value: Any) -> bool:
+        # Validate a value if it is not missing nor an interpolation.
+        return not isinstance(value, str) or get_value_kind(
+            value, strict_interpolation_validation=True
+        ) not in (
+            ValueKind.INTERPOLATION,
+            ValueKind.MANDATORY_MISSING,
+        )
 
     def validate_and_convert(self, value: Any) -> Any:
         """
@@ -123,20 +116,13 @@ class AnyNode(ValueNode):
         key: Any = None,
         parent: Optional[Container] = None,
         flags: Optional[Dict[str, bool]] = None,
-        can_be_interpolation: bool = True,
     ):
-        self.can_be_interpolation = can_be_interpolation
         super().__init__(
             parent=parent,
             value=value,
             metadata=Metadata(
                 ref_type=Any, object_type=None, key=key, optional=True, flags=flags
             ),
-        )
-
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        return self._set_value_impl(
-            value=value, can_be_interpolation=self.can_be_interpolation, flags=flags
         )
 
     def _validate_and_convert_impl(self, value: Any) -> Any:
@@ -158,9 +144,6 @@ class AnyNode(ValueNode):
         self._deepcopy_impl(res, memo)
         return res
 
-    def _is_interpolation(self) -> bool:
-        return self.can_be_interpolation and super()._is_interpolation()
-
 
 class StringNode(ValueNode):
     def __init__(
@@ -170,9 +153,7 @@ class StringNode(ValueNode):
         parent: Optional[Container] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
-        can_be_interpolation: bool = True,
     ):
-        self.can_be_interpolation = can_be_interpolation
         super().__init__(
             parent=parent,
             value=value,
@@ -183,11 +164,6 @@ class StringNode(ValueNode):
                 object_type=str,
                 flags=flags,
             ),
-        )
-
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
-        return self._set_value_impl(
-            value=value, can_be_interpolation=self.can_be_interpolation, flags=flags
         )
 
     def _validate_and_convert_impl(self, value: Any) -> str:
@@ -201,9 +177,6 @@ class StringNode(ValueNode):
         res = StringNode()
         self._deepcopy_impl(res, memo)
         return res
-
-    def _is_interpolation(self) -> bool:
-        return self.can_be_interpolation and super()._is_interpolation()
 
 
 class IntegerNode(ValueNode):
@@ -421,3 +394,50 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res
+
+
+class StringInterpolationResultNode(ValueNode):
+    """
+    Special node type, used to wrap string interpolation results.
+    """
+
+    def __init__(
+        self,
+        value: str,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        # In general we should not try to write into interpolation results.
+        if flags is None:
+            flags = {"readonly": True}
+        elif "readonly" not in flags:
+            flags = flags.copy()
+            flags["readonly"] = True
+
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                ref_type=str, object_type=str, key=key, optional=False, flags=flags
+            ),
+        )
+
+    def _should_validate(self, value: Any) -> bool:
+        # Always validate to make sure it is a string.
+        return True
+
+    def _validate_and_convert_impl(self, value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValidationError(
+                "Interpolation result `$VALUE` of type '$VALUE_TYPE' is not a string"
+            )
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "StringInterpolationResultNode":
+        # Currently there should be no need to deep-copy such nodes.
+        raise NotImplementedError
+
+    def _is_interpolation(self) -> bool:
+        # The result of an interpolation cannot be itself an interpolation.
+        return False

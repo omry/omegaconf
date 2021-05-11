@@ -24,6 +24,7 @@ from omegaconf.errors import (
     UnsupportedValueType,
     ValidationError,
 )
+from omegaconf.nodes import StringInterpolationResultNode
 from tests import Color, IllegalType, User
 
 
@@ -499,6 +500,10 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
+        (StringInterpolationResultNode("foo"), "foo", True),
+        (StringInterpolationResultNode("${foo}"), "${foo}", True),
+        (StringInterpolationResultNode("${foo"), "${foo", True),
+        (StringInterpolationResultNode("foo"), 100, False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
@@ -623,3 +628,39 @@ def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:
     node = type_(value=None, flags=flags)
     for f, v in flags.items():
         assert node._get_flag(f) is v
+
+
+@mark.parametrize(
+    "flags",
+    [
+        None,
+        {"flag": True},
+        {"flag": False},
+        {"readonly": True},
+        {"readonly": False},
+        {"flag1": True, "flag2": False, "readonly": False},
+        {"flag1": False, "flag2": True, "readonly": True},
+    ],
+)
+def test_string_interpolation_result_flags(flags: Any) -> None:
+    readonly = None if flags is None else flags.get("readonly")
+    flags_backup = copy.deepcopy(flags)
+    node = StringInterpolationResultNode("foo", flags=flags)
+
+    # Check that input flags are not mutated.
+    assert flags == flags_backup
+
+    # Check that flags are set to their desired value.
+    if flags is not None:
+        for k, v in flags.items():
+            assert node._get_node_flag(k) is v
+
+    # Check that the readonly flag is set unless provided as input.
+    if readonly is None:
+        assert node._get_node_flag("readonly")
+
+
+@mark.parametrize("value", [None, 1, 1.0, True, False, Color.RED, {}, []])
+def test_string_interpolation_result_invalid_value(value: Any) -> None:
+    with raises(ValidationError):
+        StringInterpolationResultNode(value)

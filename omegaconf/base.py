@@ -553,7 +553,7 @@ class Container(Node):
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
         from .basecontainer import BaseContainer
-        from .nodes import AnyNode
+        from .nodes import AnyNode, StringInterpolationResultNode
         from .omegaconf import _node_wrap
 
         assert parent is None or isinstance(parent, BaseContainer)
@@ -561,17 +561,26 @@ class Container(Node):
         if is_primitive_type(type(resolved)):
             # Primitive types get wrapped using `_node_wrap()`, ensuring value is
             # validated and potentially converted.
-            wrapped = _node_wrap(
-                type_=value._metadata.ref_type,
-                parent=parent,
-                is_optional=value._metadata.optional,
-                value=resolved,
-                key=key,
-                ref_type=value._metadata.ref_type,
-                # Since `resolved` was obtained by resolving an interpolation, it cannot
-                # be itself an interpolation even if may look like one (ex: "${foo}").
-                can_be_interpolation=False,
-            )
+            # There is one exception when the following two conditions are met:
+            #   - `resolved` is a string, and
+            #   - the target type is either unspecified / Any / str
+            # In that case, we wrap `resolved` inside a `StringInterpolationResultNode`
+            # so as to ensure that it cannot be considered itself as an interpolation,
+            # e.g., when `resolved` would be a string like "${foo}".
+            target_type = value._metadata.ref_type
+            if isinstance(resolved, str) and target_type in [None, Any, str]:
+                wrapped: Node = StringInterpolationResultNode(
+                    value=resolved, key=key, parent=parent
+                )
+            else:
+                wrapped = _node_wrap(
+                    type_=target_type,
+                    parent=parent,
+                    is_optional=value._metadata.optional,
+                    value=resolved,
+                    key=key,
+                    ref_type=target_type,
+                )
         else:
             # Other objects get wrapped into an `AnyNode` with `allow_objects` set
             # to True.
