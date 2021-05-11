@@ -24,7 +24,7 @@ class ValueNode(Node):
 
         super().__init__(parent=parent, metadata=metadata)
         with read_write(self):
-            self._set_value(value)
+            self._set_value(value)  # lgtm [py/init-calls-subclass]
 
     def _value(self) -> Any:
         return self._val
