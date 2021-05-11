@@ -52,7 +52,7 @@ The following class defines fields with all simple types:
     ...     height: Height = Height.SHORT
     ...     description: str = "text"
 
-You can create a config based on the ``SimpleTypes`` class itself, or based on instances of it.
+You can create a config based on the SimpleTypes class itself or an instance of it.
 Those would be equivalent by default, but the Object variant allows you to set the values of specific
 fields during construction.
 
@@ -460,5 +460,4 @@ This will cause a validation error when merging the config from the file with th
     >>> conf = OmegaConf.load("source/example.yaml")
     >>> with raises(ValidationError):
     ...     OmegaConf.merge(schema, conf)
-
 

@@ -605,8 +605,7 @@ OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
 The ``OmegaConf.to_object`` method recursively converts ``DictConfig`` and ``ListConfig`` objects
 into plain Python dicts and lists, with the exception that Structured Config objects are
-converted into instances of the backing dataclass or attr class.  All OmegaConf
-interpolations are resolved before conversion to Python containers.
+converted into instances of the backing dataclass or attr class.  Interpolations in the config are always resolved by ``OmegaConf.to_object``.
 
 .. doctest::
 

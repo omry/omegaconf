@@ -368,7 +368,7 @@ when we care only about the keys or the associated values.
 
 The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by offering an alternative
 view of a ``DictConfig``'s keys or values as a list,
-with behavior analogous to the ``dict.keys`` and ``dict.values`` methods in plain Python.
+with behavior analogous to the ``dict.keys`` and ``dict.values`` methods in plain Python dictionaries.
 These resolvers take as input a string that is the path to another config node (using the same syntax
 as interpolations), and they return a ``ListConfig`` that contains keys or values of the node whose path was given.
 
