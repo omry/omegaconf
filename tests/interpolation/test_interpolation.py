@@ -21,7 +21,7 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
 from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
-from omegaconf.errors import InterpolationValidationError
+from omegaconf.errors import InterpolationValidationError, ReadonlyConfigError
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
 from tests.interpolation import dereference_node
 
@@ -500,4 +500,11 @@ def test_interpolation_like_result_is_not_an_interpolation(
         cfg = OmegaConf.structured(Config)
 
     assert cfg.x == expected
-    assert not dereference_node(cfg, "x")._is_interpolation()
+
+    # Check that the resulting node is not considered to be an interpolation.
+    resolved_node = dereference_node(cfg, "x")
+    assert not resolved_node._is_interpolation()
+
+    # Check that the resulting node is read-only.
+    with raises(ReadonlyConfigError):
+        resolved_node._set_value("foo")
