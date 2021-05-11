@@ -644,16 +644,12 @@ def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:
 )
 def test_string_interpolation_result_flags(flags: Any) -> None:
     readonly = None if flags is None else flags.get("readonly")
-    flags_backup = copy.deepcopy(flags)
+    expected = [] if flags is None else list(flags.items())
     node = StringInterpolationResultNode("foo", flags=flags)
 
-    # Check that input flags are not mutated.
-    assert flags == flags_backup
-
     # Check that flags are set to their desired value.
-    if flags is not None:
-        for k, v in flags.items():
-            assert node._get_node_flag(k) is v
+    for k, v in expected:
+        assert node._get_node_flag(k) is v
 
     # Check that the readonly flag is set unless provided as input.
     if readonly is None:

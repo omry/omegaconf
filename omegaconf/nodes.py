@@ -404,13 +404,6 @@ class StringInterpolationResultNode(ValueNode):
         parent: Optional[Container] = None,
         flags: Optional[Dict[str, bool]] = None,
     ):
-        # In general we should not try to write into interpolation results.
-        if flags is None:
-            flags = {"readonly": True}
-        elif "readonly" not in flags:
-            flags = flags.copy()
-            flags["readonly"] = True
-
         super().__init__(
             parent=parent,
             value=value,
@@ -418,6 +411,9 @@ class StringInterpolationResultNode(ValueNode):
                 ref_type=str, object_type=str, key=key, optional=False, flags=flags
             ),
         )
+        # In general we should not try to write into interpolation results.
+        if flags is None or "readonly" not in flags:
+            self._set_flag("readonly", True)
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         if self._get_flag("readonly"):
