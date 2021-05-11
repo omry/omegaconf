@@ -1444,7 +1444,6 @@ def test_dict_subclass_error() -> None:
     """
     src = Str2Int()
     src["bar"] = "qux"  # type: ignore
-    # expected.finalize(cfg)
     with raises(
         ValidationError,
         match=re.escape("Value 'qux' could not be converted to Integer"),
