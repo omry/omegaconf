@@ -469,21 +469,24 @@ def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
 
 @mark.parametrize("node_type", [None, Any, str])
 @mark.parametrize(
-    "value",
+    ("value", "expected"),
     [
-        param(r"\${foo", id="escaped_interpolation"),
-        param(r"$${y}", id="string_interpolation"),
-        # This passes to `oc.decode` the string with characters: '\${foo' which
-        # is then resolved into: ${foo
-        param(r"${oc.decode:'\'\\\${foo\''}", id="resolver"),
+        param(r"\${foo}", "${foo}", id="escaped_interpolation_1"),
+        param(r"\${foo", "${foo", id="escaped_interpolation_2"),
+        param(r"$${y1}", "${foo}", id="string_interpolation_1"),
+        param(r"$${y2}", "${foo", id="string_interpolation_2"),
+        # This passes to `oc.decode` the string with characters: '\${foo}' which
+        # is then resolved into: ${foo}
+        param(r"${oc.decode:'\'\\\${foo}\''}", "${foo}", id="resolver_1"),
+        param(r"${oc.decode:'\'\\\${foo\''}", "${foo", id="resolver_2"),
     ],
 )
-def test_interpolation_result_is_not_an_interpolation(
-    node_type: Any, value: str
+def test_interpolation_like_result_is_not_an_interpolation(
+    node_type: Any, value: str, expected: str
 ) -> None:
     if node_type is None:
         # Non-structured config.
-        cfg = OmegaConf.create({"x": value, "y": "{foo"})
+        cfg = OmegaConf.create({"x": value, "y1": "{foo}", "y2": "{foo"})
 
     else:
         # Structured config.
@@ -491,9 +494,10 @@ def test_interpolation_result_is_not_an_interpolation(
         @dataclass
         class Config:
             x: node_type = value  # type: ignore
-            y: str = "{foo"
+            y1: str = "{foo}"
+            y2: str = "{foo"
 
         cfg = OmegaConf.structured(Config)
 
-    assert cfg.x == "${foo"
+    assert cfg.x == expected
     assert not dereference_node(cfg, "x")._is_interpolation()
