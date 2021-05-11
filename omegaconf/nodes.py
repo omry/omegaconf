@@ -39,13 +39,14 @@ class ValueNode(Node):
             self._val = value
 
     def _should_validate(self, value: Any) -> bool:
-        # Validate a value if it is not missing nor an interpolation.
-        return not isinstance(value, str) or get_value_kind(
+        # If `value` is missing or an interpolation, we do not need to validate it.
+        is_missing_or_inter = isinstance(value, str) and get_value_kind(
             value, strict_interpolation_validation=True
-        ) not in (
+        ) in (
             ValueKind.INTERPOLATION,
             ValueKind.MANDATORY_MISSING,
         )
+        return not is_missing_or_inter
 
     def validate_and_convert(self, value: Any) -> Any:
         """
