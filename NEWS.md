@@ -1,5 +1,4 @@
 ## 2.1.0.rc1 (2021-05-12)
-This is the first release candidate of OmegaConf 2.1.
 OmegaConf 2.1 is a major release introducing substantial new Features, and introducing some incompatible changes.
 The biggest area of improvement in 2.1 is interpolations and resolvers. In addition - OmegaConf containers are now
 much more compatible with their Python plain container counterparts.
