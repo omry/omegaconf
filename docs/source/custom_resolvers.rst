@@ -27,7 +27,7 @@ You can add additional interpolation types by registering custom resolvers with 
 
 Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``.
 
-The example below creates a resolver that adds 10 to the given value.
+The example below creates a resolver that adds ``10`` to the given value.
 
 .. doctest::
 
@@ -36,9 +36,9 @@ The example below creates a resolver that adds 10 to the given value.
     >>> c.key
     1000
 
-Custom resolvers support variadic argument lists in the form of a comma separated list of zero or more values.
-Whitespaces are stripped from both ends of each value ("foo,bar" is the same as "foo, bar ").
-You can use literal commas and spaces anywhere by escaping (:code:`\,` and :code:`\ `), or
+Custom resolvers support variadic argument lists in the form of a comma-separated list of zero or more values.
+In a variadic argument list, whitespace is stripped from the ends of each value ("foo,bar" gives the same result as "foo, bar ").
+You can use literal commas and spaces anywhere by escaping (``\,`` and :code:`\ `), or
 simply use quotes to bypass character limitations in strings.
 
 .. doctest::
@@ -90,7 +90,7 @@ namespace, and to use interpolations in the name itself. The following example d
 By default a custom resolver is called on every access, but it is possible to cache its output
 by registering it with ``use_cache=True``.
 This may be useful either for performance reasons or to ensure the same value is always returned.
-Note that the cache is based on the string literals representing the resolver's inputs, and not
+Note that the cache is based on the string literals representing the resolver's inputs, not on
 the inputs themselves:
 
 .. doctest::
@@ -121,14 +121,14 @@ the inputs themselves:
 
 Custom interpolations can also receive the following special parameters:
 
-- ``_parent_``: the parent node of an interpolation.
+- ``_parent_``: The parent node of an interpolation.
 - ``_root_``: The config root.
 
 This can be achieved by adding the special parameters to the resolver signature.
-Note that special parameters must be defined as named keywords (after the `*`).
+Note that special parameters must be defined as named keywords (after the ``*``).
 
-In the example below, we use ``_parent_`` to implement a sum function that defaults to 0 if the node does not exist.
-(In contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}`` would result in an error).
+In the example below, we use ``_parent_`` to implement a sum function that defaults to ``0`` if the node does not exist.
+This is in contrast to the sum we defined earlier where accessing an invalid key, e.g. ``"a_plus_z": ${sum:${a}, ${z}}``, would result in an error.
 
 .. doctest::
 
@@ -175,7 +175,8 @@ Input YAML file:
     '/home/omry'
 
 You can specify a default value to use in case the environment variable is not set.
-In such a case, the default value is converted to a string using ``str(default)``, unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned. 
+In such a case, the default value is converted to a string using ``str(default)``,
+unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned. 
 
 The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
@@ -269,8 +270,8 @@ e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
 
 Note that:
 
-- In general input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings
-- ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case)
+- In general input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings.
+- ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case).
 
 This resolver can be useful for instance to parse environment variables:
 
@@ -366,9 +367,10 @@ Some config options that are stored as a ``DictConfig`` may sometimes be easier 
 when we care only about the keys or the associated values.
 
 The resolvers ``oc.dict.keys`` and ``oc.dict.values`` simplify such operations by offering an alternative
-view of a dictionary's keys or values as a list.
-They take as input a string that is the path to another config node (using the same syntax
-as interpolations) and return a ``ListConfig`` with its keys / values.
+view of a ``DictConfig``'s keys or values as a list,
+with behavior analogous to the ``dict.keys`` and ``dict.values`` methods in plain Python dictionaries.
+These resolvers take as input a string that is the path to another config node (using the same syntax
+as interpolations), and they return a ``ListConfig`` that contains keys or values of the node whose path was given.
 
 .. doctest::
 

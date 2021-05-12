@@ -21,10 +21,10 @@ Two types of structures classes that are supported: dataclasses and attr classes
 - `dataclasses <https://docs.python.org/3.7/library/dataclasses.html>`_ are standard as of Python 3.7 or newer and are available in Python 3.6 via the `dataclasses` pip package.
 - `attrs <https://github.com/python-attrs/attrs>`_  Offset slightly cleaner syntax in some cases but depends on the attrs pip package.
 
-This documentation will use dataclasses, but you can use the annotation `@attr.s(auto_attribs=True)` from attrs instead of `@dataclass`.
+This documentation will use dataclasses, but you can use the annotation ``@attr.s(auto_attribs=True)`` from attrs instead of ``@dataclass``.
 
-Basic usage involves passing in a structured config class or instance to OmegaConf.structured(), which will return an OmegaConf config that matches
-the values and types specified in the input. OmegaConf will validate modifications to the created config object at runtime against the schema specified
+Basic usage involves passing in a structured config class or instance to ``OmegaConf.structured()``, which will return an OmegaConf config that matches
+the values and types specified in the input. At runtine, OmegaConf will validate modifications to the created config object against the schema specified
 in the input class.
 
 Simple types
@@ -52,7 +52,7 @@ The following class defines fields with all simple types:
     ...     height: Height = Height.SHORT
     ...     description: str = "text"
 
-You can create a config based on the SimpleTypes class itself or instances of it.
+You can create a config based on the SimpleTypes class itself or an instance of it.
 Those would be equivalent by default, but the Object variant allows you to set the values of specific
 fields during construction.
 
@@ -74,7 +74,7 @@ fields during construction.
     description: text
     <BLANKLINE>
 
-The resulting object is a regular OmegaConf DictConfig, except it will utilize the type information in the input class/object
+The resulting object is a regular OmegaConf ``DictConfig``, except that it will utilize the type information in the input class/object
 and will validate the data at runtime.
 The resulting object and will also rejects attempts to access or set fields that are not already defined
 (similarly to configs with their to :ref:`struct-flag` set, but not recursive).
@@ -99,8 +99,8 @@ Python type annotation can be used by static type checkers like Mypy/Pyre or by 
     >>> with raises(ValidationError):
     ...     conf.num = "foo"
 
-This is duck-typing, the actual object type of `conf` is `DictConfig`. You can access the underlying
-type using `OmegaConf.get_type()`:
+This is duck-typing; the actual object type of ``conf`` is ``DictConfig``. You can access the underlying
+type using ``OmegaConf.get_type()``:
 
 .. doctest::
     
@@ -206,7 +206,8 @@ Python container types are fully supported in Structured configs.
 
 Lists
 ^^^^^
-Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and Structured configs). Lists can be created from Lists and Tuples.
+Structured Config fields annotated with ``typing.List`` or ``typing.Tuple`` can hold any type
+supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``Enum`` or Structured configs).
 
 .. doctest::
 
@@ -216,7 +217,7 @@ Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and 
     ...     name: str = MISSING
 
     >>> @dataclass
-    ... class Lists:
+    ... class ListsExample:
     ...     # Typed list can hold Any, int, float, bool, str and Enums as well
     ...     # as arbitrary Structured configs
     ...     ints: List[int] = field(default_factory=lambda: [10, 20, 30])
@@ -224,10 +225,11 @@ Lists can hold any type supported by OmegaConf (int, float. bool, str, enum and 
     ...     users: List[User] = field(default_factory=lambda: [User(name="omry")])
 
 OmegaConf verifies at runtime that your Lists contains only values of the correct type.
+In the example below, the OmegaConf object ``conf`` (which is actually an instance of ``DictConfig``) is duck-typed as ``ListExample``.
 
 .. doctest::
 
-    >>> conf: Lists = OmegaConf.structured(Lists)
+    >>> conf: ListsExample = OmegaConf.structured(ListsExample)
 
     >>> # Okay, 10 is an int
     >>> conf.ints.append(10)
@@ -242,13 +244,40 @@ OmegaConf verifies at runtime that your Lists contains only values of the correc
 
 Dictionaries
 ^^^^^^^^^^^^
-Dictionaries are supported as well. Keys must be strings, ints or enums, and values can
-be any of any type supported by OmegaConf (Any, int, float, bool, str and Enums as well
+Dictionaries are supported via annotation of structured config fields with ``typing.Dict``.
+Keys must be typed as one of ``str``, ``int``, ``Enum``, ``float``, or ``bool``. Values can
+be any of the types supported by OmegaConf (``Any``, ``int``, ``float``, ``bool``, ``str`` and ``Enum`` as well
 as arbitrary Structured configs)
+
+.. doctest::
+
+    >>> from typing import Dict
+    >>> @dataclass
+    ... class DictExample:
+    ...     # Typed dict keys are strings; values can be typed as Any, int, float, bool, str and Enums or
+    ...     # arbitrary Structured configs
+    ...     ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20, "c": 30})
+    ...     bools: Dict[str, bool] = field(default_factory=lambda: {"Uno": True, "Zoro": False})
+    ...     users: Dict[str, User] = field(default_factory=lambda: {"omry": User(name="omry")})
+
+Like with Lists, the types of values contained in Dicts are verified at runtime.
+
+.. doctest::
+
+    >>> conf: DictExample = OmegaConf.structured(DictExample)
+
+    >>> # Okay, correct type is assigned
+    >>> conf.ints["d"] = 10
+    >>> conf.bools["Dos"] = True
+    >>> conf.users["James"] = User(name="Bond")
+
+    >>> # Not okay, 10 cannot be assigned to a User
+    >>> with raises(ValidationError):
+    ...     conf.users["Joe"] = 10
 
 Misc
 ----
-OmegaConf supports field modifiers such as MISSING and Optional.
+OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
 
 .. doctest::
 
@@ -266,8 +295,8 @@ OmegaConf supports field modifiers such as MISSING and Optional.
 Mandatory missing values
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fields assigned the constant MISSING do not have a value and the value must be set prior to accessing the field
-Otherwise a MissingMandatoryValue exception is raised.
+Fields assigned the constant ``MISSING`` do not have a value and the value must be set prior to accessing the field.
+Otherwise a ``MissingMandatoryValue`` exception is raised.
 
 .. doctest::
 
@@ -294,8 +323,8 @@ Optional fields
 Interpolations
 ^^^^^^^^^^^^^^
 
-:ref:`interpolation` works normally with Structured configs but static type checkers may object to you assigning a string to another type.
-To work around it, use SI and II described below.
+:ref:`interpolation` works normally with Structured configs, but static type checkers may object to you assigning a string to another type.
+To work around this, use the special functions ``omegaconf.SI`` and ``omegaconf.II`` described below.
 
 .. doctest::
 
@@ -305,10 +334,10 @@ To work around it, use SI and II described below.
     ...     val: int = 100
     ...     # This will work, but static type checkers will complain
     ...     a: int = "${val}"
-    ...     # This is identical to the above, but static type checkers
+    ...     # This is equivalent to the above, but static type checkers
     ...     # will not complain
     ...     b: int = SI("${val}")
-    ...     # This is a syntactic sugar, the input string is
+    ...     # This is syntactic sugar; the input string is
     ...     # wrapped with ${} automatically.
     ...     c: int = II("val")
 
@@ -354,7 +383,7 @@ Note however that this validation step is currently skipped for container node i
 Frozen
 ^^^^^^
 
-Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-flag`, which turns the entire config node and all if it's child nodes read-only.
+Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-flag`, which makes the entire config node and all if it's child nodes read-only.
 
 .. doctest::
 
@@ -367,7 +396,7 @@ Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-
     >>> with raises(ReadonlyConfigError):
     ...    conf.x = 20
 
-Read-only flag is recursive:
+The read-only flag is recursive:
 
 .. doctest::
 
@@ -406,7 +435,7 @@ A Schema for the above config can be defined like this.
     ...     users: List[int] = field(default_factory=list)
 
 
-I intentionally made an error in the type of the users list (List[int] should be List[str]).
+I intentionally made an error in the type of the users list (``List[int]`` should be ``List[str]``).
 This will cause a validation error when merging the config from the file with that from the scheme.
 
 .. doctest::
@@ -415,5 +444,4 @@ This will cause a validation error when merging the config from the file with th
     >>> conf = OmegaConf.load("source/example.yaml")
     >>> with raises(ValidationError):
     ...     OmegaConf.merge(schema, conf)
-
 
