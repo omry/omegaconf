@@ -1,1 +1,0 @@
-OmegaConf.to_container now takes a `structured_config_mode` keyword argument. Setting `structured_config_mode=SCMode.DICT_CONFIG` causes `to_container` to not convert Structured Config objects to python dicts (it leaves them as DictConfig objects).

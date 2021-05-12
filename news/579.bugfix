@@ -1,1 +1,0 @@
-Prevent appending or inserting None in a ListConfig/DictConfig that has non-optional element/value type.

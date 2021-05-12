@@ -1,1 +1,0 @@
-Remove BaseContainer.{pretty,select,update_node} that have been deprecated since OmegaConf 2.0.

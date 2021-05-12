@@ -1,1 +1,0 @@
-OmegaConf.select now returns None when attempting to select a child of a value or None node

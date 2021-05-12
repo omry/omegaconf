@@ -1,1 +1,0 @@
-Fix bug that allowed instances of Structured Configs to be assigned to DictConfig with different element type.

@@ -1,1 +1,0 @@
-DictConfig.get() in struct mode return None like standard Dict for non-existing keys
