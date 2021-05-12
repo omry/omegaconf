@@ -23,6 +23,7 @@ from omegaconf.errors import InterpolationKeyError
 from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.errors import InterpolationValidationError, ReadonlyConfigError
+from omegaconf.nodes import InterpolationResultNode
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
 from tests.interpolation import dereference_node
 
@@ -260,7 +261,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:int,'7'}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="expected_type",
         ),
         param(
@@ -269,7 +270,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:int,${drop_last:${drop_last:7xx}}}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="intermediate_type_mismatch_ok",
         ),
         param(
@@ -278,7 +279,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:str,'7'}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="convert_str_to_int",
         ),
         param(

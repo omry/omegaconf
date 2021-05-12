@@ -5,7 +5,7 @@ from typing import Any
 from pytest import mark, param, raises, warns
 
 from omegaconf import OmegaConf, Resolver
-from omegaconf.nodes import AnyNode
+from omegaconf.nodes import InterpolationResultNode
 from tests.interpolation import dereference_node
 
 
@@ -355,8 +355,8 @@ def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
     assert isinstance(c.x, dict)
     assert c.x == some_dict
     x_node = dereference_node(c, "x")
-    assert isinstance(x_node, AnyNode)
-    assert x_node._get_flag("allow_objects")
+    assert isinstance(x_node, InterpolationResultNode)
+    assert x_node._get_flag("readonly")
 
 
 @mark.parametrize("readonly", [True, False])
@@ -378,8 +378,8 @@ def test_resolver_output_plain_dict_list(
     assert c.x == data
 
     x_node = dereference_node(c, "x")
-    assert isinstance(x_node, AnyNode)
-    assert x_node._get_flag("allow_objects")
+    assert isinstance(x_node, InterpolationResultNode)
+    assert x_node._get_flag("readonly")
 
 
 def test_register_cached_resolver_with_keyword_unsupported() -> None:

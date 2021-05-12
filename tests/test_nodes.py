@@ -24,7 +24,7 @@ from omegaconf.errors import (
     UnsupportedValueType,
     ValidationError,
 )
-from omegaconf.nodes import StringInterpolationResultNode
+from omegaconf.nodes import InterpolationResultNode
 from tests import Color, IllegalType, User
 
 
@@ -500,10 +500,18 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
-        (StringInterpolationResultNode("foo"), "foo", True),
-        (StringInterpolationResultNode("${foo}"), "${foo}", True),
-        (StringInterpolationResultNode("${foo"), "${foo", True),
-        (StringInterpolationResultNode("foo"), 100, False),
+        (InterpolationResultNode("foo"), "foo", True),
+        (InterpolationResultNode("${foo}"), "${foo}", True),
+        (InterpolationResultNode("${foo"), "${foo", True),
+        (InterpolationResultNode(None), None, True),
+        (InterpolationResultNode(1), 1, True),
+        (InterpolationResultNode(1.0), 1.0, True),
+        (InterpolationResultNode(True), True, True),
+        (InterpolationResultNode(Color.RED), Color.RED, True),
+        (InterpolationResultNode({"a": 0, "b": 1}), {"a": 0, "b": 1}, True),
+        (InterpolationResultNode([0, None, True]), [0, None, True], True),
+        (InterpolationResultNode("foo"), 100, False),
+        (InterpolationResultNode(100), "foo", False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
@@ -511,7 +519,12 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (node != value) != expected
     assert (value == node) == expected
     assert (value != node) != expected
-    assert (node.__hash__() == value.__hash__()) == expected
+
+    try:
+        assert (node.__hash__() == value.__hash__()) == expected
+    except TypeError as exc:
+        # Skip this check if unhashable.
+        assert "unhashable type" in str(exc)
 
 
 @mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])
@@ -621,6 +634,7 @@ def test_dereference_interpolation_to_missing() -> None:
         functools.partial(EnumNode, enum_type=Color),
         FloatNode,
         IntegerNode,
+        InterpolationResultNode,
         StringNode,
     ],
 )
@@ -642,21 +656,15 @@ def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:
         {"flag1": False, "flag2": True, "readonly": True},
     ],
 )
-def test_string_interpolation_result_flags(flags: Any) -> None:
+def test_interpolation_result_readonly(flags: Any) -> None:
     readonly = None if flags is None else flags.get("readonly")
     expected = [] if flags is None else list(flags.items())
-    node = StringInterpolationResultNode("foo", flags=flags)
+    node = InterpolationResultNode("foo", flags=flags)
 
     # Check that flags are set to their desired value.
     for k, v in expected:
         assert node._get_node_flag(k) is v
 
-    # Check that the readonly flag is set unless provided as input.
+    # If no value was provided for the "readonly" flag, it should be set.
     if readonly is None:
         assert node._get_node_flag("readonly")
-
-
-@mark.parametrize("value", [None, 1, 1.0, True, False, Color.RED, {}, []])
-def test_string_interpolation_result_invalid_value(value: Any) -> None:
-    with raises(ValidationError):
-        StringInterpolationResultNode(value)
