@@ -1,3 +1,4 @@
+import re
 import sys
 from importlib import import_module
 from typing import Any, Dict, List, Optional
@@ -971,86 +972,35 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg.foo[123] = "fail"
 
-    def test_int2str(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated(module.DictSubclass.Int2Str):
-            cfg = OmegaConf.structured(module.DictSubclass.Int2Str())
-
-        cfg[10] = "ten"  # okay
-        assert cfg[10] == "ten"
-
-        with raises(KeyValidationError):
-            cfg[10.0] = "float"  # fail
-
-        with raises(KeyValidationError):
-            cfg["10"] = "string"  # fail
-
-        with raises(KeyValidationError):
-            cfg.hello = "fail"
-
-        with raises(KeyValidationError):
-            cfg[Color.RED] = "fail"
-
-    def test_int2str_as_sub_node(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated(module.DictSubclass.Int2Str):
-            cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
-        assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
-        assert _utils.get_ref_type(cfg.foo) == Any
-
-        cfg.foo[10] = "ten"
-        assert cfg.foo[10] == "ten"
-
-        with raises(KeyValidationError):
-            cfg.foo[10.0] = "float"  # fail
-
-        with raises(KeyValidationError):
-            cfg.foo["10"] = "string"  # fail
-
-        with raises(KeyValidationError):
-            cfg.foo.hello = "fail"
-
-        with raises(KeyValidationError):
-            cfg.foo[Color.RED] = "fail"
-
-    def test_color2str(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated(module.DictSubclass.Color2Str):
-            cfg = OmegaConf.structured(module.DictSubclass.Color2Str())
-        cfg[Color.RED] = "red"
-
-        with raises(KeyValidationError):
-            cfg.greeen = "nope"
-
-        with raises(KeyValidationError):
-            cfg[123] = "nope"
-
     def test_color2color(self, module: Any) -> None:
-        with warns_dict_subclass_deprecated(module.DictSubclass.Color2Color):
-            cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
+        with warns_dict_subclass_deprecated(module.DictSubclass.Str2Color):
+            cfg = OmegaConf.structured(module.DictSubclass.Str2Color())
 
         # add key
-        cfg[Color.RED] = "GREEN"
-        assert cfg[Color.RED] == Color.GREEN
+        cfg["red"] = "GREEN"
+        assert cfg["red"] == Color.GREEN
 
         # replace key
-        cfg[Color.RED] = "RED"
-        assert cfg[Color.RED] == Color.RED
+        cfg["red"] = "RED"
+        assert cfg["red"] == Color.RED
 
-        cfg[Color.BLUE] = Color.BLUE
-        assert cfg[Color.BLUE] == Color.BLUE
+        cfg["blue"] = Color.BLUE
+        assert cfg["blue"] == Color.BLUE
 
-        cfg.RED = Color.RED
-        assert cfg.RED == Color.RED
-
-        with raises(ValidationError):
-            # bad value
-            cfg[Color.GREEN] = 10
+        cfg.red = Color.RED
+        assert cfg.red == Color.RED
 
         with raises(ValidationError):
             # bad value
-            cfg[Color.GREEN] = "this string is not a color"
+            cfg["green"] = 10
+
+        with raises(ValidationError):
+            # bad value
+            cfg["green"] = "this string is not a color"
 
         with raises(KeyValidationError):
-            # bad key
-            cfg.greeen = "nope"
+            # bad key type
+            cfg[Color.GREEN] = "nope"
 
     def test_str2user(self, module: Any) -> None:
         with warns_dict_subclass_deprecated(module.DictSubclass.Str2User):
@@ -1090,6 +1040,24 @@ class TestDictSubclass:
                 cfg = OmegaConf.structured(module.DictSubclass.Str2IntWithStrField())
             with raises(ValidationError):
                 cfg.foo = "str"
+
+        @mark.parametrize("instance", [True, False])
+        def test_error_if_key_type_is_not_string(
+            self, module: Any, instance: bool
+        ) -> None:
+            src = (
+                module.DictSubclass.Int2Str()
+                if instance
+                else module.DictSubclass.Int2Str
+            )
+            with raises(
+                ValueError,
+                match=re.escape(
+                    "Dict subclass 'Int2Str' must have key_type==str."
+                    + " Type 'int' is not supported."
+                ),
+            ):
+                OmegaConf.structured(src)
 
 
 class TestConfigs2:

@@ -240,6 +240,12 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
     subclasses_dict = is_dict_subclass(obj_type)
 
     if subclasses_dict:
+        key_type, _element_type = get_dict_key_value_types(obj_type)
+        if key_type != str:
+            raise ValueError(
+                f"Dict subclass '{obj_type.__name__}' must have key_type==str."
+                + f" Type '{key_type.__name__}' is not supported."
+            )
         warnings.warn(
             f"Class `{obj_type.__name__}` subclasses `Dict`."
             + " Subclassing `Dict` in Structured Config classes is deprecated,"
