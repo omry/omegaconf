@@ -1,8 +1,8 @@
 ## 2.1.0.rc1 (2021-05-12)
 This is the first release candidate of OmegaConf 2.1.
 OmegaConf 2.1 is a major release introducing substantial new Features, and introducing some incompatible changes.
-The biggest area if improvement in 2.1 is interpolations and resolvers. In addition - OmegaConf containers are now
-much more compatible with their Python plain containers counterparts.
+The biggest area of improvement in 2.1 is interpolations and resolvers. In addition - OmegaConf containers are now
+much more compatible with their Python plain container counterparts.
 
 ### Features
 #### API Enhancements
@@ -20,8 +20,8 @@ much more compatible with their Python plain containers counterparts.
 - Support for relative interpolation ([#48](https://github.com/omry/omegaconf/issues/48))
 - Add ability to nest interpolations, e.g. ${foo.${bar}}}, ${oc.env:{$var1},${var2}}, or ${${func}:x1,x2} ([#445](https://github.com/omry/omegaconf/issues/445))
 - Custom resolvers can now access the parent and the root config nodes ([#266](https://github.com/omry/omegaconf/issues/266))
-- Bracketed keys may be used as an alternative form to dot notation, e.g. foo.1 is equivalent to foo[1], [foo].1 and [foo][1].
-  This affects `OmegaConf.{update, select}` and interpolation usage. ([#179](https://github.com/omry/omegaconf/issues/179))
+- For `OmegaConf.{update, select}` and in interpolations, bracketed keys may be used as an alternative form to dot notation,
+  e.g. foo.1 is equivalent to foo[1], [foo].1 and [foo][1]. ([#179](https://github.com/omry/omegaconf/issues/179))
 - The `env` resolver parses environment variables. Supported types includes primitives (int, float, bool, ...) and containers like dict and list. The used grammar is a subset of the interpolation grammar. ([#445](https://github.com/omry/omegaconf/issues/445))
 - Custom resolvers may take non string arguments as input, and control whether to use the cache. ([#445](https://github.com/omry/omegaconf/issues/445))
 - Dots may now be used in resolver names to denote namespaces (e.g: `${namespace.my_func:123}`) ([#539](https://github.com/omry/omegaconf/issues/539))
