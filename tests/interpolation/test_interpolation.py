@@ -8,20 +8,24 @@ from pytest import mark, param, raises
 from omegaconf import (
     II,
     SI,
+    AnyNode,
     Container,
     DictConfig,
     IntegerNode,
     ListConfig,
     Node,
     OmegaConf,
+    StringNode,
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
 from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
-from omegaconf.errors import InterpolationValidationError
+from omegaconf.errors import InterpolationValidationError, ReadonlyConfigError
+from omegaconf.nodes import InterpolationResultNode
 from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
+from tests.interpolation import dereference_node
 
 # file deepcode ignore CopyPasteError:
 # The above comment is a statement to stop DeepCode from raising a warning on
@@ -257,7 +261,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:int,'7'}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="expected_type",
         ),
         param(
@@ -266,7 +270,7 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:int,${drop_last:${drop_last:7xx}}}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="intermediate_type_mismatch_ok",
         ),
         param(
@@ -275,20 +279,20 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
             User(name="Bond", age=SI("${cast:str,'7'}")),
             "age",
             7,
-            IntegerNode,
+            InterpolationResultNode,
             id="convert_str_to_int",
         ),
         param(
             MissingList(list=SI("${oc.create:[a, b, c]}")),
             "list",
-            ["a", "b", "c"],
+            ListConfig(["a", "b", "c"]),
             ListConfig,
             id="list_str",
         ),
         param(
             MissingDict(dict=SI("${oc.create:{key1: val1, key2: val2}}")),
             "dict",
-            {"key1": "val1", "key2": "val2"},
+            DictConfig({"key1": "val1", "key2": "val2"}),
             DictConfig,
             id="dict_str",
         ),
@@ -310,6 +314,7 @@ def test_interpolation_type_validated_ok(
 
     val = cfg[key]
     assert val == expected_value
+    assert type(val) is type(expected_value)
 
     node = cfg._get_node(key)
     assert isinstance(node, Node)
@@ -463,3 +468,39 @@ def test_circular_interpolation(cfg: Any, key: str, expected: Any) -> None:
             OmegaConf.select(cfg, key)
     else:
         assert OmegaConf.select(cfg, key) == expected
+
+
+@mark.parametrize(
+    "node_type",
+    [
+        param(lambda x: x, id="untyped"),
+        param(AnyNode, id="any"),
+        param(StringNode, id="str"),
+    ],
+)
+@mark.parametrize(
+    ("value", "expected"),
+    [
+        param(r"\${foo}", "${foo}", id="escaped_interpolation_1"),
+        param(r"\${foo", "${foo", id="escaped_interpolation_2"),
+        param(r"$${y1}", "${foo}", id="string_interpolation_1"),
+        param(r"$${y2}", "${foo", id="string_interpolation_2"),
+        # This passes to `oc.decode` the string with characters: '\${foo}' which
+        # is then resolved into: ${foo}
+        param(r"${oc.decode:'\'\\\${foo}\''}", "${foo}", id="resolver_1"),
+        param(r"${oc.decode:'\'\\\${foo\''}", "${foo", id="resolver_2"),
+    ],
+)
+def test_interpolation_like_result_is_not_an_interpolation(
+    node_type: Any, value: str, expected: str
+) -> None:
+    cfg = OmegaConf.create({"x": node_type(value), "y1": "{foo}", "y2": "{foo"})
+    assert cfg.x == expected
+
+    # Check that the resulting node is not considered to be an interpolation.
+    resolved_node = dereference_node(cfg, "x")
+    assert not resolved_node._is_interpolation()
+
+    # Check that the resulting node is read-only.
+    with raises(ReadonlyConfigError):
+        resolved_node._set_value("foo")

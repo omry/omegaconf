@@ -24,7 +24,7 @@ class ValueNode(Node):
 
         super().__init__(parent=parent, metadata=metadata)
         with read_write(self):
-            self._set_value(value)
+            self._set_value(value)  # lgtm [py/init-calls-subclass]
 
     def _value(self) -> Any:
         return self._val
@@ -390,3 +390,44 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res
+
+
+class InterpolationResultNode(ValueNode):
+    """
+    Special node type, used to wrap interpolation results.
+    """
+
+    def __init__(
+        self,
+        value: Any,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                ref_type=Any, object_type=None, key=key, optional=True, flags=flags
+            ),
+        )
+        # In general we should not try to write into interpolation results.
+        if flags is None or "readonly" not in flags:
+            self._set_flag("readonly", True)
+
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot set value of read-only config node")
+        self._val = self.validate_and_convert(value)
+
+    def _validate_and_convert_impl(self, value: Any) -> Any:
+        # Interpolation results may be anything.
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "InterpolationResultNode":
+        # Currently there should be no need to deep-copy such nodes.
+        raise NotImplementedError
+
+    def _is_interpolation(self) -> bool:
+        # The result of an interpolation cannot be itself an interpolation.
+        return False

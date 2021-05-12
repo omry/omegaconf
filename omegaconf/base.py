@@ -15,7 +15,6 @@ from ._utils import (
     _is_missing_value,
     format_and_raise,
     get_value_kind,
-    is_primitive_type,
     split_key,
 )
 from .errors import (
@@ -504,7 +503,7 @@ class Container(Node):
         resolved: Any,
         throw_on_resolution_failure: bool,
     ) -> Optional["Node"]:
-        from .nodes import AnyNode, ValueNode
+        from .nodes import AnyNode, InterpolationResultNode, ValueNode
 
         # If the output is not a Node already (e.g., because it is the output of a
         # custom resolver), then we will need to wrap it within a Node.
@@ -533,51 +532,10 @@ class Container(Node):
                 resolved = conv_value
 
         if must_wrap:
-            return self._wrap_interpolation_result(
-                parent=parent,
-                value=value,
-                key=key,
-                resolved=resolved,
-                throw_on_resolution_failure=throw_on_resolution_failure,
-            )
+            return InterpolationResultNode(value=resolved, key=key, parent=parent)
         else:
             assert isinstance(resolved, Node)
             return resolved
-
-    def _wrap_interpolation_result(
-        self,
-        parent: Optional["Container"],
-        value: Node,
-        key: Any,
-        resolved: Any,
-        throw_on_resolution_failure: bool,
-    ) -> Optional["Node"]:
-        from .basecontainer import BaseContainer
-        from .nodes import AnyNode
-        from .omegaconf import _node_wrap
-
-        assert parent is None or isinstance(parent, BaseContainer)
-
-        if is_primitive_type(type(resolved)):
-            # Primitive types get wrapped using `_node_wrap()`, ensuring value is
-            # validated and potentially converted.
-            wrapped = _node_wrap(
-                type_=value._metadata.ref_type,
-                parent=parent,
-                is_optional=value._metadata.optional,
-                value=resolved,
-                key=key,
-                ref_type=value._metadata.ref_type,
-            )
-        else:
-            # Other objects get wrapped into an `AnyNode` with `allow_objects` set
-            # to True.
-            wrapped = AnyNode(
-                value=resolved, key=key, parent=None, flags={"allow_objects": True}
-            )
-            wrapped._set_parent(parent)
-
-        return wrapped
 
     def _validate_not_dereferencing_to_parent(self, node: Node, target: Node) -> None:
         parent: Optional[Node] = node
