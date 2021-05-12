@@ -520,11 +520,9 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (value == node) == expected
     assert (value != node) != expected
 
-    try:
+    # Check hash except for unhashable types (dict/list).
+    if not isinstance(value, (dict, list)):
         assert (node.__hash__() == value.__hash__()) == expected
-    except TypeError as exc:
-        # Skip this check if unhashable.
-        assert "unhashable type" in str(exc)
 
 
 @mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])
