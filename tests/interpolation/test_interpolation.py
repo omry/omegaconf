@@ -285,14 +285,14 @@ def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
         param(
             MissingList(list=SI("${oc.create:[a, b, c]}")),
             "list",
-            ["a", "b", "c"],
+            ListConfig(["a", "b", "c"]),
             ListConfig,
             id="list_str",
         ),
         param(
             MissingDict(dict=SI("${oc.create:{key1: val1, key2: val2}}")),
             "dict",
-            {"key1": "val1", "key2": "val2"},
+            DictConfig({"key1": "val1", "key2": "val2"}),
             DictConfig,
             id="dict_str",
         ),
@@ -314,6 +314,7 @@ def test_interpolation_type_validated_ok(
 
     val = cfg[key]
     assert val == expected_value
+    assert type(val) is type(expected_value)
 
     node = cfg._get_node(key)
     assert isinstance(node, Node)
