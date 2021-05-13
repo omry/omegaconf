@@ -1,5 +1,5 @@
 ## 2.1.0.rc1 (2021-05-12)
-OmegaConf 2.1 is a major release introducing substantial new Features, and introducing some incompatible changes.
+OmegaConf 2.1 is a major release introducing substantial new features, and introducing some incompatible changes.
 The biggest area of improvement in 2.1 is interpolations and resolvers. In addition - OmegaConf containers are now
 much more compatible with their plain Python container counterparts (dict and list).
 
@@ -52,7 +52,7 @@ much more compatible with their plain Python container counterparts (dict and li
 - Fix bug where interpolations were unnecessarily resolved during merge ([#431](https://github.com/omry/omegaconf/issues/431))
 - Fix bug where assignment of an invalid value to a ListConfig raised an exception but left the object modified. ([#433](https://github.com/omry/omegaconf/issues/433))
 - When initializing a Structured Config with an incorrectly-typed value, the resulting ValidationError now properly reports the offending value in its error message. ([#435](https://github.com/omry/omegaconf/issues/435))
-- Fix assignment of a Container to itself causing it to clear it's content ([#449](https://github.com/omry/omegaconf/issues/449))
+- Fix assignment of a Container to itself causing it to clear its content ([#449](https://github.com/omry/omegaconf/issues/449))
 - Fix bug where DictConfig's shallow copy didn't work properly in some cases. ([#450](https://github.com/omry/omegaconf/issues/450))
 - Fix support for merge tags in YAML files ([#470](https://github.com/omry/omegaconf/issues/470))
 - Fix merge into a custom resolver node that raises an exception ([#486](https://github.com/omry/omegaconf/issues/486))
