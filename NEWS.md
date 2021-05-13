@@ -15,13 +15,13 @@ much more compatible with their plain Python container counterparts (dict and li
 - Add DictConfig support for keys of type int, float and bool ([#149](https://github.com/omry/omegaconf/issues/149)), ([#483](https://github.com/omry/omegaconf/issues/483))
 - Structured Configs fields without a value are now automatically treated as `OmegaConf.MISSING` ([#390](https://github.com/omry/omegaconf/issues/390))
 - Add minimal support for typing.TypedDict ([#473](https://github.com/omry/omegaconf/issues/473))
+- OmegaConf.to_container now takes a `structured_config_mode` keyword argument. Setting `structured_config_mode=SCMode.DICT_CONFIG` causes `to_container` to not convert Structured Config objects to python dicts (it leaves them as DictConfig objects). ([#548](https://github.com/omry/omegaconf/issues/548))
 #### Interpolation and resolvers
 - Support for relative interpolation ([#48](https://github.com/omry/omegaconf/issues/48))
 - Add ability to nest interpolations, e.g. ${foo.${bar}}}, ${oc.env:{$var1},${var2}}, or ${${func}:x1,x2} ([#445](https://github.com/omry/omegaconf/issues/445))
 - Custom resolvers can now access the parent and the root config nodes ([#266](https://github.com/omry/omegaconf/issues/266))
 - For `OmegaConf.{update, select}` and in interpolations, bracketed keys may be used as an alternative form to dot notation,
   e.g. foo.1 is equivalent to foo[1], [foo].1 and [foo][1]. ([#179](https://github.com/omry/omegaconf/issues/179))
-- The `env` resolver parses environment variables. Supported types includes primitives (int, float, bool, ...) and containers like dict and list. The used grammar is a subset of the interpolation grammar. ([#445](https://github.com/omry/omegaconf/issues/445))
 - Custom resolvers may take non string arguments as input, and control whether to use the cache. ([#445](https://github.com/omry/omegaconf/issues/445))
 - Dots may now be used in resolver names to denote namespaces (e.g: `${namespace.my_func:123}`) ([#539](https://github.com/omry/omegaconf/issues/539))
 - New resolver `oc.select`, enabling node selection with a default value to use if the node cannot be selected ([#541](https://github.com/omry/omegaconf/issues/541))
@@ -82,9 +82,7 @@ much more compatible with their plain Python container counterparts (dict and li
 - Merging a MISSING value onto an existing value no longer changes the target value to MISSING. ([#462](https://github.com/omry/omegaconf/issues/462))
 - When resolving an interpolation of a config value with a primitive type, the interpolated value is validated and possibly converted based on the node's type. ([#488](https://github.com/omry/omegaconf/issues/488))
 - DictConfig and ListConfig shallow copy is now performing a deepcopy ([#492](https://github.com/omry/omegaconf/issues/492))
-- A custom resolver interpolation whose output is a list or dictionary is now automatically converted into a ListConfig or DictConfig. ([#540](https://github.com/omry/omegaconf/issues/540))
 - `OmegaConf.select()`, `DictConfig.{get(),pop()}`, `ListConfig.{get(),pop()}` no longer return the specified default value when the accessed key is an interpolation that cannot be resolved: instead, an exception is raised. ([#543](https://github.com/omry/omegaconf/issues/543))
-- OmegaConf.to_container now takes a `structured_config_mode` keyword argument. Setting `structured_config_mode=SCMode.DICT_CONFIG` causes `to_container` to not convert Structured Config objects to python dicts (it leaves them as DictConfig objects). ([#548](https://github.com/omry/omegaconf/issues/548))
 - OmegaConf.{merge, unsafe_merge, to_yaml} now raises a ValueError when called on a str input. Previously an AssertionError was raised. ([#560](https://github.com/omry/omegaconf/issues/560))
 - All exceptions raised during the resolution of an interpolation are either `InterpolationResolutionError` or a subclass of it. ([#561](https://github.com/omry/omegaconf/issues/561))
 - `key in cfg` now returns True when `key` is an interpolation even if the interpolation target is a missing ("???") value. ([#562](https://github.com/omry/omegaconf/issues/562))
@@ -186,7 +184,7 @@ The notable change is the config.pretty() is now deprecated in favor of OmegaCon
 
 ## 2.0.0 (2020-05-04)
 
-OmegaConf 2.0 is a major release introducing substantial new Features, and introducing some incompatible changes.
+OmegaConf 2.0 is a major release introducing substantial new features, and introducing some incompatible changes.
 The biggest new feature is Structured Configs, which extends OmegaConf into a schema validation system
 as well as a configuration system.
 With Structured Configs you can create OmegaConf objects from standard dataclasses or attr classes (or objects).
