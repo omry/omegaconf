@@ -1,1 +1,0 @@
-The `env` resolver is deprecated in favor of `oc.env`, which keeps the string representation of environment variables, does not cache the resulting value, and handles "null" as default value.

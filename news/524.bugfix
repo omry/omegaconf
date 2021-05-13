@@ -1,1 +1,0 @@
-Fix ValidationError when setting to None an optional field currently interpolated to a non-optional one

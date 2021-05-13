@@ -1,1 +1,0 @@
-Structured Configs with nested Structured config field that does not specify a default value are now interpreted as MISSING (`???`) instead of auto-expanding

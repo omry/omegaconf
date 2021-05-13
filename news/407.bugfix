@@ -1,1 +1,0 @@
-Fix pickling of Structured Configs with fields annotated as Dict[KT, VT] or List[T] on Python 3.6.

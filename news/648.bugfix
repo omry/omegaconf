@@ -1,1 +1,0 @@
-Fix OmegaConf.create() to set the provided `parent` when creating a config from a YAML string.

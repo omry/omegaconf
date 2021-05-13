@@ -1,1 +1,0 @@
-When a dictconfig has enum-typed keys, __delitem__ can now be called with a string naming the enum member to be deleted.
