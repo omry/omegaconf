@@ -20,13 +20,13 @@ OmegaConf 2.0 stable version.
 
 Install with `pip install --upgrade omegaconf`
 
-### Dev release (2.1)
-OmegaConf 2.1 dev release is in good shape and is approaching a release candidate.
-Users are encouraged to try it out.
-
+### Release candidate (2.1)
+OmegaConf 2.1 is now a release candidate.
+New users should use it and existing users are encouraged to migrate to it.
+* [Release notes](https://github.com/omry/omegaconf/releases/tag/v2.1.0.rc1)
 * [Documentation](https://omegaconf.readthedocs.io/en/latest/)
 * [Source code](https://github.com/omry/omegaconf/tree/master)
-* [Milestone progress](https://github.com/omry/omegaconf/milestone/3)
+* [2.1 Milestone progress](https://github.com/omry/omegaconf/milestone/3)
 
 Install with `pip install --upgrade omegaconf --pre`
 
