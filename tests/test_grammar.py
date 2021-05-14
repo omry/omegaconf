@@ -767,3 +767,10 @@ def test_invalid_chars_in_interpolation(c: str) -> None:
         # Other invalid characters should be detected at creation time.
         with raises(GrammarParseError):
             create()
+
+
+def test_grammar_cache_lock() -> None:
+    cfg = OmegaConf.create({"x": "${oc.decode:abc}"})
+    # Grab lock on the cache to test the fallback mechanism.
+    with grammar_parser._cache_lock:
+        assert cfg.x == "abc"
