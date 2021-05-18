@@ -106,8 +106,8 @@ def parse(
         lexer.removeErrorListeners()
         lexer.addErrorListener(error_listener)
         lexer.mode(l_mode)
-        tokens = CommonTokenStream(lexer)
-        parser = OmegaConfGrammarParser(tokens)
+        token_stream = CommonTokenStream(lexer)
+        parser = OmegaConfGrammarParser(token_stream)
         parser.removeErrorListeners()
         parser.addErrorListener(error_listener)
 
@@ -116,13 +116,13 @@ def parse(
         # from antlr4 import PredictionMode
         # parser._interp.predictionMode = PredictionMode.SLL
 
-        _grammar_cache.data = lexer, tokens, parser
+        _grammar_cache.data = lexer, token_stream, parser
 
     else:
-        lexer, tokens, parser = cached
+        lexer, token_stream, parser = cached
         lexer.inputStream = istream
         lexer.mode(l_mode)
-        tokens.setTokenSource(lexer)
+        token_stream.setTokenSource(lexer)
         parser.reset()
 
     try:
