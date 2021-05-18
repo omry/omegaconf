@@ -65,7 +65,7 @@ def test_load_from_invalid() -> None:
         ({"foo": 10, "bar": "${foo}"}, False, None, str),
         ({"foo": 10, "bar": "${foo}"}, False, None, pathlib.Path),
         ({"foo": 10, "bar": "${foo}"}, False, {"foo": 10, "bar": 10}, str),
-        ([u"שלום"], False, None, str),
+        (["שלום"], False, None, str),
     ],
 )
 class TestSaveLoad:
@@ -257,3 +257,18 @@ def test_pickle_flags_consistency() -> None:
     cfg2._set_flag("test", None)
     assert cfg2._get_flag("test") is None
     assert cfg2._get_node("a")._get_flag("test") is None
+
+
+@mark.parametrize(
+    "version",
+    [
+        "2.0.6",
+        "2.1.0.rc1",
+    ],
+)
+def test_pickle_backward_compatibility(version: str) -> None:
+    base = os.path.dirname(__file__)
+    path = os.path.abspath(f"{base}/data/{version}.pickle")
+    with open(path, mode="rb") as fp:
+        cfg = pickle.load(fp)
+        assert cfg == OmegaConf.create({"a": [{"b": 10}]})
