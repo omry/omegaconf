@@ -1,4 +1,5 @@
 import re
+import threading
 from typing import Any
 
 from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
@@ -14,7 +15,8 @@ from .grammar_visitor import (  # type: ignore
 )
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
-_grammar_cache = None
+# We use a per-thread cache to make it thread-safe.
+_grammar_cache = threading.local()
 
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
@@ -94,19 +96,18 @@ def parse(
     """
     Parse interpolated string `value` (and return the parse tree).
     """
-    global _grammar_cache
-
     l_mode = getattr(OmegaConfGrammarLexer, lexer_mode)
     istream = InputStream(value)
 
-    if _grammar_cache is None:
+    cached = getattr(_grammar_cache, "data", None)
+    if cached is None:
         error_listener = OmegaConfErrorListener()
         lexer = OmegaConfGrammarLexer(istream)
         lexer.removeErrorListeners()
         lexer.addErrorListener(error_listener)
         lexer.mode(l_mode)
-        tokens = CommonTokenStream(lexer)
-        parser = OmegaConfGrammarParser(tokens)
+        token_stream = CommonTokenStream(lexer)
+        parser = OmegaConfGrammarParser(token_stream)
         parser.removeErrorListeners()
         parser.addErrorListener(error_listener)
 
@@ -115,13 +116,17 @@ def parse(
         # from antlr4 import PredictionMode
         # parser._interp.predictionMode = PredictionMode.SLL
 
-        _grammar_cache = lexer, tokens, parser
+        # Note that although the input stream `istream` is implicitly cached within
+        # the lexer, it will be replaced by a new input next time the lexer is re-used.
+        _grammar_cache.data = lexer, token_stream, parser
 
     else:
-        lexer, tokens, parser = _grammar_cache
+        lexer, token_stream, parser = cached
+        # Replace the old input stream with the new one.
         lexer.inputStream = istream
+        # Initialize the lexer / token stream / parser to process the new input.
         lexer.mode(l_mode)
-        tokens.setTokenSource(lexer)
+        token_stream.setTokenSource(lexer)
         parser.reset()
 
     try:
