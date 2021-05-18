@@ -116,11 +116,15 @@ def parse(
         # from antlr4 import PredictionMode
         # parser._interp.predictionMode = PredictionMode.SLL
 
+        # Note that although the input stream `istream` is implicitly cached within
+        # the lexer, it will be replaced by a new input next time the lexer is re-used.
         _grammar_cache.data = lexer, token_stream, parser
 
     else:
         lexer, token_stream, parser = cached
+        # Replace the old input stream with the new one.
         lexer.inputStream = istream
+        # Initialize the lexer / token stream / parser to process the new input.
         lexer.mode(l_mode)
         token_stream.setTokenSource(lexer)
         parser.reset()
