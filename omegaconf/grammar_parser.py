@@ -1,6 +1,6 @@
 import re
 import threading
-from typing import Any, Tuple
+from typing import Any
 
 from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
 from antlr4.error.ErrorListener import ErrorListener
@@ -15,10 +15,8 @@ from .grammar_visitor import (  # type: ignore
 )
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
-_grammar_cache = None
-
-# Lock to ensure we do not use cached objects in parallel threads.
-_cache_lock = threading.Lock()
+# We use a per-thread cache to make it thread-safe.
+_grammar_cache = threading.local()
 
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
@@ -98,64 +96,42 @@ def parse(
     """
     Parse interpolated string `value` (and return the parse tree).
     """
-    global _grammar_cache
-
-    lexer_mode_index = getattr(OmegaConfGrammarLexer, lexer_mode)
+    l_mode = getattr(OmegaConfGrammarLexer, lexer_mode)
     istream = InputStream(value)
 
-    use_cache = _cache_lock.acquire(blocking=False)
+    cached = getattr(_grammar_cache, "data", None)
+    if cached is None:
+        error_listener = OmegaConfErrorListener()
+        lexer = OmegaConfGrammarLexer(istream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(error_listener)
+        lexer.mode(l_mode)
+        tokens = CommonTokenStream(lexer)
+        parser = OmegaConfGrammarParser(tokens)
+        parser.removeErrorListeners()
+        parser.addErrorListener(error_listener)
+
+        # The two lines below could be enabled in the future if we decide to switch
+        # to SLL prediction mode. Warning though, it has not been fully tested yet!
+        # from antlr4 import PredictionMode
+        # parser._interp.predictionMode = PredictionMode.SLL
+
+        _grammar_cache.data = lexer, tokens, parser
+
+    else:
+        lexer, tokens, parser = cached
+        lexer.inputStream = istream
+        lexer.mode(l_mode)
+        tokens.setTokenSource(lexer)
+        parser.reset()
+
     try:
-        if use_cache:
-            if _grammar_cache is None:
-                lexer, tokens, parser = _get_grammar_objects(istream, lexer_mode_index)
-                _grammar_cache = lexer, tokens, parser
-            else:
-                lexer, tokens, parser = _grammar_cache
-                lexer.inputStream = istream
-                lexer.mode(lexer_mode_index)
-                tokens.setTokenSource(lexer)
-                parser.reset()
-
+        return getattr(parser, parser_rule)()
+    except Exception as exc:
+        if type(exc) is Exception and str(exc) == "Empty Stack":
+            # This exception is raised by antlr when trying to pop a mode while
+            # no mode has been pushed. We convert it into an `GrammarParseError`
+            # to facilitate exception handling from the caller.
+            raise GrammarParseError("Empty Stack")
         else:
-            # If another thread is already using the cache, then we simply re-create
-            # new temporary objects (instead of waiting for the lock to be released).
-            lexer, tokens, parser = _get_grammar_objects(istream, lexer_mode_index)
-
-        try:
-            return getattr(parser, parser_rule)()
-        except Exception as exc:
-            if type(exc) is Exception and str(exc) == "Empty Stack":
-                # This exception is raised by antlr when trying to pop a mode while
-                # no mode has been pushed. We convert it into an `GrammarParseError`
-                # to facilitate exception handling from the caller.
-                raise GrammarParseError("Empty Stack")
-            else:
-                raise
-
-    finally:
-        if use_cache:
-            _cache_lock.release()
-
-
-def _get_grammar_objects(
-    istream: InputStream, lexer_mode_index: Any
-) -> Tuple[OmegaConfGrammarLexer, CommonTokenStream, OmegaConfGrammarParser]:
-    """
-    Obtain the lexer, its token stream and the parser, ready to parse the input stream.
-    """
-    error_listener = OmegaConfErrorListener()
-    lexer = OmegaConfGrammarLexer(istream)
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(error_listener)
-    lexer.mode(lexer_mode_index)
-    tokens = CommonTokenStream(lexer)
-    parser = OmegaConfGrammarParser(tokens)
-    parser.removeErrorListeners()
-    parser.addErrorListener(error_listener)
-
-    # The two lines below could be enabled in the future if we decide to switch
-    # to SLL prediction mode. Warning though, it has not been fully tested yet!
-    # from antlr4 import PredictionMode
-    # parser._interp.predictionMode = PredictionMode.SLL
-
-    return lexer, tokens, parser
+            raise

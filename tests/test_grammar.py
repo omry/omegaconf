@@ -1,5 +1,7 @@
 import math
 import re
+import threading
+import time
 from typing import Any, Callable, List, Optional, Set, Tuple
 
 import antlr4
@@ -769,8 +771,41 @@ def test_invalid_chars_in_interpolation(c: str) -> None:
             create()
 
 
-def test_grammar_cache_lock() -> None:
-    cfg = OmegaConf.create({"x": "${oc.decode:abc}"})
-    # Grab lock on the cache to test the fallback mechanism.
-    with grammar_parser._cache_lock:
-        assert cfg.x == "abc"
+def test_grammar_cache_is_thread_safe() -> None:
+    """
+    This test ensures that we can parse strings across multiple threads in parallel.
+
+    Besides ensuring that the parsing does not hang nor crash, we also verify that
+    the lexer used in each thread is different.
+    """
+    n_threads = 10
+    lexer_ids = []
+    stop = threading.Event()
+
+    def check_cache_lexer_id() -> None:
+        # Parse a dummy string to make sure the grammar cache is populated
+        # (this also checks that multiple threads can parse in parallel).
+        grammar_parser.parse("foo")
+        # Keep track of the ID of the cached lexer.
+        lexer_ids.append(id(grammar_parser._grammar_cache.data[0]))
+        # Wait until we are done.
+        while not stop.is_set():
+            time.sleep(0.1)
+
+    # Launch threads.
+    threads = []
+    for i in range(n_threads):
+        threads.append(threading.Thread(target=check_cache_lexer_id))
+        threads[-1].start()
+
+    # Wait until all threads have reported their lexer ID.
+    while len(lexer_ids) < n_threads:
+        time.sleep(0.1)
+
+    # Terminate threads.
+    stop.set()
+    for thread in threads:
+        thread.join()
+
+    # Check that each thread used a unique lexer.
+    assert len(set(lexer_ids)) == n_threads
