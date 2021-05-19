@@ -18,6 +18,7 @@ from typing import (
     Generator,
     List,
     Optional,
+    Set,
     Tuple,
     Type,
     Union,
@@ -785,6 +786,20 @@ class OmegaConf:
             )
         omegaconf._impl._resolve(cfg)
 
+    @staticmethod
+    def missing_keys(cfg: Container) -> Set[str]:
+        missings = set()
+
+        def gather(_cfg, prefix=""):
+            for key in _cfg:
+                if OmegaConf.is_missing(_cfg, key):
+                    missings.add(f"{prefix}{key}")
+                elif OmegaConf.is_config(_cfg[key]):
+                    gather(_cfg[key], prefix=f"{prefix}{key}.")
+
+        gather(cfg)
+        return missings
+
     # === private === #
 
     @staticmethod
@@ -907,7 +922,6 @@ def flag_override(
     names: Union[List[str], str],
     values: Union[List[Optional[bool]], Optional[bool]],
 ) -> Generator[Node, None, None]:
-
     if isinstance(names, str):
         names = [names]
     if values is None or isinstance(values, bool):
