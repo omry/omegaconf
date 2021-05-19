@@ -103,7 +103,19 @@ class BaseContainer(Container, ABC):
 
         if isinstance(self, DictConfig):
             key_type = d["_metadata"].key_type
+
+            # backward compatibility to load OmegaConf 2.0 configs
+            if key_type is None:
+                key_type = Any
+                d["_metadata"].key_type = key_type
+
         element_type = d["_metadata"].element_type
+
+        # backward compatibility to load OmegaConf 2.0 configs
+        if element_type is None:
+            element_type = Any
+            d["_metadata"].element_type = element_type
+
         ref_type = d["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
