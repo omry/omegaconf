@@ -790,7 +790,7 @@ class OmegaConf:
     def missing_keys(cfg: Container) -> Set[str]:
         missings = set()
 
-        def gather(_cfg, prefix=""):
+        def gather(_cfg: Container, prefix: str = ""):
             for key in _cfg:
                 if OmegaConf.is_missing(_cfg, key):
                     missings.add(f"{prefix}{key}")
