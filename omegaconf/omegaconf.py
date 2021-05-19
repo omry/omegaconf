@@ -788,6 +788,11 @@ class OmegaConf:
 
     @staticmethod
     def missing_keys(cfg: Container) -> Set[str]:
+        """
+        Returns a set of missing keys flatten in a dotlist style.
+        :param cfg: An OmegaConf container .
+        :return: set of strings of the missing keys.
+        """
         missings = set()
 
         def gather(_cfg: Container, prefix: str = "") -> None:
