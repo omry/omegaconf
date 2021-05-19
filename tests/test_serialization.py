@@ -267,8 +267,7 @@ def test_pickle_flags_consistency() -> None:
     ],
 )
 def test_pickle_backward_compatibility(version: str) -> None:
-    base = os.path.dirname(__file__)
-    path = os.path.abspath(os.path.join(base), "data", f"{version}.pickle")
+    path = Path(__file__).parent / "data" / f"{version}.pickle"
     with open(path, mode="rb") as fp:
         cfg = pickle.load(fp)
         assert cfg == OmegaConf.create({"a": [{"b": 10}]})
