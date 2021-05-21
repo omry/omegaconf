@@ -17,7 +17,13 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
 )
-from tests import B, Color, User, warns_dict_subclass_deprecated
+from tests import (
+    B,
+    Color,
+    NestedInterpolationToMissing,
+    User,
+    warns_dict_subclass_deprecated,
+)
 
 
 @mark.parametrize(
@@ -514,6 +520,7 @@ class TestThrowOnMissing:
         [
             param({"missing": "???", "subcfg": {"x": "${missing}"}}, id="dict-in-dict"),
             param({"missing": "???", "subcfg": ["${missing}"]}, id="list-in-dict"),
+            param(NestedInterpolationToMissing, id="interp-in-structured"),
         ],
     )
     def test_interpolation_to_missing_throws(self, op: Any, src: Any) -> None:
@@ -538,6 +545,11 @@ class TestThrowOnMissing:
                 ["???"],
                 id="interp-in-list",
             ),
+            param(
+                NestedInterpolationToMissing,
+                {"baz": "???"},
+                id="interp-in-structured",
+            ),
         ],
     )
     def test_interpolation_to_missing_no_throw(
@@ -547,6 +559,6 @@ class TestThrowOnMissing:
         Interpolation to missing: Test that no error
         is raised when resolve==True and throw_on_missing==False.
         """
-        cfg = OmegaConf.create(src)
-        res = OmegaConf.to_container(cfg.subcfg, resolve=True, throw_on_missing=False)
+        cfg = OmegaConf.create(src).subcfg
+        res = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
         assert res == expected_subcfg
