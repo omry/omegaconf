@@ -194,9 +194,9 @@ class BaseContainer(Container, ABC):
             if resolve:
                 try:
                     node = node._dereference_node()
-                except InterpolationToMissingValueError:
+                except InterpolationToMissingValueError as e:
                     if throw_on_missing:
-                        raise
+                        conf._format_and_raise(key=key, value=None, cause=e)
                     else:
                         return "???"
 

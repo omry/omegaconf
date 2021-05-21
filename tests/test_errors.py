@@ -1288,6 +1288,26 @@ params = [
         ),
         id="to_object:structured-missing-field",
     ),
+    # to_container throw_on_missing
+    param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"missing_val": "???", "subcfg": {"x": "${missing_val}"}}
+            ).subcfg,
+            op=lambda cfg: OmegaConf.to_container(
+                cfg, resolve=True, throw_on_missing=True
+            ),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: missing_val"
+            ),
+            key="x",
+            full_key="subcfg.x",
+            child_node=lambda cfg: cfg._get_node("x"),
+        ),
+        id="to_container:throw_on_missing-interpolation",
+    ),
 ]
 
 
