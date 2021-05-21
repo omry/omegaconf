@@ -526,6 +526,7 @@ class OmegaConf:
         cfg: Any,
         *,
         resolve: bool = False,
+        throw_on_missing: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
@@ -550,6 +551,7 @@ class OmegaConf:
         return BaseContainer._to_content(
             cfg,
             resolve=resolve,
+            throw_on_missing=throw_on_missing,
             enum_to_str=enum_to_str,
             structured_config_mode=structured_config_mode,
         )
@@ -569,6 +571,7 @@ class OmegaConf:
         return OmegaConf.to_container(
             cfg=cfg,
             resolve=True,
+            throw_on_missing=True,
             enum_to_str=False,
             structured_config_mode=SCMode.INSTANTIATE,
         )

@@ -174,6 +174,7 @@ class BaseContainer(Container, ABC):
     def _to_content(
         conf: Container,
         resolve: bool,
+        throw_on_missing: bool,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
@@ -194,7 +195,10 @@ class BaseContainer(Container, ABC):
             assert isinstance(inter, str)
             return inter
         elif conf._is_missing():
-            return MISSING
+            if throw_on_missing:
+                raise MissingMandatoryValue
+            else:
+                return MISSING
         elif isinstance(conf, DictConfig):
             if (
                 conf._metadata.object_type is not None
@@ -208,7 +212,7 @@ class BaseContainer(Container, ABC):
 
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
-                node = conf._get_node(key)
+                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node()
@@ -219,6 +223,7 @@ class BaseContainer(Container, ABC):
                     retdict[key] = BaseContainer._to_content(
                         node,
                         resolve=resolve,
+                        throw_on_missing=throw_on_missing,
                         enum_to_str=enum_to_str,
                         structured_config_mode=structured_config_mode,
                     )
@@ -228,7 +233,7 @@ class BaseContainer(Container, ABC):
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
-                node = conf._get_node(index)
+                node = conf._get_node(index, throw_on_missing_value=throw_on_missing)
                 assert isinstance(node, Node)
                 if resolve:
                     node = node._dereference_node()
@@ -236,6 +241,7 @@ class BaseContainer(Container, ABC):
                     item = BaseContainer._to_content(
                         node,
                         resolve=resolve,
+                        throw_on_missing=throw_on_missing,
                         enum_to_str=enum_to_str,
                         structured_config_mode=structured_config_mode,
                     )

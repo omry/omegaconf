@@ -37,7 +37,7 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
+from .base import Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -711,6 +711,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         This requires `self` to be a structured config.
         Nested subconfigs are converted to_container with resolve=True.
         """
+        from omegaconf import OmegaConf
+
         object_type = self._metadata.object_type
         assert is_structured_config(object_type)
         object_type_field_names = set(get_structured_config_field_names(object_type))
@@ -722,12 +724,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             assert isinstance(node, Node)
             node = node._dereference_node()
             if isinstance(node, Container):
-                v = BaseContainer._to_content(
-                    node,
-                    resolve=True,
-                    enum_to_str=False,
-                    structured_config_mode=SCMode.INSTANTIATE,
-                )
+                v = OmegaConf.to_object(node)
             else:
                 v = node._value()
 
