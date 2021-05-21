@@ -189,7 +189,10 @@ class BaseContainer(Container, ABC):
             return value
 
         def get_node_value(key: Union[DictKeyType, int]) -> Any:
-            node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
+            try:
+                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
+            except MissingMandatoryValue as e:
+                conf._format_and_raise(key=key, value=None, cause=e)
             assert isinstance(node, Node)
             if resolve:
                 try:

@@ -1343,6 +1343,29 @@ params = [
         ),
         id="to_container:throw_on_missing-list",
     ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"a": "???"}),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: a",
+            key="a",
+            child_node=lambda cfg: cfg._get_node("a"),
+        ),
+        id="to_container:throw_on_missing-dict-value",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig(["???"]),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: 0",
+            key=0,
+            full_key="[0]",
+            child_node=lambda cfg: cfg._get_node(0),
+        ),
+        id="to_container:throw_on_missing-list-item",
+    ),
 ]
 
 
