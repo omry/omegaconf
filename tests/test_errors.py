@@ -36,6 +36,7 @@ from tests import (
     ConcretePlugin,
     IllegalType,
     Module,
+    NestedInterpolationToMissing,
     Package,
     Plugin,
     Str2Int,
@@ -1287,6 +1288,22 @@ params = [
             child_node=lambda cfg: cfg._get_node("name"),
         ),
         id="to_object:structured-missing-field",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: name"
+            ),
+            key="baz",
+            full_key="subcfg.baz",
+            child_node=lambda cfg: cfg._get_node("baz"),
+            ref_type=NestedInterpolationToMissing.BazParams,
+        ),
+        id="to_object:structured-throw_on_missing-interpolation",
     ),
     # to_container throw_on_missing
     param(
