@@ -221,7 +221,13 @@ class BaseContainer(Container, ABC):
             return inter
         elif conf._is_missing():
             if throw_on_missing:
-                raise MissingMandatoryValue
+                conf._format_and_raise(
+                    key=None,
+                    value=None,
+                    cause=MissingMandatoryValue(
+                        f"Encountered a missing {type(conf).__name__} with `throw_on_missing==True`"
+                    ),
+                )
             else:
                 return MISSING
         elif isinstance(conf, DictConfig):

@@ -1325,6 +1325,24 @@ params = [
         ),
         id="to_container:throw_on_missing-interpolation",
     ),
+    param(
+        Expected(
+            create=lambda: DictConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Encountered a missing DictConfig with `throw_on_missing==True`",
+        ),
+        id="to_container:throw_on_missing-dict",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Encountered a missing ListConfig with `throw_on_missing==True`",
+        ),
+        id="to_container:throw_on_missing-list",
+    ),
 ]
 
 
