@@ -187,6 +187,24 @@ class BaseContainer(Container, ABC):
 
             return value
 
+        def get_node_value(key: Union[DictKeyType, int]) -> Any:
+            node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
+            assert isinstance(node, Node)
+            if resolve:
+                node = node._dereference_node()
+
+            if isinstance(node, Container):
+                value = BaseContainer._to_content(
+                    node,
+                    resolve=resolve,
+                    throw_on_missing=throw_on_missing,
+                    enum_to_str=enum_to_str,
+                    structured_config_mode=structured_config_mode,
+                )
+            else:
+                value = convert(node)
+            return value
+
         assert isinstance(conf, Container)
         if conf._is_none():
             return None
@@ -212,42 +230,16 @@ class BaseContainer(Container, ABC):
 
             retdict: Dict[str, Any] = {}
             for key in conf.keys():
-                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
-                assert isinstance(node, Node)
-                if resolve:
-                    node = node._dereference_node()
-
+                value = get_node_value(key)
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
-                if isinstance(node, Container):
-                    retdict[key] = BaseContainer._to_content(
-                        node,
-                        resolve=resolve,
-                        throw_on_missing=throw_on_missing,
-                        enum_to_str=enum_to_str,
-                        structured_config_mode=structured_config_mode,
-                    )
-                else:
-                    retdict[key] = convert(node)
+                retdict[key] = value
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
-                node = conf._get_node(index, throw_on_missing_value=throw_on_missing)
-                assert isinstance(node, Node)
-                if resolve:
-                    node = node._dereference_node()
-                if isinstance(node, Container):
-                    item = BaseContainer._to_content(
-                        node,
-                        resolve=resolve,
-                        throw_on_missing=throw_on_missing,
-                        enum_to_str=enum_to_str,
-                        structured_config_mode=structured_config_mode,
-                    )
-                    retlist.append(item)
-                else:
-                    retlist.append(convert(node))
+                item = get_node_value(index)
+                retlist.append(item)
 
             return retlist
 
