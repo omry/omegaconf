@@ -525,7 +525,6 @@ class TestThrowOnMissing:
         with raises(InterpolationToMissingValueError):
             op(cfg.subcfg)
 
-    @mark.xfail
     @mark.parametrize(
         "src, expected_subcfg",
         [

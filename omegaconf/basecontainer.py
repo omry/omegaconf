@@ -28,6 +28,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
+    InterpolationToMissingValueError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
@@ -191,7 +192,13 @@ class BaseContainer(Container, ABC):
             node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
             assert isinstance(node, Node)
             if resolve:
-                node = node._dereference_node()
+                try:
+                    node = node._dereference_node()
+                except InterpolationToMissingValueError:
+                    if throw_on_missing:
+                        raise
+                    else:
+                        return "???"
 
             if isinstance(node, Container):
                 value = BaseContainer._to_content(
