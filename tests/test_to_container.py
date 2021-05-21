@@ -22,6 +22,7 @@ from tests import (
     Color,
     NestedInterpolationToMissing,
     User,
+    Users,
     warns_dict_subclass_deprecated,
 )
 
@@ -497,6 +498,10 @@ class TestThrowOnMissing:
             param(ListConfig(["???"]), id="list,missing_elt"),
             param(ListConfig(["abc", ["???"]]), id="list,nested"),
             param(OmegaConf.structured(B), id="structured,missing_field"),
+            param(
+                OmegaConf.structured(Users({"Bond": "???"})),  # type: ignore
+                id="missing-in-dict-in-structured",
+            ),
         ],
     )
     def test_throw_on_missing_raises(self, op: Any, cfg: Any) -> None:
