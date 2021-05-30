@@ -1303,7 +1303,7 @@ params = [
             child_node=lambda cfg: cfg._get_node("baz"),
             ref_type=NestedInterpolationToMissing.BazParams,
         ),
-        id="to_object:structured-throw_on_missing-interpolation",
+        id="to_object:structured,throw_on_missing_interpolation",
     ),
     # to_container throw_on_missing
     param(
@@ -1323,7 +1323,7 @@ params = [
             full_key="subcfg.x",
             child_node=lambda cfg: cfg._get_node("x"),
         ),
-        id="to_container:throw_on_missing-interpolation",
+        id="to_container:throw_on_missing_interpolation",
     ),
     param(
         Expected(
@@ -1332,7 +1332,7 @@ params = [
             exception_type=MissingMandatoryValue,
             msg="Encountered a missing DictConfig with `throw_on_missing==True`",
         ),
-        id="to_container:throw_on_missing-dict",
+        id="to_container:throw_on_missing,dict",
     ),
     param(
         Expected(
@@ -1341,7 +1341,7 @@ params = [
             exception_type=MissingMandatoryValue,
             msg="Encountered a missing ListConfig with `throw_on_missing==True`",
         ),
-        id="to_container:throw_on_missing-list",
+        id="to_container:throw_on_missing,list",
     ),
     param(
         Expected(
@@ -1352,7 +1352,7 @@ params = [
             key="a",
             child_node=lambda cfg: cfg._get_node("a"),
         ),
-        id="to_container:throw_on_missing-dict-value",
+        id="to_container:throw_on_missing,dict_value",
     ),
     param(
         Expected(
@@ -1364,7 +1364,7 @@ params = [
             full_key="[0]",
             child_node=lambda cfg: cfg._get_node(0),
         ),
-        id="to_container:throw_on_missing-list-item",
+        id="to_container:throw_on_missing,list_item",
     ),
 ]
 
