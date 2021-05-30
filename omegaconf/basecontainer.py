@@ -227,9 +227,7 @@ class BaseContainer(Container, ABC):
                 conf._format_and_raise(
                     key=None,
                     value=None,
-                    cause=MissingMandatoryValue(
-                        f"Encountered a missing {type(conf).__name__} with `throw_on_missing==True`"
-                    ),
+                    cause=MissingMandatoryValue("Missing mandatory value"),
                 )
             else:
                 return MISSING
