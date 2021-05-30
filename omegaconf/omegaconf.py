@@ -566,7 +566,8 @@ class OmegaConf:
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
         as instances of those backing classes.
 
-        This is an alias for OmegaConf.to_container(..., resolve=True, structured_config_mode=SCMode.INSTANTIATE)
+        This is an alias for OmegaConf.to_container(..., resolve=True, throw_on_missing=True,
+                                                    structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
         :return: A dict or a list or dataclass representing this config.
