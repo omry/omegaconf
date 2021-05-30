@@ -491,16 +491,16 @@ class TestThrowOnMissing:
         "cfg",
         [
             # to_container: throw_on_missing
-            param(DictConfig("???"), id="dict,missing"),
-            param(DictConfig({"a": "???"}), id="dict,missing_value"),
-            param(DictConfig({"a": {"b": "???"}}), id="dict,nested"),
-            param(ListConfig("???"), id="list,missing"),
-            param(ListConfig(["???"]), id="list,missing_elt"),
-            param(ListConfig(["abc", ["???"]]), id="list,nested"),
-            param(OmegaConf.structured(B), id="structured,missing_field"),
+            param(DictConfig("???"), id="dict:missing"),
+            param(DictConfig({"a": "???"}), id="dict:missing_value"),
+            param(DictConfig({"a": {"b": "???"}}), id="dict:nested"),
+            param(ListConfig("???"), id="list:missing"),
+            param(ListConfig(["???"]), id="list:missing_elt"),
+            param(ListConfig(["abc", ["???"]]), id="list:nested"),
+            param(OmegaConf.structured(B), id="structured:missing_field"),
             param(
                 OmegaConf.structured(Users({"Bond": "???"})),  # type: ignore
-                id="missing-in-dict-in-structured",
+                id="structured:missing_in_dict_field",
             ),
         ],
     )
@@ -523,9 +523,9 @@ class TestThrowOnMissing:
     @mark.parametrize(
         "src",
         [
-            param({"missing": "???", "subcfg": {"x": "${missing}"}}, id="dict-in-dict"),
-            param({"missing": "???", "subcfg": ["${missing}"]}, id="list-in-dict"),
-            param(NestedInterpolationToMissing, id="interp-in-structured"),
+            param({"missing": "???", "subcfg": {"x": "${missing}"}}, id="dict_in_dict"),
+            param({"missing": "???", "subcfg": ["${missing}"]}, id="list_in_dict"),
+            param(NestedInterpolationToMissing, id="interp_in_structured"),
         ],
     )
     def test_interpolation_to_missing_throws(self, op: Any, src: Any) -> None:
@@ -543,17 +543,17 @@ class TestThrowOnMissing:
             param(
                 {"missing": "???", "subcfg": {"x": "${missing}"}},
                 {"x": "???"},
-                id="interp-in-dict",
+                id="interp_in_dict",
             ),
             param(
                 {"missing": "???", "subcfg": ["${missing}"]},
                 ["???"],
-                id="interp-in-list",
+                id="interp_in_list",
             ),
             param(
                 NestedInterpolationToMissing,
                 {"baz": "???"},
-                id="interp-in-structured",
+                id="interp_in_structured",
             ),
         ],
     )
