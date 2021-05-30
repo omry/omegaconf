@@ -710,7 +710,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         """
         Instantiate an instance of `self._metadata.object_type`.
         This requires `self` to be a structured config.
-        Nested subconfigs are converted to_container with resolve=True.
+        Nested subconfigs are converted by calling `OmegaConf.to_object`.
         """
         from omegaconf import OmegaConf
 
