@@ -576,7 +576,7 @@ Using ``structured_config_mode``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can customize the treatment of ``OmegaConf.to_container()`` for
 Structured Config nodes using the ``structured_config_mode`` option.
-By default, Structured Config nodes are converted to plain dict.
+The default, ``structured_config_mode=SCMode.DICT``, converts Structured Config nodes to plain dict.
 
 Using ``structured_config_mode=SCMode.DICT_CONFIG`` causes such nodes to remain
 as ``DictConfig``, allowing attribute style access on the resulting node.
