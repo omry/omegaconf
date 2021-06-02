@@ -111,6 +111,11 @@ class NestedInterpolationToMissing:
 
 
 @dataclass
+class StructuredInterpolationKeyError:
+    name: str = "${bar}"
+
+
+@dataclass
 class StructuredWithMissing:
     num: int = MISSING
     opt_num: Optional[int] = MISSING

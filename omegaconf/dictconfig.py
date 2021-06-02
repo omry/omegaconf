@@ -44,7 +44,6 @@ from .errors import (
     ConfigKeyError,
     ConfigTypeError,
     InterpolationResolutionError,
-    InterpolationToMissingValueError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -725,7 +724,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             assert isinstance(node, Node)
             try:
                 node = node._dereference_node()
-            except InterpolationToMissingValueError as e:
+            except InterpolationResolutionError as e:
                 self._format_and_raise(key=k, value=None, cause=e)
             if isinstance(node, Container):
                 v = OmegaConf.to_object(node)

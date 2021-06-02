@@ -18,6 +18,7 @@ from tests import (
     B,
     Color,
     NestedInterpolationToMissing,
+    StructuredInterpolationKeyError,
     User,
     Users,
     warns_dict_subclass_deprecated,
@@ -508,6 +509,10 @@ class TestThrowOnMissing:
         param(
             OmegaConf.structured(NestedInterpolationToMissing).subcfg,
             id="interp_to_missing_in_structured",
+        ),
+        param(
+            OmegaConf.structured(StructuredInterpolationKeyError),
+            id="interp_key_error_in_structured",
         ),
     ],
 )

@@ -40,6 +40,7 @@ from tests import (
     Package,
     Plugin,
     Str2Int,
+    StructuredInterpolationKeyError,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
@@ -1304,6 +1305,17 @@ params = [
             ref_type=NestedInterpolationToMissing.BazParams,
         ),
         id="to_object:structured,throw_on_missing_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(StructuredInterpolationKeyError),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationKeyError,
+            key="name",
+            msg=("Interpolation key 'bar' not found"),
+            child_node=lambda cfg: cfg._get_node("name"),
+        ),
+        id="to_object:structured,throw_on_interpolation_key_error",
     ),
     # to_container throw_on_missing
     param(
