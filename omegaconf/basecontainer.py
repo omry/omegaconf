@@ -206,7 +206,7 @@ class BaseContainer(Container, ABC):
             ):
                 return conf._to_object()
 
-            retdict: Dict[str, Any] = {}
+            retdict: Dict[DictKeyType, Any] = {}
             for key in conf.keys():
                 node = conf._get_node(key)
                 assert isinstance(node, Node)
