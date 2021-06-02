@@ -780,7 +780,7 @@ def test_listconfig_creation_with_parent_flag(flag: str) -> None:
         param(ListConfig([]), id="list"),
     ],
 )
-def test_node_copy_on_append(node: Any):
+def test_node_copy_on_append(node: Any) -> None:
     cfg = OmegaConf.create([])
     cfg.append(node)
     assert cfg.__dict__["_content"][0] is not node
