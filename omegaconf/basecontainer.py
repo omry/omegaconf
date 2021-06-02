@@ -28,6 +28,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
+    ConfigTypeError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
@@ -42,6 +43,8 @@ class BaseContainer(Container, ABC):
     _resolvers: Dict[str, Any] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
+        if not (parent is None or isinstance(parent, Container)):
+            raise ConfigTypeError("Node parent should be a Container")
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
 

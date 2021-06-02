@@ -1401,6 +1401,22 @@ def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
         create_func(arg)
 
 
+@mark.parametrize(
+    ["create_func", "obj"],
+    [
+        param(DictConfig, {"zz": 10}, id="dict"),
+        param(DictConfig, {}, id="dict_empty"),
+        param(DictConfig, User, id="structured"),
+        param(ListConfig, ["zz"], id="list"),
+        param(ListConfig, [], id="list_empty"),
+        param(OmegaConf.create, {"zz": 10}, id="create"),
+    ],
+)
+def test_parent_type_error_on_creation(create_func: Any, obj: Any) -> None:
+    with raises(ConfigTypeError, match="Node parent should be a Container"):
+        create_func(obj, parent={"a"})  # bad parent
+
+
 def test_cycle_when_iterating_over_parents() -> None:
     c = OmegaConf.create({"x": {}})
     x_node = c._get_node("x")
