@@ -28,7 +28,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
-    InterpolationToMissingValueError,
+    InterpolationResolutionError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
@@ -197,11 +197,8 @@ class BaseContainer(Container, ABC):
             if resolve:
                 try:
                     node = node._dereference_node()
-                except InterpolationToMissingValueError as e:
-                    if throw_on_missing:
-                        conf._format_and_raise(key=key, value=None, cause=e)
-                    else:
-                        return "???"
+                except InterpolationResolutionError as e:
+                    conf._format_and_raise(key=key, value=None, cause=e)
 
             if isinstance(node, Container):
                 value = BaseContainer._to_content(

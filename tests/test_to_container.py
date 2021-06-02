@@ -13,10 +13,7 @@ from omegaconf import (
     SCMode,
     open_dict,
 )
-from omegaconf.errors import (
-    InterpolationResolutionError,
-    InterpolationToMissingValueError,
-)
+from omegaconf.errors import InterpolationResolutionError
 from tests import (
     B,
     Color,
@@ -228,22 +225,6 @@ def test_string_interpolation_with_readonly_parent() -> None:
         "a": 10,
         "b": {"c": "hello_10"},
     }
-
-
-@mark.parametrize(
-    "src,expected",
-    [
-        param(DictConfig(content="${bar}"), "${bar}", id="DictConfig"),
-        param(
-            OmegaConf.create({"foo": DictConfig(content="${bar}")}),
-            {"foo": "${bar}"},
-            id="nested_DictConfig",
-        ),
-    ],
-)
-def test_to_container_missing_inter_no_resolve(src: Any, expected: Any) -> None:
-    res = OmegaConf.to_container(src, resolve=False)
-    assert res == expected
 
 
 class TestInstantiateStructuredConfigs:
@@ -474,6 +455,23 @@ class TestEnumToStr:
         assert container == [expected]
 
 
+@mark.parametrize(
+    "cfg",
+    [
+        # to_container: throw_on_missing
+        # param(DictConfig("???"), id="dict:missing"),
+        param(DictConfig({"a": "???"}), id="dict:missing_value"),
+        param(DictConfig({"a": {"b": "???"}}), id="dict:nested"),
+        # param(ListConfig("???"), id="list:missing"),
+        param(ListConfig(["???"]), id="list:missing_elt"),
+        param(ListConfig(["abc", ["???"]]), id="list:nested"),
+        param(OmegaConf.structured(B), id="structured:missing_field"),
+        param(
+            OmegaConf.structured(Users({"Bond": "???"})),  # type: ignore
+            id="structured:missing_in_dict_field",
+        ),
+    ],
+)
 class TestThrowOnMissing:
     """Tests the `throw_on_missing` arugment to OmegaConf.to_container"""
 
@@ -487,27 +485,33 @@ class TestThrowOnMissing:
             param(OmegaConf.to_object, id="to_object"),
         ],
     )
-    @mark.parametrize(
-        "cfg",
-        [
-            # to_container: throw_on_missing
-            param(DictConfig("???"), id="dict:missing"),
-            param(DictConfig({"a": "???"}), id="dict:missing_value"),
-            param(DictConfig({"a": {"b": "???"}}), id="dict:nested"),
-            param(ListConfig("???"), id="list:missing"),
-            param(ListConfig(["???"]), id="list:missing_elt"),
-            param(ListConfig(["abc", ["???"]]), id="list:nested"),
-            param(OmegaConf.structured(B), id="structured:missing_field"),
-            param(
-                OmegaConf.structured(Users({"Bond": "???"})),  # type: ignore
-                id="structured:missing_in_dict_field",
-            ),
-        ],
-    )
     def test_throw_on_missing_raises(self, op: Any, cfg: Any) -> None:
         with raises(MissingMandatoryValue):
             op(cfg)
 
+    def test_no_throw_on_missing(self, cfg: Any) -> None:
+        assert OmegaConf.to_container(cfg, throw_on_missing=False) == cfg
+
+
+@mark.parametrize(
+    "src",
+    [
+        param({"foo": "${bar}"}, id="interp_key_error"),
+        param(
+            OmegaConf.create({"missing": "???", "subcfg": {"x": "${missing}"}}).subcfg,
+            id="interp_to_missing_in_dict",
+        ),
+        param(
+            OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+            id="interp_to_missing_in_list",
+        ),
+        param(
+            OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+            id="interp_to_missing_in_structured",
+        ),
+    ],
+)
+class TestResolveBadInterpolation:
     @mark.parametrize(
         "op",
         [
@@ -515,55 +519,26 @@ class TestThrowOnMissing:
                 lambda cfg: OmegaConf.to_container(
                     cfg, resolve=True, throw_on_missing=True
                 ),
-                id="to_container",
+                id="throw_on_missing",
+            ),
+            param(
+                lambda cfg: OmegaConf.to_container(
+                    cfg, resolve=True, throw_on_missing=False
+                ),
+                id="no_throw_on_missing",
             ),
             param(OmegaConf.to_object, id="to_object"),
         ],
     )
-    @mark.parametrize(
-        "src",
-        [
-            param({"missing": "???", "subcfg": {"x": "${missing}"}}, id="dict_in_dict"),
-            param({"missing": "???", "subcfg": ["${missing}"]}, id="list_in_dict"),
-            param(NestedInterpolationToMissing, id="interp_in_structured"),
-        ],
-    )
-    def test_interpolation_to_missing_throws(self, op: Any, src: Any) -> None:
-        """
-        Interpolation to missing: Test that InterpolationToMissingValueError
-        is raised when resolve==True and throw_on_missing==True.
-        """
+    def test_resolve_raises(self, op: Any, src: Any) -> None:
         cfg = OmegaConf.create(src)
-        with raises(InterpolationToMissingValueError):
-            op(cfg.subcfg)
+        with raises(InterpolationResolutionError):
+            op(cfg)
 
-    @mark.parametrize(
-        "src, expected_subcfg",
-        [
-            param(
-                {"missing": "???", "subcfg": {"x": "${missing}"}},
-                {"x": "???"},
-                id="interp_in_dict",
-            ),
-            param(
-                {"missing": "???", "subcfg": ["${missing}"]},
-                ["???"],
-                id="interp_in_list",
-            ),
-            param(
-                NestedInterpolationToMissing,
-                {"baz": "???"},
-                id="interp_in_structured",
-            ),
-        ],
-    )
-    def test_interpolation_to_missing_no_throw(
-        self, src: Any, expected_subcfg: Any
-    ) -> None:
-        """
-        Interpolation to missing: Test that no error
-        is raised when resolve==True and throw_on_missing==False.
-        """
-        cfg = OmegaConf.create(src).subcfg
-        res = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
-        assert res == expected_subcfg
+    @mark.parametrize("throw_on_missing", [True, False])
+    def test_no_resolve(self, src: Any, throw_on_missing: bool) -> None:
+        cfg = OmegaConf.create(src)
+        ret = OmegaConf.to_container(
+            cfg, resolve=False, throw_on_missing=throw_on_missing
+        )
+        assert ret == cfg
