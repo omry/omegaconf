@@ -20,7 +20,6 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
-    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _valid_dict_key_annotation_type,
@@ -726,12 +725,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 node = node._dereference_node()
             except InterpolationResolutionError as e:
                 self._format_and_raise(key=k, value=None, cause=e)
-            if isinstance(node, Container):
-                v = OmegaConf.to_object(node)
-            else:
-                v = node._value()
-
-            if _is_missing_literal(v):
+            if node._is_missing():
                 self._format_and_raise(
                     key=k,
                     value=None,
@@ -739,6 +733,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
                     ),
                 )
+            if isinstance(node, Container):
+                v = OmegaConf.to_object(node)
+            else:
+                v = node._value()
+
             if k in object_type_field_names:
                 field_items[k] = v
             else:
