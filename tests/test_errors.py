@@ -1413,7 +1413,9 @@ def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
     ],
 )
 def test_parent_type_error_on_creation(create_func: Any, obj: Any) -> None:
-    with raises(ConfigTypeError, match="Node parent should be a Container"):
+    with raises(
+        ConfigTypeError, match=re.escape("Parent type is not omegaconf.Container")
+    ):
         create_func(obj, parent={"a"})  # bad parent
 
 
