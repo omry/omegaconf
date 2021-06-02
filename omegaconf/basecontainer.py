@@ -44,7 +44,7 @@ class BaseContainer(Container, ABC):
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
         if not (parent is None or isinstance(parent, Container)):
-            raise ConfigTypeError("Node parent should be a Container")
+            raise ConfigTypeError("Parent type is not omegaconf.Container")
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
 
