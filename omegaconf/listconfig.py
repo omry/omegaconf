@@ -246,12 +246,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
+        content = self.__dict__["_content"]
+        index = len(content)
+        content.append(None)
         try:
-            index = len(self.__dict__["_content"])
-            self.__dict__["_content"].append(None)
             self._set_item_impl(index, item)
         except Exception as e:
-            del self.__dict__["_content"][index]
+            del content[index]
             self._format_and_raise(key=index, value=item, cause=e)
             assert False
 
