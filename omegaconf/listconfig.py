@@ -253,7 +253,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._validate_set(key=index, value=item)
 
             if isinstance(item, Node):
-                item = copy.deepcopy(item)
+                do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
+                if do_deepcopy:
+                    item = copy.deepcopy(item)
+
             node = _maybe_wrap(
                 ref_type=self.__dict__["_metadata"].element_type,
                 key=index,
