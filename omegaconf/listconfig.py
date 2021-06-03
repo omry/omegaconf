@@ -16,6 +16,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
+    _is_missing_literal,
     _is_none,
     _is_optional,
     format_and_raise,
@@ -481,6 +482,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return ListConfig._list_eq(self, other)
         if other is None or isinstance(other, ListConfig):
             return ListConfig._list_eq(self, other)
+        if self._is_missing():
+            return _is_missing_literal(other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:

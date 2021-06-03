@@ -594,6 +594,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return DictConfig._dict_conf_eq(self, other)
         if isinstance(other, DictConfig):
             return DictConfig._dict_conf_eq(self, other)
+        if self._is_missing():
+            return _is_missing_literal(other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
