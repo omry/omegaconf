@@ -100,6 +100,20 @@ def test_eq(i1: Any, i2: Any) -> None:
 
 
 @mark.parametrize(
+    "cfg,other",
+    [
+        param(DictConfig("???"), "???", id="missing_dictconfig"),
+        param(ListConfig("???"), "???", id="missing_listconfig"),
+    ],
+)
+def test_missing_container_string_eq(cfg: Any, other: Any) -> None:
+    assert cfg == other
+    assert other == cfg
+    assert not (cfg != other)
+    assert not (other != cfg)
+
+
+@mark.parametrize(
     "input1, input2",
     [
         # Dicts
