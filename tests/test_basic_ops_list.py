@@ -770,3 +770,17 @@ def test_listconfig_creation_with_parent_flag(flag: str) -> None:
     d = [1, 2, 3]
     cfg = ListConfig(d, parent=parent)
     assert cfg == d
+
+
+@mark.parametrize(
+    "node",
+    [
+        param(AnyNode("hello"), id="any"),
+        param(DictConfig({}), id="dict"),
+        param(ListConfig([]), id="list"),
+    ],
+)
+def test_node_copy_on_append(node: Any) -> None:
+    cfg = OmegaConf.create([])
+    cfg.append(node)
+    assert cfg.__dict__["_content"][0] is not node
