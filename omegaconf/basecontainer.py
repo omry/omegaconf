@@ -28,6 +28,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
+    ConfigTypeError,
     InterpolationResolutionError,
     MissingMandatoryValue,
     ReadonlyConfigError,
@@ -43,6 +44,8 @@ class BaseContainer(Container, ABC):
     _resolvers: Dict[str, Any] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
+        if not (parent is None or isinstance(parent, Container)):
+            raise ConfigTypeError("Parent type is not omegaconf.Container")
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
 
@@ -239,7 +242,7 @@ class BaseContainer(Container, ABC):
             ):
                 return conf._to_object()
 
-            retdict: Dict[str, Any] = {}
+            retdict: Dict[DictKeyType, Any] = {}
             for key in conf.keys():
                 value = get_node_value(key)
                 if enum_to_str and isinstance(key, Enum):

@@ -16,6 +16,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
+    _is_missing_literal,
     _is_none,
     _is_optional,
     format_and_raise,
@@ -246,21 +247,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
+        content = self.__dict__["_content"]
+        index = len(content)
+        content.append(None)
         try:
-            from omegaconf.omegaconf import _maybe_wrap
-
-            index = len(self)
-            self._validate_set(key=index, value=item)
-
-            node = _maybe_wrap(
-                ref_type=self.__dict__["_metadata"].element_type,
-                key=index,
-                value=item,
-                is_optional=_is_optional(item),
-                parent=self,
-            )
-            self.__dict__["_content"].append(node)
+            self._set_item_impl(index, item)
         except Exception as e:
+            del content[index]
             self._format_and_raise(key=index, value=item, cause=e)
             assert False
 
@@ -476,6 +469,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return ListConfig._list_eq(self, other)
         if other is None or isinstance(other, ListConfig):
             return ListConfig._list_eq(self, other)
+        if self._is_missing():
+            return _is_missing_literal(other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:

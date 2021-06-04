@@ -20,6 +20,7 @@ from ._utils import (
     ValueKind,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _valid_dict_key_annotation_type,
@@ -503,10 +504,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def keys(self) -> Any:
+    def keys(self) -> AbstractSet[DictKeyType]:
         if self._is_missing() or self._is_interpolation() or self._is_none():
-            return list()
-        return self.__dict__["_content"].keys()
+            return set()
+        ret = self.__dict__["_content"].keys()
+        assert isinstance(ret, AbstractSet)
+        return ret
 
     def __contains__(self, key: object) -> bool:
         """
@@ -591,6 +594,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return DictConfig._dict_conf_eq(self, other)
         if isinstance(other, DictConfig):
             return DictConfig._dict_conf_eq(self, other)
+        if self._is_missing():
+            return _is_missing_literal(other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
@@ -719,6 +724,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         field_items: Dict[str, Any] = {}
         nonfield_items: Dict[str, Any] = {}
         for k in self.keys():
+            assert isinstance(k, str)
             node = self._get_node(k)
             assert isinstance(node, Node)
             try:

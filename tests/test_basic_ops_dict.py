@@ -8,6 +8,7 @@ from pytest import mark, param, raises
 
 from omegaconf import (
     MISSING,
+    AnyNode,
     DictConfig,
     DictKeyType,
     ListConfig,
@@ -1133,3 +1134,17 @@ def test_dictconfig_creation_with_parent_flag(flag: str, data: Any) -> None:
     parent._set_flag(flag, True)
     cfg = DictConfig(data, parent=parent)
     assert cfg == data
+
+
+@mark.parametrize(
+    "node",
+    [
+        param(AnyNode("hello"), id="any"),
+        param(DictConfig({}), id="dict"),
+        param(ListConfig([]), id="list"),
+    ],
+)
+def test_node_copy_on_set(node: Any) -> None:
+    cfg = OmegaConf.create({})
+    cfg.a = node
+    assert cfg.__dict__["_content"]["a"] is not node
