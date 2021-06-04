@@ -460,10 +460,10 @@ class TestEnumToStr:
     "cfg",
     [
         # to_container: throw_on_missing
-        # param(DictConfig("???"), id="dict:missing"),
+        param(DictConfig("???"), id="dict:missing"),
         param(DictConfig({"a": "???"}), id="dict:missing_value"),
         param(DictConfig({"a": {"b": "???"}}), id="dict:nested"),
-        # param(ListConfig("???"), id="list:missing"),
+        param(ListConfig("???"), id="list:missing"),
         param(ListConfig(["???"]), id="list:missing_elt"),
         param(ListConfig(["abc", ["???"]]), id="list:nested"),
         param(OmegaConf.structured(B), id="structured:missing_field"),
