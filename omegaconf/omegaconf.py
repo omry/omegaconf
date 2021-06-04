@@ -536,7 +536,6 @@ class OmegaConf:
         :param resolve: True to resolve all values
         :param throw_on_missing: When True, raise MissingMandatoryValue if any missing values are present.
             When False (the default), replace missing values with the string "???" in the output container.
-            (TODO: decide how to handle InterpolationToMissingValueError).
         :param enum_to_str: True to convert Enum keys and values to strings
         :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
             By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
