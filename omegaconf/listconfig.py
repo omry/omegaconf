@@ -247,26 +247,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=index, value=value, cause=e)
 
     def append(self, item: Any) -> None:
+        content = self.__dict__["_content"]
+        index = len(content)
+        content.append(None)
         try:
-            from omegaconf.omegaconf import _maybe_wrap
-
-            index = len(self)
-            self._validate_set(key=index, value=item)
-
-            if isinstance(item, Node):
-                do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
-                if do_deepcopy:
-                    item = copy.deepcopy(item)
-
-            node = _maybe_wrap(
-                ref_type=self.__dict__["_metadata"].element_type,
-                key=index,
-                value=item,
-                is_optional=_is_optional(item),
-                parent=self,
-            )
-            self.__dict__["_content"].append(node)
+            self._set_item_impl(index, item)
         except Exception as e:
+            del content[index]
             self._format_and_raise(key=index, value=item, cause=e)
             assert False
 
