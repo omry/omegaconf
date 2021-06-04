@@ -787,16 +787,28 @@ class OmegaConf:
         omegaconf._impl._resolve(cfg)
 
     @staticmethod
-    def missing_keys(cfg: Container) -> Set[str]:
+    def missing_keys(cfg: Union[Container, Any]) -> Set[str]:
         """
         Returns a set of missing keys flatten in a dotlist style.
-        :param cfg: An OmegaConf container .
+        :param cfg: An `OmegaConf.Container`,
+                    or convertible object via `OmegaConf.create` (dict, list, ...).
         :return: set of strings of the missing keys.
+        :raises ValueError: On input not representing a config.
         """
+        if not isinstance(cfg, Container):
+            try:
+                cfg = OmegaConf.create(cfg)  # type: ignore
+            except ValidationError:
+                raise ValueError(f'Could not create a config out of {cfg}')
         missings = set()
 
         def gather(_cfg: Container, prefix: str = "") -> None:
-            for key in _cfg:
+            if isinstance(_cfg, ListConfig):
+                itr = range(len(_cfg))
+            else:
+                itr = _cfg
+
+            for key in itr:
                 if OmegaConf.is_missing(_cfg, key):
                     missings.add(f"{prefix}{key}")
                 elif OmegaConf.is_config(_cfg[key]):
