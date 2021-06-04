@@ -640,6 +640,6 @@ def test_missing_keys(cfg: Any, expected: Any) -> None:
     "cfg",
     [float, int]
 )
-def test_missing_keys_invalid_input(cfg):
-    with raises(ValueError) as exc:
-        OmegaConf.missing_keys(cfg)  # type: ignore
+def test_missing_keys_invalid_input(cfg: Any) -> None:
+    with raises(ValueError):
+        OmegaConf.missing_keys(cfg)
