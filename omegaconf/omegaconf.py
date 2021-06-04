@@ -16,6 +16,7 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Iterable,
     List,
     Optional,
     Set,
@@ -787,25 +788,23 @@ class OmegaConf:
         omegaconf._impl._resolve(cfg)
 
     @staticmethod
-    def missing_keys(cfg: Union[Container, Any]) -> Set[str]:
+    def missing_keys(cfg: Any) -> Set[str]:
         """
         Returns a set of missing keys flatten in a dotlist style.
         :param cfg: An `OmegaConf.Container`,
-                    or convertible object via `OmegaConf.create` (dict, list, ...).
+                    or a convertible object via `OmegaConf.create` (dict, list, ...).
         :return: set of strings of the missing keys.
         :raises ValueError: On input not representing a config.
         """
         if not isinstance(cfg, Container):
             try:
-                cfg_ = OmegaConf.create(cfg)
+                cfg = OmegaConf.create(cfg)
             except ValidationError:
                 raise ValueError(f"Could not create a config out of {cfg}")
-        else:
-            cfg_ = cfg
-        missings = set()
+        missings: Set[str] = set()
 
         def gather(_cfg: Container, prefix: str = "") -> None:
-            itr: Any
+            itr: Iterable[Any]
             if isinstance(_cfg, ListConfig):
                 itr = range(len(_cfg))
             else:
@@ -817,7 +816,7 @@ class OmegaConf:
                 elif OmegaConf.is_config(_cfg[key]):
                     gather(_cfg[key], prefix=f"{prefix}{key}.")
 
-        gather(cfg_)
+        gather(cfg)
         return missings
 
     # === private === #

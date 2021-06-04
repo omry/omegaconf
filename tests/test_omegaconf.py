@@ -68,29 +68,29 @@ from tests import Color, ConcretePlugin, IllegalType, StructuredWithMissing
             id="missing_dict_interpolation",
         ),
         (
-                {"foo": "${bar}", "bar": MISSING},
-                "foo",
-                False,
-                raises(InterpolationToMissingValueError),
+            {"foo": "${bar}", "bar": MISSING},
+            "foo",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
         (
-                {"foo": "foo_${bar}", "bar": MISSING},
-                "foo",
-                False,
-                raises(InterpolationToMissingValueError),
+            {"foo": "foo_${bar}", "bar": MISSING},
+            "foo",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
         (
-                {"foo": "${unknown_resolver:foo}"},
-                "foo",
-                False,
-                raises(UnsupportedInterpolationType),
+            {"foo": "${unknown_resolver:foo}"},
+            "foo",
+            False,
+            raises(UnsupportedInterpolationType),
         ),
         ({"foo": StringNode(value="???")}, "foo", True, raises(MissingMandatoryValue)),
         (
-                {"foo": StringNode(value="???"), "inter": "${foo}"},
-                "inter",
-                False,
-                raises(InterpolationToMissingValueError),
+            {"foo": StringNode(value="???"), "inter": "${foo}"},
+            "inter",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
         (StructuredWithMissing, "num", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_num", True, raises(MissingMandatoryValue)),
@@ -101,27 +101,27 @@ from tests import Color, ConcretePlugin, IllegalType, StructuredWithMissing
         (StructuredWithMissing, "user", True, raises(MissingMandatoryValue)),
         (StructuredWithMissing, "opt_user", True, raises(MissingMandatoryValue)),
         (
-                StructuredWithMissing,
-                "inter_user",
-                False,
-                raises(InterpolationToMissingValueError),
+            StructuredWithMissing,
+            "inter_user",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
         (
-                StructuredWithMissing,
-                "inter_opt_user",
-                False,
-                raises(InterpolationToMissingValueError),
+            StructuredWithMissing,
+            "inter_opt_user",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
         (
-                StructuredWithMissing,
-                "inter_num",
-                False,
-                raises(InterpolationToMissingValueError),
+            StructuredWithMissing,
+            "inter_num",
+            False,
+            raises(InterpolationToMissingValueError),
         ),
     ],
 )
 def test_is_missing(
-        cfg: Any, key: str, expected_is_missing: bool, expectation: Any
+    cfg: Any, key: str, expected_is_missing: bool, expectation: Any
 ) -> None:
     cfg = OmegaConf.create(cfg)
     with expectation:
@@ -240,28 +240,28 @@ def test_coverage_for_deprecated_OmegaConf_is_optional() -> None:
         (lambda none: FloatNode(value=10 if not none else None, is_optional=True)),
         (lambda none: BooleanNode(value=True if not none else None, is_optional=True)),
         (
-                lambda none: EnumNode(
-                    enum_type=Color,
-                    value=Color.RED if not none else None,
-                    is_optional=True,
-                )
+            lambda none: EnumNode(
+                enum_type=Color,
+                value=Color.RED if not none else None,
+                is_optional=True,
+            )
         ),
         (
-                lambda none: ListConfig(
-                    content=[1, 2, 3] if not none else None, is_optional=True
-                )
+            lambda none: ListConfig(
+                content=[1, 2, 3] if not none else None, is_optional=True
+            )
         ),
         (
-                lambda none: DictConfig(
-                    content={"foo": "bar"} if not none else None, is_optional=True
-                )
+            lambda none: DictConfig(
+                content={"foo": "bar"} if not none else None, is_optional=True
+            )
         ),
         (
-                lambda none: DictConfig(
-                    ref_type=ConcretePlugin,
-                    content=ConcretePlugin() if not none else None,
-                    is_optional=True,
-                )
+            lambda none: DictConfig(
+                ref_type=ConcretePlugin,
+                content=ConcretePlugin() if not none else None,
+                is_optional=True,
+            )
         ),
     ],
 )
@@ -302,48 +302,48 @@ def test_is_none_invalid_node() -> None:
     "fac",
     [
         (
-                lambda inter: StringNode(
-                    value="foo" if inter is None else inter, is_optional=True
-                )
+            lambda inter: StringNode(
+                value="foo" if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: IntegerNode(
-                    value=10 if inter is None else inter, is_optional=True
-                )
+            lambda inter: IntegerNode(
+                value=10 if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: FloatNode(
-                    value=10 if inter is None else inter, is_optional=True
-                )
+            lambda inter: FloatNode(
+                value=10 if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: BooleanNode(
-                    value=True if inter is None else inter, is_optional=True
-                )
+            lambda inter: BooleanNode(
+                value=True if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: EnumNode(
-                    enum_type=Color,
-                    value=Color.RED if inter is None else inter,
-                    is_optional=True,
-                )
+            lambda inter: EnumNode(
+                enum_type=Color,
+                value=Color.RED if inter is None else inter,
+                is_optional=True,
+            )
         ),
         (
-                lambda inter: ListConfig(
-                    content=[1, 2, 3] if inter is None else inter, is_optional=True
-                )
+            lambda inter: ListConfig(
+                content=[1, 2, 3] if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: DictConfig(
-                    content={"foo": "bar"} if inter is None else inter, is_optional=True
-                )
+            lambda inter: DictConfig(
+                content={"foo": "bar"} if inter is None else inter, is_optional=True
+            )
         ),
         (
-                lambda inter: DictConfig(
-                    ref_type=ConcretePlugin,
-                    content=ConcretePlugin() if inter is None else inter,
-                    is_optional=True,
-                )
+            lambda inter: DictConfig(
+                ref_type=ConcretePlugin,
+                content=ConcretePlugin() if inter is None else inter,
+                is_optional=True,
+            )
         ),
     ],
     ids=[
@@ -524,122 +524,80 @@ def test_resolve_invalid_input() -> None:
     "cfg, expected",
     [
         # dict:
+        (DictConfig({"a": 10, "b": {"c": "???", "d": "..."}}), {"b.c"}),
         (
-            DictConfig({
-                "a": 10,
-                "b": {
-                    "c": "???",
-                    "d": "..."
+            DictConfig(
+                {
+                    "a": "???",
+                    "b": {
+                        "foo": "bar",
+                        "bar": "???",
+                        "more": {"missing": "???", "available": "yes"},
+                    },
                 }
-            }),
-            {"b.c"}
+            ),
+            {"a", "b.bar", "b.more.missing"},
         ),
         (
-            DictConfig({
-                "a": "???",
-                "b": {
-                    "foo": "bar",
-                    "bar": "???",
-                    "more": {
-                        "missing": "???",
-                        "available": "yes"
-                    }
-                },
-            }),
-            {"a", "b.bar", "b.more.missing"}
-        ),
-        (
-            DictConfig({
-                "a": "a",
-                "b": {
-                    "foo": "bar",
-                    "bar": "foo",
-                },
-            }),
-            set()
-        ),
-        (
-            {
-                "foo": "bar",
-                "bar": "???",
-                "more": {
-                    "foo": "???",
-                    "bar": "foo"
+            DictConfig(
+                {
+                    "a": "a",
+                    "b": {
+                        "foo": "bar",
+                        "bar": "foo",
+                    },
                 }
-            },
-            {"bar", "more.foo"}
+            ),
+            set(),
         ),
-
+        (
+            {"foo": "bar", "bar": "???", "more": {"foo": "???", "bar": "foo"}},
+            {"bar", "more.foo"},
+        ),
         # list:
-        (
-            ListConfig([
-                "???",
-                "foo",
-                "bar",
-                "???",
-                77
-            ]),
-            {"0", "3"}
-        ),
-        (
-            ListConfig([
-                "",
-                "foo",
-                "bar"
-            ]),
-            set()
-        ),
-        (
-            ["foo", "bar", "???"],
-            {"2"}
-        ),
-
+        (ListConfig(["???", "foo", "bar", "???", 77]), {"0", "3"}),
+        (ListConfig(["", "foo", "bar"]), set()),
+        (["foo", "bar", "???"], {"2"}),
         # mixing:
         (
-            ListConfig([
-                "???",
-                "foo",
-                DictConfig({
-                    "a": True,
-                    "b": "???",
-                    "c": ["???", None],
-                    "d": {
-                        "e": "???",
-                        "f": "fff",
-                        "g": [True, "???"]
-                    }
-                }),
-                "???",
-                77
-            ]),
-            {"0", "2.b", "2.c.0", "2.d.e", "2.d.g.1", "3"}
+            ListConfig(
+                [
+                    "???",
+                    "foo",
+                    DictConfig(
+                        {
+                            "a": True,
+                            "b": "???",
+                            "c": ["???", None],
+                            "d": {"e": "???", "f": "fff", "g": [True, "???"]},
+                        }
+                    ),
+                    "???",
+                    77,
+                ]
+            ),
+            {"0", "2.b", "2.c.0", "2.d.e", "2.d.g.1", "3"},
         ),
         (
             {
                 "list": [
                     0,
-                    DictConfig({
-                        "foo": "???",
-                        "bar": None
-                    }),
+                    DictConfig({"foo": "???", "bar": None}),
                     "???",
-                    ["???", 3, False]
+                    ["???", 3, False],
                 ],
                 "x": "y",
-                "y": "???"
+                "y": "???",
             },
-            {"list.1.foo", "list.2", "list.3.0", "y"}
-        )
-    ]
+            {"list.1.foo", "list.2", "list.3.0", "y"},
+        ),
+    ],
 )
 def test_missing_keys(cfg: Any, expected: Any) -> None:
     assert OmegaConf.missing_keys(cfg) == expected
 
 
-@mark.parametrize(
-    "cfg",
-    [float, int]
-)
+@mark.parametrize("cfg", [float, int])
 def test_missing_keys_invalid_input(cfg: Any) -> None:
     with raises(ValueError):
         OmegaConf.missing_keys(cfg)
