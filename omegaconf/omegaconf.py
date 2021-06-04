@@ -797,17 +797,19 @@ class OmegaConf:
         """
         if not isinstance(cfg, Container):
             try:
-                cfg = OmegaConf.create(cfg)
+                cfg_ = OmegaConf.create(cfg)
             except ValidationError:
                 raise ValueError(f"Could not create a config out of {cfg}")
-        cfg: Container
+        else:
+            cfg_ = cfg
         missings = set()
 
         def gather(_cfg: Container, prefix: str = "") -> None:
+            itr: Any
             if isinstance(_cfg, ListConfig):
-                itr = range(len(_cfg))  # type: ignore
+                itr = range(len(_cfg))
             else:
-                itr = _cfg  # type: ignore
+                itr = _cfg
 
             for key in itr:
                 if OmegaConf.is_missing(_cfg, key):
@@ -815,7 +817,7 @@ class OmegaConf:
                 elif OmegaConf.is_config(_cfg[key]):
                     gather(_cfg[key], prefix=f"{prefix}{key}.")
 
-        gather(cfg)
+        gather(cfg_)
         return missings
 
     # === private === #
