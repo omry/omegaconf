@@ -534,20 +534,13 @@ def test_resolve_invalid_input() -> None:
                         "bar": "???",
                         "more": {"missing": "???", "available": "yes"},
                     },
+                    Color.GREEN: {"tint": "???", "default": Color.BLUE}
                 }
             ),
-            {"a", "b.bar", "b.more.missing"},
+            {"a", "b.bar", "b.more.missing", "GREEN.tint"},
         ),
         (
-            DictConfig(
-                {
-                    "a": "a",
-                    "b": {
-                        "foo": "bar",
-                        "bar": "foo",
-                    },
-                }
-            ),
+            DictConfig({"a": "a", "b": {"foo": "bar", "bar": "foo"}}),
             set(),
         ),
         (
@@ -555,9 +548,10 @@ def test_resolve_invalid_input() -> None:
             {"bar", "more.foo"},
         ),
         # list:
-        (ListConfig(["???", "foo", "bar", "???", 77]), {"0", "3"}),
+        (ListConfig(["???", "foo", "bar", "???", 77]), {"[0]", "[3]"}),
         (ListConfig(["", "foo", "bar"]), set()),
-        (["foo", "bar", "???"], {"2"}),
+        (["foo", "bar", "???"], {"[2]"}),
+        (["foo", "???", ["???", "bar"]], {"[1]", "[2][0]"}),
         # mixing:
         (
             ListConfig(
@@ -576,7 +570,7 @@ def test_resolve_invalid_input() -> None:
                     77,
                 ]
             ),
-            {"0", "2.b", "2.c.0", "2.d.e", "2.d.g.1", "3"},
+            {"[0]", "[2].b", "[2].c[0]", "[2].d.e", "[2].d.g[1]", "[3]"},
         ),
         (
             {
@@ -589,8 +583,9 @@ def test_resolve_invalid_input() -> None:
                 "x": "y",
                 "y": "???",
             },
-            {"list.1.foo", "list.2", "list.3.0", "y"},
+            {"list[1].foo", "list[2]", "list[3][0]", "y"},
         ),
+        ({Color.RED: ["???", {"missing": "???"}]}, {"RED[0]", "RED[1].missing"})
     ],
 )
 def test_missing_keys(cfg: Any, expected: Any) -> None:
