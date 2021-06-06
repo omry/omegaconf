@@ -534,7 +534,7 @@ def test_resolve_invalid_input() -> None:
                         "bar": "???",
                         "more": {"missing": "???", "available": "yes"},
                     },
-                    Color.GREEN: {"tint": "???", "default": Color.BLUE}
+                    Color.GREEN: {"tint": "???", "default": Color.BLUE},
                 }
             ),
             {"a", "b.bar", "b.more.missing", "GREEN.tint"},
@@ -585,7 +585,7 @@ def test_resolve_invalid_input() -> None:
             },
             {"list[1].foo", "list[2]", "list[3][0]", "y"},
         ),
-        ({Color.RED: ["???", {"missing": "???"}]}, {"RED[0]", "RED[1].missing"})
+        ({Color.RED: ["???", {"missing": "???"}]}, {"RED[0]", "RED[1].missing"}),
     ],
 )
 def test_missing_keys(cfg: Any, expected: Any) -> None:
