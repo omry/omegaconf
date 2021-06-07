@@ -665,7 +665,19 @@ params = [
             full_key="bar",
             child_node=lambda cfg: cfg._get_node("bar"),
         ),
-        id="structured:assign_with_invalid_value,float",
+        id="typed_DictConfig:assign_with_invalid_value,float",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": FloatNode(123.456)}),
+            op=lambda cfg: cfg.__setattr__("bar", Color.BLUE),
+            exception_type=ValidationError,
+            msg="Value 'Color.BLUE' of type 'tests.Color' could not be converted to Float",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,full_module_in_error",
     ),
     param(
         Expected(

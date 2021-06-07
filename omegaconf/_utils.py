@@ -774,7 +774,7 @@ def format_and_raise(
         KEY=key,
         FULL_KEY=full_key,
         VALUE=value,
-        VALUE_TYPE=f"{type(value).__name__}",
+        VALUE_TYPE=type_str(type(value), include_module_name=True),
         KEY_TYPE=f"{type(key).__name__}",
     )
 
