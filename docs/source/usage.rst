@@ -572,6 +572,31 @@ If ``resolve`` is set to ``True``, interpolations will be resolved during conver
     type: dict, value: {'foo': 'bar', 'foo2': 'bar'}
 
 
+Using ``throw_on_missing``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can control how missing values are handled by ``OmegaConf.to_container()``
+using the ``throw_on_missing`` keyword argument.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({"foo": "bar", "missing": "???"})
+    >>> has_missing = OmegaConf.to_container(conf, throw_on_missing=False)
+    >>> show(has_missing)
+    type: dict, value: {'foo': 'bar', 'missing': '???'}
+    >>> OmegaConf.to_container(conf, throw_on_missing=True)
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.MissingMandatoryValue: Missing mandatory value: missing
+        full_key: missing
+        object_type=dict
+
+
+By default, ``throw_on_missing=False``.
+Setting ``throw_on_missing=True`` can be useful if you want your program to
+fail fast when there are missing values in the config.
+
+
+
 Using ``structured_config_mode``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can customize the treatment of ``OmegaConf.to_container()`` for
@@ -621,7 +646,7 @@ Note that here, ``container["structured_config"]`` is actually an instance of
 ``MyConfig``.
 
 The call ``OmegaConf.to_object(conf)`` is equivalent to
-``OmegaConf.to_container(conf, resolve=True,
+``OmegaConf.to_container(conf, resolve=True, throw_on_missing=True
 structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.resolve
