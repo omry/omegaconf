@@ -1,1 +1,1 @@
-In the error message when assigning a mis-typed value to a float-typed or int-typed field, include the type of the mis-typed value.
+Improved error message when assigning an invalid value to int or float config nodes
