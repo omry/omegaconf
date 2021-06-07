@@ -1,0 +1,1 @@
+Improved error message when assigning an invalid value to int or float config nodes

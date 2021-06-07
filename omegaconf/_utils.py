@@ -774,7 +774,7 @@ def format_and_raise(
         KEY=key,
         FULL_KEY=full_key,
         VALUE=value,
-        VALUE_TYPE=f"{type(value).__name__}",
+        VALUE_TYPE=type_str(type(value), include_module_name=True),
         KEY_TYPE=f"{type(key).__name__}",
     )
 
@@ -821,7 +821,7 @@ def format_and_raise(
     _raise(ex, cause)
 
 
-def type_str(t: Any) -> str:
+def type_str(t: Any, include_module_name: bool = False) -> str:
     is_optional, t = _resolve_optional(t)
     if t is None:
         return type(t).__name__
@@ -848,16 +848,31 @@ def type_str(t: Any) -> str:
         else:
             if t._name is None:
                 if t.__origin__ is not None:
-                    name = type_str(t.__origin__)
+                    name = type_str(
+                        t.__origin__, include_module_name=include_module_name
+                    )
             else:
                 name = str(t._name)
 
     args = getattr(t, "__args__", None)
     if args is not None:
-        args = ", ".join([type_str(t) for t in t.__args__])
+        args = ", ".join(
+            [type_str(t, include_module_name=include_module_name) for t in t.__args__]
+        )
         ret = f"{name}[{args}]"
     else:
         ret = name
+    if include_module_name:
+        if (
+            hasattr(t, "__module__")
+            and t.__module__ != "builtins"
+            and t.__module__ != "typing"
+            and not t.__module__.startswith("omegaconf.")
+        ):
+            module_prefix = t.__module__ + "."
+        else:
+            module_prefix = ""
+        ret = module_prefix + ret
     if is_optional:
         return f"Optional[{ret}]"
     else:
