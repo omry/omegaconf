@@ -556,34 +556,47 @@ class TestResolveBadInterpolation:
             op(cfg)
 
     @mark.parametrize(
-        "cfg",
+        "cfg,expected",
         [
-            param(OmegaConf.create({"foo": "${bar}"}), id="interp_key_error"),
+            param(
+                OmegaConf.create({"foo": "${bar}"}),
+                {"foo": "${bar}"},
+                id="interp_key_error",
+            ),
             param(
                 OmegaConf.create(
                     {"missing": "???", "subcfg": {"x": "${missing}"}}
                 ).subcfg,
+                {"x": "${missing}"},
                 id="interp_to_missing_in_dict",
             ),
             param(
                 OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+                ["${missing}"],
                 id="interp_to_missing_in_list",
             ),
             param(
                 OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+                {"baz": "${..name}"},
                 id="interp_to_missing_in_structured",
             ),
             param(
                 OmegaConf.structured(StructuredInterpolationKeyError),
+                {"name": "${bar}"},
                 id="interp_key_error_in_structured",
+            ),
+            param(
+                OmegaConf.create({"foo": DictConfig(content="${bar}")}),
+                {"foo": "${bar}"},
+                id="interp_key_error_in_dict",
             ),
         ],
     )
     @mark.parametrize("throw_on_missing", [True, False])
     def test_resolve_bad_interpolation_no_resolve(
-        self, cfg: Any, throw_on_missing: bool
+        self, cfg: Any, expected: Any, throw_on_missing: bool
     ) -> None:
         ret = OmegaConf.to_container(
             cfg, resolve=False, throw_on_missing=throw_on_missing
         )
-        assert ret == cfg
+        assert ret == expected
