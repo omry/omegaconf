@@ -13,7 +13,11 @@ from omegaconf import (
     SCMode,
     open_dict,
 )
-from omegaconf.errors import InterpolationResolutionError
+from omegaconf.errors import (
+    InterpolationKeyError,
+    InterpolationResolutionError,
+    InterpolationToMissingValueError,
+)
 from tests import (
     B,
     Color,
@@ -494,29 +498,39 @@ class TestThrowOnMissing:
         assert OmegaConf.to_container(cfg, throw_on_missing=False) == cfg
 
 
-@mark.parametrize(
-    "src",
-    [
-        param({"foo": "${bar}"}, id="interp_key_error"),
-        param(
-            OmegaConf.create({"missing": "???", "subcfg": {"x": "${missing}"}}).subcfg,
-            id="interp_to_missing_in_dict",
-        ),
-        param(
-            OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
-            id="interp_to_missing_in_list",
-        ),
-        param(
-            OmegaConf.structured(NestedInterpolationToMissing).subcfg,
-            id="interp_to_missing_in_structured",
-        ),
-        param(
-            OmegaConf.structured(StructuredInterpolationKeyError),
-            id="interp_key_error_in_structured",
-        ),
-    ],
-)
 class TestResolveBadInterpolation:
+    @mark.parametrize(
+        "cfg,exception_type",
+        [
+            param(
+                OmegaConf.create({"foo": "${bar}"}),
+                InterpolationKeyError,
+                id="interp_key_error",
+            ),
+            param(
+                OmegaConf.create(
+                    {"missing": "???", "subcfg": {"x": "${missing}"}}
+                ).subcfg,
+                InterpolationToMissingValueError,
+                id="interp_to_missing_in_dict",
+            ),
+            param(
+                OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+                InterpolationToMissingValueError,
+                id="interp_to_missing_in_list",
+            ),
+            param(
+                OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+                InterpolationToMissingValueError,
+                id="interp_to_missing_in_structured",
+            ),
+            param(
+                OmegaConf.structured(StructuredInterpolationKeyError),
+                InterpolationKeyError,
+                id="interp_key_error_in_structured",
+            ),
+        ],
+    )
     @mark.parametrize(
         "op",
         [
@@ -535,14 +549,40 @@ class TestResolveBadInterpolation:
             param(OmegaConf.to_object, id="to_object"),
         ],
     )
-    def test_resolve_raises(self, op: Any, src: Any) -> None:
-        cfg = OmegaConf.create(src)
-        with raises(InterpolationResolutionError):
+    def test_resolve_bad_interpolation_raises(
+        self, op: Any, cfg: Any, exception_type: Any
+    ) -> None:
+        with raises(exception_type):
             op(cfg)
 
+    @mark.parametrize(
+        "cfg",
+        [
+            param(OmegaConf.create({"foo": "${bar}"}), id="interp_key_error"),
+            param(
+                OmegaConf.create(
+                    {"missing": "???", "subcfg": {"x": "${missing}"}}
+                ).subcfg,
+                id="interp_to_missing_in_dict",
+            ),
+            param(
+                OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+                id="interp_to_missing_in_list",
+            ),
+            param(
+                OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+                id="interp_to_missing_in_structured",
+            ),
+            param(
+                OmegaConf.structured(StructuredInterpolationKeyError),
+                id="interp_key_error_in_structured",
+            ),
+        ],
+    )
     @mark.parametrize("throw_on_missing", [True, False])
-    def test_no_resolve(self, src: Any, throw_on_missing: bool) -> None:
-        cfg = OmegaConf.create(src)
+    def test_resolve_bad_interpolation_no_resolve(
+        self, cfg: Any, throw_on_missing: bool
+    ) -> None:
         ret = OmegaConf.to_container(
             cfg, resolve=False, throw_on_missing=throw_on_missing
         )
