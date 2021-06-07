@@ -100,11 +100,6 @@ class ConcretePlugin(Plugin):
 
 
 @dataclass
-class TypedFields:
-    bar: float = 123.456
-
-
-@dataclass
 class StructuredWithMissing:
     num: int = MISSING
     opt_num: Optional[int] = MISSING

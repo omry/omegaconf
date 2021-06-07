@@ -9,6 +9,7 @@ from pytest import mark, param, raises
 import tests
 from omegaconf import (
     DictConfig,
+    FloatNode,
     IntegerNode,
     ListConfig,
     OmegaConf,
@@ -43,7 +44,6 @@ from tests import (
     StructuredWithBadList,
     StructuredWithMissing,
     SubscriptedDict,
-    TypedFields,
     UnionError,
     User,
     warns_dict_subclass_deprecated,
@@ -657,16 +657,15 @@ params = [
     ),
     param(
         Expected(
-            create=lambda: None,
-            op=lambda _: OmegaConf.structured(TypedFields(bar="x")),  # type: ignore
+            create=lambda: DictConfig({"bar": FloatNode(123.456)}),
+            op=lambda cfg: cfg.__setattr__("bar", "x"),
             exception_type=ValidationError,
             msg="Value 'x' of type 'str' could not be converted to Float",
             key="bar",
             full_key="bar",
-            parent_node=lambda _: {},
-            object_type=TypedFields,
+            child_node=lambda cfg: cfg._get_node("bar"),
         ),
-        id="structured:create_with_invalid_value,float",
+        id="structured:assign_with_invalid_value,float",
     ),
     param(
         Expected(
