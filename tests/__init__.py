@@ -95,9 +95,13 @@ class ConcretePlugin(Plugin):
     @dataclass
     class FoobarParams:
         foo: int = 10
-        bar: float = 123.456
 
     params: FoobarParams = FoobarParams()
+
+
+@dataclass
+class TypedFields:
+    bar: float = 123.456
 
 
 @dataclass

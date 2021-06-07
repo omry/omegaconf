@@ -43,6 +43,7 @@ from tests import (
     StructuredWithBadList,
     StructuredWithMissing,
     SubscriptedDict,
+    TypedFields,
     UnionError,
     User,
     warns_dict_subclass_deprecated,
@@ -657,15 +658,13 @@ params = [
     param(
         Expected(
             create=lambda: None,
-            op=lambda _: OmegaConf.structured(
-                ConcretePlugin(params=ConcretePlugin.FoobarParams(bar="x"))  # type: ignore
-            ),
+            op=lambda _: OmegaConf.structured(TypedFields(bar="x")),  # type: ignore
             exception_type=ValidationError,
             msg="Value 'x' of type 'str' could not be converted to Float",
             key="bar",
             full_key="bar",
             parent_node=lambda _: {},
-            object_type=ConcretePlugin.FoobarParams,
+            object_type=TypedFields,
         ),
         id="structured:create_with_invalid_value,float",
     ),
