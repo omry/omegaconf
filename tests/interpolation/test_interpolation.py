@@ -332,7 +332,7 @@ def test_interpolation_type_validated_ok(
                 match=re.escape(
                     dedent(
                         """\
-                        Value 'seven' could not be converted to Integer
+                        Value 'seven' of type 'str' could not be converted to Integer
                             full_key: age
                         """
                     )
@@ -345,7 +345,9 @@ def test_interpolation_type_validated_ok(
             "age",
             raises(
                 InterpolationValidationError,
-                match=re.escape("'Bond' could not be converted to Integer"),
+                match=re.escape(
+                    "'Bond' of type 'str' could not be converted to Integer"
+                ),
             ),
             id="type_mismatch_node_interpolation",
         ),

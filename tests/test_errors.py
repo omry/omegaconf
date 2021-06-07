@@ -113,7 +113,7 @@ params = [
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", "hello"),
             exception_type=ValidationError,
-            msg="Value 'hello' could not be converted to Integer",
+            msg="Value 'hello' of type 'str' could not be converted to Integer",
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
@@ -362,7 +362,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: cfg.params.__setattr__("foo", "bar"),
             exception_type=ValidationError,
-            msg="Value 'bar' could not be converted to Integer",
+            msg="Value 'bar' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
@@ -484,7 +484,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: OmegaConf.merge(cfg, {"params": {"foo": "bar"}}),
             exception_type=ValidationError,
-            msg="Value 'bar' could not be converted to Integer",
+            msg="Value 'bar' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
@@ -646,13 +646,28 @@ params = [
                 ConcretePlugin(params=ConcretePlugin.FoobarParams(foo="x"))  # type: ignore
             ),
             exception_type=ValidationError,
-            msg="Value 'x' could not be converted to Integer",
+            msg="Value 'x' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},
             object_type=ConcretePlugin.FoobarParams,
         ),
-        id="structured:create_with_invalid_value",
+        id="structured:create_with_invalid_value,int",
+    ),
+    param(
+        Expected(
+            create=lambda: None,
+            op=lambda _: OmegaConf.structured(
+                ConcretePlugin(params=ConcretePlugin.FoobarParams(bar="x"))  # type: ignore
+            ),
+            exception_type=ValidationError,
+            msg="Value 'x' of type 'str' could not be converted to Float",
+            key="bar",
+            full_key="bar",
+            parent_node=lambda _: {},
+            object_type=ConcretePlugin.FoobarParams,
+        ),
+        id="structured:create_with_invalid_value,float",
     ),
     param(
         Expected(
@@ -694,7 +709,7 @@ params = [
             ),
             op=lambda cfg: cfg.__setitem__("baz", "fail"),
             exception_type=ValidationError,
-            msg="Value 'fail' could not be converted to Integer",
+            msg="Value 'fail' of type 'str' could not be converted to Integer",
             key="baz",
         ),
         id="DictConfig[str,int]:assigned_str_value",
@@ -1102,7 +1117,7 @@ params = [
             create=lambda: ListConfig(element_type=int, content=[1, 2, 3]),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,
-            msg="Value 'foo' could not be converted to Integer",
+            msg="Value 'foo' of type 'str' could not be converted to Integer",
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
@@ -1117,7 +1132,7 @@ params = [
             ),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,
-            msg="Value 'foo' could not be converted to Integer",
+            msg="Value 'foo' of type 'str' could not be converted to Integer",
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
@@ -1464,7 +1479,7 @@ def test_dict_subclass_error() -> None:
     src["bar"] = "qux"  # type: ignore
     with raises(
         ValidationError,
-        match=re.escape("Value 'qux' could not be converted to Integer"),
+        match=re.escape("Value 'qux' of type 'str' could not be converted to Integer"),
     ) as einfo:
         with warns_dict_subclass_deprecated(Str2Int):
             OmegaConf.structured(src)

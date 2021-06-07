@@ -203,7 +203,9 @@ class IntegerNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError("Value '$VALUE' could not be converted to Integer")
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' could not be converted to Integer"
+            )
         return val
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "IntegerNode":
@@ -240,7 +242,9 @@ class FloatNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError("Value '$VALUE' could not be converted to Float")
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' could not be converted to Float"
+            )
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):

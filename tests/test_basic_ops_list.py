@@ -331,7 +331,9 @@ def test_list_append() -> None:
             "foo",
             raises(
                 ValidationError,
-                match=re.escape("Value 'foo' could not be converted to Integer"),
+                match=re.escape(
+                    "Value 'foo' of type 'str' could not be converted to Integer"
+                ),
             ),
             id="append_str_to_list[int]",
         ),
