@@ -10,26 +10,25 @@ OmegaConf is a hierarchical configuration system, with support for merging confi
 providing a consistent API regardless of how the configuration was created.
 
 ## Releases
-### Stable (2.0)
-OmegaConf 2.0 stable version.
+
+### Stable (2.1)
+OmegaConf 2.1 is now a release candidate.
+New users should use it and existing users are encouraged to migrate to it.
+* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.0)
+* [Documentation](https://omegaconf.readthedocs.io/en/2.1_branch/)
+* [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
+* [Source code](https://github.com/omry/omegaconf/tree/2.1_branch)
+
+Install with `pip install --upgrade omegaconf`
+
+### Previous stable release (2.0)
 
 * [What's new](https://github.com/omry/omegaconf/releases/tag/v2.0.0)
 * [Documentation](https://omegaconf.readthedocs.io/en/2.0_branch/)
 * [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
 * [Source code](https://github.com/omry/omegaconf/tree/2.0_branch)
 
-Install with `pip install --upgrade omegaconf`
-
-### Release candidate (2.1)
-OmegaConf 2.1 is now a release candidate.
-New users should use it and existing users are encouraged to migrate to it.
-* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.0.rc1)
-* [Documentation](https://omegaconf.readthedocs.io/en/latest/)
-* [Source code](https://github.com/omry/omegaconf/tree/master)
-* [2.1 Milestone progress](https://github.com/omry/omegaconf/milestone/3)
-
-Install with `pip install --upgrade omegaconf --pre`
-
+Install with `pip install omegaconf==2.0.6`
 
 ## Live tutorial
 Run the live tutorial: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
