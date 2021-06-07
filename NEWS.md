@@ -1,3 +1,12 @@
+## 2.1.0 (2021-06-07)
+
+
+### Bug Fixes
+
+- `ListConfig.append()` now copies input config nodes ([#601](https://github.com/omry/omegaconf/issues/601))
+- Fix loading of OmegaConf 2.0 pickled configs ([#718](https://github.com/omry/omegaconf/issues/718))
+
+
 ## 2.1.0.rc1 (2021-05-12)
 OmegaConf 2.1 is a major release introducing substantial new features, and introducing some incompatible changes.
 The biggest area of improvement in 2.1 is interpolations and resolvers. In addition - OmegaConf containers are now
