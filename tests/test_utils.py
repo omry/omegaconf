@@ -366,32 +366,56 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
 
 @mark.parametrize("optional", [False, True])
 @mark.parametrize(
-    "type_, expected",
+    "type_, include_module_name, expected",
     [
-        (int, "int"),
-        (bool, "bool"),
-        (float, "float"),
-        (str, "str"),
-        (Color, "Color"),
-        (DictConfig, "DictConfig"),
-        (ListConfig, "ListConfig"),
-        (Dict[str, str], "Dict[str, str]"),
-        (Dict[Color, int], "Dict[Color, int]"),
-        (Dict[str, Plugin], "Dict[str, Plugin]"),
-        (Dict[str, List[Plugin]], "Dict[str, List[Plugin]]"),
-        (List[str], "List[str]"),
-        (List[Color], "List[Color]"),
-        (List[Dict[str, Color]], "List[Dict[str, Color]]"),
-        (Tuple[str], "Tuple[str]"),
-        (Tuple[str, int], "Tuple[str, int]"),
-        (Tuple[float, ...], "Tuple[float, ...]"),
+        (int, False, "int"),
+        (int, True, "int"),
+        (bool, False, "bool"),
+        (bool, True, "bool"),
+        (float, False, "float"),
+        (float, True, "float"),
+        (str, False, "str"),
+        (str, True, "str"),
+        (Color, False, "Color"),
+        (Color, True, "tests.Color"),
+        (DictConfig, False, "DictConfig"),
+        (DictConfig, True, "DictConfig"),
+        (ListConfig, False, "ListConfig"),
+        (ListConfig, True, "ListConfig"),
+        (Dict[str, str], False, "Dict[str, str]"),
+        (Dict[str, str], True, "Dict[str, str]"),
+        (Dict[Color, int], False, "Dict[Color, int]"),
+        (Dict[Color, int], True, "Dict[tests.Color, int]"),
+        (Dict[str, Plugin], False, "Dict[str, Plugin]"),
+        (Dict[str, Plugin], True, "Dict[str, tests.Plugin]"),
+        (Dict[str, List[Plugin]], False, "Dict[str, List[Plugin]]"),
+        (Dict[str, List[Plugin]], True, "Dict[str, List[tests.Plugin]]"),
+        (List[str], False, "List[str]"),
+        (List[str], True, "List[str]"),
+        (List[Color], False, "List[Color]"),
+        (List[Color], True, "List[tests.Color]"),
+        (List[Dict[str, Color]], False, "List[Dict[str, Color]]"),
+        (List[Dict[str, Color]], True, "List[Dict[str, tests.Color]]"),
+        (Tuple[str], False, "Tuple[str]"),
+        (Tuple[str], True, "Tuple[str]"),
+        (Tuple[str, int], False, "Tuple[str, int]"),
+        (Tuple[str, int], True, "Tuple[str, int]"),
+        (Tuple[float, ...], False, "Tuple[float, ...]"),
+        (Tuple[float, ...], True, "Tuple[float, ...]"),
     ],
 )
-def test_type_str(type_: Any, expected: str, optional: bool) -> None:
+def test_type_str(
+    type_: Any, include_module_name: bool, expected: str, optional: bool
+) -> None:
     if optional:
-        assert _utils.type_str(Optional[type_]) == f"Optional[{expected}]"
+        assert (
+            _utils.type_str(Optional[type_], include_module_name=include_module_name)
+            == f"Optional[{expected}]"
+        )
     else:
-        assert _utils.type_str(type_) == expected
+        assert (
+            _utils.type_str(type_, include_module_name=include_module_name) == expected
+        )
 
 
 def test_type_str_ellipsis() -> None:
