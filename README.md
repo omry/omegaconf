@@ -12,7 +12,7 @@ providing a consistent API regardless of how the configuration was created.
 ## Releases
 
 ### Stable (2.1)
-Current stable version
+OmegaConf 2.1 is the current stable version.
 * [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.0)
 * [Documentation](https://omegaconf.readthedocs.io/en/2.1_branch/)
 * [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
