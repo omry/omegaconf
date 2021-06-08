@@ -134,7 +134,7 @@ This is in contrast to the sum we defined earlier where accessing an invalid key
 
     >>> def sum2(a, b, *, _parent_):
     ...     return _parent_.get(a, 0) + _parent_.get(b, 0)
-    >>> OmegaConf.register_new_resolver("sum2", sum2, use_cache=False)
+    >>> OmegaConf.register_new_resolver("sum2", sum2)
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "node": {
