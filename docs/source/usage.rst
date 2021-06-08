@@ -646,7 +646,7 @@ Note that here, ``container["structured_config"]`` is actually an instance of
 ``MyConfig``.
 
 The call ``OmegaConf.to_object(conf)`` is equivalent to
-``OmegaConf.to_container(conf, resolve=True, throw_on_missing=True
+``OmegaConf.to_container(conf, resolve=True, throw_on_missing=True,
 structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.resolve
