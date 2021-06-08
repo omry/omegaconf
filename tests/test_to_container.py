@@ -508,19 +508,17 @@ class TestResolveBadInterpolation:
                 id="interp_key_error",
             ),
             param(
-                OmegaConf.create(
-                    {"missing": "???", "subcfg": {"x": "${missing}"}}
-                ).subcfg,
+                OmegaConf.create({"subcfg": {"x": "${missing}"}, "missing": "???"}),
                 InterpolationToMissingValueError,
                 id="interp_to_missing_in_dict",
             ),
             param(
-                OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+                OmegaConf.create({"subcfg": ["${missing}"], "missing": "???"}),
                 InterpolationToMissingValueError,
                 id="interp_to_missing_in_list",
             ),
             param(
-                OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+                OmegaConf.structured(NestedInterpolationToMissing),
                 InterpolationToMissingValueError,
                 id="interp_to_missing_in_structured",
             ),
@@ -565,13 +563,13 @@ class TestResolveBadInterpolation:
             ),
             param(
                 OmegaConf.create(
-                    {"missing": "???", "subcfg": {"x": "${missing}"}}
+                    {"subcfg": {"x": "${missing}"}, "missing": "???"}
                 ).subcfg,
                 {"x": "${missing}"},
                 id="interp_to_missing_in_dict",
             ),
             param(
-                OmegaConf.create({"missing": "???", "subcfg": ["${missing}"]}).subcfg,
+                OmegaConf.create({"subcfg": ["${missing}"], "missing": "???"}).subcfg,
                 ["${missing}"],
                 id="interp_to_missing_in_list",
             ),

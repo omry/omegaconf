@@ -1292,7 +1292,7 @@ params = [
     ),
     param(
         Expected(
-            create=lambda: OmegaConf.structured(NestedInterpolationToMissing).subcfg,
+            create=lambda: OmegaConf.structured(NestedInterpolationToMissing),
             op=lambda cfg: OmegaConf.to_object(cfg),
             exception_type=InterpolationToMissingValueError,
             msg=(
@@ -1301,8 +1301,10 @@ params = [
             ),
             key="baz",
             full_key="subcfg.baz",
-            child_node=lambda cfg: cfg._get_node("baz"),
-            ref_type=NestedInterpolationToMissing.BazParams,
+            object_type=NestedInterpolationToMissing.BazParams,
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("baz"),
+            num_lines=3,
         ),
         id="to_object:structured,throw_on_missing_interpolation",
     ),
@@ -1321,8 +1323,8 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.create(
-                {"missing_val": "???", "subcfg": {"x": "${missing_val}"}}
-            ).subcfg,
+                {"subcfg": {"x": "${missing_val}"}, "missing_val": "???"}
+            ),
             op=lambda cfg: OmegaConf.to_container(
                 cfg, resolve=True, throw_on_missing=True
             ),
@@ -1333,7 +1335,8 @@ params = [
             ),
             key="x",
             full_key="subcfg.x",
-            child_node=lambda cfg: cfg._get_node("x"),
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("x"),
         ),
         id="to_container:throw_on_missing_interpolation",
     ),

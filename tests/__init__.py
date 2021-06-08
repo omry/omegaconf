@@ -101,13 +101,12 @@ class ConcretePlugin(Plugin):
 
 @dataclass
 class NestedInterpolationToMissing:
-    name: str = MISSING
-
     @dataclass
     class BazParams:
         baz: str = "${..name}"
 
     subcfg: BazParams = BazParams()
+    name: str = MISSING
 
 
 @dataclass
