@@ -215,13 +215,8 @@ class BaseContainer(Container, ABC):
                 value = convert(node)
             return value
 
-        assert isinstance(conf, Container)
         if conf._is_none():
             return None
-        elif conf._is_interpolation() and not resolve:
-            inter = conf._value()
-            assert isinstance(inter, str)
-            return inter
         elif conf._is_missing():
             if throw_on_missing:
                 conf._format_and_raise(
@@ -231,7 +226,17 @@ class BaseContainer(Container, ABC):
                 )
             else:
                 return MISSING
-        elif isinstance(conf, DictConfig):
+        elif conf._is_interpolation() and not resolve:
+            inter = conf._value()
+            assert isinstance(inter, str)
+            return inter
+
+        if resolve:
+            _conf = conf._dereference_node()
+            assert isinstance(_conf, Container)
+            conf = _conf
+
+        if isinstance(conf, DictConfig):
             if (
                 conf._metadata.object_type is not None
                 and structured_config_mode == SCMode.DICT_CONFIG
@@ -256,7 +261,6 @@ class BaseContainer(Container, ABC):
                 retlist.append(item)
 
             return retlist
-
         assert False
 
     @staticmethod

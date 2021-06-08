@@ -532,10 +532,16 @@ class TestThrowOnMissing:
             id="interp_key_error_in_structured",
         ),
         param(
+            DictConfig(content="${bar}"),
+            "${bar}",
+            InterpolationResolutionError,
+            id="dictconfig_interp_key_error",
+        ),
+        param(
             OmegaConf.create({"foo": DictConfig(content="${bar}")}),
             {"foo": "${bar}"},
             InterpolationKeyError,
-            id="interp_key_error_in_dict",
+            id="dictconfig_interp_key_error_in_dict",
         ),
     ],
 )
