@@ -538,6 +538,12 @@ class TestThrowOnMissing:
             id="dictconfig_interp_key_error",
         ),
         param(
+            ListConfig(content="${bar}"),
+            "${bar}",
+            InterpolationResolutionError,
+            id="dictconfig_interp_key_error",
+        ),
+        param(
             OmegaConf.create({"foo": DictConfig(content="${bar}")}),
             {"foo": "${bar}"},
             InterpolationKeyError,
