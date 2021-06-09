@@ -796,11 +796,7 @@ class OmegaConf:
         :return: set of strings of the missing keys.
         :raises ValueError: On input not representing a config.
         """
-        if not isinstance(cfg, Container):
-            try:
-                cfg = OmegaConf.create(cfg)
-            except ValidationError:
-                raise ValueError(f"Could not create a config out of {cfg}")
+        cfg = _ensure_container(cfg)
         missings: Set[str] = set()
 
         def gather(_cfg: Container) -> None:
