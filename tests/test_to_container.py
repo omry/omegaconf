@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
+    Container,
     DictConfig,
     ListConfig,
     MissingMandatoryValue,
@@ -182,6 +183,14 @@ def test_scmode(
             id="dict_inter_dictconfig",
         ),
         param(
+            OmegaConf.create(
+                {"foo": DictConfig(content="${bar}"), "bar": {"a": 0}}
+            )._get_node("foo"),
+            "${bar}",
+            {"a": 0},
+            id="toplevel_dict_inter",
+        ),
+        param(
             {"foo": ListConfig(content="???")},
             {"foo": "???"},
             None,
@@ -199,6 +208,14 @@ def test_scmode(
             {"foo": 10, "bar": 10},
             id="dict_inter_listconfig",
         ),
+        param(
+            OmegaConf.create(
+                {"foo": ListConfig(content="${bar}"), "bar": ["a"]}
+            )._get_node("foo"),
+            "${bar}",
+            ["a"],
+            id="toplevel_list_inter",
+        ),
     ],
 )
 def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> None:
@@ -206,7 +223,10 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
         expected = src
     if expected_with_resolve is None:
         expected_with_resolve = expected
-    cfg = OmegaConf.create(src)
+    if isinstance(src, Container):
+        cfg = src
+    else:
+        cfg = OmegaConf.create(src)
     container = OmegaConf.to_container(cfg)
     assert container == expected
     container = OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
