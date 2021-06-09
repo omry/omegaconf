@@ -226,7 +226,7 @@ class BaseContainer(Container, ABC):
                 )
             else:
                 return MISSING
-        elif conf._is_interpolation() and not resolve:
+        elif not resolve and conf._is_interpolation():
             inter = conf._value()
             assert isinstance(inter, str)
             return inter
