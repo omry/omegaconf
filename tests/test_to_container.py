@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
-    Container,
     DictConfig,
     ListConfig,
     MissingMandatoryValue,
@@ -14,6 +13,7 @@ from omegaconf import (
     SCMode,
     open_dict,
 )
+from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
@@ -223,10 +223,7 @@ def test_to_container(src: Any, expected: Any, expected_with_resolve: Any) -> No
         expected = src
     if expected_with_resolve is None:
         expected_with_resolve = expected
-    if isinstance(src, Container):
-        cfg = src
-    else:
-        cfg = OmegaConf.create(src)
+    cfg = _ensure_container(src)
     container = OmegaConf.to_container(cfg)
     assert container == expected
     container = OmegaConf.to_container(cfg, structured_config_mode=SCMode.INSTANTIATE)
