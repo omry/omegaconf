@@ -283,7 +283,7 @@ from tests import (
         ),
         param(
             (
-                DictConfig({"user007": None}, element_type=User),
+                DictConfig({"user007": "???"}, element_type=User),
                 {"user007": {"age": 99}},
             ),
             {"user007": {"name": "???", "age": 99}},

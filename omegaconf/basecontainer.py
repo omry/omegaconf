@@ -543,7 +543,7 @@ class BaseContainer(Container, ABC):
         def wrap(key: Any, val: Any) -> Node:
             is_optional = True
             if not is_structured_config(val):
-                ref_type = self._metadata.element_type
+                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
             else:
                 target = self._get_node(key)
                 if target is None:
