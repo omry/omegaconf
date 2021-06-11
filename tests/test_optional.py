@@ -25,10 +25,10 @@ def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
     cfg = OmegaConf.structured(cls)
     if error:
         with raises(ValidationError):
-            cfg.__setattr__(key, assignment)
+            cfg[key] = assignment
     else:
-        cfg.__setattr__(key, assignment)
-        assert cfg.__getattr__(key) == assignment
+        cfg[key] = assignment
+        assert cfg[key] == assignment
 
 
 @mark.parametrize(
