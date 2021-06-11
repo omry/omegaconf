@@ -547,10 +547,9 @@ class BaseContainer(Container, ABC):
             else:
                 target = self._get_node(key)
                 if target is None:
-                    if is_structured_config(val):
-                        is_optional, ref_type = _resolve_optional(
-                            self._metadata.element_type
-                        )
+                    is_optional, ref_type = _resolve_optional(
+                        self._metadata.element_type
+                    )
                 else:
                     assert isinstance(target, Node)
                     is_optional = target._is_optional()
