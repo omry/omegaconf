@@ -44,14 +44,14 @@ from tests import (
             0,
             User("Bond", 7),
             False,
-            id="Optional[User]<-User_succeeds",
+            id="set_optional_user",
         ),
         param(
             ListConfig([User], element_type=User),
             0,
             None,
             True,
-            id="Optional[User]<-str_fails",
+            id="illegal_set_user_to_none",
         ),
     ],
 )
