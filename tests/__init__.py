@@ -100,6 +100,21 @@ class ConcretePlugin(Plugin):
 
 
 @dataclass
+class NestedInterpolationToMissing:
+    @dataclass
+    class BazParams:
+        baz: str = "${..name}"
+
+    subcfg: BazParams = BazParams()
+    name: str = MISSING
+
+
+@dataclass
+class StructuredInterpolationKeyError:
+    name: str = "${bar}"
+
+
+@dataclass
 class StructuredWithMissing:
     num: int = MISSING
     opt_num: Optional[int] = MISSING
