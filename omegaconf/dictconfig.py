@@ -35,7 +35,6 @@ from ._utils import (
     is_structured_config,
     is_structured_config_frozen,
     type_str,
-    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
@@ -85,8 +84,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     flags=flags,
                 ),
             )
-            if not valid_value_annotation_type(element_type):
-                raise ValidationError(f"Unsupported value type: {element_type}")
 
             if not _valid_dict_key_annotation_type(key_type):
                 raise KeyValidationError(f"Unsupported key type {key_type}")

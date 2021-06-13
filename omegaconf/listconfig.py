@@ -25,7 +25,6 @@ from ._utils import (
     is_primitive_list,
     is_structured_config,
     type_str,
-    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -70,10 +69,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     flags=flags,
                 ),
             )
-            if not (valid_value_annotation_type(self._metadata.element_type)):
-                raise ValidationError(
-                    f"Unsupported value type: {self._metadata.element_type}"
-                )
 
             self.__dict__["_content"] = None
             self._set_value(value=content, flags=flags)
