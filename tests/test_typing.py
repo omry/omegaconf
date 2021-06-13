@@ -27,6 +27,10 @@ from tests import ConcretePlugin, Group, SubscriptedDict, SubscriptedList, User,
         param(SubscriptedDict, "opt_dict_str", {"key": None}, True, id="opt_dict_elt"),
         param(SubscriptedList, "opt_list", None, False, id="opt_list"),
         param(SubscriptedDict, "opt_dict_str", None, False, id="opt_dict"),
+        param(SubscriptedList, "list_opt", [None], False, id="list_opt_elt"),
+        param(SubscriptedDict, "dict_opt", {"key": None}, False, id="dict_opt_elt"),
+        param(SubscriptedList, "list_opt", None, True, id="list_opt"),
+        param(SubscriptedDict, "dict_opt", None, True, id="dict_opt"),
     ],
 )
 def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
