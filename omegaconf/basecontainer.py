@@ -342,13 +342,21 @@ class BaseContainer(Container, ABC):
                     dest[key] = target_node
                     dest_node = dest._get_node(key)
 
+            element_type_is_optional, resolved_element_type = _resolve_optional(
+                dest._metadata.element_type
+            )
             if (
                 dest_node is None
-                and is_structured_config(dest._metadata.element_type)
+                and is_structured_config(resolved_element_type)
                 and not missing_src_value
             ):
                 # merging into a new node. Use element_type as a base
-                dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
+                dest[key] = DictConfig(
+                    resolved_element_type,
+                    parent=dest,
+                    ref_type=resolved_element_type,
+                    is_optional=element_type_is_optional,
+                )
                 dest_node = dest._get_node(key)
 
             if dest_node is not None:

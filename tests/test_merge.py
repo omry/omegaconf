@@ -37,6 +37,7 @@ from tests import (
     InterpolationList,
     MissingDict,
     MissingList,
+    OptionalUsers,
     OptTuple,
     Package,
     Plugin,
@@ -226,6 +227,16 @@ from tests import (
             [Users, {"name2user": {"joe": {"name": "joe"}}}],
             {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
             id="users_merge_with_missing_age",
+        ),
+        param(
+            [OptionalUsers, {"name2user": {"joe": {"name": "joe"}}}],
+            {"name2user": {"joe": {"name": "joe", "age": MISSING}}},
+            id="optionalusers_merge_with_missing_age",
+        ),
+        param(
+            [OptionalUsers, {"name2user": {"joe": None}}],
+            {"name2user": {"joe": None}},
+            id="optionalusers_merge_with_none",
         ),
         param(
             [ConfWithMissingDict, {"dict": {"foo": "bar"}}],

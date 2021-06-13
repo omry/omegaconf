@@ -5,7 +5,15 @@ from pytest import mark, param, raises
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ValidationError
-from tests import ConcretePlugin, Group, SubscriptedDict, SubscriptedList, User, Users
+from tests import (
+    ConcretePlugin,
+    Group,
+    OptionalUsers,
+    SubscriptedDict,
+    SubscriptedList,
+    User,
+    Users,
+)
 
 
 @mark.parametrize(
@@ -58,41 +66,78 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
 
 
 @mark.parametrize(
-    "src,op,key,is_optional",
+    "src,op,keys,ref_type,is_optional",
     [
-        param(Group, None, "admin", True, id="opt_user"),
-        param(ConcretePlugin, None, "params", False, id="nested_structured_conf"),
+        param(Group, None, ["admin"], User, True, id="opt_user"),
+        param(
+            ConcretePlugin,
+            None,
+            ["params"],
+            ConcretePlugin.FoobarParams,
+            False,
+            id="nested_structured_conf",
+        ),
         param(
             OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
             None,
-            "user007",
+            ["user007"],
+            User,
             False,
             id="structured_dict_of_user",
         ),
         param(
-            DictConfig({"a": 123}, element_type=int), None, "a", False, id="dict_int"
+            DictConfig({"a": 123}, element_type=int),
+            None,
+            ["a"],
+            int,
+            False,
+            id="dict_int",
         ),
         param(
             DictConfig({"a": 123}, element_type=Optional[int]),
             None,
-            "a",
+            ["a"],
+            int,
             True,
             id="dict_opt_int",
         ),
+        param(DictConfig({"a": 123}), None, ["a"], Any, True, id="dict_any"),
         param(
             ListConfig([], element_type=int),
             lambda cfg: cfg.insert(0, 123),
-            0,
+            [0],
+            int,
             False,
             id="list_int_insert",
         ),
+        param(
+            OmegaConf.merge(Users, {"name2user": {"joe": User("joe")}}),
+            None,
+            ["name2user", "joe"],
+            User,
+            False,
+            id="merge_into_new_user_node",
+        ),
+        param(
+            OmegaConf.merge(OptionalUsers, {"name2user": {"joe": User("joe")}}),
+            None,
+            ["name2user", "joe"],
+            User,
+            True,
+            id="merge_into_new_optional_user_node",
+        ),
     ],
 )
-def test_is_optional(src: Any, op: Any, key: Any, is_optional: bool) -> None:
+def test_ref_type(
+    src: Any, op: Any, keys: Any, ref_type: Any, is_optional: bool
+) -> None:
     cfg = _ensure_container(src)
     if callable(op):
         op(cfg)
-    assert cfg._get_node(key)._is_optional() == is_optional
+    for k in keys:
+        cfg = cfg._get_node(k)
+    assert cfg._is_optional() == is_optional
+    assert cfg._metadata.ref_type == ref_type
 
 
 ListConfig([], element_type=int)

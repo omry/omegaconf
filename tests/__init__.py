@@ -78,6 +78,11 @@ class Users:
 
 
 @dataclass
+class OptionalUsers:
+    name2user: Dict[str, Optional[User]] = field(default_factory=dict)
+
+
+@dataclass
 class ConfWithMissingDict:
     dict: Dict[str, Any] = MISSING
 
