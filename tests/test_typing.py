@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from pytest import mark, param, raises
 
@@ -10,7 +10,9 @@ from tests import (
     Group,
     OptionalUsers,
     SubscriptedDict,
+    SubscriptedDictOpt,
     SubscriptedList,
+    SubscriptedListOpt,
     User,
     Users,
 )
@@ -31,14 +33,14 @@ from tests import (
         ),
         param(SubscriptedList, "list", None, True, id="list"),
         param(SubscriptedDict, "dict_str", None, True, id="dict"),
-        param(SubscriptedList, "opt_list", [None], True, id="opt_list_elt"),
-        param(SubscriptedDict, "opt_dict_str", {"key": None}, True, id="opt_dict_elt"),
-        param(SubscriptedList, "opt_list", None, False, id="opt_list"),
-        param(SubscriptedDict, "opt_dict_str", None, False, id="opt_dict"),
-        param(SubscriptedList, "list_opt", [None], False, id="list_opt_elt"),
-        param(SubscriptedDict, "dict_opt", {"key": None}, False, id="dict_opt_elt"),
-        param(SubscriptedList, "list_opt", None, True, id="list_opt"),
-        param(SubscriptedDict, "dict_opt", None, True, id="dict_opt"),
+        param(SubscriptedListOpt, "opt_list", [None], True, id="opt_list_elt"),
+        param(SubscriptedDictOpt, "opt_dict", {"key": None}, True, id="opt_dict_elt"),
+        param(SubscriptedListOpt, "opt_list", None, False, id="opt_list"),
+        param(SubscriptedDictOpt, "opt_dict", None, False, id="opt_dict"),
+        param(SubscriptedListOpt, "list_opt", [None], False, id="list_opt_elt"),
+        param(SubscriptedDictOpt, "dict_opt", {"key": None}, False, id="dict_opt_elt"),
+        param(SubscriptedListOpt, "list_opt", None, True, id="list_opt"),
+        param(SubscriptedDictOpt, "dict_opt", None, True, id="dict_opt"),
         param(
             ListConfig([None], element_type=Optional[User]),
             0,
@@ -143,6 +145,26 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
             User,
             True,
             id="list:merge_into_new_optional_user_node",
+        ),
+        param(
+            SubscriptedDictOpt, None, "opt_dict", Dict[str, int], True, id="opt_dict"
+        ),
+        param(SubscriptedListOpt, None, "opt_list", List[int], True, id="opt_list"),
+        param(
+            SubscriptedDictOpt,
+            None,
+            "dict_opt",
+            Dict[str, Optional[int]],
+            False,
+            id="opt_dict",
+        ),
+        param(
+            SubscriptedListOpt,
+            None,
+            "list_opt",
+            List[Optional[int]],
+            False,
+            id="opt_dict",
         ),
     ],
 )

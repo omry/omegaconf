@@ -218,6 +218,10 @@ class UntypedList:
 @dataclass
 class SubscriptedList:
     list: List[int] = field(default_factory=lambda: [1, 2])
+
+
+@dataclass
+class SubscriptedListOpt:
     opt_list: Optional[List[int]] = field(default_factory=lambda: [1, 2])
     list_opt: List[Optional[int]] = field(default_factory=lambda: [1, 2, None])
 
@@ -235,7 +239,11 @@ class SubscriptedDict:
     dict_int: Dict[int, int] = field(default_factory=lambda: {123: 4})
     dict_float: Dict[float, int] = field(default_factory=lambda: {123.45: 4})
     dict_bool: Dict[bool, int] = field(default_factory=lambda: {True: 4, False: 5})
-    opt_dict_str: Optional[Dict[str, int]] = field(default_factory=lambda: {"foo": 4})
+
+
+@dataclass
+class SubscriptedDictOpt:
+    opt_dict: Optional[Dict[str, int]] = field(default_factory=lambda: {"foo": 4})
     dict_opt: Dict[str, Optional[int]] = field(
         default_factory=lambda: {"foo": 4, "bar": None}
     )

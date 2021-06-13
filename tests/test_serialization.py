@@ -3,6 +3,7 @@ import io
 import os
 import pathlib
 import pickle
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
@@ -16,7 +17,9 @@ from tests import (
     PersonA,
     PersonD,
     SubscriptedDict,
+    SubscriptedDictOpt,
     SubscriptedList,
+    SubscriptedListOpt,
     UntypedDict,
     UntypedList,
 )
@@ -170,7 +173,47 @@ def test_load_empty_file(tmpdir: str) -> None:
         (SubscriptedDict, "dict_float", int, float, False, Dict[float, int]),
         (SubscriptedDict, "dict_enum", int, Color, False, Dict[Color, int]),
         (SubscriptedList, "list", int, Any, False, List[int]),
-        (
+        param(
+            SubscriptedDictOpt,
+            "opt_dict",
+            int,
+            str,
+            True,
+            Optional[Dict[str, int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="opt_dict",
+        ),
+        param(
+            SubscriptedDictOpt,
+            "dict_opt",
+            Optional[int],
+            str,
+            False,
+            Dict[str, Optional[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="dict_opt",
+        ),
+        param(
+            SubscriptedListOpt,
+            "opt_list",
+            int,
+            str,
+            True,
+            Optional[List[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="opt_list",
+        ),
+        param(
+            SubscriptedListOpt,
+            "list_opt",
+            Optional[int],
+            str,
+            False,
+            List[Optional[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="list_opt",
+        ),
+        param(
             DictConfig(
                 content={"a": "foo"},
                 ref_type=Dict[str, str],
