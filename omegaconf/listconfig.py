@@ -98,11 +98,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                         "$FULL_KEY is not optional and cannot be assigned None"
                     )
 
-        target_type_is_optional, target_type = _resolve_optional(
-            self._metadata.element_type
-        )
+        is_optional, target_type = _resolve_optional(self._metadata.element_type)
         value_type = OmegaConf.get_type(value)
-        if target_type_is_optional and value_type is None:
+        if is_optional and value_type is None:
             return
         if is_structured_config(target_type):
             if (
