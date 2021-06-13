@@ -68,11 +68,11 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
 @mark.parametrize(
     "src,op,keys,ref_type,is_optional",
     [
-        param(Group, None, ["admin"], User, True, id="opt_user"),
+        param(Group, None, "admin", User, True, id="opt_user"),
         param(
             ConcretePlugin,
             None,
-            ["params"],
+            "params",
             ConcretePlugin.FoobarParams,
             False,
             id="nested_structured_conf",
@@ -80,7 +80,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
         param(
             OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
             None,
-            ["user007"],
+            "user007",
             User,
             False,
             id="structured_dict_of_user",
@@ -88,7 +88,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
         param(
             DictConfig({"a": 123}, element_type=int),
             None,
-            ["a"],
+            "a",
             int,
             False,
             id="dict_int",
@@ -96,7 +96,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
         param(
             DictConfig({"a": 123}, element_type=Optional[int]),
             None,
-            ["a"],
+            "a",
             int,
             True,
             id="dict_opt_int",
@@ -105,7 +105,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
         param(
             ListConfig([], element_type=int),
             lambda cfg: cfg.insert(0, 123),
-            [0],
+            0,
             int,
             False,
             id="list_int_insert",
@@ -129,7 +129,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
         param(
             OmegaConf.merge(ListConfig([], element_type=User), [User(name="joe")]),
             None,
-            [0],
+            0,
             User,
             False,
             id="list:merge_into_new_user_node",
@@ -139,7 +139,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
                 ListConfig([], element_type=Optional[User]), [User(name="joe")]
             ),
             None,
-            [0],
+            0,
             User,
             True,
             id="list:merge_into_new_optional_user_node",
@@ -152,6 +152,8 @@ def test_ref_type(
     cfg = _ensure_container(src)
     if callable(op):
         op(cfg)
+    if not isinstance(keys, (list, tuple)):
+        keys = [keys]
     for k in keys:
         cfg = cfg._get_node(k)
     assert cfg._is_optional() == is_optional
