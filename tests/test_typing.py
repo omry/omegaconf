@@ -156,6 +156,3 @@ def test_ref_type(
         cfg = cfg._get_node(k)
     assert cfg._is_optional() == is_optional
     assert cfg._metadata.ref_type == ref_type
-
-
-ListConfig([], element_type=int)
