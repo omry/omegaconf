@@ -646,6 +646,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
 
 
 def valid_value_annotation_type(type_: Any) -> bool:
+    _, type_ = _resolve_optional(type_)
     return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
 
 

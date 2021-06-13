@@ -1,6 +1,15 @@
 import copy
 import sys
-from typing import Any, Dict, List, MutableMapping, MutableSequence, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from pytest import mark, param, raises
 
@@ -283,7 +292,7 @@ from tests import (
         ),
         param(
             (
-                DictConfig({"user007": None}, element_type=User),
+                DictConfig({"user007": None}, element_type=Optional[User]),
                 {"user007": {"age": 99}},
             ),
             {"user007": {"name": "???", "age": 99}},

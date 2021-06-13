@@ -1,4 +1,4 @@
-from typing import Any  # , Optional
+from typing import Any, Optional
 
 from pytest import mark, param, raises
 
@@ -51,6 +51,7 @@ def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
             id="non_optional_structured",
         ),
         param(DictConfig({"a": 123}, element_type=int), "a", False),
+        param(DictConfig({"a": 123}, element_type=Optional[int]), "a", True),
     ],
 )
 def test_is_optional(src: Any, key: Any, is_optional: bool) -> None:
