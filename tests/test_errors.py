@@ -36,9 +36,11 @@ from tests import (
     ConcretePlugin,
     IllegalType,
     Module,
+    NestedInterpolationToMissing,
     Package,
     Plugin,
     Str2Int,
+    StructuredInterpolationKeyError,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
@@ -1287,6 +1289,97 @@ params = [
             child_node=lambda cfg: cfg._get_node("name"),
         ),
         id="to_object:structured-missing-field",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(NestedInterpolationToMissing),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: name"
+            ),
+            key="baz",
+            full_key="subcfg.baz",
+            object_type=NestedInterpolationToMissing.BazParams,
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("baz"),
+            num_lines=3,
+        ),
+        id="to_object:structured,throw_on_missing_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(StructuredInterpolationKeyError),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationKeyError,
+            key="name",
+            msg=("Interpolation key 'bar' not found"),
+            child_node=lambda cfg: cfg._get_node("name"),
+        ),
+        id="to_object:structured,throw_on_interpolation_key_error",
+    ),
+    # to_container throw_on_missing
+    param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"subcfg": {"x": "${missing_val}"}, "missing_val": "???"}
+            ),
+            op=lambda cfg: OmegaConf.to_container(
+                cfg, resolve=True, throw_on_missing=True
+            ),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: missing_val"
+            ),
+            key="x",
+            full_key="subcfg.x",
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("x"),
+        ),
+        id="to_container:throw_on_missing_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value",
+        ),
+        id="to_container:throw_on_missing,dict",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value",
+        ),
+        id="to_container:throw_on_missing,list",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"a": "???"}),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: a",
+            key="a",
+            child_node=lambda cfg: cfg._get_node("a"),
+        ),
+        id="to_container:throw_on_missing,dict_value",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig(["???"]),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: 0",
+            key=0,
+            full_key="[0]",
+            child_node=lambda cfg: cfg._get_node(0),
+        ),
+        id="to_container:throw_on_missing,list_item",
     ),
 ]
 
