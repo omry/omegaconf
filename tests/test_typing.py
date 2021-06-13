@@ -116,7 +116,7 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
             ["name2user", "joe"],
             User,
             False,
-            id="merge_into_new_user_node",
+            id="dict:merge_into_new_user_node",
         ),
         param(
             OmegaConf.merge(OptionalUsers, {"name2user": {"joe": User("joe")}}),
@@ -124,7 +124,25 @@ def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
             ["name2user", "joe"],
             User,
             True,
-            id="merge_into_new_optional_user_node",
+            id="dict:merge_into_new_optional_user_node",
+        ),
+        param(
+            OmegaConf.merge(ListConfig([], element_type=User), [User(name="joe")]),
+            None,
+            [0],
+            User,
+            False,
+            id="list:merge_into_new_user_node",
+        ),
+        param(
+            OmegaConf.merge(
+                ListConfig([], element_type=Optional[User]), [User(name="joe")]
+            ),
+            None,
+            [0],
+            User,
+            True,
+            id="list:merge_into_new_optional_user_node",
         ),
     ],
 )

@@ -428,9 +428,9 @@ class BaseContainer(Container, ABC):
             temp_target.__dict__["_metadata"] = copy.deepcopy(
                 dest.__dict__["_metadata"]
             )
-            et = dest._metadata.element_type
+            is_optional, et = _resolve_optional(dest._metadata.element_type)
             if is_structured_config(et):
-                prototype = OmegaConf.structured(et)
+                prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
                 for item in src._iter_ex(resolve=False):
                     if isinstance(item, DictConfig):
                         item = OmegaConf.merge(prototype, item)
