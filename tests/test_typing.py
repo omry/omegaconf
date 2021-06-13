@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any  # , Optional
 
 from pytest import mark, param, raises
 
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ValidationError
 from tests import ConcretePlugin, Group, SubscriptedDict, SubscriptedList, User, Users
@@ -50,6 +50,7 @@ def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
             False,
             id="non_optional_structured",
         ),
+        param(DictConfig({"a": 123}, element_type=int), "a", False),
     ],
 )
 def test_is_optional(src: Any, key: Any, is_optional: bool) -> None:

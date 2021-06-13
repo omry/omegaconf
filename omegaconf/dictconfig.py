@@ -85,9 +85,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     flags=flags,
                 ),
             )
-            if not valid_value_annotation_type(
-                element_type
-            ) and not is_structured_config(element_type):
+            if not valid_value_annotation_type(element_type):
                 raise ValidationError(f"Unsupported value type: {element_type}")
 
             if not _valid_dict_key_annotation_type(key_type):

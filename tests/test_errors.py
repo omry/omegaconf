@@ -52,6 +52,7 @@ from tests import (
     User,
     warns_dict_subclass_deprecated,
 )
+from tests.structured_conf.data.dataclasses import ErrorDictUnsupportedValue
 
 
 # tests classes
@@ -708,6 +709,16 @@ params = [
             ref_type_str=None,
         ),
         id="structured:create_from_unsupported_object",
+    ),
+    param(
+        Expected(
+            create=lambda: None,
+            op=lambda cfg: OmegaConf.structured(ErrorDictUnsupportedValue),
+            exception_type=ValidationError,
+            msg="Unsupported value type: 'tests.structured_conf.data.dataclasses.RegularClass'",
+            key="dict",
+        ),
+        id="structured:create_with_unsupported_element_type",
     ),
     param(
         Expected(
