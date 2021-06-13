@@ -18,7 +18,7 @@ from ._utils import (
     ValueKind,
     _is_missing_literal,
     _is_none,
-    _is_optional,
+    _resolve_optional,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -98,8 +98,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                         "$FULL_KEY is not optional and cannot be assigned None"
                     )
 
-        target_type = self._metadata.element_type
+        target_type_is_optional, target_type = _resolve_optional(
+            self._metadata.element_type
+        )
         value_type = OmegaConf.get_type(value)
+        if target_type_is_optional and value_type is None:
+            return
         if is_structured_config(target_type):
             if (
                 target_type is not None
@@ -276,11 +280,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 assert isinstance(self.__dict__["_content"], list)
                 # insert place holder
                 self.__dict__["_content"].insert(index, None)
+                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
                 node = _maybe_wrap(
-                    ref_type=self.__dict__["_metadata"].element_type,
+                    ref_type=ref_type,
                     key=index,
                     value=item,
-                    is_optional=_is_optional(item),
+                    is_optional=is_optional,
                     parent=self,
                 )
                 self._validate_set(key=index, value=node)

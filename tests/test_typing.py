@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from pytest import mark, param, raises
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import ValidationError
 from tests import ConcretePlugin, Group, SubscriptedDict, SubscriptedList, User, Users
@@ -31,9 +31,23 @@ from tests import ConcretePlugin, Group, SubscriptedDict, SubscriptedList, User,
         param(SubscriptedDict, "dict_opt", {"key": None}, False, id="dict_opt_elt"),
         param(SubscriptedList, "list_opt", None, True, id="list_opt"),
         param(SubscriptedDict, "dict_opt", None, True, id="dict_opt"),
+        param(
+            ListConfig([None], element_type=Optional[User]),
+            0,
+            User("Bond", 7),
+            False,
+            id="Optional[User]<-User_succeeds",
+        ),
+        param(
+            ListConfig([User], element_type=User),
+            0,
+            None,
+            True,
+            id="Optional[User]<-str_fails",
+        ),
     ],
 )
-def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
+def test_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
     cfg = OmegaConf.structured(cls)
     if error:
         with raises(ValidationError):
@@ -44,20 +58,41 @@ def test_assign_none(cls: Any, key: str, assignment: Any, error: bool) -> None:
 
 
 @mark.parametrize(
-    "src,key,is_optional",
+    "src,op,key,is_optional",
     [
-        param(Group, "admin", True, id="optional_user"),
-        param(ConcretePlugin, "params", False, id="non_optional_structured"),
+        param(Group, None, "admin", True, id="opt_user"),
+        param(ConcretePlugin, None, "params", False, id="nested_structured_conf"),
         param(
             OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
+            None,
             "user007",
             False,
-            id="non_optional_structured",
+            id="structured_dict_of_user",
         ),
-        param(DictConfig({"a": 123}, element_type=int), "a", False),
-        param(DictConfig({"a": 123}, element_type=Optional[int]), "a", True),
+        param(
+            DictConfig({"a": 123}, element_type=int), None, "a", False, id="dict_int"
+        ),
+        param(
+            DictConfig({"a": 123}, element_type=Optional[int]),
+            None,
+            "a",
+            True,
+            id="dict_opt_int",
+        ),
+        param(
+            ListConfig([], element_type=int),
+            lambda cfg: cfg.insert(0, 123),
+            0,
+            False,
+            id="list_int_insert",
+        ),
     ],
 )
-def test_is_optional(src: Any, key: Any, is_optional: bool) -> None:
+def test_is_optional(src: Any, op: Any, key: Any, is_optional: bool) -> None:
     cfg = _ensure_container(src)
+    if callable(op):
+        op(cfg)
     assert cfg._get_node(key)._is_optional() == is_optional
+
+
+ListConfig([], element_type=int)
