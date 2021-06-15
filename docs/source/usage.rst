@@ -784,7 +784,8 @@ and ``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``.
 
 OmegaConf.missing_keys
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Gives a set of missing keys represented in a dotlist style.
+``OmegaConf.missing_keys(cfg)`` returns a set of missing keys present in the input ``cfg``.
+Each missing key is represented as a ``str``, using a dotlist style.
 This utility function can be used at the end of creating configuration, after merging sources and so on,
 to check for remaining mandatory fields and prompt a proper error message.
 
