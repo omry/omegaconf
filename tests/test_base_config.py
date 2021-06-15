@@ -650,12 +650,11 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
 
 
 @mark.parametrize(
-    "src,op,keys,ref_type,is_optional",
+    "src,keys,ref_type,is_optional",
     [
-        param(Group, None, "admin", User, True, id="opt_user"),
+        param(Group, "admin", User, True, id="opt_user"),
         param(
             ConcretePlugin,
-            None,
             "params",
             ConcretePlugin.FoobarParams,
             False,
@@ -663,40 +662,22 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
         ),
         param(
             OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
-            None,
             "user007",
             User,
             False,
             id="structured_dict_of_user",
         ),
-        param(
-            DictConfig({"a": 123}, element_type=int),
-            None,
-            "a",
-            int,
-            False,
-            id="dict_int",
-        ),
+        param(DictConfig({"a": 123}, element_type=int), "a", int, False, id="dict_int"),
         param(
             DictConfig({"a": 123}, element_type=Optional[int]),
-            None,
             "a",
             int,
             True,
             id="dict_opt_int",
         ),
-        param(DictConfig({"a": 123}), None, ["a"], Any, True, id="dict_any"),
-        param(
-            ListConfig([], element_type=int),
-            lambda cfg: cfg.insert(0, 123),
-            0,
-            int,
-            False,
-            id="list_int_insert",
-        ),
+        param(DictConfig({"a": 123}), ["a"], Any, True, id="dict_any"),
         param(
             OmegaConf.merge(Users, {"name2user": {"joe": User("joe")}}),
-            None,
             ["name2user", "joe"],
             User,
             False,
@@ -704,7 +685,6 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
         ),
         param(
             OmegaConf.merge(OptionalUsers, {"name2user": {"joe": User("joe")}}),
-            None,
             ["name2user", "joe"],
             User,
             True,
@@ -712,7 +692,6 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
         ),
         param(
             OmegaConf.merge(ListConfig([], element_type=User), [User(name="joe")]),
-            None,
             0,
             User,
             False,
@@ -722,40 +701,27 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
             OmegaConf.merge(
                 ListConfig([], element_type=Optional[User]), [User(name="joe")]
             ),
-            None,
             0,
             User,
             True,
             id="list:merge_into_new_optional_user_node",
         ),
-        param(
-            SubscriptedDictOpt, None, "opt_dict", Dict[str, int], True, id="opt_dict"
-        ),
-        param(SubscriptedListOpt, None, "opt_list", List[int], True, id="opt_list"),
+        param(SubscriptedDictOpt, "opt_dict", Dict[str, int], True, id="opt_dict"),
+        param(SubscriptedListOpt, "opt_list", List[int], True, id="opt_list"),
         param(
             SubscriptedDictOpt,
-            None,
             "dict_opt",
             Dict[str, Optional[int]],
             False,
             id="opt_dict",
         ),
         param(
-            SubscriptedListOpt,
-            None,
-            "list_opt",
-            List[Optional[int]],
-            False,
-            id="opt_dict",
+            SubscriptedListOpt, "list_opt", List[Optional[int]], False, id="opt_dict"
         ),
     ],
 )
-def test_ref_type(
-    src: Any, op: Any, keys: Any, ref_type: Any, is_optional: bool
-) -> None:
+def test_ref_type(src: Any, keys: Any, ref_type: Any, is_optional: bool) -> None:
     cfg = _ensure_container(src)
-    if callable(op):
-        op(cfg)
     if not isinstance(keys, (list, tuple)):
         keys = [keys]
     for k in keys:
