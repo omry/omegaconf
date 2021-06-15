@@ -100,19 +100,17 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         is_optional, target_type = _resolve_optional(self._metadata.element_type)
         value_type = OmegaConf.get_type(value)
-        if is_optional and value_type is None:
-            return
-        if is_structured_config(target_type):
-            if (
-                target_type is not None
-                and value_type is not None
-                and not issubclass(value_type, target_type)
-            ):
-                msg = (
-                    f"Invalid type assigned: {type_str(value_type)} is not a "
-                    f"subclass of {type_str(target_type)}. value: {value}"
-                )
-                raise ValidationError(msg)
+
+        if (value_type is None and not is_optional) or (
+            is_structured_config(target_type)
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        ):
+            msg = (
+                f"Invalid type assigned: {type_str(value_type)} is not a "
+                f"subclass of {type_str(target_type)}. value: {value}"
+            )
+            raise ValidationError(msg)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)

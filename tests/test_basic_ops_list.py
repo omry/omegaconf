@@ -843,3 +843,37 @@ def test_node_copy_on_append(node: Any) -> None:
     cfg = OmegaConf.create([])
     cfg.append(node)
     assert cfg.__dict__["_content"][0] is not node
+
+
+@mark.parametrize(
+    "cfg,key,value,error",
+    [
+        param(
+            ListConfig([], element_type=Optional[User]),
+            0,
+            "foo",
+            True,
+            id="structured:set_optional_to_bad_type",
+        ),
+        param(
+            ListConfig([], element_type=int),
+            0,
+            None,
+            True,
+            id="set_to_none_raises",
+        ),
+        param(
+            ListConfig([], element_type=Optional[int]),
+            0,
+            None,
+            False,
+            id="optional_set_to_none",
+        ),
+    ],
+)
+def test_validate_set(cfg: ListConfig, key: int, value: Any, error: bool) -> None:
+    if error:
+        with raises(ValidationError):
+            cfg._validate_set(key, value)
+    else:
+        cfg._validate_set(key, value)
