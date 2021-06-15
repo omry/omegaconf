@@ -720,7 +720,9 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
         ),
     ],
 )
-def test_assignment_optional_behavior(src: Any, keys: Any, ref_type: Any, is_optional: bool) -> None:
+def test_assignment_optional_behavior(
+    src: Any, keys: Any, ref_type: Any, is_optional: bool
+) -> None:
     cfg = _ensure_container(src)
     if not isinstance(keys, (list, tuple)):
         keys = [keys]
