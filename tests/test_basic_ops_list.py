@@ -447,6 +447,45 @@ def validate_list_keys(c: Any) -> None:
 
 
 @mark.parametrize(
+    "input_, value, expected, expected_node_type, expectation",
+    [
+        param(
+            ListConfig(element_type=int, content=[]),
+            123,
+            [123],
+            IntegerNode,
+            None,
+            id="typed_list",
+        ),
+        param(
+            ListConfig(element_type=int, content=[]),
+            None,
+            None,
+            None,
+            ValidationError,
+            id="typed_list_append_none",
+        ),
+    ],
+)
+def test_append(
+    input_: List[str],
+    value: Any,
+    expected: Any,
+    expected_node_type: type,
+    expectation: Any,
+) -> None:
+    c = OmegaConf.create(input_)
+    if expectation is None:
+        c.append(value)
+        assert c == expected
+        assert type(c._get_node(-1)) == expected_node_type
+    else:
+        with raises(expectation):
+            c.append(value)
+    validate_list_keys(c)
+
+
+@mark.parametrize(
     "input_, index, value, expected, expected_node_type, expectation",
     [
         (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode, None),
@@ -482,7 +521,16 @@ def validate_list_keys(c: Any) -> None:
             [123],
             IntegerNode,
             None,
-            id="typed_list_insert",
+            id="typed_list",
+        ),
+        param(
+            ListConfig(element_type=int, content=[]),
+            0,
+            None,
+            None,
+            None,
+            ValidationError,
+            id="typed_list_insert_none",
         ),
     ],
 )
