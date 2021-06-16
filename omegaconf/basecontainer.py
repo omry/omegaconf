@@ -24,6 +24,7 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_type,
     is_structured_config,
+    is_tuple_annotation,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
@@ -290,7 +291,7 @@ class BaseContainer(Container, ABC):
             if rt is not Any:
                 if is_dict_annotation(rt):
                     val = {}
-                elif is_list_annotation(rt):
+                elif is_list_annotation(rt) or is_tuple_annotation(rt):
                     val = []
                 else:
                     val = rt
