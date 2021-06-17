@@ -600,8 +600,12 @@ def test_dereference_missing() -> None:
 )
 def test_validate_and_convert_none(make_func: Any) -> None:
     node = make_func("???", is_optional=False)
+    ref_type_str = node._metadata.ref_type.__name__
     with raises(
-        ValidationError, match=re.escape("Non optional field cannot be assigned None")
+        ValidationError,
+        match=re.escape(
+            f"Incompatible value 'None' for field of type '{ref_type_str}'"
+        ),
     ):
         node.validate_and_convert(None)
 

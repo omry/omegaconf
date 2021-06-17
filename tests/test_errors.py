@@ -27,6 +27,7 @@ from omegaconf.errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
+    InterpolationValidationError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -42,6 +43,7 @@ from tests import (
     Plugin,
     Str2Int,
     StructuredInterpolationKeyError,
+    StructuredInterpolationValidationError,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
@@ -311,6 +313,20 @@ params = [
             child_node=lambda cfg: cfg._get_node("foo"),
         ),
         id="dict,accessing_missing_nested_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(StructuredInterpolationValidationError),
+            op=lambda cfg: getattr(cfg, "y"),
+            exception_type=InterpolationValidationError,
+            msg=(
+                "While dereferencing interpolation '${.x}': "
+                "Incompatible value 'None' for field of type 'int'"
+            ),
+            key="y",
+            child_node=lambda cfg: cfg._get_node("y"),
+        ),
+        id="dict,non_optional_field_with_interpolation_to_none",
     ),
     # setattr
     param(
@@ -596,20 +612,20 @@ params = [
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            msg="Non optional field cannot be assigned None",
+            msg="Incompatible value 'None' for field of type 'int'",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},
             object_type=NotOptionalInt,
         ),
-        id="dict:create_none_optional_with_none",
+        id="dict:create_non_optional_with_none",
     ),
     param(
         Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            msg="Non optional field cannot be assigned None",
+            msg="Incompatible value 'None' for field of type 'int'",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},

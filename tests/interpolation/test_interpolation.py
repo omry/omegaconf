@@ -356,7 +356,9 @@ def test_interpolation_type_validated_ok(
             "num",
             raises(
                 InterpolationValidationError,
-                match=re.escape("Non optional field cannot be assigned None"),
+                match=re.escape(
+                    "While dereferencing interpolation '${opt_num}': Incompatible value 'None' for field of type 'int'"
+                ),
             ),
             id="non_optional_node_interpolation",
         ),

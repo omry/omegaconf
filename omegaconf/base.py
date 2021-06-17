@@ -185,13 +185,18 @@ class Node(ABC):
             return parent._get_flag(flag)
 
     def _format_and_raise(
-        self, key: Any, value: Any, cause: Exception, type_override: Any = None
+        self,
+        key: Any,
+        value: Any,
+        cause: Exception,
+        msg: Optional[str] = None,
+        type_override: Any = None,
     ) -> None:
         format_and_raise(
             node=self,
             key=key,
             value=value,
-            msg=str(cause),
+            msg=str(cause) if msg is None else msg,
             cause=cause,
             type_override=type_override,
         )
@@ -520,6 +525,7 @@ class Container(Node):
                         key=key,
                         value=res_value,
                         cause=e,
+                        msg=f"While dereferencing interpolation '{value}': {e}",
                         type_override=InterpolationValidationError,
                     )
                 return None
