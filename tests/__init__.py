@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
 from pytest import warns
@@ -237,6 +237,11 @@ class InterpolationDict:
 @dataclass
 class Str2Int(Dict[str, int]):
     pass
+
+
+@dataclass
+class OptTuple:
+    x: Optional[Tuple[int, ...]] = None
 
 
 def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:

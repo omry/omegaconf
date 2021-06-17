@@ -28,6 +28,7 @@ from tests import (
     InterpolationList,
     MissingDict,
     MissingList,
+    OptTuple,
     Package,
     Plugin,
     User,
@@ -249,6 +250,11 @@ from tests import (
             [{"user": User()}, {"user": {"foo": "bar"}}],
             raises(ConfigKeyError),
             id="merge_unknown_key_into_structured_node",
+        ),
+        param(
+            [OptTuple, {"x": [1, 2]}],
+            {"x": [1, 2]},
+            id="merge_list_into_optional_tuple_none",
         ),
         # DictConfig with element_type of Structured Config
         param(
