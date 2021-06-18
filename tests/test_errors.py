@@ -319,6 +319,7 @@ params = [
             create=lambda: OmegaConf.structured(StructuredInterpolationValidationError),
             op=lambda cfg: getattr(cfg, "y"),
             exception_type=InterpolationValidationError,
+            object_type=StructuredInterpolationValidationError,
             msg=(
                 "While dereferencing interpolation '${.x}': "
                 "Incompatible value 'None' for field of type 'int'"
