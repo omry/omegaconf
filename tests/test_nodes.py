@@ -19,6 +19,7 @@ from omegaconf import (
     StringNode,
     ValueNode,
 )
+from omegaconf._utils import type_str
 from omegaconf.errors import (
     InterpolationToMissingValueError,
     UnsupportedValueType,
@@ -600,7 +601,7 @@ def test_dereference_missing() -> None:
 )
 def test_validate_and_convert_none(make_func: Any) -> None:
     node = make_func("???", is_optional=False)
-    ref_type_str = node._metadata.ref_type.__name__
+    ref_type_str = type_str(node._metadata.ref_type)
     with raises(
         ValidationError,
         match=re.escape(
