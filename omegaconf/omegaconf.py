@@ -790,7 +790,7 @@ class OmegaConf:
     @staticmethod
     def missing_keys(cfg: Any) -> Set[str]:
         """
-        Returns a set of missing keys flatten in a dotlist style.
+        Returns a set of missing keys in a dotlist style.
         :param cfg: An `OmegaConf.Container`,
                     or a convertible object via `OmegaConf.create` (dict, list, ...).
         :return: set of strings of the missing keys.

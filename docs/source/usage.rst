@@ -797,7 +797,7 @@ to check for remaining mandatory fields and prompt a proper error message.
     ... })
     >>> assert missings == {'list[2]', 'foo.bar', 'missing'}
 
-A plain dict, list or any valid input for `OmegaConf.create` is also acceptable - the function would raise a `ValueError` exception on wrong input.
+The function raises a `ValueError` on input not representing a config.
 
 
 Debugger integration
