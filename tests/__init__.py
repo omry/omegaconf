@@ -115,6 +115,12 @@ class StructuredInterpolationKeyError:
 
 
 @dataclass
+class StructuredInterpolationValidationError:
+    x: Optional[int] = None
+    y: int = II(".x")
+
+
+@dataclass
 class StructuredWithMissing:
     num: int = MISSING
     opt_num: Optional[int] = MISSING

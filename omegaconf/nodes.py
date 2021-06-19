@@ -11,6 +11,7 @@ from omegaconf._utils import (
     get_type_of,
     get_value_kind,
     is_primitive_container,
+    type_str,
 )
 from omegaconf.base import Container, DictKeyType, Metadata, Node
 from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
@@ -52,7 +53,10 @@ class ValueNode(Node):
         if value is None:
             if self._is_optional():
                 return None
-            raise ValidationError("Non optional field cannot be assigned None")
+            ref_type_str = type_str(self._metadata.ref_type)
+            raise ValidationError(
+                f"Incompatible value '{value}' for field of type '{ref_type_str}'"
+            )
         # Subclasses can assume that `value` is not None in `_validate_and_convert_impl()`.
         return self._validate_and_convert_impl(value)
 
