@@ -1513,11 +1513,11 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
     expected_msg = dedent(
         """\
-        ZeroDivisionError raised while resolving interpolation: float division by zero
+        ZeroDivisionError raised while resolving interpolation: float division( by zero)?
             full_key: div_by_zero
             object_type=dict"""
     )
-    with raises(InterpolationResolutionError, match=re.escape(expected_msg)):
+    with raises(InterpolationResolutionError, match=expected_msg):
         c.div_by_zero
 
 
