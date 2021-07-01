@@ -26,7 +26,7 @@ jobs:
       py_version:
         type: string
     docker:
-      - image: circleci/python:<< parameters.py_version >>
+      - image: circleci/python:<< parameters.docker_image >>
     steps:
       - linux:
           py_version: << parameters.py_version >>
@@ -36,6 +36,17 @@ workflows:
   build:
     jobs:
       - test_linux:
-          matrix:
-            parameters:
-              py_version: ["3.6", "3.7", "3.8", "3.9", "pypy3.7"]
+          py_version: "3.6"
+          docker_image: "circleci/python:3.6"
+      - test_linux:
+          py_version: "3.7"
+          docker_image: "circleci/python:3.7"
+      - test_linux:
+          py_version: "3.8"
+          docker_image: "circleci/python:3.8"
+      - test_linux:
+          py_version: "3.9"
+          docker_image: "circleci/python:3.9"
+      - test_linux:
+          py_version: "pypy3.7"
+          docker_image: "pypy:3.7"
