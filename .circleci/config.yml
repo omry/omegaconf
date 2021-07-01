@@ -25,6 +25,8 @@ jobs:
     parameters:
       py_version:
         type: string
+      docker_image:
+        type: string
     docker:
       - image: circleci/python:<< parameters.docker_image >>
     steps:
