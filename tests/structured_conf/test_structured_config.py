@@ -513,10 +513,12 @@ class TestConfigs:
         c1 = OmegaConf.structured(module.ConcretePlugin)
         c2 = OmegaConf.structured(module.Plugin(name="base_plugin"))
         with warns(UserWarning):
-            assert OmegaConf.merge(c1, c2) == {
+            ret = OmegaConf.merge(c1, c2)
+            assert ret == {
                 "name": "base_plugin",
                 "params": module.ConcretePlugin.FoobarParams(),
             }
+            assert OmegaConf.get_type(ret) == module.Plugin
 
     def test_merge_into_Dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictExamples)
