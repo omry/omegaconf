@@ -4,7 +4,7 @@ import re
 import tempfile
 from typing import Any, Dict, List, Optional, Union
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     MISSING,
@@ -1033,20 +1033,13 @@ class TestAssignAndMergeIntoReftypePlugin:
         ),
     ],
 )
-class TestAssignAndMergeIntoReftypePlugin_Errors:
+class TestAssignIntoReftypePlugin_Errors:
     def _test_assign(
         self, ref_type: Any, value: Any, assign: Any, expectation: Any
     ) -> None:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
         with expectation:
             cfg.foo = assign
-
-    def _test_merge(
-        self, ref_type: Any, value: Any, assign: Any, expectation: Any
-    ) -> None:
-        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
-        with expectation:
-            OmegaConf.merge(cfg, {"foo": assign})
 
     def test_assign_to_reftype_plugin_(
         self, ref_type: Any, assign: Any, expectation: Any
@@ -1059,6 +1052,50 @@ class TestAssignAndMergeIntoReftypePlugin_Errors:
         self, ref_type: Any, value: Any, assign: Any, expectation: Any
     ) -> None:
         self._test_assign(ref_type, value, assign, expectation)
+
+
+@mark.parametrize(
+    "ref_type,assign,expectation",
+    [
+        param(
+            Plugin,
+            10,
+            raises(ValidationError),
+            id="merge_primitive_into_typed",
+        ),
+        param(
+            ConcretePlugin,
+            Plugin,
+            warns(UserWarning),
+            id="merge_base_type_into_subclass",
+        ),
+        param(
+            ConcretePlugin,
+            Plugin(),
+            warns(UserWarning),
+            id="merge_base_instance_into_subclass",
+        ),
+        param(
+            ConcretePlugin,
+            User,
+            raises(ValidationError),
+            id="merge_unrelated_type",
+        ),
+        param(
+            ConcretePlugin,
+            User(),
+            raises(ValidationError),
+            id="merge_unrelated_instance",
+        ),
+    ],
+)
+class TestMergeIntoReftypePlugin_Errors:
+    def _test_merge(
+        self, ref_type: Any, value: Any, assign: Any, expectation: Any
+    ) -> None:
+        cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
+        with expectation:
+            OmegaConf.merge(cfg, {"foo": assign})
 
     def test_merge_into_reftype_plugin1(
         self, ref_type: Any, assign: Any, expectation: Any

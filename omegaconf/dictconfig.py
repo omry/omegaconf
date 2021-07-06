@@ -1,4 +1,5 @@
 import copy
+import warnings
 from enum import Enum
 from typing import (
     AbstractSet,
@@ -167,7 +168,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     key=key, value=value, cause=ConfigAttributeError(msg)
                 )
 
-    def _validate_set(self, key: Any, value: Any) -> None:
+    def _validate_set(
+        self, key: Any, value: Any, allow_assigning_superclass: bool = False
+    ) -> None:
         from omegaconf import OmegaConf
 
         vk = get_value_kind(value)
@@ -200,11 +203,19 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise ValidationError(
                 f"Cannot assign {type_str(value_type)} to {type_str(target_type)}"
             )
-        validation_error = (
-            target_type is not None
-            and value_type is not None
-            and not issubclass(value_type, target_type)
-        )
+        if allow_assigning_superclass:
+            validation_error = (
+                target_type is not None
+                and value_type is not None
+                and not issubclass(value_type, target_type)
+                and not issubclass(target_type, value_type)
+            )
+        else:
+            validation_error = (
+                target_type is not None
+                and value_type is not None
+                and not issubclass(value_type, target_type)
+            )
         if validation_error:
             self._raise_invalid_value(value, value_type, target_type)
 
@@ -220,10 +231,36 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         src_obj_type = OmegaConf.get_type(src)
 
         if dest._is_missing() and src._metadata.object_type is not None:
-            self._validate_set(key=None, value=_get_value(src))
+            self._validate_set(
+                key=None, value=_get_value(src), allow_assigning_superclass=True
+            )
 
         if src._is_missing():
             return
+
+        if is_structured_config(src_obj_type):
+            assert src_obj_type is not None
+            dest_ref_type = dest._metadata.ref_type
+            dest_target_type = (
+                dest_obj_type
+                if is_structured_config(dest_obj_type)
+                else dest_ref_type
+                if is_structured_config(dest_ref_type)
+                else None
+            )
+            if dest_target_type is not None:
+                validation_warning = (
+                    issubclass(dest_target_type, src_obj_type)
+                    and dest_target_type is not src_obj_type
+                )
+                if validation_warning:
+                    msg = (
+                        f"Merging type {type_str(src_obj_type)} into subclass type"
+                        f" {type_str(dest_target_type)} is discouraged. See"
+                        " https://github.com/omry/omegaconf/issues/TODO"
+                    )
+                    warnings.warn(msg)
+                    return
 
         validation_error = (
             dest_obj_type is not None

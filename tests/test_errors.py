@@ -40,7 +40,6 @@ from tests import (
     Module,
     NestedInterpolationToMissing,
     Package,
-    Plugin,
     Str2Int,
     StructuredInterpolationKeyError,
     StructuredInterpolationValidationError,
@@ -545,9 +544,9 @@ params = [
     param(
         Expected(
             create=lambda: OmegaConf.structured(ConcretePlugin),
-            op=lambda cfg: cfg.merge_with(Plugin),
+            op=lambda cfg: cfg.merge_with(User),
             exception_type=ValidationError,
-            msg="Plugin is not a subclass of ConcretePlugin. value: {'name': '???', 'params': '???'}",
+            msg="User is not a subclass of ConcretePlugin. value: {'name': '???', 'age': '???'}",
             object_type=ConcretePlugin,
         ),
         id="structured:merge_invalid_dataclass",

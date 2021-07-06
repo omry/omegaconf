@@ -2,7 +2,7 @@ import sys
 from importlib import import_module
 from typing import Any, Dict, List, Optional
 
-from pytest import fixture, mark, param, raises
+from pytest import fixture, mark, param, raises, warns
 
 from omegaconf import (
     MISSING,
@@ -508,6 +508,15 @@ class TestConfigs:
         c2 = OmegaConf.structured(module.FaultyPlugin)
         with raises(ValidationError):
             OmegaConf.merge(c1, c2)
+
+    def test_merged_with_non_subclass_2(self, module: Any) -> None:
+        c1 = OmegaConf.structured(module.ConcretePlugin)
+        c2 = OmegaConf.structured(module.Plugin(name="base_plugin"))
+        with warns(UserWarning):
+            assert OmegaConf.merge(c1, c2) == {
+                "name": "base_plugin",
+                "params": module.ConcretePlugin.FoobarParams(),
+            }
 
     def test_merge_into_Dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.DictExamples)
