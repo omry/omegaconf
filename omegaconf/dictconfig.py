@@ -241,13 +241,13 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if is_structured_config(src_obj_type):
             assert src_obj_type is not None
             dest_ref_type = dest._metadata.ref_type
-            dest_target_type = (
-                dest_obj_type
-                if is_structured_config(dest_obj_type)
-                else dest_ref_type
-                if is_structured_config(dest_ref_type)
-                else None
-            )
+            dest_target_type: Optional[Any]
+            if is_structured_config(dest_obj_type):
+                dest_target_type = dest_obj_type
+            elif is_structured_config(dest_ref_type):
+                dest_target_type = dest_ref_type
+            else:
+                dest_target_type = None
             if dest_target_type is not None:
                 validation_warning = (
                     issubclass(dest_target_type, src_obj_type)
