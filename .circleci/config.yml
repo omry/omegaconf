@@ -15,11 +15,14 @@ commands:
           name: "Preparing environment"
           command: |
             if ! type sudo > /dev/null; then
-              apt-get install sudo
+              apt-get update
+              apt-get install -y openjdk-11-jre
+              pip install nox
+            else
+              sudo apt-get update
+              sudo apt-get install -y openjdk-11-jre
+              sudo pip install nox
             fi
-            sudo apt-get update
-            sudo apt-get install -y openjdk-11-jre
-            sudo pip install nox
       - run:
           name: "Testing OmegaConf"
           command: |
