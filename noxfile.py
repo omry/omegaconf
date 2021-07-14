@@ -10,15 +10,21 @@ PYTHON_VERSIONS = os.environ.get(
 ).split(",")
 
 
-def deps(session, editable_installl):
+def deps(session, editable_installl, requirements="requirements/dev.txt"):
     session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_installl else []
-    session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
+    session.install("-r", requirements, *extra_flags, ".", silent=True)
 
 
 @nox.session(python=PYTHON_VERSIONS)
 def omegaconf(session):
     deps(session, editable_installl=False)  # ensure we test the regular install
+    session.run("pytest")
+
+
+@nox.session(python="pypy")
+def test_omegaconf_pypy(session):
+    deps(session, editable_installl=False, requirements="requirements/dev_pypy.txt")  # ensure we test the regular install
     session.run("pytest")
 
 

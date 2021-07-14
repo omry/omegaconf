@@ -6,6 +6,9 @@ commands:
     parameters:
       py_version:
         type: string
+      nox_args:
+        type: string
+        default: ""
     steps:
       - checkout
       - run:
@@ -21,7 +24,7 @@ commands:
           name: "Testing OmegaConf"
           command: |
             export NOX_PYTHON_VERSIONS=<< parameters.py_version >>
-            nox --add-timestamp
+            nox --add-timestamp << parameters.nox_args >>
 
 jobs:
   test_linux:
@@ -30,11 +33,15 @@ jobs:
         type: string
       docker_image:
         type: string
+      nox_args:
+        type: string
+        default: ""
     docker:
       - image: << parameters.docker_image >>
     steps:
       - linux:
           py_version: << parameters.py_version >>
+          nox_args: << parameters.nox_args >>
 
 workflows:
   version: 2
@@ -60,3 +67,4 @@ workflows:
           name: linux-pypy3.7
           py_version: "pypy3.7"
           docker_image: "pypy:3.7"
+          nox_args: "-s test_omegaconf_pypy"

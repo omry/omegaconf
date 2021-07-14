@@ -1,0 +1,5 @@
+-r base.txt
+nox
+pytest
+pytest-mock
+pydevd
