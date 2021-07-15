@@ -27,7 +27,7 @@ def test_omegaconf_pypy(session):
     deps(
         session, editable_installl=False, requirements="requirements/dev_pypy.txt"
     )  # ensure we test the regular install
-    session.run("pytest")
+    session.run("pytest", "-Wdefault")
 
 
 @nox.session(python=PYTHON_VERSIONS)
