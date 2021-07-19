@@ -53,6 +53,7 @@ from ._utils import (
 from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
+    DefaultResolverWriteProtectionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -71,6 +72,17 @@ from .nodes import (
 MISSING: Any = "???"
 
 Resolver = Callable[..., Any]
+
+DEFAULT_RESOLVER_NAMES = [
+    "oc.create",
+    "oc.decode",
+    "oc.deprecated",
+    "oc.env",
+    "oc.select",
+    "oc.dict.keys",
+    "oc.dict.values",
+    "env",
+]
 
 
 def II(interpolation: str) -> Any:
@@ -466,6 +478,22 @@ class OmegaConf:
     def clear_resolvers() -> None:
         BaseContainer._resolvers = {}
         register_default_resolvers()
+
+    @classmethod
+    def clear_resolver(cls, name: str, ignore_default_resolver: bool = True) -> None:
+        """Clear (remove) a non-default resolver, only if it exists.
+
+        :param name: Name of the resolver.
+        :param ignore_default_resolver: Ignore raising error if ``name`` is a
+                                        default resolver's name.
+        """
+        if cls.has_resolver(name):
+            if name in DEFAULT_RESOLVER_NAMES:
+                print(name)
+                if not ignore_default_resolver:
+                    raise DefaultResolverWriteProtectionError(resolver_name=name)
+            else:
+                cls._clear_resolver(name)
 
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:
@@ -901,6 +929,20 @@ class OmegaConf:
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
         )
+
+    @classmethod
+    def _clear_resolver(cls, name: str) -> None:
+        """Clear (remove) any resolver only if it exists.
+
+        WARNING: This method can remove deafult resolvers as well.
+        For safety, use ``clear_resolver()`` method instead. Only if you must
+        remove a default resolver, use this method.
+
+        :param name: Name of the resolver.
+        """
+        if cls.has_resolver(name):
+            _ = BaseContainer._resolvers.pop(name)
+            assert not cls.has_resolver(name), f"Failed to remove resolver: {name}"
 
 
 # register all default resolvers
