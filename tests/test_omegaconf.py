@@ -4,6 +4,7 @@ from typing import Any
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
+    DEFAULT_RESOLVER_NAMES,
     MISSING,
     BooleanNode,
     DictConfig,
@@ -574,6 +575,15 @@ def test_resolve_invalid_input() -> None:
             # expected
             dict(pre_addition=True, post_addition=True, post_removal=True),
         ),
+        # tuple
+        (
+            # cfg_params: Check with a default resolver
+            dict(),
+            # clear_resolver_params
+            dict(name="oc.env", ignore_default_resolver=False),
+            # expected
+            dict(pre_addition=True, post_addition=True, post_removal=True),
+        ),
     ],
 )
 def test_clear_resolver(
@@ -587,6 +597,12 @@ def test_clear_resolver(
         OmegaConf.register_new_resolver(**cfg_params)
         assert expected["post_addition"] == OmegaConf.has_resolver(name)
 
-    OmegaConf.clear_resolver(**clear_resolver_params)
+    if (name in DEFAULT_RESOLVER_NAMES) and (
+        not clear_resolver_params["ignore_default_resolver"]
+    ):
+        with raises(ValueError):
+            OmegaConf.clear_resolver(**clear_resolver_params)
+    else:
+        OmegaConf.clear_resolver(**clear_resolver_params)
 
     assert expected["post_removal"] == OmegaConf.has_resolver(name)
