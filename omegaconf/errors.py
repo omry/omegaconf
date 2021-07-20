@@ -139,16 +139,3 @@ class GrammarParseError(OmegaConfBaseException):
     """
     Thrown when failing to parse an expression according to the ANTLR grammar.
     """
-
-
-class DefaultResolverWriteProtectionError(ValueError):
-    _template = "This ('{name}') is a default resolver. Can not be removed/cleared."
-
-    def __init__(self, resolver_name: str, message: Optional[str] = None):
-        self.resolver_name = resolver_name
-        self.message = (
-            message
-            if (message is not None)
-            else self._template.format(name=self.resolver_name)
-        )
-        super().__init__(self.message)

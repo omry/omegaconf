@@ -53,7 +53,6 @@ from ._utils import (
 from .base import Container, Node, SCMode
 from .basecontainer import BaseContainer
 from .errors import (
-    DefaultResolverWriteProtectionError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -489,9 +488,11 @@ class OmegaConf:
         """
         if cls.has_resolver(name):
             if name in DEFAULT_RESOLVER_NAMES:
-                print(name)
                 if not ignore_default_resolver:
-                    raise DefaultResolverWriteProtectionError(resolver_name=name)
+                    # raise DefaultResolverWriteProtectionError(resolver_name=name)  # pragma: nocover
+                    raise ValueError(
+                        f"Default resolver ('{name}') cannot be removed."
+                    )  # pragma: nocover
             else:
                 cls._clear_resolver(name)
 
@@ -931,7 +932,7 @@ class OmegaConf:
         )
 
     @classmethod
-    def _clear_resolver(cls, name: str) -> None:
+    def _clear_resolver(cls, name: str) -> None:  # noqa F811 # pragma: nocover
         """Clear (remove) any resolver only if it exists.
 
         WARNING: This method can remove deafult resolvers as well.
@@ -940,9 +941,11 @@ class OmegaConf:
 
         :param name: Name of the resolver.
         """
-        if cls.has_resolver(name):
+        if cls.has_resolver(name):  # pragma: nocover
             _ = BaseContainer._resolvers.pop(name)
-            assert not cls.has_resolver(name), f"Failed to remove resolver: {name}"
+            assert not cls.has_resolver(
+                name
+            ), f"Failed to remove resolver: {name}"  # pragma: nocover
 
 
 # register all default resolvers

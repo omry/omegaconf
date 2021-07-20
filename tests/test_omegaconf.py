@@ -518,3 +518,75 @@ def test_resolve(cfg: Any, expected: Any) -> None:
 def test_resolve_invalid_input() -> None:
     with raises(ValueError):
         OmegaConf.resolve("aaa")  # type: ignore
+
+
+@mark.parametrize(
+    ("cfg_params,clear_resolver_params,expected"),
+    [
+        # tuple
+        (
+            # cfg_params
+            dict(
+                name="TR1",
+                resolver=lambda x: str(x).lower(),
+                use_cache=False,
+                replace=True,
+            ),
+            # clear_resolver_params
+            dict(name="TR1", ignore_default_resolver=True),
+            # expected
+            dict(pre_addition=False, post_addition=True, post_removal=False),
+        ),
+        # tuple
+        (
+            # cfg_params
+            dict(
+                name="TR2",
+                resolver=lambda x: str(x).upper(),
+                use_cache=False,
+                replace=True,
+            ),
+            # clear_resolver_params
+            dict(name="TR2", ignore_default_resolver=False),
+            # expected
+            dict(pre_addition=False, post_addition=True, post_removal=False),
+        ),
+        # tuple
+        (
+            # cfg_params
+            dict(
+                name="TR3",
+                resolver=lambda x: str(x).upper(),
+                use_cache=False,
+                replace=False,
+            ),
+            # clear_resolver_params
+            dict(name="TR3", ignore_default_resolver=False),
+            # expected
+            dict(pre_addition=False, post_addition=True, post_removal=False),
+        ),
+        # tuple
+        (
+            # cfg_params: Check with a default resolver
+            dict(),
+            # clear_resolver_params
+            dict(name="oc.env", ignore_default_resolver=True),
+            # expected
+            dict(pre_addition=True, post_addition=True, post_removal=True),
+        ),
+    ],
+)
+def test_clear_resolver(
+    cfg_params: Any, clear_resolver_params: Any, expected: Any
+) -> None:
+
+    OmegaConf.clear_resolvers()
+    name = clear_resolver_params.get("name")
+    assert expected["pre_addition"] == OmegaConf.has_resolver(name)
+    if cfg_params:
+        OmegaConf.register_new_resolver(**cfg_params)
+        assert expected["post_addition"] == OmegaConf.has_resolver(name)
+
+    OmegaConf.clear_resolver(**clear_resolver_params)
+
+    assert expected["post_removal"] == OmegaConf.has_resolver(name)
