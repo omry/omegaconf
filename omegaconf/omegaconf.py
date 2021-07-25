@@ -72,17 +72,6 @@ MISSING: Any = "???"
 
 Resolver = Callable[..., Any]
 
-DEFAULT_RESOLVER_NAMES = [
-    "oc.create",
-    "oc.decode",
-    "oc.deprecated",
-    "oc.env",
-    "oc.select",
-    "oc.dict.keys",
-    "oc.dict.values",
-    "env",
-]
-
 
 def II(interpolation: str) -> Any:
     """
@@ -479,22 +468,19 @@ class OmegaConf:
         register_default_resolvers()
 
     @classmethod
-    def clear_resolver(cls, name: str, ignore_default_resolver: bool = True) -> None:
-        """Clear (remove) a non-default resolver, only if it exists.
+    def clear_resolver(cls, name: str) -> bool:
+        """Clear(remove) any resolver only if it exists. Returns a bool: True if resolver is removed and False if not removed.
+
+        .. warning:
+            This method can remove deafult resolvers as well.
 
         :param name: Name of the resolver.
-        :param ignore_default_resolver: Ignore raising error if ``name`` is a
-                                        default resolver's name.
+        :return: A bool (``True`` if resolver is removed, ``False`` if not removed).
         """
-        if cls.has_resolver(name):
-            if name in DEFAULT_RESOLVER_NAMES:
-                if not ignore_default_resolver:
-                    # raise DefaultResolverWriteProtectionError(resolver_name=name)  # pragma: nocover
-                    raise ValueError(
-                        f"Default resolver ('{name}') cannot be removed."
-                    )  # pragma: nocover
-            else:
-                cls._clear_resolver(name)
+        if cls.has_resolver(name):  # pragma: nocover
+            _ = BaseContainer._resolvers.pop(name)
+
+        return not cls.has_resolver(name)
 
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:
@@ -930,22 +916,6 @@ class OmegaConf:
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
         )
-
-    @classmethod
-    def _clear_resolver(cls, name: str) -> None:  # noqa F811 # pragma: nocover
-        """Clear (remove) any resolver only if it exists.
-
-        WARNING: This method can remove deafult resolvers as well.
-        For safety, use ``clear_resolver()`` method instead. Only if you must
-        remove a default resolver, use this method.
-
-        :param name: Name of the resolver.
-        """
-        if cls.has_resolver(name):  # pragma: nocover
-            _ = BaseContainer._resolvers.pop(name)
-            assert not cls.has_resolver(
-                name
-            ), f"Failed to remove resolver: {name}"  # pragma: nocover
 
 
 # register all default resolvers

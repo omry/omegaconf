@@ -4,7 +4,6 @@ from typing import Any
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
-    DEFAULT_RESOLVER_NAMES,
     MISSING,
     BooleanNode,
     DictConfig,
@@ -534,7 +533,7 @@ def test_resolve_invalid_input() -> None:
                 replace=True,
             ),
             # clear_resolver_params
-            dict(name="TR1", ignore_default_resolver=True),
+            dict(name="TR1"),
             # expected
             dict(pre_addition=False, post_addition=True, post_removal=False),
         ),
@@ -548,7 +547,7 @@ def test_resolve_invalid_input() -> None:
                 replace=True,
             ),
             # clear_resolver_params
-            dict(name="TR2", ignore_default_resolver=False),
+            dict(name="TR2"),
             # expected
             dict(pre_addition=False, post_addition=True, post_removal=False),
         ),
@@ -562,7 +561,7 @@ def test_resolve_invalid_input() -> None:
                 replace=False,
             ),
             # clear_resolver_params
-            dict(name="TR3", ignore_default_resolver=False),
+            dict(name="TR3"),
             # expected
             dict(pre_addition=False, post_addition=True, post_removal=False),
         ),
@@ -571,18 +570,27 @@ def test_resolve_invalid_input() -> None:
             # cfg_params: Check with a default resolver
             dict(),
             # clear_resolver_params
-            dict(name="oc.env", ignore_default_resolver=True),
+            dict(name="oc.env"),
             # expected
-            dict(pre_addition=True, post_addition=True, post_removal=True),
+            dict(pre_addition=True, post_addition=True, post_removal=False),
         ),
         # tuple
         (
             # cfg_params: Check with a default resolver
             dict(),
             # clear_resolver_params
-            dict(name="oc.env", ignore_default_resolver=False),
+            dict(name="oc.create"),
             # expected
-            dict(pre_addition=True, post_addition=True, post_removal=True),
+            dict(pre_addition=True, post_addition=True, post_removal=False),
+        ),
+        # tuple
+        (
+            # cfg_params: Check with a nonexisting resolver
+            dict(),
+            # clear_resolver_params
+            dict(name="abcdef"),
+            # expected
+            dict(pre_addition=False, post_addition=False, post_removal=False),
         ),
     ],
 )
@@ -597,12 +605,6 @@ def test_clear_resolver(
         OmegaConf.register_new_resolver(**cfg_params)
         assert expected["post_addition"] == OmegaConf.has_resolver(name)
 
-    if (name in DEFAULT_RESOLVER_NAMES) and (
-        not clear_resolver_params["ignore_default_resolver"]
-    ):
-        with raises(ValueError):
-            OmegaConf.clear_resolver(**clear_resolver_params)
-    else:
-        OmegaConf.clear_resolver(**clear_resolver_params)
+    assert OmegaConf.clear_resolver(**clear_resolver_params)
 
     assert expected["post_removal"] == OmegaConf.has_resolver(name)

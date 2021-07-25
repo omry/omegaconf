@@ -18,7 +18,6 @@ from .nodes import (
     ValueNode,
 )
 from .omegaconf import (
-    DEFAULT_RESOLVER_NAMES,
     II,
     MISSING,
     SI,
@@ -55,7 +54,6 @@ __all__ = [
     "BooleanNode",
     "EnumNode",
     "FloatNode",
-    "DEFAULT_RESOLVER_NAMES",
     "MISSING",
     "SI",
     "II",
