@@ -521,19 +521,19 @@ def test_resolve_invalid_input() -> None:
 
 
 @mark.parametrize(
-    ("cfg_params", "clear_resolver_params", "expected"),
+    ("cfg_params", "name", "expected"),
     [
         # tuple
         param(
-            # cfg_params
+            # cfg_params: Check with a new resolver
             dict(
                 name="iamnew",
                 resolver=lambda x: str(x).lower(),
                 use_cache=False,
                 replace=False,
             ),
-            # clear_resolver_params
-            dict(name="iamnew"),
+            # name
+            "iamnew",
             # expected
             dict(pre_addition=False, post_addition=True),
             id="remove-new-custom-resolver",
@@ -542,8 +542,8 @@ def test_resolve_invalid_input() -> None:
         param(
             # cfg_params: Check with a default resolver
             dict(),
-            # clear_resolver_params
-            dict(name="oc.env"),
+            # name
+            "oc.env",
             # expected
             dict(pre_addition=True, post_addition=True),
             id="remove-default-resolver",
@@ -552,8 +552,8 @@ def test_resolve_invalid_input() -> None:
         param(
             # cfg_params: Check with a nonexisting resolver
             dict(),
-            # clear_resolver_params
-            dict(name="idonotexist"),
+            # name
+            "idonotexist",
             # expected
             dict(pre_addition=False, post_addition=False),
             id="remove-nonexistent-resolver",
@@ -561,7 +561,7 @@ def test_resolve_invalid_input() -> None:
     ],
 )
 def test_clear_resolver(
-    restore_resolvers: Any, cfg_params: Any, clear_resolver_params: Any, expected: Any
+    restore_resolvers: Any, cfg_params: Any, name: str, expected: Any
 ) -> None:
     # NOTE: The restore_resolvers fixture automatically restores
     #       the BaseContainer._resolvers state after the test has
@@ -572,12 +572,11 @@ def test_clear_resolver(
     # - see functions in: tests/interpolation/test_custom_resolvers.py
     # Using restore_resolvers is preferred over using
     # "OmegaConf.clear_resolvers()" in the tests (where necessary).
-    name = clear_resolver_params.get("name")
     assert expected["pre_addition"] == OmegaConf.has_resolver(name)
     if cfg_params:
         OmegaConf.register_new_resolver(**cfg_params)
         assert expected["post_addition"] == OmegaConf.has_resolver(name)
 
-    assert OmegaConf.clear_resolver(**clear_resolver_params)
+    assert OmegaConf.clear_resolver(name)
 
     assert not OmegaConf.has_resolver(name)
