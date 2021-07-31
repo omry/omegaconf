@@ -156,7 +156,7 @@ Built-in resolvers
 
 .. _oc.env:
 
-oc.env 
+oc.env
 ^^^^^^
 
 Access to environment variables is supported using ``oc.env``:
@@ -176,7 +176,7 @@ Input YAML file:
 
 You can specify a default value to use in case the environment variable is not set.
 In such a case, the default value is converted to a string using ``str(default)``,
-unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned. 
+unless it is ``null`` (representing Python ``None``) - in which case ``None`` is returned.
 
 The following example falls back to default passwords when ``DB_PASSWORD`` is not defined:
 
@@ -221,7 +221,7 @@ oc.create
     ...         "dict_config_env": "${oc.create:${oc.env:YAML_ENV}}",
     ...     }
     ... )
-    >>> os.environ["YAML_ENV"] = "A: 10\nb: 20\nC: ${.A}" 
+    >>> os.environ["YAML_ENV"] = "A: 10\nb: 20\nC: ${.A}"
     >>> show(cfg.plain_dict)  # `make_dict` returns a Python dict
     type: dict, value: {'a': 10}
     >>> show(cfg.dict_config)  # `oc.create` converts it to DictConfig
@@ -246,11 +246,11 @@ It takes two parameters:
 .. doctest::
 
     >>> conf = OmegaConf.create({
-    ...   "rusty_key": "${oc.deprecated:shiny_key}", 
+    ...   "rusty_key": "${oc.deprecated:shiny_key}",
     ...   "custom_msg": "${oc.deprecated:shiny_key, 'Use $NEW_KEY'}",
     ...   "shiny_key": 10
     ... })
-    >>> # Accessing rusty_key will issue a deprecation warning 
+    >>> # Accessing rusty_key will issue a deprecation warning
     >>> # and return the new value automatically
     >>> warning = "'rusty_key' is deprecated. Change your" \
     ...           " code and config to use 'shiny_key'"
@@ -348,7 +348,7 @@ Another scenario where ``oc.select`` can be useful is if you want to select a mi
     ...         "with_default": "${oc.select:missing,default value}",
     ...     }
     ... )
-    ... 
+    ...
     >>> print(cfg.interpolation)
     Traceback (most recent call last):
     ...
@@ -391,3 +391,63 @@ as interpolations), and they return a ``ListConfig`` that contains keys or value
     >>> show(cfg.ips)
     type: ListConfig, value: ['${workers.node3}', '${workers.node7}']
     >>> assert cfg.ips == ["10.0.0.2", "10.0.0.9"]
+
+.. _clearing_resolvers:
+
+Clearing/removing resolvers
+---------------------------
+
+.. _clear_resolvers:
+
+clear_resolvers
+^^^^^^^^^^^^^^^
+
+Clearing (removing) all custom resolvers at once is supported using ``OmegaConf.clear_resolvers()``.
+This method removes all custom resolvers, but retains all the default resolvers.
+
+.. code-block:: python
+
+    def clear_resolvers() -> None
+
+In the following example, first we register a new custom resolver ``str.lower``, and then clear all
+custom resolvers.
+
+.. doctest::
+
+    >>> OmegaConf.register_new_resolver(
+    ...     name='str.lower',
+    ...     resolver=lambda x: str(x).lower(),
+    ... )
+    >>> OmegaConf.has_resolver("str.lower") # check if resolver exists (after adding, before removal)
+    True
+    >>> OmegaConf.clear_resolvers()
+    >>> OmegaConf.has_resolver("str.lower") # check if resolver exists (after removal)
+    False
+
+.. _clear_resolver:
+
+clear_resolver
+^^^^^^^^^^^^^^
+
+In case, you only want to remove a single resolver, you can remove any (single)
+existing resolver (custom/default) using ``OmegaConf.clear_resolver()``.
+
+.. code-block:: python
+
+    def clear_resolver(name: str) -> bool
+
+
+Attempting to clear (remove) any existing resolver will return ``True`` when
+the resolver is successfully removed, and ``False`` otherwise (if the resolver
+is not found to begin with, or if for some reason, the resolver was not removed).
+
+Here is an example.
+
+.. doctest::
+
+    >>> OmegaConf.has_resolver("oc.env")
+    True
+    >>> # This will remove the default resolver: oc.env
+    >>> OmegaConf.clear_resolver("oc.env")
+    >>> OmegaConf.has_resolver("oc.env")
+    False
