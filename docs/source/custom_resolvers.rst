@@ -414,14 +414,18 @@ custom resolvers.
 
 .. doctest::
 
+    >>> # register a new resolver: str.lower
     >>> OmegaConf.register_new_resolver(
     ...     name='str.lower',
     ...     resolver=lambda x: str(x).lower(),
     ... )
-    >>> OmegaConf.has_resolver("str.lower") # check if resolver exists (after adding, before removal)
+    >>> # check if resolver exists (after adding, before removal)
+    >>> OmegaConf.has_resolver("str.lower")
     True
+    >>> # clear all custom-resolvers
     >>> OmegaConf.clear_resolvers()
-    >>> OmegaConf.has_resolver("str.lower") # check if resolver exists (after removal)
+    >>> # check if resolver exists (after removal)
+    >>> OmegaConf.has_resolver("str.lower")
     False
 
 .. _clear_resolver:
@@ -449,5 +453,6 @@ Here is an example.
     True
     >>> # This will remove the default resolver: oc.env
     >>> OmegaConf.clear_resolver("oc.env")
+    True
     >>> OmegaConf.has_resolver("oc.env")
     False
