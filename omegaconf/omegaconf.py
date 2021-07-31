@@ -475,12 +475,14 @@ class OmegaConf:
             This method can remove deafult resolvers as well.
 
         :param name: Name of the resolver.
-        :return: A bool (``True`` if resolver is removed, ``False`` if not removed).
+        :return: A bool (``True`` if resolver is removed, ``False`` if not found before removing).
         """
         if cls.has_resolver(name):  # pragma: nocover
             _ = BaseContainer._resolvers.pop(name)
-
-        return not cls.has_resolver(name)
+            return not cls.has_resolver(name)
+        else:
+            # return False if resolver does not exist
+            return False
 
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:

@@ -577,6 +577,7 @@ def test_clear_resolver(
         OmegaConf.register_new_resolver(**cfg_params)
         assert expected["post_addition"] == OmegaConf.has_resolver(name)
 
-    assert OmegaConf.clear_resolver(name)
-
-    assert not OmegaConf.has_resolver(name)
+    if OmegaConf.has_resolver(name):
+        assert OmegaConf.clear_resolver(name)
+    else:
+        assert not OmegaConf.clear_resolver(name)
