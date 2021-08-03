@@ -523,38 +523,26 @@ def test_resolve_invalid_input() -> None:
 @mark.parametrize(
     ("cfg_params", "name", "expected"),
     [
-        # tuple
         param(
-            # cfg_params: Check with a new resolver
             dict(
                 name="iamnew",
                 resolver=lambda x: str(x).lower(),
                 use_cache=False,
                 replace=False,
             ),
-            # name
             "iamnew",
-            # expected
             dict(pre_addition=False, post_addition=True),
             id="remove-new-custom-resolver",
         ),
-        # tuple
         param(
-            # cfg_params: Check with a default resolver
             dict(),
-            # name
             "oc.env",
-            # expected
             dict(pre_addition=True, post_addition=True),
             id="remove-default-resolver",
         ),
-        # tuple
         param(
-            # cfg_params: Check with a nonexisting resolver
             dict(),
-            # name
             "idonotexist",
-            # expected
             dict(pre_addition=False, post_addition=False),
             id="remove-nonexistent-resolver",
         ),
