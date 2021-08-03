@@ -531,19 +531,19 @@ def test_resolve_invalid_input() -> None:
                 replace=False,
             ),
             "iamnew",
-            dict(pre_addition=False, post_addition=True),
+            dict(post_addition=True, result=True),
             id="remove-new-custom-resolver",
         ),
         param(
             dict(),
             "oc.env",
-            dict(pre_addition=True, post_addition=True),
+            dict(post_addition=True, result=True),
             id="remove-default-resolver",
         ),
         param(
             dict(),
             "idonotexist",
-            dict(pre_addition=False, post_addition=False),
+            dict(post_addition=False, result=False),
             id="remove-nonexistent-resolver",
         ),
     ],
@@ -551,21 +551,9 @@ def test_resolve_invalid_input() -> None:
 def test_clear_resolver(
     restore_resolvers: Any, cfg_params: Any, name: str, expected: Any
 ) -> None:
-    # NOTE: The restore_resolvers fixture automatically restores
-    #       the BaseContainer._resolvers state after the test has
-    #       finished.
-    # Origin: The fixture restore_resolver can be found here.
-    # - tests/conftest.py::restore_resolvers
-    # Example use-cases:
-    # - see functions in: tests/interpolation/test_custom_resolvers.py
-    # Using restore_resolvers is preferred over using
-    # "OmegaConf.clear_resolvers()" in the tests (where necessary).
-    assert expected["pre_addition"] == OmegaConf.has_resolver(name)
     if cfg_params:
         OmegaConf.register_new_resolver(**cfg_params)
         assert expected["post_addition"] == OmegaConf.has_resolver(name)
 
-    if OmegaConf.has_resolver(name):
-        assert OmegaConf.clear_resolver(name)
-    else:
-        assert not OmegaConf.clear_resolver(name)
+    assert OmegaConf.clear_resolver(name) == expected["result"]
+    assert not OmegaConf.has_resolver(name)
