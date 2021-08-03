@@ -477,7 +477,7 @@ class OmegaConf:
         :param name: Name of the resolver.
         :return: A bool (``True`` if resolver is removed, ``False`` if not found before removing).
         """
-        if cls.has_resolver(name):  # pragma: nocover
+        if cls.has_resolver(name):
             _ = BaseContainer._resolvers.pop(name)
             return not cls.has_resolver(name)
         else:
