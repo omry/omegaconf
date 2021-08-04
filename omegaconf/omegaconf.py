@@ -479,7 +479,7 @@ class OmegaConf:
         """
         if cls.has_resolver(name):
             BaseContainer._resolvers.pop(name)
-            return not cls.has_resolver(name)
+            return True
         else:
             # return False if resolver does not exist
             return False
