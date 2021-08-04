@@ -427,6 +427,9 @@ custom resolvers.
     >>> # check if resolver exists (after removal)
     >>> OmegaConf.has_resolver("str.lower")
     False
+    >>> # default resolvers are not affected
+    >>> OmegaConf.has_resolver("oc.env")
+    >>> True
 
 .. _clear_resolver:
 
