@@ -478,7 +478,7 @@ class OmegaConf:
         :return: A bool (``True`` if resolver is removed, ``False`` if not found before removing).
         """
         if cls.has_resolver(name):
-            _ = BaseContainer._resolvers.pop(name)
+            BaseContainer._resolvers.pop(name)
             return not cls.has_resolver(name)
         else:
             # return False if resolver does not exist
