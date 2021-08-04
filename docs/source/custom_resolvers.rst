@@ -435,8 +435,7 @@ custom resolvers.
 clear_resolver
 ^^^^^^^^^^^^^^
 
-In case, you only want to remove a single resolver, you can remove any (single)
-existing resolver (custom/default) using ``OmegaConf.clear_resolver()``.
+Use ``OmegaConf.clear_resolver()`` to remove a single resolver (including built-in resolvers).
 
 .. code-block:: python
 
