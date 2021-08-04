@@ -429,7 +429,7 @@ custom resolvers.
     False
     >>> # default resolvers are not affected
     >>> OmegaConf.has_resolver("oc.env")
-    >>> True
+    True
 
 .. _clear_resolver:
 
