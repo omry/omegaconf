@@ -442,9 +442,7 @@ Use ``OmegaConf.clear_resolver()`` to remove a single resolver (including built-
     def clear_resolver(name: str) -> bool
 
 
-Attempting to clear (remove) any existing resolver will return ``True`` when
-the resolver is successfully removed, and ``False`` otherwise (if the resolver
-is not found to begin with, or if for some reason, the resolver was not removed).
+``OmegaConf.clear_resolver()`` returns True if the resolver was found and removed, and False otherwise.
 
 Here is an example.
 
