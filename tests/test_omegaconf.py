@@ -521,7 +521,7 @@ def test_resolve_invalid_input() -> None:
 
 
 @mark.parametrize(
-    ("cfg_params", "name", "expected"),
+    ("register_resolver_params", "name", "expected"),
     [
         param(
             dict(
@@ -531,29 +531,29 @@ def test_resolve_invalid_input() -> None:
                 replace=False,
             ),
             "iamnew",
-            dict(post_addition=True, result=True),
+            dict(pre_clear=True, result=True),
             id="remove-new-custom-resolver",
         ),
         param(
             dict(),
             "oc.env",
-            dict(post_addition=True, result=True),
+            dict(pre_clear=True, result=True),
             id="remove-default-resolver",
         ),
         param(
             dict(),
             "idonotexist",
-            dict(post_addition=False, result=False),
+            dict(pre_clear=False, result=False),
             id="remove-nonexistent-resolver",
         ),
     ],
 )
 def test_clear_resolver(
-    restore_resolvers: Any, cfg_params: Any, name: str, expected: Any
+    restore_resolvers: Any, register_resolver_params: Any, name: str, expected: Any
 ) -> None:
-    if cfg_params:
-        OmegaConf.register_new_resolver(**cfg_params)
-        assert expected["post_addition"] == OmegaConf.has_resolver(name)
+    if register_resolver_params:
+        OmegaConf.register_new_resolver(**register_resolver_params)
+    assert expected["pre_clear"] == OmegaConf.has_resolver(name)
 
     assert OmegaConf.clear_resolver(name) == expected["result"]
     assert not OmegaConf.has_resolver(name)
