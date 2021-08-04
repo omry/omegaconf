@@ -402,8 +402,7 @@ Clearing/removing resolvers
 clear_resolvers
 ^^^^^^^^^^^^^^^
 
-Clearing (removing) all custom resolvers at once is supported using ``OmegaConf.clear_resolvers()``.
-This method removes all custom resolvers, but retains all the default resolvers.
+Use ``OmegaConf.clear_resolvers()`` to remove all resolvers except the built-in resolvers (like ``oc.env`` etc).
 
 .. code-block:: python
 
