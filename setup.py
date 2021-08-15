@@ -4,7 +4,7 @@ OmegaConf setup
     Instructions:
     # Build:
     rm -rf dist/ omegaconf.egg-info/
-    python setup.py sdist bdist_wheel
+    python -m build
     # Upload:
     twine upload dist/*
 """
