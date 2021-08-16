@@ -1,3 +1,13 @@
+## 2.1.1 (2021-08-16)
+### Features
+
+- Add a throw_on_missing keyword argument to the signature of OmegaConf.to_container, which controls whether MissingMandatoryValue exceptions are raised. ([#501](https://github.com/omry/omegaconf/issues/501))
+
+### Miscellaneous changes
+
+- Fix a packaging issue (missing sdist dependency) ([#772](https://github.com/omry/omegaconf/issues/772))
+
+
 ## 2.1.0 (2021-06-07)
 
 
