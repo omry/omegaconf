@@ -5,7 +5,7 @@
 
 ### Miscellaneous changes
 
-- update pyyaml dependency specification for compatibility with PEP440 ([#758](https://github.com/omry/omegaconf/issues/758))
+- Update pyyaml dependency specification for compatibility with PEP440 ([#758](https://github.com/omry/omegaconf/issues/758))
 - Fix a packaging issue (missing sdist dependency) ([#772](https://github.com/omry/omegaconf/issues/772))
 
 
