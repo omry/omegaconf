@@ -4,9 +4,15 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Yadan"
   given-names: "Omry"
+  orcid: "https://orcid.org/0000-0002-1871-7216"
+- family-names: "Jasha10"
+  given-names: "Jasha10"
+  #orcid: "https://orcid.org/0000-0000-0000-0000"
+- family-names: "Delalleau"
+  given-names: "Olivier"
   #orcid: "https://orcid.org/0000-0000-0000-0000"
 title: "omegaconf"
-version: 2.1.1
+#version: 2.1.1
 #doi: 10.5281/zenodo.1234
-date-released: 2021-08-17
+#date-released: 2021-08-17
 url: "https://github.com/omry/omegaconf"
