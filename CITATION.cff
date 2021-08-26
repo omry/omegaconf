@@ -10,7 +10,7 @@ authors:
   orcid: "https://orcid.org/0000-0002-1397-6454"
 - family-names: "Delalleau"
   given-names: "Olivier"
-  #orcid: "https://orcid.org/0000-0000-0000-0000"
+  orcid: "https://orcid.org/0000-0002-0610-7226"
 title: "omegaconf"
 #version: 2.1.1
 #doi: 10.5281/zenodo.1234
