@@ -12,7 +12,6 @@ authors:
   given-names: "Olivier"
   orcid: "https://orcid.org/0000-0002-0610-7226"
 title: "omegaconf"
-#version: 2.1.1
 #doi: 10.5281/zenodo.1234
-#date-released: 2021-08-17
+date-released: 2019-11-19
 url: "https://github.com/omry/omegaconf"
