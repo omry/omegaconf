@@ -7,6 +7,7 @@ from omegaconf import (
     AnyNode,
     Container,
     DictConfig,
+    DictKeyType,
     IntegerNode,
     ListConfig,
     OmegaConf,
@@ -652,25 +653,27 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
 @mark.parametrize(
     "src,keys,ref_type,is_optional",
     [
-        param(Group, "admin", User, True, id="opt_user"),
+        param(Group, ["admin"], User, True, id="opt_user"),
         param(
             ConcretePlugin,
-            "params",
+            ["params"],
             ConcretePlugin.FoobarParams,
             False,
             id="nested_structured_conf",
         ),
         param(
             OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
-            "user007",
+            ["user007"],
             User,
             False,
             id="structured_dict_of_user",
         ),
-        param(DictConfig({"a": 123}, element_type=int), "a", int, False, id="dict_int"),
+        param(
+            DictConfig({"a": 123}, element_type=int), ["a"], int, False, id="dict_int"
+        ),
         param(
             DictConfig({"a": 123}, element_type=Optional[int]),
-            "a",
+            ["a"],
             int,
             True,
             id="dict_opt_int",
@@ -692,7 +695,7 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
         ),
         param(
             OmegaConf.merge(ListConfig([], element_type=User), [User(name="joe")]),
-            0,
+            [0],
             User,
             False,
             id="list:merge_into_new_user_node",
@@ -701,31 +704,29 @@ def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> No
             OmegaConf.merge(
                 ListConfig([], element_type=Optional[User]), [User(name="joe")]
             ),
-            0,
+            [0],
             User,
             True,
             id="list:merge_into_new_optional_user_node",
         ),
-        param(SubscriptedDictOpt, "opt_dict", Dict[str, int], True, id="opt_dict"),
-        param(SubscriptedListOpt, "opt_list", List[int], True, id="opt_list"),
+        param(SubscriptedDictOpt, ["opt_dict"], Dict[str, int], True, id="opt_dict"),
+        param(SubscriptedListOpt, ["opt_list"], List[int], True, id="opt_list"),
         param(
             SubscriptedDictOpt,
-            "dict_opt",
+            ["dict_opt"],
             Dict[str, Optional[int]],
             False,
             id="opt_dict",
         ),
         param(
-            SubscriptedListOpt, "list_opt", List[Optional[int]], False, id="opt_dict"
+            SubscriptedListOpt, ["list_opt"], List[Optional[int]], False, id="opt_dict"
         ),
     ],
 )
 def test_assignment_optional_behavior(
-    src: Any, keys: Any, ref_type: Any, is_optional: bool
+    src: Any, keys: List[DictKeyType], ref_type: Any, is_optional: bool
 ) -> None:
     cfg = _ensure_container(src)
-    if not isinstance(keys, (list, tuple)):
-        keys = [keys]
     for k in keys:
         cfg = cfg._get_node(k)
     assert cfg._is_optional() == is_optional
