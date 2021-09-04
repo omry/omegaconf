@@ -1,5 +1,6 @@
 import copy
 import sys
+from contextlib import AbstractContextManager
 from typing import (
     Any,
     Dict,
@@ -21,7 +22,8 @@ from omegaconf import (
     ReadonlyConfigError,
     ValidationError,
 )
-from omegaconf._utils import is_structured_config
+from omegaconf._utils import _ensure_container, is_structured_config
+from omegaconf.base import Node
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from omegaconf.nodes import IntegerNode
 from tests import (
@@ -383,6 +385,332 @@ def test_merge(
     else:
         with expected:
             merge_function(*configs)
+
+
+@mark.parametrize(
+    "inputs,expected,ref_type,is_optional",
+    [
+        param(
+            (DictConfig(content={"foo": "bar"}, element_type=str), {"foo": "qux"}),
+            {"foo": "qux"},
+            str,
+            False,
+            id="str",
+        ),
+        param(
+            (DictConfig(content={"foo": "bar"}, element_type=str), {"foo": None}),
+            raises(ValidationError, match="Non optional field"),
+            None,
+            None,
+            id="str_none",
+        ),
+        param(
+            (DictConfig(content={"foo": "bar"}, element_type=str), {"foo": MISSING}),
+            {"foo": "bar"},
+            str,
+            False,
+            id="str_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": "bar"}, element_type=Optional[str]),
+                {"foo": "qux"},
+            ),
+            {"foo": "qux"},
+            str,
+            True,
+            id="optional_str",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": "bar"}, element_type=Optional[str]),
+                {"foo": None},
+            ),
+            {"foo": None},
+            str,
+            True,
+            id="optional_str_none",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": "bar"}, element_type=Optional[str]),
+                {"foo": MISSING},
+            ),
+            {"foo": "bar"},
+            str,
+            True,
+            id="optional_str_missing",
+        ),
+        param(
+            (DictConfig(content={}, element_type=str), {"foo": "qux"}),
+            {"foo": "qux"},
+            str,
+            False,
+            id="new_str",
+        ),
+        param(
+            (DictConfig(content={}, element_type=str), {"foo": None}),
+            raises(ValidationError, match="Non optional field"),
+            None,
+            None,
+            id="new_str_none",
+        ),
+        param(
+            (DictConfig(content={}, element_type=str), {"foo": MISSING}),
+            {"foo": MISSING},
+            str,
+            False,
+            id="new_str_missing",
+        ),
+        param(
+            (DictConfig(content={}, element_type=Optional[str]), {"foo": "qux"}),
+            {"foo": "qux"},
+            str,
+            True,
+            id="new_optional_str",
+        ),
+        param(
+            (DictConfig(content={}, element_type=Optional[str]), {"foo": None}),
+            {"foo": None},
+            str,
+            True,
+            id="new_optional_str_none",
+        ),
+        param(
+            (DictConfig(content={}, element_type=Optional[str]), {"foo": MISSING}),
+            {"foo": MISSING},
+            str,
+            True,
+            id="new_optional_str_missing",
+        ),
+        param(
+            (DictConfig(content={"foo": MISSING}, element_type=str), {"foo": "qux"}),
+            {"foo": "qux"},
+            str,
+            False,
+            id="missing_str",
+        ),
+        param(
+            (DictConfig(content={"foo": MISSING}, element_type=str), {"foo": None}),
+            raises(ValidationError, match="Non optional field"),
+            None,
+            None,
+            id="missing_str_none",
+        ),
+        param(
+            (DictConfig(content={"foo": MISSING}, element_type=str), {"foo": MISSING}),
+            {"foo": MISSING},
+            str,
+            False,
+            id="missing_str_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[str]),
+                {"foo": "qux"},
+            ),
+            {"foo": "qux"},
+            str,
+            True,
+            id="missing_optional_str",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[str]),
+                {"foo": None},
+            ),
+            {"foo": None},
+            str,
+            True,
+            id="missing_optional_str_none",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[str]),
+                {"foo": MISSING},
+            ),
+            {"foo": MISSING},
+            str,
+            True,
+            id="missing_optional_str_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=User),
+                {"foo": User("Bond")},
+            ),
+            {"foo": User("Bond")},
+            User,
+            False,
+            id="user",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=User),
+                {"foo": None},
+            ),
+            raises(ValidationError, match="field 'foo' is not Optional"),
+            None,
+            None,
+            id="user_none",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=User),
+                {"foo": MISSING},
+            ),
+            {"foo": MISSING},
+            User,
+            False,
+            id="user_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=Optional[User]),
+                {"foo": User("Bond")},
+            ),
+            {"foo": User("Bond")},
+            User,
+            True,
+            id="optional_user",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=Optional[User]),
+                {"foo": None},
+            ),
+            {"foo": None},
+            User,
+            True,
+            id="optional_user_none",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": User("Bond")}, element_type=Optional[User]),
+                {"foo": MISSING},
+            ),
+            {"foo": User("Bond")},
+            User,
+            True,
+            id="optional_user_missing",
+        ),
+        param(
+            (DictConfig(content={}, element_type=User), {"foo": User("Bond")}),
+            {"foo": User("Bond")},
+            User,
+            False,
+            id="new_user",
+        ),
+        param(
+            (DictConfig(content={}, element_type=User), {"foo": None}),
+            raises(ValidationError, match="child 'foo' is not Optional"),
+            None,
+            None,
+            id="new_user_none",
+        ),
+        param(
+            (DictConfig(content={}, element_type=User), {"foo": MISSING}),
+            {"foo": MISSING},
+            User,
+            False,
+            id="new_user_missing",
+        ),
+        param(
+            (
+                DictConfig(content={}, element_type=Optional[User]),
+                {"foo": User("Bond")},
+            ),
+            {"foo": User("Bond")},
+            User,
+            True,
+            id="new_optional_user",
+        ),
+        param(
+            (DictConfig(content={}, element_type=Optional[User]), {"foo": None}),
+            {"foo": None},
+            User,
+            True,
+            id="new_optional_user_none",
+        ),
+        param(
+            (DictConfig(content={}, element_type=Optional[User]), {"foo": MISSING}),
+            {"foo": MISSING},
+            User,
+            True,
+            id="new_optional_user_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=User),
+                {"foo": User("Bond")},
+            ),
+            {"foo": User("Bond")},
+            User,
+            False,
+            id="missing_user",
+        ),
+        param(
+            (DictConfig(content={"foo": MISSING}, element_type=User), {"foo": None}),
+            raises(ValidationError, match="field 'foo' is not Optional"),
+            None,
+            None,
+            id="missing_user_none",
+        ),
+        param(
+            (DictConfig(content={"foo": MISSING}, element_type=User), {"foo": MISSING}),
+            {"foo": MISSING},
+            User,
+            False,
+            id="missing_user_missing",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[User]),
+                {"foo": User("Bond")},
+            ),
+            {"foo": User("Bond")},
+            User,
+            True,
+            id="missing_optional_user",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[User]),
+                {"foo": None},
+            ),
+            {"foo": None},
+            User,
+            True,
+            id="missing_optional_user_none",
+        ),
+        param(
+            (
+                DictConfig(content={"foo": MISSING}, element_type=Optional[User]),
+                {"foo": MISSING},
+            ),
+            {"foo": MISSING},
+            User,
+            True,
+            id="missing_optional_user_missing",
+        ),
+    ],
+)
+def test_optional_element_type_merge(
+    inputs: Any, expected: Any, ref_type: Any, is_optional: bool
+) -> None:
+    configs = [_ensure_container(c) for c in inputs]
+    if isinstance(expected, AbstractContextManager):
+        with expected:
+            OmegaConf.merge(*configs)
+    else:
+        cfg = OmegaConf.merge(*configs)
+        assert cfg == expected
+
+        assert isinstance(cfg, DictConfig)
+        node = cfg._get_node("foo")
+        assert isinstance(node, Node)
+        assert node._is_optional() == is_optional
+        assert node._metadata.ref_type == ref_type
 
 
 def test_merge_error_retains_type() -> None:
