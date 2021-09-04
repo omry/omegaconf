@@ -6,7 +6,8 @@ from typing import Any, List, Optional
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
-from omegaconf._utils import nullcontext
+from omegaconf._utils import _ensure_container, nullcontext
+from omegaconf.base import Node
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -447,13 +448,13 @@ def validate_list_keys(c: Any) -> None:
 
 
 @mark.parametrize(
-    "input_, value, expected, expected_node_type",
+    "cfg, value, expected, expected_ref_type",
     [
         param(
             ListConfig(element_type=int, content=[]),
             123,
             [123],
-            IntegerNode,
+            int,
             id="typed_list",
         ),
         param(
@@ -463,23 +464,67 @@ def validate_list_keys(c: Any) -> None:
             None,
             id="typed_list_append_none",
         ),
+        param(
+            ListConfig(element_type=Optional[int], content=[]),
+            123,
+            [123],
+            int,
+            id="optional_typed_list",
+        ),
+        param(
+            ListConfig(element_type=Optional[int], content=[]),
+            None,
+            [None],
+            int,
+            id="optional_typed_list_append_none",
+        ),
+        param(
+            ListConfig(element_type=User, content=[]),
+            User(name="bond"),
+            [User(name="bond")],
+            User,
+            id="user_list",
+        ),
+        param(
+            ListConfig(element_type=User, content=[]),
+            None,
+            ValidationError,
+            None,
+            id="user_list_append_none",
+        ),
+        param(
+            ListConfig(element_type=Optional[User], content=[]),
+            User(name="bond"),
+            [User(name="bond")],
+            User,
+            id="optional_user_list",
+        ),
+        param(
+            ListConfig(element_type=Optional[User], content=[]),
+            None,
+            [None],
+            User,
+            id="optional_user_list_append_none",
+        ),
     ],
 )
-def test_append(
-    input_: List[str],
+def test_append_to_typed(
+    cfg: ListConfig,
     value: Any,
     expected: Any,
-    expected_node_type: type,
+    expected_ref_type: type,
 ) -> None:
-    cfg = OmegaConf.create(input_)
+    cfg = _ensure_container(cfg)
     if isinstance(expected, type):
         with raises(expected):
             cfg.append(value)
     else:
         cfg.append(value)
         assert cfg == expected
-        assert type(cfg._get_node(-1)) == expected_node_type
-    validate_list_keys(cfg)
+        node = cfg._get_node(-1)
+        assert isinstance(node, Node)
+        assert node._metadata.ref_type == expected_ref_type
+        validate_list_keys(cfg)
 
 
 @mark.parametrize(
