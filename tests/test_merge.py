@@ -592,7 +592,7 @@ def test_merge(
                 DictConfig(content={"foo": User("Bond")}, element_type=User),
                 {"foo": MISSING},
             ),
-            {"foo": MISSING},
+            {"foo": User("Bond")},
             User,
             False,
             id="user_missing",
