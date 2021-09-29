@@ -537,9 +537,9 @@ def test_merge(
         param(
             (
                 DictConfig(content={"foo": User("Bond")}, element_type=User),
-                {"foo": User("Bond")},
+                {"foo": User("007")},
             ),
-            {"foo": User("Bond")},
+            {"foo": User("007")},
             User,
             False,
             id="user",
@@ -567,9 +567,9 @@ def test_merge(
         param(
             (
                 DictConfig(content={"foo": User("Bond")}, element_type=Optional[User]),
-                {"foo": User("Bond")},
+                {"foo": User("007")},
             ),
-            {"foo": User("Bond")},
+            {"foo": User("007")},
             User,
             True,
             id="optional_user",
