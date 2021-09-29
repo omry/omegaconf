@@ -1,6 +1,8 @@
 import copy
+import re
 import sys
 from contextlib import AbstractContextManager
+from textwrap import dedent
 from typing import (
     Any,
     Dict,
@@ -399,7 +401,17 @@ def test_merge(
         ),
         param(
             (DictConfig(content={"foo": "bar"}, element_type=str), {"foo": None}),
-            raises(ValidationError, match="Non optional field"),
+            raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        Non optional field cannot be assigned None
+                            full_key: foo
+                            object_type=dict"""
+                    )
+                ),
+            ),
             None,
             None,
             id="str_none",
@@ -492,7 +504,17 @@ def test_merge(
         ),
         param(
             (DictConfig(content={"foo": MISSING}, element_type=str), {"foo": None}),
-            raises(ValidationError, match="Non optional field"),
+            raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        Non optional field cannot be assigned None
+                            full_key: foo
+                            object_type=dict"""
+                    )
+                ),
+            ),
             None,
             None,
             id="missing_str_none",
@@ -549,7 +571,18 @@ def test_merge(
                 DictConfig(content={"foo": User("Bond")}, element_type=User),
                 {"foo": None},
             ),
-            raises(ValidationError, match="field 'foo' is not Optional"),
+            raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        field 'foo' is not Optional
+                            full_key: foo
+                            reference_type=User
+                            object_type=User"""
+                    )
+                ),
+            ),
             None,
             None,
             id="user_none",
@@ -603,7 +636,17 @@ def test_merge(
         ),
         param(
             (DictConfig(content={}, element_type=User), {"foo": None}),
-            raises(ValidationError, match="child 'foo' is not Optional"),
+            raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        child 'foo' is not Optional
+                            full_key: foo
+                            object_type=dict"""
+                    )
+                ),
+            ),
             None,
             None,
             id="new_user_none",
@@ -651,7 +694,18 @@ def test_merge(
         ),
         param(
             (DictConfig(content={"foo": MISSING}, element_type=User), {"foo": None}),
-            raises(ValidationError, match="field 'foo' is not Optional"),
+            raises(
+                ValidationError,
+                match=re.escape(
+                    dedent(
+                        """\
+                        field 'foo' is not Optional
+                            full_key: foo
+                            reference_type=User
+                            object_type=NoneType"""
+                    )
+                ),
+            ),
             None,
             None,
             id="missing_user_none",
