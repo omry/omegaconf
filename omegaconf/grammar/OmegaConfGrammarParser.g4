@@ -10,7 +10,8 @@
 // - Keep up-to-date the comments in the visitor (in `grammar_visitor.py`)
 //   that contain grammar excerpts (within each `visit...()` method).
 //
-// - Remember to update the documentation (including the tutorial notebook)
+// - Remember to update the documentation (including the tutorial notebook as
+//   well as grammar.rst)
 
 parser grammar OmegaConfGrammarParser;
 options {tokenVocab = OmegaConfGrammarLexer;}

@@ -315,6 +315,8 @@ Variable interpolation
 
 OmegaConf supports variable interpolation. Interpolations are evaluated lazily on access.
 
+.. _config-node-interpolation:
+
 Config node interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 The interpolated variable can be the path to another node in the configuration, and in that case
@@ -382,6 +384,8 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
     ... )
     >>> (cfg.player.height, cfg.player.weight)
     (180, 75)
+
+.. _resolvers:
 
 Resolvers
 ^^^^^^^^^
