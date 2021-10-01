@@ -565,6 +565,7 @@ class BaseContainer(Container, ABC):
             v = val
             v._set_parent(self)
             v._set_key(value_key)
+            _update_types(v, self._metadata.element_type, None)
             self.__dict__["_content"][value_key] = v
 
         if input_node and target_node:
