@@ -403,14 +403,7 @@ def test_merge(
             (DictConfig(content={"foo": "bar"}, element_type=str), {"foo": None}),
             raises(
                 ValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
-                        Non optional field cannot be assigned None
-                            full_key: foo
-                            object_type=dict"""
-                    )
-                ),
+                match="Incompatible value 'None' for field of type 'str'",
             ),
             None,
             None,
@@ -462,7 +455,10 @@ def test_merge(
         ),
         param(
             (DictConfig(content={}, element_type=str), {"foo": None}),
-            raises(ValidationError, match="Non optional field"),
+            raises(
+                ValidationError,
+                match="Incompatible value 'None' for field of type 'str'",
+            ),
             None,
             None,
             id="new_str_none",
@@ -506,14 +502,7 @@ def test_merge(
             (DictConfig(content={"foo": MISSING}, element_type=str), {"foo": None}),
             raises(
                 ValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
-                        Non optional field cannot be assigned None
-                            full_key: foo
-                            object_type=dict"""
-                    )
-                ),
+                match="Incompatible value 'None' for field of type 'str'",
             ),
             None,
             None,
