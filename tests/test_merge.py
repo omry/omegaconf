@@ -457,7 +457,7 @@ def test_merge(
             (DictConfig(content={}, element_type=str), {"foo": None}),
             raises(
                 ValidationError,
-                match="Incompatible value 'None' for field of type 'str'",
+                match="field 'foo' is not Optional",
             ),
             None,
             None,

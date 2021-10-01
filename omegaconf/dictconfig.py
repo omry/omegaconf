@@ -23,6 +23,7 @@ from ._utils import (
     _is_missing_literal,
     _is_missing_value,
     _is_none,
+    _resolve_optional,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -246,6 +247,14 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                             key=key,
                             value=value,
                             cause=ValidationError("child '$FULL_KEY' is not Optional"),
+                        )
+                else:
+                    is_optional, _ = _resolve_optional(self._metadata.element_type)
+                    if not is_optional:
+                        self._format_and_raise(
+                            key=key,
+                            value=value,
+                            cause=ValidationError("field '$FULL_KEY' is not Optional"),
                         )
             else:
                 if not self._is_optional():

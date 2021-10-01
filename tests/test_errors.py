@@ -650,6 +650,16 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: DictConfig({}, element_type=str),
+            op=lambda cfg: OmegaConf.merge(cfg, {"foo": None}),
+            exception_type=ValidationError,
+            key="foo",
+            msg="field 'foo' is not Optional",
+        ),
+        id="dict:merge_none_into_not_optional_element_type",
+    ),
+    param(
+        Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(IllegalType),
             exception_type=ValidationError,
