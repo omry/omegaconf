@@ -11,27 +11,28 @@ rules define the tokens used by the `parser rules <https://github.com/omry/omega
 Currently this grammar's main usage is in the parsing of :ref:`interpolations<interpolation>`, detailed below.
 
 
-String interpolations
+.. _interpolation-strings:
+
+Interpolation strings
 ^^^^^^^^^^^^^^^^^^^^^
 
-A string interpolation is a string concatenating an interpolation with additional characters
-(that may or may not be other interpolations).
-These are all examples of string interpolations:
-
-    - ``https://${host}:${port}``
-    - ``Hello ${name}``
-    - ``${a}${oc.env:B}${c}``
-
-Such strings are matched by the following parser rule, which is the main rule used
-to parse any string containing an interpolation:
+An interpolation string is any string containing the ``${`` character sequence (denoting the start of an interpolation),
+and is parsed using the ``text`` rule of the grammar:
 
     .. code-block:: antlr
 
         text: (interpolation |
                ANY_STR | ESC | ESC_INTER | TOP_ESC | QUOTED_ESC)+;
 
-In this rule, all tokens except ``interpolation`` represent regular string fragments
-(with a special handling of escaped characters, see :ref:`escaping-in-sring-interpolations` below).
+Such a string can either be a single interpolation, or the concatenation of multiple fragments
+that can either be interpolations or regular strings
+(with a special handling of escaped characters, see :ref:`escaping-in-interpolation-strings` below).
+These are all examples of interpolation strings:
+
+    - ``${foo.bar}``
+    - ``https://${host}:${port}``
+    - ``Hello ${name}``
+    - ``${a}${oc.env:B}${c}``
 
 
 Interpolation types
@@ -154,9 +155,9 @@ Some characters need to be escaped, with varying escaping requirements depending
 In general, however, you can use the following rule of thumb:
 *you only need to escape characters that otherwise have a special meaning in the current context*.
 
-.. _escaping-in-sring-interpolations:
+.. _escaping-in-interpolation-strings:
 
-Escaping in string interpolations
+Escaping in interpolation strings
 +++++++++++++++++++++++++++++++++
 
 In order to define fields whose value is an interpolation-like string, interpolations can be escaped with ``\${``.
@@ -220,16 +221,16 @@ to switch to quoted strings instead of relying heavily on the above escape seque
 Escaping in quoted strings
 ++++++++++++++++++++++++++
 
-As can be seen from the definition of the ``quotedValue`` parser rule above, a quoted string
-is essentially a string interpolation surrounded by quotes.
-This means that the ``\${`` escape sequence can also be used to escape interpolations
-in quoted strings, as seen in :ref:`escaping-in-sring-interpolations`:
+As can be seen from the definition of the ``quotedValue`` parser rule above, quoted strings
+are just ``text`` fragments surrounded by quotes, and are thus very similar to :ref:`interpolation-strings`.
+As a result, the ``\${`` escape sequence can also be used to escape interpolations
+in quoted strings (as described in :ref:`escaping-in-interpolation-strings`):
 
     - ``"\${dir}"`` resolves to the string ``"${dir}"``
     - ``"C:\\${dir}"`` resolves to the string ``"C:\<value of dir>"``
 
-However, one key difference with string interpolations is that quotes of the same type
-as enclosing quotes must be escaped, unless they are within a nested interpolation.
+However, one key difference with interpolation strings is that quotes of the same type
+as the enclosing quotes must be escaped, unless they are within a nested interpolation.
 For instance:
 
     - ``'\'Hi you\', I said'`` resolves to the string ``"'Hi you', I said"``
