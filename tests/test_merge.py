@@ -630,7 +630,7 @@ def test_merge(
                 match=re.escape(
                     dedent(
                         """\
-                        child 'foo' is not Optional
+                        field 'foo' is not Optional
                             full_key: foo
                             object_type=dict"""
                     )

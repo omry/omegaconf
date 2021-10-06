@@ -106,7 +106,7 @@ class TestStructured:
 
         def test_error_message(self, module: Any) -> None:
             cfg = OmegaConf.structured(module.StructuredOptional)
-            msg = re.escape("child 'not_optional' is not Optional")
+            msg = re.escape("field 'not_optional' is not Optional")
             with raises(ValidationError, match=msg):
                 cfg.not_optional = None
 

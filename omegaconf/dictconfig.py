@@ -236,33 +236,27 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             )
             raise ValidationError(msg)
 
-    def _validate_non_optional(self, key: Any, value: Any) -> None:
+    def _validate_non_optional(self, key: Optional[DictKeyType], value: Any) -> None:
         if _is_none(value, resolve=True, throw_on_resolution_failure=False):
+
             if key is not None:
                 child = self._get_node(key)
                 if child is not None:
                     assert isinstance(child, Node)
-                    if not child._is_optional():
-                        self._format_and_raise(
-                            key=key,
-                            value=value,
-                            cause=ValidationError("child '$FULL_KEY' is not Optional"),
-                        )
+                    field_is_optional = child._is_optional()
                 else:
-                    is_optional, _ = _resolve_optional(self._metadata.element_type)
-                    if not is_optional:
-                        self._format_and_raise(
-                            key=key,
-                            value=value,
-                            cause=ValidationError("field '$FULL_KEY' is not Optional"),
-                        )
-            else:
-                if not self._is_optional():
-                    self._format_and_raise(
-                        key=None,
-                        value=value,
-                        cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                    field_is_optional, _ = _resolve_optional(
+                        self._metadata.element_type
                     )
+            else:
+                field_is_optional = self._is_optional()
+
+            if not field_is_optional:
+                self._format_and_raise(
+                    key=key,
+                    value=value,
+                    cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                )
 
     def _raise_invalid_value(
         self, value: Any, value_type: Any, target_type: Any
