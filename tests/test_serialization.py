@@ -322,13 +322,12 @@ def test_pickle_backward_compatibility(version: str) -> None:
 @mark.xfail(reason="python3.6 pickling error is not handled")
 def test_python36_pickle_optional() -> None:
     cfg = OmegaConf.structured(SubscriptedDictOpt)
-    with tempfile.TemporaryFile() as fp:
-        with raises(
-            OmegaConfBaseException,
-            match=re.escape(
-                "Serializing structured configs with `Union` type annotations requires python >= 3.7"
-            ),
-        ):
-            # currently this raises the following:
-            # _pickle.PicklingError: Can't pickle typing.Union[int, NoneType]: it's not the same object as typing.Union
-            pickle.dump(cfg, fp)
+    with raises(
+        OmegaConfBaseException,
+        match=re.escape(
+            "Serializing structured configs with `Union` type annotations requires python >= 3.7"
+        ),
+    ):
+        # currently this raises the following:
+        # _pickle.PicklingError: Can't pickle typing.Union[int, NoneType]: it's not the same object as typing.Union
+        pickle.dumps(cfg)
