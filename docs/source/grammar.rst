@@ -89,7 +89,8 @@ with OmegaConf 2.0, but this has been deprecated (see* `#572 <https://github.com
 Element types
 ^^^^^^^^^^^^^
 
-There are four main types of elements:
+As seen in the ``sequence`` rule above, each resolver argument is parsed by an ``element`` rule,
+which currently supports four main types of arguments:
 
     .. code-block:: antlr
 
