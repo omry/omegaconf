@@ -128,8 +128,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_esc_illegal_1", r"\#", GrammarParseError),
     ("str_esc_illegal_2", r""" \'\" """.strip(), GrammarParseError),
     # Quoted strings.
-    ("str_quoted_single", "'!@#$%^&*()[]:.,\"'", '!@#$%^&*()[]:.,"'),
-    ("str_quoted_double", '"!@#$%^&*()[]:.,\'"', "!@#$%^&*()[]:.,'"),
+    ("str_quoted_single", "'!@#$%^&*|()[]:.,\"'", '!@#$%^&*|()[]:.,"'),
+    ("str_quoted_double", '"!@#$%^&*|()[]:.,\'"', "!@#$%^&*|()[]:.,'"),
     ("str_quoted_outer_ws_single", "'  a \t'", "  a \t"),
     ("str_quoted_outer_ws_double", '"  a \t"', "  a \t"),
     ("str_quoted_int", "'123'", "123"),
