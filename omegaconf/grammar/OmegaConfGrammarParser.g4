@@ -70,7 +70,7 @@ primitive:
       | INT                                    // 0, 10, -20, 1_000_000
       | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
       | BOOL                                   // true, TrUe, false, False
-      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
+      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @, |
       | COLON                                  // :
       | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
       | WS                                     // whitespaces
@@ -84,7 +84,7 @@ dictKey:
       | INT                                    // 0, 10, -20, 1_000_000
       | FLOAT                                  // 3.14, -20.0, 1e-1, -10e3
       | BOOL                                   // true, TrUe, false, False
-      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @
+      | UNQUOTED_CHAR                          // /, -, \, +, ., $, %, *, @, |
       | ESC                                    // \\, \(, \), \[, \], \{, \}, \:, \=, \ , \\t, \,
       | WS                                     // whitespaces
     )+;
