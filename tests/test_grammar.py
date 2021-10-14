@@ -29,6 +29,7 @@ TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
 
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = r"""\{}()[].:"' """
+UNQUOTED_SPECIAL = r"/-\+.$%*@?|"  # special characters allowed in unquoted strings
 
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
@@ -106,7 +107,11 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("float_minus_nan", "-nan", math.nan),
     # Unquoted strings.
     # Note: raw strings do not allow trailing \, adding a space and stripping it.
-    ("str_legal", r" a/-\+.$*@?|\\ ".strip(), r" a/-\+.$*@?|\ ".strip()),
+    (
+        "str_legal",
+        (r" a" + UNQUOTED_SPECIAL + r"\\ ").strip(),
+        (r" a" + UNQUOTED_SPECIAL + r"\ ").strip(),
+    ),
     ("str_illegal_1", "a,=b", GrammarParseError),
     ("str_illegal_2", f"{chr(200)}", GrammarParseError),
     ("str_illegal_3", f"{chr(129299)}", GrammarParseError),
@@ -181,8 +186,14 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@?|\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
-        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@?|()[]{{}}:= {TAB},": 0},
+        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-"
+        + UNQUOTED_SPECIAL
+        + fr"\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        {
+            fr"a0-null-1-3.14-NaN- {TAB}-true-False-"
+            + UNQUOTED_SPECIAL
+            + fr"()[]{{}}:= {TAB},": 0
+        },
     ),
     (
         "dict_quoted",
@@ -364,7 +375,11 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_quote_double", 'I"d like ${str}', 'I"d like hi'),
     ("str_top_middle_quotes_single", "I like '${str}'", "I like 'hi'"),
     ("str_top_middle_quotes_double", 'I like "${str}"', 'I like "hi"'),
-    ("str_top_any_char", r"${str} !@\#$%^&*})][({,/?;", r"hi !@\#$%^&*})][({,/?;"),
+    (
+        "str_top_any_char",
+        r"${str} " + UNQUOTED_SPECIAL + r"^!#&})][({,;",
+        r"hi " + UNQUOTED_SPECIAL + r"^!#&})][({,;",
+    ),
     ("str_top_esc_inter", r"Esc: \${str}", "Esc: ${str}"),
     ("str_top_esc_inter_wrong_1", r"Wrong: $\{str\}", r"Wrong: $\{str\}"),
     ("str_top_esc_inter_wrong_2", r"Wrong: \${str\}", r"Wrong: ${str\}"),
@@ -602,7 +617,7 @@ class TestOmegaConfGrammar:
         "$ ${foo} ${bar} ${boz} $",
         "${foo:bar}",
         "${foo : bar, baz, boz}",
-        "${foo:bar,0,a-b+c*d/$.%@}",
+        "${foo:bar,0,a-b+c*d/$.%@?|}",
         r"\${foo}",
         "${foo.bar:boz}",
         "${$foo.bar$.x$y}",
@@ -729,7 +744,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
 
 def test_custom_resolver_param_supported_chars() -> None:
-    supported_chars = r"abc123_/:-\+.$%*@?|"
+    supported_chars = r"abc123_:" + UNQUOTED_SPECIAL
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
