@@ -181,8 +181,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
-        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@()[]{{}}:= {TAB},": 0},
+        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@?|\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@?|()[]{{}}:= {TAB},": 0},
     ),
     (
         "dict_quoted",
@@ -729,7 +729,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
 
 def test_custom_resolver_param_supported_chars() -> None:
-    supported_chars = r"abc123_/:-\+.$%*@"
+    supported_chars = r"abc123_/:-\+.$%*@?|"
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
