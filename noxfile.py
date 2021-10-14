@@ -11,9 +11,11 @@ PYTHON_VERSIONS = os.environ.get(
 
 
 def deps(session, editable_installl):
-    session.install("--upgrade", "setuptools")
+    session.run("python", "-m", "pip", "install", "--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_installl else []
-    session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
+    session.run(
+        "pip", "install", "-r", "requirements/dev.txt", *extra_flags, ".", silent=True
+    )
 
 
 @nox.session(python=PYTHON_VERSIONS)
