@@ -515,6 +515,20 @@ You can temporarily remove the read only flag from a config object:
     >>> conf.a.b
     20
 
+Note that it is possible to call `OmegaConf.merge` on a read-only config:
+
+.. doctest:: loaded
+
+    >>> cfg1 = OmegaConf.create({"a": 123})
+    >>> cfg2 = OmegaConf.create({"a": 456})
+    >>> OmegaConf.set_readonly(cfg1, True)
+    >>> OmegaConf.set_readonly(cfg2, True)
+    >>> OmegaConf.merge(cfg1, cfg2)
+    {'a': 456}
+
+This merge operation creates a new config object as its output;
+the inputs (which are read-only) are not modified.
+
 .. _struct-flag:
 
 Struct flag
