@@ -186,13 +186,9 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-"
-        + UNQUOTED_SPECIAL
-        + fr"\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
         {
-            fr"a0-null-1-3.14-NaN- {TAB}-true-False-"
-            + UNQUOTED_SPECIAL
-            + fr"()[]{{}}:= {TAB},": 0
+            fr"a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}()[]{{}}:= {TAB},": 0
         },
     ),
     (
