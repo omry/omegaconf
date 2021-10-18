@@ -13,7 +13,6 @@ commands:
           command: |
             sudo apt-get update
             sudo apt-get install -y openjdk-11-jre
-            sudo pip install --upgrade pip
             sudo pip install nox
       - run:
           name: "Testing OmegaConf"

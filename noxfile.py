@@ -11,7 +11,7 @@ PYTHON_VERSIONS = os.environ.get(
 
 
 def deps(session, editable_installl):
-    session.install("--upgrade", "setuptools")
+    session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_installl else []
     session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
 
