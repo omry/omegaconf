@@ -35,6 +35,9 @@ _outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
 SIMPLE_INTERPOLATION_PATTERN = re.compile(
     f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
 )
+# NOTE: SIMPLE_INTERPOLATION_PATTERN must not generate false positive matches:
+# it must not accept anything that isn't a valid interpolation (per the
+# interpolation grammar defined in `omegaconf/grammar/*.g4`).
 
 
 class OmegaConfErrorListener(ErrorListener):  # type: ignore
