@@ -716,7 +716,7 @@ def _raise(ex: Exception, cause: Exception) -> None:
         ex.__cause__ = cause
     else:
         ex.__cause__ = None
-    raise ex.with_traceback(sys.exc_info()[2])  # set end OC_CAUSE=1 for full backtrace
+    raise ex.with_traceback(sys.exc_info()[2])  # set env var OC_CAUSE=1 for full trace
 
 
 def format_and_raise(
