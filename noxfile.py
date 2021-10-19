@@ -11,11 +11,7 @@ PYTHON_VERSIONS = os.environ.get(
 
 
 def deps(session, editable_install):
-    if editable_install:
-        # Editable installs not working in pip 21.3.0, https://github.com/pypa/pip/issues/10573
-        session.install("--upgrade", "setuptools", "pip!=21.3.0")
-    else:
-        session.install("--upgrade", "setuptools", "pip")
+    session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_install else []
     session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
 
