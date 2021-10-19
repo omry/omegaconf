@@ -5,8 +5,9 @@ exclude = '''
       \.eggs         # exclude a few common directories in the
     | \.git          # root of the project
     | \.mypy_cache
-    | \omegaconf/grammar/gen
+    | omegaconf/grammar/gen
     | \.nox
+    | build
   )
 )
 '''
