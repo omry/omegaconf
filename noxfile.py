@@ -72,4 +72,13 @@ def test_jupyter_notebook(session):
         )
     deps(session, editable_install=False)
     session.install("jupyter", "nbval")
-    session.run("pytest", "--nbval", "docs/notebook/Tutorial.ipynb", silent=True)
+    # Ignore deprecation warnings raised by jupyter_client in Python 3.10
+    # https://github.com/jupyter/jupyter_client/issues/713
+    extra_flags = (
+        ["-Wdefault:There is no current event loop:DeprecationWarning"]
+        if session.python == "3.10"
+        else []
+    )
+    session.run(
+        "pytest", "--nbval", "docs/notebook/Tutorial.ipynb", *extra_flags, silent=True
+    )
