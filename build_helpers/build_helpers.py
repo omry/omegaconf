@@ -79,7 +79,6 @@ class CleanCommand(Command):  # type: ignore  # pragma: no cover
                 "^omegaconf\\.egg-info$",
                 "\\.eggs$",
                 "^\\.mypy_cache$",
-                "^\\.nox$",
                 "^\\.pytest_cache$",
                 ".*/__pycache__$",
                 "^__pycache__$",
