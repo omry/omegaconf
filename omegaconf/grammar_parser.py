@@ -27,7 +27,7 @@ _node_path = f"(\\.)*({_key_maybe_brackets})({_node_access})*"  # [foo].bar, .fo
 _node_inter = f"\\${{\\s*{_node_path}\\s*}}"  # node interpolation ${foo.bar}
 _id = "[a-zA-Z_]\\w*"  # foo, foo_bar, abc123
 _resolver_name = f"({_id}(\\.{_id})*)?"  # foo, ns.bar3, ns_1.ns_2.b0z
-_arg = "[a-zA-Z_0-9/\\-\\+.$%*@]+"  # string representing a resolver argument
+_arg = "[a-zA-Z_0-9/\\-\\+.$%*@?|]+"  # string representing a resolver argument
 _args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments
 _resolver_inter = f"\\${{\\s*{_resolver_name}\\s*:\\s*{_args}?\\s*}}"  # ${foo:bar}
 _inter = f"({_node_inter}|{_resolver_inter})"  # any kind of interpolation
@@ -35,6 +35,9 @@ _outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
 SIMPLE_INTERPOLATION_PATTERN = re.compile(
     f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
 )
+# NOTE: SIMPLE_INTERPOLATION_PATTERN must not generate false positive matches:
+# it must not accept anything that isn't a valid interpolation (per the
+# interpolation grammar defined in `omegaconf/grammar/*.g4`).
 
 
 class OmegaConfErrorListener(ErrorListener):  # type: ignore
