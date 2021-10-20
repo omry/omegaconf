@@ -35,19 +35,23 @@ Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
 * omegaconf-3.7
 * omegaconf-3.8
 * omegaconf-3.9
+* omegaconf-3.10
 * docs
 * coverage-3.6
 * coverage-3.7
 * coverage-3.8
 * coverage-3.9
+* coverage-3.10
 * lint-3.6
 * lint-3.7
 * lint-3.8
 * lint-3.9
+* lint-3.10
 * test_jupyter_notebook-3.6
 * test_jupyter_notebook-3.7
 * test_jupyter_notebook-3.8
 * test_jupyter_notebook-3.9
+* test_jupyter_notebook-3.10
 ```
 
 To run a specific session use `-s`, for example `nox -s lint` will run linting

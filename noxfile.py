@@ -3,7 +3,7 @@ import os
 
 import nox
 
-DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8", "3.9"]
+DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10"]
 
 PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
@@ -72,4 +72,13 @@ def test_jupyter_notebook(session):
         )
     deps(session, editable_install=False)
     session.install("jupyter", "nbval")
-    session.run("pytest", "--nbval", "docs/notebook/Tutorial.ipynb", silent=True)
+    # Ignore deprecation warnings raised by jupyter_client in Python 3.10
+    # https://github.com/jupyter/jupyter_client/issues/713
+    extra_flags = (
+        ["-Wdefault:There is no current event loop:DeprecationWarning"]
+        if session.python == "3.10"
+        else []
+    )
+    session.run(
+        "pytest", "--nbval", "docs/notebook/Tutorial.ipynb", *extra_flags, silent=True
+    )
