@@ -544,6 +544,7 @@ You can temporarily remove the struct flag from a config object:
 
 .. doctest:: loaded
 
+    >>> from omegaconf import open_dict
     >>> conf = OmegaConf.create({"a": {"aa": 10, "bb": 20}})
     >>> OmegaConf.set_struct(conf, True)
     >>> with open_dict(conf):
