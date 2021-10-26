@@ -1,5 +1,5 @@
 [flake8]
-exclude = .git,.nox,.tox,omegaconf/grammar/gen
+exclude = .git,.nox,.tox,omegaconf/grammar/gen,build
 max-line-length = 119
 select = E,F,W,C
 ignore=W503,E203

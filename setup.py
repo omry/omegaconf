@@ -4,7 +4,7 @@ OmegaConf setup
     Instructions:
     # Build:
     rm -rf dist/ omegaconf.egg-info/
-    python setup.py sdist bdist_wheel
+    python -m build
     # Upload:
     twine upload dist/*
 """
@@ -46,8 +46,6 @@ with open("README.md", "r") as fh:
         description="A flexible configuration library",
         long_description=LONG_DESC,
         long_description_content_type="text/markdown",
-        setup_requires=["pytest-runner"],
-        tests_require=["pytest"],
         url="https://github.com/omry/omegaconf",
         keywords="yaml configuration config",
         packages=[
@@ -65,6 +63,7 @@ with open("README.md", "r") as fh:
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
             "License :: OSI Approved :: BSD License",
             "Operating System :: OS Independent",
         ],

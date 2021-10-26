@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
 from pytest import warns
@@ -97,6 +97,27 @@ class ConcretePlugin(Plugin):
         foo: int = 10
 
     params: FoobarParams = FoobarParams()
+
+
+@dataclass
+class NestedInterpolationToMissing:
+    @dataclass
+    class BazParams:
+        baz: str = "${..name}"
+
+    subcfg: BazParams = BazParams()
+    name: str = MISSING
+
+
+@dataclass
+class StructuredInterpolationKeyError:
+    name: str = "${bar}"
+
+
+@dataclass
+class StructuredInterpolationValidationError:
+    x: Optional[int] = None
+    y: int = II(".x")
 
 
 @dataclass
@@ -222,6 +243,11 @@ class InterpolationDict:
 @dataclass
 class Str2Int(Dict[str, int]):
     pass
+
+
+@dataclass
+class OptTuple:
+    x: Optional[Tuple[int, ...]] = None
 
 
 def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:

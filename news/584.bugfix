@@ -1,1 +1,0 @@
-Fix creation of structured config from a dict subclass: data from the dict is no longer thrown away.

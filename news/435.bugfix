@@ -1,1 +1,0 @@
-When initializing a Structured Config with an incorrectly-typed value, the resulting ValidationError now properly reports the offending value in its error message.

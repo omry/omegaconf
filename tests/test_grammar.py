@@ -1,5 +1,7 @@
 import math
 import re
+import threading
+import time
 from typing import Any, Callable, List, Optional, Set, Tuple
 
 import antlr4
@@ -27,6 +29,7 @@ TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
 
 # Characters that are not allowed by the grammar in config key names.
 INVALID_CHARS_IN_KEY_NAMES = r"""\{}()[].:"' """
+UNQUOTED_SPECIAL = r"/-\+.$%*@?|"  # special characters allowed in unquoted strings
 
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
@@ -104,7 +107,11 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("float_minus_nan", "-nan", math.nan),
     # Unquoted strings.
     # Note: raw strings do not allow trailing \, adding a space and stripping it.
-    ("str_legal", r" a/-\+.$*@?\\ ".strip(), r" a/-\+.$*@?\ ".strip()),
+    (
+        "str_legal",
+        (r" a" + UNQUOTED_SPECIAL + r"\\ ").strip(),
+        (r" a" + UNQUOTED_SPECIAL + r"\ ").strip(),
+    ),
     ("str_illegal_1", "a,=b", GrammarParseError),
     ("str_illegal_2", f"{chr(200)}", GrammarParseError),
     ("str_illegal_3", f"{chr(129299)}", GrammarParseError),
@@ -126,8 +133,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_esc_illegal_1", r"\#", GrammarParseError),
     ("str_esc_illegal_2", r""" \'\" """.strip(), GrammarParseError),
     # Quoted strings.
-    ("str_quoted_single", "'!@#$%^&*()[]:.,\"'", '!@#$%^&*()[]:.,"'),
-    ("str_quoted_double", '"!@#$%^&*()[]:.,\'"', "!@#$%^&*()[]:.,'"),
+    ("str_quoted_single", "'!@#$%^&*|()[]:.,\"'", '!@#$%^&*|()[]:.,"'),
+    ("str_quoted_double", '"!@#$%^&*|()[]:.,\'"', "!@#$%^&*|()[]:.,'"),
     ("str_quoted_outer_ws_single", "'  a \t'", "  a \t"),
     ("str_quoted_outer_ws_double", '"  a \t"', "  a \t"),
     ("str_quoted_int", "'123'", "123"),
@@ -179,8 +186,10 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
-        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@()[]{{}}:= {TAB},": 0},
+        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        {
+            fr"a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}()[]{{}}:= {TAB},": 0
+        },
     ),
     (
         "dict_quoted",
@@ -362,7 +371,11 @@ PARAMS_CONFIG_VALUE = [
     ("str_top_middle_quote_double", 'I"d like ${str}', 'I"d like hi'),
     ("str_top_middle_quotes_single", "I like '${str}'", "I like 'hi'"),
     ("str_top_middle_quotes_double", 'I like "${str}"', 'I like "hi"'),
-    ("str_top_any_char", r"${str} !@\#$%^&*})][({,/?;", r"hi !@\#$%^&*})][({,/?;"),
+    (
+        "str_top_any_char",
+        r"${str} " + UNQUOTED_SPECIAL + r"^!#&})][({,;",
+        r"hi " + UNQUOTED_SPECIAL + r"^!#&})][({,;",
+    ),
     ("str_top_esc_inter", r"Esc: \${str}", "Esc: ${str}"),
     ("str_top_esc_inter_wrong_1", r"Wrong: $\{str\}", r"Wrong: $\{str\}"),
     ("str_top_esc_inter_wrong_2", r"Wrong: \${str\}", r"Wrong: ${str\}"),
@@ -600,7 +613,7 @@ class TestOmegaConfGrammar:
         "$ ${foo} ${bar} ${boz} $",
         "${foo:bar}",
         "${foo : bar, baz, boz}",
-        "${foo:bar,0,a-b+c*d/$.%@}",
+        "${foo:bar,0,a-b+c*d/$.%@?|}",
         r"\${foo}",
         "${foo.bar:boz}",
         "${$foo.bar$.x$y}",
@@ -727,7 +740,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
 
 def test_custom_resolver_param_supported_chars() -> None:
-    supported_chars = r"abc123_/:-\+.$%*@"
+    supported_chars = r"abc123_:" + UNQUOTED_SPECIAL
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
     OmegaConf.register_new_resolver("copy", lambda x: x)
@@ -767,3 +780,43 @@ def test_invalid_chars_in_interpolation(c: str) -> None:
         # Other invalid characters should be detected at creation time.
         with raises(GrammarParseError):
             create()
+
+
+def test_grammar_cache_is_thread_safe() -> None:
+    """
+    This test ensures that we can parse strings across multiple threads in parallel.
+
+    Besides ensuring that the parsing does not hang nor crash, we also verify that
+    the lexer used in each thread is different.
+    """
+    n_threads = 10
+    lexer_ids = []
+    stop = threading.Event()
+
+    def check_cache_lexer_id() -> None:
+        # Parse a dummy string to make sure the grammar cache is populated
+        # (this also checks that multiple threads can parse in parallel).
+        grammar_parser.parse("foo")
+        # Keep track of the ID of the cached lexer.
+        lexer_ids.append(id(grammar_parser._grammar_cache.data[0]))
+        # Wait until we are done.
+        while not stop.is_set():
+            time.sleep(0.1)
+
+    # Launch threads.
+    threads = []
+    for i in range(n_threads):
+        threads.append(threading.Thread(target=check_cache_lexer_id))
+        threads[-1].start()
+
+    # Wait until all threads have reported their lexer ID.
+    while len(lexer_ids) < n_threads:
+        time.sleep(0.1)
+
+    # Terminate threads.
+    stop.set()
+    for thread in threads:
+        thread.join()
+
+    # Check that each thread used a unique lexer.
+    assert len(set(lexer_ids)) == n_threads

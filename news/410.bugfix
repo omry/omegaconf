@@ -1,1 +1,0 @@
-Assigning an Structured Config to a Dict annotation now raises a descriptive error message.

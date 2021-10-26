@@ -11,6 +11,7 @@ from omegaconf._utils import (
     get_type_of,
     get_value_kind,
     is_primitive_container,
+    type_str,
 )
 from omegaconf.base import Container, DictKeyType, Metadata, Node
 from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
@@ -24,7 +25,7 @@ class ValueNode(Node):
 
         super().__init__(parent=parent, metadata=metadata)
         with read_write(self):
-            self._set_value(value)
+            self._set_value(value)  # lgtm [py/init-calls-subclass]
 
     def _value(self) -> Any:
         return self._val
@@ -52,7 +53,10 @@ class ValueNode(Node):
         if value is None:
             if self._is_optional():
                 return None
-            raise ValidationError("Non optional field cannot be assigned None")
+            ref_type_str = type_str(self._metadata.ref_type)
+            raise ValidationError(
+                f"Incompatible value '{value}' for field of type '{ref_type_str}'"
+            )
         # Subclasses can assume that `value` is not None in `_validate_and_convert_impl()`.
         return self._validate_and_convert_impl(value)
 
@@ -203,7 +207,9 @@ class IntegerNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError("Value '$VALUE' could not be converted to Integer")
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' could not be converted to Integer"
+            )
         return val
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "IntegerNode":
@@ -240,7 +246,9 @@ class FloatNode(ValueNode):
             else:
                 raise ValueError()
         except ValueError:
-            raise ValidationError("Value '$VALUE' could not be converted to Float")
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' could not be converted to Float"
+            )
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ValueNode):
@@ -390,3 +398,44 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         res = EnumNode(enum_type=self.enum_type)
         self._deepcopy_impl(res, memo)
         return res
+
+
+class InterpolationResultNode(ValueNode):
+    """
+    Special node type, used to wrap interpolation results.
+    """
+
+    def __init__(
+        self,
+        value: Any,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                ref_type=Any, object_type=None, key=key, optional=True, flags=flags
+            ),
+        )
+        # In general we should not try to write into interpolation results.
+        if flags is None or "readonly" not in flags:
+            self._set_flag("readonly", True)
+
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        if self._get_flag("readonly"):
+            raise ReadonlyConfigError("Cannot set value of read-only config node")
+        self._val = self.validate_and_convert(value)
+
+    def _validate_and_convert_impl(self, value: Any) -> Any:
+        # Interpolation results may be anything.
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "InterpolationResultNode":
+        # Currently there should be no need to deep-copy such nodes.
+        raise NotImplementedError
+
+    def _is_interpolation(self) -> bool:
+        # The result of an interpolation cannot be itself an interpolation.
+        return False

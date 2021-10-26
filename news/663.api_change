@@ -1,1 +1,0 @@
-Support for Structured Configs that subclass `typing.Dict` is now deprecated.

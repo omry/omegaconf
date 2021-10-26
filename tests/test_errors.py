@@ -9,6 +9,7 @@ from pytest import mark, param, raises
 import tests
 from omegaconf import (
     DictConfig,
+    FloatNode,
     IntegerNode,
     ListConfig,
     OmegaConf,
@@ -26,6 +27,7 @@ from omegaconf.errors import (
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
+    InterpolationValidationError,
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
@@ -36,9 +38,12 @@ from tests import (
     ConcretePlugin,
     IllegalType,
     Module,
+    NestedInterpolationToMissing,
     Package,
     Plugin,
     Str2Int,
+    StructuredInterpolationKeyError,
+    StructuredInterpolationValidationError,
     StructuredWithBadDict,
     StructuredWithBadList,
     StructuredWithMissing,
@@ -113,7 +118,7 @@ params = [
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", "hello"),
             exception_type=ValidationError,
-            msg="Value 'hello' could not be converted to Integer",
+            msg="Value 'hello' of type 'str' could not be converted to Integer",
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
@@ -309,6 +314,21 @@ params = [
         ),
         id="dict,accessing_missing_nested_interpolation",
     ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(StructuredInterpolationValidationError),
+            op=lambda cfg: getattr(cfg, "y"),
+            exception_type=InterpolationValidationError,
+            object_type=StructuredInterpolationValidationError,
+            msg=(
+                "While dereferencing interpolation '${.x}': "
+                "Incompatible value 'None' for field of type 'int'"
+            ),
+            key="y",
+            child_node=lambda cfg: cfg._get_node("y"),
+        ),
+        id="dict,non_optional_field_with_interpolation_to_none",
+    ),
     # setattr
     param(
         Expected(
@@ -362,7 +382,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: cfg.params.__setattr__("foo", "bar"),
             exception_type=ValidationError,
-            msg="Value 'bar' could not be converted to Integer",
+            msg="Value 'bar' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
@@ -484,7 +504,7 @@ params = [
             create=lambda: OmegaConf.structured(ConcretePlugin),
             op=lambda cfg: OmegaConf.merge(cfg, {"params": {"foo": "bar"}}),
             exception_type=ValidationError,
-            msg="Value 'bar' could not be converted to Integer",
+            msg="Value 'bar' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="params.foo",
             object_type=ConcretePlugin.FoobarParams,
@@ -593,20 +613,20 @@ params = [
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            msg="Non optional field cannot be assigned None",
+            msg="Incompatible value 'None' for field of type 'int'",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},
             object_type=NotOptionalInt,
         ),
-        id="dict:create_none_optional_with_none",
+        id="dict:create_non_optional_with_none",
     ),
     param(
         Expected(
             create=lambda: None,
             op=lambda _: OmegaConf.structured(NotOptionalInt),
             exception_type=ValidationError,
-            msg="Non optional field cannot be assigned None",
+            msg="Incompatible value 'None' for field of type 'int'",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},
@@ -646,13 +666,37 @@ params = [
                 ConcretePlugin(params=ConcretePlugin.FoobarParams(foo="x"))  # type: ignore
             ),
             exception_type=ValidationError,
-            msg="Value 'x' could not be converted to Integer",
+            msg="Value 'x' of type 'str' could not be converted to Integer",
             key="foo",
             full_key="foo",
             parent_node=lambda _: {},
             object_type=ConcretePlugin.FoobarParams,
         ),
-        id="structured:create_with_invalid_value",
+        id="structured:create_with_invalid_value,int",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": FloatNode(123.456)}),
+            op=lambda cfg: cfg.__setattr__("bar", "x"),
+            exception_type=ValidationError,
+            msg="Value 'x' of type 'str' could not be converted to Float",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,float",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": FloatNode(123.456)}),
+            op=lambda cfg: cfg.__setattr__("bar", Color.BLUE),
+            exception_type=ValidationError,
+            msg="Value 'Color.BLUE' of type 'tests.Color' could not be converted to Float",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,full_module_in_error",
     ),
     param(
         Expected(
@@ -694,7 +738,7 @@ params = [
             ),
             op=lambda cfg: cfg.__setitem__("baz", "fail"),
             exception_type=ValidationError,
-            msg="Value 'fail' could not be converted to Integer",
+            msg="Value 'fail' of type 'str' could not be converted to Integer",
             key="baz",
         ),
         id="DictConfig[str,int]:assigned_str_value",
@@ -1102,7 +1146,7 @@ params = [
             create=lambda: ListConfig(element_type=int, content=[1, 2, 3]),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,
-            msg="Value 'foo' could not be converted to Integer",
+            msg="Value 'foo' of type 'str' could not be converted to Integer",
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
@@ -1117,7 +1161,7 @@ params = [
             ),
             op=lambda cfg: cfg.__setitem__(0, "foo"),
             exception_type=ValidationError,
-            msg="Value 'foo' could not be converted to Integer",
+            msg="Value 'foo' of type 'str' could not be converted to Integer",
             key=0,
             full_key="[0]",
             child_node=lambda cfg: cfg[0],
@@ -1288,6 +1332,97 @@ params = [
         ),
         id="to_object:structured-missing-field",
     ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(NestedInterpolationToMissing),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: name"
+            ),
+            key="baz",
+            full_key="subcfg.baz",
+            object_type=NestedInterpolationToMissing.BazParams,
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("baz"),
+            num_lines=3,
+        ),
+        id="to_object:structured,throw_on_missing_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(StructuredInterpolationKeyError),
+            op=lambda cfg: OmegaConf.to_object(cfg),
+            exception_type=InterpolationKeyError,
+            key="name",
+            msg=("Interpolation key 'bar' not found"),
+            child_node=lambda cfg: cfg._get_node("name"),
+        ),
+        id="to_object:structured,throw_on_interpolation_key_error",
+    ),
+    # to_container throw_on_missing
+    param(
+        Expected(
+            create=lambda: OmegaConf.create(
+                {"subcfg": {"x": "${missing_val}"}, "missing_val": "???"}
+            ),
+            op=lambda cfg: OmegaConf.to_container(
+                cfg, resolve=True, throw_on_missing=True
+            ),
+            exception_type=InterpolationToMissingValueError,
+            msg=(
+                "MissingMandatoryValue while resolving interpolation: "
+                "Missing mandatory value: missing_val"
+            ),
+            key="x",
+            full_key="subcfg.x",
+            parent_node=lambda cfg: cfg.subcfg,
+            child_node=lambda cfg: cfg.subcfg._get_node("x"),
+        ),
+        id="to_container:throw_on_missing_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value",
+        ),
+        id="to_container:throw_on_missing,dict",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig("???"),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value",
+        ),
+        id="to_container:throw_on_missing,list",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"a": "???"}),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: a",
+            key="a",
+            child_node=lambda cfg: cfg._get_node("a"),
+        ),
+        id="to_container:throw_on_missing,dict_value",
+    ),
+    param(
+        Expected(
+            create=lambda: ListConfig(["???"]),
+            op=lambda cfg: OmegaConf.to_container(cfg, throw_on_missing=True),
+            exception_type=MissingMandatoryValue,
+            msg="Missing mandatory value: 0",
+            key=0,
+            full_key="[0]",
+            child_node=lambda cfg: cfg._get_node(0),
+        ),
+        id="to_container:throw_on_missing,list_item",
+    ),
 ]
 
 
@@ -1378,11 +1513,11 @@ def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
     expected_msg = dedent(
         """\
-        ZeroDivisionError raised while resolving interpolation: float division by zero
+        ZeroDivisionError raised while resolving interpolation: float division( by zero)?
             full_key: div_by_zero
             object_type=dict"""
     )
-    with raises(InterpolationResolutionError, match=re.escape(expected_msg)):
+    with raises(InterpolationResolutionError, match=expected_msg):
         c.div_by_zero
 
 
@@ -1399,6 +1534,24 @@ def test_parse_error_on_creation(create_func: Any, arg: Any) -> None:
         GrammarParseError, match=re.escape("no viable alternative at input '${b'")
     ):
         create_func(arg)
+
+
+@mark.parametrize(
+    ["create_func", "obj"],
+    [
+        param(DictConfig, {"zz": 10}, id="dict"),
+        param(DictConfig, {}, id="dict_empty"),
+        param(DictConfig, User, id="structured"),
+        param(ListConfig, ["zz"], id="list"),
+        param(ListConfig, [], id="list_empty"),
+        param(OmegaConf.create, {"zz": 10}, id="create"),
+    ],
+)
+def test_parent_type_error_on_creation(create_func: Any, obj: Any) -> None:
+    with raises(
+        ConfigTypeError, match=re.escape("Parent type is not omegaconf.Container")
+    ):
+        create_func(obj, parent={"a"})  # bad parent
 
 
 def test_cycle_when_iterating_over_parents() -> None:
@@ -1446,7 +1599,7 @@ def test_dict_subclass_error() -> None:
     src["bar"] = "qux"  # type: ignore
     with raises(
         ValidationError,
-        match=re.escape("Value 'qux' could not be converted to Integer"),
+        match=re.escape("Value 'qux' of type 'str' could not be converted to Integer"),
     ) as einfo:
         with warns_dict_subclass_deprecated(Str2Int):
             OmegaConf.structured(src)

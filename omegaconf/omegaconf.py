@@ -469,6 +469,23 @@ class OmegaConf:
         BaseContainer._resolvers = {}
         register_default_resolvers()
 
+    @classmethod
+    def clear_resolver(cls, name: str) -> bool:
+        """Clear(remove) any resolver only if it exists. Returns a bool: True if resolver is removed and False if not removed.
+
+        .. warning:
+            This method can remove deafult resolvers as well.
+
+        :param name: Name of the resolver.
+        :return: A bool (``True`` if resolver is removed, ``False`` if not found before removing).
+        """
+        if cls.has_resolver(name):
+            BaseContainer._resolvers.pop(name)
+            return True
+        else:
+            # return False if resolver does not exist
+            return False
+
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:
         return conf._metadata.resolver_cache
@@ -528,6 +545,7 @@ class OmegaConf:
         cfg: Any,
         *,
         resolve: bool = False,
+        throw_on_missing: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
@@ -535,6 +553,8 @@ class OmegaConf:
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
         :param resolve: True to resolve all values
+        :param throw_on_missing: When True, raise MissingMandatoryValue if any missing values are present.
+            When False (the default), replace missing values with the string "???" in the output container.
         :param enum_to_str: True to convert Enum keys and values to strings
         :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
             By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
@@ -552,6 +572,7 @@ class OmegaConf:
         return BaseContainer._to_content(
             cfg,
             resolve=resolve,
+            throw_on_missing=throw_on_missing,
             enum_to_str=enum_to_str,
             structured_config_mode=structured_config_mode,
         )
@@ -563,7 +584,8 @@ class OmegaConf:
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
         as instances of those backing classes.
 
-        This is an alias for OmegaConf.to_container(..., resolve=True, structured_config_mode=SCMode.INSTANTIATE)
+        This is an alias for OmegaConf.to_container(..., resolve=True, throw_on_missing=True,
+                                                    structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
         :return: A dict or a list or dataclass representing this config.
@@ -571,6 +593,7 @@ class OmegaConf:
         return OmegaConf.to_container(
             cfg=cfg,
             resolve=True,
+            throw_on_missing=True,
             enum_to_str=False,
             structured_config_mode=SCMode.INSTANTIATE,
         )

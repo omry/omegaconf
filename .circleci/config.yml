@@ -38,4 +38,4 @@ workflows:
       - test_linux:
           matrix:
             parameters:
-              py_version: ["3.6", "3.7", "3.8", "3.9"]
+              py_version: ["3.6", "3.7", "3.8", "3.9", "3.10"]

@@ -37,7 +37,7 @@ from ._utils import (
     type_str,
     valid_value_annotation_type,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
+from .base import Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -469,7 +469,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if throw_on_missing_key:
                 raise ConfigKeyError(f"Missing key {key}")
         elif throw_on_missing_value and value._is_missing():
-            raise MissingMandatoryValue("Missing mandatory value")
+            raise MissingMandatoryValue("Missing mandatory value: $KEY")
         return value
 
     def pop(self, key: DictKeyType, default: Any = _DEFAULT_MARKER_) -> Any:
@@ -504,10 +504,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def keys(self) -> Any:
+    def keys(self) -> AbstractSet[DictKeyType]:
         if self._is_missing() or self._is_interpolation() or self._is_none():
-            return list()
-        return self.__dict__["_content"].keys()
+            return set()
+        ret = self.__dict__["_content"].keys()
+        assert isinstance(ret, AbstractSet)
+        return ret
 
     def __contains__(self, key: object) -> bool:
         """
@@ -592,6 +594,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return DictConfig._dict_conf_eq(self, other)
         if isinstance(other, DictConfig):
             return DictConfig._dict_conf_eq(self, other)
+        if self._is_missing():
+            return _is_missing_literal(other)
         return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
@@ -709,8 +713,10 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         """
         Instantiate an instance of `self._metadata.object_type`.
         This requires `self` to be a structured config.
-        Nested subconfigs are converted to_container with resolve=True.
+        Nested subconfigs are converted by calling `OmegaConf.to_object`.
         """
+        from omegaconf import OmegaConf
+
         object_type = self._metadata.object_type
         assert is_structured_config(object_type)
         object_type_field_names = set(get_structured_config_field_names(object_type))
@@ -718,20 +724,14 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         field_items: Dict[str, Any] = {}
         nonfield_items: Dict[str, Any] = {}
         for k in self.keys():
+            assert isinstance(k, str)
             node = self._get_node(k)
             assert isinstance(node, Node)
-            node = node._dereference_node()
-            if isinstance(node, Container):
-                v = BaseContainer._to_content(
-                    node,
-                    resolve=True,
-                    enum_to_str=False,
-                    structured_config_mode=SCMode.INSTANTIATE,
-                )
-            else:
-                v = node._value()
-
-            if _is_missing_literal(v):
+            try:
+                node = node._dereference_node()
+            except InterpolationResolutionError as e:
+                self._format_and_raise(key=k, value=None, cause=e)
+            if node._is_missing():
                 self._format_and_raise(
                     key=k,
                     value=None,
@@ -739,6 +739,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                         "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
                     ),
                 )
+            if isinstance(node, Container):
+                v = OmegaConf.to_object(node)
+            else:
+                v = node._value()
+
             if k in object_type_field_names:
                 field_items[k] = v
             else:

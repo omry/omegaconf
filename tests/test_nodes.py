@@ -19,11 +19,13 @@ from omegaconf import (
     StringNode,
     ValueNode,
 )
+from omegaconf._utils import type_str
 from omegaconf.errors import (
     InterpolationToMissingValueError,
     UnsupportedValueType,
     ValidationError,
 )
+from omegaconf.nodes import InterpolationResultNode
 from tests import Color, IllegalType, User
 
 
@@ -499,6 +501,18 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
+        (InterpolationResultNode("foo"), "foo", True),
+        (InterpolationResultNode("${foo}"), "${foo}", True),
+        (InterpolationResultNode("${foo"), "${foo", True),
+        (InterpolationResultNode(None), None, True),
+        (InterpolationResultNode(1), 1, True),
+        (InterpolationResultNode(1.0), 1.0, True),
+        (InterpolationResultNode(True), True, True),
+        (InterpolationResultNode(Color.RED), Color.RED, True),
+        (InterpolationResultNode({"a": 0, "b": 1}), {"a": 0, "b": 1}, True),
+        (InterpolationResultNode([0, None, True]), [0, None, True], True),
+        (InterpolationResultNode("foo"), 100, False),
+        (InterpolationResultNode(100), "foo", False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
@@ -506,7 +520,10 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (node != value) != expected
     assert (value == node) == expected
     assert (value != node) != expected
-    assert (node.__hash__() == value.__hash__()) == expected
+
+    # Check hash except for unhashable types (dict/list).
+    if not isinstance(value, (dict, list)):
+        assert (node.__hash__() == value.__hash__()) == expected
 
 
 @mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])
@@ -584,8 +601,12 @@ def test_dereference_missing() -> None:
 )
 def test_validate_and_convert_none(make_func: Any) -> None:
     node = make_func("???", is_optional=False)
+    ref_type_str = type_str(node._metadata.ref_type)
     with raises(
-        ValidationError, match=re.escape("Non optional field cannot be assigned None")
+        ValidationError,
+        match=re.escape(
+            f"Incompatible value 'None' for field of type '{ref_type_str}'"
+        ),
     ):
         node.validate_and_convert(None)
 
@@ -616,6 +637,7 @@ def test_dereference_interpolation_to_missing() -> None:
         functools.partial(EnumNode, enum_type=Color),
         FloatNode,
         IntegerNode,
+        InterpolationResultNode,
         StringNode,
     ],
 )
@@ -623,3 +645,29 @@ def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:
     node = type_(value=None, flags=flags)
     for f, v in flags.items():
         assert node._get_flag(f) is v
+
+
+@mark.parametrize(
+    "flags",
+    [
+        None,
+        {"flag": True},
+        {"flag": False},
+        {"readonly": True},
+        {"readonly": False},
+        {"flag1": True, "flag2": False, "readonly": False},
+        {"flag1": False, "flag2": True, "readonly": True},
+    ],
+)
+def test_interpolation_result_readonly(flags: Any) -> None:
+    readonly = None if flags is None else flags.get("readonly")
+    expected = [] if flags is None else list(flags.items())
+    node = InterpolationResultNode("foo", flags=flags)
+
+    # Check that flags are set to their desired value.
+    for k, v in expected:
+        assert node._get_node_flag(k) is v
+
+    # If no value was provided for the "readonly" flag, it should be set.
+    if readonly is None:
+        assert node._get_node_flag("readonly")

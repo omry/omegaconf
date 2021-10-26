@@ -51,7 +51,9 @@ class TestStructured:
         def test_error_on_creation_with_bad_value_type(self, module: Any) -> None:
             with raises(
                 ValidationError,
-                match=re.escape("Value 'seven' could not be converted to Integer"),
+                match=re.escape(
+                    "Value 'seven' of type 'str' could not be converted to Integer"
+                ),
             ):
                 OmegaConf.structured(module.User(age="seven"))
 

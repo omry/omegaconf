@@ -1,4 +1,4 @@
-.. _structured_config:
+.. _structured_configs:
 
 .. testsetup:: *
 
@@ -11,8 +11,8 @@
     import sys
     os.environ['USER'] = 'omry'
 
-Structured config
------------------
+Structured configs
+------------------
 Structured configs are used to create OmegaConf configuration object with runtime type safety.
 In addition, they can be used with tools like mypy or your IDE for static type checking.
 
@@ -199,11 +199,6 @@ You can assign subclasses:
     >>> assert conf.manager.duper == True
 
 
-Containers
-----------
-
-Python container types are fully supported in Structured configs.
-
 Lists
 ^^^^^
 Structured Config fields annotated with ``typing.List`` or ``typing.Tuple`` can hold any type
@@ -275,8 +270,8 @@ Like with Lists, the types of values contained in Dicts are verified at runtime.
     >>> with raises(ValidationError):
     ...     conf.users["Joe"] = 10
 
-Misc
-----
+Other special features
+^^^^^^^^^^^^^^^^^^^^^^
 OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
 
 .. doctest::
@@ -293,7 +288,7 @@ OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
     >>> conf: Modifiers = OmegaConf.structured(Modifiers)
 
 Mandatory missing values
-^^^^^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++++++
 
 Fields assigned the constant ``MISSING`` do not have a value and the value must be set prior to accessing the field.
 Otherwise a ``MissingMandatoryValue`` exception is raised.
@@ -307,7 +302,7 @@ Otherwise a ``MissingMandatoryValue`` exception is raised.
 
 
 Optional fields
-^^^^^^^^^^^^^^^
++++++++++++++++
 
 .. doctest::
 
@@ -321,7 +316,7 @@ Optional fields
 
 
 Interpolations
-^^^^^^^^^^^^^^
+++++++++++++++
 
 :ref:`interpolation` works normally with Structured configs, but static type checkers may object to you assigning a string to another type.
 To work around this, use the special functions ``omegaconf.SI`` and ``omegaconf.II`` described below.
@@ -380,8 +375,8 @@ Note however that this validation step is currently skipped for container node i
     >>> assert cfg.some_dict == 0  # type mismatch, but no error
 
 
-Frozen
-^^^^^^
+Frozen classes
+++++++++++++++
 
 Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-flag`, which makes the entire config node and all if it's child nodes read-only.
 
@@ -404,7 +399,7 @@ The read-only flag is recursive:
     ...    conf.list[0] = 20
 
 Merging with other configs
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once an OmegaConf object is created, it can be merged with others regardless of its source.
 OmegaConf configs created from Structured configs contains type information that is enforced at runtime.

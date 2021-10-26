@@ -24,10 +24,13 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_type,
     is_structured_config,
+    is_tuple_annotation,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
+    ConfigTypeError,
+    InterpolationResolutionError,
     MissingMandatoryValue,
     ReadonlyConfigError,
     ValidationError,
@@ -42,6 +45,8 @@ class BaseContainer(Container, ABC):
     _resolvers: Dict[str, Any] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
+        if not (parent is None or isinstance(parent, Container)):
+            raise ConfigTypeError("Parent type is not omegaconf.Container")
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
 
@@ -103,7 +108,19 @@ class BaseContainer(Container, ABC):
 
         if isinstance(self, DictConfig):
             key_type = d["_metadata"].key_type
+
+            # backward compatibility to load OmegaConf 2.0 configs
+            if key_type is None:
+                key_type = Any
+                d["_metadata"].key_type = key_type
+
         element_type = d["_metadata"].element_type
+
+        # backward compatibility to load OmegaConf 2.0 configs
+        if element_type is None:
+            element_type = Any
+            d["_metadata"].element_type = element_type
+
         ref_type = d["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
@@ -162,6 +179,7 @@ class BaseContainer(Container, ABC):
     def _to_content(
         conf: Container,
         resolve: bool,
+        throw_on_missing: bool,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
@@ -174,16 +192,52 @@ class BaseContainer(Container, ABC):
 
             return value
 
-        assert isinstance(conf, Container)
+        def get_node_value(key: Union[DictKeyType, int]) -> Any:
+            try:
+                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
+            except MissingMandatoryValue as e:
+                conf._format_and_raise(key=key, value=None, cause=e)
+            assert isinstance(node, Node)
+            if resolve:
+                try:
+                    node = node._dereference_node()
+                except InterpolationResolutionError as e:
+                    conf._format_and_raise(key=key, value=None, cause=e)
+
+            if isinstance(node, Container):
+                value = BaseContainer._to_content(
+                    node,
+                    resolve=resolve,
+                    throw_on_missing=throw_on_missing,
+                    enum_to_str=enum_to_str,
+                    structured_config_mode=structured_config_mode,
+                )
+            else:
+                value = convert(node)
+            return value
+
         if conf._is_none():
             return None
-        elif conf._is_interpolation() and not resolve:
+        elif conf._is_missing():
+            if throw_on_missing:
+                conf._format_and_raise(
+                    key=None,
+                    value=None,
+                    cause=MissingMandatoryValue("Missing mandatory value"),
+                )
+            else:
+                return MISSING
+        elif not resolve and conf._is_interpolation():
             inter = conf._value()
             assert isinstance(inter, str)
             return inter
-        elif conf._is_missing():
-            return MISSING
-        elif isinstance(conf, DictConfig):
+
+        if resolve:
+            _conf = conf._dereference_node()
+            assert isinstance(_conf, Container)
+            conf = _conf
+
+        if isinstance(conf, DictConfig):
             if (
                 conf._metadata.object_type is not None
                 and structured_config_mode == SCMode.DICT_CONFIG
@@ -194,45 +248,20 @@ class BaseContainer(Container, ABC):
             ):
                 return conf._to_object()
 
-            retdict: Dict[str, Any] = {}
+            retdict: Dict[DictKeyType, Any] = {}
             for key in conf.keys():
-                node = conf._get_node(key)
-                assert isinstance(node, Node)
-                if resolve:
-                    node = node._dereference_node()
-
+                value = get_node_value(key)
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
-                if isinstance(node, Container):
-                    retdict[key] = BaseContainer._to_content(
-                        node,
-                        resolve=resolve,
-                        enum_to_str=enum_to_str,
-                        structured_config_mode=structured_config_mode,
-                    )
-                else:
-                    retdict[key] = convert(node)
+                retdict[key] = value
             return retdict
         elif isinstance(conf, ListConfig):
             retlist: List[Any] = []
             for index in range(len(conf)):
-                node = conf._get_node(index)
-                assert isinstance(node, Node)
-                if resolve:
-                    node = node._dereference_node()
-                if isinstance(node, Container):
-                    item = BaseContainer._to_content(
-                        node,
-                        resolve=resolve,
-                        enum_to_str=enum_to_str,
-                        structured_config_mode=structured_config_mode,
-                    )
-                    retlist.append(item)
-                else:
-                    retlist.append(convert(node))
+                item = get_node_value(index)
+                retlist.append(item)
 
             return retlist
-
         assert False
 
     @staticmethod
@@ -262,7 +291,7 @@ class BaseContainer(Container, ABC):
             if rt is not Any:
                 if is_dict_annotation(rt):
                     val = {}
-                elif is_list_annotation(rt):
+                elif is_list_annotation(rt) or is_tuple_annotation(rt):
                     val = []
                 else:
                     val = rt
