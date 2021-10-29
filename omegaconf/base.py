@@ -324,6 +324,7 @@ class Container(Node):
         self,
         key: Any,
         validate_access: bool = True,
+        validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
     ) -> Union[Optional[Node], List[Optional[Node]]]:
