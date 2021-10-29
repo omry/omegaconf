@@ -36,6 +36,7 @@ from tests import (
     IllegalType,
     Plugin,
     StructuredWithMissing,
+    SubscriptedDict,
     User,
 )
 
@@ -869,6 +870,13 @@ def test_hasattr() -> None:
     OmegaConf.set_struct(cfg, True)
     assert hasattr(cfg, "foo")
     assert not hasattr(cfg, "buz")
+
+
+def test_typed_hasattr() -> None:
+    cfg = OmegaConf.structured(SubscriptedDict)
+    assert hasattr(cfg.dict_enum, "foo") is False
+    with raises(AttributeError):
+        cfg.dict_int.foo
 
 
 def test_struct_mode_missing_key_getitem() -> None:

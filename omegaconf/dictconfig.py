@@ -348,7 +348,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise AttributeError()
 
         try:
-            return self._get_impl(key=key, default_value=_DEFAULT_MARKER_)
+            return self._get_impl(
+                key=key, default_value=_DEFAULT_MARKER_, validate_key=False
+            )
         except ConfigKeyError as e:
             self._format_and_raise(
                 key=key, value=None, cause=e, type_override=ConfigAttributeError
@@ -433,9 +435,13 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except KeyValidationError as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def _get_impl(self, key: DictKeyType, default_value: Any) -> Any:
+    def _get_impl(
+        self, key: DictKeyType, default_value: Any, validate_key: bool = True
+    ) -> Any:
         try:
-            node = self._get_node(key=key, throw_on_missing_key=True)
+            node = self._get_node(
+                key=key, throw_on_missing_key=True, validate_key=validate_key
+            )
         except (ConfigAttributeError, ConfigKeyError):
             if default_value is not _DEFAULT_MARKER_:
                 return default_value
@@ -450,16 +456,20 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self,
         key: DictKeyType,
         validate_access: bool = True,
+        validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
     ) -> Union[Optional[Node], List[Optional[Node]]]:
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:
-            if validate_access:
+            if validate_access and validate_key:
                 raise
             else:
-                return None
+                if throw_on_missing_key:
+                    raise ConfigAttributeError
+                else:
+                    return None
 
         if validate_access:
             self._validate_get(key)
