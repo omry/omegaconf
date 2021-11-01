@@ -170,14 +170,20 @@ For instance:
     >>> print(c.path)  # does *not* interpolate into the `dir` node
     ${dir}
 
-Since the ``\`` character has a special meaning in front of ``${``,
-it must itself be escaped with ``\\`` if you actually intend to follow it with an interpolation:
+If you actually want to follow a ``\`` with a resolved interpolation, this backslash
+needs to be escaped into ``\\`` to differentiate it from an escaped interpolation:
 
 .. doctest::
 
     >>> c = OmegaConf.create({"path": r"C:\\${dir}", "dir": "tmp"})
     >>> print(c.path)  # *does* interpolate into the `dir` node
     C:\tmp
+
+Note that we use Python raw strings here to make examples
+more readable -- otherwise all ``\`` characters would need be duplicated due to how Python handles
+escaping in regular string literals. For instance, the above example would become ``"C:\\\\${dir}"``
+without using a raw string.
+
 
 Finally, since the ``\`` character has no special meaning unless followed by ``${``,
 it does *not* need to be escaped anywhere else:
