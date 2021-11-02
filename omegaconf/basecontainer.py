@@ -101,7 +101,7 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
-        if sys.version_info < (3, 7):
+        if sys.version_info < (3, 7):  # pragma: no cover
             element_type = self._metadata.element_type
             if _is_union(element_type):
                 raise ConfigSerializationError(
