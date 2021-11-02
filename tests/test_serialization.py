@@ -158,23 +158,60 @@ def test_load_empty_file(tmpdir: str) -> None:
 @mark.parametrize(
     "input_,node,element_type,key_type,optional,ref_type",
     [
-        (UntypedList, "list", Any, Any, False, List[Any]),
-        (UntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
-        (UntypedDict, "dict", Any, Any, False, Dict[Any, Any]),
-        (
+        param(UntypedList, "list", Any, Any, False, List[Any], id="list_untyped"),
+        param(
+            UntypedList,
+            "opt_list",
+            Any,
+            Any,
+            True,
+            Optional[List[Any]],
+            id="opt_list_untyped",
+        ),
+        param(UntypedDict, "dict", Any, Any, False, Dict[Any, Any], id="dict_untyped"),
+        param(
             UntypedDict,
             "opt_dict",
             Any,
             Any,
             True,
             Optional[Dict[Any, Any]],
+            id="opt_dict_untyped",
         ),
-        (SubscriptedDict, "dict_str", int, str, False, Dict[str, int]),
-        (SubscriptedDict, "dict_int", int, int, False, Dict[int, int]),
-        (SubscriptedDict, "dict_bool", int, bool, False, Dict[bool, int]),
-        (SubscriptedDict, "dict_float", int, float, False, Dict[float, int]),
-        (SubscriptedDict, "dict_enum", int, Color, False, Dict[Color, int]),
-        (SubscriptedList, "list", int, Any, False, List[int]),
+        param(
+            SubscriptedDict, "dict_str", int, str, False, Dict[str, int], id="dict_str"
+        ),
+        param(
+            SubscriptedDict, "dict_int", int, int, False, Dict[int, int], id="dict_int"
+        ),
+        param(
+            SubscriptedDict,
+            "dict_bool",
+            int,
+            bool,
+            False,
+            Dict[bool, int],
+            id="dict_bool",
+        ),
+        param(
+            SubscriptedDict,
+            "dict_float",
+            int,
+            float,
+            False,
+            Dict[float, int],
+            id="dict_float",
+        ),
+        param(
+            SubscriptedDict,
+            "dict_enum",
+            int,
+            Color,
+            False,
+            Dict[Color, int],
+            id="dict_enum",
+        ),
+        param(SubscriptedList, "list", int, Any, False, List[int], id="list_int"),
         param(
             SubscriptedDictOpt,
             "opt_dict",
