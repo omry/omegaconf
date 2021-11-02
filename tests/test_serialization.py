@@ -13,7 +13,7 @@ from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
-from omegaconf.errors import OmegaConfBaseException
+from omegaconf.errors import ConfigSerializationError
 from tests import (
     Color,
     PersonA,
@@ -356,15 +356,12 @@ def test_pickle_backward_compatibility(version: str) -> None:
 
 
 @mark.skipif(sys.version_info >= (3, 7), reason="requires python3.6")
-@mark.xfail(reason="python3.6 pickling error is not handled")
 def test_python36_pickle_optional() -> None:
     cfg = OmegaConf.structured(SubscriptedDictOpt)
     with raises(
-        OmegaConfBaseException,
+        ConfigSerializationError,
         match=re.escape(
-            "Serializing structured configs with `Union` type annotations requires python >= 3.7"
+            "Serializing structured configs with `Union` element type requires python >= 3.7"
         ),
     ):
-        # currently this raises the following:
-        # _pickle.PicklingError: Can't pickle typing.Union[int, NoneType]: it's not the same object as typing.Union
         pickle.dumps(cfg)

@@ -14,6 +14,7 @@ from ._utils import (
     _is_missing_literal,
     _is_missing_value,
     _is_none,
+    _is_union,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
@@ -29,6 +30,7 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
+    ConfigSerializationError,
     ConfigTypeError,
     InterpolationResolutionError,
     MissingMandatoryValue,
@@ -99,6 +101,12 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
+        if sys.version_info < (3, 7):
+            element_type = self._metadata.element_type
+            if _is_union(element_type):
+                raise ConfigSerializationError(
+                    "Serializing structured configs with `Union` element type requires python >= 3.7"
+                )
         return dict_copy
 
     # Support pickle
