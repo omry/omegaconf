@@ -179,11 +179,9 @@ needs to be escaped into ``\\`` to differentiate it from an escaped interpolatio
     >>> print(c.path)  # *does* interpolate into the `dir` node
     C:\tmp
 
-Note that we use Python raw strings here to make examples
+Note that we use Python raw strings here to make code
 more readable -- otherwise all ``\`` characters would need be duplicated due to how Python handles
-escaping in regular string literals. For instance, the above example would become ``"C:\\\\${dir}"``
-without using a raw string.
-
+escaping in regular string literals.
 
 Finally, since the ``\`` character has no special meaning unless followed by ``${``,
 it does *not* need to be escaped anywhere else:
