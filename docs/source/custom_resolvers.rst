@@ -264,13 +264,14 @@ It takes two parameters:
 oc.decode
 ^^^^^^^^^
 
-With ``oc.decode``, strings can be converted into their corresponding data types using the OmegaConf grammar.
+With ``oc.decode``, strings can be converted into their corresponding data types using
+the :ref:`"element" parser rule of the OmegaConf grammar<element-types>`.
 This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``dict`` and ``list``,
 e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
 
 Note that:
 
-- In general input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings.
+- In most cases input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings.
 - ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case).
 
 This resolver can be useful for instance to parse environment variables:
