@@ -660,6 +660,7 @@ class TestMatchSimpleInterpolationPattern:
         ("${ns . f:var}", False),
         ("${$foo:bar}", False),
         ("${.foo:bar}", False),
+        (r"${foo:\}", False),
         # Valid according to the grammar but not matched by the regex.
         ("${foo.${bar}}", True),
         ("${foo:${bar}}", True),
