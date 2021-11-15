@@ -23,6 +23,7 @@ from ._utils import (
     _is_missing_literal,
     _is_missing_value,
     _is_none,
+    _resolve_optional,
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
@@ -35,7 +36,6 @@ from ._utils import (
     is_structured_config,
     is_structured_config_frozen,
     type_str,
-    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
@@ -85,10 +85,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     flags=flags,
                 ),
             )
-            if not valid_value_annotation_type(
-                element_type
-            ) and not is_structured_config(element_type):
-                raise ValidationError(f"Unsupported value type: {element_type}")
 
             if not _valid_dict_key_annotation_type(key_type):
                 raise KeyValidationError(f"Unsupported key type {key_type}")
@@ -240,25 +236,27 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             )
             raise ValidationError(msg)
 
-    def _validate_non_optional(self, key: Any, value: Any) -> None:
+    def _validate_non_optional(self, key: Optional[DictKeyType], value: Any) -> None:
         if _is_none(value, resolve=True, throw_on_resolution_failure=False):
+
             if key is not None:
                 child = self._get_node(key)
                 if child is not None:
                     assert isinstance(child, Node)
-                    if not child._is_optional():
-                        self._format_and_raise(
-                            key=key,
-                            value=value,
-                            cause=ValidationError("child '$FULL_KEY' is not Optional"),
-                        )
-            else:
-                if not self._is_optional():
-                    self._format_and_raise(
-                        key=None,
-                        value=value,
-                        cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                    field_is_optional = child._is_optional()
+                else:
+                    field_is_optional, _ = _resolve_optional(
+                        self._metadata.element_type
                     )
+            else:
+                field_is_optional = self._is_optional()
+
+            if not field_is_optional:
+                self._format_and_raise(
+                    key=key,
+                    value=value,
+                    cause=ValidationError("field '$FULL_KEY' is not Optional"),
+                )
 
     def _raise_invalid_value(
         self, value: Any, value_type: Any, target_type: Any

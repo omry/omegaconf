@@ -6,7 +6,8 @@ from typing import Any, List, Optional
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
-from omegaconf._utils import nullcontext
+from omegaconf._utils import _ensure_container, nullcontext
+from omegaconf.base import Node
 from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
@@ -447,6 +448,86 @@ def validate_list_keys(c: Any) -> None:
 
 
 @mark.parametrize(
+    "cfg, value, expected, expected_ref_type",
+    [
+        param(
+            ListConfig(element_type=int, content=[]),
+            123,
+            [123],
+            int,
+            id="typed_list",
+        ),
+        param(
+            ListConfig(element_type=int, content=[]),
+            None,
+            ValidationError,
+            None,
+            id="typed_list_append_none",
+        ),
+        param(
+            ListConfig(element_type=Optional[int], content=[]),
+            123,
+            [123],
+            int,
+            id="optional_typed_list",
+        ),
+        param(
+            ListConfig(element_type=Optional[int], content=[]),
+            None,
+            [None],
+            int,
+            id="optional_typed_list_append_none",
+        ),
+        param(
+            ListConfig(element_type=User, content=[]),
+            User(name="bond"),
+            [User(name="bond")],
+            User,
+            id="user_list",
+        ),
+        param(
+            ListConfig(element_type=User, content=[]),
+            None,
+            ValidationError,
+            None,
+            id="user_list_append_none",
+        ),
+        param(
+            ListConfig(element_type=Optional[User], content=[]),
+            User(name="bond"),
+            [User(name="bond")],
+            User,
+            id="optional_user_list",
+        ),
+        param(
+            ListConfig(element_type=Optional[User], content=[]),
+            None,
+            [None],
+            User,
+            id="optional_user_list_append_none",
+        ),
+    ],
+)
+def test_append_to_typed(
+    cfg: ListConfig,
+    value: Any,
+    expected: Any,
+    expected_ref_type: type,
+) -> None:
+    cfg = _ensure_container(cfg)
+    if isinstance(expected, type):
+        with raises(expected):
+            cfg.append(value)
+    else:
+        cfg.append(value)
+        assert cfg == expected
+        node = cfg._get_node(-1)
+        assert isinstance(node, Node)
+        assert node._metadata.ref_type == expected_ref_type
+        validate_list_keys(cfg)
+
+
+@mark.parametrize(
     "input_, index, value, expected, expected_node_type, expectation",
     [
         (["a", "b", "c"], 1, 100, ["a", 100, "b", "c"], AnyNode, None),
@@ -474,6 +555,24 @@ def validate_list_keys(c: Any) -> None:
             None,
             None,
             ValidationError,
+        ),
+        param(
+            ListConfig(element_type=int, content=[]),
+            0,
+            123,
+            [123],
+            IntegerNode,
+            None,
+            id="typed_list",
+        ),
+        param(
+            ListConfig(element_type=int, content=[]),
+            0,
+            None,
+            None,
+            None,
+            ValidationError,
+            id="typed_list_insert_none",
         ),
     ],
 )
@@ -786,3 +885,37 @@ def test_node_copy_on_append(node: Any) -> None:
     cfg = OmegaConf.create([])
     cfg.append(node)
     assert cfg.__dict__["_content"][0] is not node
+
+
+@mark.parametrize(
+    "cfg,key,value,error",
+    [
+        param(
+            ListConfig([], element_type=Optional[User]),
+            0,
+            "foo",
+            True,
+            id="structured:set_optional_to_bad_type",
+        ),
+        param(
+            ListConfig([], element_type=int),
+            0,
+            None,
+            True,
+            id="set_to_none_raises",
+        ),
+        param(
+            ListConfig([], element_type=Optional[int]),
+            0,
+            None,
+            False,
+            id="optional_set_to_none",
+        ),
+    ],
+)
+def test_validate_set(cfg: ListConfig, key: int, value: Any, error: bool) -> None:
+    if error:
+        with raises(ValidationError):
+            cfg._validate_set(key, value)
+    else:
+        cfg._validate_set(key, value)

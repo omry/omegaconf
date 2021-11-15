@@ -14,6 +14,7 @@ from ._utils import (
     _is_missing_literal,
     _is_missing_value,
     _is_none,
+    _is_union,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
@@ -32,6 +33,7 @@ from .errors import (
     ConfigTypeError,
     InterpolationResolutionError,
     MissingMandatoryValue,
+    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
@@ -99,6 +101,12 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
+        if sys.version_info < (3, 7):  # pragma: no cover
+            element_type = self._metadata.element_type
+            if _is_union(element_type):
+                raise OmegaConfBaseException(
+                    "Serializing structured configs with `Union` element type requires python >= 3.7"
+                )
         return dict_copy
 
     # Support pickle
@@ -342,13 +350,12 @@ class BaseContainer(Container, ABC):
                     dest[key] = target_node
                     dest_node = dest._get_node(key)
 
-            if (
-                dest_node is None
-                and is_structured_config(dest._metadata.element_type)
-                and not missing_src_value
-            ):
+            is_optional, et = _resolve_optional(dest._metadata.element_type)
+            if dest_node is None and is_structured_config(et) and not missing_src_value:
                 # merging into a new node. Use element_type as a base
-                dest[key] = DictConfig(content=dest._metadata.element_type, parent=dest)
+                dest[key] = DictConfig(
+                    et, parent=dest, ref_type=et, is_optional=is_optional
+                )
                 dest_node = dest._get_node(key)
 
             if dest_node is not None:
@@ -420,9 +427,9 @@ class BaseContainer(Container, ABC):
             temp_target.__dict__["_metadata"] = copy.deepcopy(
                 dest.__dict__["_metadata"]
             )
-            et = dest._metadata.element_type
+            is_optional, et = _resolve_optional(dest._metadata.element_type)
             if is_structured_config(et):
-                prototype = OmegaConf.structured(et)
+                prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
                 for item in src._iter_ex(resolve=False):
                     if isinstance(item, DictConfig):
                         item = OmegaConf.merge(prototype, item)
@@ -541,14 +548,14 @@ class BaseContainer(Container, ABC):
         )
 
         def wrap(key: Any, val: Any) -> Node:
-            is_optional = True
             if not is_structured_config(val):
-                ref_type = self._metadata.element_type
+                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
             else:
                 target = self._get_node(key)
                 if target is None:
-                    if is_structured_config(val):
-                        ref_type = self._metadata.element_type
+                    is_optional, ref_type = _resolve_optional(
+                        self._metadata.element_type
+                    )
                 else:
                     assert isinstance(target, Node)
                     is_optional = target._is_optional()
@@ -566,6 +573,7 @@ class BaseContainer(Container, ABC):
             v = val
             v._set_parent(self)
             v._set_key(value_key)
+            _update_types(v, self._metadata.element_type, None)
             self.__dict__["_content"][value_key] = v
 
         if input_node and target_node:

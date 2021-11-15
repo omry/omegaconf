@@ -199,13 +199,8 @@ def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
     if key is not None:
         assert isinstance(obj, Container)
         obj = obj._get_node(key)
-    if isinstance(obj, Node):
-        return obj._is_optional()
-    else:
-        # In case `obj` is not a Node, treat it as optional by default.
-        # This is used in `ListConfig.append` and `ListConfig.insert`
-        # where the appended/inserted value might or might not be a Node.
-        return True
+    assert isinstance(obj, Node)
+    return obj._is_optional()
 
 
 def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
@@ -646,6 +641,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
 
 
 def valid_value_annotation_type(type_: Any) -> bool:
+    _, type_ = _resolve_optional(type_)
     return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
 
 

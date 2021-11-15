@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pytest import mark, param, raises
 
@@ -7,6 +7,7 @@ from omegaconf import (
     AnyNode,
     Container,
     DictConfig,
+    DictKeyType,
     IntegerNode,
     ListConfig,
     OmegaConf,
@@ -17,9 +18,20 @@ from omegaconf import (
     open_dict,
     read_write,
 )
-from omegaconf._utils import nullcontext
+from omegaconf._utils import _ensure_container, nullcontext
 from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandatoryValue
-from tests import StructuredWithMissing
+from tests import (
+    ConcretePlugin,
+    Group,
+    OptionalUsers,
+    StructuredWithMissing,
+    SubscriptedDict,
+    SubscriptedDictOpt,
+    SubscriptedList,
+    SubscriptedListOpt,
+    User,
+    Users,
+)
 
 
 @mark.parametrize(
@@ -587,3 +599,135 @@ def test_flags_root() -> None:
 
     cfg.a._set_flags_root(True)
     assert cfg.a._get_flag_no_cache("flag") is None
+
+
+@mark.parametrize(
+    "cls,key,assignment,error",
+    [
+        param(SubscriptedList, "list", [None], True, id="list_elt"),
+        param(SubscriptedList, "list", [0, 1, None], True, id="list_elt_partial"),
+        param(SubscriptedDict, "dict_str", {"key": None}, True, id="dict_elt"),
+        param(
+            SubscriptedDict,
+            "dict_str",
+            {"key_valid": 123, "key_invalid": None},
+            True,
+            id="dict_elt_partial",
+        ),
+        param(SubscriptedList, "list", None, True, id="list"),
+        param(SubscriptedDict, "dict_str", None, True, id="dict"),
+        param(SubscriptedListOpt, "opt_list", [None], True, id="opt_list_elt"),
+        param(SubscriptedDictOpt, "opt_dict", {"key": None}, True, id="opt_dict_elt"),
+        param(SubscriptedListOpt, "opt_list", None, False, id="opt_list"),
+        param(SubscriptedDictOpt, "opt_dict", None, False, id="opt_dict"),
+        param(SubscriptedListOpt, "list_opt", [None], False, id="list_opt_elt"),
+        param(SubscriptedDictOpt, "dict_opt", {"key": None}, False, id="dict_opt_elt"),
+        param(SubscriptedListOpt, "list_opt", None, True, id="list_opt"),
+        param(SubscriptedDictOpt, "dict_opt", None, True, id="dict_opt"),
+        param(
+            ListConfig([None], element_type=Optional[User]),
+            0,
+            User("Bond", 7),
+            False,
+            id="set_optional_user",
+        ),
+        param(
+            ListConfig([User], element_type=User),
+            0,
+            None,
+            True,
+            id="illegal_set_user_to_none",
+        ),
+    ],
+)
+def test_optional_assign(cls: Any, key: str, assignment: Any, error: bool) -> None:
+    cfg = OmegaConf.structured(cls)
+    if error:
+        with raises(ValidationError):
+            cfg[key] = assignment
+    else:
+        cfg[key] = assignment
+        assert cfg[key] == assignment
+
+
+@mark.parametrize(
+    "src,keys,ref_type,is_optional",
+    [
+        param(Group, ["admin"], User, True, id="opt_user"),
+        param(
+            ConcretePlugin,
+            ["params"],
+            ConcretePlugin.FoobarParams,
+            False,
+            id="nested_structured_conf",
+        ),
+        param(
+            OmegaConf.structured(Users({"user007": User("Bond", 7)})).name2user,
+            ["user007"],
+            User,
+            False,
+            id="structured_dict_of_user",
+        ),
+        param(
+            DictConfig({"a": 123}, element_type=int), ["a"], int, False, id="dict_int"
+        ),
+        param(
+            DictConfig({"a": 123}, element_type=Optional[int]),
+            ["a"],
+            int,
+            True,
+            id="dict_opt_int",
+        ),
+        param(DictConfig({"a": 123}), ["a"], Any, True, id="dict_any"),
+        param(
+            OmegaConf.merge(Users, {"name2user": {"joe": User("joe")}}),
+            ["name2user", "joe"],
+            User,
+            False,
+            id="dict:merge_into_new_user_node",
+        ),
+        param(
+            OmegaConf.merge(OptionalUsers, {"name2user": {"joe": User("joe")}}),
+            ["name2user", "joe"],
+            User,
+            True,
+            id="dict:merge_into_new_optional_user_node",
+        ),
+        param(
+            OmegaConf.merge(ListConfig([], element_type=User), [User(name="joe")]),
+            [0],
+            User,
+            False,
+            id="list:merge_into_new_user_node",
+        ),
+        param(
+            OmegaConf.merge(
+                ListConfig([], element_type=Optional[User]), [User(name="joe")]
+            ),
+            [0],
+            User,
+            True,
+            id="list:merge_into_new_optional_user_node",
+        ),
+        param(SubscriptedDictOpt, ["opt_dict"], Dict[str, int], True, id="opt_dict"),
+        param(SubscriptedListOpt, ["opt_list"], List[int], True, id="opt_list"),
+        param(
+            SubscriptedDictOpt,
+            ["dict_opt"],
+            Dict[str, Optional[int]],
+            False,
+            id="opt_dict",
+        ),
+        param(
+            SubscriptedListOpt, ["list_opt"], List[Optional[int]], False, id="opt_dict"
+        ),
+    ],
+)
+def test_assignment_optional_behavior(
+    src: Any, keys: List[DictKeyType], ref_type: Any, is_optional: bool
+) -> None:
+    cfg = _ensure_container(src)
+    for k in keys:
+        cfg = cfg._get_node(k)
+    assert cfg._is_optional() == is_optional
+    assert cfg._metadata.ref_type == ref_type

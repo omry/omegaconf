@@ -78,6 +78,11 @@ class Users:
 
 
 @dataclass
+class OptionalUsers:
+    name2user: Dict[str, Optional[User]] = field(default_factory=dict)
+
+
+@dataclass
 class ConfWithMissingDict:
     dict: Dict[str, Any] = MISSING
 
@@ -216,6 +221,12 @@ class SubscriptedList:
 
 
 @dataclass
+class SubscriptedListOpt:
+    opt_list: Optional[List[int]] = field(default_factory=lambda: [1, 2])
+    list_opt: List[Optional[int]] = field(default_factory=lambda: [1, 2, None])
+
+
+@dataclass
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
@@ -228,6 +239,14 @@ class SubscriptedDict:
     dict_int: Dict[int, int] = field(default_factory=lambda: {123: 4})
     dict_float: Dict[float, int] = field(default_factory=lambda: {123.45: 4})
     dict_bool: Dict[bool, int] = field(default_factory=lambda: {True: 4, False: 5})
+
+
+@dataclass
+class SubscriptedDictOpt:
+    opt_dict: Optional[Dict[str, int]] = field(default_factory=lambda: {"foo": 4})
+    dict_opt: Dict[str, Optional[int]] = field(
+        default_factory=lambda: {"foo": 4, "bar": None}
+    )
 
 
 @dataclass

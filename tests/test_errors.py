@@ -131,7 +131,7 @@ params = [
             create=lambda: OmegaConf.structured(StructuredWithMissing),
             op=lambda cfg: OmegaConf.update(cfg, "num", None),
             exception_type=ValidationError,
-            msg="child 'num' is not Optional",
+            msg="field 'num' is not Optional",
             parent_node=lambda cfg: cfg,
             child_node=lambda cfg: cfg._get_node("num"),
             object_type=StructuredWithMissing,
@@ -370,7 +370,7 @@ params = [
             ),
             op=lambda cfg: setattr(cfg, "foo", None),
             exception_type=ValidationError,
-            msg="child 'foo' is not Optional",
+            msg="field 'foo' is not Optional",
             key="foo",
             full_key="foo",
             child_node=lambda cfg: cfg.foo,
@@ -650,6 +650,16 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: DictConfig({}, element_type=str),
+            op=lambda cfg: OmegaConf.merge(cfg, {"foo": None}),
+            exception_type=ValidationError,
+            key="foo",
+            msg="field 'foo' is not Optional",
+        ),
+        id="dict:merge_none_into_not_optional_element_type",
+    ),
+    param(
+        Expected(
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(IllegalType),
             exception_type=ValidationError,
@@ -708,6 +718,15 @@ params = [
             ref_type_str=None,
         ),
         id="structured:create_from_unsupported_object",
+    ),
+    param(
+        Expected(
+            create=lambda: None,
+            op=lambda _: DictConfig({}, element_type=IllegalType),
+            exception_type=ValidationError,
+            msg="Unsupported value type: 'tests.IllegalType'",
+        ),
+        id="structured:create_with_unsupported_element_type",
     ),
     param(
         Expected(

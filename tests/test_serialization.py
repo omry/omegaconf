@@ -3,6 +3,8 @@ import io
 import os
 import pathlib
 import pickle
+import re
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
@@ -11,12 +13,15 @@ from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
+from omegaconf.errors import OmegaConfBaseException
 from tests import (
     Color,
     PersonA,
     PersonD,
     SubscriptedDict,
+    SubscriptedDictOpt,
     SubscriptedList,
+    SubscriptedListOpt,
     UntypedDict,
     UntypedList,
 )
@@ -153,24 +158,101 @@ def test_load_empty_file(tmpdir: str) -> None:
 @mark.parametrize(
     "input_,node,element_type,key_type,optional,ref_type",
     [
-        (UntypedList, "list", Any, Any, False, List[Any]),
-        (UntypedList, "opt_list", Any, Any, True, Optional[List[Any]]),
-        (UntypedDict, "dict", Any, Any, False, Dict[Any, Any]),
-        (
+        param(UntypedList, "list", Any, Any, False, List[Any], id="list_untyped"),
+        param(
+            UntypedList,
+            "opt_list",
+            Any,
+            Any,
+            True,
+            Optional[List[Any]],
+            id="opt_list_untyped",
+        ),
+        param(UntypedDict, "dict", Any, Any, False, Dict[Any, Any], id="dict_untyped"),
+        param(
             UntypedDict,
             "opt_dict",
             Any,
             Any,
             True,
             Optional[Dict[Any, Any]],
+            id="opt_dict_untyped",
         ),
-        (SubscriptedDict, "dict_str", int, str, False, Dict[str, int]),
-        (SubscriptedDict, "dict_int", int, int, False, Dict[int, int]),
-        (SubscriptedDict, "dict_bool", int, bool, False, Dict[bool, int]),
-        (SubscriptedDict, "dict_float", int, float, False, Dict[float, int]),
-        (SubscriptedDict, "dict_enum", int, Color, False, Dict[Color, int]),
-        (SubscriptedList, "list", int, Any, False, List[int]),
-        (
+        param(
+            SubscriptedDict, "dict_str", int, str, False, Dict[str, int], id="dict_str"
+        ),
+        param(
+            SubscriptedDict, "dict_int", int, int, False, Dict[int, int], id="dict_int"
+        ),
+        param(
+            SubscriptedDict,
+            "dict_bool",
+            int,
+            bool,
+            False,
+            Dict[bool, int],
+            id="dict_bool",
+        ),
+        param(
+            SubscriptedDict,
+            "dict_float",
+            int,
+            float,
+            False,
+            Dict[float, int],
+            id="dict_float",
+        ),
+        param(
+            SubscriptedDict,
+            "dict_enum",
+            int,
+            Color,
+            False,
+            Dict[Color, int],
+            id="dict_enum",
+        ),
+        param(SubscriptedList, "list", int, Any, False, List[int], id="list_int"),
+        param(
+            SubscriptedDictOpt,
+            "opt_dict",
+            int,
+            str,
+            True,
+            Optional[Dict[str, int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="opt_dict",
+        ),
+        param(
+            SubscriptedDictOpt,
+            "dict_opt",
+            Optional[int],
+            str,
+            False,
+            Dict[str, Optional[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="dict_opt",
+        ),
+        param(
+            SubscriptedListOpt,
+            "opt_list",
+            int,
+            str,
+            True,
+            Optional[List[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="opt_list",
+        ),
+        param(
+            SubscriptedListOpt,
+            "list_opt",
+            Optional[int],
+            str,
+            False,
+            List[Optional[int]],
+            marks=mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7"),
+            id="list_opt",
+        ),
+        param(
             DictConfig(
                 content={"a": "foo"},
                 ref_type=Dict[str, str],
@@ -271,3 +353,15 @@ def test_pickle_backward_compatibility(version: str) -> None:
     with open(path, mode="rb") as fp:
         cfg = pickle.load(fp)
         assert cfg == OmegaConf.create({"a": [{"b": 10}]})
+
+
+@mark.skipif(sys.version_info >= (3, 7), reason="requires python3.6")
+def test_python36_pickle_optional() -> None:
+    cfg = OmegaConf.structured(SubscriptedDictOpt)
+    with raises(
+        OmegaConfBaseException,
+        match=re.escape(
+            "Serializing structured configs with `Union` element type requires python >= 3.7"
+        ),
+    ):
+        pickle.dumps(cfg)

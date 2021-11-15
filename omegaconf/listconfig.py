@@ -18,14 +18,13 @@ from ._utils import (
     ValueKind,
     _is_missing_literal,
     _is_none,
-    _is_optional,
+    _resolve_optional,
     format_and_raise,
     get_value_kind,
     is_int,
     is_primitive_list,
     is_structured_config,
     type_str,
-    valid_value_annotation_type,
 )
 from .base import Container, ContainerMetadata, Node
 from .basecontainer import BaseContainer
@@ -70,10 +69,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     flags=flags,
                 ),
             )
-            if not (valid_value_annotation_type(self._metadata.element_type)):
-                raise ValidationError(
-                    f"Unsupported value type: {self._metadata.element_type}"
-                )
 
             self.__dict__["_content"] = None
             self._set_value(value=content, flags=flags)
@@ -103,19 +98,19 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                         "$FULL_KEY is not optional and cannot be assigned None"
                     )
 
-        target_type = self._metadata.element_type
+        is_optional, target_type = _resolve_optional(self._metadata.element_type)
         value_type = OmegaConf.get_type(value)
-        if is_structured_config(target_type):
-            if (
-                target_type is not None
-                and value_type is not None
-                and not issubclass(value_type, target_type)
-            ):
-                msg = (
-                    f"Invalid type assigned: {type_str(value_type)} is not a "
-                    f"subclass of {type_str(target_type)}. value: {value}"
-                )
-                raise ValidationError(msg)
+
+        if (value_type is None and not is_optional) or (
+            is_structured_config(target_type)
+            and value_type is not None
+            and not issubclass(value_type, target_type)
+        ):
+            msg = (
+                f"Invalid type assigned: {type_str(value_type)} is not a "
+                f"subclass of {type_str(target_type)}. value: {value}"
+            )
+            raise ValidationError(msg)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
@@ -281,11 +276,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 assert isinstance(self.__dict__["_content"], list)
                 # insert place holder
                 self.__dict__["_content"].insert(index, None)
+                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
                 node = _maybe_wrap(
-                    ref_type=self.__dict__["_metadata"].element_type,
+                    ref_type=ref_type,
                     key=index,
                     value=item,
-                    is_optional=_is_optional(item),
+                    is_optional=is_optional,
                     parent=self,
                 )
                 self._validate_set(key=index, value=node)
