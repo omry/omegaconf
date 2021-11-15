@@ -139,9 +139,3 @@ class GrammarParseError(OmegaConfBaseException):
     """
     Thrown when failing to parse an expression according to the ANTLR grammar.
     """
-
-
-class ConfigSerializationError(OmegaConfBaseException):
-    """
-    Thrown when an error occurs during serialization of an OmegaConf object.
-    """

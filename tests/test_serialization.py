@@ -13,7 +13,7 @@ from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import get_ref_type
-from omegaconf.errors import ConfigSerializationError
+from omegaconf.errors import OmegaConfBaseException
 from tests import (
     Color,
     PersonA,
@@ -359,7 +359,7 @@ def test_pickle_backward_compatibility(version: str) -> None:
 def test_python36_pickle_optional() -> None:
     cfg = OmegaConf.structured(SubscriptedDictOpt)
     with raises(
-        ConfigSerializationError,
+        OmegaConfBaseException,
         match=re.escape(
             "Serializing structured configs with `Union` element type requires python >= 3.7"
         ),

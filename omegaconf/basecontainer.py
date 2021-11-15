@@ -30,10 +30,10 @@ from ._utils import (
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
     ConfigCycleDetectedException,
-    ConfigSerializationError,
     ConfigTypeError,
     InterpolationResolutionError,
     MissingMandatoryValue,
+    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
@@ -104,7 +104,7 @@ class BaseContainer(Container, ABC):
         if sys.version_info < (3, 7):  # pragma: no cover
             element_type = self._metadata.element_type
             if _is_union(element_type):
-                raise ConfigSerializationError(
+                raise OmegaConfBaseException(
                     "Serializing structured configs with `Union` element type requires python >= 3.7"
                 )
         return dict_copy
