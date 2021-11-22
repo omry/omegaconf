@@ -428,8 +428,18 @@ class DictOfObjects:
 
 
 @dataclass
+class DictOfObjectsMissing:
+    users: Dict[str, User] = field(default_factory=lambda: {"moe": MISSING})
+
+
+@dataclass
 class ListOfObjects:
     users: List[User] = field(default_factory=lambda: [User(name="Joe", age=18)])
+
+
+@dataclass
+class ListOfObjectsMissing:
+    users: List[User] = field(default_factory=lambda: [MISSING])
 
 
 class DictSubclass:

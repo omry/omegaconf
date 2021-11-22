@@ -407,8 +407,18 @@ class DictOfObjects:
 
 
 @attr.s(auto_attribs=True)
+class DictOfObjectsMissing:
+    users: Dict[str, User] = {"moe": MISSING}
+
+
+@attr.s(auto_attribs=True)
 class ListOfObjects:
     users: List[User] = [User(name="Joe", age=18)]
+
+
+@attr.s(auto_attribs=True)
+class ListOfObjectsMissing:
+    users: List[User] = [MISSING]
 
 
 class DictSubclass:
