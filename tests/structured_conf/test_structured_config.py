@@ -1170,3 +1170,32 @@ class TestConfigs2:
         c3 = OmegaConf.merge(c1, c2)
         with raises(ValidationError):
             c3.missing.append("xx")
+
+
+@mark.parametrize(
+    "key, parent_expected, child_expected",
+    [
+        param("int1", MISSING, MISSING, id="int1_inherit_unspecified"),
+        param("int2", MISSING, 5, id="int2_overwrite_unspecified"),
+        param("int3", MISSING, 10, id="int3_overwrite_native_missing"),
+        param("int4", MISSING, 15, id="int4_overwrite_missing"),
+        param("list1", MISSING, [1, 2, 3], id="list1_overwrite_missing"),
+        param("list2", [5, 6], [5, 6], id="list2_inherit_default"),
+        param("dict", MISSING, {"a": 5, "b": 6}, id="dict_overwrite_missing"),
+    ],
+)
+def test_structured_config_inheritance(
+    module: Any, key: str, parent_expected: Any, child_expected: Any
+) -> None:
+
+    parent = OmegaConf.structured(module.StructuredSubclass.ParentConfig)
+    if parent_expected is MISSING:
+        assert OmegaConf.is_missing(parent, key)
+    else:
+        assert parent[key] == parent_expected
+
+    child = OmegaConf.structured(module.StructuredSubclass.ChildConfig)
+    if child_expected is MISSING:
+        assert OmegaConf.is_missing(child, key)
+    else:
+        assert child[key] == child_expected

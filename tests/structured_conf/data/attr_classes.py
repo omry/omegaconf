@@ -556,3 +556,23 @@ class UntypedList:
 class UntypedDict:
     dict: Dict = {"foo": "var"}  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
+
+
+class StructuredSubclass:
+    @attr.s(auto_attribs=True)
+    class ParentConfig:
+        int1: int
+        int2: int
+        int3: int = attr.NOTHING  # type: ignore
+        int4: int = MISSING
+        list1: List[int] = MISSING
+        list2: List[int] = [5, 6]
+        dict: Dict[str, Any] = MISSING
+
+    @attr.s(auto_attribs=True)
+    class ChildConfig(ParentConfig):
+        int2: int = 5
+        int3: int = 10
+        int4: int = 15
+        list1: List[int] = [1, 2, 3]
+        dict: Dict[str, Any] = {"a": 5, "b": 6}
