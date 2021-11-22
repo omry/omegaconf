@@ -581,19 +581,25 @@ class UntypedDict:
 
 class StructuredSubclass:
     @dataclass
-    class ParentConfig:
+    class ParentInts:
         int1: int
         int2: int
         int3: int = dataclasses.MISSING  # type: ignore
         int4: int = MISSING
+
+    @dataclass
+    class ChildInts(ParentInts):
+        int2: int = 5
+        int3: int = 10
+        int4: int = 15
+
+    @dataclass
+    class ParentContainers:
         list1: List[int] = MISSING
         list2: List[int] = field(default_factory=lambda: [5, 6])
         dict: Dict[str, Any] = MISSING
 
     @dataclass
-    class ChildConfig(ParentConfig):
-        int2: int = 5
-        int3: int = 10
-        int4: int = 15
+    class ChildContainers(ParentContainers):
         list1: List[int] = field(default_factory=lambda: [1, 2, 3])
         dict: Dict[str, Any] = field(default_factory=lambda: {"a": 5, "b": 6})
