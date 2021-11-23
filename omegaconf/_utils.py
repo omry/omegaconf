@@ -346,11 +346,8 @@ def get_dataclass_data(
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
 
-        if hasattr(obj, name):
-            value = getattr(obj, name)
-            if value == dataclasses.MISSING:
-                value = MISSING
-        else:
+        value = getattr(obj, name, MISSING)
+        if value in (MISSING, dataclasses.MISSING):
             if field.default_factory == dataclasses.MISSING:  # type: ignore
                 value = MISSING
             else:
