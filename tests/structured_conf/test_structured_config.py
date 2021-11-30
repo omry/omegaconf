@@ -746,6 +746,20 @@ class TestConfigs:
         with raises(ValidationError):
             dct.fail = "fail"
 
+    def test_dict_of_objects_missing(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.DictOfObjectsMissing)
+        dct = conf.users
+
+        assert OmegaConf.is_missing(dct, "moe")
+
+        dct.miss = MISSING
+        assert OmegaConf.is_missing(dct, "miss")
+
+    def test_assign_dict_of_objects(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.DictOfObjects)
+        conf.users = {"poe": module.User(name="Poe", age=8), "miss": MISSING}
+        assert conf.users == {"poe": {"name": "Poe", "age": 8}, "miss": "???"}
+
     def test_list_of_objects(self, module: Any) -> None:
         conf = OmegaConf.structured(module.ListOfObjects)
         assert conf.users[0].age == 18
@@ -757,6 +771,19 @@ class TestConfigs:
 
         with raises(ValidationError):
             conf.users.append("fail")
+
+    def test_list_of_objects_missing(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.ListOfObjectsMissing)
+
+        assert OmegaConf.is_missing(conf.users, 0)
+
+        conf.users.append(MISSING)
+        assert OmegaConf.is_missing(conf.users, 1)
+
+    def test_assign_list_of_objects(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.ListOfObjects)
+        conf.users = [module.User(name="Poe", age=8), MISSING]
+        assert conf.users == [{"name": "Poe", "age": 8}, "???"]
 
     def test_promote_api(self, module: Any) -> None:
         conf = OmegaConf.create(module.AnyTypeConfig)
