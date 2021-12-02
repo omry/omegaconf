@@ -336,6 +336,7 @@ def get_dataclass_data(
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     d = {}
+    is_type = isinstance(obj, type)
     obj_type = get_type_of(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
@@ -344,13 +345,18 @@ def get_dataclass_data(
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
+        has_default = field.default != dataclasses.MISSING
+        has_default_factory = field.default_factory != dataclasses.MISSING  # type: ignore
 
-        value = getattr(obj, name, MISSING)
-        if value in (MISSING, dataclasses.MISSING):
-            if field.default_factory == dataclasses.MISSING:  # type: ignore
-                value = MISSING
-            else:
+        if not is_type:
+            value = getattr(obj, name)
+        else:
+            if has_default:
+                value = field.default
+            elif has_default_factory:
                 value = field.default_factory()  # type: ignore
+            else:
+                value = MISSING
 
         if _is_union(type_):
             e = ConfigValueError(

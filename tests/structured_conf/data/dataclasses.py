@@ -629,6 +629,16 @@ class StructuredSubclass:
         list1: List[int] = field(default_factory=lambda: [1, 2, 3])
         dict: Dict[str, Any] = field(default_factory=lambda: {"a": 5, "b": 6})
 
+    @dataclass
+    class ParentNoDefaultFactory:
+        no_default_to_list: Any
+        int_to_list: Any = 1
+
+    @dataclass
+    class ChildWithDefaultFactory(ParentNoDefaultFactory):
+        no_default_to_list: Any = field(default_factory=lambda: ["hi"])
+        int_to_list: Any = field(default_factory=lambda: ["hi"])
+
 
 @dataclass
 class HasInitFalseFields:

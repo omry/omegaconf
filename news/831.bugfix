@@ -1,0 +1,1 @@
+Fix bugs related to creation of structured configs from dataclasses having fields with a default_factory
