@@ -608,6 +608,16 @@ class StructuredSubclass:
         list1: List[int] = [1, 2, 3]
         dict: Dict[str, Any] = {"a": 5, "b": 6}
 
+    @attr.s(auto_attribs=True)
+    class ParentNoDefaultFactory:
+        no_default_to_list: Any
+        int_to_list: Any = 1
+
+    @attr.s(auto_attribs=True)
+    class ChildWithDefaultFactory(ParentNoDefaultFactory):
+        no_default_to_list: Any = ["hi"]
+        int_to_list: Any = ["hi"]
+
 
 @attr.s(auto_attribs=True)
 class HasInitFalseFields:

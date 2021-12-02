@@ -1,7 +1,7 @@
 import inspect
 import sys
 from importlib import import_module
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from pytest import fixture, mark, param, raises
 
@@ -211,6 +211,13 @@ class TestConfigs:
         conf2 = OmegaConf.structured(module.ConfigWithList())
         validate(conf2)
 
+    def test_config_with_list_nondefault_values(self, module: Any) -> None:
+        conf1 = OmegaConf.structured(module.ConfigWithList(list1=[4, 5, 6]))
+        assert conf1.list1 == [4, 5, 6]
+
+        conf2 = OmegaConf.structured(module.ConfigWithList(list1=MISSING))
+        assert OmegaConf.is_missing(conf2, "list1")
+
     def test_assignment_to_nested_structured_config(self, module: Any) -> None:
         conf = OmegaConf.structured(module.NestedConfig)
         with raises(ValidationError):
@@ -235,6 +242,13 @@ class TestConfigs:
 
         conf2 = OmegaConf.structured(module.ConfigWithDict())
         validate(conf2)
+
+    def test_config_with_dict_nondefault_values(self, module: Any) -> None:
+        conf1 = OmegaConf.structured(module.ConfigWithDict(dict1={"baz": "qux"}))
+        assert conf1.dict1 == {"baz": "qux"}
+
+        conf2 = OmegaConf.structured(module.ConfigWithDict(dict1=MISSING))
+        assert OmegaConf.is_missing(conf2, "dict1")
 
     def test_structured_config_struct_behavior(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
@@ -1230,6 +1244,26 @@ class TestStructredConfigInheritance:
 
         assert OmegaConf.is_missing(parent, "dict")
         assert child.dict == {"a": 5, "b": 6}
+
+    @mark.parametrize(
+        "create_fn",
+        [
+            param(lambda cls: OmegaConf.structured(cls), id="create_from_class"),
+            param(lambda cls: OmegaConf.structured(cls()), id="create_from_instance"),
+        ],
+    )
+    def test_subclass_using_default_factory(
+        self, module: Any, create_fn: Callable[[Any], DictConfig]
+    ) -> None:
+        """
+        When a structured config field has a default and a subclass defines a
+        default_factory for the same field, ensure that the DictConfig created
+        from the subclass uses the subclass' default_factory (not the parent
+        class' default).
+        """
+        cfg = create_fn(module.StructuredSubclass.ChildWithDefaultFactory)
+        assert cfg.no_default_to_list == ["hi"]
+        assert cfg.int_to_list == ["hi"]
 
 
 class TestNestedContainers:
