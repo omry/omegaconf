@@ -206,6 +206,7 @@ supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``Enum`` or Struc
 
 .. doctest::
 
+    >>> from dataclasses import dataclass, field
     >>> from typing import List, Tuple
     >>> @dataclass
     ... class User:
@@ -246,6 +247,7 @@ as arbitrary Structured configs)
 
 .. doctest::
 
+    >>> from dataclasses import dataclass, field
     >>> from typing import Dict
     >>> @dataclass
     ... class DictExample:
@@ -382,6 +384,8 @@ Frozen dataclasses and attr classes are supported via OmegaConf :ref:`read-only-
 
 .. doctest::
 
+    >>> from dataclasses import dataclass, field
+    >>> from typing import List
     >>> @dataclass(frozen=True)
     ... class FrozenClass:
     ...     x: int = 10
