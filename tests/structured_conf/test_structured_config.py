@@ -1179,3 +1179,34 @@ class TestConfigs2:
         c3 = OmegaConf.merge(c1, c2)
         with raises(ValidationError):
             c3.missing.append("xx")
+
+
+class TestStructredConfigInheritance:
+    def test_leaf_node_inheritance(self, module: Any) -> None:
+        parent = OmegaConf.structured(module.StructuredSubclass.ParentInts)
+        child = OmegaConf.structured(module.StructuredSubclass.ChildInts)
+
+        assert OmegaConf.is_missing(parent, "int1")
+        assert OmegaConf.is_missing(child, "int1")
+
+        assert OmegaConf.is_missing(parent, "int2")
+        assert child.int2 == 5
+
+        assert OmegaConf.is_missing(parent, "int3")
+        assert child.int3 == 10
+
+        assert OmegaConf.is_missing(parent, "int4")
+        assert child.int4 == 15
+
+    def test_container_inheritance(self, module: Any) -> None:
+        parent = OmegaConf.structured(module.StructuredSubclass.ParentContainers)
+        child = OmegaConf.structured(module.StructuredSubclass.ChildContainers)
+
+        assert OmegaConf.is_missing(parent, "list1")
+        assert child.list1 == [1, 2, 3]
+
+        assert parent.list2 == [5, 6]
+        assert child.list2 == [5, 6]
+
+        assert OmegaConf.is_missing(parent, "dict")
+        assert child.dict == {"a": 5, "b": 6}
