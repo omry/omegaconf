@@ -16,7 +16,7 @@ Structured configs
 Structured configs are used to create OmegaConf configuration object with runtime type safety.
 In addition, they can be used with tools like mypy or your IDE for static type checking.
 
-Two types of structures classes that are supported: dataclasses and attr classes.
+Two types of structures classes are supported: dataclasses and attr classes.
 
 - `dataclasses <https://docs.python.org/3.7/library/dataclasses.html>`_ are standard as of Python 3.7 or newer and are available in Python 3.6 via the `dataclasses` pip package.
 - `attrs <https://github.com/python-attrs/attrs>`_  Offset slightly cleaner syntax in some cases but depends on the attrs pip package.
