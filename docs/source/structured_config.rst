@@ -27,6 +27,21 @@ Basic usage involves passing in a structured config class or instance to ``Omega
 the values and types specified in the input. At runtine, OmegaConf will validate modifications to the created config object against the schema specified
 in the input class.
 
+
+Currently, type hints supported in OmegaConf’s structured configs include:
+ - primitive types (int, float, bool, str) and enum types (user-defined
+   subclasses of enum.Enum). See the :ref:`simple_types` section below.
+ - structured config fields (i.e. MyConfig.x can have type hint MySubConfig).
+   See the :ref:`nesting_structured_configs` section below.
+ - optional types (any of the above can be wrapped in a typing.Optional[...]
+   annotation). See :ref:`other_special_features` below.
+ - dict and list types: typing.Dict[K, V] or typing.List[V], where K is
+   primitive or enum, and where V is any of the above (including nested dicts
+   or lists, e.g. `Dict[str, List[int]]`).
+   See the :ref:`lists` and :ref:`dictionaries` sections below.
+
+.. _simple_types:
+
 Simple types
 ^^^^^^^^^^^^
 Simple types include
@@ -154,6 +169,8 @@ Runtime validation and conversion works for all supported types, including Enums
     >>> conf.height = 1
     >>> assert conf.height == Height.TALL
 
+.. _nesting_structured_configs:
+
 Nesting structured configs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -207,6 +224,8 @@ You can assign subclasses:
     >>> assert conf.manager.duper == True
 
 
+.. _lists:
+
 Lists
 ^^^^^
 Structured Config fields annotated with ``typing.List`` or ``typing.Tuple`` can hold any type
@@ -246,6 +265,8 @@ In the example below, the OmegaConf object ``conf`` (which is actually an instan
     >>> with raises(ValidationError):
     ...     conf.users.append(10)
 
+.. _dictionaries:
+
 Dictionaries
 ^^^^^^^^^^^^
 Dictionaries are supported via annotation of structured config fields with ``typing.Dict``.
@@ -279,6 +300,38 @@ Like with Lists, the types of values contained in Dicts are verified at runtime.
     >>> # Not okay, 10 cannot be assigned to a User
     >>> with raises(ValidationError):
     ...     conf.users["Joe"] = 10
+
+.. _nested_dict_and_list_annotations:
+
+Nested dict and list annotations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dict and List annotations can be nested flexibly:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class NestedContainers:
+    ...     dict_of_dict: Dict[str, Dict[str, int]]
+    ...     list_of_list: List[List[int]] = field(default_factory=lambda: [[123]])
+    ...     dict_of_list: Dict[str, List[int]] = MISSING
+    ...     list_of_dict: List[Dict[str, int]] = MISSING
+    ... 
+    ... 
+    >>> cfg = OmegaConf.structured(NestedContainers(dict_of_dict={"foo": {"bar": 123}}))
+    >>> print(OmegaConf.to_yaml(cfg))
+    dict_of_dict:
+      foo:
+        bar: 123
+    list_of_list:
+    - - 123
+    dict_of_list: ???
+    list_of_dict: ???
+    <BLANKLINE>
+    >>> with raises(ValidationError):
+    ...     cfg.list_of_dict = [["whoops"]]  # not a list of dicts
+
+.. _other_special_features:
 
 Other special features
 ^^^^^^^^^^^^^^^^^^^^^^
