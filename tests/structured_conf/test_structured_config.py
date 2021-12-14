@@ -935,15 +935,8 @@ def validate_frozen_impl(conf: DictConfig) -> None:
         ret.user.age = 20
 
 
-def test_attr_frozen() -> None:
-    from tests.structured_conf.data.attr_classes import FrozenClass
-
-    validate_frozen_impl(OmegaConf.structured(FrozenClass))
-    validate_frozen_impl(OmegaConf.structured(FrozenClass()))
-
-
-def test_dataclass_frozen() -> None:
-    from tests.structured_conf.data.dataclasses import FrozenClass
+def test_frozen(module: Any) -> None:
+    FrozenClass = module.FrozenClass
 
     validate_frozen_impl(OmegaConf.structured(FrozenClass))
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
