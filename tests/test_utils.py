@@ -748,6 +748,8 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
         param(Dict[Any, Any], Any, Any, id="any_explicit"),
         param(Dict[int, float], int, float, id="int_float"),
         param(Dict[Color, User], Color, User, id="color_user"),
+        param(Dict[str, List[int]], str, List[int], id="list"),
+        param(Dict[str, Dict[int, float]], str, Dict[int, float], id="dict"),
     ],
 )
 def test_get_dict_key_value_types(
@@ -765,6 +767,8 @@ def test_get_dict_key_value_types(
         param(List[Any], Any, id="any_explicit"),
         param(List[int], int, id="int"),
         param(List[User], User, id="user"),
+        param(List[List[int]], List[int], id="list"),
+        param(List[Dict[int, float]], Dict[int, float], id="dict"),
     ],
 )
 def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> None:
