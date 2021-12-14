@@ -12,6 +12,8 @@ from omegaconf._utils import (
     _ensure_container,
     _get_value,
     _is_optional,
+    get_dict_key_value_types,
+    get_list_element_type,
     is_dict_annotation,
     is_list_annotation,
     nullcontext,
@@ -737,3 +739,33 @@ def test_is_optional(fac: Any, is_optional: bool) -> None:
 
     cfg = OmegaConf.create({"node": obj})
     assert _is_optional(cfg, "node") == is_optional
+
+
+@mark.parametrize(
+    "ref_type, expected_key_type, expected_element_type",
+    [
+        param(Dict, Any, Any, id="any"),
+        param(Dict[Any, Any], Any, Any, id="any_explicit"),
+        param(Dict[int, float], int, float, id="int_float"),
+        param(Dict[Color, User], Color, User, id="color_user"),
+    ],
+)
+def test_get_dict_key_value_types(
+    ref_type: Any, expected_key_type: Any, expected_element_type: Any
+) -> None:
+    key_type, element_type = get_dict_key_value_types(ref_type)
+    assert key_type == expected_key_type
+    assert element_type == expected_element_type
+
+
+@mark.parametrize(
+    "ref_type, expected_element_type",
+    [
+        param(List, Any, id="any"),
+        param(List[Any], Any, id="any_explicit"),
+        param(List[int], int, id="int"),
+        param(List[User], User, id="user"),
+    ],
+)
+def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> None:
+    assert get_list_element_type(ref_type) == expected_element_type
