@@ -314,6 +314,7 @@ Optional fields
 
     >>> conf.optional_num = None
     >>> assert conf.optional_num is None
+    >>> assert conf.list_optional[2] is None
 
 
 
