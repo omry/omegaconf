@@ -284,6 +284,8 @@ OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
     ...     num: int = 10
     ...     optional_num: Optional[int] = 10
     ...     another_num: int = MISSING
+    ...     optional_dict: Optional[Dict[str, int]] = None
+    ...     list_optional: List[Optional[int]] = field(default_factory=lambda: [10, MISSING, None])
 
     >>> conf: Modifiers = OmegaConf.structured(Modifiers)
 
@@ -312,6 +314,7 @@ Optional fields
 
     >>> conf.optional_num = None
     >>> assert conf.optional_num is None
+    >>> assert conf.list_optional[2] is None
 
 
 
