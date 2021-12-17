@@ -521,6 +521,95 @@ def test_resolve_invalid_input() -> None:
 
 
 @mark.parametrize(
+    "cfg, expected",
+    [
+        # dict:
+        ({"a": 10, "b": {"c": "???", "d": "..."}}, {"b.c"}),
+        (
+            {
+                "a": "???",
+                "b": {
+                    "foo": "bar",
+                    "bar": "???",
+                    "more": {"missing": "???", "available": "yes"},
+                },
+                Color.GREEN: {"tint": "???", "default": Color.BLUE},
+            },
+            {"a", "b.bar", "b.more.missing", "GREEN.tint"},
+        ),
+        (
+            {"a": "a", "b": {"foo": "bar", "bar": "foo"}},
+            set(),
+        ),
+        (
+            {"foo": "bar", "bar": "???", "more": {"foo": "???", "bar": "foo"}},
+            {"bar", "more.foo"},
+        ),
+        # list:
+        (["???", "foo", "bar", "???", 77], {"[0]", "[3]"}),
+        (["", "foo", "bar"], set()),
+        (["foo", "bar", "???"], {"[2]"}),
+        (["foo", "???", ["???", "bar"]], {"[1]", "[2][0]"}),
+        # mixing:
+        (
+            [
+                "???",
+                "foo",
+                {
+                    "a": True,
+                    "b": "???",
+                    "c": ["???", None],
+                    "d": {"e": "???", "f": "fff", "g": [True, "???"]},
+                },
+                "???",
+                77,
+            ],
+            {"[0]", "[2].b", "[2].c[0]", "[2].d.e", "[2].d.g[1]", "[3]"},
+        ),
+        (
+            {
+                "list": [
+                    0,
+                    DictConfig({"foo": "???", "bar": None}),
+                    "???",
+                    ["???", 3, False],
+                ],
+                "x": "y",
+                "y": "???",
+            },
+            {"list[1].foo", "list[2]", "list[3][0]", "y"},
+        ),
+        ({Color.RED: ["???", {"missing": "???"}]}, {"RED[0]", "RED[1].missing"}),
+        # with DictConfig and ListConfig:
+        (
+            DictConfig(
+                {
+                    "foo": "???",
+                    "list": ["???", 1],
+                    "bar": {"missing": "???", "more": "yes"},
+                }
+            ),
+            {"foo", "list[0]", "bar.missing"},
+        ),
+        (
+            ListConfig(
+                ["???", "yes", "???", [0, 1, "???"], {"missing": "???", "more": ""}],
+            ),
+            {"[0]", "[2]", "[3][2]", "[4].missing"},
+        ),
+    ],
+)
+def test_missing_keys(cfg: Any, expected: Any) -> None:
+    assert OmegaConf.missing_keys(cfg) == expected
+
+
+@mark.parametrize("cfg", [float, int])
+def test_missing_keys_invalid_input(cfg: Any) -> None:
+    with raises(ValueError):
+        OmegaConf.missing_keys(cfg)
+
+
+@mark.parametrize(
     ("register_resolver_params", "name", "expected"),
     [
         param(

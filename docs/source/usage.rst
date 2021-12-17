@@ -812,6 +812,25 @@ and ``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``.
     >>> assert not OmegaConf.is_dict(l)
 
 
+OmegaConf.missing_keys
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``OmegaConf.missing_keys(cfg)`` returns a set of missing keys present in the input ``cfg``.
+Each missing key is represented as a ``str``, using a dotlist style.
+This utility function can be used after creating a config object, after merging sources and so on,
+to check for missing mandatory fields and aid in creating a proper error message.
+
+.. doctest::
+
+    >>> missings = OmegaConf.missing_keys({
+    ...     "foo": {"bar": "???"},
+    ...     "missing": "???",
+    ...      "list": ["a", None, "???"]
+    ... })
+    >>> assert missings == {'list[2]', 'foo.bar', 'missing'}
+
+The function raises a `ValueError` on input not representing a config.
+
+
 Debugger integration
 --------------------
 

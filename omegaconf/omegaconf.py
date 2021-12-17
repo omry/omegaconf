@@ -16,8 +16,10 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Iterable,
     List,
     Optional,
+    Set,
     Tuple,
     Type,
     Union,
@@ -808,6 +810,34 @@ class OmegaConf:
             )
         omegaconf._impl._resolve(cfg)
 
+    @staticmethod
+    def missing_keys(cfg: Any) -> Set[str]:
+        """
+        Returns a set of missing keys in a dotlist style.
+        :param cfg: An `OmegaConf.Container`,
+                    or a convertible object via `OmegaConf.create` (dict, list, ...).
+        :return: set of strings of the missing keys.
+        :raises ValueError: On input not representing a config.
+        """
+        cfg = _ensure_container(cfg)
+        missings: Set[str] = set()
+
+        def gather(_cfg: Container) -> None:
+            itr: Iterable[Any]
+            if isinstance(_cfg, ListConfig):
+                itr = range(len(_cfg))
+            else:
+                itr = _cfg
+
+            for key in itr:
+                if OmegaConf.is_missing(_cfg, key):
+                    missings.add(_cfg._get_full_key(key))
+                elif OmegaConf.is_config(_cfg[key]):
+                    gather(_cfg[key])
+
+        gather(cfg)
+        return missings
+
     # === private === #
 
     @staticmethod
@@ -930,7 +960,6 @@ def flag_override(
     names: Union[List[str], str],
     values: Union[List[Optional[bool]], Optional[bool]],
 ) -> Generator[Node, None, None]:
-
     if isinstance(names, str):
         names = [names]
     if values is None or isinstance(values, bool):
