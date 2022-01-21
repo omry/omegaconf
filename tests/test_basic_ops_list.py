@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 from textwrap import dedent
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from pytest import mark, param, raises
 
@@ -740,11 +740,28 @@ def test_hash() -> None:
     ],
 )
 class TestListAdd:
+    @mark.parametrize(
+        "left_listconfig, right_listconfig",
+        [
+            param(True, True, id="listconfig_plus_listconfig"),
+            param(True, False, id="listconfig_plus_list"),
+            param(False, True, id="list_plus_listconfig"),
+        ],
+    )
     def test_list_plus(
-        self, in_list1: List[Any], in_list2: List[Any], in_expected: List[Any]
+        self,
+        in_list1: List[Any],
+        in_list2: List[Any],
+        in_expected: List[Any],
+        left_listconfig: bool,
+        right_listconfig: bool,
     ) -> None:
-        list1 = OmegaConf.create(in_list1)
-        list2 = OmegaConf.create(in_list2)
+        list1: Union[List[Any], ListConfig] = (
+            OmegaConf.create(in_list1) if left_listconfig else in_list1
+        )
+        list2: Union[List[Any], ListConfig] = (
+            OmegaConf.create(in_list2) if right_listconfig else in_list2
+        )
         expected = OmegaConf.create(in_expected)
         ret = list1 + list2
         assert ret == expected
@@ -763,6 +780,12 @@ def test_deep_add() -> None:
     cfg = OmegaConf.create({"foo": [1, 2, "${bar}"], "bar": "xx"})
     lst = cfg.foo + [10, 20]
     assert lst == [1, 2, "xx", 10, 20]
+
+
+def test_deep_radd() -> None:
+    cfg = OmegaConf.create({"foo": [1, 2, "${bar}"], "bar": "xx"})
+    lst = [10, 20] + cfg.foo
+    assert lst == [10, 20, 1, 2, "xx"]
 
 
 def test_set_with_invalid_key() -> None:

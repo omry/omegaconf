@@ -534,6 +534,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         res.extend(other)
         return res
 
+    def __radd__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
+        # res is sharing this list's parent to allow interpolation to work as expected
+        res = ListConfig(parent=self._get_parent(), content=[])
+        res.extend(other)
+        res.extend(self)
+        return res
+
     def __iadd__(self, other: Iterable[Any]) -> "ListConfig":
         self.extend(other)
         return self
