@@ -692,7 +692,7 @@ def test_nullcontext() -> None:
         ),
         (
             lambda is_optional, missing: FloatNode(
-                value=10 if not missing else "???", is_optional=is_optional
+                value=10.0 if not missing else "???", is_optional=is_optional
             )
         ),
         (
