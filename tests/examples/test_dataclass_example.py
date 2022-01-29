@@ -73,6 +73,12 @@ def test_conversions() -> None:
         # ValidationError: "one" cannot be converted to an integer
         conf.num = "one"  # type: ignore
 
+    conf.description = "abc"  # ok, type matches
+    assert conf.description == "abc"
+    # ok, the int 20 is converted to the string "20"
+    conf.description = 20  # type: ignore
+    assert conf.description == "20"
+
     # booleans can take many forms
     for expected, values in {
         True: ["on", "yes", "true", True, "1"],
