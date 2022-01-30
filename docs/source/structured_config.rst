@@ -142,6 +142,10 @@ Runtime validation and conversion works for all supported types, including Enums
     >>> conf.height = "TALL"
     >>> assert conf.height == Height.TALL
 
+    >>> # This works too
+    >>> conf.height = "Height.TALL"
+    >>> assert conf.height == Height.TALL
+
     >>> # The ordinal of Height.TALL is 1
     >>> conf.height = 1
     >>> assert conf.height == Height.TALL
