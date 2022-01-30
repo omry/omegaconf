@@ -24,7 +24,14 @@ from omegaconf.errors import InterpolationResolutionError
 from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.errors import InterpolationValidationError, ReadonlyConfigError
 from omegaconf.nodes import InterpolationResultNode
-from tests import MissingDict, MissingList, StructuredWithMissing, SubscriptedList, User
+from tests import (
+    Color,
+    MissingDict,
+    MissingList,
+    StructuredWithMissing,
+    SubscriptedList,
+    User,
+)
 from tests.interpolation import dereference_node
 
 # file deepcode ignore CopyPasteError:
@@ -133,6 +140,7 @@ def test_indirect_interpolation2() -> None:
         param({"a": "${b}", "b": True, "s": "foo_${b}"}, id="bool"),
         param({"a": "${b}", "b": 10, "s": "foo_${b}"}, id="int"),
         param({"a": "${b}", "b": 3.14, "s": "foo_${b}"}, id="float"),
+        param({"a": "${b}", "b": Color.RED, "s": "foo_${b}"}, id="enum"),
     ],
 )
 def test_type_inherit_type(cfg: Any) -> None:
