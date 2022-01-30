@@ -2,6 +2,7 @@ import copy
 import functools
 import re
 from enum import Enum
+from functools import partial
 from typing import Any, Dict, Tuple, Type
 
 from pytest import mark, raises
@@ -26,7 +27,7 @@ from omegaconf.errors import (
     ValidationError,
 )
 from omegaconf.nodes import InterpolationResultNode
-from tests import Color, IllegalType, User
+from tests import Color, Enum1, IllegalType, User
 
 
 # testing valid conversions
@@ -36,6 +37,7 @@ from tests import Color, IllegalType, User
         # string
         (StringNode, "abc", "abc"),
         (StringNode, 100, "100"),
+        (StringNode, Color.RED, "Color.RED"),
         # integer
         (IntegerNode, 10, 10),
         (IntegerNode, "10", 10),
@@ -95,10 +97,13 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (IntegerNode, "abc"),
         (IntegerNode, 10.1),
         (IntegerNode, "-1132c"),
+        (IntegerNode, Color.RED),
         (FloatNode, "abc"),
+        (FloatNode, Color.RED),
         (IntegerNode, "-abc"),
         (BooleanNode, "Nope"),
         (BooleanNode, "Yup"),
+        (BooleanNode, Color.RED),
         (StringNode, [1, 2]),
         (StringNode, ListConfig([1, 2])),
         (StringNode, {"foo": "var"}),
@@ -120,6 +125,18 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (AnyNode, {"foo": "var"}),
         (AnyNode, DictConfig({"foo": "var"})),
         (AnyNode, IllegalType()),
+        (partial(EnumNode, Color), "Color.TYPO"),
+        (partial(EnumNode, Color), "TYPO"),
+        (partial(EnumNode, Color), Enum1.FOO),
+        (partial(EnumNode, Color), "Enum1.RED"),
+        (partial(EnumNode, Color), 1000000),
+        (partial(EnumNode, Color), 1.0),
+        (partial(EnumNode, Color), b"binary"),
+        (partial(EnumNode, Color), True),
+        (partial(EnumNode, Color), [1, 2]),
+        (partial(EnumNode, Color), {"foo": "bar"}),
+        (partial(EnumNode, Color), ListConfig([1, 2])),
+        (partial(EnumNode, Color), DictConfig({"foo": "bar"})),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
@@ -257,16 +274,6 @@ def test_accepts_mandatory_missing(
     if invalid_value is not None:
         with raises(ValidationError):
             conf.foo = invalid_value
-
-
-class Enum1(Enum):
-    FOO = 1
-    BAR = 2
-
-
-class Enum2(Enum):
-    NOT_FOO = 1
-    NOT_BAR = 2
 
 
 @mark.parametrize(

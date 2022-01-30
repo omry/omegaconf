@@ -410,7 +410,7 @@ def test_append_invalid_element_type(
             ListConfig(content=[], element_type=Color),
             "RED",
             Color.RED,
-            id="list:convert_str_to_float",
+            id="list:convert_str_to_enum",
         ),
     ],
 )
