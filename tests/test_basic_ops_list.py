@@ -407,6 +407,18 @@ def test_append_invalid_element_type(
             id="list:convert_str_to_float",
         ),
         param(
+            ListConfig(content=[], element_type=str),
+            10,
+            "10",
+            id="list:convert_int_to_str",
+        ),
+        param(
+            ListConfig(content=[], element_type=bool),
+            "yes",
+            True,
+            id="list:convert_str_to_bool",
+        ),
+        param(
             ListConfig(content=[], element_type=Color),
             "RED",
             Color.RED,
