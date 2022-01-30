@@ -5,7 +5,7 @@ from enum import Enum
 from functools import partial
 from typing import Any, Dict, Tuple, Type
 
-from pytest import mark, raises
+from pytest import mark, param, raises
 
 from omegaconf import (
     AnyNode,
@@ -282,7 +282,7 @@ def test_accepts_mandatory_missing(
 @mark.parametrize(
     "values, success_map",
     [
-        (
+        param(
             # True aliases
             (True, "Y", "true", "yes", "on"),
             {
@@ -290,8 +290,10 @@ def test_accepts_mandatory_missing(
                 "StringNode": str,
                 "AnyNode": copy.copy,
             },
+            id="true-aliases",
         ),
-        (
+        param(
+            # Integers
             ("1", 1, 10, -10),
             {
                 "BooleanNode": True,
@@ -300,13 +302,15 @@ def test_accepts_mandatory_missing(
                 "StringNode": str,
                 "AnyNode": copy.copy,
             },
+            id="integers",
         ),
-        (
+        param(
             # Floaty things
             ("1.0", 1.0, float("inf"), float("-inf"), "10e-3", 10e-3),
             {"FloatNode": float, "StringNode": str, "AnyNode": copy.copy},
+            id="floaty-things",
         ),
-        (
+        param(
             # False aliases
             (False, "N", "false", "no", "off"),
             {
@@ -314,8 +318,9 @@ def test_accepts_mandatory_missing(
                 "StringNode": str,
                 "AnyNode": copy.copy,
             },
+            id="false-alises",
         ),
-        (
+        param(
             # Falsy integers
             ("0", 0),
             {
@@ -325,6 +330,7 @@ def test_accepts_mandatory_missing(
                 "StringNode": str,
                 "AnyNode": copy.copy,
             },
+            id="falsey-integers",
         ),
     ],
 )
