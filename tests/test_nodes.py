@@ -279,19 +279,19 @@ class Enum2(Enum):
             # True aliases
             (True, "Y", "true", "yes", "on"),
             {
-                "BooleanNode": True,  # noqa F601
-                "StringNode": str,  # noqa F601
-                "AnyNode": copy.copy,  # noqa F601
+                "BooleanNode": True,
+                "StringNode": str,
+                "AnyNode": copy.copy,
             },
         ),
         (
             ("1", 1, 10, -10),
             {
-                "BooleanNode": True,  # noqa F601
-                "IntegerNode": int,  # noqa F601
-                "FloatNode": float,  # noqa F601
-                "StringNode": str,  # noqa F601
-                "AnyNode": copy.copy,  # noqa F601
+                "BooleanNode": True,
+                "IntegerNode": int,
+                "FloatNode": float,
+                "StringNode": str,
+                "AnyNode": copy.copy,
             },
         ),
         (
@@ -303,20 +303,20 @@ class Enum2(Enum):
             # False aliases
             (False, "N", "false", "no", "off"),
             {
-                "BooleanNode": False,  # noqa F601
-                "StringNode": str,  # noqa F601
-                "AnyNode": copy.copy,  # noqa F601
+                "BooleanNode": False,
+                "StringNode": str,
+                "AnyNode": copy.copy,
             },
         ),
         (
             # Falsy integers
             ("0", 0),
             {
-                "BooleanNode": False,  # noqa F601
-                "IntegerNode": 0,  # noqa F601
-                "FloatNode": 0.0,  # noqa F601
-                "StringNode": str,  # noqa F601
-                "AnyNode": copy.copy,  # noqa F601
+                "BooleanNode": False,
+                "IntegerNode": 0,
+                "FloatNode": 0.0,
+                "StringNode": str,
+                "AnyNode": copy.copy,
             },
         ),
     ],
