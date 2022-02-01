@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 from textwrap import dedent
-from typing import Any, List, Optional, Union
+from typing import Any, Callable, List, MutableSequence, Optional, Union
 
+from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
@@ -843,6 +844,143 @@ def test_getitem_slice(sli: slice) -> None:
     olst = OmegaConf.create([1, 2, 3])
     expected = lst[sli.start : sli.stop : sli.step]
     assert olst.__getitem__(sli) == expected
+
+
+@mark.parametrize(
+    "constructor",
+    [OmegaConf.create, list, lambda lst: OmegaConf.create({"foo": lst}).foo],
+)
+@mark.parametrize(
+    "lst, idx, value, expected",
+    [
+        param(
+            ["a", "b", "c", "d"],
+            slice(1, 3),
+            ["x", "y"],
+            ["a", "x", "y", "d"],
+            id="same-number-of-elements",
+        ),
+        param(
+            ["a", "x", "y", "d"],
+            slice(1, 3),
+            ["x", "y", "z"],
+            ["a", "x", "y", "z", "d"],
+            id="extra-elements",
+        ),
+        param(
+            ["a", "x", "y", "z", "d"],
+            slice(1, 1),
+            ["b"],
+            ["a", "b", "x", "y", "z", "d"],
+            id="insert only",
+        ),
+        param(
+            ["a", "b", "x", "y", "z", "d"],
+            slice(1, 1),
+            [],
+            ["a", "b", "x", "y", "z", "d"],
+            id="nop",
+        ),
+        param(
+            ["a", "b", "x", "y", "z", "d"],
+            slice(1, 3),
+            [],
+            ["a", "y", "z", "d"],
+            id="less-elements",
+        ),
+        param(
+            ["a", "y", "z", "d"],
+            slice(1, 2, 1),
+            ["b"],
+            ["a", "b", "z", "d"],
+            id="extended-slice",
+        ),
+        param(
+            ["a", "b", "c", "d"],
+            slice(1, 3, 1),
+            ["x", "y"],
+            ["a", "x", "y", "d"],
+            id="extended-slice2",
+        ),
+        param(
+            ["a", "b", "z", "d"],
+            slice(0, 3, 2),
+            ["a", "c"],
+            ["a", "b", "c", "d"],
+            id="extended-slice-disjoint",
+        ),
+        param(
+            ["a", "b", "c", "d"],
+            slice(1, 3),
+            1,
+            raises(TypeError),
+            id="non-iterable-input",
+        ),
+        param(
+            ["a", "b", "c", "d"],
+            slice(1, 3, 1),
+            ["x", "y", "z"],
+            ["a", "x", "y", "z", "d"],
+            id="extended-slice-length-mismatch",
+        ),
+        param(
+            ["a", "b", "c", "d", "e", "f"],
+            slice(1, 5, 2),
+            ["x", "y", "z"],
+            raises(ValueError),
+            id="extended-slice-length-mismatch2",
+        ),
+        param(
+            ["a", "b", "c", "d", "e", "f"],
+            slice(-1, -3, -1),
+            ["F", "E"],
+            ["a", "b", "c", "d", "E", "F"],
+            id="extended-slice-reverse",
+        ),
+        param(
+            ["a", "b", "c", "d", "e", "g"],
+            slice(-1, -3, None),
+            ["f"],
+            ["a", "b", "c", "d", "e", "f", "g"],
+            id="slice-reverse-insert",
+        ),
+        param(
+            ["a", "b", "c", "r", "r", "e"],
+            slice(-3, -1, None),
+            ["d"],
+            ["a", "b", "c", "d", "e"],
+            id="slice-reverse-replace",
+        ),
+        param(
+            ["c", "d"],
+            slice(-10, -10, None),
+            ["a", "b"],
+            ["a", "b", "c", "d"],
+            id="slice-reverse-insert-underflow",
+        ),
+        param(
+            ["a", "b"],
+            slice(10, 10, None),
+            ["c", "d"],
+            ["a", "b", "c", "d"],
+            id="slice-reverse-insert-overflow",
+        ),
+    ],
+)
+def test_setitem_slice(
+    lst: List[Any],
+    idx: slice,
+    value: Union[List[Any], Any],
+    expected: Union[List[Any], RaisesContext[Any]],
+    constructor: Callable[[List[Any]], MutableSequence[Any]],
+) -> None:
+    cfg = constructor(lst)
+    if isinstance(expected, list):
+        cfg[idx] = value
+        assert cfg == expected
+    else:
+        with expected:
+            cfg[idx] = value
 
 
 @mark.parametrize(
