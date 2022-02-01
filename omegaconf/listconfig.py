@@ -241,7 +241,40 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def __setitem__(self, index: Union[int, slice], value: Any) -> None:
         try:
-            self._set_at_index(index, value)
+            if isinstance(index, slice):
+                _ = iter(value)  # check iterable
+                self_indices = index.indices(len(self))
+                indexes = range(*self_indices)
+
+                # Ensure lengths match for extended slice assignment
+                if index.step not in (None, 1):
+                    if len(indexes) != len(value):
+                        raise ValueError(
+                            f"attempt to assign sequence of size {len(value)}"
+                            f" to extended slice of size {len(indexes)}"
+                        )
+
+                # Initialize insertion offsets for empty slices
+                if len(indexes) == 0:
+                    curr_index = self_indices[0] - 1
+                    val_i = -1
+
+                # Delete and optionally replace non empty slices
+                only_removed = 0
+                for val_i, i in enumerate(indexes):
+                    curr_index = i - only_removed
+                    del self[curr_index]
+                    if val_i < len(value):
+                        self.insert(curr_index, value[val_i])
+                    else:
+                        only_removed += 1
+
+                # Insert any remaining input items
+                for val_i in range(val_i + 1, len(value)):
+                    curr_index += 1
+                    self.insert(curr_index, value[val_i])
+            else:
+                self._set_at_index(index, value)
         except Exception as e:
             self._format_and_raise(key=index, value=value, cause=e)
 
