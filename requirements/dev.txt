@@ -4,7 +4,7 @@ build
 coveralls
 flake8
 isort~=5.0
-mypy==0.790
+mypy
 nox
 pre-commit
 pyflakes
