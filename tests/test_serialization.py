@@ -34,7 +34,7 @@ def save_load_from_file(conf: Any, resolve: bool, expected: Any) -> None:
         with tempfile.NamedTemporaryFile(
             mode="wt", delete=False, encoding="utf-8"
         ) as fp:
-            OmegaConf.save(conf, fp.file, resolve=resolve)  # type: ignore
+            OmegaConf.save(conf, fp.file, resolve=resolve)
         with io.open(os.path.abspath(fp.name), "rt", encoding="utf-8") as handle:
             c2 = OmegaConf.load(handle)
         assert c2 == expected

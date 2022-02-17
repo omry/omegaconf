@@ -1,11 +1,12 @@
 import copy
 from enum import Enum
 from typing import (
-    AbstractSet,
     Any,
     Dict,
+    ItemsView,
     Iterable,
     Iterator,
+    KeysView,
     List,
     MutableMapping,
     Optional,
@@ -512,11 +513,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def keys(self) -> AbstractSet[DictKeyType]:
+    def keys(self) -> KeysView[DictKeyType]:
         if self._is_missing() or self._is_interpolation() or self._is_none():
-            return set()
+            return {}.keys()
         ret = self.__dict__["_content"].keys()
-        assert isinstance(ret, AbstractSet)
+        assert isinstance(ret, KeysView)
         return ret
 
     def __contains__(self, key: object) -> bool:
@@ -554,8 +555,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def __iter__(self) -> Iterator[DictKeyType]:
         return iter(self.keys())
 
-    def items(self) -> AbstractSet[Tuple[DictKeyType, Any]]:
-        return self.items_ex(resolve=True, keys=None)
+    def items(self) -> ItemsView[DictKeyType, Any]:
+        return dict(self.items_ex(resolve=True, keys=None)).items()
 
     def setdefault(self, key: DictKeyType, default: Any = None) -> Any:
         if key in self:
@@ -567,7 +568,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     def items_ex(
         self, resolve: bool = True, keys: Optional[Sequence[DictKeyType]] = None
-    ) -> AbstractSet[Tuple[DictKeyType, Any]]:
+    ) -> List[Tuple[DictKeyType, Any]]:
         items: List[Tuple[DictKeyType, Any]] = []
 
         if self._is_none():
@@ -589,10 +590,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if keys is None or key in keys:
                 items.append((key, value))
 
-        # For some reason items wants to return a Set, but if the values are not
-        # hashable this is a problem. We use a list instead. most use cases should just
-        # be iterating on pairs anyway.
-        return items  # type: ignore
+        return items
 
     def __eq__(self, other: Any) -> bool:
         if other is None:
