@@ -56,7 +56,9 @@ def coverage(session):
 @nox.session(python=PYTHON_VERSIONS)
 def lint(session):
     deps(session, editable_install=True)
-    session.run("mypy", ".", "--strict", silent=True)
+    session.run(
+        "mypy", ".", "--strict", "--install-types", "--non-interactive", silent=True
+    )
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)
     session.run("flake8")

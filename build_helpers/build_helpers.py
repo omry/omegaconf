@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from setuptools import Command
-from setuptools.command import build_py, develop, sdist  # type: ignore
+from setuptools.command import build_py, develop, sdist
 
 
 class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
@@ -53,7 +53,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
         pass
 
 
-class BuildPyCommand(build_py.build_py):  # type: ignore  # pragma: no cover
+class BuildPyCommand(build_py.build_py):  # pragma: no cover
     def run(self) -> None:
         if not self.dry_run:
             self.run_command("clean")
@@ -106,16 +106,16 @@ class CleanCommand(Command):  # type: ignore  # pragma: no cover
         pass
 
 
-class DevelopCommand(develop.develop):  # type: ignore  # pragma: no cover
-    def run(self) -> None:
+class DevelopCommand(develop.develop):  # pragma: no cover
+    def run(self) -> None:  # type: ignore
         if not self.dry_run:
             run_antlr(self)
         develop.develop.run(self)
 
 
-class SDistCommand(sdist.sdist):  # type: ignore  # pragma: no cover
+class SDistCommand(sdist.sdist):  # pragma: no cover
     def run(self) -> None:
-        if not self.dry_run:
+        if not self.dry_run:  # type: ignore
             self.run_command("clean")
             run_antlr(self)
         sdist.sdist.run(self)
