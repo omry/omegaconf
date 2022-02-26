@@ -44,7 +44,7 @@ except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
 if sys.version_info >= (3, 8):
-    from typing import Literal
+    from typing import Literal  # pragma: no cover
 else:
     from typing_extensions import Literal  # pragma: no cover
 
@@ -600,10 +600,14 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 def is_literal_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info < (3, 7, 0):
-        return origin is Literal or type_ is Literal  # pragma: no cover
-    else:
+    if sys.version_info >= (3, 8, 0):
         return origin is Literal  # pragma: no cover
+    else:
+        return (
+            origin is Literal
+            or type_ is Literal
+            or ("typing_extensions.Literal" in str(type_) and not isinstance(type, str))
+        )  # pragma: no cover
 
 
 def is_dict_subclass(type_: Any) -> bool:
@@ -841,14 +845,15 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
         or isinstance(t, bytes)
         or isinstance(t, Enum)
     ):
-        return str(t)
+        # only occurs when using typing.Literal after 3.8
+        return str(t)  # pragma: no cover
 
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6
         if hasattr(t, "__name__"):
             name = str(t.__name__)
         else:
-            if t.__origin__ is not None:
+            if hasattr(t, "__origin__") and t.__origin__ is not None:
                 name = type_str(t.__origin__)
             else:
                 name = str(t)
