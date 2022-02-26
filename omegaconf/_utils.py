@@ -606,7 +606,9 @@ def is_literal_annotation(type_: Any) -> bool:
         return (
             origin is Literal
             or type_ is Literal
-            or ("typing_extensions.Literal" in str(type_) and not isinstance(type, str))
+            or (
+                "typing_extensions.Literal" in str(type_) and not isinstance(type_, str)
+            )
         )  # pragma: no cover
 
 
