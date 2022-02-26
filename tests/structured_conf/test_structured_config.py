@@ -49,6 +49,11 @@ class EnumConfigAssignments:
     illegal = ["foo", True, False, 4, 1.0]
 
 
+class LiteralConfigAssignments:
+    legal = ["foo", "bar", True, b"baz", 5, Color.GREEN]
+    illegal = ["fuh", False, 4, 1.0, b"feh", Color.RED]
+
+
 class IntegersConfigAssignments:
     legal = [("10", 10), ("-10", -10), 100, 0, 1, 1]
     illegal = ["foo", 1.0, float("inf"), float("nan"), Color.BLUE]
@@ -259,12 +264,14 @@ class TestConfigs:
             ("FloatConfig", FloatConfigAssignments, {}),
             ("StringConfig", StringConfigAssignments, {}),
             ("EnumConfig", EnumConfigAssignments, {}),
+            ("LiteralConfig", LiteralConfigAssignments, {}),
             # Use instance to build config
             ("BoolConfig", BoolConfigAssignments, {"with_default": False}),
             ("IntegersConfig", IntegersConfigAssignments, {"with_default": 42}),
             ("FloatConfig", FloatConfigAssignments, {"with_default": 42.0}),
             ("StringConfig", StringConfigAssignments, {"with_default": "fooooooo"}),
             ("EnumConfig", EnumConfigAssignments, {"with_default": Color.BLUE}),
+            ("LiteralConfig", LiteralConfigAssignments, {"with_default": "foo"}),
             ("AnyTypeConfig", AnyTypeConfigAssignments, {}),
         ],
     )

@@ -43,6 +43,7 @@ from ._utils import (
     is_dict_annotation,
     is_int,
     is_list_annotation,
+    is_literal_annotation,
     is_primitive_container,
     is_primitive_dict,
     is_primitive_list,
@@ -66,6 +67,7 @@ from .nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    LiteralNode,
     StringNode,
     ValueNode,
 )
@@ -1046,6 +1048,14 @@ def _node_wrap(
         )
     elif type_ == Any or type_ is None:
         node = AnyNode(value=value, key=key, parent=parent)
+    elif is_literal_annotation(type_):
+        node = LiteralNode(
+            literal_type=type_,
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+        )
     elif issubclass(type_, Enum):
         node = EnumNode(
             enum_type=type_,

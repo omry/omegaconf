@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import attr
 from pytest import importorskip
@@ -167,6 +167,23 @@ class EnumConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: Color = II("with_default")
+
+
+@attr.s(auto_attribs=True)
+class LiteralConfig:
+    # with default value
+    with_default: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = "foo"
+
+    # default is None
+    null_default: Optional[Literal["foo", "bar", True, b"baz", 5, Color.GREEN]] = None
+
+    # explicit no default
+    mandatory_missing: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = MISSING
+
+    # interpolation, will inherit the type and value of `with_default'
+    interpolation: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = II(
+        "with_default"
+    )
 
 
 @attr.s(auto_attribs=True)
