@@ -3,7 +3,7 @@ import math
 import sys
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
 from omegaconf._utils import (
     ValueKind,
@@ -454,7 +454,10 @@ class LiteralNode(ValueNode):
                 f"LiteralNode can only operate on Literal annotation ({literal_type})"
             )
         self.literal_type = literal_type
-        self.fields: List[Any] = list(self.literal_type.__args__)
+        if hasattr(self.literal_type, "__args__"):
+            self.fields = list(self.literal_type.__args__)  # pragma: no cover
+        elif hasattr(self.literal_type, "__values__"):  # pragma: no cover
+            self.fields = list(self.literal_type.__values__)  # pragma: no cover
         super().__init__(
             parent=parent,
             value=value,
