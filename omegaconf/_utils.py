@@ -46,7 +46,7 @@ except ImportError:  # pragma: no cover
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
-    from typing_extensions import Literal
+    from typing_extensions import Literal  # pragma: no cover
 
 
 # Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
