@@ -1,6 +1,7 @@
 import copy
 import functools
 import re
+import sys
 from enum import Enum
 from functools import partial
 from typing import Any, Dict, Tuple, Type
@@ -15,6 +16,7 @@ from omegaconf import (
     FloatNode,
     IntegerNode,
     ListConfig,
+    LiteralNode,
     Node,
     OmegaConf,
     StringNode,
@@ -28,6 +30,11 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import InterpolationResultNode
 from tests import Color, Enum1, IllegalType, User
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 # testing valid conversions
@@ -137,6 +144,25 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (partial(EnumNode, Color), {"foo": "bar"}),
         (partial(EnumNode, Color), ListConfig([1, 2])),
         (partial(EnumNode, Color), DictConfig({"foo": "bar"})),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), "baz"),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), 4),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), Color.RED),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), False),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), b"bez"),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), 1.0),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), [1, 2]),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            {"foo": "bar"},
+        ),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            ListConfig([1, 2]),
+        ),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            DictConfig({"foo": "bar"}),
+        ),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
@@ -277,7 +303,8 @@ def test_accepts_mandatory_missing(
 
 
 @mark.parametrize(
-    "type_", [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode]
+    "type_",
+    [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode],
 )
 @mark.parametrize(
     "values, success_map",
@@ -353,6 +380,13 @@ def test_legal_assignment(
                 type_(value)
 
 
+def test_literal_node_bad_literal_type() -> None:
+    with raises(ValidationError):
+        LiteralNode(literal_type=5, value=5)
+    with raises(ValidationError):
+        LiteralNode(literal_type=int, value=5)
+
+
 @mark.parametrize(
     "node,value",
     [
@@ -415,6 +449,7 @@ class DummyEnum(Enum):
         (float, float, 3.1415, FloatNode),
         (bool, bool, True, BooleanNode),
         (str, str, "foo", StringNode),
+        (Literal["foo"], Literal["foo"], "foo", LiteralNode),
     ],
 )
 def test_node_wrap(
@@ -514,6 +549,18 @@ def test_deepcopy(obj: Any) -> None:
             True,
         ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
+        (LiteralNode(literal_type=Literal["foo"], value="foo"), "foo", True),
+        (
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            True,
+        ),
+        (
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            StringNode(value="foo"),
+            True,
+        ),
+        (LiteralNode(literal_type=Literal["foo"], value="foo"), 5, False),
         (InterpolationResultNode("foo"), "foo", True),
         (InterpolationResultNode("${foo}"), "${foo}", True),
         (InterpolationResultNode("${foo"), "${foo", True),
@@ -609,6 +656,9 @@ def test_dereference_missing() -> None:
         BooleanNode,
         lambda val, is_optional: EnumNode(
             enum_type=Color, value=val, is_optional=is_optional
+        ),
+        lambda val, is_optional: LiteralNode(
+            literal_type=Literal["foo"], value=val, is_optional=is_optional
         ),
     ],
 )

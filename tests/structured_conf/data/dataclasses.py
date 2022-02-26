@@ -1,7 +1,7 @@
 import dataclasses
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pytest import importorskip
 
@@ -9,7 +9,9 @@ from omegaconf import II, MISSING, SI
 from tests import Color
 
 if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import TypedDict
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal
 
 # skip test if dataclasses are not available
 importorskip("dataclasses")

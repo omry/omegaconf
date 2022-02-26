@@ -429,14 +429,12 @@ class LiteralNode(ValueNode):
             ),
         )
 
-    def _validate_and_convert_impl(self, value: Any) -> Enum:
+    def _validate_and_convert_impl(self, value: Any) -> Any:
         return self.validate_and_convert_to_literal(
             enum_type=self.literal_type, value=value
         )
 
-    def validate_and_convert_to_literal(
-        self, enum_type: Type[Enum], value: Any
-    ) -> Enum:
+    def validate_and_convert_to_literal(self, enum_type: Type[Enum], value: Any) -> Any:
         if value not in self.fields:
             raise ValidationError(
                 f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"

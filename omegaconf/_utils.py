@@ -12,7 +12,6 @@ from typing import (
     Dict,
     Iterator,
     List,
-    Literal,
     Optional,
     Tuple,
     Type,
@@ -43,6 +42,11 @@ try:
 
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 # Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
@@ -831,6 +835,13 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
         return "Any"
     if t is ...:
         return "..."
+    if (
+        isinstance(t, int)
+        or isinstance(t, str)
+        or isinstance(t, bytes)
+        or isinstance(t, Enum)
+    ):
+        return str(t)
 
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6

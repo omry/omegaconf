@@ -1,4 +1,5 @@
 import builtins
+import sys
 from typing import Any
 
 from pytest import fixture, mark, param
@@ -18,11 +19,17 @@ from omegaconf import (
     ValueNode,
 )
 from omegaconf._utils import type_str
+from omegaconf.nodes import LiteralNode
 from pydevd_plugins.extensions.pydevd_plugin_omegaconf import (
     OmegaConfDeveloperResolver,
     OmegaConfUserResolver,
 )
 from tests import Color
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 @fixture
@@ -40,6 +47,7 @@ def resolver() -> Any:
         param(FloatNode(3.14), {}, id="float:3.14"),
         param(BooleanNode(True), {}, id="bool:True"),
         param(EnumNode(enum_type=Color, value=Color.RED), {}, id="Color:Color.RED"),
+        param(LiteralNode(literal_type=Literal["foo"], value="foo"), {}, id="str:foo"),
         # nodes are never returning a dictionary
         param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:inter_10"),
         # DictConfig
@@ -231,6 +239,7 @@ def test_get_dictionary_listconfig(
         (StringNode, True),
         (BooleanNode, True),
         (EnumNode, True),
+        (LiteralNode, True),
         # not covering some other things.
         (builtins.int, False),
         (dict, False),
