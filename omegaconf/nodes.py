@@ -442,7 +442,7 @@ class LiteralNode(ValueNode):
                 f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"
             )
         index = self.fields.index(value)
-        if isinstance(value, type(self.fields[index])):
+        if not isinstance(value, type(self.fields[index])):
             raise ValidationError(
                 f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type} because "
                 f"type(value)={type(value)} but the matching literal value's type={type(self.fields[index])}"
