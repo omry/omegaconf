@@ -43,7 +43,6 @@ if TYPE_CHECKING:
 
 
 class BaseContainer(Container, ABC):
-    # static
     _resolvers: ClassVar[Dict[str, Any]] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
