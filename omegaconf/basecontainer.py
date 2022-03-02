@@ -2,7 +2,7 @@ import copy
 import sys
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 class BaseContainer(Container, ABC):
     # static
-    _resolvers: Dict[str, Any] = {}
+    _resolvers: ClassVar[Dict[str, Any]] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
         if not (parent is None or isinstance(parent, Container)):
