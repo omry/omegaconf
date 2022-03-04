@@ -16,6 +16,7 @@ from omegaconf._utils import (
     get_list_element_type,
     is_dict_annotation,
     is_list_annotation,
+    is_tuple_annotation,
     nullcontext,
     split_key,
 )
@@ -480,6 +481,29 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
 )
 def test_is_list_annotation(type_: Any, expected: Any) -> Any:
     assert is_list_annotation(type_=type_) == expected
+
+
+@mark.parametrize(
+    "type_, expected",
+    [
+        (Tuple[int], True),
+        (Tuple[float], True),
+        (Tuple[bool], True),
+        (Tuple[str], True),
+        (Tuple[Color], True),
+        (Tuple[Plugin], True),
+        (Tuple[IllegalType], True),
+        (Dict, False),
+        (List, False),
+        (Tuple, True),
+        (Tuple, True),
+        (list, False),
+        (dict, False),
+        (tuple, False),
+    ],
+)
+def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
+    assert is_tuple_annotation(type_=type_) == expected
 
 
 @mark.parametrize(
