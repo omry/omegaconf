@@ -266,8 +266,8 @@ oc.decode
 
 With ``oc.decode``, strings can be converted into their corresponding data types using
 the :ref:`"element" parser rule of the OmegaConf grammar<element-types>`.
-This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``dict`` and ``list``,
-e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``"{a: b}"``, ``"[a, b, c]"``.
+This grammar recognizes typical data types like ``bool``, ``int``, ``float``, ``bytes``, ``dict`` and ``list``,
+e.g. ``"true"``, ``"1"``, ``"1e-3"``, ``b"123"``, ``"{a: b}"``, ``"[a, b, c]"``.
 
 Note that:
 

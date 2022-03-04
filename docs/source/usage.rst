@@ -64,13 +64,13 @@ Here is an example of various supported key types:
     ...   BLUE = 2
     >>> 
     >>> conf = OmegaConf.create(
-    ...   {"key": "str", 123: "int", True: "bool", 3.14: "float", Color.RED: "Color"}
+    ...   {"key": "str", 123: "int", True: "bool", 3.14: "float", Color.RED: "Color", b"123": "bytes"}
     ... )
     >>> 
     >>> print(conf)
-    {'key': 'str', 123: 'int', True: 'bool', 3.14: 'float', <Color.RED: 1>: 'Color'}
+    {'key': 'str', 123: 'int', True: 'bool', 3.14: 'float', <Color.RED: 1>: 'Color', b'123': 'bytes'}
 
-OmegaConf supports ``str``, ``int``, ``bool``, ``float`` and Enums as dictionary key types.
+OmegaConf supports ``str``, ``int``, ``bool``, ``float`` ``bytes``, and ``Enum`` as dictionary key types.
 
 From a list
 ^^^^^^^^^^^
