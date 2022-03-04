@@ -98,6 +98,7 @@ def test_delattr(cfg: Any, struct: bool) -> None:
     "key,match",
     [
         param("a", "a", id="str"),
+        param(b"binary", "binary", id="bytes"),
         param(1, "1", id="int"),
         param(123.45, "123.45", id="float"),
         param(True, "True", id="bool-T"),
@@ -149,6 +150,7 @@ class TestDictKeyTypes:
     "src,key,expected",
     [
         ({"a": 10, "b": 11}, "a", {"b": 11}),
+        ({b"abc": 10, b"def": 11}, b"abc", {b"def": 11}),
         ({1: "a", 2: "b"}, 1, {2: "b"}),
         ({123.45: "a", 67.89: "b"}, 67.89, {123.45: "a"}),
         ({True: "a", False: "b"}, False, {True: "a"}),
@@ -462,6 +464,21 @@ def test_iterate_dict_with_interpolation() -> None:
             "default",
             id="enum_key_with_default",
         ),
+        # bytes keys
+        param(
+            {b"123": "a", b"42": "b"},
+            b"42",
+            "__NO_DEFAULT__",
+            "b",
+            id="bytes_key_no_default",
+        ),
+        param(
+            {b"123": "a", b"42": "b"},
+            "not found",
+            None,
+            None,
+            id="bytes_key_with_default",
+        ),
         # other key types
         param(
             {123.45: "a", 67.89: "b"},
@@ -541,6 +558,7 @@ def test_dict_structured_mode_pop() -> None:
     [
         # key not found
         ({"a": 1, "b": 2}, "not_found", raises(KeyError)),
+        ({b"abc": 1, b"def": 2}, b"ghi", raises(KeyError)),
         ({1: "a", 2: "b"}, 3, raises(KeyError)),
         ({123.45: "a", 67.89: "b"}, 10.11, raises(KeyError)),
         ({True: "a"}, False, raises(KeyError)),
@@ -631,6 +649,13 @@ def test_dict_pop_error(cfg: Dict[Any, Any], key: Any, expectation: Any) -> None
         ({True: "a", False: {}}, 1, True),
         ({True: "a", False: {}}, None, False),
         ({True: "a", False: "???"}, False, False),
+        # bytes key type
+        ({b"1": "a", b"2": {}}, b"1", True),
+        ({b"1": "a", b"2": {}}, b"2", True),
+        ({b"1": "a", b"2": {}}, b"3", False),
+        ({b"1": "a", b"2": "???"}, b"2", False),
+        ({b"1": "a", b"2": "???"}, None, False),
+        ({b"1": "a", b"2": "???"}, "1", False),
     ],
 )
 def test_in_dict(conf: Any, key: str, expected: Any) -> None:

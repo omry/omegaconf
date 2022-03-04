@@ -10,6 +10,7 @@ from pytest import mark, param, raises
 from omegaconf import (
     AnyNode,
     BooleanNode,
+    BytesNode,
     DictConfig,
     EnumNode,
     FloatNode,
@@ -51,6 +52,9 @@ from tests import Color, Enum1, IllegalType, User
         (FloatNode, 10.1, 10.1),
         (FloatNode, "10.2", 10.2),
         (FloatNode, "10e-3", 10e-3),
+        # bytes
+        (BytesNode, b"binary", b"binary"),
+        (BytesNode, b"\xf0\xf1\xf2", b"\xf0\xf1\xf2"),
         # bool true
         (BooleanNode, True, True),
         (BooleanNode, "Y", True),
@@ -72,6 +76,7 @@ from tests import Color, Enum1, IllegalType, User
         (AnyNode, 3, 3),
         (AnyNode, 3.14, 3.14),
         (AnyNode, False, False),
+        (AnyNode, b"\xf0\xf1\xf2", b"\xf0\xf1\xf2"),
         (AnyNode, Color.RED, Color.RED),
         (AnyNode, None, None),
         # Enum node
@@ -95,23 +100,32 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
     "type_,input_",
     [
         (IntegerNode, "abc"),
+        (IntegerNode, "-abc"),
         (IntegerNode, 10.1),
         (IntegerNode, "-1132c"),
         (IntegerNode, Color.RED),
+        (IntegerNode, b"123"),
         (FloatNode, "abc"),
         (FloatNode, Color.RED),
-        (IntegerNode, "-abc"),
+        (FloatNode, b"10.1"),
+        (BytesNode, "abc"),
+        (BytesNode, 23),
+        (BytesNode, Color.RED),
+        (BytesNode, 3.14),
+        (BytesNode, True),
         (BooleanNode, "Nope"),
         (BooleanNode, "Yup"),
         (BooleanNode, Color.RED),
-        (StringNode, [1, 2]),
-        (StringNode, ListConfig([1, 2])),
-        (StringNode, {"foo": "var"}),
-        (FloatNode, DictConfig({"foo": "var"})),
+        (BooleanNode, b"True"),
         (IntegerNode, [1, 2]),
         (IntegerNode, ListConfig([1, 2])),
         (IntegerNode, {"foo": "var"}),
+        (IntegerNode, b"10"),
         (IntegerNode, DictConfig({"foo": "var"})),
+        (BytesNode, [1, 2]),
+        (BytesNode, ListConfig([1, 2])),
+        (BytesNode, {"foo": "var"}),
+        (BytesNode, DictConfig({"foo": "var"})),
         (BooleanNode, [1, 2]),
         (BooleanNode, ListConfig([1, 2])),
         (BooleanNode, {"foo": "var"}),
@@ -119,6 +133,11 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (FloatNode, [1, 2]),
         (FloatNode, ListConfig([1, 2])),
         (FloatNode, {"foo": "var"}),
+        (FloatNode, DictConfig({"foo": "var"})),
+        (StringNode, [1, 2]),
+        (StringNode, ListConfig([1, 2])),
+        (StringNode, {"foo": "var"}),
+        (StringNode, b"\xf0\xf1\xf2"),
         (FloatNode, DictConfig({"foo": "var"})),
         (AnyNode, [1, 2]),
         (AnyNode, ListConfig([1, 2])),
@@ -158,6 +177,7 @@ def test_invalid_inputs(type_: type, input_: Any) -> None:
         (True, AnyNode),
         (False, AnyNode),
         ("str", AnyNode),
+        (b"\xf0\xf1\xf2", AnyNode),
     ],
 )
 def test_assigned_value_node_type(input_: type, expected_type: Any) -> None:
@@ -251,6 +271,7 @@ def test_merge_validation_error(c1: Dict[str, Any], c2: Dict[str, Any]) -> None:
         (BooleanNode, True, "invalid"),
         (AnyNode, "aaa", None),
         (StringNode, "blah", None),
+        (BytesNode, b"foobar", None),
     ],
 )
 def test_accepts_mandatory_missing(
@@ -277,7 +298,8 @@ def test_accepts_mandatory_missing(
 
 
 @mark.parametrize(
-    "type_", [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode]
+    "type_",
+    [BooleanNode, BytesNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode],
 )
 @mark.parametrize(
     "values, success_map",
@@ -332,6 +354,15 @@ def test_accepts_mandatory_missing(
             },
             id="falsey-integers",
         ),
+        param(
+            # Binary data
+            (b"binary",),
+            {
+                "BytesNode": b"binary",
+                "AnyNode": copy.copy,
+            },
+            id="binary-data",
+        ),
     ],
 )
 def test_legal_assignment(
@@ -359,6 +390,7 @@ def test_legal_assignment(
         (IntegerNode(), "foo"),
         (BooleanNode(), "foo"),
         (FloatNode(), "foo"),
+        (BytesNode(), "foo"),
         (EnumNode(enum_type=Enum1), "foo"),
     ],
 )
@@ -368,7 +400,8 @@ def test_illegal_assignment(node: ValueNode, value: Any) -> None:
 
 
 @mark.parametrize(
-    "node_type", [BooleanNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode]
+    "node_type",
+    [BooleanNode, BytesNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode],
 )
 @mark.parametrize(
     "enum_type, values, success_map",
@@ -412,6 +445,7 @@ class DummyEnum(Enum):
         (Any, Any, 10, AnyNode),
         (DummyEnum, DummyEnum, DummyEnum.FOO, EnumNode),
         (int, int, 42, IntegerNode),
+        (bytes, bytes, b"\xf0\xf1\xf2", BytesNode),
         (float, float, 3.1415, FloatNode),
         (bool, bool, True, BooleanNode),
         (str, str, "foo", StringNode),
@@ -466,6 +500,7 @@ def test_node_wrap_illegal_type() -> None:
         StringNode(),
         StringNode(value="foo"),
         StringNode(value="foo", is_optional=False),
+        BytesNode(value=b"\xf0\xf1\xf2"),
         BooleanNode(value=True),
         IntegerNode(value=10),
         FloatNode(value=10.0),
@@ -498,6 +533,9 @@ def test_deepcopy(obj: Any) -> None:
         (FloatNode(1.0), 1.0, True),
         (FloatNode(1), 1, True),
         (FloatNode(1.0), "foo", False),
+        (BytesNode(), None, True),
+        (BytesNode(), b"binary", False),
+        (BytesNode(b"binary"), b"binary", True),
         (BooleanNode(), True, False),
         (BooleanNode(), False, False),
         (BooleanNode(), None, True),
@@ -607,6 +645,7 @@ def test_dereference_missing() -> None:
         IntegerNode,
         FloatNode,
         BooleanNode,
+        BytesNode,
         lambda val, is_optional: EnumNode(
             enum_type=Color, value=val, is_optional=is_optional
         ),
@@ -647,6 +686,7 @@ def test_dereference_interpolation_to_missing() -> None:
     [
         AnyNode,
         BooleanNode,
+        BytesNode,
         functools.partial(EnumNode, enum_type=Color),
         FloatNode,
         IntegerNode,

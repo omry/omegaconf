@@ -156,6 +156,21 @@ class FloatConfig:
 
 
 @dataclass
+class BytesConfig:
+    # with default value
+    with_default: bytes = b"binary"
+
+    # default is None
+    null_default: Optional[bytes] = None
+
+    # explicit no default
+    mandatory_missing: bytes = MISSING
+
+    # interpolation, will inherit the type and value of `with_default'
+    interpolation: bytes = II("with_default")
+
+
+@dataclass
 class EnumConfig:
     # with default value
     with_default: Color = Color.BLUE

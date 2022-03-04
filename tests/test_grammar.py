@@ -38,6 +38,7 @@ BASE_TEST_CFG = OmegaConf.create(
         "str": "hi",
         "int": 123,
         "float": 1.2,
+        "bytes": b"binary",
         "dict": {"a": 0, "b": {"c": 1}},
         "list": [x - 1 for x in range(11)],
         "null": None,

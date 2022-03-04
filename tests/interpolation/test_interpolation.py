@@ -141,6 +141,7 @@ def test_indirect_interpolation2() -> None:
         param({"a": "${b}", "b": 10, "s": "foo_${b}"}, id="int"),
         param({"a": "${b}", "b": 3.14, "s": "foo_${b}"}, id="float"),
         param({"a": "${b}", "b": Color.RED, "s": "foo_${b}"}, id="enum"),
+        param({"a": "${b}", "b": b"binary", "s": "foo_${b}"}, id="bytes"),
     ],
 )
 def test_type_inherit_type(cfg: Any) -> None:
