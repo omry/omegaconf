@@ -169,7 +169,11 @@ class StringNode(ValueNode):
     def _validate_and_convert_impl(self, value: Any) -> str:
         from omegaconf import OmegaConf
 
-        if OmegaConf.is_config(value) or is_primitive_container(value):
+        if (
+            OmegaConf.is_config(value)
+            or is_primitive_container(value)
+            or isinstance(value, bytes)
+        ):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string: '$VALUE'")
         return str(value)
 
@@ -214,6 +218,40 @@ class IntegerNode(ValueNode):
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "IntegerNode":
         res = IntegerNode()
+        self._deepcopy_impl(res, memo)
+        return res
+
+
+class BytesNode(ValueNode):
+    def __init__(
+        self,
+        value: Any = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=bytes,
+                object_type=bytes,
+                flags=flags,
+            ),
+        )
+
+    def _validate_and_convert_impl(self, value: Any) -> bytes:
+        if not isinstance(value, bytes):
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' is not of type 'bytes'"
+            )
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "BytesNode":
+        res = BytesNode()
         self._deepcopy_impl(res, memo)
         return res
 

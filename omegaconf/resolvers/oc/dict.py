@@ -36,7 +36,7 @@ def values(key: str, _root_: BaseContainer, _parent_: Container) -> ListConfig:
 
     ret = ListConfig([])
     for k in content:
-        ref_node = AnyNode(f"${{{key}.{k}}}")
+        ref_node = AnyNode(f"${{{key}.{k!s}}}")
         ret.append(ref_node)
 
     # Finalize result by setting proper type and parent.

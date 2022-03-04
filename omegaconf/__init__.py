@@ -11,6 +11,7 @@ from .listconfig import ListConfig
 from .nodes import (
     AnyNode,
     BooleanNode,
+    BytesNode,
     EnumNode,
     FloatNode,
     IntegerNode,
@@ -51,6 +52,7 @@ __all__ = [
     "AnyNode",
     "IntegerNode",
     "StringNode",
+    "BytesNode",
     "BooleanNode",
     "EnumNode",
     "FloatNode",
