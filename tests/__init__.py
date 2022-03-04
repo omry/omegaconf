@@ -239,6 +239,7 @@ class SubscriptedDict:
     dict_int: Dict[int, int] = field(default_factory=lambda: {123: 4})
     dict_float: Dict[float, int] = field(default_factory=lambda: {123.45: 4})
     dict_bool: Dict[bool, int] = field(default_factory=lambda: {True: 4, False: 5})
+    dict_bytes: Dict[bytes, int] = field(default_factory=lambda: {b"binary": 4})
 
 
 @dataclass

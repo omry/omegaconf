@@ -46,17 +46,22 @@ class EnumConfigAssignments:
         (2, Color.GREEN),
         (3, Color.BLUE),
     ]
-    illegal = ["foo", True, False, 4, 1.0]
+    illegal = ["foo", True, b"RED", False, 4, 1.0]
 
 
 class IntegersConfigAssignments:
     legal = [("10", 10), ("-10", -10), 100, 0, 1]
-    illegal = ["foo", 1.0, float("inf"), float("nan"), Color.BLUE]
+    illegal = ["foo", 1.0, float("inf"), b"123", float("nan"), Color.BLUE]
 
 
 class StringConfigAssignments:
     legal = ["10", "-10", "foo", "", (Color.BLUE, "Color.BLUE")]
-    illegal: Any = []
+    illegal = [b"binary"]
+
+
+class BytesConfigAssignments:
+    legal = [b"binary"]
+    illegal = ["foo", 10, Color.BLUE, 10.1, True]
 
 
 class FloatConfigAssignments:
@@ -68,7 +73,7 @@ class FloatConfigAssignments:
         ("10.2", 10.2),
         ("10e-3", 10e-3),
     ]
-    illegal = ["foo", True, False, Color.BLUE]
+    illegal = ["foo", True, False, b"10.1", Color.BLUE]
 
 
 class BoolConfigAssignments:
@@ -88,11 +93,11 @@ class BoolConfigAssignments:
         ("0", False),
         (0, False),
     ]
-    illegal = [100.0, Color.BLUE]
+    illegal = [100.0, b"binary", Color.BLUE]
 
 
 class AnyTypeConfigAssignments:
-    legal = [True, False, 10, 10.0, "foobar", Color.BLUE]
+    legal = [True, False, 10, 10.0, b"binary", "foobar", Color.BLUE]
 
     illegal: Any = []
 
@@ -257,12 +262,14 @@ class TestConfigs:
             ("BoolConfig", BoolConfigAssignments, {}),
             ("IntegersConfig", IntegersConfigAssignments, {}),
             ("FloatConfig", FloatConfigAssignments, {}),
+            ("BytesConfig", BytesConfigAssignments, {}),
             ("StringConfig", StringConfigAssignments, {}),
             ("EnumConfig", EnumConfigAssignments, {}),
             # Use instance to build config
             ("BoolConfig", BoolConfigAssignments, {"with_default": False}),
             ("IntegersConfig", IntegersConfigAssignments, {"with_default": 42}),
             ("FloatConfig", FloatConfigAssignments, {"with_default": 42.0}),
+            ("BytesConfig", BytesConfigAssignments, {"with_default": b"bin"}),
             ("StringConfig", StringConfigAssignments, {"with_default": "fooooooo"}),
             ("EnumConfig", EnumConfigAssignments, {"with_default": Color.BLUE}),
             ("AnyTypeConfig", AnyTypeConfigAssignments, {}),

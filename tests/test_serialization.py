@@ -182,6 +182,15 @@ def test_load_empty_file(tmpdir: str) -> None:
             SubscriptedDict, "dict_str", int, str, False, Dict[str, int], id="dict_str"
         ),
         param(
+            SubscriptedDict,
+            "dict_bytes",
+            int,
+            bytes,
+            False,
+            Dict[bytes, int],
+            id="dict_bytes",
+        ),
+        param(
             SubscriptedDict, "dict_int", int, int, False, Dict[int, int], id="dict_int"
         ),
         param(

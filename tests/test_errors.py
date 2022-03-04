@@ -8,12 +8,14 @@ from pytest import mark, param, raises
 
 import tests
 from omegaconf import (
+    BytesNode,
     DictConfig,
     FloatNode,
     IntegerNode,
     ListConfig,
     OmegaConf,
     ReadonlyConfigError,
+    StringNode,
     UnsupportedValueType,
     ValidationError,
 )
@@ -102,7 +104,7 @@ class Expected:
             if self.key is None:
                 self.full_key = ""
             else:
-                if isinstance(self.key, (str, int, Enum, float, bool, slice)):
+                if isinstance(self.key, (str, bytes, int, Enum, float, bool, slice)):
                     self.full_key = self.key
                 else:
                     self.full_key = ""
@@ -607,6 +609,17 @@ params = [
         ),
         id="dict[bool,Any]:mistyped_key",
     ),
+    param(
+        Expected(
+            create=lambda: DictConfig({}, key_type=bytes),
+            op=lambda cfg: cfg.get("foo"),
+            exception_type=KeyValidationError,
+            msg="Key foo (str) is incompatible with (bytes)",
+            key="foo",
+            full_key="foo",
+        ),
+        id="dict[bool,Any]:mistyped_key",
+    ),
     # dict:create
     param(
         Expected(
@@ -695,6 +708,30 @@ params = [
             child_node=lambda cfg: cfg._get_node("bar"),
         ),
         id="typed_DictConfig:assign_with_invalid_value,float",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": BytesNode(b"binary")}),
+            op=lambda cfg: cfg.__setattr__("bar", 123.4),
+            exception_type=ValidationError,
+            msg="Value '123.4' of type 'float' is not of type 'bytes'",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,string_to_bytes",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": StringNode("abc123")}),
+            op=lambda cfg: cfg.__setattr__("bar", b"binary"),
+            exception_type=ValidationError,
+            msg=r"Cannot convert 'bytes' to string: 'b'binary''",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,bytes_to_string",
     ),
     param(
         Expected(

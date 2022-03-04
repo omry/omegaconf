@@ -13,6 +13,7 @@ from tests import Enum1, User
         (["item1", "item2", {"key3": "value3"}], "- item1\n- item2\n- key3: value3\n"),
         ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
         ({"abc": "str key"}, "abc: str key\n"),
+        ({b"abc": "bytes key"}, "? !!binary |\n  YWJj\n: bytes key\n"),
         ({123: "int key"}, "123: int key\n"),
         ({123.45: "float key"}, "123.45: float key\n"),
         ({True: "bool key", False: "another"}, "true: bool key\nfalse: another\n"),
@@ -41,6 +42,7 @@ def test_to_yaml_unicode(input_: Any, expected: str) -> None:
     "input_, expected, type_",
     [
         (["1", 1], "- '1'\n- 1\n", int),
+        (["1", b"1"], "- '1'\n- !!binary |\n  MQ==\n", bytes),
         (["10e2", "1.0", 1.0], "- '10e2'\n- '1.0'\n- 1.0\n", float),
         (_utils.YAML_BOOL_TYPES, None, bool),
     ],
@@ -63,6 +65,7 @@ def test_to_yaml_string_primitive_types_list(
     "input_, expected, type_",
     [
         ({"b": "1", "a": 1}, "b: '1'\na: 1\n", int),
+        ({"b": "1", "a": b"1"}, "b: '1'\na: !!binary |\n  MQ==\n", bytes),
         ({"b": "10e2", "a": "1.0", "c": 1.0}, "b: '10e2'\na: '1.0'\nc: 1.0\n", float),
         (_utils.YAML_BOOL_TYPES, None, bool),
     ],
