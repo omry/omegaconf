@@ -600,7 +600,7 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 def is_literal_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info >= (3, 8, 0):
+    if sys.version_info >= (3, 8):
         return origin is Literal  # pragma: no cover
     else:
         return (
