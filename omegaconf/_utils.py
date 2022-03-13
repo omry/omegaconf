@@ -855,7 +855,7 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
         if hasattr(t, "__name__"):
             name = str(t.__name__)
         else:
-            if hasattr(t, "__origin__") and t.__origin__ is not None:
+            if getattr(t, "__origin__", None) is not None:
                 name = type_str(t.__origin__)
             else:
                 name = str(t)
