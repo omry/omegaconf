@@ -2,4 +2,4 @@ antlr4-python3-runtime==4.8
 PyYAML>=5.1.0
 # Use dataclasses backport for Python 3.6.
 dataclasses;python_version=='3.6'
-typing_extensionsl;python_version<='3.7'
+typing_extensions;python_version<='3.7'
