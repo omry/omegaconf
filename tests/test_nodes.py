@@ -3,6 +3,7 @@ import functools
 import re
 from enum import Enum
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, Tuple, Type
 
 from pytest import mark, param, raises
@@ -18,6 +19,7 @@ from omegaconf import (
     ListConfig,
     Node,
     OmegaConf,
+    PathNode,
     StringNode,
     ValueNode,
 )
@@ -84,6 +86,9 @@ from tests import Color, Enum1, IllegalType, User
         (lambda v: EnumNode(enum_type=Color, value=v), "Color.RED", Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), "RED", Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), 1, Color.RED),
+        # Path node
+        (PathNode, "hello.txt", Path("hello.txt")),
+        (PathNode, Path("hello.txt"), Path("hello.txt")),
     ],
 )
 def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
@@ -156,6 +161,8 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (partial(EnumNode, Color), {"foo": "bar"}),
         (partial(EnumNode, Color), ListConfig([1, 2])),
         (partial(EnumNode, Color), DictConfig({"foo": "bar"})),
+        (PathNode, 1.0),
+        (PathNode, ["hello.txt"]),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:

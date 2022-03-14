@@ -3,6 +3,7 @@ import math
 import sys
 from abc import abstractmethod
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, Optional, Type, Union
 
 from omegaconf._utils import (
@@ -174,13 +175,48 @@ class StringNode(ValueNode):
         if (
             OmegaConf.is_config(value)
             or is_primitive_container(value)
-            or isinstance(value, bytes)
+            or isinstance(value, (bytes, Path))
         ):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string: '$VALUE'")
         return str(value)
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "StringNode":
         res = StringNode()
+        self._deepcopy_impl(res, memo)
+        return res
+
+
+class PathNode(ValueNode):
+    def __init__(
+        self,
+        value: Any = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=Path,
+                object_type=Path,
+                flags=flags,
+            ),
+        )
+
+    def _validate_and_convert_impl(self, value: Any) -> Path:
+        if not isinstance(value, (str, Path)):
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' could not be converted to Path"
+            )
+
+        return Path(value)
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "PathNode":
+        res = PathNode()
         self._deepcopy_impl(res, memo)
         return res
 

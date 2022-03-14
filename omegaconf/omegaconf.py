@@ -67,6 +67,7 @@ from .nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    PathNode,
     StringNode,
     ValueNode,
 )
@@ -1077,6 +1078,8 @@ def _node_wrap(
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif ref_type == bytes:
         node = BytesNode(value=value, key=key, parent=parent, is_optional=is_optional)
+    elif ref_type == pathlib.Path:
+        node = PathNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)

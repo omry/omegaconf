@@ -1,4 +1,6 @@
+import dataclasses
 import inspect
+import pathlib
 import sys
 from importlib import import_module
 from typing import Any, Callable, Dict, List, Optional
@@ -836,6 +838,22 @@ class TestConfigs:
         conf._promote(module.BoolConfig(with_default=False))
         assert OmegaConf.get_type(conf) == module.BoolConfig
         assert conf.with_default is False
+
+    def test_promote_to_dataclass(self, module: Any) -> None:
+        @dataclasses.dataclass
+        class Foo:
+            foo: pathlib.Path
+            bar: str
+            qub: int = 5
+
+        x = DictConfig({"foo": "hello.txt", "bar": "hello.txt"})
+        assert isinstance(x.foo, str)
+        assert isinstance(x.bar, str)
+
+        x._promote(Foo)
+        assert isinstance(x.foo, pathlib.Path)
+        assert isinstance(x.bar, str)
+        assert x.qub == 5
 
     def test_set_key_with_with_dataclass(self, module: Any) -> None:
         cfg = OmegaConf.create({"foo": [1, 2]})
