@@ -284,7 +284,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             #   assert hash(0) == hash(False)
             #   assert hash(1) == hash(True)
             return bool(key)
-        elif key_type in (str, int, float, bool):  # primitive type
+        elif key_type in (str, bytes, int, float, bool):  # primitive type
             if not isinstance(key, key_type):
                 raise KeyValidationError(
                     f"Key $KEY ($KEY_TYPE) is incompatible with ({key_type.__name__})"
@@ -476,7 +476,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         value: Optional[Node] = self.__dict__["_content"].get(key)
         if value is None:
             if throw_on_missing_key:
-                raise ConfigKeyError(f"Missing key {key}")
+                raise ConfigKeyError(f"Missing key {key!s}")
         elif throw_on_missing_value and value._is_missing():
             raise MissingMandatoryValue("Missing mandatory value: $KEY")
         return value
@@ -507,9 +507,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 else:
                     full = self._get_full_key(key=key)
                     if full != key:
-                        raise ConfigKeyError(f"Key not found: '{key}' (path: '{full}')")
+                        raise ConfigKeyError(
+                            f"Key not found: '{key!s}' (path: '{full}')"
+                        )
                     else:
-                        raise ConfigKeyError(f"Key not found: '{key}'")
+                        raise ConfigKeyError(f"Key not found: '{key!s}'")
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 

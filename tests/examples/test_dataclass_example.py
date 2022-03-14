@@ -26,6 +26,7 @@ class SimpleTypes:
     is_awesome: bool = True
     height: Height = Height.SHORT
     description: str = "text"
+    data: bytes = b"bin_data"
 
 
 def test_simple_types_class() -> None:
@@ -36,6 +37,7 @@ def test_simple_types_class() -> None:
     assert conf.is_awesome is True
     assert conf.height == Height.SHORT
     assert conf.description == "text"
+    assert conf.data == b"bin_data"
 
 
 def test_static_typing() -> None:
@@ -57,6 +59,7 @@ def test_simple_types_obj() -> None:
     assert conf.is_awesome is True
     assert conf.height == Height.SHORT
     assert conf.description == "text"
+    assert conf.data == b"bin_data"
 
 
 def test_conversions() -> None:
@@ -78,6 +81,18 @@ def test_conversions() -> None:
     # ok, the int 20 is converted to the string "20"
     conf.description = 20  # type: ignore
     assert conf.description == "20"
+    with raises(ValidationError):
+        # bytes are not automatically converted to strings
+        conf.description = b"binary"  # type: ignore
+
+    assert conf.data == b"bin_data"
+    conf.data = b"def"  # assignment ok, type matches
+    with raises(ValidationError):
+        # ValidationError: "abc" cannot be converted to bytes
+        conf.data = "text"  # type: ignore
+    with raises(ValidationError):
+        # ValidationError: 1234 cannot be converted to bytes
+        conf.data = 1234  # type: ignore
 
     # booleans can take many forms
     for expected, values in {
@@ -181,10 +196,10 @@ manager:
 @dataclass
 class Lists:
     # List with Any as type can take any primitive type OmegaConf supports:
-    # int, float, bool, str and Enums as well as Any (which is the same as not having a specified type).
+    # int, float, bool, str, bytes and Enums as well as Any (which is the same as not having a specified type).
     untyped_list: List[Any] = field(default_factory=lambda: [1, "foo", True])
 
-    # typed lists can hold int, bool, str, float or enums.
+    # typed lists can hold int, bool, str, bytes, float or enums.
     int_list: List[int] = field(default_factory=lambda: [10, 20, 30])
 
 
@@ -207,7 +222,7 @@ def test_typed_list_runtime_validation() -> None:
 @dataclass
 class Dicts:
     # Key must be a string or Enum, value can be any primitive type OmegaConf supports:
-    # int, float, bool, str and Enums as well as Any (which is the same as not having a specified type).
+    # int, float, bool, str, bytes and Enums as well as Any (which is the same as not having a specified type).
     untyped_dict: Dict[str, Any] = field(
         default_factory=lambda: {"foo": True, "bar": 100}
     )

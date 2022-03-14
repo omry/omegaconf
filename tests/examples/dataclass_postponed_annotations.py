@@ -22,6 +22,7 @@ class SimpleTypes:
     is_awesome: bool = True
     height: "Height" = Height.SHORT  # test forward ref
     description: str = "text"
+    data: bytes = b"bin_data"
 
 
 def simple_types_class() -> None:
@@ -34,6 +35,7 @@ def simple_types_class() -> None:
     conf = OmegaConf.structured(SimpleTypes)
     assert conf.num == 10
     assert conf.pi == 3.1415
+    assert conf.data == b"bin_data"
     assert conf.is_awesome is True
     assert conf.height == Height.SHORT
     assert conf.description == "text"

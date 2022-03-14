@@ -17,6 +17,7 @@ from omegaconf._utils import (
     get_list_element_type,
     is_dict_annotation,
     is_list_annotation,
+    is_tuple_annotation,
     nullcontext,
     split_key,
 )
@@ -24,6 +25,7 @@ from omegaconf.errors import UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
+    BytesNode,
     EnumNode,
     FloatNode,
     IntegerNode,
@@ -44,26 +46,33 @@ else:
     [
         # Any
         param(Any, "foo", AnyNode("foo"), id="any"),
+        param(Any, b"binary", AnyNode(b"binary"), id="any"),
         param(Any, True, AnyNode(True), id="any"),
         param(Any, 1, AnyNode(1), id="any"),
         param(Any, 1.0, AnyNode(1.0), id="any"),
+        param(Any, b"123", AnyNode(b"123"), id="any"),
         param(Any, Color.RED, AnyNode(Color.RED), id="any"),
         param(Any, {}, DictConfig(content={}), id="any_as_dict"),
         param(Any, [], ListConfig(content=[]), id="any_as_list"),
         # int
         param(int, "foo", ValidationError, id="int"),
+        param(int, b"binary", ValidationError, id="int"),
         param(int, True, ValidationError, id="int"),
         param(int, 1, IntegerNode(1), id="int"),
         param(int, 1.0, ValidationError, id="int"),
         param(int, Color.RED, ValidationError, id="int"),
+        param(int, b"123", ValidationError, id="int"),
         # float
         param(float, "foo", ValidationError, id="float"),
+        param(float, b"binary", ValidationError, id="float"),
         param(float, True, ValidationError, id="float"),
         param(float, 1, FloatNode(1), id="float"),
         param(float, 1.0, FloatNode(1.0), id="float"),
         param(float, Color.RED, ValidationError, id="float"),
+        param(float, b"123", ValidationError, id="float"),
         # bool
         param(bool, "foo", ValidationError, id="bool"),
+        param(bool, b"binary", ValidationError, id="bool"),
         param(bool, True, BooleanNode(True), id="bool"),
         param(bool, 1, BooleanNode(True), id="bool"),
         param(bool, 0, BooleanNode(False), id="bool"),
@@ -73,12 +82,21 @@ else:
         param(bool, "false", BooleanNode(False), id="bool"),
         param(bool, "on", BooleanNode(True), id="bool"),
         param(bool, "off", BooleanNode(False), id="bool"),
+        param(bool, b"123", ValidationError, id="bool"),
         # str
         param(str, "foo", StringNode("foo"), id="str"),
+        param(str, b"binary", ValidationError, id="str"),
         param(str, True, StringNode("True"), id="str"),
         param(str, 1, StringNode("1"), id="str"),
         param(str, 1.0, StringNode("1.0"), id="str"),
         param(str, Color.RED, StringNode("Color.RED"), id="str"),
+        # bytes
+        param(bytes, "foo", ValidationError, id="bytes"),
+        param(bytes, b"binary", BytesNode(b"binary"), id="bytes"),
+        param(bytes, True, ValidationError, id="bytes"),
+        param(bytes, 1, ValidationError, id="bytes"),
+        param(bytes, 1.0, ValidationError, id="bytes"),
+        param(bytes, Color.RED, ValidationError, id="bytes"),
         # Color
         param(Color, "foo", ValidationError, id="Color"),
         param(Color, True, ValidationError, id="Color"),
@@ -100,6 +118,10 @@ else:
             5,
             ValidationError,
             id='Literal["foo"]',
+        ),
+        param(Color, b"123", ValidationError, id="Color"),
+        param(
+            Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
         # bad type
         param(IllegalType, "nope", ValidationError, id="bad_type"),
@@ -143,6 +165,7 @@ class _TestDataclass:
     x: int = 10
     s: str = "foo"
     b: bool = True
+    d: bytes = b"123"
     f: float = 3.14
     e: _TestEnum = _TestEnum.A
     list1: List[int] = field(default_factory=list)
@@ -154,6 +177,7 @@ class _TestAttrsClass:
     x: int = 10
     s: str = "foo"
     b: bool = True
+    d: bytes = b"123"
     f: float = 3.14
     e: _TestEnum = _TestEnum.A
     list1: List[int] = []
@@ -181,6 +205,7 @@ class _TestUserClass:
         (float, True),
         (bool, True),
         (str, True),
+        (bytes, True),
         (Any, True),
         (_TestEnum, True),
         (_TestUserClass, False),
@@ -205,6 +230,7 @@ class TestGetStructuredConfigInfo:
         assert d["x"] == 10
         assert d["s"] == "foo"
         assert d["b"] == bool(True)
+        assert d["d"] == b"123"
         assert d["f"] == 3.14
         assert d["e"] == _TestEnum.A
         assert d["list1"] == []
@@ -220,7 +246,7 @@ class TestGetStructuredConfigInfo:
     )
     def test_get_structured_config_field_names(self, test_cls_or_obj: Any) -> None:
         field_names = _utils.get_structured_config_field_names(test_cls_or_obj)
-        assert field_names == ["x", "s", "b", "f", "e", "list1", "dict1"]
+        assert field_names == ["x", "s", "b", "d", "f", "e", "list1", "dict1"]
 
     def test_get_structured_config_field_names_throws_ValueError(self) -> None:
         with raises(ValueError):
@@ -286,6 +312,7 @@ class Dataclass:
         ("foo", _utils.ValueKind.VALUE),
         (1, _utils.ValueKind.VALUE),
         (1.0, _utils.ValueKind.VALUE),
+        (b"123", _utils.ValueKind.VALUE),
         (True, _utils.ValueKind.VALUE),
         (False, _utils.ValueKind.VALUE),
         (Color.GREEN, _utils.ValueKind.VALUE),
@@ -372,6 +399,7 @@ def test_get_key_value_types(
         (int, True),
         (float, True),
         (bool, True),
+        (bytes, True),
         (str, True),
         (type(None), True),
         (Color, True),
@@ -393,6 +421,8 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
         (int, True, "int"),
         (bool, False, "bool"),
         (bool, True, "bool"),
+        (bytes, False, "bytes"),
+        (bytes, True, "bytes"),
         (float, False, "float"),
         (float, True, "float"),
         (str, False, "str"),
@@ -465,6 +495,7 @@ def test_type_str_union(type_: Any, expected: str) -> None:
     [
         (Dict[str, int], True),
         (Dict[str, float], True),
+        (Dict[bytes, bytes], True),
         (Dict[IllegalType, bool], True),
         (Dict[str, IllegalType], True),
         (Dict[int, Color], True),
@@ -486,6 +517,7 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
         (List[int], True),
         (List[float], True),
         (List[bool], True),
+        (List[bytes], True),
         (List[str], True),
         (List[Color], True),
         (List[Plugin], True),
@@ -502,6 +534,29 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
 
 
 @mark.parametrize(
+    "type_, expected",
+    [
+        (Tuple[int], True),
+        (Tuple[float], True),
+        (Tuple[bool], True),
+        (Tuple[str], True),
+        (Tuple[Color], True),
+        (Tuple[Plugin], True),
+        (Tuple[IllegalType], True),
+        (Dict, False),
+        (List, False),
+        (Tuple, True),
+        (Tuple, True),
+        (list, False),
+        (dict, False),
+        (tuple, False),
+    ],
+)
+def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
+    assert is_tuple_annotation(type_=type_) == expected
+
+
+@mark.parametrize(
     "obj, expected",
     [
         # Unwrapped values
@@ -509,6 +564,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         param(10.0, Any, id="float"),
         param(True, Any, id="bool"),
         param(Color.RED, Any, id="bytes"),
+        param(b"binary", Any, id="bytes"),
         param("bar", Any, id="str"),
         param(None, Any, id="NoneType"),
         param({}, Any, id="dict"),
@@ -521,6 +577,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         param(FloatNode(10.0), Optional[float], id="FloatNode"),
         param(BooleanNode(True), Optional[bool], id="BooleanNode"),
         param(StringNode("bar"), Optional[str], id="StringNode"),
+        param(BytesNode(b"binary"), Optional[bytes], id="BooleanNode"),
         param(
             EnumNode(enum_type=Color, value=Color.RED),
             Optional[Color],
@@ -536,6 +593,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         param(FloatNode(10.0, is_optional=False), float, id="FloatNode"),
         param(BooleanNode(True, is_optional=False), bool, id="BooleanNode"),
         param(StringNode("bar", is_optional=False), str, id="StringNode"),
+        param(BytesNode(b"binary", is_optional=False), bytes, id="BytesNode"),
         param(
             EnumNode(enum_type=Color, value=Color.RED, is_optional=False),
             Color,
@@ -728,6 +786,11 @@ def test_nullcontext() -> None:
         (
             lambda is_optional, missing: BooleanNode(
                 value=True if not missing else "???", is_optional=is_optional
+            )
+        ),
+        (
+            lambda is_optional, missing: BytesNode(
+                value=b"binary" if not missing else "???", is_optional=is_optional
             )
         ),
         (

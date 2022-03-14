@@ -2,7 +2,7 @@ import copy
 import sys
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -43,8 +43,7 @@ if TYPE_CHECKING:
 
 
 class BaseContainer(Container, ABC):
-    # static
-    _resolvers: Dict[str, Any] = {}
+    _resolvers: ClassVar[Dict[str, Any]] = {}
 
     def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
         if not (parent is None or isinstance(parent, Container)):
@@ -673,7 +672,7 @@ class BaseContainer(Container, ABC):
         from .listconfig import ListConfig
         from .omegaconf import _select_one
 
-        if not isinstance(key, (int, str, Enum, float, bool, slice, type(None))):
+        if not isinstance(key, (int, str, Enum, float, bool, slice, bytes, type(None))):
             return ""
 
         def _slice_to_str(x: slice) -> str:
@@ -734,7 +733,7 @@ class BaseContainer(Container, ABC):
             cur = cur._get_parent()
             if id(cur) in memo:
                 raise ConfigCycleDetectedException(
-                    f"Cycle when iterating over parents of key `{key}`"
+                    f"Cycle when iterating over parents of key `{key!s}`"
                 )
             memo.add(id(cur))
             assert cur is not None

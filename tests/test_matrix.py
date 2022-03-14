@@ -7,6 +7,7 @@ from pytest import mark, raises, warns
 
 from omegaconf import (
     BooleanNode,
+    BytesNode,
     DictConfig,
     EnumNode,
     FloatNode,
@@ -59,12 +60,13 @@ def verify(
     assert OmegaConf.is_interpolation(cfg, key) == inter
 
 
-# for each type Node type: int, bool, str, float, Color (enum) and User (@dataclass), DictConfig, ListConfig
+# for each type Node type: int, bool, str, bytes, float, Color (enum) and User (@dataclass), DictConfig, ListConfig
 #   for each MISSING, None, Optional and interpolation:
 @mark.parametrize(
     "node_type, values",
     [
         (BooleanNode, [True, False]),
+        (BytesNode, [b"binary"]),
         (FloatNode, [3.1415]),
         (IntegerNode, [42]),
         (StringNode, ["hello"]),
@@ -109,6 +111,7 @@ def verify(
     ],
     ids=(
         "BooleanNode",
+        "BytesNode",
         "FloatNode",
         "IntegerNode",
         "StringNode",

@@ -666,7 +666,14 @@ def _valid_dict_key_annotation_type(type_: Any) -> bool:
 
 def is_primitive_type(type_: Any) -> bool:
     type_ = get_type_of(type_)
-    return issubclass(type_, Enum) or type_ in (int, float, bool, str, type(None))
+    return issubclass(type_, Enum) or type_ in (
+        int,
+        float,
+        bool,
+        str,
+        bytes,
+        type(None),
+    )
 
 
 def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> bool:

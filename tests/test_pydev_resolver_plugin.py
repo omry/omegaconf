@@ -7,6 +7,7 @@ from pytest import fixture, mark, param
 from omegaconf import (
     AnyNode,
     BooleanNode,
+    BytesNode,
     Container,
     DictConfig,
     EnumNode,
@@ -46,6 +47,7 @@ def resolver() -> Any:
         param(IntegerNode(10), {}, id="int:10"),
         param(FloatNode(3.14), {}, id="float:3.14"),
         param(BooleanNode(True), {}, id="bool:True"),
+        param(BytesNode(b"binary"), {}, id="bytes:binary"),
         param(EnumNode(enum_type=Color, value=Color.RED), {}, id="Color:Color.RED"),
         param(LiteralNode(literal_type=Literal["foo"], value="foo"), {}, id="str:foo"),
         # nodes are never returning a dictionary
@@ -238,6 +240,7 @@ def test_get_dictionary_listconfig(
         (FloatNode, True),
         (StringNode, True),
         (BooleanNode, True),
+        (BytesNode, True),
         (EnumNode, True),
         (LiteralNode, True),
         # not covering some other things.

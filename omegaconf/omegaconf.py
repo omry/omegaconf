@@ -64,6 +64,7 @@ from .errors import (
 from .nodes import (
     AnyNode,
     BooleanNode,
+    BytesNode,
     EnumNode,
     FloatNode,
     IntegerNode,
@@ -1072,6 +1073,8 @@ def _node_wrap(
         node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
     elif type_ == str:
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
+    elif type_ == bytes:
+        node = BytesNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)

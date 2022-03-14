@@ -37,7 +37,7 @@ from tests import (
         param([1, 2, {"a": 3}], id="dict_in_list"),
         param([1, 2, [10, 20]], id="list_in_list"),
         param({"b": {"b": 10}}, id="dict_in_dict"),
-        param({"b": [False, 1, "2", 3.0, Color.RED]}, id="list_in_dict"),
+        param({"b": [False, 1, "2", 3.0, Color.RED, b"binary"]}, id="list_in_dict"),
         param({"b": DictConfig(content=None)}, id="none_dictconfig"),
         param({"b": ListConfig(content=None)}, id="none_listconfig"),
         param({"b": DictConfig(content="???")}, id="missing_dictconfig"),
@@ -53,7 +53,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
             for _k, v in item.items():
                 assert_container_with_primitives(v)
         else:
-            assert isinstance(item, (int, float, str, bool, type(None), Enum))
+            assert isinstance(item, (int, float, str, bytes, bool, type(None), Enum))
 
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
