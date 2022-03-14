@@ -310,6 +310,10 @@ class TestConfigs:
                 with raises(ValidationError):
                     conf.mandatory_missing = illegal_value
 
+                if hasattr(conf, "no_args"):
+                    with raises(ValidationError):
+                        conf.no_args = illegal_value
+
             # Test assignment of legal values
             for legal_value in assignment_data.legal:
                 expected_data = legal_value

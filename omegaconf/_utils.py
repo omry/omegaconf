@@ -47,6 +47,8 @@ if sys.version_info >= (3, 8):
     from typing import Literal  # pragma: no cover
 else:
     from typing_extensions import Literal  # pragma: no cover
+if sys.version_info < (3, 7):
+    from typing_extensions import _Literal  # type: ignore # pragma: no cover
 
 
 # Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
@@ -600,16 +602,11 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 def is_literal_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info >= (3, 8):
-        return origin is Literal  # pragma: no cover
-    else:
-        return (
-            origin is Literal
-            or type_ is Literal
-            or (
-                "typing_extensions.Literal" in str(type_) and not isinstance(type_, str)
-            )
-        )  # pragma: no cover
+    # For python 3.6 and earllier typing_extensions.Literal does not have an origin attribute, and
+    # Literal is an instance of an internal _Literal class that we can check against.
+    if sys.version_info < (3, 7):
+        return type(type_) is _Literal  # pragma: no cover
+    return origin is Literal  # pragma: no cover
 
 
 def is_dict_subclass(type_: Any) -> bool:

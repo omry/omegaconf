@@ -416,10 +416,18 @@ class LiteralNode(ValueNode):
                 f"LiteralNode can only operate on Literal annotation ({literal_type})"
             )
         self.literal_type = literal_type
-        if hasattr(self.literal_type, "__args__"):
-            self.fields = list(self.literal_type.__args__)  # pragma: no cover
+        if hasattr(self.literal_type, "__args__"):  # pragma: no cover
+            # python 3.7 and above
+            args = self.literal_type.__args__
+            self.fields = list(args) if args is not None else []
         elif hasattr(self.literal_type, "__values__"):  # pragma: no cover
-            self.fields = list(self.literal_type.__values__)  # pragma: no cover
+            # python 3.6 and below
+            values = self.literal_type.__values__
+            self.fields = list(values) if values is not None else []
+        else:  # pragma: no cover
+            raise ValidationError(
+                f"literal_type={literal_type} is a literal but has no __args__ or __values__"
+            )
         super().__init__(
             parent=parent,
             value=value,
