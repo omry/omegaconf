@@ -1,8 +1,3 @@
-## 2.2.0
-### Features
-
-- ListConfig now implements slice assignment ([#736](https://github.com/omry/omegaconf/issues/736))
-
 ## 2.1.1 (2021-08-17)
 ### Features
 
