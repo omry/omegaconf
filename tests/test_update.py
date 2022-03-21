@@ -199,7 +199,7 @@ def test_update_force_add(cfg: Any, key: str, value: Any, expected: Any) -> None
     cfg = _ensure_container(cfg)
     OmegaConf.set_struct(cfg, True)
 
-    with raises((ConfigAttributeError, ConfigKeyError)):  # type: ignore
+    with raises((ConfigAttributeError, ConfigKeyError)):
         OmegaConf.update(cfg, key, value, force_add=False)
 
     OmegaConf.update(cfg, key, value, force_add=True)
