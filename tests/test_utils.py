@@ -151,6 +151,7 @@ class _TestDataclass:
     e: _TestEnum = _TestEnum.A
     list1: List[int] = field(default_factory=list)
     dict1: Dict[str, int] = field(default_factory=dict)
+    init_false: str = field(init=False, default="foo")
 
 
 @attr.s(auto_attribs=True)
@@ -163,6 +164,7 @@ class _TestAttrsClass:
     e: _TestEnum = _TestEnum.A
     list1: List[int] = []
     dict1: Dict[str, int] = {}
+    init_false: str = attr.field(init=False, default="foo")
 
 
 @dataclass
@@ -226,12 +228,12 @@ class TestGetStructuredConfigInfo:
         [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
     )
     def test_get_structured_config_field_names(self, test_cls_or_obj: Any) -> None:
-        field_names = _utils.get_structured_config_field_names(test_cls_or_obj)
+        field_names = _utils.get_structured_config_init_field_names(test_cls_or_obj)
         assert field_names == ["x", "s", "b", "d", "f", "e", "list1", "dict1"]
 
     def test_get_structured_config_field_names_throws_ValueError(self) -> None:
         with raises(ValueError):
-            _utils.get_structured_config_field_names("invalid")
+            _utils.get_structured_config_init_field_names("invalid")
 
 
 @mark.parametrize(

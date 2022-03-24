@@ -628,3 +628,13 @@ class StructuredSubclass:
     class ChildContainers(ParentContainers):
         list1: List[int] = field(default_factory=lambda: [1, 2, 3])
         dict: Dict[str, Any] = field(default_factory=lambda: {"a": 5, "b": 6})
+
+
+@dataclass
+class HasInitFalseFields:
+    post_initialized: str = field(init=False)
+    without_default: str = field(init=False)
+    with_default: str = field(init=False, default="default")
+
+    def __post_init__(self) -> None:
+        self.post_initialized = "set_by_post_init"

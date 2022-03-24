@@ -430,6 +430,42 @@ class TestInstantiateStructuredConfigs:
         assert type(user) is module.User
         assert user.extra_field == 123
 
+    def test_init_false_with_default(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        assert cfg.with_default == "default"
+        data = self.round_trip_to_object(cfg)
+        assert data.with_default == "default"
+
+    def test_init_false_with_default_overridden(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        cfg.with_default = "default_overridden"
+        data = self.round_trip_to_object(cfg)
+        assert data.with_default == "default_overridden"
+
+    def test_init_false_without_default(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        assert OmegaConf.is_missing(cfg, "without_default")
+        data = self.round_trip_to_object(cfg)
+        assert not hasattr(data, "without_default")
+
+    def test_init_false_without_default_overridden(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        cfg.with_default = "default_overridden"
+        data = self.round_trip_to_object(cfg)
+        assert data.with_default == "default_overridden"
+
+    def test_init_false_post_initialized(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        assert OmegaConf.is_missing(cfg, "post_initialized")
+        data = self.round_trip_to_object(cfg)
+        assert data.post_initialized == "set_by_post_init"
+
+    def test_init_false_post_initialized_overridden(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.HasInitFalseFields)
+        cfg.post_initialized = "overridden"
+        data = self.round_trip_to_object(cfg)
+        assert data.post_initialized == "overridden"
+
 
 class TestEnumToStr:
     """Test the `enum_to_str` argument to the `OmegaConf.to_container function`"""
