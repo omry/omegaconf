@@ -51,7 +51,7 @@ class EnumConfigAssignments:
 
 class IntegersConfigAssignments:
     legal = [("10", 10), ("-10", -10), 100, 0, 1]
-    illegal = ["foo", 1.0, float("inf"), b"123", float("nan"), Color.BLUE]
+    illegal = ["foo", 1.0, float("inf"), b"123", float("nan"), Color.BLUE, True]
 
 
 class StringConfigAssignments:
