@@ -607,3 +607,13 @@ class StructuredSubclass:
     class ChildContainers(ParentContainers):
         list1: List[int] = [1, 2, 3]
         dict: Dict[str, Any] = {"a": 5, "b": 6}
+
+
+@attr.s(auto_attribs=True)
+class HasInitFalseFields:
+    post_initialized: str = attr.field(init=False)
+    without_default: str = attr.field(init=False)
+    with_default: str = attr.field(init=False, default="default")
+
+    def __attrs_post_init__(self) -> None:
+        self.post_initialized = "set_by_post_init"
