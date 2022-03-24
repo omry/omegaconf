@@ -268,10 +268,14 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         return None
 
 
-def get_attr_class_field_names(obj: Any) -> List[str]:
+def get_attr_class_init_field_names(obj: Any) -> List[str]:
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
-    return list(attr.fields_dict(obj_type))
+    return [
+        fieldname
+        for fieldname, attribute in attr.fields_dict(obj_type).items()
+        if attribute.init
+    ]
 
 
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
@@ -321,8 +325,8 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     return d
 
 
-def get_dataclass_field_names(obj: Any) -> List[str]:
-    return [field.name for field in dataclasses.fields(obj)]
+def get_dataclass_init_field_names(obj: Any) -> List[str]:
+    return [field.name for field in dataclasses.fields(obj) if field.init]
 
 
 def get_dataclass_data(
@@ -421,11 +425,11 @@ def is_structured_config_frozen(obj: Any) -> bool:
     return False
 
 
-def get_structured_config_field_names(obj: Any) -> List[str]:
+def get_structured_config_init_field_names(obj: Any) -> List[str]:
     if is_dataclass(obj):
-        return get_dataclass_field_names(obj)
+        return get_dataclass_init_field_names(obj)
     elif is_attr_class(obj):
-        return get_attr_class_field_names(obj)
+        return get_attr_class_init_field_names(obj)
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
 

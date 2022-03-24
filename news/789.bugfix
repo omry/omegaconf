@@ -1,0 +1,1 @@
+`OmegaConf.to_object` now works properly with structured configs that have `init=False` fields

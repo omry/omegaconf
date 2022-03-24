@@ -28,7 +28,7 @@ from ._utils import (
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
-    get_structured_config_field_names,
+    get_structured_config_init_field_names,
     get_type_of,
     get_value_kind,
     is_container_annotation,
@@ -727,10 +727,10 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         object_type = self._metadata.object_type
         assert is_structured_config(object_type)
-        object_type_field_names = set(get_structured_config_field_names(object_type))
+        init_field_names = set(get_structured_config_init_field_names(object_type))
 
-        field_items: Dict[str, Any] = {}
-        nonfield_items: Dict[str, Any] = {}
+        init_field_items: Dict[str, Any] = {}
+        non_init_field_items: Dict[str, Any] = {}
         for k in self.keys():
             assert isinstance(k, str)
             node = self._get_node(k)
@@ -740,6 +740,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             except InterpolationResolutionError as e:
                 self._format_and_raise(key=k, value=None, cause=e)
             if node._is_missing():
+                if k not in init_field_names:
+                    continue  # MISSING is ignored for init=False fields
                 self._format_and_raise(
                     key=k,
                     value=None,
@@ -752,12 +754,12 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             else:
                 v = node._value()
 
-            if k in object_type_field_names:
-                field_items[k] = v
+            if k in init_field_names:
+                init_field_items[k] = v
             else:
-                nonfield_items[k] = v
+                non_init_field_items[k] = v
 
-        result = object_type(**field_items)
-        for k, v in nonfield_items.items():
+        result = object_type(**init_field_items)
+        for k, v in non_init_field_items.items():
             setattr(result, k, v)
         return result
