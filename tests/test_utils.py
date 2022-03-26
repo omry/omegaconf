@@ -107,6 +107,18 @@ else:
         param(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
+        param(
+            Literal["foo"],
+            "foo",
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            id='Literal["foo"]',
+        ),
+        param(
+            Literal["foo"],
+            5,
+            ValidationError,
+            id='Literal["foo"]',
+        ),
         param(Color, b"123", ValidationError, id="Color"),
         param(
             Literal["foo"],
