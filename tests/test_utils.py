@@ -1,4 +1,5 @@
 import re
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -28,10 +29,16 @@ from omegaconf.nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    LiteralNode,
     StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
 from tests import Color, ConcretePlugin, Dataframe, IllegalType, Plugin, User
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 @mark.parametrize(
@@ -102,7 +109,16 @@ from tests import Color, ConcretePlugin, Dataframe, IllegalType, Plugin, User
         ),
         param(Color, b"123", ValidationError, id="Color"),
         param(
-            Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
+            Literal["foo"],
+            "foo",
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            id='Literal["foo"]',
+        ),
+        param(
+            Literal["foo"],
+            5,
+            ValidationError,
+            id='Literal["foo"]',
         ),
         # bad type
         param(IllegalType, "nope", ValidationError, id="bad_type"),
@@ -564,6 +580,11 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
             Optional[Color],
             id="EnumNode[Color]",
         ),
+        param(
+            LiteralNode(literal_type=Literal["foo"], value="foo"),
+            Optional[Literal["foo"]],
+            id="Literal[foo]",
+        ),
         # Non-optional value nodes:
         param(IntegerNode(10, is_optional=False), int, id="IntegerNode"),
         param(FloatNode(10.0, is_optional=False), float, id="FloatNode"),
@@ -574,6 +595,11 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
             EnumNode(enum_type=Color, value=Color.RED, is_optional=False),
             Color,
             id="EnumNode[Color]",
+        ),
+        param(
+            LiteralNode(literal_type=Literal["foo"], value="foo", is_optional=False),
+            Literal["foo"],
+            id="Literal[foo]",
         ),
         # DictConfig
         param(DictConfig(content={}), Any, id="DictConfig"),

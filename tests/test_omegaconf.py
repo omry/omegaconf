@@ -1,4 +1,5 @@
 import re
+import sys
 from typing import Any
 
 from pytest import mark, param, raises, warns
@@ -23,7 +24,13 @@ from omegaconf.errors import (
     InterpolationToMissingValueError,
     UnsupportedInterpolationType,
 )
+from omegaconf.nodes import LiteralNode
 from tests import Color, ConcretePlugin, IllegalType, StructuredWithMissing
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 @mark.parametrize(
@@ -249,6 +256,13 @@ def test_coverage_for_deprecated_OmegaConf_is_optional() -> None:
             )
         ),
         (
+            lambda none: LiteralNode(
+                literal_type=Literal["foo"],
+                value="foo" if not none else None,
+                is_optional=True,
+            )
+        ),
+        (
             lambda none: ListConfig(
                 content=[1, 2, 3] if not none else None, is_optional=True
             )
@@ -336,6 +350,13 @@ def test_is_none_invalid_node() -> None:
             )
         ),
         (
+            lambda inter: LiteralNode(
+                literal_type=Literal["foo"],
+                value="foo" if inter is None else inter,
+                is_optional=True,
+            )
+        ),
+        (
             lambda inter: ListConfig(
                 content=[1, 2, 3] if inter is None else inter, is_optional=True
             )
@@ -360,6 +381,7 @@ def test_is_none_invalid_node() -> None:
         "BooleanNode",
         "BytesNode",
         "EnumNode",
+        "LiteralNode",
         "ListConfig",
         "DictConfig",
         "ConcretePlugin",
