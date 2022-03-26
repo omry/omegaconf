@@ -206,7 +206,6 @@ if sys.version_info >= (3, 7):  # pragma: no cover
             "with_default"
         )
 
-
 else:  # pragma: no cover
     # bare literals throw errors for python 3.7+. They're against spec for python 3.6 and earlier,
     # but we should test that they fail to validate anyway.
