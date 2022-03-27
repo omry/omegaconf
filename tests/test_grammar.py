@@ -613,6 +613,7 @@ class TestOmegaConfGrammar:
         "x ${ab.cd.ef.gh} y",
         "$ ${foo} ${bar} ${boz} $",
         "${foo:bar}",
+        "${foo-bar:bar-foo}",
         "${foo : bar, baz, boz}",
         "${foo:bar,0,a-b+c*d/$.%@?|}",
         r"\${foo}",
