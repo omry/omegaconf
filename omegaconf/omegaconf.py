@@ -549,7 +549,7 @@ class OmegaConf:
         throw_on_missing: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
-    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str]:
+    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
         :param cfg: the config to convert
