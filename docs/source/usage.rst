@@ -292,6 +292,8 @@ Save/Load YAML file
 
 Note that this does not retain type information.
 
+.. _save_and_load_pickle_file:
+
 Save/Load pickle file
 ^^^^^^^^^^^^^^^^^^^^^
 Use pickle to save and load while retaining the type information.
@@ -306,6 +308,12 @@ Note that the saved file may be incompatible across different versions of OmegaC
     ...     assert fp.seek(0) == 0
     ...     loaded = pickle.load(fp)
     ...     assert conf == loaded
+
+Note for Python3.6 users: due to limitations in pickling support,
+:ref:`structured configs <structured_configs>` with complex type hints (such as
+:ref:`nested container types <nested_dict_and_list_annotations>` or
+:ref:`containers with optional element types <other_special_features>`) cannot
+be pickled using Python3.6.
 
 
 .. _interpolation:
