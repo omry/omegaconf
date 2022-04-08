@@ -149,14 +149,14 @@ class TestStructured:
         assert _utils.get_ref_type(cfg2, "head") == module.LinkedList
         assert OmegaConf.get_type(cfg2, "head") is None
 
-    def test_merge_structured_onto_dict(self, module: Any) -> None:
+    def test_merge_structured_into_dict(self, module: Any) -> None:
         c1 = OmegaConf.create({"name": 7})
         c2 = OmegaConf.merge(c1, module.User)
         assert c1 == {"name": 7}
         # type of name becomes str
         assert c2 == {"name": "7", "age": "???"}
 
-    def test_merge_structured_onto_dict_nested(self, module: Any) -> None:
+    def test_merge_structured_into_dict_nested(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": 7}})
         c2 = OmegaConf.merge(c1, module.MissingUserField)
         assert c1 == {"user": {"name": 7}}
@@ -165,7 +165,7 @@ class TestStructured:
         assert isinstance(c2, DictConfig)
         assert get_ref_type(c2, "user") == module.User
 
-    def test_merge_structured_onto_dict_nested2(self, module: Any) -> None:
+    def test_merge_structured_into_dict_nested2(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": IntegerNode(value=7)}})
         c2 = OmegaConf.merge(c1, module.MissingUserField)
         assert c1 == {"user": {"name": 7}}
@@ -174,7 +174,7 @@ class TestStructured:
         assert isinstance(c2, DictConfig)
         assert get_ref_type(c2, "user") == module.User
 
-    def test_merge_structured_onto_dict_nested3(self, module: Any) -> None:
+    def test_merge_structured_into_dict_nested3(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": "alice"}})
         c2 = OmegaConf.merge(c1, module.MissingUserWithDefaultNameField)
         assert c1 == {"user": {"name": "alice"}}
@@ -202,7 +202,7 @@ class TestStructured:
         assert c2.foo.user is None
         assert c2.foo._get_node("user")._metadata.ref_type == module.User
 
-    def test_merge_optional_structured_onto_dict(self, module: Any) -> None:
+    def test_merge_optional_structured_into_dict(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": "bob"}})
         c2 = OmegaConf.merge(c1, module.OptionalUser(module.User(name="alice")))
         assert c2.user.name == "alice"

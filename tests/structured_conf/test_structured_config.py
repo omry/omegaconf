@@ -1,3 +1,4 @@
+import inspect
 import sys
 from importlib import import_module
 from typing import Any, Dict, List, Optional
@@ -17,7 +18,7 @@ from omegaconf import (
     _utils,
 )
 from omegaconf.errors import ConfigKeyError
-from tests import Color, User, warns_dict_subclass_deprecated
+from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 
 @fixture(
@@ -1228,3 +1229,475 @@ class TestStructredConfigInheritance:
 
         assert OmegaConf.is_missing(parent, "dict")
         assert child.dict == {"a": 5, "b": 6}
+
+
+class TestNestedContainers:
+    @mark.parametrize(
+        "class_name",
+        [
+            "ListOfLists",
+            "DictOfDicts",
+            "ListsAndDicts",
+            "WithDefault",
+        ],
+    )
+    def test_instantiation(self, module: Any, class_name: str) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        OmegaConf.structured(cls)
+
+    @mark.parametrize(
+        "class_name, keys, expected_optional, expected_ref_type",
+        [
+            param("ListOfLists", "lls", False, List[List[str]], id="lls"),
+            param(
+                "ListOfLists",
+                "llx",
+                False,
+                lambda module: List[List[module.User]],  # type: ignore
+                id="llx",
+            ),
+            param("ListOfLists", "llla", False, List[List[List[Any]]], id="llla"),
+            param(
+                "ListOfLists",
+                "lloli",
+                False,
+                List[List[Optional[List[int]]]],
+                id="lloli",
+            ),
+            param(
+                "ListOfLists",
+                "lloli",
+                False,
+                List[List[Optional[List[int]]]],
+                id="lloli",
+            ),
+            param(
+                "ListOfLists", "lls_default", False, List[List[str]], id="lls_default"
+            ),
+            param(
+                "ListOfLists", "lls_default", False, List[List[str]], id="lls_default"
+            ),
+            param(
+                "ListOfLists", ["lls_default", 0], False, List[str], id="lls_default-0"
+            ),
+            param(
+                "ListOfLists", ["lls_default", 1], False, List[str], id="lls_default-1"
+            ),
+            param(
+                "ListOfLists", ["lls_default", 2], False, List[str], id="lls_default-2"
+            ),
+            param(
+                "ListOfLists",
+                "lolx_default",
+                False,
+                lambda module: List[Optional[List[module.User]]],  # type: ignore
+                id="lolx_default",
+            ),
+            param(
+                "ListOfLists",
+                ["lolx_default", 0],
+                True,
+                lambda module: List[module.User],  # type: ignore
+                id="lolx_default-0",
+            ),
+            param(
+                "ListOfLists",
+                ["lolx_default", 1],
+                True,
+                lambda module: List[module.User],  # type: ignore
+                id="lolx_default-1",
+            ),
+            param(
+                "ListOfLists",
+                ["lolx_default", 2],
+                True,
+                lambda module: List[module.User],  # type: ignore
+                id="lolx_default-2",
+            ),
+            param("DictOfDicts", "dsdsi", False, Dict[str, Dict[str, int]], id="dsdsi"),
+            param(
+                "DictOfDicts",
+                ["odsdsi_default", "dsi1"],
+                False,
+                Dict[str, int],
+                id="odsdsi_default-dsi1",
+            ),
+            param(
+                "DictOfDicts",
+                ["odsdsi_default", "dsi2"],
+                False,
+                Dict[str, int],
+                id="odsdsi_default-dsi2",
+            ),
+            param(
+                "DictOfDicts",
+                ["odsdsi_default", "dsi3"],
+                False,
+                Dict[str, int],
+                id="odsdsi_default-dsi3",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx1"],
+                False,
+                lambda module: Dict[str, module.User],  # type: ignore
+                id="dsdsx_default-dsx1",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2"],
+                False,
+                lambda module: Dict[str, module.User],  # type: ignore
+                id="dsdsx_default-dsx2",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s1"],
+                False,
+                lambda module: module.User,
+                id="dsdsx_default-dsx2-s1",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s2"],
+                False,
+                lambda module: module.User,
+                id="dsdsx_default-dsx2-s2",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s3"],
+                False,
+                lambda module: module.User,
+                id="dsdsx_default-dsx2-s3",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx3"],
+                False,
+                lambda module: Dict[str, module.User],  # type: ignore
+                id="dsdsx_default-dsx3",
+            ),
+            param(
+                "ListsAndDicts", "lldsi", False, List[List[Dict[str, int]]], id="lldsi"
+            ),
+            param(
+                "ListsAndDicts",
+                "oldfox",
+                True,
+                lambda module: List[Dict[float, Optional[module.User]]],  # type: ignore
+                id="oldfox",
+            ),
+            param(
+                "ListsAndDicts",
+                "oldfox",
+                True,
+                lambda module: List[Dict[float, Optional[module.User]]],  # type: ignore
+                id="oldfox",
+            ),
+            param(
+                "ListsAndDicts",
+                ["dedsle_default", Color.RED],
+                False,
+                Dict[str, List[Enum1]],
+                id="dedsle_default-RED",
+            ),
+            param(
+                "WithDefault",
+                "dsolx_default",
+                False,
+                lambda module: Dict[str, Optional[List[module.User]]],  # type: ignore
+                id="dsolx_default",
+            ),
+            param(
+                "WithDefault",
+                ["dsolx_default", "lx"],
+                True,
+                lambda module: List[module.User],  # type: ignore
+                id="dsolx_default-lx",
+            ),
+            param(
+                "WithDefault",
+                ["dsolx_default", "lx", 0],
+                False,
+                lambda module: module.User,
+                id="dsolx_default-lx-0",
+            ),
+        ],
+    )
+    def test_metadata(
+        self,
+        module: Any,
+        class_name: str,
+        keys: Any,
+        expected_optional: bool,
+        expected_ref_type: Any,
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        node = OmegaConf.structured(cls)
+
+        if not isinstance(keys, list):
+            keys = [keys]
+        for key in keys:
+            node = node._get_node(key)
+
+        if inspect.isfunction(expected_ref_type):
+            expected_ref_type = expected_ref_type(module)
+
+        assert node._metadata.optional == expected_optional
+        assert node._metadata.ref_type == expected_ref_type
+
+        if _utils.is_dict_annotation(expected_ref_type):
+            expected_key_type, expected_element_type = _utils.get_dict_key_value_types(
+                expected_ref_type
+            )
+            assert node._metadata.key_type == expected_key_type
+            assert node._metadata.element_type == expected_element_type
+
+        if _utils.is_list_annotation(expected_ref_type):
+            expected_element_type = _utils.get_list_element_type(expected_ref_type)
+            assert node._metadata.element_type == expected_element_type
+
+    @mark.parametrize(
+        "class_name, key, value",
+        [
+            param("ListOfLists", "lls", [["a", "b"], ["c"]], id="lls"),
+            param("ListOfLists", "lls", [], id="lls-empty"),
+            param("ListOfLists", "lls", [[]], id="lls-list-of-empty"),
+            param(
+                "ListOfLists",
+                "lls_default",
+                [["a", "b"], ["c"]],
+                id="lls_default",
+            ),
+            param(
+                "ListOfLists",
+                "llx",
+                lambda module: [[module.User("Bond", 7)]],
+                id="llx",
+            ),
+            param(
+                "ListOfLists",
+                "lolx_default",
+                lambda module: [[module.User("Bond", 7)]],
+                id="lolx_default",
+            ),
+            param("DictOfDicts", "dsdsi", {"abc": {"xyz": 123}}, id="dsdsi"),
+            param("DictOfDicts", "dsdbi", {"abc": {True: 456}}, id="dsdbi"),
+            param(
+                "DictOfDicts",
+                "dsdsx",
+                lambda module: {"abc": {"xyz": module.User("Bond", 7)}},
+                id="dsdsx",
+            ),
+        ],
+    )
+    def test_legal_assignment(
+        self, module: Any, class_name: str, key: str, value: Any
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        cfg = OmegaConf.structured(cls)
+        if inspect.isfunction(value):
+            value = value(module)
+
+        cfg[key] = value
+
+        assert cfg[key] == value
+
+    @mark.parametrize(
+        "class_name, key, value, expected",
+        [
+            param(
+                "ListOfLists",
+                "lls",
+                [["123", 456]],
+                [["123", "456"]],
+                id="lls-conversion-from-int",
+            ),
+            param("ListOfLists", "lls", [["123", 456]], [["123", "456"]], id="lls"),
+            param("ListOfLists", "llla", [[["123", 456]]], [[["123", 456]]], id="llla"),
+            param("ListOfLists", "lloli", [[["123", 456]]], [[[123, 456]]], id="lloli"),
+            param(
+                "DictOfDicts",
+                "dsdbi",
+                {"abc": {True: "456"}},
+                {"abc": {True: 456}},
+                id="dsdbi",
+            ),
+        ],
+    )
+    def test_assignment_conversion(
+        self, module: Any, class_name: str, key: str, value: Any, expected: Any
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        cfg = OmegaConf.structured(cls)
+        if inspect.isfunction(value):
+            value = value(module)
+
+        cfg[key] = value
+
+        assert cfg[key] == expected
+
+    @mark.parametrize(
+        "class_name, key, value, err_type",
+        [
+            param(
+                "ListOfLists",
+                "lloli",
+                [[["abc"]]],
+                ValidationError,
+                id="assign-llls-to-lloli",
+            ),
+            param(
+                "ListOfLists",
+                "llx",
+                [[{"name": "Bond", "age": 7}]],
+                ValidationError,
+                id="assign-lld-to-llx",
+            ),
+            param(
+                "DictOfDicts",
+                "dsdbi",
+                {123: {True: 456}},
+                KeyValidationError,
+                id="assign-didbi-to-dsdbi",
+            ),
+            param(
+                "DictOfDicts",
+                "dsdbi",
+                {"abc": {"True": 456}},
+                KeyValidationError,
+                id="assign-dsdsi-to-dsdbi",
+            ),
+        ],
+    )
+    def test_illegal_assignment(
+        self, module: Any, class_name: str, key: str, value: Any, err_type: Any
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        cfg = OmegaConf.structured(cls)
+
+        with raises(err_type):
+            cfg[key] = value
+
+    @mark.parametrize(
+        "class_name, keys, expected",
+        [
+            param("ListOfLists", ["lls"], MISSING, id="lls-missing"),
+            param("ListOfLists", ["lls_default", 0], [], id="lls_default-empty-list"),
+            param("ListOfLists", ["lls_default", 1, 0], "abc", id="lls_default-str"),
+            param(
+                "ListOfLists",
+                ["lls_default", 1, 2],
+                "123",
+                id="lls_default-int-converted",
+            ),
+            param(
+                "ListOfLists",
+                ["lls_default", 1, 3],
+                MISSING,
+                id="lls_default-missing-nested",
+            ),
+            param("ListOfLists", ["lls_default", 2], MISSING, id="lls_default-missing"),
+            param("DictOfDicts", ["dsdsi"], MISSING, id="dsdsi-missing"),
+            param(
+                "DictOfDicts", ["dsdsx_default", "dsx1"], {}, id="dsdsx_default-empty"
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s1"],
+                {"name": "???", "age": "???"},
+                id="dsdsx_default-user-missing-data",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s2"],
+                {"name": "Bond", "age": 7},
+                id="dsdsx_default-user",
+            ),
+            param(
+                "DictOfDicts",
+                ["dsdsx_default", "dsx2", "s3"],
+                MISSING,
+                id="dsdsx_default-missing-user",
+            ),
+            param(
+                "DictOfDicts",
+                ["odsdsi_default", "dsi2", "s2"],
+                123,
+                id="dsdsi-str-converted-to-int",
+            ),
+        ],
+    )
+    def test_default_values(
+        self, module: Any, class_name: str, keys: Any, expected: Any
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        node = OmegaConf.structured(cls)
+
+        if not isinstance(keys, list):
+            keys = [keys]
+        for key in keys:
+            node = node._get_node(key)
+
+        if expected is MISSING:
+            assert node._is_missing()
+        else:
+            assert node == expected
+
+    @mark.parametrize(
+        "class_name, keys, value, is_legal",
+        [
+            param("WithDefault", "dsolx_default", None, False, id="dsolx=none-illegal"),
+            param(
+                "WithDefault", ["dsolx_default", "lx"], None, True, id="olx=none-legal"
+            ),
+            param(
+                "WithDefault", "dsolx_default", {"s": None}, True, id="dsolx=dn-legal"
+            ),
+            param(
+                "WithDefault",
+                ["dsolx_default", "lx", 0],
+                None,
+                False,
+                id="x=none-illegal",
+            ),
+            param("DictOfDicts", "odsdsi_default", None, True, id="odsdsi=none-legal"),
+            param("DictOfDicts", "dsdsx", None, False, id="dsdsx=none-illegal"),
+            param(
+                "DictOfDicts",
+                ["odsdsi_default", "dsi1"],
+                None,
+                False,
+                id="dsi=none-illegal",
+            ),
+            param("DictOfDicts", "dsdsx", {"s": None}, False, id="dsdsx=dsn-illegal"),
+            param("ListOfLists", "lloli", None, False, id="lloli=n-illegal"),
+            param("ListOfLists", "lloli", [None], False, id="lloli=ln-illegal"),
+            param("ListOfLists", "lloli", [[None]], True, id="lloli=lln-legal"),
+            param("ListOfLists", "lloli", [[[None]]], False, id="lloli=llln-illegal"),
+            param("ListOfLists", ["lolx_default"], None, False, id="lolx=n-illegal"),
+            param("ListOfLists", ["lolx_default", 1], None, True, id="olx=n-legal"),
+            param(
+                "ListOfLists", ["lolx_default", 1, 0], None, False, id="lx=n-illegal"
+            ),
+        ],
+    )
+    def test_assign_none(
+        self, module: Any, class_name: str, keys: Any, value: Any, is_legal: bool
+    ) -> None:
+        cls = getattr(module.NestedContainers, class_name)
+        node = OmegaConf.structured(cls)
+
+        if not isinstance(keys, list):
+            keys = [keys]
+        for key in keys[:-1]:
+            node = node[key]
+        last_key = keys[-1]
+
+        if is_legal:
+            node[last_key] = value
+            assert node[last_key] == value
+        else:
+            with raises(ValidationError):
+                node[last_key] = value

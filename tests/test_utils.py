@@ -106,13 +106,40 @@ from tests import Color, ConcretePlugin, Dataframe, IllegalType, Plugin, User
         ),
         # bad type
         param(IllegalType, "nope", ValidationError, id="bad_type"),
+        param(IllegalType, [1, 2, 3], ValidationError, id="list_bad_type"),
+        param(IllegalType, {"foo": "bar"}, ValidationError, id="dict_bad_type"),
         # DictConfig
         param(
-            dict, {"foo": "bar"}, DictConfig(content={"foo": "bar"}), id="DictConfig"
+            Dict[Any, Any],
+            {"foo": "bar"},
+            DictConfig(content={"foo": "bar"}),
+            id="DictConfig",
         ),
+        param(List[Any], {"foo": "bar"}, ValidationError, id="dict_to_list"),
+        param(List[int], {"foo": "bar"}, ValidationError, id="dict_to_list[int]"),
+        param(
+            Any,
+            {"foo": "bar"},
+            DictConfig(content={"foo": "bar"}),
+            id="dict_to_any",
+        ),
+        param(Plugin, {"foo": "bar"}, ValidationError, id="dict_to_plugin"),
+        # Structured Config
         param(Plugin, Plugin(), DictConfig(content=Plugin()), id="DictConfig[Plugin]"),
+        param(Any, Plugin(), DictConfig(content=Plugin()), id="plugin_to_any"),
+        param(
+            Dict[str, int],
+            Plugin(),
+            ValidationError,
+            id="plugin_to_dict[str, int]",
+        ),
+        param(List[Any], Plugin(), ValidationError, id="plugin_to_list"),
+        param(List[int], Plugin(), ValidationError, id="plugin_to_list[int]"),
         # ListConfig
-        param(list, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
+        param(List[Any], [1, 2, 3], ListConfig(content=[1, 2, 3]), id="ListConfig"),
+        param(Dict[Any, Any], [1, 2, 3], ValidationError, id="list_to_dict"),
+        param(Dict[str, int], [1, 2, 3], ValidationError, id="list_to_dict[str-int]"),
+        param(Any, [1, 2, 3], ListConfig(content=[1, 2, 3]), id="list_to_any"),
     ],
 )
 def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
@@ -301,13 +328,41 @@ class Dataclass:
         (Color.GREEN, _utils.ValueKind.VALUE),
         (Dataclass, _utils.ValueKind.VALUE),
         (Dataframe(), _utils.ValueKind.VALUE),
+        (IntegerNode(123), _utils.ValueKind.VALUE),
+        (DictConfig({}), _utils.ValueKind.VALUE),
+        (ListConfig([]), _utils.ValueKind.VALUE),
+        (AnyNode(123), _utils.ValueKind.VALUE),
         ("???", _utils.ValueKind.MANDATORY_MISSING),
+        (IntegerNode("???"), _utils.ValueKind.MANDATORY_MISSING),
+        (DictConfig("???"), _utils.ValueKind.MANDATORY_MISSING),
+        (ListConfig("???"), _utils.ValueKind.MANDATORY_MISSING),
+        (AnyNode("???"), _utils.ValueKind.MANDATORY_MISSING),
         ("${foo.bar}", _utils.ValueKind.INTERPOLATION),
         ("ftp://${host}/path", _utils.ValueKind.INTERPOLATION),
         ("${func:foo}", _utils.ValueKind.INTERPOLATION),
         ("${func:a/b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
         ("${func:c:\\a\\b}", _utils.ValueKind.INTERPOLATION),
+        param(
+            IntegerNode("${func:c:\\a\\b}"),
+            _utils.ValueKind.INTERPOLATION,
+            id="integernode-interp",
+        ),
+        param(
+            DictConfig("${func:c:\\a\\b}"),
+            _utils.ValueKind.INTERPOLATION,
+            id="dictconfig-interp",
+        ),
+        param(
+            ListConfig("${func:c:\\a\\b}"),
+            _utils.ValueKind.INTERPOLATION,
+            id="listconfig-interp",
+        ),
+        param(
+            AnyNode("${func:c:\\a\\b}"),
+            _utils.ValueKind.INTERPOLATION,
+            id="anynode-interp",
+        ),
     ],
 )
 def test_value_kind(value: Any, kind: _utils.ValueKind) -> None:

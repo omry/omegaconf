@@ -270,6 +270,16 @@ class OptTuple:
     x: Optional[Tuple[int, ...]] = None
 
 
+@dataclass
+class NestedContainers:
+    dict_of_dict: Dict[str, Dict[str, int]] = field(
+        default_factory=lambda: {"foo": {"bar": 123}}
+    )
+    list_of_list: List[List[int]] = field(default_factory=lambda: [[123]])
+    dict_of_list: Dict[str, List[int]] = field(default_factory=lambda: {"foo": [123]})
+    list_of_dict: List[Dict[str, int]] = field(default_factory=lambda: [{"bar": 123}])
+
+
 def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:
     return warns(
         UserWarning,

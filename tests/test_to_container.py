@@ -57,6 +57,7 @@ def test_to_container_returns_primitives(input_: Any) -> None:
 
     c = OmegaConf.create(input_)
     res = OmegaConf.to_container(c, resolve=True)
+    assert isinstance(res, (dict, list))
     assert_container_with_primitives(res)
 
 
@@ -142,6 +143,7 @@ def test_scmode(
     else:
         ret = OmegaConf.to_container(cfg, structured_config_mode=structured_config_mode)
     assert ret == expected
+    assert isinstance(ret, (dict, list))
     assert isinstance(ret[key], expected_value_type)
 
 
