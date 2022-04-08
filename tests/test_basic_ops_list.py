@@ -326,69 +326,42 @@ def test_list_append() -> None:
 
 
 @mark.parametrize(
-    "lc,element,expected",
+    "lc,element,err",
     [
         param(
             ListConfig(content=[], element_type=int),
             "foo",
-            raises(
-                ValidationError,
-                match=re.escape(
-                    "Value 'foo' of type 'str' could not be converted to Integer"
-                ),
-            ),
+            "Value 'foo' of type 'str' could not be converted to Integer",
             id="append_str_to_list[int]",
         ),
         param(
             ListConfig(content=[], element_type=Color),
             "foo",
-            raises(
-                ValidationError,
-                match=re.escape(
-                    "Invalid value 'foo', expected one of [RED, GREEN, BLUE]"
-                ),
-            ),
+            "Invalid value 'foo', expected one of [RED, GREEN, BLUE]",
             id="append_str_to_list[Color]",
         ),
         param(
             ListConfig(content=[], element_type=User),
             "foo",
-            raises(
-                ValidationError,
-                match=re.escape(
-                    "Invalid type assigned: str is not a subclass of User. value: foo"
-                ),
-            ),
+            "Invalid type assigned: str is not a subclass of User. value: foo",
             id="append_str_to_list[User]",
         ),
         param(
             ListConfig(content=[], element_type=User),
             {"name": "Bond", "age": 7},
-            raises(
-                ValidationError,
-                match=re.escape(
-                    "Invalid type assigned: dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}"
-                ),
-            ),
+            "Invalid type assigned: dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}",
             id="list:convert_dict_to_user",
         ),
         param(
             ListConfig(content=[], element_type=User),
             {},
-            raises(
-                ValidationError,
-                match=re.escape(
-                    "Invalid type assigned: dict is not a subclass of User. value: {}"
-                ),
-            ),
+            "Invalid type assigned: dict is not a subclass of User. value: {}",
             id="list:convert_empty_dict_to_user",
         ),
     ],
 )
-def test_append_invalid_element_type(
-    lc: ListConfig, element: Any, expected: Any
-) -> None:
-    with expected:
+def test_append_invalid_element_type(lc: ListConfig, element: Any, err: Any) -> None:
+    with raises(ValidationError, match=re.escape(err)):
         lc.append(element)
 
 
