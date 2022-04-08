@@ -352,6 +352,10 @@ OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
 
     >>> conf: Modifiers = OmegaConf.structured(Modifiers)
 
+Note for Python3.6 users: :ref:`pickling <save_and_load_pickle_file>`
+structured configs with complex type annotations, such as dict-of-list or
+list-of-optional, is not supported.
+
 Mandatory missing values
 ++++++++++++++++++++++++
 
