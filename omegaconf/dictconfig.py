@@ -61,7 +61,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     def __init__(
         self,
-        content: Union[Dict[DictKeyType, Any], Any],
+        content: Union[Dict[DictKeyType, Any], "DictConfig", Any],
         key: Any = None,
         parent: Optional[Container] = None,
         ref_type: Union[Any, Type[Any]] = Any,
@@ -80,7 +80,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     key=key,
                     optional=is_optional,
                     ref_type=ref_type,
-                    object_type=None,
+                    object_type=dict,
                     key_type=key_type,
                     element_type=element_type,
                     flags=flags,
@@ -101,6 +101,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 if isinstance(content, DictConfig):
                     metadata = copy.deepcopy(content._metadata)
                     metadata.key = key
+                    metadata.ref_type = ref_type
                     metadata.optional = is_optional
                     metadata.element_type = element_type
                     metadata.key_type = key_type
@@ -156,7 +157,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     return
             if is_typed or is_struct:
                 if is_typed:
-                    assert self._metadata.object_type is not None
+                    assert self._metadata.object_type not in (dict, None)
                     msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
                     msg = f"Key '{key}' is not in struct"
@@ -170,7 +171,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         vk = get_value_kind(value)
         if vk == ValueKind.INTERPOLATION:
             return
-        self._validate_non_optional(key, value)
+        if _is_none(value):
+            self._validate_non_optional(key, value)
+            return
         if vk == ValueKind.MANDATORY_MISSING or value is None:
             return
 
@@ -216,7 +219,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         dest_obj_type = OmegaConf.get_type(dest)
         src_obj_type = OmegaConf.get_type(src)
 
-        if dest._is_missing() and src._metadata.object_type is not None:
+        if dest._is_missing() and src._metadata.object_type not in (dict, None):
             self._validate_set(key=None, value=_get_value(src))
 
         if src._is_missing():
@@ -677,16 +680,17 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 self._metadata.object_type = get_type_of(value)
 
             elif isinstance(value, DictConfig):
-                self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
                 self._metadata.flags = copy.deepcopy(flags)
                 with flag_override(self, ["struct", "readonly"], False):
                     for k, v in value.__dict__["_content"].items():
                         self.__setitem__(k, v)
+                self._metadata.object_type = value._metadata.object_type
 
             elif isinstance(value, dict):
                 with flag_override(self, ["struct", "readonly"], False):
                     for k, v in value.items():
                         self.__setitem__(k, v)
+                self._metadata.object_type = dict
 
             else:  # pragma: no cover
                 msg = f"Unsupported value type: {value}"

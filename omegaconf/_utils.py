@@ -504,23 +504,48 @@ def get_value_kind(
     if _is_missing_value(value):
         return ValueKind.MANDATORY_MISSING
 
-    value = _get_value(value)
+    if _is_interpolation(value, strict_interpolation_validation):
+        return ValueKind.INTERPOLATION
 
+    return ValueKind.VALUE
+
+
+def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> bool:
+    from omegaconf import Node
+
+    if isinstance(v, Node):
+        v = v._value()
+
+    if isinstance(v, str) and _is_interpolation_string(
+        v, strict_interpolation_validation
+    ):
+        return True
+    return False
+
+
+def _is_interpolation_string(value: str, strict_interpolation_validation: bool) -> bool:
     # We identify potential interpolations by the presence of "${" in the string.
     # Note that escaped interpolations (ex: "esc: \${bar}") are identified as
     # interpolations: this is intended, since they must be processed as interpolations
     # for the string to be properly un-escaped.
     # Keep in mind that invalid interpolations will only be detected when
     # `strict_interpolation_validation` is True.
-    if isinstance(value, str) and "${" in value:
+    if "${" in value:
         if strict_interpolation_validation:
             # First try the cheap regex matching that detects common interpolations.
             if SIMPLE_INTERPOLATION_PATTERN.match(value) is None:
                 # If no match, do the more expensive grammar parsing to detect errors.
                 parse(value)
-        return ValueKind.INTERPOLATION
-    else:
-        return ValueKind.VALUE
+        return True
+    return False
+
+
+def _is_special(value: Any) -> bool:
+    """Special values are None, MISSING, and interpolation."""
+    return _is_none(value) or get_value_kind(value) in (
+        ValueKind.MANDATORY_MISSING,
+        ValueKind.INTERPOLATION,
+    )
 
 
 # DEPRECATED: remove in 2.2
@@ -643,7 +668,12 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
 
 def valid_value_annotation_type(type_: Any) -> bool:
     _, type_ = _resolve_optional(type_)
-    return type_ is Any or is_primitive_type(type_) or is_structured_config(type_)
+    return (
+        type_ is Any
+        or is_primitive_type(type_)
+        or is_structured_config(type_)
+        or is_container_annotation(type_)
+    )
 
 
 def _valid_dict_key_annotation_type(type_: Any) -> bool:
@@ -662,17 +692,6 @@ def is_primitive_type(type_: Any) -> bool:
         bytes,
         type(None),
     )
-
-
-def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> bool:
-    if isinstance(v, str):
-        ret = (
-            get_value_kind(v, strict_interpolation_validation)
-            == ValueKind.INTERPOLATION
-        )
-        assert isinstance(ret, bool)
-        return ret
-    return False
 
 
 def _get_value(value: Any) -> Any:

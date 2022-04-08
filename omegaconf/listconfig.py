@@ -45,7 +45,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def __init__(
         self,
-        content: Union[List[Any], Tuple[Any, ...], str, None],
+        content: Union[List[Any], Tuple[Any, ...], "ListConfig", str, None],
         key: Any = None,
         parent: Optional[Container] = None,
         element_type: Union[Type[Any], Any] = Any,
@@ -70,7 +70,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ),
             )
 
-            self.__dict__["_content"] = None
+            if isinstance(content, ListConfig):
+                metadata = copy.deepcopy(content._metadata)
+                metadata.key = key
+                metadata.ref_type = ref_type
+                metadata.optional = is_optional
+                metadata.element_type = element_type
+                self.__dict__["_metadata"] = metadata
             self._set_value(value=content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=key, value=None, cause=ex, msg=str(ex))
@@ -598,9 +604,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         try:
             previous_content = self.__dict__["_content"]
+            previous_metadata = self.__dict__["_metadata"]
             self._set_value_impl(value, flags)
         except Exception as e:
             self.__dict__["_content"] = previous_content
+            self.__dict__["_metadata"] = previous_metadata
             raise e
 
     def _set_value_impl(
@@ -612,16 +620,19 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             flags = {}
 
         vk = get_value_kind(value, strict_interpolation_validation=True)
-        if _is_none(value, resolve=True):
+        if _is_none(value):
             if not self._is_optional():
                 raise ValidationError(
                     "Non optional ListConfig cannot be constructed from None"
                 )
             self.__dict__["_content"] = None
+            self._metadata.object_type = None
         elif vk is ValueKind.MANDATORY_MISSING:
             self.__dict__["_content"] = MISSING
+            self._metadata.object_type = None
         elif vk == ValueKind.INTERPOLATION:
             self.__dict__["_content"] = value
+            self._metadata.object_type = None
         else:
             if not (is_primitive_list(value) or isinstance(value, ListConfig)):
                 type_ = type(value)
@@ -630,7 +641,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
             self.__dict__["_content"] = []
             if isinstance(value, ListConfig):
-                self.__dict__["_metadata"] = copy.deepcopy(value._metadata)
                 self._metadata.flags = copy.deepcopy(flags)
                 # disable struct and readonly for the construction phase
                 # retaining other flags like allow_objects. The real flags are restored at the end of this function
@@ -641,6 +651,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 with flag_override(self, ["struct", "readonly"], False):
                     for item in value:
                         self.append(item)
+            self._metadata.object_type = list
 
     @staticmethod
     def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:

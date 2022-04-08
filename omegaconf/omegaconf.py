@@ -872,29 +872,46 @@ class OmegaConf:
                     or obj is None
                 ):
                     if isinstance(obj, DictConfig):
-                        key_type = obj._metadata.key_type
-                        element_type = obj._metadata.element_type
+                        return DictConfig(
+                            content=obj,
+                            parent=parent,
+                            ref_type=obj._metadata.ref_type,
+                            is_optional=obj._metadata.optional,
+                            key_type=obj._metadata.key_type,
+                            element_type=obj._metadata.element_type,
+                            flags=flags,
+                        )
                     else:
                         obj_type = OmegaConf.get_type(obj)
                         key_type, element_type = get_dict_key_value_types(obj_type)
-                    return DictConfig(
-                        content=obj,
-                        parent=parent,
-                        ref_type=Any,
-                        key_type=key_type,
-                        element_type=element_type,
-                        flags=flags,
-                    )
+                        return DictConfig(
+                            content=obj,
+                            parent=parent,
+                            key_type=key_type,
+                            element_type=element_type,
+                            flags=flags,
+                        )
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
-                    obj_type = OmegaConf.get_type(obj)
-                    element_type = get_list_element_type(obj_type)
-                    return ListConfig(
-                        element_type=element_type,
-                        ref_type=Any,
-                        content=obj,
-                        parent=parent,
-                        flags=flags,
-                    )
+                    if isinstance(obj, ListConfig):
+                        return ListConfig(
+                            content=obj,
+                            parent=parent,
+                            element_type=obj._metadata.element_type,
+                            ref_type=obj._metadata.ref_type,
+                            is_optional=obj._metadata.optional,
+                            flags=flags,
+                        )
+                    else:
+                        obj_type = OmegaConf.get_type(obj)
+                        element_type = get_list_element_type(obj_type)
+                        return ListConfig(
+                            content=obj,
+                            parent=parent,
+                            element_type=element_type,
+                            ref_type=Any,
+                            is_optional=True,
+                            flags=flags,
+                        )
                 else:
                     if isinstance(obj, type):
                         raise ValidationError(
@@ -1007,13 +1024,7 @@ def _node_wrap(
     ref_type: Any = Any,
 ) -> Node:
     node: Node
-    is_dict = is_primitive_dict(value) or is_dict_annotation(type_)
-    is_list = (
-        type(value) in (list, tuple)
-        or is_list_annotation(type_)
-        or is_tuple_annotation(type_)
-    )
-    if is_dict:
+    if is_dict_annotation(type_) or (is_primitive_dict(value) and type_ is Any):
         key_type, element_type = get_dict_key_value_types(type_)
         node = DictConfig(
             content=value,
@@ -1024,7 +1035,9 @@ def _node_wrap(
             key_type=key_type,
             element_type=element_type,
         )
-    elif is_list:
+    elif (is_list_annotation(type_) or is_tuple_annotation(type_)) or (
+        is_primitive_list(value) and type_ is Any
+    ):
         element_type = get_list_element_type(type_)
         node = ListConfig(
             content=value,

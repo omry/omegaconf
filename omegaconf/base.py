@@ -64,6 +64,17 @@ class Metadata:
         if self.flags is None:
             self.flags = {}
 
+    @property
+    def type_hint(self) -> Union[Type[Any], Any]:
+        """Compute `type_hint` from `self.optional` and `self.ref_type`"""
+        # For compatibility with pickled OmegaConf objects created using older
+        # versions of OmegaConf, we store `ref_type` and `object_type`
+        # separately (rather than storing `type_hint` directly).
+        if self.optional:
+            return Optional[self.ref_type]
+        else:
+            return self.ref_type
+
 
 @dataclass
 class ContainerMetadata(Metadata):
