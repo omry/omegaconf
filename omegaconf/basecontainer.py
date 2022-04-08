@@ -8,16 +8,19 @@ import yaml
 
 from ._utils import (
     _DEFAULT_MARKER_,
+    ValueKind,
     _ensure_container,
     _get_value,
     _is_interpolation,
     _is_missing_literal,
     _is_missing_value,
     _is_none,
+    _is_special,
     _is_union,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
+    get_value_kind,
     get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
@@ -32,6 +35,7 @@ from .errors import (
     ConfigCycleDetectedException,
     ConfigTypeError,
     InterpolationResolutionError,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     ReadonlyConfigError,
@@ -246,7 +250,7 @@ class BaseContainer(Container, ABC):
 
         if isinstance(conf, DictConfig):
             if (
-                conf._metadata.object_type is not None
+                conf._metadata.object_type not in (dict, None)
                 and structured_config_mode == SCMode.DICT_CONFIG
             ):
                 return conf
@@ -492,8 +496,6 @@ class BaseContainer(Container, ABC):
         Changes the value of the node key with the desired value. If the node key doesn't
         exist it creates a new one.
         """
-        from omegaconf.omegaconf import _maybe_wrap
-
         from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
@@ -519,83 +521,83 @@ class BaseContainer(Container, ABC):
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot change read-only config container")
 
-        input_config = isinstance(value, Container)
+        input_is_node = isinstance(value, Node)
         target_node_ref = self._get_node(key)
-        special_value = value is None or _is_missing_value(value)
 
-        input_node = isinstance(value, ValueNode)
-        if isinstance(self.__dict__["_content"], dict):
-            target_node = key in self.__dict__["_content"] and isinstance(
-                target_node_ref, ValueNode
-            )
-
-        elif isinstance(self.__dict__["_content"], list):
-            target_node = isinstance(target_node_ref, ValueNode)
-        # We use set_value if:
-        # 1. Target node is a container and the value is MISSING or None
-        # 2. Target node is a container and has an explicit ref_type
-        # 3. If the target is a NodeValue then it should set his value.
-        #    Furthermore if it's an AnyNode it should wrap when the input is
-        # a container and set when the input is an compatible type(primitive type).
-        should_set_value = target_node_ref is not None and (
-            (
-                isinstance(target_node_ref, Container)
-                and (special_value or target_node_ref._has_ref_type())
-            )
-            or (target_node and not isinstance(target_node_ref, AnyNode))
-            or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
+        input_is_typed_vnode = isinstance(value, ValueNode) and not isinstance(
+            value, AnyNode
         )
+        target_is_vnode = isinstance(target_node_ref, ValueNode)
 
-        def wrap(key: Any, val: Any) -> Node:
+        def get_target_type_hint(val: Any) -> Any:
             if not is_structured_config(val):
-                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
+                type_hint = self._metadata.element_type
             else:
                 target = self._get_node(key)
                 if target is None:
-                    is_optional, ref_type = _resolve_optional(
-                        self._metadata.element_type
-                    )
+                    type_hint = self._metadata.element_type
                 else:
                     assert isinstance(target, Node)
-                    is_optional = target._is_optional()
-                    ref_type = target._metadata.ref_type
-            return _maybe_wrap(
-                ref_type=ref_type,
-                key=key,
-                value=val,
-                is_optional=is_optional,
-                parent=self,
-            )
+                    type_hint = target._metadata.type_hint
+            return type_hint
 
-        def assign(value_key: Any, val: ValueNode) -> None:
+        def assign(value_key: Any, val: Node) -> None:
             assert val._get_parent() is None
             v = val
             v._set_parent(self)
             v._set_key(value_key)
-            _update_types(v, self._metadata.element_type, None)
+            _deep_update_type_hint(node=v, type_hint=self._metadata.element_type)
             self.__dict__["_content"][value_key] = v
 
-        if input_node and target_node:
-            # both nodes, replace existing node with new one
+        if input_is_typed_vnode:
             assign(key, value)
-        elif not input_node and target_node:
-            # input is not node, can be primitive or config
+        else:
+            # input is not a ValueNode, can be primitive or container
+
+            special_value = _is_special(value)
+            type_hint = get_target_type_hint(value)
+            # We use the `Node._set_value` method if the target node exists
+            # 1. the value is special (i.e. MISSING or None or interpolation), or
+            # 2. the target is a Container and has an explicit ref_type, or
+            # 3. the target is a typed ValueNode, or
+            # 4. the target is an AnyNode and the input is a primitive type.
+            should_set_value = target_node_ref is not None and (
+                special_value
+                or (
+                    isinstance(target_node_ref, Container)
+                    and target_node_ref._has_ref_type()
+                )
+                or (target_is_vnode and not isinstance(target_node_ref, AnyNode))
+                or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
+            )
             if should_set_value:
+                if special_value and isinstance(value, Node):
+                    value = value._value()
                 self.__dict__["_content"][key]._set_value(value)
-            elif input_config:
-                assign(key, value)
+            elif input_is_node:
+                _, ref_type = _resolve_optional(type_hint)
+                if special_value and (
+                    is_container_annotation(ref_type) or is_structured_config(ref_type)
+                ):
+                    self._wrap_value_and_set(key, value._value(), type_hint)
+                else:
+                    assign(key, value)
             else:
-                self.__dict__["_content"][key] = wrap(key, value)
-        elif input_node and not target_node:
-            # target must be config, replace target with input node
-            assign(key, value)
-        elif not input_node and not target_node:
-            if should_set_value:
-                self.__dict__["_content"][key]._set_value(value)
-            elif input_config:
-                assign(key, value)
-            else:
-                self.__dict__["_content"][key] = wrap(key, value)
+                self._wrap_value_and_set(key, value, type_hint)
+
+    def _wrap_value_and_set(self, key: Any, val: Any, type_hint: Any) -> None:
+        from omegaconf.omegaconf import _maybe_wrap
+
+        is_optional, ref_type = _resolve_optional(type_hint)
+
+        wrapped = _maybe_wrap(
+            ref_type=ref_type,
+            key=key,
+            value=val,
+            is_optional=is_optional,
+            parent=self,
+        )
+        self.__dict__["_content"][key] = wrapped
 
     @staticmethod
     def _item_eq(
@@ -761,12 +763,107 @@ def _create_structured_with_missing_fields(
     return cfg
 
 
-def _update_types(node: Node, ref_type: type, object_type: Optional[type]) -> None:
+def _update_types(node: Node, ref_type: Any, object_type: Optional[type]) -> None:
     if object_type is not None and not is_primitive_dict(object_type):
         node._metadata.object_type = object_type
 
     if node._metadata.ref_type is Any:
-        new_is_optional, new_ref_type = _resolve_optional(ref_type)
-        if new_ref_type is not Any:
-            node._metadata.ref_type = new_ref_type
-            node._metadata.optional = new_is_optional
+        _deep_update_type_hint(node, ref_type)
+
+
+def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
+    """Ensure node is compatible with type_hint, mutating if necessary."""
+    from omegaconf import DictConfig, ListConfig
+
+    from ._utils import get_dict_key_value_types, get_list_element_type
+
+    if type_hint is Any:
+        return
+
+    _shallow_validate_type_hint(node, type_hint)
+
+    new_is_optional, new_ref_type = _resolve_optional(type_hint)
+    node._metadata.ref_type = new_ref_type
+    node._metadata.optional = new_is_optional
+
+    if is_list_annotation(new_ref_type) and isinstance(node, ListConfig):
+        new_element_type = get_list_element_type(new_ref_type)
+        node._metadata.element_type = new_element_type
+        if not _is_special(node):
+            for i in range(len(node)):
+                _deep_update_subnode(node, i, new_element_type)
+
+    if is_dict_annotation(new_ref_type) and isinstance(node, DictConfig):
+        new_key_type, new_element_type = get_dict_key_value_types(new_ref_type)
+        node._metadata.key_type = new_key_type
+        node._metadata.element_type = new_element_type
+        if not _is_special(node):
+            for key in node:
+                if new_key_type is not Any and not isinstance(key, new_key_type):
+                    raise KeyValidationError(
+                        f"Key {key!r} ({type(key).__name__}) is incompatible"
+                        + f" with key type hint '{new_key_type.__name__}'"
+                    )
+                _deep_update_subnode(node, key, new_element_type)
+
+
+def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) -> None:
+    """Get node[key] and ensure it is compatible with value_type_hint, mutating if necessary."""
+    subnode = node._get_node(key)
+    assert isinstance(subnode, Node)
+    if _is_special(subnode):
+        # Ensure special values are wrapped in a Node subclass that
+        # is compatible with the type hint.
+        node._wrap_value_and_set(key, subnode._value(), value_type_hint)
+        subnode = node._get_node(key)
+        assert isinstance(subnode, Node)
+    _deep_update_type_hint(subnode, value_type_hint)
+
+
+def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
+    """Error if node's type, content and metadata are not compatible with type_hint."""
+    from omegaconf import DictConfig, ListConfig, ValueNode
+
+    is_optional, ref_type = _resolve_optional(type_hint)
+
+    vk = get_value_kind(node)
+
+    if node._is_none():
+        if not is_optional:
+            value = _get_value(node)
+            raise ValidationError(
+                f"Value {value!r} ({type(value).__name__})"
+                + f" is incompatible with type hint '{ref_type.__name__}'"
+            )
+        return
+    elif vk in (ValueKind.MANDATORY_MISSING, ValueKind.INTERPOLATION):
+        return
+    elif vk == ValueKind.VALUE:
+        if is_primitive_type(ref_type) and isinstance(node, ValueNode):
+            value = node._value()
+            if not isinstance(value, ref_type):
+                raise ValidationError(
+                    f"Value {value!r} ({type(value).__name__})"
+                    + f" is incompatible with type hint '{ref_type.__name__}'"
+                )
+        elif is_structured_config(ref_type) and isinstance(node, DictConfig):
+            return
+        elif is_dict_annotation(ref_type) and isinstance(node, DictConfig):
+            return
+        elif is_list_annotation(ref_type) and isinstance(node, ListConfig):
+            return
+        else:
+            if isinstance(node, ValueNode):
+                value = node._value()
+                raise ValidationError(
+                    f"Value {value!r} ({type(value).__name__})"
+                    + f" is incompatible with type hint '{ref_type}'"
+                )
+            else:
+                raise ValidationError(
+                    f"'{type(node).__name__}' is incompatible"
+                    + f" with type hint '{ref_type}'"
+                )
+
+    else:
+        assert False
