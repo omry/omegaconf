@@ -358,6 +358,16 @@ def test_list_append() -> None:
             "Invalid type assigned: dict is not a subclass of User. value: {}",
             id="list:convert_empty_dict_to_user",
         ),
+        param(
+            ListConfig(content=[], element_type=List[int]),
+            123,
+            "Invalid value assigned: int is not a ListConfig, list or tuple.",
+        ),
+        param(
+            ListConfig(content=[], element_type=List[int]),
+            None,
+            "Invalid type assigned: NoneType is not a subclass of List[int]",
+        ),
     ],
 )
 def test_append_invalid_element_type(lc: ListConfig, element: Any, err: Any) -> None:

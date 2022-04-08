@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from pytest import importorskip
 
 from omegaconf import II, MISSING, SI
-from tests import Color
+from tests import Color, Enum1
 
 if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
@@ -638,3 +638,67 @@ class HasInitFalseFields:
 
     def __post_init__(self) -> None:
         self.post_initialized = "set_by_post_init"
+
+
+class NestedContainers:
+    @dataclass
+    class ListOfLists:
+        lls: List[List[str]]
+        llx: List[List[User]]
+        llla: List[List[List[Any]]]
+        lloli: List[List[Optional[List[int]]]]
+        lls_default: List[List[str]] = field(
+            default_factory=lambda: [[], ["abc", "def", 123, MISSING], MISSING]  # type: ignore
+        )
+        lolx_default: List[Optional[List[User]]] = field(
+            default_factory=lambda: [
+                [],
+                [User(), User(age=7, name="Bond"), MISSING],
+                MISSING,
+            ]
+        )
+
+    @dataclass
+    class DictOfDicts:
+        dsdsi: Dict[str, Dict[str, int]]
+        dsdbi: Dict[str, Dict[bool, int]]
+        dsdsx: Dict[str, Dict[str, User]]
+        odsdsi_default: Optional[Dict[str, Dict[str, int]]] = field(
+            default_factory=lambda: {
+                "dsi1": {},
+                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
+                "dsi3": MISSING,
+            }
+        )
+        dsdsx_default: Dict[str, Dict[str, User]] = field(
+            default_factory=lambda: {
+                "dsx1": {},
+                "dsx2": {
+                    "s1": User(),
+                    "s2": User(age=7, name="Bond"),
+                    "s3": MISSING,
+                },
+                "dsx3": MISSING,
+            }
+        )
+
+    @dataclass
+    class ListsAndDicts:
+        lldsi: List[List[Dict[str, int]]]
+        ldaos: List[Dict[Any, Optional[str]]]
+        dedsle: Dict[Color, Dict[str, List[Enum1]]]
+        dsolx: Dict[str, Optional[List[User]]]
+        oldfox: Optional[List[Dict[float, Optional[User]]]]
+        dedsle_default: Dict[Color, Dict[str, List[Enum1]]] = field(
+            default_factory=lambda: {
+                Color.RED: {"a": [Enum1.FOO, Enum1.BAR]},
+                Color.GREEN: {"b": []},
+                Color.BLUE: {},
+            }
+        )
+
+    @dataclass
+    class WithDefault:
+        dsolx_default: Dict[str, Optional[List[User]]] = field(
+            default_factory=lambda: {"lx": [User()], "n": None}
+        )
