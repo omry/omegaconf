@@ -116,7 +116,7 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ("str_ws_1", "hello world", "hello world"),
     ("str_ws_2", "a b\tc  \t\t  d", "a b\tc  \t\t  d"),
     ("str_esc_ws_1", r"\ hello\ world\ ", " hello world "),
-    ("str_esc_ws_2", fr"\ \{TAB}\{TAB}", f" {TAB}{TAB}"),
+    ("str_esc_ws_2", rf"\ \{TAB}\{TAB}", f" {TAB}{TAB}"),
     ("str_esc_comma", r"hello\, world", "hello, world"),
     ("str_esc_colon", r"a\:b", "a:b"),
     ("str_esc_equal", r"a\=b", "a=b"),
@@ -181,8 +181,8 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        fr"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
-        {fr"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@()[]{{}}:= {TAB},": 0},
+        rf"{{a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        {rf"a0-null-1-3.14-NaN- {TAB}-true-False-/\+.$%*@()[]{{}}:= {TAB},": 0},
     ),
     (
         "dict_quoted",
