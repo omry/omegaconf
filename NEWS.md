@@ -1,3 +1,9 @@
+## 2.1.2 (2022-04-12)
+### Bug Fixes
+
+- Fix default value initialization for structured configs created from subclasses of dataclasses ([#817](https://github.com/omry/omegaconf/issues/817))
+
+
 ## 2.1.1 (2021-08-17)
 ### Features
 
