@@ -327,7 +327,7 @@ def test_load_empty_file(tmpdir: str) -> None:
 )
 def test_pickle_untyped(
     input_: Any,
-    node: str,
+    node: Optional[str],
     optional: bool,
     element_type: Any,
     key_type: Any,
@@ -342,7 +342,7 @@ def test_pickle_untyped(
         fp.seek(0)
         cfg2 = pickle.load(fp)
 
-        def get_node(cfg: Any, key: str) -> Any:
+        def get_node(cfg: Any, key: Optional[str]) -> Any:
             if key is None:
                 return cfg
             else:
