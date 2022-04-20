@@ -232,6 +232,14 @@ class TestStructured:
         assert c2.user_3 is None
         assert get_ref_type(c2, "user_3") == Any
 
+    @mark.parametrize("resolve", [True, False])
+    def test_interpolation_to_structured(self, module: Any, resolve: bool) -> None:
+        cfg = OmegaConf.create(module.InterpolationToUser)
+        if resolve:
+            OmegaConf.resolve(cfg)
+        assert OmegaConf.get_type(cfg.admin) is module.User
+        assert cfg.admin == {"name": "Bond", "age": 7}
+
     class TestMissing:
         def test_missing1(self, module: Any) -> None:
             cfg = OmegaConf.create(module.MissingTest.Missing1)

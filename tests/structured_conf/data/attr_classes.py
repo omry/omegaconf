@@ -72,6 +72,12 @@ class OptionalUser:
 
 
 @attr.s(auto_attribs=True)
+class InterpolationToUser:
+    user: User = User("Bond", 7)
+    admin: User = II("user")
+
+
+@attr.s(auto_attribs=True)
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None

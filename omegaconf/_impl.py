@@ -20,7 +20,7 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
                 cfg[key] = resolved
             else:
-                node._set_value(resolved._value())
+                node._set_value(_get_value(resolved))
     else:
         _resolve(node)
 
