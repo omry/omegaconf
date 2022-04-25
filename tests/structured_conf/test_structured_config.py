@@ -208,8 +208,8 @@ class TestConfigs:
         conf1 = OmegaConf.structured(module.ConfigWithList)
         validate(conf1)
 
-        conf1 = OmegaConf.structured(module.ConfigWithList())
-        validate(conf1)
+        conf2 = OmegaConf.structured(module.ConfigWithList())
+        validate(conf2)
 
     def test_assignment_to_nested_structured_config(self, module: Any) -> None:
         conf = OmegaConf.structured(module.NestedConfig)
@@ -232,8 +232,9 @@ class TestConfigs:
 
         conf1 = OmegaConf.structured(module.ConfigWithDict)
         validate(conf1)
-        conf1 = OmegaConf.structured(module.ConfigWithDict())
-        validate(conf1)
+
+        conf2 = OmegaConf.structured(module.ConfigWithDict())
+        validate(conf2)
 
     def test_structured_config_struct_behavior(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
