@@ -1,5 +1,6 @@
 import copy
 import re
+import sys
 from typing import Any, Optional
 
 from pytest import mark, raises, warns
@@ -12,6 +13,7 @@ from omegaconf import (
     FloatNode,
     IntegerNode,
     ListConfig,
+    LiteralNode,
     OmegaConf,
     StringNode,
     ValidationError,
@@ -19,6 +21,11 @@ from omegaconf import (
 )
 from omegaconf._utils import _is_optional
 from tests import Color, Group
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 SKIP = object()
 
@@ -70,6 +77,16 @@ def verify(
             ),
             [Color.RED],
         ),
+        # LiteralNode
+        (
+            lambda value, is_optional, key=None: LiteralNode(
+                literal_type=Literal["foo", 5, b"bar", True, Color.GREEN],
+                value=value,
+                is_optional=is_optional,
+                key=key,
+            ),
+            ["foo", 5, b"bar", True, Color.GREEN],
+        ),
         # DictConfig
         (
             lambda value, is_optional, key=None: DictConfig(
@@ -99,6 +116,7 @@ def verify(
         "IntegerNode",
         "StringNode",
         "EnumNode",
+        "LiteralNode",
         "DictConfig",
         "ListConfig",
         "dataclass",

@@ -43,6 +43,13 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
+if sys.version_info >= (3, 8):
+    from typing import Literal  # pragma: no cover
+else:
+    from typing_extensions import Literal  # pragma: no cover
+if sys.version_info < (3, 7):
+    from typing_extensions import _Literal  # type: ignore # pragma: no cover
+
 
 # Regexprs to match key paths like: a.b, a[b], ..a[c].d, etc.
 # We begin by matching the head (in these examples: a, a, ..a).
@@ -628,6 +635,15 @@ def is_tuple_annotation(type_: Any) -> bool:
         return origin is tuple  # pragma: no cover
 
 
+def is_literal_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    # For python 3.6 and earllier typing_extensions.Literal does not have an origin attribute, and
+    # Literal is an instance of an internal _Literal class that we can check against.
+    if sys.version_info < (3, 7):
+        return type(type_) is _Literal  # pragma: no cover
+    return origin is Literal  # pragma: no cover
+
+
 def is_dict_subclass(type_: Any) -> bool:
     return type_ is not None and isinstance(type_, type) and issubclass(type_, Dict)
 
@@ -858,13 +874,21 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
         return "Any"
     if t is ...:
         return "..."
+    if (
+        isinstance(t, int)
+        or isinstance(t, str)
+        or isinstance(t, bytes)
+        or isinstance(t, Enum)
+    ):
+        # only occurs when using typing.Literal after 3.8
+        return str(t)  # pragma: no cover
 
     if sys.version_info < (3, 7, 0):  # pragma: no cover
         # Python 3.6
         if hasattr(t, "__name__"):
             name = str(t.__name__)
         else:
-            if t.__origin__ is not None:
+            if getattr(t, "__origin__", None) is not None:
                 name = type_str(t.__origin__)
             else:
                 name = str(t)

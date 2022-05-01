@@ -15,6 +15,7 @@ from .nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    LiteralNode,
     StringNode,
     ValueNode,
 )
@@ -55,6 +56,7 @@ __all__ = [
     "BytesNode",
     "BooleanNode",
     "EnumNode",
+    "LiteralNode",
     "FloatNode",
     "MISSING",
     "SI",

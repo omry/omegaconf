@@ -9,7 +9,9 @@ from omegaconf import II, MISSING, SI
 from tests import Color, Enum1
 
 if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import TypedDict
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal
 
 # skip test if dataclasses are not available
 importorskip("dataclasses")
@@ -189,6 +191,48 @@ class EnumConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: Color = II("with_default")
+
+
+if sys.version_info >= (3, 7):  # pragma: no cover
+
+    @dataclass
+    class LiteralConfig:
+        # with default value
+        with_default: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = "foo"
+
+        # default is None
+        null_default: Optional[
+            Literal["foo", "bar", True, b"baz", 5, Color.GREEN]
+        ] = None
+
+        # explicit no default
+        mandatory_missing: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = MISSING
+
+        # interpolation, will inherit the type and value of `with_default'
+        interpolation: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = II(
+            "with_default"
+        )
+
+else:  # pragma: no cover
+    # bare literals throw errors for python 3.7+. They're against spec for python 3.6 and earlier,
+    # but we should test that they fail to validate anyway.
+    @dataclass
+    class LiteralConfig:
+        # with default value
+        with_default: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = "foo"
+
+        # default is None
+        null_default: Optional[
+            Literal["foo", "bar", True, b"baz", 5, Color.GREEN]
+        ] = None
+        # explicit no default
+        mandatory_missing: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = MISSING
+
+        # interpolation, will inherit the type and value of `with_default'
+        interpolation: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = II(
+            "with_default"
+        )
+        no_args: Optional[Literal] = None  # type: ignore
 
 
 @dataclass

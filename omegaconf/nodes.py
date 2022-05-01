@@ -10,6 +10,7 @@ from omegaconf._utils import (
     _is_interpolation,
     get_type_of,
     get_value_kind,
+    is_literal_annotation,
     is_primitive_container,
     type_str,
 )
@@ -434,6 +435,70 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)
+        self._deepcopy_impl(res, memo)
+        return res
+
+
+class LiteralNode(ValueNode):
+    def __init__(
+        self,
+        literal_type: Any,  # cannot Type[Literal] because Literal requires an argument
+        value: Optional[Union[Enum, str, int, bool]] = None,
+        key: Any = None,
+        parent: Optional[Container] = None,
+        is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        if not is_literal_annotation(literal_type):
+            raise ValidationError(
+                f"LiteralNode can only operate on Literal annotation ({literal_type})"
+            )
+        self.literal_type = literal_type
+        if hasattr(self.literal_type, "__args__"):  # pragma: no cover
+            # python 3.7 and above
+            args = self.literal_type.__args__
+            self.fields = list(args) if args is not None else []
+        elif hasattr(self.literal_type, "__values__"):  # pragma: no cover
+            # python 3.6 and below
+            values = self.literal_type.__values__
+            self.fields = list(values) if values is not None else []
+        else:  # pragma: no cover
+            raise ValidationError(
+                f"literal_type={literal_type} is a literal but has no __args__ or __values__"
+            )
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=literal_type,
+                object_type=literal_type,
+                flags=flags,
+            ),
+        )
+
+    def _validate_and_convert_impl(self, value: Any) -> Any:
+        return self.validate_and_convert_to_literal(
+            enum_type=self.literal_type, value=value
+        )
+
+    def validate_and_convert_to_literal(self, enum_type: Type[Enum], value: Any) -> Any:
+        if value not in self.fields:
+            raise ValidationError(
+                f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type}"
+            )
+        index = self.fields.index(value)
+        if not isinstance(value, type(self.fields[index])):
+            raise ValidationError(
+                f"Value $VALUE ($VALUE_TYPE) is not a valid input for {enum_type} because "
+                f"type(value)={type(value)} but the matching literal value's type={type(self.fields[index])}"
+            )
+
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "LiteralNode":
+        res = LiteralNode(literal_type=self.literal_type)
         self._deepcopy_impl(res, memo)
         return res
 
