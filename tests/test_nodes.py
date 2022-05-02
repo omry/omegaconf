@@ -434,68 +434,6 @@ def test_legal_assignment_enum(
                 node_type(enum_type)
 
 
-class DummyEnum(Enum):
-    FOO = 1
-
-
-@mark.parametrize("is_optional", [True, False])
-@mark.parametrize(
-    "ref_type, value, expected_type",
-    [
-        (Any, 10, AnyNode),
-        (DummyEnum, DummyEnum.FOO, EnumNode),
-        (int, 42, IntegerNode),
-        (bytes, b"\xf0\xf1\xf2", BytesNode),
-        (float, 3.1415, FloatNode),
-        (bool, True, BooleanNode),
-        (str, "foo", StringNode),
-    ],
-)
-def test_node_wrap(
-    ref_type: type, is_optional: bool, value: Any, expected_type: Any
-) -> None:
-    from omegaconf.omegaconf import _node_wrap
-
-    ret = _node_wrap(
-        ref_type=ref_type,
-        value=value,
-        is_optional=is_optional,
-        parent=None,
-        key=None,
-    )
-    assert ret._metadata.ref_type == ref_type
-    assert type(ret) == expected_type
-    assert ret == value
-
-    if is_optional:
-        ret = _node_wrap(
-            ref_type=ref_type,
-            value=None,
-            is_optional=is_optional,
-            parent=None,
-            key=None,
-        )
-        assert type(ret) == expected_type
-        # noinspection PyComparisonWithNone
-        assert ret == None  # noqa E711
-
-
-def test_node_wrap_illegal_type() -> None:
-    class UserClass:
-        pass
-
-    from omegaconf.omegaconf import _node_wrap
-
-    with raises(ValidationError):
-        _node_wrap(
-            ref_type=UserClass,
-            value=UserClass(),
-            is_optional=False,
-            parent=None,
-            key=None,
-        )
-
-
 @mark.parametrize(
     "obj",
     [
