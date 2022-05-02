@@ -303,7 +303,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
-        from omegaconf.omegaconf import _maybe_wrap
+        from omegaconf.omegaconf import _node_wrap
 
         try:
             if self._get_flag("readonly"):
@@ -320,7 +320,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 # insert place holder
                 self.__dict__["_content"].insert(index, None)
                 is_optional, ref_type = _resolve_optional(self._metadata.element_type)
-                node = _maybe_wrap(
+                node = _node_wrap(
                     ref_type=ref_type,
                     key=index,
                     value=item,

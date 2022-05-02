@@ -228,7 +228,7 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
 
 def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]]:
     """Check if obj is an instance of a subclass of Dict. If so, extract the Dict keys/values."""
-    from omegaconf.omegaconf import _maybe_wrap
+    from omegaconf.omegaconf import _node_wrap
 
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
@@ -252,7 +252,7 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
             is_optional, type_ = _resolve_optional(element_type)
             type_ = _resolve_forward(type_, obj.__module__)
             try:
-                dict_subclass_data[name] = _maybe_wrap(
+                dict_subclass_data[name] = _node_wrap(
                     ref_type=type_,
                     is_optional=is_optional,
                     key=name,
@@ -279,7 +279,7 @@ def get_attr_class_init_field_names(obj: Any) -> List[str]:
 
 
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
-    from omegaconf.omegaconf import OmegaConf, _maybe_wrap
+    from omegaconf.omegaconf import OmegaConf, _node_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
 
@@ -307,7 +307,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
         try:
-            d[name] = _maybe_wrap(
+            d[name] = _node_wrap(
                 ref_type=type_,
                 is_optional=is_optional,
                 key=name,
@@ -332,7 +332,7 @@ def get_dataclass_init_field_names(obj: Any) -> List[str]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
-    from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
+    from omegaconf.omegaconf import MISSING, OmegaConf, _node_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     d = {}
@@ -364,7 +364,7 @@ def get_dataclass_data(
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         try:
-            d[name] = _maybe_wrap(
+            d[name] = _node_wrap(
                 ref_type=type_,
                 is_optional=is_optional,
                 key=name,
