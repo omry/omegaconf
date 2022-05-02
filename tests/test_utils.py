@@ -147,7 +147,7 @@ def test_node_wrap(target_type: Any, value: Any, expected: Any) -> None:
 
     if isinstance(expected, Node):
         res = _node_wrap(
-            type_=target_type, key="foo", value=value, is_optional=False, parent=None
+            ref_type=target_type, key="foo", value=value, is_optional=False, parent=None
         )
         assert type(res) == type(expected)
         assert res == expected
@@ -726,7 +726,7 @@ def test_get_ref_type_error() -> None:
 )
 def test_get_value_basic(value: Any) -> None:
     val_node = _node_wrap(
-        value=value, type_=Any, parent=None, is_optional=True, key=None
+        value=value, ref_type=Any, parent=None, is_optional=True, key=None
     )
     assert _get_value(val_node) == value
 

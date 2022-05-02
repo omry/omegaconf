@@ -1016,7 +1016,6 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    type_: Any,
     parent: Optional[BaseContainer],
     is_optional: bool,
     value: Any,
@@ -1024,21 +1023,21 @@ def _node_wrap(
     ref_type: Any = Any,
 ) -> Node:
     node: Node
-    if is_dict_annotation(type_) or (is_primitive_dict(value) and type_ is Any):
-        key_type, element_type = get_dict_key_value_types(type_)
+    if is_dict_annotation(ref_type) or (is_primitive_dict(value) and ref_type is Any):
+        key_type, element_type = get_dict_key_value_types(ref_type)
         node = DictConfig(
             content=value,
             key=key,
             parent=parent,
-            ref_type=type_,
+            ref_type=ref_type,
             is_optional=is_optional,
             key_type=key_type,
             element_type=element_type,
         )
-    elif (is_list_annotation(type_) or is_tuple_annotation(type_)) or (
-        is_primitive_list(value) and type_ is Any
+    elif (is_list_annotation(ref_type) or is_tuple_annotation(ref_type)) or (
+        is_primitive_list(value) and ref_type is Any
     ):
-        element_type = get_list_element_type(type_)
+        element_type = get_list_element_type(ref_type)
         node = ListConfig(
             content=value,
             key=key,
@@ -1047,10 +1046,10 @@ def _node_wrap(
             element_type=element_type,
             ref_type=ref_type,
         )
-    elif is_structured_config(type_) or is_structured_config(value):
+    elif is_structured_config(ref_type) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(value)
         node = DictConfig(
-            ref_type=type_,
+            ref_type=ref_type,
             is_optional=is_optional,
             content=value,
             key=key,
@@ -1058,31 +1057,31 @@ def _node_wrap(
             key_type=key_type,
             element_type=element_type,
         )
-    elif type_ == Any or type_ is None:
+    elif ref_type == Any or ref_type is None:
         node = AnyNode(value=value, key=key, parent=parent)
-    elif issubclass(type_, Enum):
+    elif issubclass(ref_type, Enum):
         node = EnumNode(
-            enum_type=type_,
+            enum_type=ref_type,
             value=value,
             key=key,
             parent=parent,
             is_optional=is_optional,
         )
-    elif type_ == int:
+    elif ref_type == int:
         node = IntegerNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == float:
+    elif ref_type == float:
         node = FloatNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == bool:
+    elif ref_type == bool:
         node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == str:
+    elif ref_type == str:
         node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
-    elif type_ == bytes:
+    elif ref_type == bytes:
         node = BytesNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)
         else:
-            raise ValidationError(f"Unexpected object type: {type_str(type_)}")
+            raise ValidationError(f"Unexpected object type: {type_str(ref_type)}")
     return node
 
 
@@ -1101,12 +1100,11 @@ def _maybe_wrap(
         return value
     else:
         return _node_wrap(
-            type_=ref_type,
+            ref_type=ref_type,
             parent=parent,
             is_optional=is_optional,
             value=value,
             key=key,
-            ref_type=ref_type,
         )
 
 
