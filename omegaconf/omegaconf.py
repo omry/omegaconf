@@ -1016,11 +1016,11 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    ref_type: Any,
     parent: Optional[BaseContainer],
     is_optional: bool,
     value: Any,
     key: Any,
+    ref_type: Any = Any,
 ) -> Node:
     node: Node
     if is_dict_annotation(ref_type) or (is_primitive_dict(value) and ref_type is Any):
