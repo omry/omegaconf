@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 from importlib import import_module
 from typing import Any, Optional
 
@@ -322,3 +323,12 @@ class TestStructured:
             with flag_override(cfg, "allow_objects", True):
                 cfg.plugin = pwo
                 assert cfg.plugin == pwo
+
+        def test_structured_creation_does_not_mutate_input(self, module: Any) -> None:
+            cfg1 = OmegaConf.structured(module.MissingUserField(module.User("Bond", 7)))
+            user1 = cfg1.user
+            prev_user = deepcopy(user1)
+            cfg2 = OmegaConf.structured(module.MissingUserField(user1))
+            assert user1._metadata == prev_user._metadata
+            assert user1._parent == prev_user._parent
+            assert user1 is not cfg2.user
