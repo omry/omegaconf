@@ -30,7 +30,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
             command = [
                 "java",
                 "-jar",
-                str(build_dir / "bin" / "antlr-4.8-complete.jar"),
+                str(build_dir / "bin" / "antlr-4.9.3-complete.jar"),
                 "-Dlanguage=Python3",
                 "-o",
                 str(project_root / "omegaconf" / "grammar" / "gen"),
