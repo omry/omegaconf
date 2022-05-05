@@ -672,7 +672,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     return key_type, element_type
 
 
-def valid_value_annotation_type(type_: Any) -> bool:
+def is_valid_value_annotation(type_: Any) -> bool:
     _, type_ = _resolve_optional(type_)
     return (
         type_ is Any

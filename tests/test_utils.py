@@ -287,9 +287,9 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
-    from omegaconf._utils import valid_value_annotation_type
+    from omegaconf._utils import is_valid_value_annotation
 
-    assert valid_value_annotation_type(type_) == expected
+    assert is_valid_value_annotation(type_) == expected
 
 
 class TestGetStructuredConfigInfo:
