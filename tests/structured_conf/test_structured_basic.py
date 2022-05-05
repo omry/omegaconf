@@ -14,7 +14,7 @@ from omegaconf import (
     _utils,
     flag_override,
 )
-from omegaconf._utils import _is_optional, get_ref_type
+from omegaconf._utils import _is_optional, get_type_hint
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from tests import IllegalType
 
@@ -139,7 +139,7 @@ class TestStructured:
     def test_get_type(self, module: Any) -> None:
         cfg1 = OmegaConf.create(module.LinkedList)
         assert OmegaConf.get_type(cfg1) == module.LinkedList
-        assert _utils.get_ref_type(cfg1, "next") == Optional[module.LinkedList]
+        assert _utils.get_type_hint(cfg1, "next") == Optional[module.LinkedList]
         assert OmegaConf.get_type(cfg1, "next") is None
 
         assert cfg1.next is None
@@ -147,7 +147,7 @@ class TestStructured:
 
         cfg2 = OmegaConf.create(module.MissingTest.Missing1)
         assert OmegaConf.is_missing(cfg2, "head")
-        assert _utils.get_ref_type(cfg2, "head") == module.LinkedList
+        assert _utils.get_type_hint(cfg2, "head") == module.LinkedList
         assert OmegaConf.get_type(cfg2, "head") is None
 
     def test_merge_structured_into_dict(self, module: Any) -> None:
@@ -164,7 +164,7 @@ class TestStructured:
         # type of name becomes str
         assert c2 == {"user": {"name": "7", "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == module.User
+        assert get_type_hint(c2, "user") == module.User
 
     def test_merge_structured_into_dict_nested2(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": IntegerNode(value=7)}})
@@ -173,7 +173,7 @@ class TestStructured:
         # type of name remains int
         assert c2 == {"user": {"name": 7, "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == module.User
+        assert get_type_hint(c2, "user") == module.User
 
     def test_merge_structured_into_dict_nested3(self, module: Any) -> None:
         c1 = OmegaConf.create({"user": {"name": "alice"}})
@@ -182,7 +182,7 @@ class TestStructured:
         # name is not changed
         assert c2 == {"user": {"name": "alice", "age": "???"}}
         assert isinstance(c2, DictConfig)
-        assert get_ref_type(c2, "user") == module.UserWithDefaultName
+        assert get_type_hint(c2, "user") == module.UserWithDefaultName
 
     def test_merge_missing_object_onto_typed_dictconfig(self, module: Any) -> None:
         c1 = OmegaConf.structured(module.DictOfObjects)
@@ -207,7 +207,7 @@ class TestStructured:
         c1 = OmegaConf.create({"user": {"name": "bob"}})
         c2 = OmegaConf.merge(c1, module.OptionalUser(module.User(name="alice")))
         assert c2.user.name == "alice"
-        assert get_ref_type(c2, "user") == Optional[module.User]
+        assert get_type_hint(c2, "user") == Optional[module.User]
         assert isinstance(c2, DictConfig)
         c2_user = c2._get_node("user")
         assert isinstance(c2_user, Node)
@@ -229,9 +229,9 @@ class TestStructured:
         src.user_3 = None
         c2 = OmegaConf.merge(c1, src)
         assert c2.user_2.name == "bob"
-        assert get_ref_type(c2, "user_2") == Any
+        assert get_type_hint(c2, "user_2") == Any
         assert c2.user_3 is None
-        assert get_ref_type(c2, "user_3") == Any
+        assert get_type_hint(c2, "user_3") == Any
 
     @mark.parametrize("resolve", [True, False])
     def test_interpolation_to_structured(self, module: Any, resolve: bool) -> None:
@@ -263,24 +263,24 @@ class TestStructured:
             cfg = OmegaConf.create(module.PluginHolder)
 
             assert _is_optional(cfg, "none")
-            assert _utils.get_ref_type(cfg, "none") == Optional[module.Plugin]
+            assert _utils.get_type_hint(cfg, "none") == Optional[module.Plugin]
             assert OmegaConf.get_type(cfg, "none") is None
 
             assert not _is_optional(cfg, "missing")
-            assert _utils.get_ref_type(cfg, "missing") == module.Plugin
+            assert _utils.get_type_hint(cfg, "missing") == module.Plugin
             assert OmegaConf.get_type(cfg, "missing") is None
 
             assert not _is_optional(cfg, "plugin")
-            assert _utils.get_ref_type(cfg, "plugin") == module.Plugin
+            assert _utils.get_type_hint(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.Plugin
 
             cfg.plugin = module.ConcretePlugin()
             assert not _is_optional(cfg, "plugin")
-            assert _utils.get_ref_type(cfg, "plugin") == module.Plugin
+            assert _utils.get_type_hint(cfg, "plugin") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin") == module.ConcretePlugin
 
             assert not _is_optional(cfg, "plugin2")
-            assert _utils.get_ref_type(cfg, "plugin2") == module.Plugin
+            assert _utils.get_type_hint(cfg, "plugin2") == module.Plugin
             assert OmegaConf.get_type(cfg, "plugin2") == module.ConcretePlugin
 
         def test_plugin_merge(self, module: Any) -> None:

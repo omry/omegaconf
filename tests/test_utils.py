@@ -287,9 +287,9 @@ class _TestUserClass:
     ],
 )
 def test_valid_value_annotation_type(type_: type, expected: bool) -> None:
-    from omegaconf._utils import valid_value_annotation_type
+    from omegaconf._utils import is_valid_value_annotation
 
-    assert valid_value_annotation_type(type_) == expected
+    assert is_valid_value_annotation(type_) == expected
 
 
 class TestGetStructuredConfigInfo:
@@ -510,7 +510,7 @@ def test_get_key_value_types(
     ],
 )
 def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
-    assert _utils.is_primitive_type(type_) == is_primitive
+    assert _utils.is_primitive_type_annotation(type_) == is_primitive
 
 
 @mark.parametrize("optional", [False, True])
@@ -755,7 +755,7 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
     ],
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
-    assert _utils.get_ref_type(obj) == expected
+    assert _utils.get_type_hint(obj) == expected
 
 
 @mark.parametrize(
@@ -769,12 +769,12 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
 )
 def test_get_node_ref_type(obj: Any, key: str, expected: Any) -> None:
     cfg = OmegaConf.create(obj)
-    assert _utils.get_ref_type(cfg, key) == expected
+    assert _utils.get_type_hint(cfg, key) == expected
 
 
 def test_get_ref_type_error() -> None:
     with raises(ValueError):
-        _utils.get_ref_type(AnyNode(), "foo")
+        _utils.get_type_hint(AnyNode(), "foo")
 
 
 @mark.parametrize(

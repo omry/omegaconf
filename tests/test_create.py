@@ -282,17 +282,17 @@ def test_create_unmodified_loader() -> None:
 
 
 def test_create_untyped_list() -> None:
-    from omegaconf._utils import get_ref_type
+    from omegaconf._utils import get_type_hint
 
     cfg = ListConfig(ref_type=List, content=[])
-    assert get_ref_type(cfg) == Optional[List]
+    assert get_type_hint(cfg) == Optional[List]
 
 
 def test_create_untyped_dict() -> None:
-    from omegaconf._utils import get_ref_type
+    from omegaconf._utils import get_type_hint
 
     cfg = DictConfig(ref_type=Dict, content={})
-    assert get_ref_type(cfg) == Optional[Dict]
+    assert get_type_hint(cfg) == Optional[Dict]
 
 
 @mark.parametrize(

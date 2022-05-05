@@ -7,17 +7,7 @@ import warnings
 from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    get_type_hints,
-)
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 import yaml
 
@@ -176,7 +166,7 @@ def _get_class(path: str) -> type:
     return klass
 
 
-def _is_union(type_: Any) -> bool:
+def is_union_annotation(type_: Any) -> bool:
     return getattr(type_, "__origin__", None) is Union
 
 
@@ -300,7 +290,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             value = attrib.default
             if value == attr.NOTHING:
                 value = MISSING
-        if _is_union(type_):
+        if is_union_annotation(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
@@ -332,6 +322,8 @@ def get_dataclass_init_field_names(obj: Any) -> List[str]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
+    from typing import get_type_hints
+
     from omegaconf.omegaconf import MISSING, OmegaConf, _node_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
@@ -358,7 +350,7 @@ def get_dataclass_data(
             else:
                 value = MISSING
 
-        if _is_union(type_):
+        if is_union_annotation(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
@@ -672,11 +664,11 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     return key_type, element_type
 
 
-def valid_value_annotation_type(type_: Any) -> bool:
+def is_valid_value_annotation(type_: Any) -> bool:
     _, type_ = _resolve_optional(type_)
     return (
         type_ is Any
-        or is_primitive_type(type_)
+        or is_primitive_type_annotation(type_)
         or is_structured_config(type_)
         or is_container_annotation(type_)
     )
@@ -688,7 +680,7 @@ def _valid_dict_key_annotation_type(type_: Any) -> bool:
     return type_ is None or type_ is Any or issubclass(type_, DictKeyType.__args__)  # type: ignore
 
 
-def is_primitive_type(type_: Any) -> bool:
+def is_primitive_type_annotation(type_: Any) -> bool:
     type_ = get_type_of(type_)
     return issubclass(type_, Enum) or type_ in (
         int,
@@ -715,7 +707,7 @@ def _get_value(value: Any) -> Any:
     return value
 
 
-def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
+def get_type_hint(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     from omegaconf import Container, Node
 
     if isinstance(obj, Container):
@@ -794,7 +786,7 @@ def format_and_raise(
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)
 
-        ref_type = get_ref_type(node)
+        ref_type = get_type_hint(node)
         ref_type_str = type_str(ref_type)
 
     msg = string.Template(msg).safe_substitute(

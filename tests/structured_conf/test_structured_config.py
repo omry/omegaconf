@@ -108,7 +108,7 @@ class TestConfigs:
         cfg = OmegaConf.structured(module.NestedWithNone)
         assert cfg == {"plugin": None}
         assert OmegaConf.get_type(cfg, "plugin") is None
-        assert _utils.get_ref_type(cfg, "plugin") == Optional[module.Plugin]
+        assert _utils.get_type_hint(cfg, "plugin") == Optional[module.Plugin]
 
     def test_nested_config(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
@@ -519,11 +519,11 @@ class TestConfigs:
 
     def test_merge_with_subclass_into_missing(self, module: Any) -> None:
         base = OmegaConf.structured(module.PluginHolder)
-        assert _utils.get_ref_type(base, "missing") == module.Plugin
+        assert _utils.get_type_hint(base, "missing") == module.Plugin
         assert OmegaConf.get_type(base, "missing") is None
         res = OmegaConf.merge(base, {"missing": module.Plugin})
         assert OmegaConf.get_type(res) == module.PluginHolder
-        assert _utils.get_ref_type(base, "missing") == module.Plugin
+        assert _utils.get_type_hint(base, "missing") == module.Plugin
         assert OmegaConf.get_type(res, "missing") == module.Plugin
 
     def test_merged_with_nons_subclass(self, module: Any) -> None:
@@ -924,15 +924,15 @@ class TestConfigs:
 
     def test_create_untyped_dict(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UntypedDict)
-        assert _utils.get_ref_type(cfg, "dict") == Dict[Any, Any]
-        assert _utils.get_ref_type(cfg, "opt_dict") == Optional[Dict[Any, Any]]
+        assert _utils.get_type_hint(cfg, "dict") == Dict[Any, Any]
+        assert _utils.get_type_hint(cfg, "opt_dict") == Optional[Dict[Any, Any]]
         assert cfg.dict == {"foo": "var"}
         assert cfg.opt_dict is None
 
     def test_create_untyped_list(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.UntypedList)
-        assert _utils.get_ref_type(cfg, "list") == List[Any]
-        assert _utils.get_ref_type(cfg, "opt_list") == Optional[List[Any]]
+        assert _utils.get_type_hint(cfg, "list") == List[Any]
+        assert _utils.get_type_hint(cfg, "opt_list") == Optional[List[Any]]
         assert cfg.list == [1, 2]
         assert cfg.opt_list is None
 
@@ -994,7 +994,7 @@ class TestDictSubclass:
         with warns_dict_subclass_deprecated(module.DictSubclass.Str2Str):
             cfg = OmegaConf.create({"foo": module.DictSubclass.Str2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Str2Str
-        assert _utils.get_ref_type(cfg.foo) == Any
+        assert _utils.get_type_hint(cfg.foo) == Any
 
         cfg.foo.hello = "world"
         assert cfg.foo.hello == "world"
@@ -1028,7 +1028,7 @@ class TestDictSubclass:
         with warns_dict_subclass_deprecated(module.DictSubclass.Int2Str):
             cfg = OmegaConf.create({"foo": module.DictSubclass.Int2Str})
         assert OmegaConf.get_type(cfg.foo) == module.DictSubclass.Int2Str
-        assert _utils.get_ref_type(cfg.foo) == Any
+        assert _utils.get_type_hint(cfg.foo) == Any
 
         cfg.foo[10] = "ten"
         assert cfg.foo[10] == "ten"

@@ -16,19 +16,19 @@ from ._utils import (
     _is_missing_value,
     _is_none,
     _is_special,
-    _is_union,
     _resolve_optional,
-    get_ref_type,
     get_structured_config_data,
+    get_type_hint,
     get_value_kind,
     get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
     is_primitive_dict,
-    is_primitive_type,
+    is_primitive_type_annotation,
     is_structured_config,
     is_tuple_annotation,
+    is_union_annotation,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
@@ -106,7 +106,7 @@ class BaseContainer(Container, ABC):
                 assert False
         if sys.version_info < (3, 7):  # pragma: no cover
             element_type = self._metadata.element_type
-            if _is_union(element_type):
+            if is_union_annotation(element_type):
                 raise OmegaConfBaseException(
                     "Serializing structured configs with `Union` element type requires python >= 3.7"
                 )
@@ -283,7 +283,7 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
-        src_ref_type = get_ref_type(src)
+        src_ref_type = get_type_hint(src)
         assert src_ref_type is not None
 
         # If source DictConfig is:
@@ -568,7 +568,10 @@ class BaseContainer(Container, ABC):
                     and target_node_ref._has_ref_type()
                 )
                 or (target_is_vnode and not isinstance(target_node_ref, AnyNode))
-                or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
+                or (
+                    isinstance(target_node_ref, AnyNode)
+                    and is_primitive_type_annotation(value)
+                )
             )
             if should_set_value:
                 if special_value and isinstance(value, Node):
@@ -839,7 +842,7 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     elif vk in (ValueKind.MANDATORY_MISSING, ValueKind.INTERPOLATION):
         return
     elif vk == ValueKind.VALUE:
-        if is_primitive_type(ref_type) and isinstance(node, ValueNode):
+        if is_primitive_type_annotation(ref_type) and isinstance(node, ValueNode):
             value = node._value()
             if not isinstance(value, ref_type):
                 raise ValidationError(

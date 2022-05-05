@@ -15,9 +15,9 @@ from ._utils import (
     _is_missing_value,
     format_and_raise,
     get_value_kind,
+    is_valid_value_annotation,
     split_key,
     type_str,
-    valid_value_annotation_type,
 )
 from .errors import (
     ConfigKeyError,
@@ -86,7 +86,7 @@ class ContainerMetadata(Metadata):
             self.ref_type = Any
         assert self.key_type is Any or isinstance(self.key_type, type)
         if self.element_type is not None:
-            if not valid_value_annotation_type(self.element_type):
+            if not is_valid_value_annotation(self.element_type):
                 raise ValidationError(
                     f"Unsupported value type: '{type_str(self.element_type, include_module_name=True)}'"
                 )
