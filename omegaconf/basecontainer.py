@@ -25,7 +25,7 @@ from ._utils import (
     is_dict_annotation,
     is_list_annotation,
     is_primitive_dict,
-    is_primitive_type,
+    is_primitive_type_annotation,
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
@@ -568,7 +568,10 @@ class BaseContainer(Container, ABC):
                     and target_node_ref._has_ref_type()
                 )
                 or (target_is_vnode and not isinstance(target_node_ref, AnyNode))
-                or (isinstance(target_node_ref, AnyNode) and is_primitive_type(value))
+                or (
+                    isinstance(target_node_ref, AnyNode)
+                    and is_primitive_type_annotation(value)
+                )
             )
             if should_set_value:
                 if special_value and isinstance(value, Node):
@@ -839,7 +842,7 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     elif vk in (ValueKind.MANDATORY_MISSING, ValueKind.INTERPOLATION):
         return
     elif vk == ValueKind.VALUE:
-        if is_primitive_type(ref_type) and isinstance(node, ValueNode):
+        if is_primitive_type_annotation(ref_type) and isinstance(node, ValueNode):
             value = node._value()
             if not isinstance(value, ref_type):
                 raise ValidationError(

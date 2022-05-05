@@ -676,7 +676,7 @@ def is_valid_value_annotation(type_: Any) -> bool:
     _, type_ = _resolve_optional(type_)
     return (
         type_ is Any
-        or is_primitive_type(type_)
+        or is_primitive_type_annotation(type_)
         or is_structured_config(type_)
         or is_container_annotation(type_)
     )
@@ -688,7 +688,7 @@ def _valid_dict_key_annotation_type(type_: Any) -> bool:
     return type_ is None or type_ is Any or issubclass(type_, DictKeyType.__args__)  # type: ignore
 
 
-def is_primitive_type(type_: Any) -> bool:
+def is_primitive_type_annotation(type_: Any) -> bool:
     type_ = get_type_of(type_)
     return issubclass(type_, Enum) or type_ in (
         int,

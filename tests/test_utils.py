@@ -510,7 +510,7 @@ def test_get_key_value_types(
     ],
 )
 def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
-    assert _utils.is_primitive_type(type_) == is_primitive
+    assert _utils.is_primitive_type_annotation(type_) == is_primitive
 
 
 @mark.parametrize("optional", [False, True])
