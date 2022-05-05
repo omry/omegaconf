@@ -176,7 +176,7 @@ def _get_class(path: str) -> type:
     return klass
 
 
-def _is_union(type_: Any) -> bool:
+def is_union_annotation(type_: Any) -> bool:
     return getattr(type_, "__origin__", None) is Union
 
 
@@ -300,7 +300,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             value = attrib.default
             if value == attr.NOTHING:
                 value = MISSING
-        if _is_union(type_):
+        if is_union_annotation(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )
@@ -358,7 +358,7 @@ def get_dataclass_data(
             else:
                 value = MISSING
 
-        if _is_union(type_):
+        if is_union_annotation(type_):
             e = ConfigValueError(
                 f"Union types are not supported:\n{name}: {type_str(type_)}"
             )

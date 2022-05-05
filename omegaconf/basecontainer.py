@@ -16,7 +16,6 @@ from ._utils import (
     _is_missing_value,
     _is_none,
     _is_special,
-    _is_union,
     _resolve_optional,
     get_ref_type,
     get_structured_config_data,
@@ -29,6 +28,7 @@ from ._utils import (
     is_primitive_type,
     is_structured_config,
     is_tuple_annotation,
+    is_union_annotation,
 )
 from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
 from .errors import (
@@ -106,7 +106,7 @@ class BaseContainer(Container, ABC):
                 assert False
         if sys.version_info < (3, 7):  # pragma: no cover
             element_type = self._metadata.element_type
-            if _is_union(element_type):
+            if is_union_annotation(element_type):
                 raise OmegaConfBaseException(
                     "Serializing structured configs with `Union` element type requires python >= 3.7"
                 )
