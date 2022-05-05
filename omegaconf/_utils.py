@@ -3,21 +3,12 @@ import os
 import re
 import string
 import sys
+import typing
 import warnings
 from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    get_type_hints,
-)
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
 
 import yaml
 
@@ -340,7 +331,7 @@ def get_dataclass_data(
     obj_type = get_type_of(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
-    resolved_hints = get_type_hints(obj_type)
+    resolved_hints = typing.get_type_hints(obj_type)
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
@@ -715,7 +706,7 @@ def _get_value(value: Any) -> Any:
     return value
 
 
-def get_ref_type(obj: Any, key: Any = None) -> Optional[Type[Any]]:
+def get_type_hint(obj: Any, key: Any = None) -> Optional[Type[Any]]:
     from omegaconf import Container, Node
 
     if isinstance(obj, Container):
@@ -794,7 +785,7 @@ def format_and_raise(
         object_type = OmegaConf.get_type(node)
         object_type_str = type_str(object_type)
 
-        ref_type = get_ref_type(node)
+        ref_type = get_type_hint(node)
         ref_type_str = type_str(ref_type)
 
     msg = string.Template(msg).safe_substitute(

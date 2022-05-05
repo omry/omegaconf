@@ -953,7 +953,7 @@ def test_get_type() -> None:
     ],
 )
 def test_get_ref_type(cfg: Any, expected_ref_type: Any) -> None:
-    assert _utils.get_ref_type(cfg.plugin) == expected_ref_type
+    assert _utils.get_type_hint(cfg.plugin) == expected_ref_type
 
 
 def test_get_ref_type_with_conflict() -> None:
@@ -962,11 +962,11 @@ def test_get_ref_type_with_conflict() -> None:
     )
 
     assert OmegaConf.get_type(cfg.user) == User
-    assert _utils.get_ref_type(cfg.user) == Any
+    assert _utils.get_type_hint(cfg.user) == Any
 
     # Interpolation inherits both type and ref type from the target
     assert OmegaConf.get_type(cfg.inter) == User
-    assert _utils.get_ref_type(cfg.inter) == Any
+    assert _utils.get_type_hint(cfg.inter) == Any
 
 
 def test_is_missing() -> None:
@@ -1010,17 +1010,17 @@ def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
 class TestAssignAndMergeIntoReftypePlugin:
     def _test_assign(self, ref_type: Any, value: Any, assign: Any) -> None:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
-        assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
+        assert _utils.get_type_hint(cfg, "foo") == Optional[ref_type]
         cfg.foo = assign
         assert cfg.foo == assign
-        assert _utils.get_ref_type(cfg, "foo") == Optional[ref_type]
+        assert _utils.get_type_hint(cfg, "foo") == Optional[ref_type]
 
     def _test_merge(self, ref_type: Any, value: Any, assign: Any) -> None:
         cfg = OmegaConf.create({"foo": DictConfig(ref_type=ref_type, content=value)})
         cfg2 = OmegaConf.merge(cfg, {"foo": assign})
         assert isinstance(cfg2, DictConfig)
         assert cfg2.foo == assign
-        assert _utils.get_ref_type(cfg2, "foo") == Optional[ref_type]
+        assert _utils.get_type_hint(cfg2, "foo") == Optional[ref_type]
 
     def test_assign_to_reftype_plugin1(self, ref_type: Any, assign: Any) -> None:
         self._test_assign(ref_type, ref_type, assign)

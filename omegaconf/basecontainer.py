@@ -17,8 +17,8 @@ from ._utils import (
     _is_none,
     _is_special,
     _resolve_optional,
-    get_ref_type,
     get_structured_config_data,
+    get_type_hint,
     get_value_kind,
     get_yaml_loader,
     is_container_annotation,
@@ -283,7 +283,7 @@ class BaseContainer(Container, ABC):
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
         src_type = src._metadata.object_type
-        src_ref_type = get_ref_type(src)
+        src_ref_type = get_type_hint(src)
         assert src_ref_type is not None
 
         # If source DictConfig is:

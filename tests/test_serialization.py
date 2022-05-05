@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Type
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
-from omegaconf._utils import get_ref_type
+from omegaconf._utils import get_type_hint
 from omegaconf.errors import OmegaConfBaseException
 from tests import (
     Color,
@@ -139,7 +139,7 @@ def test_pickle(obj: Any) -> None:
         fp.seek(0)
         c1 = pickle.load(fp)
         assert c == c1
-        assert get_ref_type(c1) == Any
+        assert get_type_hint(c1) == Any
         assert c1._metadata.element_type is Any
         assert c1._metadata.optional is True
         if isinstance(c, DictConfig):
@@ -349,7 +349,7 @@ def test_pickle_untyped(
                 return cfg._get_node(key)
 
         assert cfg == cfg2
-        assert get_ref_type(get_node(cfg2, node)) == ref_type
+        assert get_type_hint(get_node(cfg2, node)) == ref_type
         assert get_node(cfg2, node)._metadata.element_type == element_type
         assert get_node(cfg2, node)._metadata.optional == optional
         if isinstance(input_, DictConfig):

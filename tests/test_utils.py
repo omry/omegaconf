@@ -755,7 +755,7 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
     ],
 )
 def test_get_ref_type(obj: Any, expected: Any) -> None:
-    assert _utils.get_ref_type(obj) == expected
+    assert _utils.get_type_hint(obj) == expected
 
 
 @mark.parametrize(
@@ -769,12 +769,12 @@ def test_get_ref_type(obj: Any, expected: Any) -> None:
 )
 def test_get_node_ref_type(obj: Any, key: str, expected: Any) -> None:
     cfg = OmegaConf.create(obj)
-    assert _utils.get_ref_type(cfg, key) == expected
+    assert _utils.get_type_hint(cfg, key) == expected
 
 
 def test_get_ref_type_error() -> None:
     with raises(ValueError):
-        _utils.get_ref_type(AnyNode(), "foo")
+        _utils.get_type_hint(AnyNode(), "foo")
 
 
 @mark.parametrize(
