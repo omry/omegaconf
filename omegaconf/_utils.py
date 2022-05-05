@@ -3,7 +3,6 @@ import os
 import re
 import string
 import sys
-import typing
 import warnings
 from contextlib import contextmanager
 from enum import Enum
@@ -323,6 +322,8 @@ def get_dataclass_init_field_names(obj: Any) -> List[str]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
+    from typing import get_type_hints
+
     from omegaconf.omegaconf import MISSING, OmegaConf, _node_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
@@ -331,7 +332,7 @@ def get_dataclass_data(
     obj_type = get_type_of(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
-    resolved_hints = typing.get_type_hints(obj_type)
+    resolved_hints = get_type_hints(obj_type)
     for field in dataclasses.fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
