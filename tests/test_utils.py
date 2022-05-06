@@ -189,7 +189,7 @@ def test_node_wrap(
     ],
 )
 def test_node_wrap2(target_type: Any, value: Any, expected: Any) -> None:
-    from omegaconf.omegaconf import _node_wrap
+    from omegaconf.omegaconf import _maybe_wrap
 
     if isinstance(expected, Node):
         res = _node_wrap(
@@ -200,7 +200,7 @@ def test_node_wrap2(target_type: Any, value: Any, expected: Any) -> None:
         assert res._key() == "foo"
     else:
         with raises(expected):
-            _node_wrap(
+            _maybe_wrap(
                 ref_type=target_type,
                 key=None,
                 value=value,

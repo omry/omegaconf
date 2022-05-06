@@ -1085,6 +1085,29 @@ def _node_wrap(
     return node
 
 
+def _maybe_wrap(
+    ref_type: Any,
+    key: Any,
+    value: Any,
+    is_optional: bool,
+    parent: Optional[BaseContainer],
+) -> Node:
+    # if already a node, update key and parent and return as is.
+    # NOTE: that this mutate the input node!
+    if isinstance(value, Node):
+        value._set_key(key)
+        value._set_parent(parent)
+        return value
+    else:
+        return _node_wrap(
+            ref_type=ref_type,
+            parent=parent,
+            is_optional=is_optional,
+            value=value,
+            key=key,
+        )
+
+
 def _select_one(
     c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> Tuple[Optional[Node], Union[str, int]]:

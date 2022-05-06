@@ -589,11 +589,11 @@ class BaseContainer(Container, ABC):
                 self._wrap_value_and_set(key, value, type_hint)
 
     def _wrap_value_and_set(self, key: Any, val: Any, type_hint: Any) -> None:
-        from omegaconf.omegaconf import _node_wrap
+        from omegaconf.omegaconf import _maybe_wrap
 
         is_optional, ref_type = _resolve_optional(type_hint)
 
-        wrapped = _node_wrap(
+        wrapped = _maybe_wrap(
             ref_type=ref_type,
             key=key,
             value=val,

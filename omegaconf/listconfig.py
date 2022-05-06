@@ -303,6 +303,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 node._metadata.key = i
 
     def insert(self, index: int, item: Any) -> None:
+        from omegaconf.omegaconf import _maybe_wrap
+
         try:
             if self._get_flag("readonly"):
                 raise ReadonlyConfigError("Cannot insert into a read-only ListConfig")
@@ -317,7 +319,16 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 assert isinstance(self.__dict__["_content"], list)
                 # insert place holder
                 self.__dict__["_content"].insert(index, None)
-                self._set_at_index(index, item)
+                is_optional, ref_type = _resolve_optional(self._metadata.element_type)
+                node = _maybe_wrap(
+                    ref_type=ref_type,
+                    key=index,
+                    value=item,
+                    is_optional=is_optional,
+                    parent=self,
+                )
+                self._validate_set(key=index, value=node)
+                self._set_at_index(index, node)
                 self._update_keys()
             except Exception:
                 del self.__dict__["_content"][index]
