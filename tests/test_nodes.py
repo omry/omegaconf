@@ -517,7 +517,7 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
         assert (node.__hash__() == value.__hash__()) == expected
 
 
-@mark.parametrize("value", [1, 3.14, True, None, Enum1.FOO])
+@mark.parametrize("value", ["a_str", 1, 3.14, True, None, Enum1.FOO, b"binary"])
 def test_set_anynode_with_primitive_type(value: Any) -> None:
     cfg = OmegaConf.create({"a": 5})
     a_before = cfg._get_node("a")
