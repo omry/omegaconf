@@ -1,6 +1,7 @@
 """Testing for OmegaConf"""
 import re
 import sys
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional
 
@@ -47,6 +48,7 @@ from tests import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
         (OmegaConf.create([]), []),
         (OmegaConf.create({"foo": OmegaConf.create([])}), {"foo": []}),
         (OmegaConf.create([OmegaConf.create({})]), [{}]),
+        (OmegaConf.create({"foo": Path("bar")}), {"foo": Path("bar")}),
     ],
 )
 def test_create_value(input_: Any, expected: Any) -> None:
