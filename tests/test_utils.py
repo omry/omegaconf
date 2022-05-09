@@ -663,7 +663,7 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
         param(10, Any, id="int"),
         param(10.0, Any, id="float"),
         param(True, Any, id="bool"),
-        param(Color.RED, Any, id="bytes"),
+        param(Color.RED, Any, id="enum"),
         param(b"binary", Any, id="bytes"),
         param("bar", Any, id="str"),
         param(None, Any, id="NoneType"),
