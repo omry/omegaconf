@@ -88,7 +88,7 @@ def test_conversions() -> None:
     assert conf.data == b"bin_data"
     conf.data = b"def"  # assignment ok, type matches
     with raises(ValidationError):
-        # ValidationError: "abc" cannot be converted to bytes
+        # ValidationError: "text" cannot be converted to bytes
         conf.data = "text"  # type: ignore
     with raises(ValidationError):
         # ValidationError: 1234 cannot be converted to bytes
