@@ -1,6 +1,7 @@
 import dataclasses
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pytest import importorskip
@@ -174,6 +175,21 @@ class BytesConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: bytes = II("with_default")
+
+
+@dataclass
+class PathConfig:
+    # with default value
+    with_default: Path = Path("hello.txt")
+
+    # default is None
+    null_default: Optional[Path] = None
+
+    # explicit no default
+    mandatory_missing: Path = MISSING
+
+    # interpolation, will inherit the type and value of `with_default'
+    interpolation: Path = II("with_default")
 
 
 @dataclass

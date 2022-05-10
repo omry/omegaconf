@@ -4,6 +4,7 @@ from __future__ import annotations  # type: ignore # noqa  # Python 3.6 linters 
 
 from dataclasses import dataclass, fields
 from enum import Enum
+from pathlib import Path
 
 from pytest import raises
 
@@ -23,6 +24,7 @@ class SimpleTypes:
     height: "Height" = Height.SHORT  # test forward ref
     description: str = "text"
     data: bytes = b"bin_data"
+    path: Path = Path("hello.txt")
 
 
 def simple_types_class() -> None:
@@ -36,6 +38,7 @@ def simple_types_class() -> None:
     assert conf.num == 10
     assert conf.pi == 3.1415
     assert conf.data == b"bin_data"
+    assert conf.path == Path("hello.txt")
     assert conf.is_awesome is True
     assert conf.height == Height.SHORT
     assert conf.description == "text"

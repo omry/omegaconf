@@ -3,6 +3,7 @@ import inspect
 import pathlib
 import sys
 from importlib import import_module
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from pytest import fixture, mark, param, raises
@@ -49,22 +50,36 @@ class EnumConfigAssignments:
         (2, Color.GREEN),
         (3, Color.BLUE),
     ]
-    illegal = ["foo", True, b"RED", False, 4, 1.0]
+    illegal = ["foo", True, b"RED", False, 4, 1.0, Path("hello.txt")]
 
 
 class IntegersConfigAssignments:
     legal = [("10", 10), ("-10", -10), 100, 0, 1]
-    illegal = ["foo", 1.0, float("inf"), b"123", float("nan"), Color.BLUE, True]
+    illegal = [
+        "foo",
+        1.0,
+        float("inf"),
+        b"123",
+        float("nan"),
+        Color.BLUE,
+        True,
+        Path("hello.txt"),
+    ]
 
 
 class StringConfigAssignments:
     legal = ["10", "-10", "foo", "", (Color.BLUE, "Color.BLUE")]
-    illegal = [b"binary"]
+    illegal = [b"binary", Path("hello.txt")]
 
 
 class BytesConfigAssignments:
     legal = [b"binary"]
-    illegal = ["foo", 10, Color.BLUE, 10.1, True]
+    illegal = ["foo", 10, Color.BLUE, 10.1, True, Path("hello.txt")]
+
+
+class PathConfigAssignments:
+    legal = [Path("hello.txt"), ("hello.txt", Path("hello.txt"))]
+    illegal = [10, Color.BLUE, 10.1, True, b"binary"]
 
 
 class FloatConfigAssignments:
@@ -76,7 +91,7 @@ class FloatConfigAssignments:
         ("10.2", 10.2),
         ("10e-3", 10e-3),
     ]
-    illegal = ["foo", True, False, b"10.1", Color.BLUE]
+    illegal = ["foo", True, False, b"10.1", Color.BLUE, Path("hello.txt")]
 
 
 class BoolConfigAssignments:
@@ -96,11 +111,11 @@ class BoolConfigAssignments:
         ("0", False),
         (0, False),
     ]
-    illegal = [100.0, b"binary", Color.BLUE]
+    illegal = [100.0, b"binary", Color.BLUE, Path("hello.txt")]
 
 
 class AnyTypeConfigAssignments:
-    legal = [True, False, 10, 10.0, b"binary", "foobar", Color.BLUE]
+    legal = [True, False, 10, 10.0, b"binary", "foobar", Color.BLUE, Path("hello.txt")]
 
     illegal: Any = []
 
@@ -281,6 +296,7 @@ class TestConfigs:
             ("IntegersConfig", IntegersConfigAssignments, {}),
             ("FloatConfig", FloatConfigAssignments, {}),
             ("BytesConfig", BytesConfigAssignments, {}),
+            ("PathConfig", PathConfigAssignments, {}),
             ("StringConfig", StringConfigAssignments, {}),
             ("EnumConfig", EnumConfigAssignments, {}),
             # Use instance to build config
@@ -288,6 +304,7 @@ class TestConfigs:
             ("IntegersConfig", IntegersConfigAssignments, {"with_default": 42}),
             ("FloatConfig", FloatConfigAssignments, {"with_default": 42.0}),
             ("BytesConfig", BytesConfigAssignments, {"with_default": b"bin"}),
+            ("PathConfig", PathConfigAssignments, {"with_default": Path("file.txt")}),
             ("StringConfig", StringConfigAssignments, {"with_default": "fooooooo"}),
             ("EnumConfig", EnumConfigAssignments, {"with_default": Color.BLUE}),
             ("AnyTypeConfig", AnyTypeConfigAssignments, {}),

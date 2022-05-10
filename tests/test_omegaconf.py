@@ -1,4 +1,7 @@
+import pathlib
+import platform
 import re
+from pathlib import Path
 from typing import Any
 
 from pytest import mark, param, raises, warns
@@ -14,6 +17,7 @@ from omegaconf import (
     ListConfig,
     MissingMandatoryValue,
     OmegaConf,
+    PathNode,
     StringNode,
 )
 from omegaconf._utils import _is_none, nullcontext
@@ -158,6 +162,8 @@ def test_is_missing_resets() -> None:
         (10, False),
         (True, False),
         (bool, False),
+        (Path, False),
+        (Path("hello.txt"), False),
         (StringNode("foo"), False),
         (ConcretePlugin, False),
         (ConcretePlugin(), False),
@@ -181,6 +187,8 @@ def test_is_config(cfg: Any, expected: bool) -> None:
         (10, False),
         (True, False),
         (bool, False),
+        (Path, False),
+        (Path("hello.txt"), False),
         (StringNode("foo"), False),
         (ConcretePlugin, False),
         (ConcretePlugin(), False),
@@ -204,6 +212,8 @@ def test_is_list(cfg: Any, expected: bool) -> None:
         (10, False),
         (True, False),
         (bool, False),
+        (Path, False),
+        (Path("hello.txt"), False),
         (StringNode("foo"), False),
         (ConcretePlugin, False),
         (ConcretePlugin(), False),
@@ -241,6 +251,11 @@ def test_coverage_for_deprecated_OmegaConf_is_optional() -> None:
         (lambda none: FloatNode(value=10.0 if not none else None, is_optional=True)),
         (lambda none: BooleanNode(value=True if not none else None, is_optional=True)),
         (lambda none: BytesNode(value=b"123" if not none else None, is_optional=True)),
+        (
+            lambda none: PathNode(
+                value=Path("hello.txt") if not none else None, is_optional=True
+            )
+        ),
         (
             lambda none: EnumNode(
                 enum_type=Color,
@@ -329,6 +344,11 @@ def test_is_none_invalid_node() -> None:
             )
         ),
         (
+            lambda inter: PathNode(
+                value="hello.txt" if inter is None else inter, is_optional=True
+            )
+        ),
+        (
             lambda inter: EnumNode(
                 enum_type=Color,
                 value=Color.RED if inter is None else inter,
@@ -359,6 +379,7 @@ def test_is_none_invalid_node() -> None:
         "FloatNode",
         "BooleanNode",
         "BytesNode",
+        "PathNode",
         "EnumNode",
         "ListConfig",
         "DictConfig",
@@ -387,6 +408,12 @@ def test_is_interpolation(fac: Any) -> Any:
         ({"foo": 10.0}, float),
         ({"foo": True}, bool),
         ({"foo": b"123"}, bytes),
+        (
+            {"foo": Path("hello.txt")},
+            pathlib.WindowsPath
+            if platform.system() == "Windows"
+            else pathlib.PosixPath,
+        ),
         ({"foo": "bar"}, str),
         ({"foo": None}, type(None)),
         ({"foo": ConcretePlugin()}, ConcretePlugin),
@@ -409,6 +436,12 @@ def test_get_type(cfg: Any, type_: Any) -> None:
         (10.0, float),
         (True, bool),
         (b"123", bytes),
+        (
+            Path("hello.txt"),
+            pathlib.WindowsPath
+            if platform.system() == "Windows"
+            else pathlib.PosixPath,
+        ),
         ("foo", str),
         (DictConfig(content={}), dict),
         (ListConfig(content=[]), list),

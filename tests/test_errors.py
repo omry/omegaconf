@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
@@ -14,6 +15,7 @@ from omegaconf import (
     IntegerNode,
     ListConfig,
     OmegaConf,
+    PathNode,
     ReadonlyConfigError,
     StringNode,
     UnsupportedValueType,
@@ -71,6 +73,7 @@ class NotOptionalA:
 class Expected:
     exception_type: Type[Exception]
     msg: str
+    msg_is_regex: bool = False
 
     # "Low level exceptions" are thrown from internal APIs are are not populating all the fields
     low_level: bool = False
@@ -707,7 +710,20 @@ params = [
             full_key="bar",
             child_node=lambda cfg: cfg._get_node("bar"),
         ),
-        id="typed_DictConfig:assign_with_invalid_value,float",
+        id="typed_DictConfig:assign_with_invalid_value,str_to_float",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": FloatNode(123.456)}),
+            op=lambda cfg: cfg.__setattr__("bar", Path("hello.txt")),
+            exception_type=ValidationError,
+            msg="Value 'hello.txt' of type 'pathlib.(Posix|Windows)Path' could not be converted to Float",
+            msg_is_regex=True,
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,path_to_float",
     ),
     param(
         Expected(
@@ -720,6 +736,18 @@ params = [
             child_node=lambda cfg: cfg._get_node("bar"),
         ),
         id="typed_DictConfig:assign_with_invalid_value,string_to_bytes",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig({"bar": PathNode(Path("hello.txt"))}),
+            op=lambda cfg: cfg.__setattr__("bar", 123.4),
+            exception_type=ValidationError,
+            msg="Value '123.4' of type 'float' could not be converted to Path",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,string_to_path",
     ),
     param(
         Expected(
@@ -1499,8 +1527,12 @@ def test_errors(expected: Expected, monkeypatch: Any) -> None:
     monkeypatch.setenv("OC_CAUSE", "0")
     cfg = expected.create()
     expected.finalize(cfg)
-    msg = expected.msg
-    with raises(expected.exception_type, match=re.escape(msg)) as einfo:
+    if expected.msg_is_regex:
+        match = expected.msg
+    else:
+        match = re.escape(expected.msg)
+
+    with raises(expected.exception_type, match=match) as einfo:
         try:
             expected.op(cfg)
         except Exception as e:

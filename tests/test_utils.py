@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
@@ -28,6 +29,7 @@ from omegaconf.nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    PathNode,
     StringNode,
 )
 from omegaconf.omegaconf import _node_wrap
@@ -46,6 +48,7 @@ class DummyEnum(Enum):
         (DummyEnum, DummyEnum.FOO, EnumNode),
         (int, 42, IntegerNode),
         (bytes, b"\xf0\xf1\xf2", BytesNode),
+        (Path, Path("hello.txt"), PathNode),
         (float, 3.1415, FloatNode),
         (bool, True, BooleanNode),
         (str, "foo", StringNode),
@@ -86,6 +89,7 @@ def test_node_wrap(
         # Any
         param(Any, "foo", AnyNode("foo"), id="any"),
         param(Any, b"binary", AnyNode(b"binary"), id="any"),
+        param(Any, Path("hello.txt"), AnyNode(Path("hello.txt")), id="any"),
         param(Any, True, AnyNode(True), id="any"),
         param(Any, 1, AnyNode(1), id="any"),
         param(Any, 1.0, AnyNode(1.0), id="any"),
@@ -96,6 +100,7 @@ def test_node_wrap(
         # int
         param(int, "foo", ValidationError, id="int"),
         param(int, b"binary", ValidationError, id="int"),
+        param(int, Path("hello.txt"), ValidationError, id="int"),
         param(int, True, ValidationError, id="int"),
         param(int, 1, IntegerNode(1), id="int"),
         param(int, 1.0, ValidationError, id="int"),
@@ -104,6 +109,7 @@ def test_node_wrap(
         # float
         param(float, "foo", ValidationError, id="float"),
         param(float, b"binary", ValidationError, id="float"),
+        param(float, Path("hello.txt"), ValidationError, id="float"),
         param(float, True, ValidationError, id="float"),
         param(float, 1, FloatNode(1), id="float"),
         param(float, 1.0, FloatNode(1.0), id="float"),
@@ -112,6 +118,7 @@ def test_node_wrap(
         # bool
         param(bool, "foo", ValidationError, id="bool"),
         param(bool, b"binary", ValidationError, id="bool"),
+        param(bool, Path("hello.txt"), ValidationError, id="bool"),
         param(bool, True, BooleanNode(True), id="bool"),
         param(bool, 1, BooleanNode(True), id="bool"),
         param(bool, 0, BooleanNode(False), id="bool"),
@@ -125,6 +132,7 @@ def test_node_wrap(
         # str
         param(str, "foo", StringNode("foo"), id="str"),
         param(str, b"binary", ValidationError, id="str"),
+        param(str, Path("hello.txt"), ValidationError, id="str"),
         param(str, True, StringNode("True"), id="str"),
         param(str, 1, StringNode("1"), id="str"),
         param(str, 1.0, StringNode("1.0"), id="str"),
@@ -132,10 +140,19 @@ def test_node_wrap(
         # bytes
         param(bytes, "foo", ValidationError, id="bytes"),
         param(bytes, b"binary", BytesNode(b"binary"), id="bytes"),
+        param(bytes, Path("hello.txt"), ValidationError, id="bytes"),
         param(bytes, True, ValidationError, id="bytes"),
         param(bytes, 1, ValidationError, id="bytes"),
         param(bytes, 1.0, ValidationError, id="bytes"),
         param(bytes, Color.RED, ValidationError, id="bytes"),
+        # Path
+        param(Path, "foo", PathNode("foo"), id="path"),
+        param(Path, b"binary", ValidationError, id="path"),
+        param(Path, Path("hello.txt"), PathNode("hello.txt"), id="path"),
+        param(Path, True, ValidationError, id="path"),
+        param(Path, 1, ValidationError, id="path"),
+        param(Path, 1.0, ValidationError, id="path"),
+        param(Path, Color.RED, ValidationError, id="path"),
         # Color
         param(Color, "foo", ValidationError, id="Color"),
         param(Color, True, ValidationError, id="Color"),
@@ -147,6 +164,7 @@ def test_node_wrap(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
         param(Color, b"123", ValidationError, id="Color"),
+        param(Color, Path("hello.txt"), ValidationError, id="Color"),
         param(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
@@ -235,6 +253,7 @@ class _TestDataclass:
     x: int = 10
     s: str = "foo"
     b: bool = True
+    p: Path = Path("hello.txt")
     d: bytes = b"123"
     f: float = 3.14
     e: _TestEnum = _TestEnum.A
@@ -248,6 +267,7 @@ class _TestAttrsClass:
     x: int = 10
     s: str = "foo"
     b: bool = True
+    p: Path = Path("hello.txt")
     d: bytes = b"123"
     f: float = 3.14
     e: _TestEnum = _TestEnum.A
@@ -278,6 +298,7 @@ class _TestUserClass:
         (bool, True),
         (str, True),
         (bytes, True),
+        (Path, True),
         (Any, True),
         (_TestEnum, True),
         (_TestUserClass, False),
@@ -302,6 +323,7 @@ class TestGetStructuredConfigInfo:
         assert d["x"] == 10
         assert d["s"] == "foo"
         assert d["b"] == bool(True)
+        assert d["p"] == Path("hello.txt")
         assert d["d"] == b"123"
         assert d["f"] == 3.14
         assert d["e"] == _TestEnum.A
@@ -318,7 +340,7 @@ class TestGetStructuredConfigInfo:
     )
     def test_get_structured_config_field_names(self, test_cls_or_obj: Any) -> None:
         field_names = _utils.get_structured_config_init_field_names(test_cls_or_obj)
-        assert field_names == ["x", "s", "b", "d", "f", "e", "list1", "dict1"]
+        assert field_names == ["x", "s", "b", "p", "d", "f", "e", "list1", "dict1"]
 
     def test_get_structured_config_field_names_throws_ValueError(self) -> None:
         with raises(ValueError):
@@ -385,6 +407,7 @@ class Dataclass:
         (1, _utils.ValueKind.VALUE),
         (1.0, _utils.ValueKind.VALUE),
         (b"123", _utils.ValueKind.VALUE),
+        (Path("hello.txt"), _utils.ValueKind.VALUE),
         (True, _utils.ValueKind.VALUE),
         (False, _utils.ValueKind.VALUE),
         (Color.GREEN, _utils.ValueKind.VALUE),
@@ -501,6 +524,7 @@ def test_get_key_value_types(
         (bool, True),
         (bytes, True),
         (str, True),
+        (Path, True),
         (type(None), True),
         (Color, True),
         (list, False),
@@ -527,6 +551,8 @@ def test_is_primitive_type(type_: Any, is_primitive: bool) -> None:
         (float, True, "float"),
         (str, False, "str"),
         (str, True, "str"),
+        (Path, False, "Path"),
+        (Path, True, "pathlib.Path"),
         (Color, False, "Color"),
         (Color, True, "tests.Color"),
         (DictConfig, False, "DictConfig"),
@@ -665,6 +691,7 @@ def test_is_tuple_annotation(type_: Any, expected: Any) -> Any:
         param(True, Any, id="bool"),
         param(Color.RED, Any, id="enum"),
         param(b"binary", Any, id="bytes"),
+        param(Path("hello.txt"), Any, id="path"),
         param("bar", Any, id="str"),
         param(None, Any, id="NoneType"),
         param({}, Any, id="dict"),
