@@ -152,6 +152,20 @@ def get_yaml_loader() -> Any:
         ]
         for key, resolvers in loader.yaml_implicit_resolvers.items()
     }
+
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.Path",
+        lambda loader, node: pathlib.Path(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.PosixPath",
+        lambda loader, node: pathlib.PosixPath(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
+        lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
+    )
+
     return loader
 
 

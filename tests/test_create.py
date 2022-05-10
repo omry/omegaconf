@@ -1,4 +1,5 @@
 """Testing for OmegaConf"""
+import platform
 import re
 import sys
 from pathlib import Path
@@ -340,6 +341,37 @@ def test_yaml_merge() -> None:
         )
     )
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
+
+
+@mark.parametrize(
+    "path_type",
+    [
+        param("Path", id="path"),
+        param(
+            "PosixPath",
+            marks=mark.skipif(
+                platform.system() == "Windows", reason="requires posix path support"
+            ),
+            id="posixpath",
+        ),
+        param(
+            "WindowsPath",
+            marks=mark.skipif(
+                platform.system() != "Windows", reason="requires windows"
+            ),
+            id="windowspath",
+        ),
+    ],
+)
+def test_create_path(path_type: str) -> None:
+    yaml_document = dedent(
+        """\
+        foo: !!python/object/apply:pathlib.{}
+          - hello.txt
+        """
+    )
+    yaml_document = yaml_document.format(path_type)
+    assert OmegaConf.create(yaml_document) == yaml.unsafe_load(yaml_document)
 
 
 @mark.parametrize(

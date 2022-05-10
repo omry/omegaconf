@@ -1,6 +1,9 @@
+import platform
+from pathlib import Path
 from textwrap import dedent
 from typing import Any
 
+import yaml
 from pytest import mark
 
 from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
@@ -14,6 +17,12 @@ from tests import Enum1, User
         ({"hello": "world", "list": [1, 2]}, "hello: world\nlist:\n- 1\n- 2\n"),
         ({"abc": "str key"}, "abc: str key\n"),
         ({b"abc": "bytes key"}, "? !!binary |\n  YWJj\n: bytes key\n"),
+        (
+            {"path_value": Path("hello.txt")},
+            "path_value: !!python/object/apply:pathlib.WindowsPath\n- hello.txt\n"
+            if platform.system() == "Windows"
+            else "path_value: !!python/object/apply:pathlib.PosixPath\n- hello.txt\n",
+        ),
         ({123: "int key"}, "123: int key\n"),
         ({123.45: "float key"}, "123.45: float key\n"),
         ({True: "bool key", False: "another"}, "true: bool key\nfalse: another\n"),
@@ -21,8 +30,10 @@ from tests import Enum1, User
 )
 def test_to_yaml(input_: Any, expected: str) -> None:
     c = OmegaConf.create(input_)
-    assert expected == OmegaConf.to_yaml(c)
-    assert OmegaConf.create(OmegaConf.to_yaml(c)) == c
+    as_yaml = OmegaConf.to_yaml(c)
+    assert as_yaml == expected
+    assert OmegaConf.create(as_yaml) == c
+    assert yaml.unsafe_load(as_yaml) == c
 
 
 @mark.parametrize(
