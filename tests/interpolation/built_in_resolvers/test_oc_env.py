@@ -8,13 +8,12 @@ from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationResolutionError
 
 
-@mark.parametrize("env_func", ["env", "oc.env"])
 class TestEnvInterpolation:
     @mark.parametrize(
         ("cfg", "env_name", "env_val", "key", "expected"),
         [
             param(
-                {"path": "/test/${${env_func}:foo}"},
+                {"path": "/test/${oc.env:foo}"},
                 "foo",
                 "1234",
                 "path",
@@ -22,7 +21,7 @@ class TestEnvInterpolation:
                 id="simple",
             ),
             param(
-                {"path": "/test/${${env_func}:not_found,ZZZ}"},
+                {"path": "/test/${oc.env:not_found,ZZZ}"},
                 None,
                 None,
                 "path",
@@ -30,7 +29,7 @@ class TestEnvInterpolation:
                 id="not_found_with_default",
             ),
             param(
-                {"path": "/test/${${env_func}:not_found,a/b}"},
+                {"path": "/test/${oc.env:not_found,a/b}"},
                 None,
                 None,
                 "path",
@@ -41,10 +40,7 @@ class TestEnvInterpolation:
     )
     def test_env_interpolation(
         self,
-        # DEPRECATED: remove in 2.2 with the legacy env resolver
-        recwarn: Any,
         monkeypatch: Any,
-        env_func: str,
         cfg: Any,
         env_name: Optional[str],
         env_val: str,
@@ -54,7 +50,6 @@ class TestEnvInterpolation:
         if env_name is not None:
             monkeypatch.setenv(env_name, env_val)
 
-        cfg["env_func"] = env_func  # allows choosing which env resolver to use
         cfg = OmegaConf.create(cfg)
 
         assert OmegaConf.select(cfg, key) == expected
@@ -63,7 +58,7 @@ class TestEnvInterpolation:
         ("cfg", "key", "expected"),
         [
             param(
-                {"path": "/test/${${env_func}:not_found}"},
+                {"path": "/test/${oc.env:not_found}"},
                 "path",
                 raises(
                     InterpolationResolutionError,
@@ -75,14 +70,10 @@ class TestEnvInterpolation:
     )
     def test_env_interpolation_error(
         self,
-        # DEPRECATED: remove in 2.2 with the legacy env resolver
-        recwarn: Any,
-        env_func: str,
         cfg: Any,
         key: str,
         expected: Any,
     ) -> None:
-        cfg["env_func"] = env_func  # allows choosing which env resolver to use
         cfg = _ensure_container(cfg)
 
         with expected:

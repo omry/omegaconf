@@ -561,12 +561,6 @@ def _is_special(value: Any) -> bool:
     )
 
 
-# DEPRECATED: remove in 2.2
-def is_bool(st: str) -> bool:
-    st = str.lower(st)
-    return st == "true" or st == "false"
-
-
 def is_float(st: str) -> bool:
     try:
         float(st)
@@ -581,20 +575,6 @@ def is_int(st: str) -> bool:
         return True
     except ValueError:
         return False
-
-
-# DEPRECATED: remove in 2.2
-def decode_primitive(s: str) -> Any:
-    if is_bool(s):
-        return str.lower(s) == "true"
-
-    if is_int(s):
-        return int(s)
-
-    if is_float(s):
-        return float(s)
-
-    return s
 
 
 def is_primitive_list(obj: Any) -> bool:
