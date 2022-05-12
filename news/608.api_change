@@ -1,0 +1,1 @@
+Removed `OmegaConf.get_resolver()`.  Please use `OmegaConf.has_resolver()` instead.
