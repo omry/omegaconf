@@ -15,6 +15,7 @@ from omegaconf import (
     ListConfig,
     Node,
     OmegaConf,
+    PathNode,
     StringNode,
     ValueNode,
 )
@@ -41,6 +42,7 @@ def resolver() -> Any:
         param(FloatNode(3.14), {}, id="float:3.14"),
         param(BooleanNode(True), {}, id="bool:True"),
         param(BytesNode(b"binary"), {}, id="bytes:binary"),
+        param(PathNode("hello.txt"), {}, id="path:hello.txt"),
         param(EnumNode(enum_type=Color, value=Color.RED), {}, id="Color:Color.RED"),
         # nodes are never returning a dictionary
         param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:inter_10"),
@@ -233,6 +235,7 @@ def test_get_dictionary_listconfig(
         (StringNode, True),
         (BooleanNode, True),
         (BytesNode, True),
+        (PathNode, True),
         (EnumNode, True),
         # not covering some other things.
         (builtins.int, False),

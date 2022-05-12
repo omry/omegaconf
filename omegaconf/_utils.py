@@ -1,5 +1,6 @@
 import copy
 import os
+import pathlib
 import re
 import string
 import sys
@@ -151,6 +152,20 @@ def get_yaml_loader() -> Any:
         ]
         for key, resolvers in loader.yaml_implicit_resolvers.items()
     }
+
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.Path",
+        lambda loader, node: pathlib.Path(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.PosixPath",
+        lambda loader, node: pathlib.PosixPath(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
+        lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
+    )
+
     return loader
 
 
@@ -680,16 +695,19 @@ def _valid_dict_key_annotation_type(type_: Any) -> bool:
     return type_ is None or type_ is Any or issubclass(type_, DictKeyType.__args__)  # type: ignore
 
 
+BASE_TYPES = (
+    int,
+    float,
+    bool,
+    bytes,
+    str,
+    type(None),
+)
+
+
 def is_primitive_type_annotation(type_: Any) -> bool:
     type_ = get_type_of(type_)
-    return issubclass(type_, Enum) or type_ in (
-        int,
-        float,
-        bool,
-        str,
-        bytes,
-        type(None),
-    )
+    return issubclass(type_, (Enum, pathlib.Path)) or type_ in BASE_TYPES
 
 
 def _get_value(value: Any) -> Any:

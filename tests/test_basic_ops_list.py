@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, List, MutableSequence, Optional, Union
 
@@ -407,6 +408,12 @@ def test_append_invalid_element_type(lc: ListConfig, element: Any, err: Any) -> 
             "RED",
             Color.RED,
             id="list:convert_str_to_enum",
+        ),
+        param(
+            ListConfig(content=[], element_type=Path),
+            "hello.txt",
+            Path("hello.txt"),
+            id="list:convert_str_to_path",
         ),
     ],
 )

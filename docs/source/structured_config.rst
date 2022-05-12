@@ -6,6 +6,7 @@
     from enum import Enum
     from dataclasses import dataclass, field
     import os
+    import pathlib
     from pytest import raises
     from typing import Dict, Any
     import sys
@@ -29,7 +30,7 @@ in the input class.
 
 
 Currently, type hints supported in OmegaConf’s structured configs include:
- - primitive types (int, float, bool, str) and enum types (user-defined
+ - primitive types (int, float, bool, str, Path) and enum types (user-defined
    subclasses of enum.Enum). See the :ref:`simple_types` section below.
  - structured config fields (i.e. MyConfig.x can have type hint MySubConfig).
    See the :ref:`nesting_structured_configs` section below.
@@ -50,6 +51,7 @@ Simple types include
  - bool: boolean values (True, False, On, Off etc)
  - str: any string
  - bytes: an immutable sequence of numbers in [0, 255]
+ - pathlib.Path: filesystem paths as represented by python's standard library `pathlib`
  - Enums: User defined enums
 
 The following class defines fields with all simple types:
@@ -68,6 +70,7 @@ The following class defines fields with all simple types:
     ...     height: Height = Height.SHORT
     ...     description: str = "text"
     ...     data: bytes = b"bin_data"
+    ...     path: pathlib.Path = pathlib.Path("hello.txt")
 
 You can create a config based on the SimpleTypes class itself or an instance of it.
 Those would be equivalent by default, but the Object variant allows you to set the values of specific
@@ -91,6 +94,8 @@ fields during construction.
     description: text
     data: !!binary |
       YmluX2RhdGE=
+    path: !!python/object/apply:pathlib.PosixPath
+    - hello.txt
     <BLANKLINE>
 
 The resulting object is a regular OmegaConf ``DictConfig``, except that it will utilize the type information in the input class/object
@@ -229,7 +234,7 @@ You can assign subclasses:
 Lists
 ^^^^^
 Structured Config fields annotated with ``typing.List`` or ``typing.Tuple`` can hold any type
-supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``bytes``, ``Enum`` or Structured configs).
+supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``bytes``, ``pathlib.Path``, ``Enum`` or Structured configs).
 
 .. doctest::
 
@@ -242,7 +247,7 @@ supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``bytes``, ``Enum
     >>> @dataclass
     ... class ListsExample:
     ...     # Typed list can hold Any, int, float, bool, str,
-    ...     # bytes and Enums as well as arbitrary Structured configs.
+    ...     # bytes, pathlib.Path and Enums as well as arbitrary Structured configs.
     ...     ints: List[int] = field(default_factory=lambda: [10, 20, 30])
     ...     bools: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
     ...     users: List[User] = field(default_factory=lambda: [User(name="omry")])
@@ -271,8 +276,8 @@ Dictionaries
 ^^^^^^^^^^^^
 Dictionaries are supported via annotation of structured config fields with ``typing.Dict``.
 Keys must be typed as one of ``str``, ``int``, ``Enum``, ``float``, ``bytes``, or ``bool``. Values can
-be any of the types supported by OmegaConf (``Any``, ``int``, ``float``, ``bool``, ``bytes``, ``str`` and ``Enum`` as well
-as arbitrary Structured configs)
+be any of the types supported by OmegaConf (``Any``, ``int``, ``float``, ``bool``, ``bytes``,
+``pathlib.Path``, ``str`` and ``Enum`` as well as arbitrary Structured configs)
 
 .. doctest::
 
@@ -280,8 +285,6 @@ as arbitrary Structured configs)
     >>> from typing import Dict
     >>> @dataclass
     ... class DictExample:
-    ...     # Typed dict keys are strings; values can be typed as Any, int, float, bool, str, bytes and Enums or
-    ...     # arbitrary Structured configs
     ...     ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20, "c": 30})
     ...     bools: Dict[str, bool] = field(default_factory=lambda: {"Uno": True, "Zoro": False})
     ...     users: Dict[str, User] = field(default_factory=lambda: {"omry": User(name="omry")})

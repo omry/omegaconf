@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
@@ -173,6 +174,21 @@ class BytesConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: bytes = II("with_default")
+
+
+@attr.s(auto_attribs=True)
+class PathConfig:
+    # with default value
+    with_default: Path = Path("hello.txt")
+
+    # default is None
+    null_default: Optional[Path] = None
+
+    # explicit no default
+    mandatory_missing: Path = MISSING
+
+    # interpolation, will inherit the type and value of `with_default'
+    interpolation: Path = II("with_default")
 
 
 @attr.s(auto_attribs=True)

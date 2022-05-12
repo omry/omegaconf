@@ -3,6 +3,7 @@ import functools
 import re
 from enum import Enum
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, Tuple, Type
 
 from pytest import mark, param, raises
@@ -18,6 +19,7 @@ from omegaconf import (
     ListConfig,
     Node,
     OmegaConf,
+    PathNode,
     StringNode,
     ValueNode,
 )
@@ -84,6 +86,9 @@ from tests import Color, Enum1, IllegalType, User
         (lambda v: EnumNode(enum_type=Color, value=v), "Color.RED", Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), "RED", Color.RED),
         (lambda v: EnumNode(enum_type=Color, value=v), 1, Color.RED),
+        # Path node
+        (PathNode, "hello.txt", Path("hello.txt")),
+        (PathNode, Path("hello.txt"), Path("hello.txt")),
     ],
 )
 def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
@@ -156,6 +161,8 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (partial(EnumNode, Color), {"foo": "bar"}),
         (partial(EnumNode, Color), ListConfig([1, 2])),
         (partial(EnumNode, Color), DictConfig({"foo": "bar"})),
+        (PathNode, 1.0),
+        (PathNode, ["hello.txt"]),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
@@ -178,6 +185,7 @@ def test_invalid_inputs(type_: type, input_: Any) -> None:
         (False, AnyNode),
         ("str", AnyNode),
         (b"\xf0\xf1\xf2", AnyNode),
+        (Path("hello.txt"), AnyNode),
     ],
 )
 def test_assigned_value_node_type(input_: type, expected_type: Any) -> None:
@@ -272,6 +280,7 @@ def test_merge_validation_error(c1: Dict[str, Any], c2: Dict[str, Any]) -> None:
         (AnyNode, "aaa", None),
         (StringNode, "blah", None),
         (BytesNode, b"foobar", None),
+        (PathNode, Path("hello.txt"), None),
     ],
 )
 def test_accepts_mandatory_missing(
@@ -299,24 +308,23 @@ def test_accepts_mandatory_missing(
 
 @mark.parametrize(
     "type_",
-    [BooleanNode, BytesNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode],
+    [
+        BooleanNode,
+        BytesNode,
+        PathNode,
+        EnumNode,
+        FloatNode,
+        IntegerNode,
+        StringNode,
+        AnyNode,
+    ],
 )
 @mark.parametrize(
     "values, success_map",
     [
         param(
-            # True aliases
-            (True, "Y", "true", "yes", "on"),
-            {
-                "BooleanNode": True,
-                "StringNode": str,
-                "AnyNode": copy.copy,
-            },
-            id="true-aliases",
-        ),
-        param(
             # Integers
-            ("1", 1, 10, -10),
+            (1, 10, -10),
             {
                 "BooleanNode": True,
                 "IntegerNode": int,
@@ -327,24 +335,70 @@ def test_accepts_mandatory_missing(
             id="integers",
         ),
         param(
-            # Floaty things
-            ("1.0", 1.0, float("inf"), float("-inf"), "10e-3", 10e-3),
-            {"FloatNode": float, "StringNode": str, "AnyNode": copy.copy},
-            id="floaty-things",
+            # Integer strings
+            ("1",),
+            {
+                "BooleanNode": True,
+                "IntegerNode": int,
+                "FloatNode": float,
+                "StringNode": str,
+                "AnyNode": copy.copy,
+                "PathNode": Path,
+            },
+            id="integer-strings",
         ),
         param(
-            # False aliases
-            (False, "N", "false", "no", "off"),
+            # Floats
+            (1.0, float("inf"), float("-inf"), 10e-3),
+            {"FloatNode": float, "StringNode": str, "AnyNode": copy.copy},
+            id="floats",
+        ),
+        param(
+            # Floaty strings
+            ("1.0", "10e-3"),
+            {
+                "FloatNode": float,
+                "StringNode": str,
+                "AnyNode": copy.copy,
+                "PathNode": Path,
+            },
+            id="floaty-strings",
+        ),
+        param(
+            # Booleans
+            (True, False),
+            {
+                "BooleanNode": copy.copy,
+                "StringNode": str,
+                "AnyNode": copy.copy,
+            },
+            id="booleans",
+        ),
+        param(
+            # Trueish strings
+            ("Y", "true", "yes", "on"),
+            {
+                "BooleanNode": True,
+                "StringNode": str,
+                "AnyNode": copy.copy,
+                "PathNode": Path,
+            },
+            id="trueish-strings",
+        ),
+        param(
+            # Falsey strings
+            ("N", "false", "no", "off"),
             {
                 "BooleanNode": False,
                 "StringNode": str,
                 "AnyNode": copy.copy,
+                "PathNode": Path,
             },
-            id="false-alises",
+            id="falsey-strings",
         ),
         param(
-            # Falsy integers
-            ("0", 0),
+            # Falsy integer
+            (0,),
             {
                 "BooleanNode": False,
                 "IntegerNode": 0,
@@ -352,7 +406,20 @@ def test_accepts_mandatory_missing(
                 "StringNode": str,
                 "AnyNode": copy.copy,
             },
-            id="falsey-integers",
+            id="falsey-integer",
+        ),
+        param(
+            # Falsy integer string
+            ("0",),
+            {
+                "BooleanNode": False,
+                "IntegerNode": 0,
+                "FloatNode": 0.0,
+                "StringNode": str,
+                "AnyNode": copy.copy,
+                "PathNode": Path,
+            },
+            id="falsey-integer-string",
         ),
         param(
             # Binary data
@@ -362,6 +429,15 @@ def test_accepts_mandatory_missing(
                 "AnyNode": copy.copy,
             },
             id="binary-data",
+        ),
+        param(
+            # pathlib.Path data
+            (Path("hello.txt"),),
+            {
+                "PathNode": copy.copy,
+                "AnyNode": copy.copy,
+            },
+            id="path-data",
         ),
     ],
 )
@@ -391,6 +467,7 @@ def test_legal_assignment(
         (BooleanNode(), "foo"),
         (FloatNode(), "foo"),
         (BytesNode(), "foo"),
+        (PathNode(), 123),
         (EnumNode(enum_type=Enum1), "foo"),
     ],
 )
@@ -401,7 +478,16 @@ def test_illegal_assignment(node: ValueNode, value: Any) -> None:
 
 @mark.parametrize(
     "node_type",
-    [BooleanNode, BytesNode, EnumNode, FloatNode, IntegerNode, StringNode, AnyNode],
+    [
+        BooleanNode,
+        BytesNode,
+        PathNode,
+        EnumNode,
+        FloatNode,
+        IntegerNode,
+        StringNode,
+        AnyNode,
+    ],
 )
 @mark.parametrize(
     "enum_type, values, success_map",
@@ -441,6 +527,7 @@ def test_legal_assignment_enum(
         StringNode(value="foo"),
         StringNode(value="foo", is_optional=False),
         BytesNode(value=b"\xf0\xf1\xf2"),
+        PathNode(value=Path("hello.txt")),
         BooleanNode(value=True),
         IntegerNode(value=10),
         FloatNode(value=10.0),
@@ -476,6 +563,9 @@ def test_deepcopy(obj: Any) -> None:
         (BytesNode(), None, True),
         (BytesNode(), b"binary", False),
         (BytesNode(b"binary"), b"binary", True),
+        (PathNode(), None, True),
+        (PathNode(), Path("hello.txt"), False),
+        (PathNode(Path("hello.txt")), Path("hello.txt"), True),
         (BooleanNode(), True, False),
         (BooleanNode(), False, False),
         (BooleanNode(), None, True),
@@ -586,6 +676,7 @@ def test_dereference_missing() -> None:
         FloatNode,
         BooleanNode,
         BytesNode,
+        PathNode,
         lambda val, is_optional: EnumNode(
             enum_type=Color, value=val, is_optional=is_optional
         ),
@@ -632,6 +723,7 @@ def test_dereference_interpolation_to_missing() -> None:
         IntegerNode,
         InterpolationResultNode,
         StringNode,
+        PathNode,
     ],
 )
 def test_set_flags_in_init(type_: Any, flags: Dict[str, bool]) -> None:

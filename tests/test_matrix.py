@@ -1,5 +1,6 @@
 import copy
 import re
+from pathlib import Path
 from typing import Any, Optional
 
 from pytest import mark, raises, warns
@@ -13,6 +14,7 @@ from omegaconf import (
     IntegerNode,
     ListConfig,
     OmegaConf,
+    PathNode,
     StringNode,
     ValidationError,
     ValueNode,
@@ -63,6 +65,7 @@ def verify(
         (FloatNode, [3.1415]),
         (IntegerNode, [42]),
         (StringNode, ["hello"]),
+        (PathNode, [Path("hello.txt")]),
         # EnumNode
         (
             lambda value, is_optional, key=None: EnumNode(
@@ -98,6 +101,7 @@ def verify(
         "FloatNode",
         "IntegerNode",
         "StringNode",
+        "PathNode",
         "EnumNode",
         "DictConfig",
         "ListConfig",
