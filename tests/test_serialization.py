@@ -335,8 +335,6 @@ def test_pickle_untyped(
 ) -> None:
     cfg = OmegaConf.structured(input_)
     with tempfile.TemporaryFile() as fp:
-        import pickle
-
         pickle.dump(cfg, fp)
         fp.flush()
         fp.seek(0)
@@ -359,8 +357,6 @@ def test_pickle_untyped(
 def test_pickle_missing() -> None:
     cfg = DictConfig(content=MISSING)
     with tempfile.TemporaryFile() as fp:
-        import pickle
-
         pickle.dump(cfg, fp)
         fp.flush()
         fp.seek(0)
@@ -371,8 +367,6 @@ def test_pickle_missing() -> None:
 def test_pickle_none() -> None:
     cfg = DictConfig(content=None)
     with tempfile.TemporaryFile() as fp:
-        import pickle
-
         pickle.dump(cfg, fp)
         fp.flush()
         fp.seek(0)
