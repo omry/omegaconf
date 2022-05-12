@@ -96,7 +96,7 @@ def SI(interpolation: str) -> Any:
 
 
 def register_default_resolvers() -> None:
-    from omegaconf.resolvers import env, oc
+    from omegaconf.resolvers import oc
 
     OmegaConf.register_new_resolver("oc.create", oc.create)
     OmegaConf.register_new_resolver("oc.decode", oc.decode)
@@ -105,7 +105,6 @@ def register_default_resolvers() -> None:
     OmegaConf.register_new_resolver("oc.select", oc.select)
     OmegaConf.register_new_resolver("oc.dict.keys", oc.dict.keys)
     OmegaConf.register_new_resolver("oc.dict.values", oc.dict.values)
-    OmegaConf.legacy_register_resolver("env", env)
 
 
 class OmegaConf:
