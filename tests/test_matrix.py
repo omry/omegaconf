@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Optional
 
-from pytest import mark, raises, warns
+from pytest import mark, raises
 
 from omegaconf import (
     BooleanNode,
@@ -49,8 +49,6 @@ def verify(
         assert cfg.get(key) == exp
 
     assert OmegaConf.is_missing(cfg, key) == missing
-    with warns(UserWarning):
-        assert OmegaConf.is_none(cfg, key) == none_public
     assert _is_optional(cfg, key) == opt
     assert OmegaConf.is_interpolation(cfg, key) == inter
 

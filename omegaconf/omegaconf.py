@@ -32,7 +32,6 @@ from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _DEFAULT_MARKER_,
     _ensure_container,
-    _is_none,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -609,20 +608,6 @@ class OmegaConf:
             return obj._is_optional()
         else:
             return True
-
-    # DEPRECATED: remove in 2.2
-    @staticmethod
-    def is_none(obj: Any, key: Optional[Union[int, DictKeyType]] = None) -> bool:
-        warnings.warn(
-            "`OmegaConf.is_none()` is deprecated, see https://github.com/omry/omegaconf/issues/547",
-            stacklevel=2,
-        )
-
-        if key is not None:
-            assert isinstance(obj, Container)
-            obj = obj._get_node(key)
-
-        return _is_none(obj, resolve=True, throw_on_resolution_failure=False)
 
     @staticmethod
     def is_interpolation(node: Any, key: Optional[Union[int, str]] = None) -> bool:
