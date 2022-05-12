@@ -30,15 +30,15 @@ in the input class.
 
 
 Currently, type hints supported in OmegaConf’s structured configs include:
- - primitive types (int, float, bool, str, Path) and enum types (user-defined
-   subclasses of enum.Enum). See the :ref:`simple_types` section below.
+ - primitive types (``int``, ``float``, ``bool``, ``str``, ``Path``) and enum types
+   (user-defined subclasses of ``enum.Enum``). See the :ref:`simple_types` section below.
  - structured config fields (i.e. MyConfig.x can have type hint MySubConfig).
    See the :ref:`nesting_structured_configs` section below.
- - optional types (any of the above can be wrapped in a typing.Optional[...]
+ - optional types (any of the above can be wrapped in a ``typing.Optional[...]``
    annotation). See :ref:`other_special_features` below.
- - dict and list types: typing.Dict[K, V] or typing.List[V], where K is
+ - dict and list types: ``typing.Dict[K, V]`` or ``typing.List[V]``, where K is
    primitive or enum, and where V is any of the above (including nested dicts
-   or lists, e.g. `Dict[str, List[int]]`).
+   or lists, e.g. ``Dict[str, List[int]]``).
    See the :ref:`lists` and :ref:`dictionaries` sections below.
 
 .. _simple_types:
@@ -46,13 +46,13 @@ Currently, type hints supported in OmegaConf’s structured configs include:
 Simple types
 ^^^^^^^^^^^^
 Simple types include
- - int: numeric integers
- - float: numeric floating point values
- - bool: boolean values (True, False, On, Off etc)
- - str: any string
- - bytes: an immutable sequence of numbers in [0, 255]
- - pathlib.Path: filesystem paths as represented by python's standard library `pathlib`
- - Enums: User defined enums
+ - ``int``: numeric integers
+ - ``float``: numeric floating point values
+ - ``bool``: boolean values (True, False, On, Off etc)
+ - ``str``: any string
+ - ``bytes``: an immutable sequence of numbers in [0, 255]
+ - ``pathlib.Path``: filesystem paths as represented by python's standard library ``pathlib``
+ - ``Enums``: User defined enums
 
 The following class defines fields with all simple types:
 
