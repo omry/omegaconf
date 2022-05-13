@@ -551,14 +551,23 @@ def test_deepcopy(obj: Any) -> None:
         (StringNode(), None, True),
         (StringNode(), 100, False),
         (StringNode("foo"), "foo", True),
+        (StringNode("100"), 100, False),
+        (StringNode("???"), "???", True),
+        (StringNode(None), None, True),
+        (StringNode("abc"), None, False),
+        (StringNode("${interp}"), "${interp}", True),
+        (StringNode("${interp}"), "${different_interp}", False),
         (IntegerNode(), 1, False),
         (IntegerNode(1), 1, True),
+        (IntegerNode(1), "1", False),
         (IntegerNode(1), "foo", False),
         (FloatNode(), 1, False),
         (FloatNode(), None, True),
         (FloatNode(1.0), None, False),
         (FloatNode(1.0), 1.0, True),
         (FloatNode(1), 1, True),
+        (FloatNode(1), "1", False),
+        (FloatNode(1.0), "1.0", False),
         (FloatNode(1.0), "foo", False),
         (BytesNode(), None, True),
         (BytesNode(), b"binary", False),
@@ -566,6 +575,7 @@ def test_deepcopy(obj: Any) -> None:
         (PathNode(), None, True),
         (PathNode(), Path("hello.txt"), False),
         (PathNode(Path("hello.txt")), Path("hello.txt"), True),
+        (PathNode(Path("hello.txt")), "hello.txt", False),
         (BooleanNode(), True, False),
         (BooleanNode(), False, False),
         (BooleanNode(), None, True),
@@ -573,6 +583,9 @@ def test_deepcopy(obj: Any) -> None:
         (BooleanNode(True), False, False),
         (BooleanNode(False), False, True),
         (AnyNode(value=1), AnyNode(value=1), True),
+        (AnyNode(value=1), 1, True),
+        (AnyNode(value=1), AnyNode(value="1"), False),
+        (AnyNode(value=1), "1", False),
         (EnumNode(enum_type=Enum1), Enum1.BAR, False),
         (EnumNode(enum_type=Enum1), EnumNode(Enum1), True),
         (EnumNode(enum_type=Enum1), "nope", False),
@@ -581,12 +594,24 @@ def test_deepcopy(obj: Any) -> None:
             EnumNode(enum_type=Enum1, value=Enum1.BAR),
             True,
         ),
+        (
+            EnumNode(enum_type=Enum1, value=Enum1.BAR),
+            EnumNode(enum_type=Enum1, value=Enum1.FOO),
+            False,
+        ),
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.BAR, True),
+        (EnumNode(enum_type=Enum1, value=Enum1.BAR), Enum1.FOO, False),
+        (EnumNode(enum_type=Enum1, value=Enum1.BAR), "Enum1.BAR", False),
+        (EnumNode(enum_type=Enum1, value="???"), "???", True),
+        (EnumNode(enum_type=Enum1, value=None), Enum1.BAR, False),
+        (EnumNode(enum_type=Enum1, value="${interp}"), "${interp}", True),
+        (EnumNode(enum_type=Enum1, value="${interp}"), "${different_interp}", False),
         (InterpolationResultNode("foo"), "foo", True),
         (InterpolationResultNode("${foo}"), "${foo}", True),
         (InterpolationResultNode("${foo"), "${foo", True),
         (InterpolationResultNode(None), None, True),
         (InterpolationResultNode(1), 1, True),
+        (InterpolationResultNode(1), "1", False),
         (InterpolationResultNode(1.0), 1.0, True),
         (InterpolationResultNode(True), True, True),
         (InterpolationResultNode(Color.RED), Color.RED, True),
@@ -607,7 +632,9 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
         assert (node.__hash__() == value.__hash__()) == expected
 
 
-@mark.parametrize("value", ["a_str", 1, 3.14, True, None, Enum1.FOO, b"binary"])
+@mark.parametrize(
+    "value", ["a_str", 1, 3.14, True, None, Enum1.FOO, b"binary", Path("hello.txt")]
+)
 def test_set_anynode_with_primitive_type(value: Any) -> None:
     cfg = OmegaConf.create({"a": 5})
     a_before = cfg._get_node("a")
