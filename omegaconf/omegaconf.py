@@ -252,10 +252,34 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
+        how: str = "outer-right"
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
         :param configs: Input configs
+        :how: How to merge DictConfigs. One of left, inner, outer-left or outer-right.
+            left:   Only merge on keys from the left DictConfig. E.g.
+                    {a1: 1, a2: {b1: 2, b2: 3}}, 
+                    {a2: {b2: 11, b2: 12}, a3: 13} 
+                    -> {a1: 1, a2: {b1: 2, b2: 11}}
+            inner: Only merge on keys from both DictConfigs. E.g.
+                    {a1: 1, a2: {b1: 2, b2: 3}},
+                    {a2: {b2: 11, b2: 12}, a3: 13} 
+                    -> {a2: {b2: 11}}
+            outer-left: Merge on keys from both DictConfigs. E.g.
+                    {a1: 1, a2: {b1: 2, b2: 3}},
+                    {a2: {b2: 11, b2: 12}, a3: 13} 
+                    -> {a1: 1, a2: {b1: 2, b2: 11, b3: }}
+                    
+                    If nesting levels conflict, use keys on the left. E.g.
+                    {a1: {b1: 9}}, {a1: {b1: {c1: 21}}, a2: 22}
+                    -> {a1: {b1: 9}, a2: 22}
+            outer-right: Merge on keys from both DictConfigs (see outer-left).
+                    
+                    If nesting levels conflict, use keys on the right. E.g.
+                    {a1: {b1: 9}}, {a1: {b1: {c1: 21}}, a2: 22}
+                    -> {a1: {b1: {c1: 21}}, a2: 22}
+            Currently defaults to outer-right.
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -264,7 +288,7 @@ class OmegaConf:
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(*configs[1:])
+            target.merge_with(*configs[1:], how=how)
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:

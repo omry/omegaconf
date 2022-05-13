@@ -274,9 +274,50 @@ class BaseContainer(Container, ABC):
 
             return retlist
         assert False
+        
+    @staticmethod
+    def _map_val_merge(dest: "BaseContainer", src_value: Any, key: str, how: str) -> None:
+        """merges a value into a destination container conditional on the type of merge (left, inner, outer-left or outer-right) """
+        if how == "left":
+            pass
+        elif how == "inner":
+            pass
+        elif how == "outer-left":
+            if key in dest:
+                pass
+            else:
+                dest.__setitem__(key, src_value)
+        elif how == "outer-right":
+            dest.__setitem__(key, src_value)
+            
+    @staticmethod
+    def _none_map_merge(dest: "BaseContainer", src: "BaseContainer", key: str, how: str) -> None:
+        """merges src container value at given key into a destination container (without said key) conditional on the type of merge (left, inner, outer-left or outer-right) """
+        if how == "left":
+            pass
+        elif how == "inner":
+            pass
+        elif how == "outer-left":
+            BaseContainer._set_item(dest, src, key)
+        elif how in "outer-right":
+            BaseContainer._set_item(dest, src, key)
+            
+    @staticmethod
+    def _set_item(dest: "BaseContainer", src: "BaseContainer", key: str) -> None:
+        from omegaconf import DictConfig
+        assert isinstance(src, DictConfig)
+        src_type = src._metadata.object_type
+        from omegaconf import open_dict
+
+        if is_structured_config(src_type):
+            # verified to be compatible above in _validate_merge
+            with open_dict(dest):
+                dest[key] = src._get_node(key)
+        else:
+            dest[key] = src._get_node(key)
 
     @staticmethod
-    def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
+    def _map_merge(dest: "BaseContainer", src: "BaseContainer", how: str = "outer-right") -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
 
@@ -364,12 +405,12 @@ class BaseContainer(Container, ABC):
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_value, BaseContainer):
-                        dest_node._merge_with(src_value)
+                        dest_node._merge_with(src_value, how=how)
                     elif not missing_src_value:
-                        dest.__setitem__(key, src_value)
+                        BaseContainer._map_val_merge(dest, src_value, key, how)
                 else:
                     if isinstance(src_value, BaseContainer):
-                        dest.__setitem__(key, src_value)
+                        BaseContainer._map_val_merge(dest, src_value, key, how)                         
                     else:
                         assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, ValueNode)
@@ -392,14 +433,21 @@ class BaseContainer(Container, ABC):
                         except (ValidationError, ReadonlyConfigError) as e:
                             dest._format_and_raise(key=key, value=src_value, cause=e)
             else:
-                from omegaconf import open_dict
-
-                if is_structured_config(src_type):
-                    # verified to be compatible above in _validate_merge
-                    with open_dict(dest):
-                        dest[key] = src._get_node(key)
-                else:
-                    dest[key] = src._get_node(key)
+                BaseContainer._none_map_merge(dest, src, key, how)
+        if how == "inner":
+            # Remove non-overlapping keys from destination
+            dest_items = dest.items_ex(resolve=False) if not dest._is_missing() else []
+            for key, dest_value in dest_items:
+                src_node = src._get_node(key, validate_access=False)
+                dest_node = dest._get_node(key, validate_access=False)
+                assert src_node is None or isinstance(src_node, Node)
+                assert dest_node is None or isinstance(dest_node, Node)
+                if (
+                    key not in src
+                    or (isinstance(dest_node, BaseContainer) and not isinstance(src_node, BaseContainer))
+                    or (not isinstance(dest_node, BaseContainer) and isinstance(src_node, BaseContainer))
+                ):
+                    dest.__delitem__(key)
 
         _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
@@ -455,9 +503,10 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
+        how: str = "outer-right"
     ) -> None:
         try:
-            self._merge_with(*others)
+            self._merge_with(*others, how=how)
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
 
@@ -466,6 +515,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
+        how: str = "outer-right"
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -481,7 +531,7 @@ class BaseContainer(Container, ABC):
             other = _ensure_container(other, flags=my_flags)
 
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                BaseContainer._map_merge(self, other)
+                BaseContainer._map_merge(self, other, how=how)
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 BaseContainer._list_merge(self, other)
             else:
