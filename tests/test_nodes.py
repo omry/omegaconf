@@ -4,9 +4,9 @@ import re
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Tuple, Type
+from typing import Any, Callable, Dict, Tuple, Type, Union
 
-from pytest import mark, param, raises
+from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     AnyNode,
@@ -98,6 +98,7 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
     assert not (node != output_)
     assert not (node != node)
     assert str(node) == str(output_)
+    assert repr(node) == repr(output_)
 
 
 # testing invalid conversions
@@ -172,6 +173,141 @@ def test_invalid_inputs(type_: type, input_: Any) -> None:
         empty_node._set_value(input_)
     with raises(ValidationError):
         type_(input_)
+
+
+@mark.parametrize(
+    "optional", [param(True, id="optional"), param(False, id="not_optional")]
+)
+@mark.parametrize(
+    "input_",
+    [
+        param("???", id="missing"),
+        param("${interp}", id="interp"),
+        param(None, id="none"),
+    ],
+)
+@mark.parametrize(
+    "flags", [param(None, id="convert"), param({"convert": False}, id="no_convert")]
+)
+class TestValueNodeSpecial:
+    @mark.parametrize(
+        "type_",
+        [
+            param(IntegerNode, id="int"),
+            param(FloatNode, id="float"),
+            param(BytesNode, id="bytes"),
+            param(BooleanNode, id="bool"),
+            param(StringNode, id="str"),
+            param(partial(EnumNode, Color), id="enum"),
+            param(PathNode, id="path"),
+        ],
+    )
+    def test_creation_special(
+        self, type_: Callable[..., Node], input_: Any, optional: bool, flags: Any
+    ):
+        if input_ is None and not optional:
+            with raises(ValidationError):
+                type_(input_, is_optional=optional, flags=flags)
+        else:
+            node = type_(input_, is_optional=optional, flags=flags)
+            assert node._value() == input_
+
+    @mark.parametrize(
+        "builds_node",
+        [
+            param(partial(IntegerNode, 123), id="int"),
+            param(partial(FloatNode, 10.1), id="float"),
+            param(partial(BytesNode, b"binary"), id="bytes"),
+            param(partial(BooleanNode, True), id="bool"),
+            param(partial(StringNode, "abc"), id="str"),
+            param(partial(EnumNode, Color, value=Color.RED), id="enum"),
+            param(partial(PathNode, Path("hello.txt")), id="path"),
+        ],
+    )
+    def test_set_value_special(
+        self, builds_node: Callable[..., Node], input_: Any, optional: bool, flags: Any
+    ):
+        node = builds_node(is_optional=optional, flags=flags)
+        if input_ is None and not optional:
+            with raises(ValidationError):
+                node._set_value(input_)
+        else:
+            node._set_value(input_)
+            assert node._value() == input_
+
+
+@mark.parametrize(
+    "input_",
+    [
+        param(123, id="123"),
+        param(10.1, id="10.1"),
+        param(b"binary", id="binary"),
+        param(True, id="true"),
+        param("abc", id="abc"),
+        param("RED", id="red_str"),
+        param("123", id="123_str"),
+        param("10.1", id="10.1_str"),
+        param(Color.RED, id="Color.RED"),
+        param(Enum1.FOO, id="Enum1.FOO"),
+        param(Path("hello.txt"), id="path"),
+        param(object(), id="object"),
+    ],
+)
+@mark.parametrize(
+    "type_, legal_type",
+    [
+        param(IntegerNode, int, id="integer_node"),
+        param(FloatNode, float, id="float_node"),
+        param(BytesNode, bytes, id="bytes_node"),
+        param(BooleanNode, bool, id="boolean_node"),
+        param(StringNode, str, id="string_node"),
+        param(partial(EnumNode, Color), Color, id="enum_node"),
+        param(partial(EnumNode, Enum), lambda t: issubclass(t, Enum), id="enum_node"),
+        param(PathNode, lambda t: issubclass(t, Path), id="path_node"),
+    ],
+)
+class TestNodeConvertFalse:
+    @fixture
+    def input_is_compatible_with_node(
+        self, input_: Any, legal_type: Union[Type[Any], Callable[[Type[Any]], bool]]
+    ) -> bool:
+        input_type = type(input_)
+        return (
+            input_type is legal_type
+            if isinstance(legal_type, type)
+            else legal_type(input_type)
+        )
+
+    @mark.parametrize(
+        "optional", [param(True, id="optional"), param(False, id="not_optional")]
+    )
+    def test_instantiate_with_value(
+        self,
+        type_: Callable[..., ValueNode],
+        input_: Any,
+        input_is_compatible_with_node: bool,
+        optional: bool,
+    ) -> None:
+        if input_is_compatible_with_node:
+            node = type_(input_, is_optional=optional, flags={"convert": False})
+            assert node._value() == input_
+        else:
+            with raises(ValidationError):
+                type_(input_, is_optional=optional, flags={"convert": False})
+
+    def test_set_value(
+        self,
+        type_: Callable[..., ValueNode],
+        input_: Any,
+        input_is_compatible_with_node: bool,
+    ) -> None:
+        node = type_(flags={"convert": False})
+        if input_is_compatible_with_node:
+            node._set_value(input_, flags={"convert": False})
+            assert node._value() == input_
+        else:
+            with raises(ValidationError):
+                node._set_value(input_, flags={"convert": False})
 
 
 @mark.parametrize(
@@ -561,6 +697,11 @@ def test_deepcopy(obj: Any) -> None:
         (IntegerNode(1), 1, True),
         (IntegerNode(1), "1", False),
         (IntegerNode(1), "foo", False),
+        (IntegerNode(1), "foo", False),
+        (IntegerNode("???"), "???", True),
+        (IntegerNode(None), None, True),
+        (IntegerNode("${interp}"), "${interp}", True),
+        (IntegerNode("${interp}"), "${different_interp}", False),
         (FloatNode(), 1, False),
         (FloatNode(), None, True),
         (FloatNode(1.0), None, False),
@@ -569,6 +710,7 @@ def test_deepcopy(obj: Any) -> None:
         (FloatNode(1), "1", False),
         (FloatNode(1.0), "1.0", False),
         (FloatNode(1.0), "foo", False),
+        (FloatNode("???"), "???", True),
         (BytesNode(), None, True),
         (BytesNode(), b"binary", False),
         (BytesNode(b"binary"), b"binary", True),
@@ -619,6 +761,9 @@ def test_deepcopy(obj: Any) -> None:
         (InterpolationResultNode([0, None, True]), [0, None, True], True),
         (InterpolationResultNode("foo"), 100, False),
         (InterpolationResultNode(100), "foo", False),
+        (InterpolationResultNode("???"), "???", True),
+        (InterpolationResultNode(None), None, True),
+        (InterpolationResultNode(None), 100, False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
