@@ -1,4 +1,4 @@
-from .base import Container, DictKeyType, Node, SCMode
+from .base import Container, DictKeyType, Node, SCMode, UnionNode
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
@@ -39,6 +39,7 @@ __all__ = [
     "UnsupportedValueType",
     "KeyValidationError",
     "Container",
+    "UnionNode",
     "ListConfig",
     "DictConfig",
     "DictKeyType",

@@ -10,11 +10,15 @@ from antlr4 import ParserRuleContext
 
 from ._utils import (
     _DEFAULT_MARKER_,
+    NoneType,
     ValueKind,
     _get_value,
+    _is_interpolation,
     _is_missing_value,
+    _is_special,
     format_and_raise,
     get_value_kind,
+    is_union_annotation,
     is_valid_value_annotation,
     split_key,
     type_str,
@@ -98,10 +102,10 @@ class ContainerMetadata(Metadata):
 class Node(ABC):
     _metadata: Metadata
 
-    _parent: Optional["Container"]
+    _parent: Optional["Box"]
     _flags_cache: Optional[Dict[str, Optional[bool]]]
 
-    def __init__(self, parent: Optional["Container"], metadata: Metadata):
+    def __init__(self, parent: Optional["Box"], metadata: Metadata):
         self.__dict__["_metadata"] = metadata
         self.__dict__["_parent"] = parent
         self.__dict__["_flags_cache"] = None
@@ -116,18 +120,34 @@ class Node(ABC):
         self.__dict__.update(state_dict)
         self.__dict__["_flags_cache"] = None
 
-    def _set_parent(self, parent: Optional["Container"]) -> None:
-        assert parent is None or isinstance(parent, Container)
+    def _set_parent(self, parent: Optional["Box"]) -> None:
+        assert parent is None or isinstance(parent, Box)
         self.__dict__["_parent"] = parent
         self._invalidate_flags_cache()
 
     def _invalidate_flags_cache(self) -> None:
         self.__dict__["_flags_cache"] = None
 
-    def _get_parent(self) -> Optional["Container"]:
+    def _get_parent(self) -> Optional["Box"]:
         parent = self.__dict__["_parent"]
-        assert parent is None or isinstance(parent, Container)
+        assert parent is None or isinstance(parent, Box)
         return parent
+
+    def _get_parent_container(self) -> Optional["Container"]:
+        """
+        Like _get_parent, but returns the grandparent
+        in the case where `self` is wrapped by a UnionNode.
+        """
+        parent = self.__dict__["_parent"]
+        assert parent is None or isinstance(parent, Box)
+
+        if isinstance(parent, UnionNode):
+            grandparent = parent.__dict__["_parent"]
+            assert grandparent is None or isinstance(grandparent, Container)
+            return grandparent
+        else:
+            assert parent is None or isinstance(parent, Container)
+            return parent
 
     def _set_flag(
         self,
@@ -245,7 +265,7 @@ class Node(ABC):
         if not self._is_interpolation():
             return self
 
-        parent = self._get_parent()
+        parent = self._get_parent_container()
         if parent is None:
             if throw_on_resolution_failure:
                 raise InterpolationResolutionError(
@@ -264,14 +284,15 @@ class Node(ABC):
         )
 
     def _get_root(self) -> "Container":
-        root: Optional[Container] = self._get_parent()
+        root: Optional[Box] = self._get_parent()
         if root is None:
             assert isinstance(self, Container)
             return self
-        assert root is not None and isinstance(root, Container)
+        assert root is not None and isinstance(root, Box)
         while root._get_parent() is not None:
             root = root._get_parent()
-            assert root is not None and isinstance(root, Container)
+            assert root is not None and isinstance(root, Box)
+        assert root is not None and isinstance(root, Container)
         return root
 
     def _is_missing(self) -> bool:
@@ -328,14 +349,75 @@ class Node(ABC):
             self._metadata.flags_root = flags_root
             self._invalidate_flags_cache()
 
+    def _has_ref_type(self) -> bool:
+        return self._metadata.ref_type is not Any
 
-class Container(Node):
+
+class Box(Node):
+    """
+    Base class for nodes that can contain other nodes.
+    Concrete subclasses include DictConfig, ListConfig, and UnionNode.
+    """
+
+    _content: Any
+
+    def __init__(self, parent: Optional["Box"], metadata: Metadata):
+        super().__init__(parent=parent, metadata=metadata)
+        self.__dict__["_content"] = None
+
+    def __copy__(self) -> Any:
+        # real shallow copy is impossible because of the reference to the parent.
+        return copy.deepcopy(self)
+
+    def _re_parent(self) -> None:
+        from .dictconfig import DictConfig
+        from .listconfig import ListConfig
+
+        # update parents of first level Config nodes to self
+
+        if isinstance(self, DictConfig):
+            content = self.__dict__["_content"]
+            if isinstance(content, dict):
+                for _key, value in self.__dict__["_content"].items():
+                    if value is not None:
+                        value._set_parent(self)
+                    if isinstance(value, Box):
+                        value._re_parent()
+        elif isinstance(self, ListConfig):
+            content = self.__dict__["_content"]
+            if isinstance(content, list):
+                for item in self.__dict__["_content"]:
+                    if item is not None:
+                        item._set_parent(self)
+                    if isinstance(item, Box):
+                        item._re_parent()
+        elif isinstance(self, UnionNode):
+            content = self.__dict__["_content"]
+            if isinstance(content, Node):
+                content._set_parent(self)
+                if isinstance(content, Box):
+                    content._re_parent()
+
+
+class Container(Box):
     """
     Container tagging interface
     """
 
     _metadata: ContainerMetadata
 
+    @abstractmethod
+    def _get_child(
+        self,
+        key: Any,
+        validate_access: bool = True,
+        validate_key: bool = True,
+        throw_on_missing_value: bool = False,
+        throw_on_missing_key: bool = False,
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
+        ...
+
+    @abstractmethod
     def _get_node(
         self,
         key: Any,
@@ -362,10 +444,6 @@ class Container(Node):
     def __getitem__(self, key_or_index: Any) -> Any:
         ...
 
-    def __copy__(self) -> Any:
-        # real shallow copy is impossible because of the reference to the parent.
-        return copy.deepcopy(self)
-
     def _resolve_key_and_root(self, key: str) -> Tuple["Container", str]:
         orig = key
         if not key.startswith("."):
@@ -378,7 +456,7 @@ class Container(Node):
                 key = key[1:]
                 if not key.startswith("."):
                     break
-                root = root._get_parent()
+                root = root._get_parent_container()
                 if root is None:
                     raise ConfigKeyError(f"Error resolving key '{orig}'")
 
@@ -502,7 +580,7 @@ class Container(Node):
 
         try:
             resolved = self.resolve_parse_tree(
-                parse_tree=parse_tree, node=value, key=key, parent=parent, memo=memo
+                parse_tree=parse_tree, node=value, key=key, memo=memo
             )
         except InterpolationResolutionError:
             if throw_on_resolution_failure:
@@ -651,7 +729,6 @@ class Container(Node):
         node: Node,
         memo: Optional[Set[int]] = None,
         key: Optional[Any] = None,
-        parent: Optional["Container"] = None,
     ) -> Any:
         """
         Resolve a given parse tree into its value.
@@ -691,30 +768,6 @@ class Container(Node):
                 f"{type(exc).__name__} raised while resolving interpolation: {exc}"
             ).with_traceback(sys.exc_info()[2])
 
-    def _re_parent(self) -> None:
-        from .dictconfig import DictConfig
-        from .listconfig import ListConfig
-
-        # update parents of first level Config nodes to self
-
-        if isinstance(self, Container):
-            if isinstance(self, DictConfig):
-                content = self.__dict__["_content"]
-                if isinstance(content, dict):
-                    for _key, value in self.__dict__["_content"].items():
-                        if value is not None:
-                            value._set_parent(self)
-                        if isinstance(value, Container):
-                            value._re_parent()
-            elif isinstance(self, ListConfig):
-                content = self.__dict__["_content"]
-                if isinstance(content, list):
-                    for item in self.__dict__["_content"]:
-                        if item is not None:
-                            item._set_parent(self)
-                        if isinstance(item, Container):
-                            item._re_parent()
-
     def _invalidate_flags_cache(self) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -734,11 +787,174 @@ class Container(Node):
                     for item in self.__dict__["_content"]:
                         item._invalidate_flags_cache()
 
-    def _has_ref_type(self) -> bool:
-        return self._metadata.ref_type is not Any
-
 
 class SCMode(Enum):
     DICT = 1  # Convert to plain dict
     DICT_CONFIG = 2  # Keep as OmegaConf DictConfig
     INSTANTIATE = 3  # Create a dataclass or attrs class instance
+
+
+class UnionNode(Box):
+    """
+    This class handles Union type hints. The `_content` attribute is either a
+    child node that is compatible with the given Union ref_type, or it is a
+    special value (None or MISSING or interpolation).
+
+    Much of the logic for e.g. value assignment and type validation is
+    delegated to the child node. As such, UnionNode functions as a
+    "pass-through" node. User apps and downstream libraries should not need to
+    know about UnionNode (assuming they only use OmegaConf's public API).
+    """
+
+    _parent: Optional[Container]
+    _content: Union[Node, None, str]
+
+    def __init__(
+        self,
+        content: Any,
+        ref_type: Any,
+        is_optional: bool = True,
+        key: Any = None,
+        parent: Optional[Box] = None,
+    ) -> None:
+        try:
+            if not is_union_annotation(ref_type):  # pragma: no cover
+                msg = (
+                    f"UnionNode got unexpected ref_type {ref_type}. Please file a bug"
+                    + " report at https://github.com/omry/omegaconf/issues"
+                )
+                raise AssertionError(msg)
+            if not isinstance(parent, (Container, NoneType)):
+                raise ConfigTypeError("Parent type is not omegaconf.Container")
+            super().__init__(
+                parent=parent,
+                metadata=Metadata(
+                    ref_type=ref_type,
+                    object_type=None,
+                    optional=is_optional,
+                    key=key,
+                    flags={"convert": False},
+                ),
+            )
+            self._set_value(content)
+        except Exception as ex:
+            format_and_raise(node=None, key=key, value=content, msg=str(ex), cause=ex)
+
+    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
+        parent = self._get_parent()
+        if parent is None:
+            if self._metadata.key is None:
+                return ""
+            else:
+                return str(self._metadata.key)
+        else:
+            return parent._get_full_key(self._metadata.key)
+
+    def __eq__(self, other: Any) -> bool:
+        content = self.__dict__["_content"]
+        if isinstance(content, Node):
+            ret = content.__eq__(other)
+        elif isinstance(other, Node):
+            ret = other.__eq__(content)
+        else:
+            ret = content.__eq__(other)
+        assert isinstance(ret, (bool, type(NotImplemented)))
+        return ret
+
+    def __ne__(self, other: Any) -> bool:
+        x = self.__eq__(other)
+        if x is NotImplemented:
+            return NotImplemented
+        return not x
+
+    def __hash__(self) -> int:
+        return hash(self.__dict__["_content"])
+
+    def _value(self) -> Union[Node, None, str]:
+        content = self.__dict__["_content"]
+        assert isinstance(content, (Node, NoneType, str))
+        return content
+
+    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        previous_content = self.__dict__["_content"]
+        previous_metadata = self.__dict__["_metadata"]
+        try:
+            self._set_value_impl(value, flags)
+        except Exception as e:
+            self.__dict__["_content"] = previous_content
+            self.__dict__["_metadata"] = previous_metadata
+            raise e
+
+    def _set_value_impl(
+        self, value: Any, flags: Optional[Dict[str, bool]] = None
+    ) -> None:
+        from omegaconf.omegaconf import _node_wrap
+
+        ref_type = self._metadata.ref_type
+        type_hint = self._metadata.type_hint
+
+        value = _get_value(value)
+        if _is_special(value):
+            assert isinstance(value, (str, NoneType))
+            if value is None:
+                if not self._is_optional():
+                    raise ValidationError(
+                        f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
+                    )
+            self.__dict__["_content"] = value
+        elif isinstance(value, Container):
+            raise ValidationError(
+                f"Cannot assign container '$VALUE' of type '$VALUE_TYPE' to {type_str(type_hint)}"
+            )
+        else:
+            for candidate_ref_type in ref_type.__args__:
+                try:
+                    self.__dict__["_content"] = _node_wrap(
+                        value=value,
+                        ref_type=candidate_ref_type,
+                        is_optional=False,
+                        key=None,
+                        parent=self,
+                    )
+                    break
+                except ValidationError:
+                    continue
+            else:
+                raise ValidationError(
+                    f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
+                )
+
+    def _is_optional(self) -> bool:
+        return self.__dict__["_metadata"].optional is True
+
+    def _is_interpolation(self) -> bool:
+        return _is_interpolation(self.__dict__["_content"])
+
+    def __str__(self) -> str:
+        return str(self.__dict__["_content"])
+
+    def __repr__(self) -> str:
+        return repr(self.__dict__["_content"])
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "UnionNode":
+        res = object.__new__(type(self))
+        for key, value in self.__dict__.items():
+            if key not in ("_content", "_parent"):
+                res.__dict__[key] = copy.deepcopy(value, memo=memo)
+
+        src_content = self.__dict__["_content"]
+        if isinstance(src_content, Node):
+            old_parent = src_content.__dict__["_parent"]
+            try:
+                src_content.__dict__["_parent"] = None
+                content_copy = copy.deepcopy(src_content, memo=memo)
+                content_copy.__dict__["_parent"] = res
+            finally:
+                src_content.__dict__["_parent"] = old_parent
+        else:
+            # None and strings can be assigned as is
+            content_copy = src_content
+
+        res.__dict__["_content"] = content_copy
+        res.__dict__["_parent"] = self.__dict__["_parent"]
+        return res

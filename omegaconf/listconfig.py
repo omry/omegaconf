@@ -26,7 +26,7 @@ from ._utils import (
     is_structured_config,
     type_str,
 )
-from .base import Container, ContainerMetadata, Node
+from .base import Box, ContainerMetadata, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -47,7 +47,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self,
         content: Union[List[Any], Tuple[Any, ...], "ListConfig", str, None],
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         element_type: Union[Type[Any], Any] = Any,
         is_optional: bool = True,
         ref_type: Union[Type[Any], Any] = Any,
@@ -460,7 +460,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 raise MissingMandatoryValue("Cannot pop from a missing ListConfig")
 
             assert isinstance(self.__dict__["_content"], list)
-            node = self._get_node(index)
+            node = self._get_child(index)
             assert isinstance(node, Node)
             ret = self._resolve_with_default(key=index, value=node, default_value=None)
             del self.__dict__["_content"][index]

@@ -12,7 +12,6 @@ from ._utils import (
     _ensure_container,
     _get_value,
     _is_interpolation,
-    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _is_special,
@@ -30,7 +29,15 @@ from ._utils import (
     is_tuple_annotation,
     is_union_annotation,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node, SCMode
+from .base import (
+    Box,
+    Container,
+    ContainerMetadata,
+    DictKeyType,
+    Node,
+    SCMode,
+    UnionNode,
+)
 from .errors import (
     ConfigCycleDetectedException,
     ConfigTypeError,
@@ -49,11 +56,32 @@ if TYPE_CHECKING:
 class BaseContainer(Container, ABC):
     _resolvers: ClassVar[Dict[str, Any]] = {}
 
-    def __init__(self, parent: Optional["Container"], metadata: ContainerMetadata):
-        if not (parent is None or isinstance(parent, Container)):
-            raise ConfigTypeError("Parent type is not omegaconf.Container")
+    def __init__(self, parent: Optional[Box], metadata: ContainerMetadata):
+        if not (parent is None or isinstance(parent, Box)):
+            raise ConfigTypeError("Parent type is not omegaconf.Box")
         super().__init__(parent=parent, metadata=metadata)
-        self.__dict__["_content"] = None
+
+    def _get_child(
+        self,
+        key: Any,
+        validate_access: bool = True,
+        validate_key: bool = True,
+        throw_on_missing_value: bool = False,
+        throw_on_missing_key: bool = False,
+    ) -> Union[Optional[Node], List[Optional[Node]]]:
+        """Like _get_node, passing through to the nearest concrete Node."""
+        child = self._get_node(
+            key=key,
+            validate_access=validate_access,
+            validate_key=validate_key,
+            throw_on_missing_value=throw_on_missing_value,
+            throw_on_missing_key=throw_on_missing_key,
+        )
+        if isinstance(child, UnionNode) and not _is_special(child):
+            value = child._value()
+            assert isinstance(value, Node) and not isinstance(value, UnionNode)
+            child = value
+        return child
 
     def _resolve_with_default(
         self,
@@ -205,7 +233,7 @@ class BaseContainer(Container, ABC):
 
         def get_node_value(key: Union[DictKeyType, int]) -> Any:
             try:
-                node = conf._get_node(key, throw_on_missing_value=throw_on_missing)
+                node = conf._get_child(key, throw_on_missing_value=throw_on_missing)
             except MissingMandatoryValue as e:
                 conf._format_and_raise(key=key, value=None, cause=e)
             assert isinstance(node, Node)
@@ -327,23 +355,25 @@ class BaseContainer(Container, ABC):
         if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
             expand(dest)
 
-        src_items = src.items_ex(resolve=False) if not src._is_missing() else []
-        for key, src_value in src_items:
+        src_items = list(src) if not src._is_missing() else []
+        for key in src_items:
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
-            assert src_node is None or isinstance(src_node, Node)
+            assert isinstance(src_node, Node)
             assert dest_node is None or isinstance(dest_node, Node)
+            src_value = _get_value(src_node)
+
+            src_vk = get_value_kind(src_node)
+            src_node_missing = src_vk is ValueKind.MANDATORY_MISSING
 
             if isinstance(dest_node, DictConfig):
                 dest_node._validate_merge(value=src_node)
 
-            missing_src_value = _is_missing_value(src_value)
-
             if (
                 isinstance(dest_node, Container)
                 and dest_node._is_none()
-                and not missing_src_value
-                and not _is_none(src_value, resolve=True)
+                and not src_node_missing
+                and not _is_none(src_node, resolve=True)
             ):
                 expand(dest_node)
 
@@ -354,7 +384,7 @@ class BaseContainer(Container, ABC):
                     dest_node = dest._get_node(key)
 
             is_optional, et = _resolve_optional(dest._metadata.element_type)
-            if dest_node is None and is_structured_config(et) and not missing_src_value:
+            if dest_node is None and is_structured_config(et) and not src_node_missing:
                 # merging into a new node. Use element_type as a base
                 dest[key] = DictConfig(
                     et, parent=dest, ref_type=et, is_optional=is_optional
@@ -363,18 +393,16 @@ class BaseContainer(Container, ABC):
 
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
-                    if isinstance(src_value, BaseContainer):
-                        dest_node._merge_with(src_value)
-                    elif not missing_src_value:
-                        dest.__setitem__(key, src_value)
+                    if isinstance(src_node, BaseContainer):
+                        dest_node._merge_with(src_node)
+                    elif not src_node_missing:
+                        dest.__setitem__(key, src_node)
                 else:
-                    if isinstance(src_value, BaseContainer):
-                        dest.__setitem__(key, src_value)
+                    if isinstance(src_node, BaseContainer):
+                        dest.__setitem__(key, src_node)
                     else:
-                        assert isinstance(dest_node, ValueNode)
-                        assert isinstance(src_node, ValueNode)
-                        # Compare to literal missing, ignoring interpolation
-                        src_node_missing = _is_missing_literal(src_value)
+                        assert isinstance(dest_node, (ValueNode, UnionNode))
+                        assert isinstance(src_node, (ValueNode, UnionNode))
                         try:
                             if isinstance(dest_node, AnyNode):
                                 if src_node_missing:
@@ -500,7 +528,7 @@ class BaseContainer(Container, ABC):
 
         if isinstance(value, Node):
             do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
-            if not do_deepcopy and isinstance(value, Container):
+            if not do_deepcopy and isinstance(value, Box):
                 # if value is from the same config, perform a deepcopy no matter what.
                 if self._get_root() is value._get_root():
                     do_deepcopy = True
@@ -523,11 +551,11 @@ class BaseContainer(Container, ABC):
 
         input_is_node = isinstance(value, Node)
         target_node_ref = self._get_node(key)
+        assert target_node_ref is None or isinstance(target_node_ref, Node)
 
         input_is_typed_vnode = isinstance(value, ValueNode) and not isinstance(
             value, AnyNode
         )
-        target_is_vnode = isinstance(target_node_ref, ValueNode)
 
         def get_target_type_hint(val: Any) -> Any:
             if not is_structured_config(val):
@@ -541,6 +569,9 @@ class BaseContainer(Container, ABC):
                     type_hint = target._metadata.type_hint
             return type_hint
 
+        target_type_hint = get_target_type_hint(value)
+        _, target_ref_type = _resolve_optional(target_type_hint)
+
         def assign(value_key: Any, val: Node) -> None:
             assert val._get_parent() is None
             v = val
@@ -549,25 +580,17 @@ class BaseContainer(Container, ABC):
             _deep_update_type_hint(node=v, type_hint=self._metadata.element_type)
             self.__dict__["_content"][value_key] = v
 
-        if input_is_typed_vnode:
+        if input_is_typed_vnode and not is_union_annotation(target_ref_type):
             assign(key, value)
         else:
-            # input is not a ValueNode, can be primitive or container
+            # input is not a ValueNode, can be primitive or box
 
             special_value = _is_special(value)
-            type_hint = get_target_type_hint(value)
-            # We use the `Node._set_value` method if the target node exists
-            # 1. the value is special (i.e. MISSING or None or interpolation), or
-            # 2. the target is a Container and has an explicit ref_type, or
-            # 3. the target is a typed ValueNode, or
-            # 4. the target is an AnyNode and the input is a primitive type.
+            # We use the `Node._set_value` method if the target node exists and:
+            # 1. the target has an explicit ref_type, or
+            # 2. the target is an AnyNode and the input is a primitive type.
             should_set_value = target_node_ref is not None and (
-                special_value
-                or (
-                    isinstance(target_node_ref, Container)
-                    and target_node_ref._has_ref_type()
-                )
-                or (target_is_vnode and not isinstance(target_node_ref, AnyNode))
+                target_node_ref._has_ref_type()
                 or (
                     isinstance(target_node_ref, AnyNode)
                     and is_primitive_type_annotation(value)
@@ -578,28 +601,37 @@ class BaseContainer(Container, ABC):
                     value = value._value()
                 self.__dict__["_content"][key]._set_value(value)
             elif input_is_node:
-                _, ref_type = _resolve_optional(type_hint)
-                if special_value and (
-                    is_container_annotation(ref_type) or is_structured_config(ref_type)
+                if (
+                    special_value
+                    and (
+                        is_container_annotation(target_ref_type)
+                        or is_structured_config(target_ref_type)
+                    )
+                    or is_primitive_type_annotation(target_ref_type)
+                    or is_union_annotation(target_ref_type)
                 ):
-                    self._wrap_value_and_set(key, value._value(), type_hint)
+                    value = _get_value(value)
+                    self._wrap_value_and_set(key, value, target_type_hint)
                 else:
                     assign(key, value)
             else:
-                self._wrap_value_and_set(key, value, type_hint)
+                self._wrap_value_and_set(key, value, target_type_hint)
 
     def _wrap_value_and_set(self, key: Any, val: Any, type_hint: Any) -> None:
         from omegaconf.omegaconf import _maybe_wrap
 
         is_optional, ref_type = _resolve_optional(type_hint)
 
-        wrapped = _maybe_wrap(
-            ref_type=ref_type,
-            key=key,
-            value=val,
-            is_optional=is_optional,
-            parent=self,
-        )
+        try:
+            wrapped = _maybe_wrap(
+                ref_type=ref_type,
+                key=key,
+                value=val,
+                is_optional=is_optional,
+                parent=self,
+            )
+        except ValidationError as e:
+            self._format_and_raise(key=key, value=val, cause=e)
         self.__dict__["_content"][key] = wrapped
 
     @staticmethod
@@ -609,8 +641,8 @@ class BaseContainer(Container, ABC):
         c2: Container,
         k2: Union[DictKeyType, int],
     ) -> bool:
-        v1 = c1._get_node(k1)
-        v2 = c2._get_node(k2)
+        v1 = c1._get_child(k1)
+        v2 = c2._get_child(k2)
         assert v1 is not None and v2 is not None
 
         assert isinstance(v1, Node)
@@ -686,13 +718,23 @@ class BaseContainer(Container, ABC):
             else:
                 return f"{x.start}:{x.stop}"
 
-        def prepand(full_key: str, parent_type: Any, cur_type: Any, key: Any) -> str:
+        def prepand(
+            full_key: str,
+            parent_type: Any,
+            cur_type: Any,
+            key: Optional[Union[DictKeyType, int, slice]],
+        ) -> str:
+            if key is None:
+                return full_key
+
             if isinstance(key, slice):
                 key = _slice_to_str(key)
             elif isinstance(key, Enum):
                 key = key.name
-            elif isinstance(key, (int, float, bool)):
+            else:
                 key = str(key)
+
+            assert isinstance(key, str)
 
             if issubclass(parent_type, ListConfig):
                 if full_key != "":

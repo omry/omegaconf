@@ -38,7 +38,7 @@ from ._utils import (
     is_structured_config_frozen,
     type_str,
 )
-from .base import Container, ContainerMetadata, DictKeyType, Node
+from .base import Box, Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -63,7 +63,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self,
         content: Union[Dict[DictKeyType, Any], "DictConfig", Any],
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         ref_type: Union[Any, Type[Any]] = Any,
         key_type: Union[Any, Type[Any]] = Any,
         element_type: Union[Any, Type[Any]] = Any,
@@ -441,7 +441,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self, key: DictKeyType, default_value: Any, validate_key: bool = True
     ) -> Any:
         try:
-            node = self._get_node(
+            node = self._get_child(
                 key=key, throw_on_missing_key=True, validate_key=validate_key
             )
         except (ConfigAttributeError, ConfigKeyError):
@@ -495,7 +495,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     f"{type_str(self._metadata.object_type)} (DictConfig) does not support pop"
                 )
             key = self._validate_and_normalize_key(key)
-            node = self._get_node(key=key, validate_access=False)
+            node = self._get_child(key=key, validate_access=False)
             if node is not None:
                 assert isinstance(node, Node)
                 value = self._resolve_with_default(
@@ -539,7 +539,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return False
 
         try:
-            node = self._get_node(key)
+            node = self._get_child(key)
             assert node is None or isinstance(node, Node)
         except (KeyError, AttributeError):
             node = None
@@ -737,7 +737,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         non_init_field_items: Dict[str, Any] = {}
         for k in self.keys():
             assert isinstance(k, str)
-            node = self._get_node(k)
+            node = self._get_child(k)
             assert isinstance(node, Node)
             try:
                 node = node._dereference_node()
