@@ -739,6 +739,20 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: DictConfig(
+                {"bar": BytesNode(b"binary", flags={"convert": False})}
+            ),
+            op=lambda cfg: cfg.__setattr__("bar", 123.4),
+            exception_type=ValidationError,
+            msg="Value '123.4' of type 'float' is incompatible with type hint 'Optional[bytes]'",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,string_to_bytes,no_convert",
+    ),
+    param(
+        Expected(
             create=lambda: DictConfig({"bar": PathNode(Path("hello.txt"))}),
             op=lambda cfg: cfg.__setattr__("bar", 123.4),
             exception_type=ValidationError,
@@ -751,6 +765,20 @@ params = [
     ),
     param(
         Expected(
+            create=lambda: DictConfig(
+                {"bar": PathNode(Path("hello.txt"), flags={"convert": False})}
+            ),
+            op=lambda cfg: cfg.__setattr__("bar", 123.4),
+            exception_type=ValidationError,
+            msg="Value '123.4' of type 'float' is not an instance of 'pathlib.Path'",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,string_to_path,no_convert",
+    ),
+    param(
+        Expected(
             create=lambda: DictConfig({"bar": StringNode("abc123")}),
             op=lambda cfg: cfg.__setattr__("bar", b"binary"),
             exception_type=ValidationError,
@@ -760,6 +788,20 @@ params = [
             child_node=lambda cfg: cfg._get_node("bar"),
         ),
         id="typed_DictConfig:assign_with_invalid_value,bytes_to_string",
+    ),
+    param(
+        Expected(
+            create=lambda: DictConfig(
+                {"bar": StringNode("abc123")}, flags={"convert": False}
+            ),
+            op=lambda cfg: cfg.__setattr__("bar", b"binary"),
+            exception_type=ValidationError,
+            msg=r"Value 'b'binary'' of type 'bytes' is incompatible with type hint 'Optional[str]'",
+            key="bar",
+            full_key="bar",
+            child_node=lambda cfg: cfg._get_node("bar"),
+        ),
+        id="typed_DictConfig:assign_with_invalid_value,bytes_to_string,parent_no_convert",
     ),
     param(
         Expected(

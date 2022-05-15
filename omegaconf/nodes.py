@@ -45,6 +45,14 @@ class ValueNode(Node):
         else:
             self._val = self.validate_and_convert(value)
 
+    def _strict_validate_type(self, value: Any) -> None:
+        ref_type = self._metadata.ref_type
+        if isinstance(ref_type, type) and type(value) is not ref_type:
+            type_hint = type_str(self._metadata.type_hint)
+            raise ValidationError(
+                f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_hint}'"
+            )
+
     def validate_and_convert(self, value: Any) -> Any:
         """
         Validates input and converts to canonical form
@@ -58,8 +66,14 @@ class ValueNode(Node):
             raise ValidationError(
                 f"Incompatible value '{value}' for field of type '{ref_type_str}'"
             )
-        # Subclasses can assume that `value` is not None in `_validate_and_convert_impl()`.
-        return self._validate_and_convert_impl(value)
+
+        # Subclasses can assume that `value` is not None in
+        # `_validate_and_convert_impl()` and in `_strict_validate_type()`.
+        if self._get_flag("convert") is False:
+            self._strict_validate_type(value)
+            return value
+        else:
+            return self._validate_and_convert_impl(value)
 
     @abstractmethod
     def _validate_and_convert_impl(self, value: Any) -> Any:
@@ -206,6 +220,12 @@ class PathNode(ValueNode):
                 flags=flags,
             ),
         )
+
+    def _strict_validate_type(self, value: Any) -> None:
+        if not isinstance(value, Path):
+            raise ValidationError(
+                "Value '$VALUE' of type '$VALUE_TYPE' is not an instance of 'pathlib.Path'"
+            )
 
     def _validate_and_convert_impl(self, value: Any) -> Path:
         if not isinstance(value, (str, Path)):
@@ -435,6 +455,14 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                 flags=flags,
             ),
         )
+
+    def _strict_validate_type(self, value: Any) -> None:
+        ref_type = self._metadata.ref_type
+        if not isinstance(value, ref_type):
+            type_hint = type_str(self._metadata.type_hint)
+            raise ValidationError(
+                f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_hint}'"
+            )
 
     def _validate_and_convert_impl(self, value: Any) -> Enum:
         return self.validate_and_convert_to_enum(enum_type=self.enum_type, value=value)
