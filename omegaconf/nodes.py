@@ -14,14 +14,14 @@ from omegaconf._utils import (
     is_primitive_container,
     type_str,
 )
-from omegaconf.base import Container, DictKeyType, Metadata, Node
+from omegaconf.base import Box, DictKeyType, Metadata, Node
 from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
 
 
 class ValueNode(Node):
     _val: Any
 
-    def __init__(self, parent: Optional[Container], value: Any, metadata: Metadata):
+    def __init__(self, parent: Optional[Box], value: Any, metadata: Metadata):
         from omegaconf import read_write
 
         super().__init__(parent=parent, metadata=metadata)
@@ -129,7 +129,7 @@ class AnyNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(
@@ -167,7 +167,7 @@ class StringNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -205,7 +205,7 @@ class PathNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -246,7 +246,7 @@ class IntegerNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -285,7 +285,7 @@ class BytesNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -319,7 +319,7 @@ class FloatNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -375,7 +375,7 @@ class BooleanNode(ValueNode):
         self,
         value: Any = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -432,7 +432,7 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         enum_type: Type[Enum],
         value: Optional[Union[Enum, str]] = None,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         is_optional: bool = True,
         flags: Optional[Dict[str, bool]] = None,
     ):
@@ -513,7 +513,7 @@ class InterpolationResultNode(ValueNode):
         self,
         value: Any,
         key: Any = None,
-        parent: Optional[Container] = None,
+        parent: Optional[Box] = None,
         flags: Optional[Dict[str, bool]] = None,
     ):
         super().__init__(

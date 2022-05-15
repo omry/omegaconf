@@ -7,7 +7,7 @@ from ._utils import _DEFAULT_MARKER_, _get_value
 
 
 def _resolve_container_value(cfg: Container, key: Any) -> None:
-    node = cfg._get_node(key)
+    node = cfg._get_child(key)
     assert isinstance(node, Node)
     if node._is_interpolation():
         try:
