@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Union
 
 from pytest import mark, param
 
-from omegaconf import DictConfig, IntegerNode, OmegaConf
+from omegaconf import DictConfig, IntegerNode, OmegaConf, UnionNode
 from tests import Color
 
 
@@ -92,6 +92,11 @@ from tests import Color
         # slice
         ([1, 2, 3], "", slice(0, 1), "[0:1]"),
         ([1, 2, 3], "", slice(0, 1, 2), "[0:1:2]"),
+        # union
+        ({"foo": UnionNode(123, Union[int, str])}, "", "foo", "foo"),
+        ([UnionNode(123, Union[int, str])], "", "0", "[0]"),
+        ({"foo": {"bar": UnionNode(123, Union[int, str])}}, "foo", "bar", "foo.bar"),
+        ({"foo": {"bar": UnionNode(123, Union[int, str])}}, "foo.bar", None, "foo.bar"),
     ],
 )
 def test_get_full_key_from_config(
@@ -114,4 +119,14 @@ def test_value_node_get_full_key() -> None:
     node = IntegerNode(value=10)
     assert node._get_full_key(None) == ""
     node = IntegerNode(key="foo", value=10)
+    assert node._get_full_key(None) == "foo"
+
+
+def test_union_node_get_full_key() -> None:
+    cfg = OmegaConf.create({"foo": UnionNode(10, Union[int, str])})
+    assert cfg._get_node("foo")._get_full_key(None) == "foo"  # type: ignore
+
+    node = UnionNode(10, Union[int, str])
+    assert node._get_full_key(None) == ""
+    node = UnionNode(10, Union[int, str], key="foo")
     assert node._get_full_key(None) == "foo"

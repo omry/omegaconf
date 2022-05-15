@@ -142,7 +142,7 @@ class StructuredWithMissing:
 
 @dataclass
 class UnionError:
-    x: Union[int, str] = 10
+    x: Union[int, List[str]] = 10
 
 
 @dataclass
@@ -278,6 +278,12 @@ class NestedContainers:
     list_of_list: List[List[int]] = field(default_factory=lambda: [[123]])
     dict_of_list: Dict[str, List[int]] = field(default_factory=lambda: {"foo": [123]})
     list_of_dict: List[Dict[str, int]] = field(default_factory=lambda: [{"bar": 123}])
+
+
+@dataclass
+class UnionAnnotations:
+    ubf: Union[bool, float] = True
+    oubf: Optional[Union[bool, float]] = None
 
 
 def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:

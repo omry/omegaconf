@@ -1,16 +1,19 @@
 import dataclasses
 import inspect
 import pathlib
+import re
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
+from _pytest.python_api import RaisesContext
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     MISSING,
     AnyNode,
+    Container,
     DictConfig,
     KeyValidationError,
     ListConfig,
@@ -20,7 +23,7 @@ from omegaconf import (
     ValidationError,
     _utils,
 )
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import ConfigKeyError, InterpolationToMissingValueError
 from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 
@@ -1771,3 +1774,479 @@ class TestNestedContainers:
         else:
             with raises(ValidationError):
                 node[last_key] = value
+
+
+class TestUnionsOfPrimitiveTypes:
+    @mark.parametrize(
+        "class_name, key, expected_type_hint, expected_val",
+        [
+            param("Simple", "uis", Union[int, str], MISSING, id="simple-uis"),
+            param("Simple", "ubc", Union[bool, Color], MISSING, id="simple-ubc"),
+            param("Simple", "uxf", Union[bytes, float], MISSING, id="simple-uxf"),
+            param(
+                "Simple", "ouis", Optional[Union[int, str]], MISSING, id="simple-ouis"
+            ),
+            param("Simple", "uisn", Union[int, str, None], MISSING, id="simple-uisn"),
+            param(
+                "Simple", "uisN", Union[int, str, type(None)], MISSING, id="simple-uisN"
+            ),
+            param("WithDefaults", "uis", Union[int, str], "abc", id="defaults-uis"),
+            param("WithDefaults", "ubc1", Union[bool, Color], True, id="defaults-ubc1"),
+            param(
+                "WithDefaults",
+                "ubc2",
+                Union[bool, Color],
+                Color.RED,
+                id="defaults-ubc2",
+            ),
+            param("WithDefaults", "uxf", Union[bytes, float], 1.2, id="defaults-uxf"),
+            param(
+                "WithDefaults",
+                "ouis",
+                Optional[Union[int, str]],
+                None,
+                id="defaults-ouis",
+            ),
+            param(
+                "WithDefaults", "uisn", Union[int, str, None], 123, id="defaults-uisn"
+            ),
+            param(
+                "WithDefaults",
+                "uisN",
+                Union[int, str, type(None)],
+                "abc",
+                id="defaults-uisN",
+            ),
+            param(
+                "WithExplicitMissing",
+                "uis_missing",
+                Union[int, str],
+                MISSING,
+                id="uis_missing",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                List[Union[bool, Color]],
+                MISSING,
+                id="lubc",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                Dict[str, Union[bool, float]],
+                MISSING,
+                id="dsubf",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc_with_default",
+                List[Union[bool, Color]],
+                [True, Color.RED],
+                id="lubc_with_default",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf_with_default",
+                Dict[str, Union[bool, float]],
+                {"abc": True, "xyz": 1.2},
+                id="dsubf_with_default",
+            ),
+            param(
+                "InterpolationFromUnion",
+                "ubi_with_default",
+                Union[bool, int],
+                "${an_int}",
+                id="iterp-from-union",
+            ),
+            param(
+                "InterpolationFromUnion",
+                "ubi_with_default",
+                Union[bool, int],
+                123,
+                id="iterp-from-union-resolved",
+            ),
+            param(
+                "InterpolationToUnion",
+                "a_float",
+                float,
+                10.1,
+                id="iterp-to-union-resolved",
+            ),
+        ],
+    )
+    def test_union_instantiation(
+        self,
+        module: Any,
+        class_name: str,
+        key: str,
+        expected_type_hint: Any,
+        expected_val: Any,
+    ) -> None:
+        class_ = getattr(module.UnionsOfPrimitveTypes, class_name)
+        cfg = OmegaConf.structured(class_)
+
+        assert _utils.get_type_hint(cfg, key) == expected_type_hint
+
+        vk = _utils.get_value_kind(expected_val)
+
+        if vk is _utils.ValueKind.VALUE:
+            assert cfg[key] == expected_val
+            if _utils.is_primitive_type_annotation(type(expected_val)):
+                assert type(cfg[key]) == type(expected_val)
+            else:
+                assert isinstance(cfg[key], Container)
+
+        elif vk is _utils.ValueKind.MANDATORY_MISSING:
+            assert OmegaConf.is_missing(cfg, key)
+            assert cfg._get_node(key)._value() == expected_val
+
+        elif vk is _utils.ValueKind.INTERPOLATION:
+            assert OmegaConf.is_interpolation(cfg, key)
+            assert cfg._get_node(key)._value() == expected_val
+
+    @mark.parametrize(
+        "class_name, expected_err",
+        [
+            param(
+                "WithBadDefaults1",
+                "Value 'None' is incompatible with type hint 'Union[int, str]",
+                id="assign-none-to-uis",
+            ),
+            param(
+                "WithBadDefaults2",
+                "Value 'abc' of type 'str' is incompatible with type hint 'Union[bool, Color]'",
+                id="assign-str-to-ubc",
+            ),
+            param(
+                "WithBadDefaults3",
+                "Value 'True' of type 'bool' is incompatible with type hint 'Union[bytes, float]'",
+                id="assign-bool-to-uxf",
+            ),
+            param(
+                "WithBadDefaults4",
+                "Value 'Color.RED' of type 'tests.Color' is incompatible"
+                + " with type hint 'Optional[Union[bool, float]]'",
+                id="assign-enum-to-oufb",
+            ),
+        ],
+    )
+    def test_union_instantiation_with_bad_defaults(
+        self, module: Any, class_name: str, expected_err: str
+    ) -> None:
+        class_ = getattr(module.UnionsOfPrimitveTypes, class_name)
+        with raises(ValidationError, match=re.escape(expected_err)):
+            OmegaConf.structured(class_)
+
+    @mark.parametrize(
+        "class_name, key, value, expected",
+        [
+            param("Simple", "uis", 123, 123, id="simple-uis-int"),
+            param("Simple", "uis", "123", "123", id="simple-uis-int_string"),
+            param("Simple", "uis", "abc", "abc", id="simple-uis-str"),
+            param("Simple", "uis", None, raises(ValidationError), id="simple-uis-none"),
+            param("Simple", "uis", MISSING, MISSING, id="simple-uis-missing"),
+            param("Simple", "uis", "${interp}", "${interp}", id="simple-uis-interp"),
+            param("Simple", "ubc", True, True, id="simple-ubc-bool"),
+            param("Simple", "ubc", Color.RED, Color.RED, id="simple-ubc-color"),
+            param(
+                "Simple",
+                "ubc",
+                "RED",
+                raises(ValidationError),
+                id="simple-ubc-color_str",
+            ),
+            param(
+                "Simple",
+                "ubc",
+                "a_string",
+                raises(ValidationError),
+                id="simple-ubc-str",
+            ),
+            param("Simple", "ubc", None, raises(ValidationError), id="simple-ubc-none"),
+            param("Simple", "ubc", MISSING, MISSING, id="simple-ubc-missing"),
+            param("Simple", "ubc", "${interp}", "${interp}", id="simple-ubc-interp"),
+            param("Simple", "ouis", None, None, id="simple-ouis-none"),
+            param("WithDefaults", "uis", 123, 123, id="with_defaults-uis-int"),
+            param(
+                "WithDefaults", "uis", "123", "123", id="with_defaults-uis-int_string"
+            ),
+            param("WithDefaults", "uis", "abc", "abc", id="with_defaults-uis-str"),
+            param(
+                "WithDefaults",
+                "uis",
+                None,
+                raises(ValidationError),
+                id="with_defaults-uis-none",
+            ),
+            param(
+                "WithDefaults", "uis", MISSING, MISSING, id="with_defaults-uis-missing"
+            ),
+            param(
+                "WithDefaults",
+                "uis",
+                "${interp}",
+                "${interp}",
+                id="with_defaults-uis-interp",
+            ),
+            param("WithDefaults", "ubc1", True, True, id="with_defaults-ubc-bool"),
+            param(
+                "WithDefaults",
+                "ubc1",
+                Color.RED,
+                Color.RED,
+                id="with_defaults-ubc-color",
+            ),
+            param(
+                "WithDefaults",
+                "ubc1",
+                "RED",
+                raises(ValidationError),
+                id="with_defaults-ubc-color_str",
+            ),
+            param(
+                "WithDefaults",
+                "ubc1",
+                "a_string",
+                raises(ValidationError),
+                id="with_defaults-ubc-str",
+            ),
+            param(
+                "WithDefaults",
+                "ubc1",
+                None,
+                raises(ValidationError),
+                id="with_defaults-ubc-none",
+            ),
+            param(
+                "WithDefaults", "ubc1", MISSING, MISSING, id="with_defaults-ubc-missing"
+            ),
+            param(
+                "WithDefaults",
+                "ubc1",
+                "${interp}",
+                "${interp}",
+                id="with_defaults-ubc-interp",
+            ),
+            param("WithDefaults", "ouis", None, None, id="with_defaults-ouis-none"),
+            param("ContainersOfUnions", "lubc", MISSING, MISSING, id="lubc-missing"),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                None,
+                raises(ValidationError),
+                id="lubc-none",
+            ),
+            param(
+                "ContainersOfUnions", "lubc", "${interp}", "${interp}", id="lubc-interp"
+            ),
+            param("ContainersOfUnions", "lubc", [], [], id="lubc-list-empty"),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                [Color.GREEN],
+                [Color.GREEN],
+                id="lubc-list-enum",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                ["GREEN"],
+                raises(ValidationError),
+                id="lubc-list-enum_str",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                ["abc"],
+                raises(ValidationError),
+                id="lubc-list-str",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                [None],
+                raises(ValidationError),
+                id="lubc-list-none",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                [MISSING],
+                [MISSING],
+                id="lubc-list-missing",
+            ),
+            param(
+                "ContainersOfUnions",
+                "lubc",
+                ["${interp}"],
+                ["${interp}"],
+                id="lubc-list-interp",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"bool": True, "float": 10.1},
+                {"bool": True, "float": 10.1},
+                id="dsubf",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"float-str": "10.1"},
+                raises(ValidationError),
+                id="dsubf-float-str",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"str": "abc"},
+                raises(ValidationError),
+                id="dsubf-dict-str",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"none": None},
+                raises(ValidationError),
+                id="dsubf-dict-none",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"missing": MISSING},
+                {"missing": MISSING},
+                id="dsubf-dict-missing",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsubf",
+                {"interp": "${interp}"},
+                {"interp": "${interp}"},
+                id="dsubf-dict-interp",
+            ),
+            param(
+                "ContainersOfUnions",
+                "dsoubf",
+                {"none": None},
+                {"none": None},
+                id="dsoubf-dict-none",
+            ),
+        ],
+    )
+    def test_assignment_to_union(
+        self, module: Any, class_name: str, key: str, value: Any, expected: Any
+    ) -> None:
+        class_ = getattr(module.UnionsOfPrimitveTypes, class_name)
+        cfg = OmegaConf.structured(class_)
+
+        if isinstance(expected, RaisesContext):
+            with expected:
+                cfg[key] = value
+
+        else:
+            cfg[key] = value
+
+            vk = _utils.get_value_kind(expected)
+
+            if vk is _utils.ValueKind.VALUE:
+                assert cfg[key] == expected
+
+            elif vk is _utils.ValueKind.MANDATORY_MISSING:
+                assert OmegaConf.is_missing(cfg, key)
+                assert _utils._get_value(cfg._get_node(key)) == expected
+
+            elif vk is _utils.ValueKind.INTERPOLATION:
+                assert OmegaConf.is_interpolation(cfg, key)
+                assert _utils._get_value(cfg._get_node(key)) == expected
+
+    @mark.parametrize(
+        "key, value, expected",
+        [
+            param("ubi", "${an_int}", 123, id="interp-to-int"),
+            param(
+                "ubi",
+                "${none}",
+                raises(ValidationError),
+                id="interp-to-none-err",
+                marks=mark.xfail(reason="interpolations from unions are not validated"),
+            ),
+            param(
+                "ubi",
+                "${a_string}",
+                raises(ValidationError),
+                id="interp-to-str-err",
+                marks=mark.xfail(reason="interpolations from unions are not validated"),
+            ),
+            param(
+                "ubi",
+                "${missing}",
+                raises(InterpolationToMissingValueError),
+                id="interp-to-missing",
+            ),
+            param("oubi", "${none}", None, id="interp-to-none"),
+        ],
+    )
+    @mark.parametrize("overwrite_default", [True, False])
+    def test_interpolation_from_union(
+        self, module: Any, key: str, overwrite_default: bool, value: Any, expected: Any
+    ) -> None:
+        class_ = module.UnionsOfPrimitveTypes.InterpolationFromUnion
+        cfg = OmegaConf.structured(class_)
+
+        if overwrite_default:
+            key += "_with_default"
+
+        cfg[key] = value
+
+        assert _utils._get_value(cfg._get_node(key)) == value
+
+        if isinstance(expected, RaisesContext):
+            with expected:
+                cfg[key]
+        else:
+            assert cfg[key] == expected
+
+    def test_resolve_union_interpolation(self, module: Any) -> None:
+        class_ = module.UnionsOfPrimitveTypes.InterpolationFromUnion
+        cfg = OmegaConf.structured(class_)
+        assert OmegaConf.is_interpolation(cfg, "ubi_with_default")
+        assert OmegaConf.is_interpolation(cfg, "oubi_with_default")
+        OmegaConf.resolve(cfg)
+        assert not OmegaConf.is_interpolation(cfg, "ubi_with_default")
+        assert not OmegaConf.is_interpolation(cfg, "oubi_with_default")
+
+    def test_resolve_union_interpolation_error(self, module: Any) -> None:
+        class_ = module.UnionsOfPrimitveTypes.BadInterpolationFromUnion
+        cfg = OmegaConf.structured(class_)
+        assert OmegaConf.is_interpolation(cfg, "ubi")
+        with raises(ValidationError):
+            OmegaConf.resolve(cfg)
+
+    @mark.parametrize(
+        "key, expected",
+        [
+            param("a_float", 10.1, id="interp-to-float"),
+            param("bad_int_interp", raises(ValidationError), id="bad-int-interp"),
+        ],
+    )
+    def test_interpolation_to_union(self, module: Any, key: str, expected: Any) -> None:
+        class_ = module.UnionsOfPrimitveTypes.InterpolationToUnion
+        cfg = OmegaConf.structured(class_)
+
+        if isinstance(expected, RaisesContext):
+            with expected:
+                cfg[key]
+        else:
+            assert cfg[key] == expected
+
+    @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
+    def test_support_pep_604(self, module: Any) -> None:
+        class_ = module.UnionsOfPrimitveTypes.SupportPEP604
+        cfg = OmegaConf.structured(class_)
+        assert _utils.get_type_hint(cfg, "uis") == Union[int, str]
+        assert _utils.get_type_hint(cfg, "ouis") == Optional[Union[int, str]]
+        assert _utils.get_type_hint(cfg, "uisn") == Optional[Union[int, str]]
+        assert _utils.get_type_hint(cfg, "uis_with_default") == Union[int, str]
+        assert cfg.uisn is None
+        assert cfg.uis_with_default == 123

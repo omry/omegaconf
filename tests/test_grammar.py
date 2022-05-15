@@ -596,7 +596,6 @@ class TestOmegaConfGrammar:
                     # grammer tests, but `resolve_parse_tree()` requires it).
                     node=AnyNode(None, parent=cfg),
                     key=None,
-                    parent=cfg,
                 )
             )
 

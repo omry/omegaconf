@@ -13,6 +13,7 @@ from omegaconf import (
     OmegaConf,
     ReadonlyConfigError,
     StringNode,
+    UnionNode,
     ValidationError,
     flag_override,
     open_dict,
@@ -505,6 +506,12 @@ class TestParentAfterCopy:
         nc = copy_func(cfg._get_node("a"))
         assert nc._get_parent() is cfg
         assert nc._get_node(0)._get_parent() is nc
+
+    def test_union_copy(self, copy_func: Any) -> None:
+        cfg = OmegaConf.create({"a": UnionNode(10.0, Union[float, bool])})
+        nc = copy_func(cfg._get_node("a"))
+        assert nc._get_parent() is cfg
+        assert nc._value()._get_parent() is nc
 
 
 def test_omegaconf_init_not_implemented() -> None:

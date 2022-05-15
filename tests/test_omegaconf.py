@@ -1,7 +1,7 @@
 import pathlib
 import platform
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from pytest import mark, param, raises
 
@@ -18,6 +18,7 @@ from omegaconf import (
     OmegaConf,
     PathNode,
     StringNode,
+    UnionNode,
 )
 from omegaconf._utils import _is_none, nullcontext
 from omegaconf.errors import (
@@ -384,6 +385,10 @@ def test_is_interpolation(fac: Any) -> Any:
         ({"foo": 10.0}, float),
         ({"foo": True}, bool),
         ({"foo": b"123"}, bytes),
+        ({"foo": UnionNode(10.0, Union[float, bytes])}, float),
+        ({"foo": UnionNode(None, Union[float, bytes])}, type(None)),
+        ({"foo": FloatNode(10.0)}, float),
+        ({"foo": FloatNode(None)}, type(None)),
         (
             {"foo": Path("hello.txt")},
             pathlib.WindowsPath

@@ -330,6 +330,22 @@ class TestInstantiateStructuredConfigs:
         assert nested.default_value.additional == 20
         assert nested.user_provided_default.mandatory_missing == 456
 
+    def test_unions_with_defaults_to_container(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.UnionsOfPrimitveTypes.WithDefaults)
+        obj: Any = OmegaConf.to_container(cfg)
+        assert obj["uis"] == "abc"
+        assert obj["ubc1"] is True
+        assert obj["ubc2"] == Color.RED
+        assert obj["ouis"] is None
+
+    def test_unions_with_defaults_to_object(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.UnionsOfPrimitveTypes.WithDefaults)
+        obj: Any = OmegaConf.to_object(cfg)
+        assert obj.uis == "abc"
+        assert obj.ubc1 is True
+        assert obj.ubc2 == Color.RED
+        assert obj.ouis is None
+
     def test_nested_object_with_missing(self, module: Any) -> None:
         with raises(MissingMandatoryValue):
             self.round_trip_to_object(module.NestedConfig)

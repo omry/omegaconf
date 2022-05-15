@@ -395,7 +395,9 @@ class Box(Node):
             content = self.__dict__["_content"]
             if isinstance(content, Node):
                 content._set_parent(self)
-                if isinstance(content, Box):
+                if isinstance(content, Box):  # pragma: no cover
+                    # No coverage here as support for containers inside
+                    # UnionNode is not yet implemented
                     content._re_parent()
 
 
