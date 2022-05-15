@@ -997,12 +997,12 @@ def test_assign_to_reftype_none_or_any(ref_type: Any, assign: Any) -> None:
 @mark.parametrize(
     "ref_type,assign",
     [
-        (Plugin, None),
-        (Plugin, Plugin),
-        (Plugin, Plugin()),
-        (Plugin, ConcretePlugin),
-        (Plugin, ConcretePlugin()),
-        (ConcretePlugin, None),
+        param(Plugin, None, id="plugin_none"),
+        param(Plugin, Plugin, id="plugin_plugin"),
+        param(Plugin, Plugin(), id="plugin_plugin()"),
+        param(Plugin, ConcretePlugin, id="plugin_concrete"),
+        param(Plugin, ConcretePlugin(), id="plugin_concrete()"),
+        param(ConcretePlugin, None, id="concrete_none"),
         param(ConcretePlugin, ConcretePlugin, id="subclass=subclass_obj"),
         param(ConcretePlugin, ConcretePlugin(), id="subclass=subclass_obj"),
     ],

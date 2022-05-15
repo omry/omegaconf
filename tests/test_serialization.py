@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import io
 import os
 import pathlib
@@ -7,12 +8,13 @@ import re
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import MISSING, DictConfig, ListConfig, OmegaConf
+from omegaconf import MISSING, DictConfig, ListConfig, Node, OmegaConf, UnionNode
 from omegaconf._utils import get_type_hint
+from omegaconf.base import Box
 from omegaconf.errors import OmegaConfBaseException
 from tests import (
     Color,
@@ -23,6 +25,7 @@ from tests import (
     SubscriptedDictOpt,
     SubscriptedList,
     SubscriptedListOpt,
+    UnionAnnotations,
     UntypedDict,
     UntypedList,
 )
@@ -354,6 +357,20 @@ def test_pickle_untyped(
             assert get_node(cfg2, node)._metadata.key_type == key_type
 
 
+@mark.skipif(sys.version_info < (3, 7), reason="requires python3.7 or newer")
+@mark.parametrize("key", ["ubf", "oubf"])
+def test_pickle_union_node(key: str) -> None:
+    cfg = OmegaConf.structured(UnionAnnotations)
+    pickled = pickle.dumps(cfg)
+    cfg2 = pickle.loads(pickled)
+    node = cfg._get_node(key)
+    node2 = cfg2._get_node(key)
+
+    assert cfg == cfg2
+    assert node._metadata == node2._metadata
+    assert node2._parent == cfg2
+
+
 def test_pickle_missing() -> None:
     cfg = DictConfig(content=MISSING)
     with tempfile.TemporaryFile() as fp:
@@ -409,3 +426,34 @@ def test_python36_pickle_optional() -> None:
         ),
     ):
         pickle.dumps(cfg)
+
+
+@mark.parametrize(
+    "copy_fn",
+    [
+        param(lambda obj: copy.deepcopy(obj), id="deepcopy"),
+        param(lambda obj: copy.copy(obj), id="copy"),
+        param(lambda obj: pickle.loads(pickle.dumps(obj)), id="pickle"),
+    ],
+)
+@mark.parametrize(
+    "box, get_child",
+    [
+        param(
+            UnionNode(10.0, Union[float, bool]),
+            lambda cfg: cfg._value(),
+            marks=mark.skipif(
+                sys.version_info < (3, 7), reason="requires python3.7 or newer"
+            ),
+            id="union",
+        ),
+        param(DictConfig({"foo": "bar"}), lambda cfg: cfg._get_node("foo"), id="dict"),
+        param(ListConfig(["bar"]), lambda cfg: cfg._get_node(0), id="list"),
+    ],
+)
+def test_copy_preserves_parent_of_child(
+    box: Box, get_child: Callable[[Box], Node], copy_fn: Callable[[Box], Box]
+) -> None:
+    assert get_child(box)._parent is box
+    cp = copy_fn(box)
+    assert get_child(cp)._parent is cp

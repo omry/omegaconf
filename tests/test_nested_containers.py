@@ -1404,7 +1404,7 @@ def test_merge_nested_list_promotion() -> None:
     [
         param(
             [DictConfig({}, element_type=int), {"foo": "abc"}],
-            "Value 'abc' (str) is incompatible with type hint 'int'",
+            "Value 'abc' of type 'str' could not be converted to Integer",
         ),
         param(
             [DictConfig({}, element_type=Dict[str, int]), {"foo": 123}],

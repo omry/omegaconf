@@ -1,6 +1,7 @@
 import copy
 import functools
 import re
+import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
@@ -21,9 +22,10 @@ from omegaconf import (
     OmegaConf,
     PathNode,
     StringNode,
+    UnionNode,
     ValueNode,
 )
-from omegaconf._utils import type_str
+from omegaconf._utils import BUILTIN_VALUE_TYPES, type_str
 from omegaconf.errors import (
     InterpolationToMissingValueError,
     UnsupportedValueType,
@@ -31,6 +33,10 @@ from omegaconf.errors import (
 )
 from omegaconf.nodes import InterpolationResultNode
 from tests import Color, Enum1, IllegalType, User
+
+
+def _build_union(content: Any) -> UnionNode:
+    return UnionNode(content=content, ref_type=Union[(Enum, *BUILTIN_VALUE_TYPES)])
 
 
 # testing valid conversions
@@ -89,6 +95,24 @@ from tests import Color, Enum1, IllegalType, User
         # Path node
         (PathNode, "hello.txt", Path("hello.txt")),
         (PathNode, Path("hello.txt"), Path("hello.txt")),
+        # Union node
+        param(_build_union, "abc", "abc", id="union-str"),
+        param(_build_union, 10, 10, id="union-int"),
+        param(_build_union, 10.1, 10.1, id="union-float"),
+        param(_build_union, float("inf"), float("inf"), id="union-inf"),
+        param(_build_union, b"binary\xf0\xf1", b"binary\xf0\xf1", id="union-bytes"),
+        param(
+            _build_union,
+            True,
+            True,
+            marks=mark.skipif(
+                sys.version_info < (3, 7),
+                reason="python3.6 treats Union[int, bool] as equivalent to Union[int]",
+            ),
+            id="union-bool",
+        ),
+        param(_build_union, None, None, id="union-none"),
+        param(_build_union, Color.RED, Color.RED, id="union-enum"),
     ],
 )
 def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
@@ -204,7 +228,7 @@ class TestValueNodeSpecial:
     )
     def test_creation_special(
         self, type_: Callable[..., Node], input_: Any, optional: bool, flags: Any
-    ):
+    ) -> None:
         if input_ is None and not optional:
             with raises(ValidationError):
                 type_(input_, is_optional=optional, flags=flags)
@@ -226,7 +250,7 @@ class TestValueNodeSpecial:
     )
     def test_set_value_special(
         self, builds_node: Callable[..., Node], input_: Any, optional: bool, flags: Any
-    ):
+    ) -> None:
         node = builds_node(is_optional=optional, flags=flags)
         if input_ is None and not optional:
             with raises(ValidationError):
@@ -667,6 +691,7 @@ def test_legal_assignment_enum(
         BooleanNode(value=True),
         IntegerNode(value=10),
         FloatNode(value=10.0),
+        UnionNode(10.0, Union[float, bool]),
         OmegaConf.create({}),
         OmegaConf.create([]),
         OmegaConf.create({"foo": "foo"}),
@@ -764,6 +789,50 @@ def test_deepcopy(obj: Any) -> None:
         (InterpolationResultNode("???"), "???", True),
         (InterpolationResultNode(None), None, True),
         (InterpolationResultNode(None), 100, False),
+        (UnionNode(100, Union[int, bytes]), UnionNode(100, Union[int, bytes]), True),
+        (UnionNode(100, Union[int, bytes]), 100, True),
+        (UnionNode(100, Union[int, bytes]), IntegerNode(100), True),
+        (UnionNode(100, Union[int, bytes]), AnyNode(100), True),
+        (
+            UnionNode("???", Union[int, bytes]),
+            UnionNode("???", Union[int, bytes]),
+            True,
+        ),
+        (UnionNode("???", Union[int, bytes]), "???", True),
+        (UnionNode("???", Union[int, bytes]), IntegerNode("???"), True),
+        (UnionNode("???", Union[int, bytes]), AnyNode("???"), True),
+        (UnionNode(None, Union[int, bytes]), UnionNode(None, Union[int, bytes]), True),
+        (UnionNode(None, Union[int, bytes]), None, True),
+        (UnionNode(None, Union[int, bytes]), IntegerNode(None), True),
+        (UnionNode(None, Union[int, bytes]), AnyNode(None), True),
+        (
+            UnionNode("${interp}", Union[int, bytes]),
+            UnionNode("${interp}", Union[int, bytes]),
+            True,
+        ),
+        (UnionNode("${interp}", Union[int, bytes]), "${interp}", True),
+        (UnionNode("${interp}", Union[int, bytes]), IntegerNode("${interp}"), True),
+        (UnionNode("${interp}", Union[int, bytes]), AnyNode("${interp}"), True),
+        (UnionNode(100, Union[int, bytes]), UnionNode(999, Union[int, bytes]), False),
+        (UnionNode(100, Union[int, bytes]), 999, False),
+        (UnionNode(100, Union[int, bytes]), IntegerNode(999), False),
+        (UnionNode(100, Union[int, bytes]), AnyNode(999), False),
+        (UnionNode("???", Union[int, bytes]), UnionNode(999, Union[int, bytes]), False),
+        (UnionNode("???", Union[int, bytes]), 999, False),
+        (UnionNode("???", Union[int, bytes]), IntegerNode(999), False),
+        (UnionNode("???", Union[int, bytes]), AnyNode(999), False),
+        (UnionNode(None, Union[int, bytes]), UnionNode(999, Union[int, bytes]), False),
+        (UnionNode(None, Union[int, bytes]), 999, False),
+        (UnionNode(None, Union[int, bytes]), IntegerNode(999), False),
+        (UnionNode(None, Union[int, bytes]), AnyNode(999), False),
+        (
+            UnionNode("${interp}", Union[int, bytes]),
+            UnionNode(999, Union[int, bytes]),
+            False,
+        ),
+        (UnionNode("${interp}", Union[int, bytes]), 999, False),
+        (UnionNode("${interp}", Union[int, bytes]), IntegerNode(999), False),
+        (UnionNode("${interp}", Union[int, bytes]), AnyNode(999), False),
     ],
 )
 def test_eq(node: ValueNode, value: Any, expected: Any) -> None:

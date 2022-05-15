@@ -1,7 +1,7 @@
 import copy
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pytest import mark, raises
 
@@ -16,6 +16,7 @@ from omegaconf import (
     OmegaConf,
     PathNode,
     StringNode,
+    UnionNode,
     ValidationError,
     ValueNode,
 )
@@ -71,6 +72,13 @@ def verify(
             ),
             [Color.RED],
         ),
+        # UnionNode
+        (
+            lambda value, is_optional, key=None: UnionNode(
+                value, ref_type=Union[bool, float], is_optional=is_optional, key=key
+            ),
+            [True, False, 10.0],
+        ),
         # DictConfig
         (
             lambda value, is_optional, key=None: DictConfig(
@@ -101,6 +109,7 @@ def verify(
         "StringNode",
         "PathNode",
         "EnumNode",
+        "UnionNode",
         "DictConfig",
         "ListConfig",
         "dataclass",

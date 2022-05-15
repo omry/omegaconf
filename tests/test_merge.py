@@ -19,12 +19,21 @@ from pytest import mark, param, raises
 from omegaconf import (
     MISSING,
     DictConfig,
+    FloatNode,
     ListConfig,
     OmegaConf,
     ReadonlyConfigError,
+    UnionNode,
     ValidationError,
 )
-from omegaconf._utils import _ensure_container, is_structured_config
+from omegaconf._utils import (
+    ValueKind,
+    _ensure_container,
+    _get_value,
+    get_type_hint,
+    get_value_kind,
+    is_structured_config,
+)
 from omegaconf.base import Node
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from omegaconf.nodes import IntegerNode
@@ -82,6 +91,41 @@ from tests import (
         param(({"a": 1}, {"a": IntegerNode(10)}), {"a": IntegerNode(10)}),
         param(({"a": IntegerNode(10)}, {"a": 1}), {"a": 1}),
         param(({"a": IntegerNode(10)}, {"a": 1}), {"a": IntegerNode(1)}),
+        param(
+            ({"a": 1.0}, {"a": UnionNode(10.1, Union[float, bool])}),
+            {"a": 10.1},
+            id="dict_merge_union_into_float",
+        ),
+        param(
+            ({"a": "abc"}, {"a": UnionNode(10.1, Union[float, bool])}),
+            {"a": 10.1},
+            id="dict_merge_union_into_str",
+        ),
+        param(
+            ({"a": FloatNode(1.0)}, {"a": UnionNode(10.1, Union[float, bool])}),
+            {"a": 10.1},
+            id="dict_merge_union_into_typed_float",
+        ),
+        param(
+            ({"a": FloatNode(1.0)}, {"a": UnionNode(True, Union[float, bool])}),
+            raises(ValidationError),
+            id="dict_merge_union_bool_into_typed_float",
+        ),
+        param(
+            ({"a": IntegerNode(1)}, {"a": UnionNode(10.1, Union[float, bool])}),
+            raises(ValidationError),
+            id="dict_merge_union_into_typed_int",
+        ),
+        param(
+            ({"a": UnionNode(10.1, Union[float, bool])}, {"a": 1}),
+            raises(ValidationError),
+            id="dict_merge_int_into_union-err",
+        ),
+        param(
+            ({"a": UnionNode(10.1, Union[float, bool])}, {"a": 1.0}),
+            {"a": 1.0},
+            id="dict_merge_float_into_union",
+        ),
         param(({"a": "???"}, {"a": {}}), {"a": {}}, id="dict_merge_into_missing"),
         param(
             ({"a": "???"}, {"a": {"b": 10}}),
@@ -754,6 +798,315 @@ def test_optional_element_type_merge(
         assert isinstance(node, Node)
         assert node._is_optional() == is_optional
         assert node._metadata.ref_type == ref_type
+
+
+@mark.parametrize(
+    "inputs,expected,type_hint",
+    [
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+                {"foo": 20.2},
+            ),
+            {"foo": 20.2},
+            Union[float, bool],
+            id="merge-any-into-union",
+        ),
+        param(
+            (
+                {"foo": 20.2},
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+            ),
+            {"foo": 10.1},
+            Union[float, bool],
+            id="merge-union-into-any",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+                {"foo": True},
+            ),
+            {"foo": True},
+            Union[float, bool],
+            id="merge-different-object-type-into-union",
+        ),
+        param(
+            (
+                {"foo": True},
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+            ),
+            {"foo": 10.1},
+            Union[float, bool],
+            id="merge-union-into-different-object-type",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+                {"foo": "abc"},
+            ),
+            raises(ValidationError),
+            None,
+            id="merge-any-into-union-incompatible_type",
+        ),
+        param(
+            (
+                {"foo": "abc"},
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+            ),
+            {"foo": 10.1},
+            Union[float, bool],
+            id="merge-union-into-any-incompatible_type",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+                {"foo": UnionNode(True, Union[float, bool], is_optional=True)},
+            ),
+            {"foo": True},
+            Union[float, bool],
+            id="merge-two-unions",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=True)},
+                {"foo": UnionNode(True, Union[float, bool], is_optional=False)},
+            ),
+            {"foo": True},
+            Optional[Union[float, bool]],
+            id="merge-two-unions-lhs-optional",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool])},
+                {"foo": {"bar": "baz"}},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-dict",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool])},
+                {"foo": [123]},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-list",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool])},
+                {"foo": User("bond", 7)},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-structured-into-union",
+        ),
+        param(
+            (
+                DictConfig({"foo": 10.1}, element_type=Union[float, bool]),
+                {"foo": User("bond", 7)},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-structured-into-union_elt_type",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool])},
+                DictConfig({"foo": User("bond", 7)}, element_type=User),
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-structured_element_type-into-union",
+        ),
+        param(
+            (
+                DictConfig({"foo": 10.1}, element_type=Union[float, bool]),
+                DictConfig({"foo": User("bond", 7)}, element_type=User),
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-structured_element_type-into-union_elt_type",
+        ),
+        param(
+            (
+                {"foo": User("bond", 7)},
+                {"foo": UnionNode(10.1, Union[float, bool])},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-union-into-structured",
+        ),
+        param(
+            (
+                DictConfig({"foo": User("bond", 7)}, element_type=User),
+                {"foo": UnionNode(10.1, Union[float, bool])},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-union-into-structured_element_type",
+        ),
+        param(
+            (
+                {"foo": User("bond", 7)},
+                DictConfig({"foo": 10.1}, element_type=Union[float, bool]),
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-union_element_type-into-structured",
+        ),
+        param(
+            (
+                DictConfig({"foo": User("bond", 7)}, element_type=User),
+                DictConfig({"foo": 10.1}, element_type=Union[float, bool]),
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-union_element_type-into-structured_element_type",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=False)},
+                {"foo": None},
+            ),
+            raises(ValidationError),
+            None,
+            id="bad-merge-none",
+        ),
+        param(
+            (
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=True)},
+                {"foo": None},
+            ),
+            {"foo": None},
+            Optional[Union[float, bool]],
+            id="merge-none-into-union",
+        ),
+        param(
+            (
+                {"foo": None},
+                {"foo": UnionNode(10.1, Union[float, bool], is_optional=True)},
+            ),
+            {"foo": 10.1},
+            Optional[Union[float, bool]],
+            id="merge-union-into-none",
+        ),
+    ],
+)
+def test_union_merge(inputs: Any, expected: Any, type_hint: Any) -> None:
+    configs = [_ensure_container(c) for c in inputs]
+    if isinstance(expected, RaisesContext):
+        with expected:
+            OmegaConf.merge(*configs)
+    else:
+        merged = OmegaConf.merge(*configs)
+        assert merged == expected
+
+        assert isinstance(merged, DictConfig)
+        node = merged._get_node("foo")
+        assert isinstance(node, Node)
+        assert get_type_hint(node) == type_hint
+
+
+@mark.parametrize(
+    "lhs",
+    [
+        param({"foo": 10.1}, id="10.1"),
+        param({"foo": "abc"}, id="abc"),
+        param({"foo": True}, id="True"),
+    ],
+)
+@mark.parametrize(
+    "rhs",
+    [
+        param({"foo": 10.1}, id="10.1"),
+        param({"foo": "abc"}, id="abc"),
+        param({"foo": True}, id="True"),
+    ],
+)
+def test_union_merge_matrix(
+    lhs: Any,
+    rhs: Any,
+) -> None:
+    lhs = _ensure_container(lhs)
+    rhs = _ensure_container(rhs)
+    lnode = lhs._get_node("foo")
+    rnode = rhs._get_node("foo")
+    lvalue = _get_value(lnode)
+    rvalue = _get_value(rnode)
+    # lvk = get_value_kind(lnode)
+    rvk = get_value_kind(rnode)
+    rmissing = rvk is ValueKind.MANDATORY_MISSING
+
+    can_merge = True
+    if can_merge:
+        merged = OmegaConf.merge(lhs, rhs)
+        if rmissing:
+            assert merged == {"foo": lvalue}
+        else:
+            assert merged == {"foo": rvalue}
+
+    else:
+        with raises(ValidationError):
+            OmegaConf.merge(lhs, rhs)
+
+
+@mark.parametrize(
+    "r_val",
+    [
+        param(20.2, id="20.2"),
+        param(MISSING, id="missing"),
+        param(None, id="none"),
+        param("${interp}", id="interp"),
+    ],
+)
+@mark.parametrize(
+    "r_element_type",
+    [
+        param(Any, id="any"),
+        param(Optional[float], id="float"),  # X
+        param(Optional[Union[float, bytes]], id="union"),
+        param(Optional[Union[str, float]], id="different_union"),
+    ],
+)
+@mark.parametrize(
+    "l_val",
+    [
+        param(10.1, id="10.1"),
+        param(MISSING, id="missing"),
+        param(None, id="none"),
+        param("${interp}", id="interp"),
+        param("NO_LVAL", id="no_lval"),
+    ],
+)
+@mark.parametrize(
+    "l_element_type",
+    [
+        param(Any, id="any"),
+        param(Optional[float], id="float"),
+        param(Optional[Union[float, bytes]], id="union"),  # X
+    ],
+)
+def test_union_merge_special(
+    r_val: Any, l_val: Any, r_element_type: Any, l_element_type: Any
+) -> None:
+    left = DictConfig(
+        {"foo": l_val} if l_val != "NO_LVAL" else {}, element_type=l_element_type
+    )
+    right = DictConfig({"foo": r_val}, element_type=r_element_type)
+
+    merged = OmegaConf.merge(left, right)
+
+    if l_val == "NO_LVAL" or r_val != MISSING:
+        assert merged == right
+    else:
+        assert merged == left
+
+    if l_element_type is not Any:
+        assert get_type_hint(merged, "foo") == l_element_type
+    else:
+        assert get_type_hint(merged, "foo") == r_element_type
 
 
 def test_merge_error_retains_type() -> None:

@@ -574,7 +574,7 @@ class NestedWithNone:
 
 @attr.s(auto_attribs=True)
 class UnionError:
-    x: Union[int, str] = 10
+    x: Union[int, List[str]] = 10
 
 
 @attr.s(auto_attribs=True)
@@ -701,3 +701,86 @@ class NestedContainers:
     @attr.s(auto_attribs=True)
     class WithDefault:
         dsolx_default: Dict[str, Optional[List[User]]] = {"lx": [User()], "n": None}
+
+
+class UnionsOfPrimitveTypes:
+    @attr.s(auto_attribs=True)
+    class Simple:
+        uis: Union[int, str]
+        ubc: Union[bool, Color]
+        uxf: Union[bytes, float]
+        ouis: Optional[Union[int, str]]
+        uois: Union[Optional[int], str]
+        uisn: Union[int, str, None]
+        uisN: Union[int, str, type(None)]  # type: ignore
+
+    @attr.s(auto_attribs=True)
+    class WithDefaults:
+        uis: Union[int, str] = "abc"
+        ubc1: Union[bool, Color] = True
+        ubc2: Union[bool, Color] = Color.RED
+        uxf: Union[bytes, float] = 1.2
+        ouis: Optional[Union[int, str]] = None
+        uisn: Union[int, str, None] = 123
+        uisN: Union[int, str, type(None)] = "abc"  # type: ignore
+
+    @attr.s(auto_attribs=True)
+    class WithExplicitMissing:
+        uis_missing: Union[int, str] = MISSING
+
+    @attr.s(auto_attribs=True)
+    class WithBadDefaults1:
+        uis: Union[int, str] = None  # type: ignore
+
+    @attr.s(auto_attribs=True)
+    class WithBadDefaults2:
+        ubc: Union[bool, Color] = "abc"  # type: ignore
+
+    @attr.s(auto_attribs=True)
+    class WithBadDefaults3:
+        uxf: Union[bytes, float] = True
+
+    @attr.s(auto_attribs=True)
+    class WithBadDefaults4:
+        oufb: Optional[Union[float, bool]] = Color.RED  # type: ignore
+
+    @attr.s(auto_attribs=True)
+    class ContainersOfUnions:
+        lubc: List[Union[bool, Color]]
+        dsubf: Dict[str, Union[bool, float]]
+        dsoubf: Dict[str, Optional[Union[bool, float]]]
+        lubc_with_default: List[Union[bool, Color]] = [True, Color.RED]
+        dsubf_with_default: Dict[str, Union[bool, float]] = {"abc": True, "xyz": 1.2}
+
+    @attr.s(auto_attribs=True)
+    class InterpolationFromUnion:
+        ubi: Union[bool, int]
+        oubi: Optional[Union[bool, int]]
+        an_int: int = 123
+        a_string: str = "abc"
+        missing: int = MISSING
+        none: Optional[int] = None
+        ubi_with_default: Union[bool, int] = II("an_int")
+        oubi_with_default: Optional[Union[bool, int]] = II("none")
+
+    @attr.s(auto_attribs=True)
+    class InterpolationToUnion:
+        a_float: float = II("ufs")
+        bad_int_interp: bool = II("ufs")
+        ufs: Union[float, str] = 10.1
+
+    @attr.s(auto_attribs=True)
+    class BadInterpolationFromUnion:
+        a_float: float = 10.1
+        ubi: Union[bool, int] = II("a_float")
+
+    if sys.version_info >= (3, 10):
+
+        @attr.s(auto_attribs=True)
+        class SupportPEP604:
+            """https://peps.python.org/pep-0604/"""
+
+            uis: int | str
+            ouis: Optional[int | str]
+            uisn: int | str | None = None
+            uis_with_default: int | str = 123
