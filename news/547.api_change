@@ -1,1 +1,0 @@
-Removed support for `OmegaConf.is_none(cfg, "key")`.  Please use `cfg.key is None` instead.

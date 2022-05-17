@@ -1,3 +1,36 @@
+## 2.2.1 (2022-05-17)
+OmegaConf 2.2 is a major release. The most significant area of improvement in
+2.2 is support for more flexible type hints in structured configs. In addition,
+OmegaConf now natively supports two new primitive types, `bytes` and `pathlib.Path`.
+
+### Features
+
+- Support unions of primitive types in structured config type hints (`typing.Union`) ([#144](https://github.com/omry/omegaconf/issues/144))
+- Support nested container type hints in structured configs, e.g. dict-of-dict and list-of-list ([#427](https://github.com/omry/omegaconf/issues/427))
+- Improve support for optional element types in structured config container type hints (`typing.Optional`) ([#460](https://github.com/omry/omegaconf/issues/460))
+- Add support for `bytes`-typed values ([#844](https://github.com/omry/omegaconf/issues/844))
+- Add support for `pathlib.Path`-typed values ([#97](https://github.com/omry/omegaconf/issues/97))
+- `ListConfig` now implements slice assignment ([#736](https://github.com/omry/omegaconf/issues/736))
+- Enable adding a `ListConfig` to a `list` via the `ListConfig.__radd__` dunder method ([#849](https://github.com/omry/omegaconf/issues/849))
+- Add `OmegaConf.missing_keys()`, a method that returns the missing keys in a config object ([#720](https://github.com/omry/omegaconf/issues/720))
+- Add `OmegaConf.clear_resolver()`, a method to remove interpolation resolvers by name ([#769](https://github.com/omry/omegaconf/issues/769))
+- Enable the use of a pipe symbol `|` in unquoted strings in OmegaConf interpolations ([#799](https://github.com/omry/omegaconf/issues/799))
+
+### Bug Fixes
+
+- `OmegaConf.to_object` now works properly with structured configs that have `init=False` fields ([#789](https://github.com/omry/omegaconf/issues/789))
+- Fix bugs related to creation of structured configs from dataclasses having fields with a default_factory ([#831](https://github.com/omry/omegaconf/issues/831))
+
+### API changes and deprecations
+
+- Removed support for `OmegaConf.is_none(cfg, "key")`.  Please use `cfg.key is None` instead. ([#547](https://github.com/omry/omegaconf/issues/547))
+- Removed support for `${env}` interpolations.  `${oc.env}` should be used instead. ([#573](https://github.com/omry/omegaconf/issues/573))
+- Removed `OmegaConf.get_resolver()`.  Please use `OmegaConf.has_resolver()` instead. ([#608](https://github.com/omry/omegaconf/issues/608))
+- Removed support for `OmegaConf.is_optional()`. ([#698](https://github.com/omry/omegaconf/issues/698))
+- Improved error message when assigning an invalid value to int or float config nodes ([#743](https://github.com/omry/omegaconf/issues/743))
+- To conform with the `MutableMapping` API, the `DictConfig.items` method now returns an object of type `ItemsView`, and `DictConfig.keys` will now always return a `KeysView` ([#848](https://github.com/omry/omegaconf/issues/848))
+
+
 ## 2.1.1 (2021-08-17)
 ### Features
 
