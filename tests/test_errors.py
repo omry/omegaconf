@@ -823,7 +823,11 @@ params = [
             ),
             op=lambda cfg: cfg.foo.__setattr__("bar", "abc"),
             exception_type=ValidationError,
-            msg="Value 'abc' of type 'str' is incompatible with type hint 'Optional[Union[bool, float]]'",
+            msg=re.escape(
+                "Value 'abc' of type 'str' is incompatible with type hint 'Optional[Union["
+            )
+            + r"(bool, float)|(float, bool)\]\]'",
+            msg_is_regex=True,
             key="bar",
             full_key="foo.bar",
             parent_node=lambda cfg: cfg.foo,
