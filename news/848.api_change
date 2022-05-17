@@ -1,1 +1,0 @@
-To conform with the `MutableMapping` API, The `DictConfig.items` method now returns an object of type `ItemsView`, and `DictConfig.keys` will now always return a `KeysView`.
