@@ -1910,23 +1910,32 @@ class TestUnionsOfPrimitiveTypes:
         [
             param(
                 "WithBadDefaults1",
-                "Value 'None' is incompatible with type hint 'Union[int, str]",
+                re.escape(
+                    "Value 'None' is incompatible with type hint 'Union[int, str]"
+                ),
                 id="assign-none-to-uis",
             ),
             param(
                 "WithBadDefaults2",
-                "Value 'abc' of type 'str' is incompatible with type hint 'Union[bool, Color]'",
+                re.escape(
+                    "Value 'abc' of type 'str' is incompatible with type hint 'Union[bool, Color]'"
+                ),
                 id="assign-str-to-ubc",
             ),
             param(
                 "WithBadDefaults3",
-                "Value 'True' of type 'bool' is incompatible with type hint 'Union[bytes, float]'",
+                re.escape(
+                    "Value 'True' of type 'bool' is incompatible with type hint 'Union[bytes, float]'"
+                ),
                 id="assign-bool-to-uxf",
             ),
             param(
                 "WithBadDefaults4",
-                "Value 'Color.RED' of type 'tests.Color' is incompatible"
-                + " with type hint 'Optional[Union[bool, float]]'",
+                re.escape(
+                    "Value 'Color.RED' of type 'tests.Color' is incompatible"
+                    + " with type hint 'Optional[Union["
+                )
+                + r"(bool, float)|(float, bool)\]\]'",
                 id="assign-enum-to-oufb",
             ),
         ],
@@ -1935,7 +1944,7 @@ class TestUnionsOfPrimitiveTypes:
         self, module: Any, class_name: str, expected_err: str
     ) -> None:
         class_ = getattr(module.UnionsOfPrimitveTypes, class_name)
-        with raises(ValidationError, match=re.escape(expected_err)):
+        with raises(ValidationError, match=expected_err):
             OmegaConf.structured(class_)
 
     @mark.parametrize(
