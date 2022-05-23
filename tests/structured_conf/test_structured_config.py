@@ -71,8 +71,15 @@ class IntegersConfigAssignments:
 
 
 class StringConfigAssignments:
-    legal = ["10", "-10", "foo", "", (Color.BLUE, "Color.BLUE")]
-    illegal = [b"binary", Path("hello.txt")]
+    legal = [
+        "10",
+        "-10",
+        "foo",
+        "",
+        (Color.BLUE, "Color.BLUE"),
+        (Path("hello.txt"), "hello.txt"),
+    ]
+    illegal = [b"binary"]
 
 
 class BytesConfigAssignments:
@@ -2259,3 +2266,9 @@ class TestUnionsOfPrimitiveTypes:
         assert _utils.get_type_hint(cfg, "uis_with_default") == Union[int, str]
         assert cfg.uisn is None
         assert cfg.uis_with_default == 123
+
+    def test_assign_path_to_string_typed_field(self, module: Any) -> None:
+        cfg = OmegaConf.create(module.StringConfig)
+        cfg.null_default = Path("hello.txt")
+        assert isinstance(cfg.null_default, str)
+        assert cfg.null_default == "hello.txt"
