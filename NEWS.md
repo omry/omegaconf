@@ -20,6 +20,7 @@ OmegaConf now natively supports two new primitive types, `bytes` and `pathlib.Pa
 
 - `OmegaConf.to_object` now works properly with structured configs that have `init=False` fields ([#789](https://github.com/omry/omegaconf/issues/789))
 - Fix bugs related to creation of structured configs from dataclasses having fields with a default_factory ([#831](https://github.com/omry/omegaconf/issues/831))
+- Fix default value initialization for structured configs created from subclasses of dataclasses ([#817](https://github.com/omry/omegaconf/issues/817))
 
 ### API changes and deprecations
 
