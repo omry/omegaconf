@@ -596,6 +596,7 @@ def test_accepts_mandatory_missing(
             {
                 "PathNode": copy.copy,
                 "AnyNode": copy.copy,
+                "StringNode": str,
             },
             id="path-data",
         ),
