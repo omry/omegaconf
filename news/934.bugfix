@@ -1,0 +1,1 @@
+Revert an accidental behavior change where implicit conversion from `Path` to `str` was disallowed.

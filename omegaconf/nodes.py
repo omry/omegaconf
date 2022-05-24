@@ -189,7 +189,7 @@ class StringNode(ValueNode):
         if (
             OmegaConf.is_config(value)
             or is_primitive_container(value)
-            or isinstance(value, (bytes, Path))
+            or isinstance(value, bytes)
         ):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string: '$VALUE'")
         return str(value)
