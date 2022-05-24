@@ -146,7 +146,7 @@ def test_node_wrap(
         # str
         param(str, "foo", StringNode("foo"), id="str"),
         param(str, b"binary", ValidationError, id="str"),
-        param(str, Path("hello.txt"), ValidationError, id="str"),
+        param(str, Path("hello.txt"), StringNode("hello.txt"), id="str"),
         param(str, True, StringNode("True"), id="str"),
         param(str, 1, StringNode("1"), id="str"),
         param(str, 1.0, StringNode("1.0"), id="str"),
