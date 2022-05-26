@@ -30,7 +30,7 @@ in the input class.
 
 
 Currently, type hints supported in OmegaConf’s structured configs include:
- - primitive types (``int``, ``float``, ``bool``, ``str``, ``Path``) and enum types
+ - primitive types (``int``, ``float``, ``bool``, ``str``, ``bytes``, ``Path``) and enum types
    (user-defined subclasses of ``enum.Enum``). See the :ref:`simple_types` section below.
  - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``.
    See :ref:`union_types` below.
