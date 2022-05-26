@@ -35,6 +35,8 @@ def values(key: str, _root_: BaseContainer, _parent_: Container) -> ListConfig:
     assert isinstance(content, dict)
 
     ret = ListConfig([])
+    if key.startswith("."):
+        key = f".{key}"  # extra dot to compensate for extra level of nesting within ret ListConfig
     for k in content:
         ref_node = AnyNode(f"${{{key}.{k}}}")
         ret.append(ref_node)
