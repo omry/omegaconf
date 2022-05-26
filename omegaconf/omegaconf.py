@@ -993,7 +993,7 @@ def _node_wrap(
             element_type=element_type,
         )
     elif (is_list_annotation(ref_type) or is_tuple_annotation(ref_type)) or (
-        is_primitive_list(value) and ref_type is Any
+        type(value) in (list, tuple) and ref_type is Any
     ):
         element_type = get_list_element_type(ref_type)
         node = ListConfig(

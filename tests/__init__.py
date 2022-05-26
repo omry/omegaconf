@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import attr
 from pytest import warns
@@ -227,6 +227,11 @@ class SubscriptedListOpt:
 
 
 @dataclass
+class ListOfAny:
+    list: List[Any]
+
+
+@dataclass
 class UntypedDict:
     dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
@@ -251,6 +256,11 @@ class SubscriptedDictOpt:
 
 
 @dataclass
+class DictOfAny:
+    dict: Dict[Any, Any]
+
+
+@dataclass
 class InterpolationList:
     list: List[float] = II("optimization.lr")
 
@@ -263,6 +273,20 @@ class InterpolationDict:
 @dataclass
 class Str2Int(Dict[str, int]):
     pass
+
+
+class DictSubclass(Dict[Any, Any]):
+    pass
+
+
+class ListSubclass(List[Any]):
+    pass
+
+
+class Shape(NamedTuple):
+    channels: int
+    height: int
+    width: int
 
 
 @dataclass
