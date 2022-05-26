@@ -605,9 +605,7 @@ def is_int(st: str) -> bool:
 
 
 def is_primitive_list(obj: Any) -> bool:
-    from .base import Container
-
-    return not isinstance(obj, Container) and isinstance(obj, (list, tuple))
+    return isinstance(obj, (list, tuple))
 
 
 def is_primitive_dict(obj: Any) -> bool:
