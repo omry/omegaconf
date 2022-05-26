@@ -2,6 +2,7 @@
 import platform
 import re
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional
@@ -10,8 +11,18 @@ import yaml
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from omegaconf.errors import UnsupportedValueType
-from tests import ConcretePlugin, IllegalType, NonCopyableIllegalType, Plugin
+from omegaconf.errors import UnsupportedValueType, ValidationError
+from tests import (
+    ConcretePlugin,
+    DictOfAny,
+    DictSubclass,
+    IllegalType,
+    ListOfAny,
+    ListSubclass,
+    NonCopyableIllegalType,
+    Plugin,
+    Shape,
+)
 
 
 @mark.parametrize(
@@ -110,6 +121,48 @@ def test_create_allow_objects_non_copyable(input_: Any) -> None:
     # test creating from an OmegaConf object
     cfg = OmegaConf.create(cfg, flags={"allow_objects": True})
     assert cfg == input_
+
+
+@mark.parametrize(
+    "input_",
+    [
+        param(Shape(10, 2, 3), id="shape"),
+        param(ListSubclass((1, 2, 3)), id="list_subclass"),
+        param(DictSubclass({"key": "value"}), id="dict_subclass"),
+    ],
+)
+class TestCreationWithCustomClass:
+    def test_top_level(self, input_: Any) -> None:
+        if isinstance(input_, Sequence):
+            cfg = OmegaConf.create(input_)  # type: ignore
+            assert isinstance(cfg, ListConfig)
+        else:
+            with raises(ValidationError):
+                OmegaConf.create(input_)
+
+    def test_nested(self, input_: Any) -> None:
+        with raises(UnsupportedValueType):
+            OmegaConf.create({"foo": input_})
+
+    def test_nested_allow_objects(self, input_: Any) -> None:
+        cfg = OmegaConf.create({"foo": input_}, flags={"allow_objects": True})
+        assert isinstance(cfg.foo, type(input_))
+
+    def test_structured_conf(self, input_: Any) -> None:
+        if isinstance(input_, Sequence):
+            cfg = OmegaConf.structured(ListOfAny(input_))  # type: ignore
+            assert isinstance(cfg.list, ListConfig)
+        else:
+            cfg = OmegaConf.structured(DictOfAny(input_))
+            assert isinstance(cfg.dict, DictConfig)
+
+    def test_direct_creation_of_listconfig_or_dictconfig(self, input_: Any) -> None:
+        if isinstance(input_, Sequence):
+            cfg = ListConfig(input_)  # type: ignore
+            assert isinstance(cfg, ListConfig)
+        else:
+            cfg = DictConfig(input_)  # type: ignore
+            assert isinstance(cfg, DictConfig)
 
 
 @mark.parametrize(
