@@ -20,6 +20,8 @@ from omegaconf._utils import (
     get_list_element_type,
     is_dict_annotation,
     is_list_annotation,
+    is_primitive_dict,
+    is_primitive_list,
     is_supported_union_annotation,
     is_tuple_annotation,
     is_union_annotation,
@@ -42,8 +44,11 @@ from tests import (
     Color,
     ConcretePlugin,
     Dataframe,
+    DictSubclass,
     IllegalType,
+    ListSubclass,
     Plugin,
+    Shape,
     Str2Int,
     UnionAnnotations,
     User,
@@ -660,6 +665,54 @@ def test_type_str_ellipsis() -> None:
 )
 def test_type_str_nonetype(type_: Any, expected: str) -> None:
     assert _utils.type_str(type_) == expected
+
+
+@mark.parametrize(
+    "obj, expected",
+    [
+        param([], True, id="list"),
+        param([1], True, id="list1"),
+        param((), True, id="tuple"),
+        param((1,), True, id="tuple1"),
+        param({}, False, id="dict"),
+        param(ListSubclass(), True, id="list_subclass"),
+        param(Shape(10, 2, 3), True, id="namedtuple"),
+    ],
+)
+def test_is_primitive_list(obj: Any, expected: bool) -> None:
+    assert is_primitive_list(obj) == expected
+
+
+@mark.parametrize(
+    "obj, expected",
+    [
+        param({}, True, id="dict"),
+        param({1: 2}, True, id="dict1"),
+        param([], False, id="list"),
+        param((), False, id="tuple"),
+    ],
+)
+def test_is_primitive_dict(obj: Any, expected: bool) -> None:
+    assert is_primitive_dict(obj) == expected
+
+
+@mark.parametrize(
+    "obj",
+    [
+        param(DictConfig({}), id="dictconfig"),
+        param(ListConfig([]), id="listconfig"),
+        param(DictSubclass(), id="dict_subclass"),
+        param(Str2Int(), id="dict_subclass_dataclass"),
+        param(User, id="user"),
+        param(User("bond", 7), id="user"),
+    ],
+)
+class TestIsPrimitiveContainerNegative:
+    def test_is_primitive_list(self, obj: Any) -> None:
+        assert not is_primitive_list(obj)
+
+    def test_is_primitive_dict(self, obj: Any) -> None:
+        assert not is_primitive_dict(obj)
 
 
 @mark.parametrize(
