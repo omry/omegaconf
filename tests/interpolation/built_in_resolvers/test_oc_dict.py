@@ -261,6 +261,36 @@ def test_readonly_parent(cfg: Any, expected: Any) -> None:
     ("cfg", "expected"),
     [
         param(
+            {"outer": {"x": "${oc.dict.values:.y}", "y": {"a": 1}}},
+            [1],
+            id="values_inter",
+        ),
+        param(
+            {"outer": {"x": "${oc.dict.keys:.y}", "y": {"a": 1}}},
+            ["a"],
+            id="keys_inter",
+        ),
+        param(
+            {"outer": {"x": "${oc.dict.values:..y}"}, "y": {"a": 1}},
+            [1],
+            id="parent_values_inter",
+        ),
+        param(
+            {"outer": {"x": "${oc.dict.keys:..y}"}, "y": {"a": 1}},
+            ["a"],
+            id="parent_keys_inter",
+        ),
+    ],
+)
+def test_relative_path(cfg: Any, expected: Any) -> None:
+    cfg = OmegaConf.create(cfg)
+    assert cfg.outer.x == expected
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        param(
             {"x": "${sum:${oc.dict.values:y}}", "y": {"one": 1, "two": 2}},
             3,
             id="values",
