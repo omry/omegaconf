@@ -11,14 +11,21 @@ providing a consistent API regardless of how the configuration was created.
 
 ## Releases
 
-### Stable (2.1)
+### Stable (2.2)
+OmegaConf 2.2 is the current stable version.
+* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.2.1)
+* [Source code](https://github.com/omry/omegaconf/tree/2.2_branch)
+
+Install with `pip install --upgrade omegaconf`
+
+### Previous release (2.1)
 OmegaConf 2.1 is the current stable version.
 * [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.1)
 * [Documentation](https://omegaconf.readthedocs.io/en/2.1_branch/)
 * [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
 * [Source code](https://github.com/omry/omegaconf/tree/2.1_branch)
 
-Install with `pip install --upgrade omegaconf`
+Install with `pip install omegaconf==2.1`
 
 ### Previous release (2.0)
 
