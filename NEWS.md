@@ -1,3 +1,11 @@
+## 2.2.2 (2022-05-26)
+### Bug Fixes
+
+- Revert an accidental behavior change where implicit conversion from `Path` to `str` was disallowed. ([#934](https://github.com/omry/omegaconf/issues/934))
+- Revert a behavior change where namedtuples and list subclasses were coerced to ListConfig. ([#939](https://github.com/omry/omegaconf/issues/939))
+- Fix a bug where the `oc.dict.values` resolver failed when passed a relative dotpath ([#942](https://github.com/omry/omegaconf/issues/942))
+
+
 ## 2.2.1 (2022-05-17)
 OmegaConf 2.2 is a major release. The most significant area of improvement in
 2.2 is support for more flexible type hints in structured configs. In addition,
