@@ -1220,6 +1220,14 @@ class TestConfigs2:
 
         assert OmegaConf.merge(cfg, cfg) == cfg
 
+    def test_set_value_after_merge_into_none_dict(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.DictOptional)
+        merged = OmegaConf.merge(cfg, {"as_none": {"x": 100}})
+        with raises(ValidationError):
+            merged.as_none.x = "abc"
+        with raises(ValidationError):
+            merged.as_none.y = "abc"
+
     @mark.parametrize(
         "update_value,expected",
         [
