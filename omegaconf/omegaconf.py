@@ -71,6 +71,7 @@ from .nodes import (
     PathNode,
     StringNode,
     ValueNode,
+    CliArgType,
 )
 
 MISSING: Any = "???"
@@ -226,10 +227,18 @@ class OmegaConf:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    def from_cli(args_list: Optional[List[str]] = None) -> DictConfig:
+    def from_cli(args_list: Optional[List[str]] = None, arg_type: CliArgType = CliArgType.DEFAULT) -> DictConfig:
         if args_list is None:
             # Skip program name
             args_list = sys.argv[1:]
+
+        if arg_type == CliArgType.POSIX_EQUAL:
+            args_list = [param.lstrip("-") for param in args_list]
+        elif arg_type == CliArgType.POSIX_SPACE:
+            # chunk by pairs
+            iterator = iter(args_list)
+            args_list = [f"{key.lstrip('-')}={value}" for key, value in zip(iterator, iterator)]
+
         return OmegaConf.from_dotlist(args_list)
 
     @staticmethod

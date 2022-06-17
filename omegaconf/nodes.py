@@ -543,3 +543,9 @@ class InterpolationResultNode(ValueNode):
     def _is_interpolation(self) -> bool:
         # The result of an interpolation cannot be itself an interpolation.
         return False
+
+
+class CliArgType(Enum):
+    DEFAULT = "DEFAULT"
+    POSIX_SPACE = "POSIX_SPACE"
+    POSIX_EQUAL = "POSIX_EQUAL"

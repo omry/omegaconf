@@ -12,6 +12,7 @@ from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.nodes import CliArgType
 from tests import (
     ConcretePlugin,
     DictOfAny,
@@ -196,6 +197,16 @@ def test_create_from_cli() -> None:
 def test_cli_passing() -> None:
     args_list = ["a=1", "b.c=2"]
     c = OmegaConf.from_cli(args_list)
+    assert {"a": 1, "b": {"c": 2}} == c
+
+
+def test_create_from_cli_posix() -> None:
+    sys.argv = ["program.py", "--a=1", "--b.c=2"]
+    c = OmegaConf.from_cli(arg_type=CliArgType.POSIX_EQUAL)
+    assert {"a": 1, "b": {"c": 2}} == c
+
+    sys.argv = ["program.py", "--a", "1", "--b.c", "2"]
+    c = OmegaConf.from_cli(arg_type=CliArgType.POSIX_SPACE)
     assert {"a": 1, "b": {"c": 2}} == c
 
 
