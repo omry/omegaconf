@@ -265,20 +265,26 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     curr_index = self_indices[0] - 1
                     val_i = -1
 
+                work_copy = self.copy()  # For atomicity manipulate a copy
+
                 # Delete and optionally replace non empty slices
                 only_removed = 0
                 for val_i, i in enumerate(indexes):
                     curr_index = i - only_removed
-                    del self[curr_index]
+                    del work_copy[curr_index]
                     if val_i < len(value):
-                        self.insert(curr_index, value[val_i])
+                        work_copy.insert(curr_index, value[val_i])
                     else:
                         only_removed += 1
 
                 # Insert any remaining input items
                 for val_i in range(val_i + 1, len(value)):
                     curr_index += 1
-                    self.insert(curr_index, value[val_i])
+                    work_copy.insert(curr_index, value[val_i])
+
+                # Reinitialize self with work_copy
+                self.clear()
+                self.extend(work_copy)
             else:
                 self._set_at_index(index, value)
         except Exception as e:

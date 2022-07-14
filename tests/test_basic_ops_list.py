@@ -908,6 +908,13 @@ def test_getitem_slice(sli: slice) -> None:
         ),
         param(
             ["a", "b", "c", "d"],
+            slice(1, 3),
+            [object()],
+            raises(UnsupportedValueType),
+            id="partially-valid-input",
+        ),
+        param(
+            ["a", "b", "c", "d"],
             slice(1, 3, 1),
             ["x", "y", "z"],
             ["a", "x", "y", "z", "d"],
@@ -969,8 +976,15 @@ def test_setitem_slice(
         cfg[idx] = value
         assert cfg == expected
     else:
+        expected_exception: Any = expected.expected_exception
+        if type(constructor) == type(list) and issubclass(
+            expected_exception, UnsupportedValueType
+        ):
+            return  # standard list() can accept object() so skip
+        orig_cfg = cfg[:]
         with expected:
             cfg[idx] = value
+        assert cfg == orig_cfg
 
 
 @mark.parametrize(
