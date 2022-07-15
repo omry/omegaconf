@@ -200,13 +200,11 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             raise ValidationError(
                 f"Cannot assign {type_str(value_type)} to {type_str(target_type)}"
             )
-        validation_error = (
-            target_type is not None
-            and value_type is not None
-            and not issubclass(value_type, target_type)
-        )
-        if validation_error:
-            self._raise_invalid_value(value, value_type, target_type)
+
+        if target_type is not None and value_type is not None:
+            origin = getattr(target_type, "__origin__", target_type)
+            if not issubclass(value_type, origin):
+                self._raise_invalid_value(value, value_type, target_type)
 
     def _validate_merge(self, value: Any) -> None:
         from omegaconf import OmegaConf
