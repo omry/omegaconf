@@ -5,7 +5,7 @@ import re
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from _pytest.python_api import RaisesContext
 from pytest import fixture, mark, param, raises
@@ -2266,6 +2266,17 @@ class TestUnionsOfPrimitiveTypes:
         assert _utils.get_type_hint(cfg, "uis_with_default") == Union[int, str]
         assert cfg.uisn is None
         assert cfg.uis_with_default == 123
+
+    @mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+    def test_support_pep_585(self, module: Any) -> None:
+        class_ = module.SupportPEP585
+        cfg = OmegaConf.structured(class_)
+        assert _utils.get_type_hint(cfg, "dict_") == Dict[int, str]
+        assert _utils.get_type_hint(cfg, "list_") == List[int]
+        assert _utils.get_type_hint(cfg, "tuple_") == Tuple[int]
+        assert _utils.get_type_hint(cfg, "dict_no_subscript") == Dict[Any, Any]
+        assert _utils.get_type_hint(cfg, "list_no_subscript") == List[Any]
+        assert _utils.get_type_hint(cfg, "tuple_no_subscript") == Tuple[Any, ...]
 
     def test_assign_path_to_string_typed_field(self, module: Any) -> None:
         cfg = OmegaConf.create(module.StringConfig)
