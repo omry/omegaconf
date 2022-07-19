@@ -807,7 +807,7 @@ def test_dict_assign_to_container_typed_element_special(
         param(
             DictConfig({"key": {"key2": 123}}, element_type=Dict[str, int]),
             [],
-            r"(Cannot assign list to Dict\[str, int\])"
+            r"(Invalid type assigned: list is not a subclass of Dict\[str, int\]\. value: \[\])"
             + r"|('ListConfig' is incompatible with type hint 'typing.Dict\[str, int\]')",
             id="assign_list_to_dict[str_int]",
         ),
