@@ -821,3 +821,23 @@ class UnionsOfPrimitveTypes:
             ouis: Optional[int | str]
             uisn: int | str | None = None
             uis_with_default: int | str = 123
+
+
+if sys.version_info >= (3, 9):
+
+    @dataclass
+    class SupportPEP585:
+        """
+        PEP 585 – Type Hinting Generics In Standard Collections
+        https://peps.python.org/pep-0585/
+
+        This means lower-case dict/list/tuple annotations
+        can be used instad of uppercase Dict/List/Tuple.
+        """
+
+        dict_: dict[int, str] = field(default_factory=lambda: {123: "abc"})
+        list_: list[int] = field(default_factory=lambda: [123])
+        tuple_: tuple[int] = (123,)
+        dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})
+        list_no_subscript: list = field(default_factory=lambda: [123])
+        tuple_no_subscript: tuple = (123,)

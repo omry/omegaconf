@@ -254,6 +254,10 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
             if et is not None:
                 et = _resolve_forward(et, module=module)
             return List[et]  # type: ignore
+        if is_tuple_annotation(type_):
+            its = get_tuple_item_types(type_)
+            its = tuple(_resolve_forward(it, module=module) for it in its)
+            return Tuple[its]  # type: ignore
 
         return type_
 
@@ -616,6 +620,8 @@ def is_primitive_dict(obj: Any) -> bool:
 
 
 def is_dict_annotation(type_: Any) -> bool:
+    if type_ in (dict, Dict):
+        return True
     origin = getattr(type_, "__origin__", None)
     # type_dict is a bit hard to detect.
     # this support is tentative, if it eventually causes issues in other areas it may be dropped.
@@ -628,6 +634,8 @@ def is_dict_annotation(type_: Any) -> bool:
 
 
 def is_list_annotation(type_: Any) -> bool:
+    if type_ in (list, List):
+        return True
     origin = getattr(type_, "__origin__", None)
     if sys.version_info < (3, 7, 0):
         return origin is List or type_ is List  # pragma: no cover
@@ -636,6 +644,8 @@ def is_list_annotation(type_: Any) -> bool:
 
 
 def is_tuple_annotation(type_: Any) -> bool:
+    if type_ in (tuple, Tuple):
+        return True
     origin = getattr(type_, "__origin__", None)
     if sys.version_info < (3, 7, 0):
         return origin is Tuple or type_ is Tuple  # pragma: no cover
@@ -670,6 +680,14 @@ def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     else:
         element_type = Any
     return element_type
+
+
+def get_tuple_item_types(ref_type: Type[Any]) -> Tuple[Any, ...]:
+    args = getattr(ref_type, "__args__", None)
+    if args in (None, ()):
+        args = (Any, ...)
+    assert isinstance(args, tuple)
+    return args
 
 
 def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:

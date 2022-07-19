@@ -9,15 +9,17 @@ import attr
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, UnionNode, _utils
-from omegaconf._utils import (
+from omegaconf._utils import (  # _normalize_ref_type,
     Marker,
     NoneType,
     _ensure_container,
     _get_value,
     _is_optional,
+    _resolve_forward,
     _resolve_optional,
     get_dict_key_value_types,
     get_list_element_type,
+    get_tuple_item_types,
     is_dict_annotation,
     is_list_annotation,
     is_primitive_dict,
@@ -732,7 +734,7 @@ class TestIsPrimitiveContainerNegative:
         (User, False),
         (User(), False),
         (List, False),
-        (dict, False),
+        (dict, True),
         (DictConfig, False),
         (Any, False),
         (None, False),
@@ -756,7 +758,7 @@ def test_is_dict_annotation(type_: Any, expected: Any) -> Any:
         (List[IllegalType], True),
         (Dict, False),
         (List, True),
-        (list, False),
+        (list, True),
         (tuple, False),
         (ListConfig, False),
     ],
@@ -780,7 +782,7 @@ def test_is_list_annotation(type_: Any, expected: Any) -> Any:
         (Tuple, True),
         (list, False),
         (dict, False),
-        (tuple, False),
+        (tuple, True),
         (Any, False),
         (int, False),
         (User, False),
@@ -1230,9 +1232,10 @@ class TestIndicators:
 @mark.parametrize(
     "ref_type, expected_key_type, expected_element_type",
     [
-        param(Dict, Any, Any, id="any"),
+        param(dict, Any, Any, id="Dict_no_subscript"),
+        param(Dict, Any, Any, id="dict_no_subscript"),
         param(Dict[Any, Any], Any, Any, id="any_explicit"),
-        param(Dict[int, float], int, float, id="int_float"),
+        param(Dict[int, float], int, float, id="Dict_int_float"),
         param(Dict[Color, User], Color, User, id="color_user"),
         param(Dict[str, List[int]], str, List[int], id="list"),
         param(Dict[str, Dict[int, float]], str, Dict[int, float], id="dict"),
@@ -1246,12 +1249,21 @@ def test_get_dict_key_value_types(
     assert element_type == expected_element_type
 
 
+@mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+def test_get_dict_key_value_types_python_3_10() -> None:
+    if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
+        key_type, element_type = get_dict_key_value_types(dict[int, float])
+        assert key_type == int
+        assert element_type == float
+
+
 @mark.parametrize(
     "ref_type, expected_element_type",
     [
-        param(List, Any, id="any"),
+        param(list, Any, id="list_no_subscript"),
+        param(List, Any, id="List_no_subscript"),
         param(List[Any], Any, id="any_explicit"),
-        param(List[int], int, id="int"),
+        param(List[int], int, id="List_int"),
         param(List[User], User, id="user"),
         param(List[List[int]], List[int], id="list"),
         param(List[Dict[int, float]], Dict[int, float], id="dict"),
@@ -1259,6 +1271,46 @@ def test_get_dict_key_value_types(
 )
 def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> None:
     assert get_list_element_type(ref_type) == expected_element_type
+
+
+@mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+def test_get_list_element_type_python_3_10() -> None:
+    if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
+        assert get_list_element_type(list[int]) == int
+
+
+@mark.parametrize(
+    "ref_type, expected_element_type",
+    [
+        param(tuple, (Any, ...), id="tuple_no_subscript"),
+        param(Tuple, (Any, ...), id="Tuple_no_subscript"),
+        param(Tuple[Any], (Any,), id="any_explicit"),
+        param(Tuple[int], (int,), id="Tuple_int"),
+        param(Tuple[int, str], (int, str), id="Tuple[int,str]"),
+        param(Tuple[int, ...], (int, ...), id="Tuple[int,...]"),
+        param(Tuple[User], (User,), id="user"),
+        param(Tuple[Tuple[int]], (Tuple[int],), id="tuple"),
+        param(Tuple[Dict[int, float]], (Dict[int, float],), id="dict"),
+    ],
+)
+def test_get_tuple_item_types(ref_type: Any, expected_element_type: Any) -> None:
+    assert get_tuple_item_types(ref_type) == expected_element_type
+
+
+if sys.version_info >= (3, 9):
+
+    @mark.parametrize(
+        "ref_type, expected_element_type",
+        [
+            param(tuple[int], (int,), id="tuple_int"),
+            param(tuple[int, str], (int, str), id="tuple[int,str]"),
+            param(tuple[int, ...], (int, ...), id="tuple[int,...]"),
+        ],
+    )
+    def test_get_tuple_item_types_python_3_9(
+        ref_type: Any, expected_element_type: Any
+    ) -> None:
+        assert get_tuple_item_types(ref_type) == expected_element_type
 
 
 @mark.parametrize(
@@ -1387,3 +1439,28 @@ def test_resolve_optional_support_pep_604() -> None:
         )
         assert _resolve_optional(int | str | None) == (True, Union[int, str])
         assert _resolve_optional(int | str | NoneType) == (True, Union[int, str])
+
+
+@mark.parametrize(
+    "type_, expected",
+    [
+        param(int, int, id="int"),
+        param(tuple, Tuple[Any, ...], id="tuple"),
+        param(Tuple, Tuple[Any, ...], id="Tuple"),
+        param(Tuple[int], Tuple[int], id="Tuple[int]"),
+        param(Tuple["int"], Tuple[int], id="Tuple[int]_forward"),
+        param(Tuple[int, str], Tuple[int, str], id="Tuple[int,str]"),
+        param(Tuple["int", "str"], Tuple[int, str], id="Tuple[int,str]_forward"),
+        param(Tuple[int, ...], Tuple[int, ...], id="Tuple[int,...]"),
+        param(dict, Dict[Any, Any], id="dict"),
+        param(Dict, Dict[Any, Any], id="Dict"),
+        param(Dict[int, str], Dict[int, str], id="Dict[int,str]"),
+        param(Dict["int", "str"], Dict[int, str], id="Dict[int,str]_forward"),
+        param(list, List[Any], id="list"),
+        param(List, List[Any], id="List"),
+        param(List[int], List[int], id="List[int]"),
+        param(List["int"], List[int], id="List[int]_forward"),
+    ],
+)
+def test_resolve_forward(type_: Any, expected: Any) -> None:
+    assert _resolve_forward(type_, "builtins") == expected
