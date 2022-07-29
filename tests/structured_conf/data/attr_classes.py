@@ -828,3 +828,16 @@ class HasBadAnnotation1:
 @attr.s(auto_attribs=True)
 class HasBadAnnotation2:
     data: object()  # type: ignore
+
+
+@attr.s(auto_attribs=True)
+class HasIgnoreMetadataRequired:
+    ignore: int = attr.field(metadata={"omegaconf_ignore": True})
+    no_ignore: int = attr.field(metadata={"omegaconf_ignore": False})
+
+
+@attr.s(auto_attribs=True)
+class HasIgnoreMetadataWithDefault:
+
+    ignore: int = attr.field(default=1, metadata={"omegaconf_ignore": True})
+    no_ignore: int = attr.field(default=2, metadata={"omegaconf_ignore": False})

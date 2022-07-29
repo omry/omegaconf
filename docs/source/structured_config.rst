@@ -595,3 +595,25 @@ This will cause a validation error when merging the config from the file with th
     >>> with raises(ValidationError):
     ...     OmegaConf.merge(schema, conf)
 
+
+Using Metadata to Ignore Fields
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+OmegaConf inspects the metadata of dataclasss / attr class fields,
+ignoring any fields where ``metadata["omegaconf_ignore"]`` is ``True``.
+When defining a dataclass or attr class, fields can be given metadata by passing the
+``metadata`` keyword argument to the ``dataclasses.field`` function or the ``attrs.field`` function:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class HasIgnoreMetadata:
+    ...     normal_field: int = 1
+    ...     field_ignored: int = field(default=2, metadata={"omegaconf_ignore": True})
+    ...     field_not_ignored: int = field(default=3, metadata={"omegaconf_ignore": False})
+    ...
+    >>> cfg = OmegaConf.create(HasIgnoreMetadata)
+    >>> cfg
+    {'normal_field': 1, 'field_not_ignored': 3}
+
+In the above example, ``field_ignored`` is ignored by OmegaConf.
