@@ -841,3 +841,17 @@ if sys.version_info >= (3, 9):
         dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})
         list_no_subscript: list = field(default_factory=lambda: [123])
         tuple_no_subscript: tuple = (123,)
+
+
+@dataclass
+class HasForwardRef:
+    @dataclass
+    class CA:
+        x: int = 3
+
+    @dataclass
+    class CB:
+        sub: "HasForwardRef.CA"
+
+    a: CA
+    b: CB

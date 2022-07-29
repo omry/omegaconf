@@ -804,3 +804,17 @@ if sys.version_info >= (3, 9):
         dict_no_subscript: dict = {123: "abc"}
         list_no_subscript: list = [123]
         tuple_no_subscript: tuple = (123,)
+
+
+@attr.s(auto_attribs=True)
+class HasForwardRef:
+    @attr.s(auto_attribs=True)
+    class CA:
+        x: int = 3
+
+    @attr.s(auto_attribs=True)
+    class CB:
+        sub: "HasForwardRef.CA"
+
+    a: CA
+    b: CB
