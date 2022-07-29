@@ -1010,6 +1010,12 @@ def test_frozen(module: Any) -> None:
     validate_frozen_impl(OmegaConf.structured(FrozenClass()))
 
 
+def test_forward_ref(module: Any) -> None:
+    C = module.HasForwardRef
+    obj = C(a=C.CA(), b=C.CB(C.CA(x=33)))
+    OmegaConf.create(obj)
+
+
 class TestDictSubclass:
     def test_str2str(self, module: Any) -> None:
         with warns_dict_subclass_deprecated(module.DictSubclass.Str2Str):
