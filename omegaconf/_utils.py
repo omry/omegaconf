@@ -9,7 +9,17 @@ import warnings
 from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    get_type_hints,
+)
 
 import yaml
 
@@ -326,9 +336,10 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     obj_type = obj if is_type else type(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
+    resolved_hints = get_type_hints(obj_type)
 
     for name, attrib in attr.fields_dict(obj_type).items():
-        is_optional, type_ = _resolve_optional(attrib.type)
+        is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
         if not is_type:
             value = getattr(obj, name)
@@ -368,8 +379,6 @@ def get_dataclass_init_field_names(obj: Any) -> List[str]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
-    from typing import get_type_hints
-
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
