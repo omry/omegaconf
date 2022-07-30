@@ -457,7 +457,10 @@ class OmegaConf:
 
     @classmethod
     def clear_resolver(cls, name: str) -> bool:
-        """Clear(remove) any resolver only if it exists. Returns a bool: True if resolver is removed and False if not removed.
+        """
+        Clear(remove) any resolver only if it exists.
+
+        Returns a bool: True if resolver is removed and False if not removed.
 
         .. warning:
             This method can remove deafult resolvers as well.
