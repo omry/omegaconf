@@ -1028,7 +1028,7 @@ def _node_wrap(
         )
     elif ref_type == Any or ref_type is None:
         node = AnyNode(value=value, key=key, parent=parent)
-    elif issubclass(ref_type, Enum):
+    elif isinstance(ref_type, type) and issubclass(ref_type, Enum):
         node = EnumNode(
             enum_type=ref_type,
             value=value,
@@ -1052,7 +1052,7 @@ def _node_wrap(
         if parent is not None and parent._get_flag("allow_objects") is True:
             node = AnyNode(value=value, key=key, parent=parent)
         else:
-            raise ValidationError(f"Unexpected object type: {type_str(ref_type)}")
+            raise ValidationError(f"Unexpected type annotation: {type_str(ref_type)}")
     return node
 
 
