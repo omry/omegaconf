@@ -1,0 +1,1 @@
+Improve error message when certain illegal type annotations (such as `typing.Sequence`) are used in structured configs.
