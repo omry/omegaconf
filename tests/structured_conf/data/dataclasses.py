@@ -855,3 +855,13 @@ class HasForwardRef:
 
     a: CA
     b: CB
+
+
+@dataclass
+class HasBadAnnotation1:
+    data: object
+
+
+@dataclass
+class HasBadAnnotation2:
+    data: object()  # type: ignore

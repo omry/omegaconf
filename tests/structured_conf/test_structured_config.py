@@ -981,6 +981,17 @@ class TestConfigs:
         assert cfg.list == [1, 2]
         assert cfg.opt_list is None
 
+    def test_has_bad_annotation1(self, module: Any) -> None:
+        with raises(ValidationError, match="Unexpected type annotation: object"):
+            OmegaConf.structured(module.HasBadAnnotation1)
+
+    def test_has_bad_annotation2(self, module: Any) -> None:
+        with raises(
+            ValidationError,
+            match="Unexpected type annotation: <object object at 0x[a-f0-9]*>",
+        ):
+            OmegaConf.structured(module.HasBadAnnotation2)
+
 
 def validate_frozen_impl(conf: DictConfig) -> None:
     with raises(ReadonlyConfigError):
