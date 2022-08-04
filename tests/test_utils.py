@@ -48,6 +48,7 @@ from tests import (
     Dataframe,
     DictSubclass,
     IllegalType,
+    IllegalTypeGeneric,
     ListSubclass,
     Plugin,
     Shape,
@@ -636,6 +637,12 @@ def test_is_primitive_type_annotation(type_: Any, is_primitive: bool) -> None:
         (Union[str, int, Color], True, "Union[str, int, tests.Color]"),
         (Union[int], False, "int"),
         (Union[int], True, "int"),
+        (IllegalType, False, "IllegalType"),
+        (IllegalType, True, "tests.IllegalType"),
+        (IllegalTypeGeneric, False, "IllegalTypeGeneric"),
+        (IllegalTypeGeneric, True, "tests.IllegalTypeGeneric"),
+        (IllegalTypeGeneric[int], False, "IllegalTypeGeneric[int]"),
+        (IllegalTypeGeneric[int], True, "tests.IllegalTypeGeneric[int]"),
     ],
 )
 def test_type_str(
@@ -652,6 +659,17 @@ def test_type_str(
         )
 
 
+@mark.parametrize(
+    "type_, expected",
+    [
+        (object(), r"<object object at 0x[a-f0-9]*>"),
+        (IllegalType(), "<tests.IllegalType object at 0x[a-f0-9]*>"),
+    ],
+)
+def test_type_str_regex(type_: Any, expected: str) -> None:
+    assert re.match(expected, _utils.type_str(type_))
+
+
 def test_type_str_ellipsis() -> None:
     assert _utils.type_str(...) == "..."
 
@@ -663,6 +681,11 @@ def test_type_str_ellipsis() -> None:
         param(NoneType, "NoneType", id="nonetype"),
         (Union[float, bool, None], "Optional[Union[float, bool]]"),
         (Union[float, bool, NoneType], "Optional[Union[float, bool]]"),
+        (object, "object"),
+        (
+            Optional[object],  # python3.6 treats `Optional[object]` as `object`
+            "Optional[object]" if sys.version_info >= (3, 7) else "object",
+        ),
     ],
 )
 def test_type_str_nonetype(type_: Any, expected: str) -> None:

@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, Generic, List, NamedTuple, Optional, Tuple, TypeVar, Union
 
 import attr
 from pytest import warns
@@ -17,6 +17,13 @@ class IllegalType:
         if isinstance(other, IllegalType):
             return True
         return False
+
+
+T = TypeVar("T")
+
+
+class IllegalTypeGeneric(Generic[T]):
+    ...
 
 
 class NonCopyableIllegalType:
