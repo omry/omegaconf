@@ -818,3 +818,13 @@ class HasForwardRef:
 
     a: CA
     b: CB
+
+
+@attr.s(auto_attribs=True)
+class HasBadAnnotation1:
+    data: object
+
+
+@attr.s(auto_attribs=True)
+class HasBadAnnotation2:
+    data: object()  # type: ignore
