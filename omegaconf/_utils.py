@@ -909,29 +909,16 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
     if t is ...:
         return "..."
 
-    if sys.version_info < (3, 7, 0):  # pragma: no cover
-        # Python 3.6
-        if hasattr(t, "__name__"):
-            name = str(t.__name__)
-        else:
-            if t.__origin__ is not None:
-                name = type_str(t.__origin__)
-            else:
-                name = str(t)
-                if name.startswith("typing."):
-                    name = name[len("typing.") :]
-    else:  # pragma: no cover
-        # Python >= 3.7
-        if hasattr(t, "__name__"):
-            name = str(t.__name__)
-        else:
-            if t._name is None:
-                if t.__origin__ is not None:
-                    name = type_str(
-                        t.__origin__, include_module_name=include_module_name
-                    )
-            else:
-                name = str(t._name)
+    if hasattr(t, "__name__"):
+        name = str(t.__name__)
+    elif getattr(t, "_name", None) is not None:  # pragma: no cover
+        name = str(t._name)
+    elif getattr(t, "__origin__", None) is not None:  # pragma: no cover
+        name = type_str(t.__origin__)
+    else:
+        name = str(t)
+        if name.startswith("typing."):  # pragma: no cover
+            name = name[len("typing.") :]
 
     args = getattr(t, "__args__", None)
     if args is not None:
