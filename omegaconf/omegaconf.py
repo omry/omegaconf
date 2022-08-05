@@ -1050,7 +1050,24 @@ def _node_wrap(
         node = PathNode(value=value, key=key, parent=parent, is_optional=is_optional)
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
-            node = AnyNode(value=value, key=key, parent=parent)
+            if type(value) in (list, tuple):
+                node = ListConfig(
+                    content=value,
+                    key=key,
+                    parent=parent,
+                    ref_type=ref_type,
+                    is_optional=is_optional,
+                )
+            elif is_primitive_dict(value):
+                node = DictConfig(
+                    content=value,
+                    key=key,
+                    parent=parent,
+                    ref_type=ref_type,
+                    is_optional=is_optional,
+                )
+            else:
+                node = AnyNode(value=value, key=key, parent=parent)
         else:
             raise ValidationError(f"Unexpected type annotation: {type_str(ref_type)}")
     return node

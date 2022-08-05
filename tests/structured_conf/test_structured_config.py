@@ -5,6 +5,7 @@ import re
 import sys
 from importlib import import_module
 from pathlib import Path
+from types import LambdaType
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from _pytest.python_api import RaisesContext
@@ -991,6 +992,69 @@ class TestConfigs:
             match="Unexpected type annotation: <object object at 0x[a-f0-9]*>",
         ):
             OmegaConf.structured(module.HasBadAnnotation2)
+
+    @mark.parametrize(
+        "input_, expected, expected_type, expected_ref_type, expected_object_type",
+        [
+            param(
+                lambda module: module.HasBadAnnotation1,
+                {"data": "???"},
+                AnyNode,
+                Any,
+                None,
+            ),
+            param(
+                lambda module: module.HasBadAnnotation1(123),
+                {"data": 123},
+                AnyNode,
+                Any,
+                None,
+            ),
+            param(
+                lambda module: module.HasBadAnnotation1([1, 2, 3]),
+                {"data": [1, 2, 3]},
+                ListConfig,
+                object,
+                list,
+            ),
+            param(
+                lambda module: module.HasBadAnnotation1({1: 2}),
+                {"data": {1: 2}},
+                DictConfig,
+                object,
+                dict,
+            ),
+            param(
+                lambda module: module.HasBadAnnotation1(module.UserWithDefaultName),
+                {"data": {"name": "bob", "age": "???"}},
+                DictConfig,
+                object,
+                lambda module: module.UserWithDefaultName,
+            ),
+        ],
+    )
+    def test_bad_annotation_allow_objects(
+        self,
+        module: Any,
+        input_: Any,
+        expected: Any,
+        expected_type: Any,
+        expected_ref_type: Any,
+        expected_object_type: Any,
+    ) -> None:
+        """
+        Test how unsupported annotation types are handled when `allow_objects` is True
+        """
+        input_ = input_(module)
+        if isinstance(expected_object_type, LambdaType):
+            expected_object_type = expected_object_type(module)
+
+        cfg = OmegaConf.structured(input_, flags={"allow_objects": True})
+
+        assert cfg == expected
+        assert isinstance(cfg._get_node("data"), expected_type)
+        assert cfg._get_node("data")._metadata.ref_type is expected_ref_type
+        assert cfg._get_node("data")._metadata.object_type is expected_object_type
 
 
 def validate_frozen_impl(conf: DictConfig) -> None:
