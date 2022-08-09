@@ -337,6 +337,42 @@ def test_create_unmodified_loader() -> None:
     assert yaml_cfg["gitrev"] == "100e100"
 
 
+def test_create_float_yaml() -> None:
+    # Note there are some discrepencies with the antrl parser.
+    # The following follow the yaml more closely,
+    # but arguably the antlr interpretation is better (which also
+    # more closely matches python. Specifically:
+    #   c_s not parsed as float. antlr does parse as float
+    #   e_s and f_s not parsed. antlr does parse as float
+    #   h_f and i_f parsed as float. antlr does not parse as float
+    cfg = OmegaConf.create(
+        dedent(
+            """\
+            a_s: 0_e0
+            b_i: 0_0
+            c_s: 1_0e1_0
+            d_f: .5
+            e_s: +.9
+            f_s: -.9
+            g_f: 1_1_2.1
+            h_f: 1__2.1
+            i_f: 1.2_
+            """
+        )
+    )
+    assert cfg == {
+        "a_s": "0_e0",
+        "b_i": 0,
+        "c_s": "1_0e1_0",
+        "d_f": 0.5,
+        "e_s": "+.9",
+        "f_s": "-.9",
+        "g_f": 112.1,
+        "h_f": 12.1,
+        "i_f": 1.2,
+    }
+
+
 def test_create_untyped_list() -> None:
     from omegaconf._utils import get_type_hint
 
