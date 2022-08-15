@@ -761,7 +761,16 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             else:
                 non_init_field_items[k] = v
 
-        result = object_type(**init_field_items)
+        try:
+            result = object_type(**init_field_items)
+        except TypeError as exc:
+            self._format_and_raise(
+                key=None,
+                value=None,
+                cause=exc,
+                msg="Could not create instance of `$OBJECT_TYPE`: " + str(exc),
+            )
+
         for k, v in non_init_field_items.items():
             setattr(result, k, v)
         return result

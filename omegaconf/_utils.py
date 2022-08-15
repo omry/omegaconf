@@ -314,14 +314,11 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         return None
 
 
-def get_attr_class_init_field_names(obj: Any) -> List[str]:
+def get_attr_class_fields(obj: Any) -> List["attr.Attribute[Any]"]:
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
-    return [
-        fieldname
-        for fieldname, attribute in attr.fields_dict(obj_type).items()
-        if attribute.init
-    ]
+    fields = attr.fields_dict(obj_type).values()
+    return [f for f in fields if f.metadata.get("omegaconf_ignore") is not True]
 
 
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
@@ -338,7 +335,8 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     dummy_parent._metadata.object_type = obj_type
     resolved_hints = get_type_hints(obj_type)
 
-    for name, attrib in attr.fields_dict(obj_type).items():
+    for attrib in get_attr_class_fields(obj):
+        name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
         if not is_type:
@@ -372,8 +370,9 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     return d
 
 
-def get_dataclass_init_field_names(obj: Any) -> List[str]:
-    return [field.name for field in dataclasses.fields(obj) if field.init]
+def get_dataclass_fields(obj: Any) -> List["dataclasses.Field[Any]"]:
+    fields = dataclasses.fields(obj)
+    return [f for f in fields if f.metadata.get("omegaconf_ignore") is not True]
 
 
 def get_dataclass_data(
@@ -388,7 +387,7 @@ def get_dataclass_data(
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
     resolved_hints = get_type_hints(obj_type)
-    for field in dataclasses.fields(obj):
+    for field in get_dataclass_fields(obj):
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
@@ -479,12 +478,14 @@ def is_structured_config_frozen(obj: Any) -> bool:
 
 
 def get_structured_config_init_field_names(obj: Any) -> List[str]:
+    fields: Union[List["dataclasses.Field[Any]"], List["attr.Attribute[Any]"]]
     if is_dataclass(obj):
-        return get_dataclass_init_field_names(obj)
+        fields = get_dataclass_fields(obj)
     elif is_attr_class(obj):
-        return get_attr_class_init_field_names(obj)
+        fields = get_attr_class_fields(obj)
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
+    return [f.name for f in fields if f.init]
 
 
 def get_structured_config_data(

@@ -15,6 +15,7 @@ from omegaconf import (
 )
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import (
+    ConfigTypeError,
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
@@ -483,6 +484,30 @@ class TestInstantiateStructuredConfigs:
         cfg.post_initialized = "overridden"
         data = self.round_trip_to_object(cfg)
         assert data.post_initialized == "overridden"
+
+    def test_ignore_metadata_with_required_args(self, module: Any) -> None:
+        """
+        Given a dataclass/attr class that has a field with no default value and with
+        metadata["omegaconf_ignore"] == True, test that OmegaConf.to_object(cfg) fails.
+        """
+        cfg = OmegaConf.structured(module.HasIgnoreMetadataRequired(1, 2))
+        assert cfg.keys() == {"no_ignore"}
+        with raises(
+            ConfigTypeError,
+            match=r"Could not create instance of `HasIgnoreMetadataRequired`: "
+            + r".*__init__\(\) missing 1 required positional argument: 'ignore'",
+        ):
+            OmegaConf.to_object(cfg)
+
+    def test_ignore_metadata_with_default_args(self, module: Any) -> None:
+        """
+        Given a dataclass/attr class that has a field with a default value and with
+        metadata["omegaconf_ignore"] == True, test that OmegaConf.to_object(cfg) succeeds.
+        """
+        cfg = OmegaConf.structured(module.HasIgnoreMetadataWithDefault(3, 4))
+        assert cfg == {"no_ignore": 4}
+        data = OmegaConf.to_object(cfg)
+        assert data == module.HasIgnoreMetadataWithDefault(1, 4)
 
 
 class TestEnumToStr:

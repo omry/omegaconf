@@ -865,3 +865,15 @@ class HasBadAnnotation1:
 @dataclass
 class HasBadAnnotation2:
     data: object()  # type: ignore
+
+
+@dataclass
+class HasIgnoreMetadataRequired:
+    ignore: int = field(metadata={"omegaconf_ignore": True})
+    no_ignore: int = field(metadata={"omegaconf_ignore": False})
+
+
+@dataclass
+class HasIgnoreMetadataWithDefault:
+    ignore: int = field(default=1, metadata={"omegaconf_ignore": True})
+    no_ignore: int = field(default=2, metadata={"omegaconf_ignore": False})

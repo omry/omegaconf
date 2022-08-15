@@ -1348,6 +1348,22 @@ class TestConfigs2:
         with raises(ValidationError):
             c3.missing.append("xx")
 
+    def test_ignore_metadata_class_with_required_args(self, module: Any) -> None:
+        cfg = OmegaConf.create(module.HasIgnoreMetadataRequired)
+        assert cfg == {"no_ignore": "???"}
+
+    def test_ignore_metadata_instance_with_required_args(self, module: Any) -> None:
+        cfg = OmegaConf.create(module.HasIgnoreMetadataRequired(3, 4))
+        assert cfg == {"no_ignore": 4}
+
+    def test_ignore_metadata_class_with_default_args(self, module: Any) -> None:
+        cfg = OmegaConf.create(module.HasIgnoreMetadataWithDefault)
+        assert cfg == {"no_ignore": 2}
+
+    def test_ignore_metadata_instance_with_default_args(self, module: Any) -> None:
+        cfg = OmegaConf.create(module.HasIgnoreMetadataWithDefault(3, 4))
+        assert cfg == {"no_ignore": 4}
+
 
 class TestStructredConfigInheritance:
     def test_leaf_node_inheritance(self, module: Any) -> None:
