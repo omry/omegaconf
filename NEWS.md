@@ -1,3 +1,17 @@
+## 2.2.3 (2022-08-18)
+### Bug Fixes
+
+- Revert an accidental behavior change where implicit conversion from `Path` to `str` was disallowed. ([#934](https://github.com/omry/omegaconf/issues/934))
+- ListConfig sliced assignment now avoids partial updates upon error ([#950](https://github.com/omry/omegaconf/issues/950))
+- Fix a bug that caused OmegaConf to crash when processing attr classes whose field annotations contained forward-references. ([#963](https://github.com/omry/omegaconf/issues/963))
+- Improve error message when certain illegal type annotations (such as `typing.Sequence`) are used in structured configs. ([#991](https://github.com/omry/omegaconf/issues/991))
+- When parsing yaml: Disallow numbers with trailing underscore from being converted to float. ([#838](https://github.com/omry/omegaconf/issues/838))
+
+### API changes and deprecations
+
+- In structured config type hints, OmegaConf now treats `tuple` as equivalent to `typing.Tuple`, and likewise for `dict`/`Dict` and `list`/`List`. ([#973](https://github.com/omry/omegaconf/issues/973))
+
+
 ## 2.2.2 (2022-05-26)
 ### Bug Fixes
 
