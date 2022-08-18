@@ -1,1 +1,0 @@
-Fix a bug that caused OmegaConf to crash when processing attr classes whose field annotations contained forward-references.

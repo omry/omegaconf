@@ -1,1 +1,0 @@
-In structured config type hints, OmegaConf now treats `tuple` as equivalent to `typing.Tuple`, and likewise for `dict`/`Dict` and `list`/`List`.
