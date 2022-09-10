@@ -989,7 +989,7 @@ class TestConfigs:
     def test_has_bad_annotation2(self, module: Any) -> None:
         with raises(
             ValidationError,
-            match="Unexpected type annotation: <object object at 0x[a-f0-9]*>",
+            match="Unexpected type annotation: <object object at 0x[a-fA-F0-9]*>",
         ):
             OmegaConf.structured(module.HasBadAnnotation2)
 

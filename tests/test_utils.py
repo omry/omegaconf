@@ -662,8 +662,8 @@ def test_type_str(
 @mark.parametrize(
     "type_, expected",
     [
-        (object(), r"<object object at 0x[a-f0-9]*>"),
-        (IllegalType(), "<tests.IllegalType object at 0x[a-f0-9]*>"),
+        (object(), r"<object object at 0x[a-fA-F0-9]*>"),
+        (IllegalType(), "<tests.IllegalType object at 0x[a-fA-F0-9]*>"),
     ],
 )
 def test_type_str_regex(type_: Any, expected: str) -> None:
