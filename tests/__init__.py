@@ -326,3 +326,24 @@ def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:
             + " see github.com/omry/omegaconf/issues/663"
         ),
     )
+
+
+@dataclass
+class InnerX:
+    d: int
+    p: int
+
+
+@dataclass
+class InnerY(InnerX):
+    q: int
+
+
+@dataclass
+class OuterA:
+    x: InnerX
+
+
+@dataclass
+class OuterB(OuterA):
+    x: InnerY
