@@ -1,3 +1,9 @@
+=====
+Usage
+=====
+
+.. contents::
+
 .. testsetup:: *
 
     from omegaconf import OmegaConf, DictConfig, ListConfig, open_dict, read_write

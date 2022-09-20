@@ -1,3 +1,9 @@
+==================
+Structured Configs
+==================
+
+.. contents::
+
 .. _structured_configs:
 
 .. testsetup:: *

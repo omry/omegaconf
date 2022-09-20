@@ -1,3 +1,9 @@
+=========
+Resolvers
+=========
+
+.. contents::
+
 .. testsetup:: *
 
     from omegaconf import OmegaConf, DictConfig

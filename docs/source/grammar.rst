@@ -1,9 +1,12 @@
+=====================
+The OmegaConf grammar
+=====================
+
+.. contents::
+
 .. testsetup:: *
 
     from omegaconf import OmegaConf
-
-The OmegaConf grammar
----------------------
 
 OmegaConf uses an `ANTLR <https://www.antlr.org/>`_-based grammar to parse string expressions,
 where the `lexer rules <https://github.com/omry/omegaconf/blob/master/omegaconf/grammar/OmegaConfGrammarLexer.g4>`_
