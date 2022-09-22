@@ -348,6 +348,8 @@ class BaseContainer(Container, ABC):
         ):
             # Replace `src` with a prototype of its corresponding structured config
             # whose fields are all missing (to avoid overwriting fields in `dest`).
+            assert src_type is None  # src missing, so src's object_type should be None
+            src_type = src_ref_type
             src = _create_structured_with_missing_fields(
                 ref_type=src_ref_type, object_type=src_type
             )
