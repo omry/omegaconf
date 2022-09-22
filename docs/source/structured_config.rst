@@ -3,6 +3,7 @@ Structured Configs
 ==================
 
 .. contents::
+   :local:
 
 .. _structured_configs:
 

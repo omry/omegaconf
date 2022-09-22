@@ -3,6 +3,7 @@ Usage
 =====
 
 .. contents::
+   :local:
 
 .. testsetup:: *
 
