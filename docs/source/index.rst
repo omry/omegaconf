@@ -15,6 +15,7 @@ OmegaConf also offers runtime type safety via Structured Configs.
    custom_resolvers
    structured_config
    grammar
+   api_reference
 
 
 
