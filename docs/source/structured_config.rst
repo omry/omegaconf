@@ -18,8 +18,6 @@ Structured Configs
     import sys
     os.environ['USER'] = 'omry'
 
-Structured configs
-------------------
 Structured configs are used to create OmegaConf configuration object with runtime type safety.
 In addition, they can be used with tools like mypy or your IDE for static type checking.
 
