@@ -80,18 +80,20 @@ Resolver = Callable[..., Any]
 
 def II(interpolation: str) -> Any:
     """
-    Equivalent to ${interpolation}
+    Equivalent to ``${interpolation}``
+
     :param interpolation:
-    :return: input ${node} with type Any
+    :return: input ``${node}`` with type Any
     """
     return "${" + interpolation + "}"
 
 
 def SI(interpolation: str) -> Any:
     """
-    Use this for String interpolation, for example "http://${host}:${port}"
+    Use this for String interpolation, for example ``"http://${host}:${port}"``
+
     :param interpolation: interpolation string
-    :return: input interpolation with type Any
+    :return: input interpolation with type ``Any``
     """
     return interpolation
 
@@ -209,6 +211,7 @@ class OmegaConf:
     ) -> None:
         """
         Save as configuration object to a file
+
         :param config: omegaconf.Config object (DictConfig or ListConfig).
         :param f: filename or file object
         :param resolve: True to save a resolved config (defaults to False)
@@ -236,8 +239,9 @@ class OmegaConf:
     def from_dotlist(dotlist: List[str]) -> DictConfig:
         """
         Creates config from the content sys.argv or from the specified args list of not None
-        :param dotlist:
-        :return:
+
+        :param dotlist: A list of dotlist-style strings, e.g. ``["foo.bar=1", "baz=qux"]``.
+        :return: A ``DictConfig`` object created from the dotlist.
         """
         conf = OmegaConf.create()
         conf.merge_with_dotlist(dotlist)
@@ -256,6 +260,7 @@ class OmegaConf:
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
+
         :param configs: Input configs
         :return: the merged config object.
         """
@@ -288,6 +293,7 @@ class OmegaConf:
         Merge a list of previously created configs into a single one
         This is much faster than OmegaConf.merge() as the input configs are not copied.
         However, the input configs must not be used after this operation as will become inconsistent.
+
         :param configs: Input configs
         :return: the merged config object.
         """
@@ -377,16 +383,16 @@ class OmegaConf:
         :param name: Name of the resolver.
         :param resolver: Callable whose arguments are provided in the interpolation,
             e.g., with ${foo:x,0,${y.z}} these arguments are respectively "x" (str),
-            0 (int) and the value of `y.z`.
-        :param replace: If set to `False` (default), then a `ValueError` is raised if
+            0 (int) and the value of ``y.z``.
+        :param replace: If set to ``False`` (default), then a ``ValueError`` is raised if
             an existing resolver has already been registered with the same name.
-            If set to `True`, then the new resolver replaces the previous one.
+            If set to ``True``, then the new resolver replaces the previous one.
             NOTE: The cache on existing config objects is not affected, use
-            `OmegaConf.clear_cache(cfg)` to clear it.
+            ``OmegaConf.clear_cache(cfg)`` to clear it.
         :param use_cache: Whether the resolver's outputs should be cached. The cache is
             based only on the string literals representing the resolver arguments, e.g.,
             ${foo:${bar}} will always return the same value regardless of the value of
-            `bar` if the cache is enabled for `foo`.
+            ``bar`` if the cache is enabled for ``foo``.
         """
         if not callable(resolver):
             raise TypeError("resolver must be callable")
@@ -515,9 +521,10 @@ class OmegaConf:
     def masked_copy(conf: DictConfig, keys: Union[str, List[str]]) -> DictConfig:
         """
         Create a masked copy of of this config that contains a subset of the keys
+
         :param conf: DictConfig object
         :param keys: keys to preserve in the copy
-        :return:
+        :return: The masked ``DictConfig`` object.
         """
         from .dictconfig import DictConfig
 
@@ -540,17 +547,19 @@ class OmegaConf:
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
         Resursively converts an OmegaConf config to a primitive container (dict or list).
+
         :param cfg: the config to convert
         :param resolve: True to resolve all values
         :param throw_on_missing: When True, raise MissingMandatoryValue if any missing values are present.
             When False (the default), replace missing values with the string "???" in the output container.
         :param enum_to_str: True to convert Enum keys and values to strings
         :param structured_config_mode: Specify how Structured Configs (DictConfigs backed by a dataclass) are handled.
-            By default (`structured_config_mode=SCMode.DICT`) structured configs are converted to plain dicts.
-            If `structured_config_mode=SCMode.DICT_CONFIG`, structured config nodes will remain as DictConfig.
-            If `structured_config_mode=SCMode.INSTANTIATE`, this function will instantiate structured configs
-               (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
-               See also OmegaConf.to_object.
+            - By default (``structured_config_mode=SCMode.DICT``) structured configs are converted to plain dicts.
+            - If ``structured_config_mode=SCMode.DICT_CONFIG``, structured config nodes will remain as DictConfig.
+            - If ``structured_config_mode=SCMode.INSTANTIATE``, this function will instantiate structured configs
+              (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
+
+          See also OmegaConf.to_object.
         :return: A dict or a list representing this config as a primitive container.
         """
         if not OmegaConf.is_config(cfg):
@@ -737,9 +746,10 @@ class OmegaConf:
     def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
         """
         returns a yaml dump of this config object.
+
         :param cfg: Config object, Structured Config type or instance
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
-        interpolations are preserved
+            interpolations are preserved
         :param sort_keys: If True, will print dict keys in sorted order. default False.
         :return: A string containing the yaml representation.
         """
@@ -757,6 +767,7 @@ class OmegaConf:
     def resolve(cfg: Container) -> None:
         """
         Resolves all interpolations in the given config object in-place.
+
         :param cfg: An OmegaConf container (DictConfig, ListConfig)
                     Raises a ValueError if the input object is not an OmegaConf container.
         """
@@ -774,8 +785,9 @@ class OmegaConf:
     def missing_keys(cfg: Any) -> Set[str]:
         """
         Returns a set of missing keys in a dotlist style.
-        :param cfg: An `OmegaConf.Container`,
-                    or a convertible object via `OmegaConf.create` (dict, list, ...).
+
+        :param cfg: An ``OmegaConf.Container``,
+                    or a convertible object via ``OmegaConf.create`` (dict, list, ...).
         :return: set of strings of the missing keys.
         :raises ValueError: On input not representing a config.
         """
