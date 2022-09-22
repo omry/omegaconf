@@ -3,6 +3,7 @@ The OmegaConf grammar
 =====================
 
 .. contents::
+   :local:
 
 .. testsetup:: *
 

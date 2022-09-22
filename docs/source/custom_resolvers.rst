@@ -3,6 +3,7 @@ Resolvers
 =========
 
 .. contents::
+   :local:
 
 .. testsetup:: *
 
