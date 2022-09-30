@@ -1,8 +1,7 @@
 import copy
 from typing import Any, Dict, List
 
-from pytest import lazy_fixture  # type: ignore
-from pytest import fixture, mark, param
+from pytest import fixture, lazy_fixture, mark, param
 
 from omegaconf import OmegaConf
 from omegaconf._utils import ValueKind, _is_missing_literal, get_value_kind
@@ -75,11 +74,11 @@ def small_listconfig(small_list: Any) -> Any:
 @mark.parametrize(
     "data",
     [
-        lazy_fixture("small_dict"),
-        lazy_fixture("large_dict"),
-        lazy_fixture("small_dict_config"),
-        lazy_fixture("large_dict_config"),
-        lazy_fixture("dict_config_with_list_leaf"),
+        lazy_fixture("small_dict"),  # type: ignore
+        lazy_fixture("large_dict"),  # type: ignore
+        lazy_fixture("small_dict_config"),  # type: ignore
+        lazy_fixture("large_dict_config"),  # type: ignore
+        lazy_fixture("dict_config_with_list_leaf"),  # type: ignore
     ],
 )
 def test_omegaconf_create(data: Any, benchmark: Any) -> None:
@@ -100,8 +99,8 @@ def test_omegaconf_merge(merge_function: Any, merge_data: Any, benchmark: Any) -
 @mark.parametrize(
     "lst",
     [
-        lazy_fixture("small_list"),
-        lazy_fixture("small_listconfig"),
+        lazy_fixture("small_list"),  # type: ignore
+        lazy_fixture("small_listconfig"),  # type: ignore
     ],
 )
 def test_list_in(lst: List[Any], benchmark: Any) -> None:
@@ -111,8 +110,8 @@ def test_list_in(lst: List[Any], benchmark: Any) -> None:
 @mark.parametrize(
     "lst",
     [
-        lazy_fixture("small_list"),
-        lazy_fixture("small_listconfig"),
+        lazy_fixture("small_list"),  # type: ignore
+        lazy_fixture("small_listconfig"),  # type: ignore
     ],
 )
 def test_list_iter(lst: List[Any], benchmark: Any) -> None:

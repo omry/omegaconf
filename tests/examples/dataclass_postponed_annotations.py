@@ -1,6 +1,6 @@
 # `from __future__` has to be the very first thing in a module
 # otherwise a syntax error is raised
-from __future__ import annotations  # type: ignore # noqa  # Python 3.6 linters complain
+from __future__ import annotations  # noqa  # Python 3.6 linters complain
 
 from dataclasses import dataclass, fields
 from enum import Enum

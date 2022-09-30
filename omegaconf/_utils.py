@@ -392,7 +392,7 @@ def get_dataclass_data(
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
         has_default = field.default != dataclasses.MISSING
-        has_default_factory = field.default_factory != dataclasses.MISSING  # type: ignore
+        has_default_factory = field.default_factory != dataclasses.MISSING
 
         if not is_type:
             value = getattr(obj, name)
