@@ -367,6 +367,11 @@ Example:
     >>> show(conf.client.description)
     type: str, value: 'Client of http://localhost:80/'
 
+.. _nested-interpolation:
+
+Nested interpolation
+~~~~~~~~~~~~~~~~~~~~
+
 Interpolations may be nested, enabling more advanced behavior like dynamically selecting a sub-config:
 
 .. doctest::
