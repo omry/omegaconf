@@ -459,7 +459,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]:
+    ) -> Optional[Node]:
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:
