@@ -9,6 +9,8 @@ PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
 ).split(",")
 
+nox.options.error_on_missing_interpreters = True
+
 
 def deps(session, editable_install):
     session.install("--upgrade", "setuptools", "pip")
