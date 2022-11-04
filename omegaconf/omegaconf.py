@@ -458,6 +458,9 @@ class OmegaConf:
     # noinspection PyProtectedMember
     @staticmethod
     def clear_resolvers() -> None:
+        """
+        Clear(remove) all OmegaConf resolvers, then re-register OmegaConf's default resolvers.
+        """
         BaseContainer._resolvers = {}
         register_default_resolvers()
 
