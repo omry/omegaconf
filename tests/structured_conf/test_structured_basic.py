@@ -2,7 +2,7 @@ import re
 from importlib import import_module
 from typing import Any, Optional
 
-from pytest import fixture, mark, raises
+from pytest import fixture, mark, param, raises
 
 from omegaconf import (
     DictConfig,
@@ -20,10 +20,9 @@ from tests import IllegalType
 
 @fixture(
     params=[
-        "tests.structured_conf.data.dataclasses",
-        "tests.structured_conf.data.attr_classes",
+        param("tests.structured_conf.data.dataclasses", id="dataclasses"),
+        param("tests.structured_conf.data.attr_classes", id="attr_classes"),
     ],
-    ids=["dataclasses", "attr_classes"],
 )
 def module(request: Any) -> Any:
     return import_module(request.param)
