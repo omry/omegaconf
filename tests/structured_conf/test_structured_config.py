@@ -30,10 +30,9 @@ from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 @fixture(
     params=[
-        "tests.structured_conf.data.dataclasses",
-        "tests.structured_conf.data.attr_classes",
+        param("tests.structured_conf.data.dataclasses", id="dataclasses"),
+        param("tests.structured_conf.data.attr_classes", id="attr_classes"),
     ],
-    ids=["dataclasses", "attr_classes"],
 )
 def module(request: Any) -> Any:
     return import_module(request.param)
