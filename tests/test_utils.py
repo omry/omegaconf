@@ -300,7 +300,7 @@ class _TestAttrsClass:
 
 @dataclass
 class _TestDataclassIllegalValue:
-    x: Any = IllegalType()
+    x: Any = field(default_factory=IllegalType)
 
 
 @attr.s(auto_attribs=True)
