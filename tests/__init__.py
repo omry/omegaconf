@@ -108,7 +108,7 @@ class ConcretePlugin(Plugin):
     class FoobarParams:
         foo: int = 10
 
-    params: FoobarParams = FoobarParams()
+    params: FoobarParams = field(default_factory=FoobarParams)
 
 
 @dataclass
@@ -117,7 +117,7 @@ class NestedInterpolationToMissing:
     class BazParams:
         baz: str = "${..name}"
 
-    subcfg: BazParams = BazParams()
+    subcfg: BazParams = field(default_factory=BazParams)
     name: str = MISSING
 
 

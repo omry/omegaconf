@@ -34,7 +34,7 @@ if sys.version_info >= (3, 8):  # pragma: no cover
 
 @dataclass
 class StructuredWithInvalidField:
-    bar: NotStructuredConfig = NotStructuredConfig()
+    bar: NotStructuredConfig = field(default_factory=NotStructuredConfig)
 
 
 @dataclass
@@ -75,7 +75,7 @@ class OptionalUser:
 
 @dataclass
 class InterpolationToUser:
-    user: User = User("Bond", 7)
+    user: User = field(default_factory=lambda: User("Bond", 7))
     admin: User = II("user")
 
 
@@ -251,14 +251,16 @@ class NestedConfig:
     default_value: Nested
 
     # with default value
-    user_provided_default: Nested = Nested(with_default=42)
+    user_provided_default: Nested = field(
+        default_factory=lambda: Nested(with_default=42)
+    )
 
     value_at_root: int = 1000
 
 
 @dataclass
 class NestedWithAny:
-    var: Any = Nested()
+    var: Any = field(default_factory=Nested)
 
 
 @dataclass
@@ -349,14 +351,14 @@ class RecursiveDict:
 
 @dataclass
 class StructuredOptional:
-    with_default: Optional[Nested] = Nested()
+    with_default: Optional[Nested] = field(default_factory=Nested)
     as_none: Optional[Nested] = None
-    not_optional: Nested = Nested()
+    not_optional: Nested = field(default_factory=Nested)
 
 
 @dataclass(frozen=True)
 class FrozenClass:
-    user: User = User(name="Bart", age=10)
+    user: User = field(default_factory=lambda: User(name="Bart", age=10))
     x: int = 10
     list: List[int] = field(default_factory=lambda: [1, 2, 3])
 
@@ -522,7 +524,7 @@ class DictSubclass:
 
     @dataclass
     class Str2UserWithField(Dict[str, User]):
-        foo: User = User("Bond", 7)
+        foo: User = field(default_factory=lambda: User("Bond", 7))
 
     class Error:
         @dataclass
@@ -544,7 +546,7 @@ class ConcretePlugin(Plugin):
     class FoobarParams:
         foo: int = 10
 
-    params: FoobarParams = FoobarParams()
+    params: FoobarParams = field(default_factory=FoobarParams)
 
 
 @dataclass
@@ -563,8 +565,8 @@ class FaultyPlugin:
 class PluginHolder:
     none: Optional[Plugin] = None
     missing: Plugin = MISSING
-    plugin: Plugin = Plugin()
-    plugin2: Plugin = ConcretePlugin()
+    plugin: Plugin = field(default_factory=Plugin)
+    plugin2: Plugin = field(default_factory=ConcretePlugin)
 
 
 @dataclass
@@ -585,7 +587,9 @@ class MissingTest:
 
     @dataclass
     class Missing2:
-        head: LinkedList = LinkedList(next=MISSING, value=1)
+        head: LinkedList = field(
+            default_factory=lambda: LinkedList(next=MISSING, value=1)
+        )
 
 
 @dataclass

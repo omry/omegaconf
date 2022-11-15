@@ -161,7 +161,9 @@ class Group:
     admin: User = User  # type: ignore
 
     # You can also specify different defaults for nested classes
-    manager: User = User(name="manager", height=Height.TALL)
+    manager: User = field(
+        default_factory=lambda: User(name="manager", height=Height.TALL)
+    )
 
 
 def test_nesting() -> None:
@@ -343,7 +345,7 @@ def test_merge() -> None:
     @dataclass
     class Config:
         num: int = 10
-        user: User = User(name=MISSING, height=MISSING)
+        user: User = field(default_factory=lambda: User(name=MISSING, height=MISSING))
         domains: Dict[str, Domain] = field(default_factory=dict)
 
     yaml = """
@@ -385,8 +387,8 @@ def test_merge_example() -> None:
 
     @dataclass
     class MyConfig:
-        server: Server = Server()
-        log: Log = Log()
+        server: Server = field(default_factory=Server)
+        log: Log = field(default_factory=Log)
         users: List[str] = field(default_factory=list)
         numbers: List[int] = field(default_factory=list)
 
