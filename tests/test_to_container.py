@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 from importlib import import_module
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from pytest import fixture, mark, param, raises
 
@@ -60,6 +60,24 @@ def test_to_container_returns_primitives(input_: Any) -> None:
     res = OmegaConf.to_container(c, resolve=True)
     assert isinstance(res, (dict, list))
     assert_container_with_primitives(res)
+
+
+@mark.parametrize(
+    "method",
+    [
+        OmegaConf.to_container,
+        OmegaConf.to_object,
+    ],
+)
+def test_to_container_supports_allow_objects(method: Callable[[Any], Any]) -> None:
+    obj = object()
+    input_ = {"obj": obj}
+    cfg = OmegaConf.create(input_, flags={"allow_objects": True})
+
+    container = method(cfg)
+
+    assert container == input_
+    assert container["obj"] is obj
 
 
 @mark.parametrize(
