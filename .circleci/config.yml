@@ -11,9 +11,10 @@ commands:
       - run:
           name: "Preparing environment"
           command: |
+            python --version  # check that python is installed
             sudo apt-get update
             sudo apt-get install -y openjdk-11-jre
-            sudo pip install nox
+            pip install nox
       - run:
           name: "Testing OmegaConf"
           command: |
@@ -26,7 +27,7 @@ jobs:
       py_version:
         type: string
     docker:
-      - image: circleci/python:<< parameters.py_version >>
+      - image: cimg/python:<< parameters.py_version >>
     steps:
       - linux:
           py_version: << parameters.py_version >>
