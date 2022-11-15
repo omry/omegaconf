@@ -31,6 +31,14 @@ from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 @fixture(
     params=[
         param("tests.structured_conf.data.dataclasses", id="dataclasses"),
+        param(
+            "tests.structured_conf.data.dataclasses_pre_311",
+            id="dataclasses_pre_311",
+            marks=mark.skipif(
+                sys.version_info >= (3, 11),
+                reason="python >= 3.11 does not support mutable default dataclass arguments",
+            ),
+        ),
         param("tests.structured_conf.data.attr_classes", id="attr_classes"),
     ],
 )
