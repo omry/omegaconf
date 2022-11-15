@@ -205,10 +205,10 @@ Structured configs can be nested.
     ... class Group:
     ...     name: str = MISSING
     ...     # data classes can be nested
-    ...     admin: User = User()
+    ...     admin: User = field(default_factory=User)
     ...
     ...     # You can also specify different defaults for nested classes
-    ...     manager: User = User(name="manager", height=Height.TALL)
+    ...     manager: User = field(default_factory=lambda: User(name="manager", height=Height.TALL))
 
     >>> conf: Group = OmegaConf.structured(Group)
     >>> print(OmegaConf.to_yaml(conf))
@@ -585,8 +585,8 @@ A Schema for the above config can be defined like this.
 
     >>> @dataclass
     ... class MyConfig:
-    ...     server: Server = Server()
-    ...     log: Log = Log()
+    ...     server: Server = field(default_factory=Server)
+    ...     log: Log = field(default_factory=Log)
     ...     users: List[int] = field(default_factory=list)
 
 
