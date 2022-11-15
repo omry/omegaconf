@@ -14,6 +14,7 @@ exclude = '''
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
+pythonpath = ["."]
 
 [tool.towncrier]
     package = "omegaconf"
