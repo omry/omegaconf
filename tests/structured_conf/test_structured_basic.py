@@ -1,4 +1,5 @@
 import re
+import sys
 from importlib import import_module
 from typing import Any, Optional
 
@@ -21,6 +22,14 @@ from tests import IllegalType
 @fixture(
     params=[
         param("tests.structured_conf.data.dataclasses", id="dataclasses"),
+        param(
+            "tests.structured_conf.data.dataclasses_pre_311",
+            id="dataclasses_pre_311",
+            marks=mark.skipif(
+                sys.version_info >= (3, 11),
+                reason="python >= 3.11 does not support mutable default dataclass arguments",
+            ),
+        ),
         param("tests.structured_conf.data.attr_classes", id="attr_classes"),
     ],
 )
