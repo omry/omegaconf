@@ -75,15 +75,18 @@ def test_jupyter_notebook(session):
             )
         )
     deps(session, editable_install=False)
-    # pytest pinned due to https://github.com/computationalmodelling/nbval/issues/180
-    session.install("jupyter", "nbval", "pytest<7.0.0")
-    # Ignore deprecation warnings raised by jupyter_client in Python 3.10
-    # https://github.com/jupyter/jupyter_client/issues/713
+    session.install("jupyter", "nbval")
     extra_flags = ["-Wignore::ResourceWarning"]
-    if session.python == "3.10":
-        extra_flags.append(
-            "-Wdefault:There is no current event loop:DeprecationWarning"
-        )
+    extra_flags.extend(
+        [
+            # Ignore deprecation warnings raised by jupyter_client in Python 3.10
+            # https://github.com/jupyter/jupyter_client/issues/713
+            "-Wdefault:There is no current event loop:DeprecationWarning",
+            # Block warning issued by nbval
+            # https://github.com/computationalmodelling/nbval/issues/180
+            "-Wdefault::pytest.PytestRemovedIn8Warning",
+        ]
+    )
     session.run(
         "pytest", "--nbval", "docs/notebook/Tutorial.ipynb", *extra_flags, silent=True
     )
