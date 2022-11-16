@@ -1,7 +1,7 @@
-# type: ignore
 import os
 
 import nox
+from nox import Session
 
 DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
 
@@ -12,34 +12,34 @@ PYTHON_VERSIONS = os.environ.get(
 nox.options.error_on_missing_interpreters = True
 
 
-def deps(session, editable_install):
+def deps(session: Session, editable_install: bool) -> None:
     session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_install else []
     session.install("-r", "requirements/dev.txt", *extra_flags, ".", silent=True)
 
 
-@nox.session(python=PYTHON_VERSIONS)
-def omegaconf(session):
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def omegaconf(session: Session) -> None:
     deps(session, editable_install=False)  # ensure we test the regular install
     session.run("pytest")
 
 
-@nox.session(python=PYTHON_VERSIONS)
-def benchmark(session):
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def benchmark(session: Session) -> None:
     deps(session, editable_install=True)
     session.run("pytest", "benchmark/benchmark.py")
 
 
-@nox.session
-def docs(session):
+@nox.session  # type: ignore
+def docs(session: Session) -> None:
     deps(session, editable_install=True)
     session.chdir("docs")
     session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
 
 
-@nox.session(python=PYTHON_VERSIONS)
-def coverage(session):
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def coverage(session: Session) -> None:
     # For coverage, we must use the editable installation because
     # `coverage run -m pytest` prepends `sys.path` with "." (the current
     # folder), so that the local code will be used in tests even if we set
@@ -55,8 +55,8 @@ def coverage(session):
     session.run("coverage", "erase")
 
 
-@nox.session(python=PYTHON_VERSIONS)
-def lint(session):
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def lint(session: Session) -> None:
     deps(session, editable_install=True)
     session.run(
         "mypy", ".", "--strict", "--install-types", "--non-interactive", silent=True
@@ -66,8 +66,8 @@ def lint(session):
     session.run("flake8")
 
 
-@nox.session(python=PYTHON_VERSIONS)
-def test_jupyter_notebook(session):
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def test_jupyter_notebook(session: Session) -> None:
     if session.python not in DEFAULT_PYTHON_VERSIONS:
         session.skip(
             "Not testing Jupyter notebook on Python {}, supports [{}]".format(
