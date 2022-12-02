@@ -558,7 +558,7 @@ it is possible to prevent the creation of fields that do not exist:
     >>> conf.a.cc = 30
     Traceback (most recent call last):
     ...
-    omegaconf.errors.ConfigAttributeError: Error setting cc=30 : Key 'cc' in not in struct
+    omegaconf.errors.ConfigAttributeError: Error setting cc=30 : Key 'cc' is not in struct
         full_key: a.cc
         reference_type=Any
         object_type=dict
