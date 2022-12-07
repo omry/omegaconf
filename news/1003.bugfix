@@ -1,1 +1,0 @@
-Fix an issue where merging of nested structured configs could incorrectly result in an exception
