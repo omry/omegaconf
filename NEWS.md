@@ -1,3 +1,15 @@
+## 2.3.0 (2022-12-06)
+### Features
+
+- Support python3.11 ([#1023](https://github.com/omry/omegaconf/issues/1023))
+- Support interpolation to keys that contain a non-leading dash character ([#880](https://github.com/omry/omegaconf/issues/880))
+- OmegaConf now inspects the metadata of structured config fields and ignores fields where `metadata["omegaconf_ignore"]` is `True`. ([#984](https://github.com/omry/omegaconf/issues/984))
+
+### Bug Fixes
+
+- Fix an issue where merging of nested structured configs could incorrectly result in an exception ([#1003](https://github.com/omry/omegaconf/issues/1003))
+
+
 ## 2.2.3 (2022-08-18)
 ### Bug Fixes
 
