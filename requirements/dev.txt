@@ -13,6 +13,7 @@ pytest-benchmark
 pytest-lazy-fixture
 pytest-mock
 sphinx
+sphinx-tabs
 towncrier
 twine
 pydevd
