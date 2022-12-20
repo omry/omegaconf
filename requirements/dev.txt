@@ -1,4 +1,5 @@
 -r base.txt
+-r docs.txt
 black
 build
 coveralls
@@ -12,8 +13,6 @@ pytest
 pytest-benchmark
 pytest-lazy-fixture
 pytest-mock
-sphinx
-sphinx-tabs
 towncrier
 twine
 pydevd
