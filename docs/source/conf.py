@@ -53,6 +53,7 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
+    "sphinx_tabs.tabs",
 ]
 
 
