@@ -184,7 +184,7 @@ class OmegaConf:
     @staticmethod
     def load(
         file_: Union[str, pathlib.Path, IO[Any]],
-        flags: Optional[Dict[str, bool]] = None
+        flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
