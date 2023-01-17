@@ -137,6 +137,7 @@ def get_yaml_loader() -> Any:
     class OmegaConfLoader(yaml.SafeLoader):  # type: ignore
         def construct_mapping(self, node: yaml.Node, deep: bool = False) -> Any:
             keys = set()
+            constructor = super().construct_mapping(node, deep=deep)
             for key_node, value_node in node.value:
                 if key_node.tag != yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG:
                     continue
@@ -148,7 +149,7 @@ def get_yaml_loader() -> Any:
                         key_node.start_mark,
                     )
                 keys.add(key_node.value)
-            return super().construct_mapping(node, deep=deep)
+            return constructor
 
     loader = OmegaConfLoader
     loader.add_implicit_resolver(
