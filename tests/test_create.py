@@ -424,30 +424,26 @@ def test_yaml_merge() -> None:
             c:
                 <<: *A
                 <<: *B
-                x: 3
                 z: 1
             """
         )
     )
-    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
+    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 1, "y": 2, "z": 1}}
+
 
 def test_yaml_merge_with_conflict() -> None:
-    import pdb; pdb.set_trace()
-    cfg = OmegaConf.create(
-        dedent(
-            """\
-            a: &A
-                x: 1
-            b: &B
-                y: 2
-            c:
-                <<: *A
-                <<: *B
-                x: 3
-                z: 1
-            """
+    with raises(yaml.constructor.ConstructorError):
+        OmegaConf.create(
+            dedent(
+                """\
+                a: &A
+                    x: 1
+                c:
+                    <<: *A
+                    x: 3
+                """
+            )
         )
-    )
 
 @mark.parametrize(
     "path_type",
