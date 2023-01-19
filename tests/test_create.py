@@ -429,7 +429,7 @@ def test_yaml_merge() -> None:
             """
         )
     )
-    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 1, "y": 2, "w": 3, "z": 1}}
+    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"w": 3, "y": 2, "z": 1}}
 
 
 def test_yaml_merge_with_conflict() -> None:
