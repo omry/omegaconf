@@ -446,6 +446,7 @@ def test_yaml_merge_with_conflict() -> None:
             )
         )
 
+
 @mark.parametrize(
     "path_type",
     [
