@@ -433,7 +433,9 @@ def is_dataclass(obj: Any) -> bool:
 
     if dataclasses is None or isinstance(obj, Node):
         return False
-    return dataclasses.is_dataclass(obj)
+    is_dataclass = dataclasses.is_dataclass(obj)
+    assert isinstance(is_dataclass, bool)
+    return is_dataclass
 
 
 def is_attr_class(obj: Any) -> bool:
