@@ -160,7 +160,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitInterpolationResolver(
         self, ctx: OmegaConfGrammarParser.InterpolationResolverContext
     ) -> Any:
-
         # INTER_OPEN resolverName COLON sequence? BRACE_CLOSE
         assert 4 <= ctx.getChildCount() <= 5
 

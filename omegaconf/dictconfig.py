@@ -55,7 +55,6 @@ from .nodes import EnumNode, ValueNode
 
 
 class DictConfig(BaseContainer, MutableMapping[Any, Any]):
-
     _metadata: ContainerMetadata
     _content: Union[Dict[DictKeyType, Node], None, str]
 
@@ -240,7 +239,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     def _validate_non_optional(self, key: Optional[DictKeyType], value: Any) -> None:
         if _is_none(value, resolve=True, throw_on_resolution_failure=False):
-
             if key is not None:
                 child = self._get_node(key)
                 if child is not None:
@@ -696,7 +694,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
-
         d1_none = d1.__dict__["_content"] is None
         d2_none = d2.__dict__["_content"] is None
         if d1_none and d2_none:

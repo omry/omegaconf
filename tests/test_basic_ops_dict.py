@@ -919,7 +919,6 @@ def test_struct_mode_missing_key_setitem() -> None:
 
 
 def test_get_type() -> None:
-
     cfg = OmegaConf.structured(User)
     assert OmegaConf.get_type(cfg) == User
 

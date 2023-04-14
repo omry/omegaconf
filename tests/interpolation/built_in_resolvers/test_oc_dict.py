@@ -157,7 +157,6 @@ def test_get_and_validate_dict_input(
 def test_dict_values(
     cfg: Any, key: Any, expected_val: Any, expected_content: Any
 ) -> None:
-
     cfg = OmegaConf.create(cfg)
     val = cfg[key]
     assert val == expected_val
