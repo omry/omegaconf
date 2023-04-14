@@ -4,7 +4,7 @@ attrs
 black
 build
 coveralls
-flake8
+flake8>=4
 isort~=5.0
 mypy
 nox
