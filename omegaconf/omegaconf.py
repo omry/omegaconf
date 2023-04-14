@@ -549,7 +549,7 @@ class OmegaConf:
         structured_config_mode: SCMode = SCMode.DICT,
     ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
-        Resursively converts an OmegaConf config to a primitive container (dict or list).
+        Recursively converts an OmegaConf config to a primitive container (dict or list).
 
         :param cfg: the config to convert
         :param resolve: True to resolve all values
@@ -581,7 +581,7 @@ class OmegaConf:
     @staticmethod
     def to_object(cfg: Any) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
-        Resursively converts an OmegaConf config to a primitive container (dict or list).
+        Recursively converts an OmegaConf config to a primitive container (dict or list).
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
         as instances of those backing classes.
 
