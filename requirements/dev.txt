@@ -1,5 +1,6 @@
 -r base.txt
 -r docs.txt
+attrs
 black
 build
 coveralls
