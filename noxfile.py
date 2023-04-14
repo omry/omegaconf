@@ -17,7 +17,7 @@ def deps(
 ) -> None:
     session.install(
         "--upgrade",
-        "setuptools==66",  # pinned due to DeprecationWarning, see https://github.com/omry/omegaconf/issues/1068
+        "setuptools<=66",  # pinned due to DeprecationWarning, see https://github.com/omry/omegaconf/issues/1068
         "pip",
     )
     extra_flags = ["-e"] if editable_install else []
