@@ -43,7 +43,6 @@ DictKeyType = Union[str, bytes, int, Enum, float, bool]
 
 @dataclass
 class Metadata:
-
     ref_type: Union[Type[Any], Any]
 
     object_type: Union[Type[Any], Any]

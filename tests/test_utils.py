@@ -557,7 +557,7 @@ def test_get_class() -> None:
 def test_get_key_value_types(
     key_type: Any, expected_key_type: Any, value_type: Any, expected_value_type: Any
 ) -> None:
-    dt = Dict[key_type, value_type]  # type:ignore
+    dt = Dict[key_type, value_type]
     assert _utils.get_dict_key_value_types(dt) == (
         expected_key_type,
         expected_value_type,

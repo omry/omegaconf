@@ -854,7 +854,6 @@ class TestConfigs:
         assert conf == OmegaConf.create(module.AnyTypeConfig)
 
     def test_promote_to_class(self, module: Any) -> None:
-
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert OmegaConf.get_type(conf) == module.AnyTypeConfig
 
@@ -866,7 +865,6 @@ class TestConfigs:
         assert OmegaConf.is_missing(conf, "mandatory_missing")
 
     def test_promote_to_object(self, module: Any) -> None:
-
         conf = OmegaConf.create(module.AnyTypeConfig)
         assert OmegaConf.get_type(conf) == module.AnyTypeConfig
 

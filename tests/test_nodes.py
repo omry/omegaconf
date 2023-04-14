@@ -605,7 +605,6 @@ def test_accepts_mandatory_missing(
 def test_legal_assignment(
     type_: type, values: Any, success_map: Dict[Any, Dict[str, Any]]
 ) -> None:
-
     if not isinstance(values, (list, tuple)):
         values = [values]
 

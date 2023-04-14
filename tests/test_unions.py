@@ -37,7 +37,7 @@ from tests import Color
 )
 class TestUnionNode:
     def test_creation(self, input_: Any, union_args: Any) -> None:
-        ref_type = Union[union_args]  # type: ignore
+        ref_type = Union[union_args]
         legal = type(input_) in union_args
         if legal:
             node = UnionNode(input_, ref_type)
@@ -47,7 +47,7 @@ class TestUnionNode:
                 UnionNode(input_, ref_type)
 
     def test_set_value(self, input_: Any, union_args: Any) -> None:
-        ref_type = Union[union_args]  # type: ignore
+        ref_type = Union[union_args]
         legal = type(input_) in union_args
         node = UnionNode(None, ref_type)
         if legal:

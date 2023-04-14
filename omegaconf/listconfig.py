@@ -40,7 +40,6 @@ from .errors import (
 
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
-
     _content: Union[List[Node], None, str]
 
     def __init__(
@@ -541,7 +540,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.ValueNode = ValueNode
 
         def __next__(self) -> Any:
-
             x = next(self.iterator)
             if self.resolve:
                 x = x._dereference_node()

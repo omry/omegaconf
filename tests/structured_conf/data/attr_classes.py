@@ -838,6 +838,5 @@ class HasIgnoreMetadataRequired:
 
 @attr.s(auto_attribs=True)
 class HasIgnoreMetadataWithDefault:
-
     ignore: int = attr.field(default=1, metadata={"omegaconf_ignore": True})
     no_ignore: int = attr.field(default=2, metadata={"omegaconf_ignore": False})
