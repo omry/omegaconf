@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 
 import nox
 from nox import Session
@@ -62,7 +63,11 @@ def coverage(session: Session) -> None:
     session.run("coverage", "erase")
 
 
-@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+def version_string_to_tuple(version: str) -> Tuple[int, ...]:
+    return tuple(map(int, version.split(".")))
+
+
+@nox.session(python=[v for v in PYTHON_VERSIONS if version_string_to_tuple(v) >= (3, 7)])  # type: ignore
 def lint(session: Session) -> None:
     deps(session, editable_install=True)
     session.run(
