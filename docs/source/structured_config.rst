@@ -30,7 +30,7 @@ Two types of structures classes are supported: dataclasses and attr classes.
 This documentation will use dataclasses, but you can use the annotation ``@attr.s(auto_attribs=True)`` from attrs instead of ``@dataclass``.
 
 Basic usage involves passing in a structured config class or instance to ``OmegaConf.structured()``, which will return an OmegaConf config that matches
-the values and types specified in the input. At runtine, OmegaConf will validate modifications to the created config object against the schema specified
+the values and types specified in the input. At runtime, OmegaConf will validate modifications to the created config object against the schema specified
 in the input class.
 
 
