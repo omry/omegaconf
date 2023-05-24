@@ -257,11 +257,13 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
+        extend_lists: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
+        :param extend_lists: flag to deep merge ListConfigs
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -270,7 +272,7 @@ class OmegaConf:
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(*configs[1:])
+            target.merge_with(*configs[1:], extend_lists=extend_lists)
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -288,6 +290,7 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
+        extend_lists: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -295,6 +298,7 @@ class OmegaConf:
         However, the input configs must not be used after this operation as will become inconsistent.
 
         :param configs: Input configs
+        :param extend_lists: flag to deep merge ListConfigs
         :return: the merged config object.
         """
         assert len(configs) > 0
