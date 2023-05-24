@@ -1190,6 +1190,50 @@ def test_merge_list_list() -> None:
     assert a == b
 
 
+def test_merge_list_list_extend() -> None:
+    a = OmegaConf.create([1, 2, 3])
+    b = OmegaConf.create([4, 5, 6])
+    a.merge_with(b, extend_lists=True)
+    assert a == [1, 2, 3, 4, 5, 6]
+
+
+@mark.parametrize(
+    "c1,c2,expected",
+    [
+        ([{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]),
+        ({"list": [1, 2]}, {"list": [3, 4]}, {"list": [1, 2, 3, 4]}),
+        (
+            {"list1": [1, 2], "list2": [1, 2]},
+            {"list1": [3, 4], "list2": [3, 4]},
+            {"list1": [1, 2, 3, 4], "list2": [1, 2, 3, 4]},
+        ),
+        ([[1, 2], [3, 4]], [[5, 6]], [[1, 2], [3, 4], [5, 6]]),
+        # don't allow duplicate entries
+        ([1, 2], [1, 2], [1, 2]),
+        ([{"a": 1}], [{"a": 1}], [{"a": 1}]),
+    ],
+)
+def test_merge_nested_list_extend(c1: Any, c2: Any, expected: Any) -> None:
+    a = OmegaConf.create(c1)
+    b = OmegaConf.create(c2)
+    a.merge_with(b, extend_lists=True)
+    assert a == expected
+
+
+@mark.parametrize(
+    "c1,c2,expected",
+    [
+        ([1, 2], [1, 2], [1, 2, 1, 2]),
+        ([{"a": 1}], [{"a": 1}], [{"a": 1}, {"a": 1}]),
+    ],
+)
+def test_merge_list_extend_allow_duplicates(c1: Any, c2: Any, expected: Any) -> None:
+    a = OmegaConf.create(c1)
+    b = OmegaConf.create(c2)
+    a.merge_with(b, extend_lists=True, allow_duplicates=True)
+    assert a == expected
+
+
 @mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @mark.parametrize(
     "base, merge, exception",
