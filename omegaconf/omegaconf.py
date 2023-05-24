@@ -258,12 +258,14 @@ class OmegaConf:
             Any,
         ],
         extend_lists: bool = False,
+        allow_duplicates: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
         :param extend_lists: flag to deep merge ListConfigs
+        :param allow_duplicates: lists entries are unique
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -272,7 +274,11 @@ class OmegaConf:
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(*configs[1:], extend_lists=extend_lists)
+            target.merge_with(
+                *configs[1:],
+                extend_lists=extend_lists,
+                allow_duplicates=allow_duplicates,
+            )
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -291,6 +297,7 @@ class OmegaConf:
             Any,
         ],
         extend_lists: bool = False,
+        allow_duplicates: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -299,6 +306,7 @@ class OmegaConf:
 
         :param configs: Input configs
         :param extend_lists: flag to deep merge ListConfigs
+        :param allow_duplicates: lists entries are unique
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -309,7 +317,11 @@ class OmegaConf:
         with flag_override(
             target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
         ):
-            target.merge_with(*configs[1:])
+            target.merge_with(
+                *configs[1:],
+                extend_lists=extend_lists,
+                allow_duplicates=allow_duplicates,
+            )
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
