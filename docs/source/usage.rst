@@ -492,6 +492,41 @@ Note how the port changes to 82, and how the users lists are combined.
       file: log.txt
     <BLANKLINE>
 
+The default behavior for lists is that the list from the last config overwrites the others. 
+Use ``OmegaConf.merge(cfg1, cfg2, extend_lists=True)`` to merge the lists by extending them. 
+You can specify whether duplicate entries are allowed with the flag ``allow_duplicates``. 
+This is false, by default, but is only compatible with ``extend_lists`` activated.
+
+**example2.yaml** file:
+
+.. include:: example2.yaml
+   :code: yaml
+
+**example4.yaml** file:
+
+.. include:: example4.yaml
+   :code: yaml
+
+If you load them and merge them with both attributes set to ``True`` you will get this:
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf
+    >>>
+    >>> cfg_example2 = OmegaConf.load('source/example2.yaml')
+    >>> cfg_example4 = OmegaConf.load('source/example4.yaml')
+    >>> 
+    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, extend_lists=True, allow_duplicates=True)
+    >>> print(OmegaConf.to_yaml(conf))
+    server:
+      port: 80
+    users:
+    - user1
+    - user2
+    - user3
+    - user2
+    <BLANKLINE>
+
 OmegaConf.unsafe_merge()
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
