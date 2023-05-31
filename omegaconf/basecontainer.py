@@ -308,7 +308,7 @@ class BaseContainer(Container, ABC):
         dest: "BaseContainer",
         src: "BaseContainer",
         extend_lists: bool = False,
-        allow_duplicates: bool = False,
+        remove_duplicates: bool = False,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
@@ -404,7 +404,7 @@ class BaseContainer(Container, ABC):
                         dest_node._merge_with(
                             src_node,
                             extend_lists=extend_lists,
-                            allow_duplicates=allow_duplicates,
+                            remove_duplicates=remove_duplicates,
                         )
                     elif not src_node_missing:
                         dest.__setitem__(key, src_node)
@@ -451,7 +451,7 @@ class BaseContainer(Container, ABC):
 
     @staticmethod
     def _list_merge(
-        dest: Any, src: Any, extend_lists: bool = False, allow_duplicates: bool = False
+        dest: Any, src: Any, extend_lists: bool = False, remove_duplicates: bool = False
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
 
@@ -483,7 +483,7 @@ class BaseContainer(Container, ABC):
                     temp_target.append(item)
 
             if extend_lists:
-                if not allow_duplicates:
+                if remove_duplicates:
                     # remove duplicate entries
                     for entry in temp_target.__dict__["_content"]:
                         if entry not in dest.__dict__["_content"]:
@@ -506,11 +506,11 @@ class BaseContainer(Container, ABC):
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
         extend_lists: bool = False,
-        allow_duplicates: bool = False,
+        remove_duplicates: bool = False,
     ) -> None:
         try:
             self._merge_with(
-                *others, extend_lists=extend_lists, allow_duplicates=allow_duplicates
+                *others, extend_lists=extend_lists, remove_duplicates=remove_duplicates
             )
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
@@ -521,7 +521,7 @@ class BaseContainer(Container, ABC):
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
         extend_lists: bool = False,
-        allow_duplicates: bool = False,
+        remove_duplicates: bool = False,
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -541,14 +541,14 @@ class BaseContainer(Container, ABC):
                     self,
                     other,
                     extend_lists=extend_lists,
-                    allow_duplicates=allow_duplicates,
+                    remove_duplicates=remove_duplicates,
                 )
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
                 BaseContainer._list_merge(
                     self,
                     other,
                     extend_lists=extend_lists,
-                    allow_duplicates=allow_duplicates,
+                    remove_duplicates=remove_duplicates,
                 )
             else:
                 raise TypeError("Cannot merge DictConfig with ListConfig")

@@ -258,14 +258,14 @@ class OmegaConf:
             Any,
         ],
         extend_lists: bool = False,
-        allow_duplicates: bool = False,
+        remove_duplicates: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
         :param extend_lists: flag to deep merge ListConfigs
-        :param allow_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
+        :param remove_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -277,7 +277,7 @@ class OmegaConf:
             target.merge_with(
                 *configs[1:],
                 extend_lists=extend_lists,
-                allow_duplicates=allow_duplicates,
+                remove_duplicates=remove_duplicates,
             )
             turned_readonly = target._get_flag("readonly") is True
 
@@ -297,7 +297,7 @@ class OmegaConf:
             Any,
         ],
         extend_lists: bool = False,
-        allow_duplicates: bool = False,
+        remove_duplicates: bool = False,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -306,7 +306,7 @@ class OmegaConf:
 
         :param configs: Input configs
         :param extend_lists: flag to deep merge ListConfigs
-        :param allow_duplicates: lists entries are unique
+        :param remove_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -320,7 +320,7 @@ class OmegaConf:
             target.merge_with(
                 *configs[1:],
                 extend_lists=extend_lists,
-                allow_duplicates=allow_duplicates,
+                remove_duplicates=remove_duplicates,
             )
             turned_readonly = target._get_flag("readonly") is True
 
