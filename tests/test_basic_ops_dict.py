@@ -267,17 +267,13 @@ class TestGetWithDefault:
 
 
 def test_map_expansion() -> None:
-    c = OmegaConf.create({"a": 2, "b": 10})
+    c = OmegaConf.create("{a: 2, b: 10}")
     assert isinstance(c, DictConfig)
 
     def foo(a: int, b: int) -> int:
         return a + b
 
-    a = {**c}["a"]
-    b = {**c}["b"]
-
-    # assert 12 == foo(**c) works as well, but gives lint error
-    assert 12 == foo(a, b)
+    assert 12 == foo(**c)  # type: ignore[misc]
 
 
 def test_items_iterator_behavior() -> None:
