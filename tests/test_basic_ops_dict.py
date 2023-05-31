@@ -273,7 +273,7 @@ def test_map_expansion() -> None:
     def foo(a: int, b: int) -> int:
         return a + b
 
-    assert 12 == foo(**c)  # type: ignore[misc]
+    assert 12 == foo(**c)  # type: ignore[misc] # (known mypi error with dict unpacking)
 
 
 def test_items_iterator_behavior() -> None:
