@@ -484,7 +484,6 @@ class BaseContainer(Container, ABC):
 
             if extend_lists:
                 if remove_duplicates:
-                    # remove duplicate entries
                     for entry in temp_target.__dict__["_content"]:
                         if entry not in dest.__dict__["_content"]:
                             dest.__dict__["_content"].append(entry)
