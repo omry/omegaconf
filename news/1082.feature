@@ -1,1 +1,1 @@
-This change enables deep merging for ListConfigs. Usage: `OmegaConf.merge(cfg1, cfg2, extend_lists=True)`
+OmegaConf.merge() can now concat lists instead of replacing the target list
