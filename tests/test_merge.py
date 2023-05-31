@@ -1222,8 +1222,8 @@ def test_merge_nested_list_extend(c1: Any, c2: Any, expected: Any) -> None:
 @mark.parametrize(
     "c1,c2,expected",
     [
-        ([1, 2], [1, 2], [1, 2]),
-        ([{"a": 1}], [{"a": 1}], [{"a": 1}]),
+        ([1, 2], [1, 3], [1, 2, 3]),
+        ([{"a": 1}, {"b": 2}], [{"a": 1}, {"c": 3}], [{"a": 1}, {"b": 2}, {"c": 3}]),
     ],
 )
 def test_merge_list_extend_remove_duplicates(c1: Any, c2: Any, expected: Any) -> None:
