@@ -1216,8 +1216,8 @@ def test_merge_list_list_extend() -> None:
 def test_merge_nested_list_extend(c1: Any, c2: Any, expected: Any) -> None:
     a = OmegaConf.create(c1)
     b = OmegaConf.create(c2)
-    a.merge_with(b, extend_lists=True)
-    assert a == expected
+    merged = OmegaConf.merge(a, b, extend_lists=True)
+    assert merged == expected
 
 
 @mark.parametrize(
@@ -1230,8 +1230,8 @@ def test_merge_nested_list_extend(c1: Any, c2: Any, expected: Any) -> None:
 def test_merge_list_extend_allow_duplicates(c1: Any, c2: Any, expected: Any) -> None:
     a = OmegaConf.create(c1)
     b = OmegaConf.create(c2)
-    a.merge_with(b, extend_lists=True, allow_duplicates=True)
-    assert a == expected
+    merged = OmegaConf.merge(a, b, extend_lists=True, allow_duplicates=True)
+    assert merge == expected
 
 
 @mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])

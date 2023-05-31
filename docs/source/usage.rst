@@ -492,10 +492,10 @@ Note how the port changes to 82, and how the users lists are combined.
       file: log.txt
     <BLANKLINE>
 
-The default behavior for lists is that the list from the last config overwrites the others. 
+By default, merge is replacing the target list with the source list.
 Use ``OmegaConf.merge(cfg1, cfg2, extend_lists=True)`` to merge the lists by extending them. 
 You can specify whether duplicate entries are allowed with the flag ``allow_duplicates``. 
-This is false, by default, but is only compatible with ``extend_lists`` activated.
+This is false, by default, and is ignored unless ``extend_lists=True`` .
 
 **example2.yaml** file:
 

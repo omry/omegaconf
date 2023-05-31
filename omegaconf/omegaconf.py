@@ -265,7 +265,7 @@ class OmegaConf:
 
         :param configs: Input configs
         :param extend_lists: flag to deep merge ListConfigs
-        :param allow_duplicates: lists entries are unique
+        :param allow_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
         :return: the merged config object.
         """
         assert len(configs) > 0
