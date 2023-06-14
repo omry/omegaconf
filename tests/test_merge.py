@@ -1190,46 +1190,36 @@ def test_merge_list_list() -> None:
     assert a == b
 
 
-def test_merge_list_list_extend() -> None:
-    a = OmegaConf.create([1, 2, 3])
-    b = OmegaConf.create([4, 5, 6])
-    a.merge_with(b, extend_lists=True)
-    assert a == [1, 2, 3, 4, 5, 6]
-
-
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @mark.parametrize(
-    "c1,c2,expected",
+    "list_merge_mode,c1,c2,expected",
     [
-        ([{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]),
-        ({"list": [1, 2]}, {"list": [3, 4]}, {"list": [1, 2, 3, 4]}),
+        ("OVERRIDE", [1, 2], [3, 4], [3, 4])(
+            "EXTEND", [{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]
+        ),
+        ("EXTEND", {"list": [1, 2]}, {"list": [3, 4]}, {"list": [1, 2, 3, 4]}),
         (
+            "EXTEND",
             {"list1": [1, 2], "list2": [1, 2]},
             {"list1": [3, 4], "list2": [3, 4]},
             {"list1": [1, 2, 3, 4], "list2": [1, 2, 3, 4]},
         ),
-        ([[1, 2], [3, 4]], [[5, 6]], [[1, 2], [3, 4], [5, 6]]),
-        ([1, 2], [1, 2], [1, 2, 1, 2]),
-        ([{"a": 1}], [{"a": 1}], [{"a": 1}, {"a": 1}]),
+        ("EXTEND", [[1, 2], [3, 4]], [[5, 6]], [[1, 2], [3, 4], [5, 6]]),
+        ("EXTEND", [1, 2], [1, 2], [1, 2, 1, 2]),
+        ("EXTEND", [{"a": 1}], [{"a": 1}], [{"a": 1}, {"a": 1}]),
+        ("EXTEND_IGNORE_DUPLICATES", [1, 2], [1, 3], [1, 2, 3]),
+        (
+            "EXTEND_IGNORE_DUPLICATES",
+            [{"a": 1}, {"b": 2}],
+            [{"a": 1}, {"c": 3}],
+            [{"a": 1}, {"b": 2}, {"c": 3}],
+        ),
     ],
 )
-def test_merge_nested_list_extend(c1: Any, c2: Any, expected: Any) -> None:
+def test_merge_list_modes(merge, c1, c2, list_merge_mode, expected) -> None:
     a = OmegaConf.create(c1)
     b = OmegaConf.create(c2)
-    merged = OmegaConf.merge(a, b, extend_lists=True)
-    assert merged == expected
-
-
-@mark.parametrize(
-    "c1,c2,expected",
-    [
-        ([1, 2], [1, 3], [1, 2, 3]),
-        ([{"a": 1}, {"b": 2}], [{"a": 1}, {"c": 3}], [{"a": 1}, {"b": 2}, {"c": 3}]),
-    ],
-)
-def test_merge_list_extend_remove_duplicates(c1: Any, c2: Any, expected: Any) -> None:
-    a = OmegaConf.create(c1)
-    b = OmegaConf.create(c2)
-    merged = OmegaConf.merge(a, b, extend_lists=True, remove_duplicates=True)
+    merged = merge(a, b, list_merge_mode=list_merge_mode)
     assert merged == expected
 
 
