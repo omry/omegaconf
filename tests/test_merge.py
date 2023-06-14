@@ -1194,9 +1194,8 @@ def test_merge_list_list() -> None:
 @mark.parametrize(
     "list_merge_mode,c1,c2,expected",
     [
-        ("OVERRIDE", [1, 2], [3, 4], [3, 4])(
-            "EXTEND", [{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]
-        ),
+        ("OVERRIDE", [1, 2], [3, 4], [3, 4]),
+        ("EXTEND", [{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]),
         ("EXTEND", {"list": [1, 2]}, {"list": [3, 4]}, {"list": [1, 2, 3, 4]}),
         (
             "EXTEND",
