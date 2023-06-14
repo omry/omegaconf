@@ -492,10 +492,12 @@ Note how the port changes to 82, and how the users lists are combined.
       file: log.txt
     <BLANKLINE>
 
-By default, merge is replacing the target list with the source list.
-Use ``OmegaConf.merge(cfg1, cfg2, extend_lists=True)`` to merge the lists by extending them. 
-You can specify whether duplicate entries should be removed or not with the flag ``remove_duplicates``. 
-This is false, by default, and is ignored unless ``extend_lists=True`` .
+By default, ``merge()`` is replacing the target list with the source list.
+Use ``list_merge_mode`` to control the merge behavior for lists.
+Currently there are three different merge modes:
+* ``OVERRIDE``: content from newer list gets taken (default)
+* ``EXTEND``: lists get extended
+* ``EXTEND_IGNORE_DUPLICATES``: only new (unique) elements get extended
 
 **example2.yaml** file:
 
@@ -507,7 +509,7 @@ This is false, by default, and is ignored unless ``extend_lists=True`` .
 .. include:: example4.yaml
    :code: yaml
 
-If you load them and merge them with both attributes set to ``True`` you will get this:
+If you load them and merge them with ``list_merge_mode="EXTEND_IGNORE_DUPLICATES"`` you will get this:
 
 .. doctest::
 
@@ -516,7 +518,7 @@ If you load them and merge them with both attributes set to ``True`` you will ge
     >>> cfg_example2 = OmegaConf.load('source/example2.yaml')
     >>> cfg_example4 = OmegaConf.load('source/example4.yaml')
     >>> 
-    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, extend_lists=True, remove_duplicates=True)
+    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, list_merge_mode="EXTEND_IGNORE_DUPLICATES")
     >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 80
