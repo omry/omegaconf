@@ -18,6 +18,7 @@ from typing import (
     Generator,
     Iterable,
     List,
+    Literal,
     Optional,
     Set,
     Tuple,
@@ -257,15 +258,18 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        extend_lists: bool = False,
-        remove_duplicates: bool = False,
+        list_merge_mode: Literal[
+            "OVERRIDE", "EXTEND", "EXTEND_IGNORE_DUPLICATES"
+        ] = "OVERRIDE",
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
-        :param extend_lists: flag to deep merge ListConfigs
-        :param remove_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
+        :param list_merge_mode: Behavior for merging lists
+            OVERRIDE: content from newer list gets taken (default)
+            EXTEND: lists get extended
+            EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -276,8 +280,7 @@ class OmegaConf:
         with flag_override(target, "readonly", False):
             target.merge_with(
                 *configs[1:],
-                extend_lists=extend_lists,
-                remove_duplicates=remove_duplicates,
+                list_merge_mode=list_merge_mode,
             )
             turned_readonly = target._get_flag("readonly") is True
 
@@ -296,8 +299,9 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        extend_lists: bool = False,
-        remove_duplicates: bool = False,
+        list_merge_mode: Literal[
+            "OVERRIDE", "EXTEND", "EXTEND_IGNORE_DUPLICATES"
+        ] = "OVERRIDE",
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -305,8 +309,10 @@ class OmegaConf:
         However, the input configs must not be used after this operation as will become inconsistent.
 
         :param configs: Input configs
-        :param extend_lists: flag to deep merge ListConfigs
-        :param remove_duplicates: lists entries are unique. This flag is ignored unless `extend_lists=True`
+        :param list_merge_mode: Behavior for merging lists
+            OVERRIDE: content from newer list gets taken (default)
+            EXTEND: lists get extended
+            EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -319,8 +325,7 @@ class OmegaConf:
         ):
             target.merge_with(
                 *configs[1:],
-                extend_lists=extend_lists,
-                remove_duplicates=remove_duplicates,
+                list_merge_mode=list_merge_mode,
             )
             turned_readonly = target._get_flag("readonly") is True
 
