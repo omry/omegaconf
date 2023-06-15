@@ -18,7 +18,6 @@ from typing import (
     Generator,
     Iterable,
     List,
-    Literal,
     Optional,
     Set,
     Tuple,
@@ -54,7 +53,7 @@ from ._utils import (
     split_key,
     type_str,
 )
-from .base import Box, Container, Node, SCMode, UnionNode
+from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
     MissingMandatoryValue,
@@ -258,9 +257,7 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        list_merge_mode: Literal[
-            "OVERRIDE", "EXTEND", "EXTEND_IGNORE_DUPLICATES"
-        ] = "OVERRIDE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -270,6 +267,7 @@ class OmegaConf:
             OVERRIDE: content from newer list gets taken (default)
             EXTEND: lists get extended
             EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
+            hint: `import ListMergeMode` to access the feature
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -299,9 +297,7 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        list_merge_mode: Literal[
-            "OVERRIDE", "EXTEND", "EXTEND_IGNORE_DUPLICATES"
-        ] = "OVERRIDE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -313,6 +309,7 @@ class OmegaConf:
             OVERRIDE: content from newer list gets taken (default)
             EXTEND: lists get extended
             EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
+            hint: `from omegaconf.omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
         assert len(configs) > 0

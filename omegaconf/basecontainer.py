@@ -34,6 +34,7 @@ from .base import (
     Container,
     ContainerMetadata,
     DictKeyType,
+    ListMergeMode,
     Node,
     SCMode,
     UnionNode,
@@ -307,7 +308,7 @@ class BaseContainer(Container, ABC):
     def _map_merge(
         dest: "BaseContainer",
         src: "BaseContainer",
-        list_merge_mode="OVERWRITE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
@@ -451,7 +452,7 @@ class BaseContainer(Container, ABC):
     def _list_merge(
         dest: Any,
         src: Any,
-        list_merge_mode="OVERWRITE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
 
@@ -482,9 +483,9 @@ class BaseContainer(Container, ABC):
                 for item in src._iter_ex(resolve=False):
                     temp_target.append(item)
 
-            if list_merge_mode == "EXTEND":
+            if list_merge_mode == ListMergeMode.EXTEND:
                 dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
-            elif list_merge_mode == "EXTEND_IGNORE_DUPLICATES":
+            elif list_merge_mode == ListMergeMode.EXTEND_IGNORE_DUPLICATES:
                 for entry in temp_target.__dict__["_content"]:
                     if entry not in dest.__dict__["_content"]:
                         dest.__dict__["_content"].append(entry)
@@ -503,7 +504,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode="OVERWRITE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> None:
         try:
             self._merge_with(
@@ -518,7 +519,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode="OVERWRITE",
+        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
