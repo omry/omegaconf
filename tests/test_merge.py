@@ -1222,10 +1222,10 @@ def test_merge_list_list() -> None:
 )
 def test_merge_list_modes(
     merge: Any,
-    c1: Union[list, dict],
-    c2: Union[list, dict],
+    c1: Any,
+    c2: Any,
     list_merge_mode: ListMergeMode,
-    expected: Union[list, dict],
+    expected: Any,
 ) -> None:
     a = OmegaConf.create(c1)
     b = OmegaConf.create(c2)

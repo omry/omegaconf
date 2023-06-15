@@ -267,7 +267,7 @@ class OmegaConf:
             OVERRIDE: content from newer list gets taken (default)
             EXTEND: lists get extended
             EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
-            hint: `import ListMergeMode` to access the feature
+            hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -309,7 +309,7 @@ class OmegaConf:
             OVERRIDE: content from newer list gets taken (default)
             EXTEND: lists get extended
             EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
-            hint: `from omegaconf.omegaconf import ListMergeMode` to access the merge mode
+            hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
         assert len(configs) > 0

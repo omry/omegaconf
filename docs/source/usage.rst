@@ -493,7 +493,8 @@ Note how the port changes to 82, and how the users lists are combined.
     <BLANKLINE>
 
 By default, ``merge()`` is replacing the target list with the source list.
-Use ``list_merge_mode`` to control the merge behavior for lists.
+Use ``list_merge_mode`` to control the merge behavior for lists. 
+You can access the regarding enum with ``from omegaconf import ListMergeMode``.
 Currently there are three different merge modes:
 * ``OVERRIDE``: content from newer list gets taken (default)
 * ``EXTEND``: lists get extended
@@ -509,16 +510,16 @@ Currently there are three different merge modes:
 .. include:: example4.yaml
    :code: yaml
 
-If you load them and merge them with ``list_merge_mode="EXTEND_IGNORE_DUPLICATES"`` you will get this:
+If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_IGNORE_DUPLICATES`` you will get this:
 
 .. doctest::
 
-    >>> from omegaconf import OmegaConf
+    >>> from omegaconf import OmegaConf, ListMergeMode
     >>>
     >>> cfg_example2 = OmegaConf.load('source/example2.yaml')
     >>> cfg_example4 = OmegaConf.load('source/example4.yaml')
     >>> 
-    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, list_merge_mode="EXTEND_IGNORE_DUPLICATES")
+    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, list_merge_mode=ListMergeMode.EXTEND_IGNORE_DUPLICATES)
     >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 80

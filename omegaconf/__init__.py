@@ -1,4 +1,4 @@
-from .base import Container, DictKeyType, Node, SCMode, UnionNode
+from .base import Container, DictKeyType, ListMergeMode, Node, SCMode, UnionNode
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
@@ -46,6 +46,7 @@ __all__ = [
     "OmegaConf",
     "Resolver",
     "SCMode",
+    "ListMergeMode",
     "flag_override",
     "read_write",
     "open_dict",
