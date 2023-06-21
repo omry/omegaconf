@@ -257,16 +257,16 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
         :param list_merge_mode: Behavior for merging lists
-            OVERRIDE: content from newer list gets taken (default)
-            EXTEND: lists get extended
-            EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
+            REPLACE: Replaces the target list with the new one (default)
+            EXTEND: Extends the target list with the new one
+            APPEND_UNIQUE_VALUE: Appends items that do not already exist in the target list
             hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
@@ -297,7 +297,7 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -306,9 +306,9 @@ class OmegaConf:
 
         :param configs: Input configs
         :param list_merge_mode: Behavior for merging lists
-            OVERRIDE: content from newer list gets taken (default)
-            EXTEND: lists get extended
-            EXTEND_IGNORE_DUPLICATES: only new (unique) elements get extended
+            REPLACE: Replaces the target list with the new one (default)
+            EXTEND: Extends the target list with the new one
+            APPEND_UNIQUE_VALUE: Appends items that do not already exist in the target list
             hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """

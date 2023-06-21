@@ -308,7 +308,7 @@ class BaseContainer(Container, ABC):
     def _map_merge(
         dest: "BaseContainer",
         src: "BaseContainer",
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
@@ -452,7 +452,7 @@ class BaseContainer(Container, ABC):
     def _list_merge(
         dest: Any,
         src: Any,
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
 
@@ -485,11 +485,11 @@ class BaseContainer(Container, ABC):
 
             if list_merge_mode == ListMergeMode.EXTEND:
                 dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
-            elif list_merge_mode == ListMergeMode.EXTEND_IGNORE_DUPLICATES:
+            elif list_merge_mode == ListMergeMode.APPEND_UNIQUE_VALUE:
                 for entry in temp_target.__dict__["_content"]:
                     if entry not in dest.__dict__["_content"]:
                         dest.__dict__["_content"].append(entry)
-            else:  # OVERRIDE (default)
+            else:  # REPLACE (default)
                 dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination
@@ -504,7 +504,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         try:
             self._merge_with(
@@ -519,7 +519,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.OVERRIDE,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig

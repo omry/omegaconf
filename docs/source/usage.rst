@@ -495,9 +495,9 @@ Note how the port changes to 82, and how the users lists are combined.
 By default, ``merge()`` is replacing the target list with the source list.
 Use ``list_merge_mode`` to control the merge behavior for lists.
 This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following modes:
-* ``OVERRIDE``: content from newer list gets taken (default)
-* ``EXTEND``: lists get extended
-* ``EXTEND_IGNORE_DUPLICATES``: only new (unique) elements get extended
+* ``REPLACE``: Replaces the target list with the new one (default)
+* ``EXTEND``: Extends the target list with the new one
+* ``APPEND_UNIQUE_VALUE``: Appends items that do not already exist in the target list
 
 **example2.yaml** file:
 
@@ -509,16 +509,17 @@ This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following mo
 .. include:: example4.yaml
    :code: yaml
 
-If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_IGNORE_DUPLICATES`` you will get this:
+If you load them and merge them with ``list_merge_mode=ListMergeMode.APPEND_UNIQUE_VALUE`` you will get this:
 
 .. doctest::
 
     >>> from omegaconf import OmegaConf, ListMergeMode
     >>>
-    >>> cfg_example2 = OmegaConf.load('source/example2.yaml')
-    >>> cfg_example4 = OmegaConf.load('source/example4.yaml')
+    >>> cfg_1 = OmegaConf.load('source/example2.yaml')
+    >>> cfg_2 = OmegaConf.load('source/example4.yaml')
     >>> 
-    >>> conf = OmegaConf.merge(cfg_example2, cfg_example4, list_merge_mode=ListMergeMode.EXTEND_IGNORE_DUPLICATES)
+    >>> mode = ListMergeMode.APPEND_UNIQUE_VALUE
+    >>> conf = OmegaConf.merge(cfg_1, cfg_2, list_merge_mode=mode)
     >>> print(OmegaConf.to_yaml(conf))
     server:
       port: 80

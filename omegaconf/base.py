@@ -796,9 +796,11 @@ class SCMode(Enum):
 
 
 class ListMergeMode(Enum):
-    OVERRIDE = 1  # content from newer list gets taken (default)
-    EXTEND = 2  # lists get extended
-    EXTEND_IGNORE_DUPLICATES = 3  # only new (unique) elements get extended
+    REPLACE = 1  # Replaces the target list with the new one (default)
+    EXTEND = 2  # Extends the target list with the new one
+    APPEND_UNIQUE_VALUE = (
+        3  # Appends items that do not already exist in the target list
+    )
 
 
 class UnionNode(Box):
