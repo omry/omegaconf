@@ -493,9 +493,8 @@ Note how the port changes to 82, and how the users lists are combined.
     <BLANKLINE>
 
 By default, ``merge()`` is replacing the target list with the source list.
-Use ``list_merge_mode`` to control the merge behavior for lists. 
-You can access the regarding enum with ``from omegaconf import ListMergeMode``.
-Currently there are three different merge modes:
+Use ``list_merge_mode`` to control the merge behavior for lists.
+This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following modes:
 * ``OVERRIDE``: content from newer list gets taken (default)
 * ``EXTEND``: lists get extended
 * ``EXTEND_IGNORE_DUPLICATES``: only new (unique) elements get extended
