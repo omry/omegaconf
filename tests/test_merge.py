@@ -1362,26 +1362,24 @@ def test_merge_with_allow_Dataframe() -> None:
 
 @mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @mark.parametrize(
-    "dst, other, expected, node",
+    "dst, other, expected",
     [
         param(
             OmegaConf.structured(InterpolationList),
             OmegaConf.create({"list": [0.1]}),
             {"list": [0.1]},
-            "list",
             id="merge_interpolation_list_with_list",
         ),
         param(
             OmegaConf.structured(InterpolationDict),
             OmegaConf.create({"dict": {"a": 4}}),
             {"dict": {"a": 4}},
-            "dict",
             id="merge_interpolation_dict_with_dict",
         ),
     ],
 )
 def test_merge_with_src_as_interpolation(
-    merge: Any, dst: Any, other: Any, expected: Any, node: Any
+    merge: Any, dst: Any, other: Any, expected: Any
 ) -> None:
     res = merge(dst, other)
     assert res == expected
