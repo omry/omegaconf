@@ -2,8 +2,15 @@ from typing import Any
 
 from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNode
 from omegaconf.errors import ConfigTypeError, InterpolationToMissingValueError
+from omegaconf.nodes import InterpolationResultNode
 
-from ._utils import _DEFAULT_MARKER_, _get_value
+from ._utils import (
+    _DEFAULT_MARKER_,
+    _ensure_container,
+    _get_value,
+    is_primitive_container,
+    is_structured_config,
+)
 
 
 def _resolve_container_value(cfg: Container, key: Any) -> None:
@@ -17,6 +24,12 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
         else:
             if isinstance(resolved, Container):
                 _resolve(resolved)
+            if isinstance(resolved, InterpolationResultNode):
+                resolved_value = _get_value(resolved)
+                if is_primitive_container(resolved_value) or is_structured_config(
+                    resolved_value
+                ):
+                    resolved = _ensure_container(resolved_value)
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
                 cfg[key] = resolved
             else:

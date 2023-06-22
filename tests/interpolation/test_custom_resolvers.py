@@ -478,3 +478,20 @@ def test_merge_into_resolver_output(
 
     cfg = OmegaConf.create({"foo": "${make:}"})
     assert OmegaConf.merge(cfg, cfg2) == expected
+
+
+@mark.parametrize(
+    "primitive_container",
+    [
+        param({"first": 1, "second": 2}, id="dict"),
+        param(["first", "second"], id="list"),
+    ],
+)
+def test_resolve_resolver_returning_primitive_container(
+    restore_resolvers: Any, primitive_container: Any
+) -> None:
+    OmegaConf.register_new_resolver("returns_dict", lambda: primitive_container)
+    cfg = OmegaConf.create({"foo": "${returns_dict:}"})
+    assert cfg.foo == primitive_container
+    OmegaConf.resolve(cfg)
+    assert cfg.foo == primitive_container
