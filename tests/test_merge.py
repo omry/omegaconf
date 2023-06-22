@@ -1,6 +1,7 @@
 import copy
 import re
 import sys
+from dataclasses import dataclass
 from textwrap import dedent
 from typing import (
     Any,
@@ -1410,6 +1411,26 @@ def test_merge_with_other_as_interpolation(
 ) -> None:
     res = merge(dst, other)
     assert OmegaConf.is_interpolation(res, node)
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_with_nested_structured_config_and_union_type(
+    merge: Any,
+) -> None:
+    @dataclass
+    class Inner:
+        x: Union[int, str]
+
+    @dataclass
+    class Outer:
+        inner: Inner
+
+    dst = OmegaConf.structured(Outer)
+    src = OmegaConf.create({"inner": {"x": 10}})
+    res = merge(dst, src)
+
+    expected = {"inner": {"x": 10}}
+    assert res == expected
 
 
 @mark.parametrize(
