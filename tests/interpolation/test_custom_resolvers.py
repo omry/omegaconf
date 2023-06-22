@@ -490,8 +490,8 @@ def test_merge_into_resolver_output(
 def test_resolve_resolver_returning_primitive_container(
     restore_resolvers: Any, primitive_container: Any
 ) -> None:
-    OmegaConf.register_new_resolver("returns_dict", lambda: primitive_container)
-    cfg = OmegaConf.create({"foo": "${returns_dict:}"})
+    OmegaConf.register_new_resolver("returns_container", lambda: primitive_container)
+    cfg = OmegaConf.create({"foo": "${returns_container:}"})
     assert cfg.foo == primitive_container
     OmegaConf.resolve(cfg)
     assert cfg.foo == primitive_container
