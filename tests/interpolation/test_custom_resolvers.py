@@ -6,6 +6,7 @@ from pytest import mark, param, raises, warns
 
 from omegaconf import OmegaConf, Resolver
 from omegaconf.nodes import InterpolationResultNode
+from tests import User
 from tests.interpolation import dereference_node
 
 
@@ -485,6 +486,7 @@ def test_merge_into_resolver_output(
     [
         param({"first": 1, "second": 2}, id="dict"),
         param(["first", "second"], id="list"),
+        param(User(name="Bond", age=7), id="user"),
     ],
 )
 def test_resolve_resolver_returning_primitive_container(
