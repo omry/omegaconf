@@ -499,7 +499,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             else:
 
                 def key1(x: Any) -> Any:
-                    return key(x._value())  # type: ignore
+                    return key(x._value())
 
             assert isinstance(self.__dict__["_content"], list)
             self.__dict__["_content"].sort(key=key1, reverse=reverse)
