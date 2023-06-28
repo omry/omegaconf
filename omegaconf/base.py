@@ -798,9 +798,7 @@ class SCMode(Enum):
 class ListMergeMode(Enum):
     REPLACE = 1  # Replaces the target list with the new one (default)
     EXTEND = 2  # Extends the target list with the new one
-    EXTEND_UNIQUE = (
-        3  # Extends the target list items with items not present in it
-    )
+    EXTEND_UNIQUE = 3  # Extends the target list items with items not present in it
 
 
 class UnionNode(Box):
