@@ -497,7 +497,7 @@ Use ``list_merge_mode`` to control the merge behavior for lists.
 This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following modes:
 * ``REPLACE``: Replaces the target list with the new one (default)
 * ``EXTEND``: Extends the target list with the new one
-* ``APPEND_UNIQUE_VALUE``: Appends items that do not already exist in the target list
+* ``EXTEND_UNIQUE``: Extends the target list items with items not present in it
 
 **example2.yaml** file:
 
@@ -509,7 +509,7 @@ This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following mo
 .. include:: example4.yaml
    :code: yaml
 
-If you load them and merge them with ``list_merge_mode=ListMergeMode.APPEND_UNIQUE_VALUE`` you will get this:
+If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQUE`` you will get this:
 
 .. doctest::
 
@@ -518,7 +518,7 @@ If you load them and merge them with ``list_merge_mode=ListMergeMode.APPEND_UNIQ
     >>> cfg_1 = OmegaConf.load('source/example2.yaml')
     >>> cfg_2 = OmegaConf.load('source/example4.yaml')
     >>> 
-    >>> mode = ListMergeMode.APPEND_UNIQUE_VALUE
+    >>> mode = ListMergeMode.EXTEND_UNIQUE
     >>> conf = OmegaConf.merge(cfg_1, cfg_2, list_merge_mode=mode)
     >>> print(OmegaConf.to_yaml(conf))
     server:

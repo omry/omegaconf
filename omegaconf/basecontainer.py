@@ -485,7 +485,7 @@ class BaseContainer(Container, ABC):
 
             if list_merge_mode == ListMergeMode.EXTEND:
                 dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
-            elif list_merge_mode == ListMergeMode.APPEND_UNIQUE_VALUE:
+            elif list_merge_mode == ListMergeMode.EXTEND_UNIQUE:
                 for entry in temp_target.__dict__["_content"]:
                     if entry not in dest.__dict__["_content"]:
                         dest.__dict__["_content"].append(entry)

@@ -1211,9 +1211,9 @@ def test_merge_list_list() -> None:
         (ListMergeMode.EXTEND, [[1, 2], [3, 4]], [[5, 6]], [[1, 2], [3, 4], [5, 6]]),
         (ListMergeMode.EXTEND, [1, 2], [1, 2], [1, 2, 1, 2]),
         (ListMergeMode.EXTEND, [{"a": 1}], [{"a": 1}], [{"a": 1}, {"a": 1}]),
-        (ListMergeMode.APPEND_UNIQUE_VALUE, [1, 2], [1, 3], [1, 2, 3]),
+        (ListMergeMode.EXTEND_UNIQUE, [1, 2], [1, 3], [1, 2, 3]),
         (
-            ListMergeMode.APPEND_UNIQUE_VALUE,
+            ListMergeMode.EXTEND_UNIQUE,
             [{"a": 1}, {"b": 2}],
             [{"a": 1}, {"c": 3}],
             [{"a": 1}, {"b": 2}, {"c": 3}],

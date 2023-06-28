@@ -266,7 +266,7 @@ class OmegaConf:
         :param list_merge_mode: Behavior for merging lists
             REPLACE: Replaces the target list with the new one (default)
             EXTEND: Extends the target list with the new one
-            APPEND_UNIQUE_VALUE: Appends items that do not already exist in the target list
+            EXTEND_UNIQUE: Extends the target list items with items not present in it
             hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
@@ -308,7 +308,7 @@ class OmegaConf:
         :param list_merge_mode: Behavior for merging lists
             REPLACE: Replaces the target list with the new one (default)
             EXTEND: Extends the target list with the new one
-            APPEND_UNIQUE_VALUE: Appends items that do not already exist in the target list
+            EXTEND_UNIQUE: Extends the target list items with items not present in it
             hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
