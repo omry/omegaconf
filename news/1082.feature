@@ -1,1 +1,1 @@
-OmegaConf.merge() can now takes a list_merge_mode parameter that controls the strategy for merging lists (replace, extend and more).
+OmegaConf.merge() can now take a list_merge_mode parameter that controls the strategy for merging lists (replace, extend and more).
