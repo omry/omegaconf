@@ -492,6 +492,43 @@ Note how the port changes to 82, and how the users lists are combined.
       file: log.txt
     <BLANKLINE>
 
+By default, ``merge()`` is replacing the target list with the source list.
+Use ``list_merge_mode`` to control the merge behavior for lists.
+This Enum is defined in ``omegaconf.ListMergeMode`` and defines the following modes:
+* ``REPLACE``: Replaces the target list with the new one (default)
+* ``EXTEND``: Extends the target list with the new one
+* ``EXTEND_UNIQUE``: Extends the target list items with items not present in it
+
+**example2.yaml** file:
+
+.. include:: example2.yaml
+   :code: yaml
+
+**example4.yaml** file:
+
+.. include:: example4.yaml
+   :code: yaml
+
+If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQUE`` you will get this:
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf, ListMergeMode
+    >>>
+    >>> cfg_1 = OmegaConf.load('source/example2.yaml')
+    >>> cfg_2 = OmegaConf.load('source/example4.yaml')
+    >>> 
+    >>> mode = ListMergeMode.EXTEND_UNIQUE
+    >>> conf = OmegaConf.merge(cfg_1, cfg_2, list_merge_mode=mode)
+    >>> print(OmegaConf.to_yaml(conf))
+    server:
+      port: 80
+    users:
+    - user1
+    - user2
+    - user3
+    <BLANKLINE>
+
 OmegaConf.unsafe_merge()
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

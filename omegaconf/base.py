@@ -795,6 +795,12 @@ class SCMode(Enum):
     INSTANTIATE = 3  # Create a dataclass or attrs class instance
 
 
+class ListMergeMode(Enum):
+    REPLACE = 1  # Replaces the target list with the new one (default)
+    EXTEND = 2  # Extends the target list with the new one
+    EXTEND_UNIQUE = 3  # Extends the target list items with items not present in it
+
+
 class UnionNode(Box):
     """
     This class handles Union type hints. The `_content` attribute is either a

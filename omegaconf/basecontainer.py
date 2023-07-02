@@ -34,6 +34,7 @@ from .base import (
     Container,
     ContainerMetadata,
     DictKeyType,
+    ListMergeMode,
     Node,
     SCMode,
     UnionNode,
@@ -304,7 +305,11 @@ class BaseContainer(Container, ABC):
         assert False
 
     @staticmethod
-    def _map_merge(dest: "BaseContainer", src: "BaseContainer") -> None:
+    def _map_merge(
+        dest: "BaseContainer",
+        src: "BaseContainer",
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
+    ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
 
@@ -396,7 +401,10 @@ class BaseContainer(Container, ABC):
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_node, BaseContainer):
-                        dest_node._merge_with(src_node)
+                        dest_node._merge_with(
+                            src_node,
+                            list_merge_mode=list_merge_mode,
+                        )
                     elif not src_node_missing:
                         dest.__setitem__(key, src_node)
                 else:
@@ -441,7 +449,11 @@ class BaseContainer(Container, ABC):
                 dest._set_flag(flag, value)
 
     @staticmethod
-    def _list_merge(dest: Any, src: Any) -> None:
+    def _list_merge(
+        dest: Any,
+        src: Any,
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
+    ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
 
         assert isinstance(dest, ListConfig)
@@ -471,7 +483,14 @@ class BaseContainer(Container, ABC):
                 for item in src._iter_ex(resolve=False):
                     temp_target.append(item)
 
-            dest.__dict__["_content"] = temp_target.__dict__["_content"]
+            if list_merge_mode == ListMergeMode.EXTEND:
+                dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
+            elif list_merge_mode == ListMergeMode.EXTEND_UNIQUE:
+                for entry in temp_target.__dict__["_content"]:
+                    if entry not in dest.__dict__["_content"]:
+                        dest.__dict__["_content"].append(entry)
+            else:  # REPLACE (default)
+                dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -485,9 +504,13 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         try:
-            self._merge_with(*others)
+            self._merge_with(
+                *others,
+                list_merge_mode=list_merge_mode,
+            )
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
 
@@ -496,6 +519,7 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -511,9 +535,17 @@ class BaseContainer(Container, ABC):
             other = _ensure_container(other, flags=my_flags)
 
             if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                BaseContainer._map_merge(self, other)
+                BaseContainer._map_merge(
+                    self,
+                    other,
+                    list_merge_mode=list_merge_mode,
+                )
             elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                BaseContainer._list_merge(self, other)
+                BaseContainer._list_merge(
+                    self,
+                    other,
+                    list_merge_mode=list_merge_mode,
+                )
             else:
                 raise TypeError("Cannot merge DictConfig with ListConfig")
 

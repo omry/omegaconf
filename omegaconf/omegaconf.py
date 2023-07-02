@@ -53,7 +53,7 @@ from ._utils import (
     split_key,
     type_str,
 )
-from .base import Box, Container, Node, SCMode, UnionNode
+from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
     MissingMandatoryValue,
@@ -257,11 +257,17 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
         :param configs: Input configs
+        :param list_merge_mode: Behavior for merging lists
+            REPLACE: Replaces the target list with the new one (default)
+            EXTEND: Extends the target list with the new one
+            EXTEND_UNIQUE: Extends the target list items with items not present in it
+            hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -270,7 +276,10 @@ class OmegaConf:
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(*configs[1:])
+            target.merge_with(
+                *configs[1:],
+                list_merge_mode=list_merge_mode,
+            )
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -288,6 +297,7 @@ class OmegaConf:
             Tuple[Any, ...],
             Any,
         ],
+        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> Union[ListConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
@@ -295,6 +305,11 @@ class OmegaConf:
         However, the input configs must not be used after this operation as will become inconsistent.
 
         :param configs: Input configs
+        :param list_merge_mode: Behavior for merging lists
+            REPLACE: Replaces the target list with the new one (default)
+            EXTEND: Extends the target list with the new one
+            EXTEND_UNIQUE: Extends the target list items with items not present in it
+            hint: use `from omegaconf import ListMergeMode` to access the merge mode
         :return: the merged config object.
         """
         assert len(configs) > 0
@@ -305,7 +320,10 @@ class OmegaConf:
         with flag_override(
             target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
         ):
-            target.merge_with(*configs[1:])
+            target.merge_with(
+                *configs[1:],
+                list_merge_mode=list_merge_mode,
+            )
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:

@@ -34,7 +34,7 @@ from omegaconf._utils import (
     get_value_kind,
     is_structured_config,
 )
-from omegaconf.base import Node
+from omegaconf.base import ListMergeMode, Node
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from omegaconf.nodes import IntegerNode
 from tests import (
@@ -1188,6 +1188,49 @@ def test_merge_list_list() -> None:
     b = OmegaConf.create([4, 5, 6])
     a.merge_with(b)
     assert a == b
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
+    "list_merge_mode,c1,c2,expected",
+    [
+        (ListMergeMode.REPLACE, [1, 2], [3, 4], [3, 4]),
+        (ListMergeMode.EXTEND, [{"a": 1}], [{"b": 2}], [{"a": 1}, {"b": 2}]),
+        (
+            ListMergeMode.EXTEND,
+            {"list": [1, 2]},
+            {"list": [3, 4]},
+            {"list": [1, 2, 3, 4]},
+        ),
+        (
+            ListMergeMode.EXTEND,
+            {"list1": [1, 2], "list2": [1, 2]},
+            {"list1": [3, 4], "list2": [3, 4]},
+            {"list1": [1, 2, 3, 4], "list2": [1, 2, 3, 4]},
+        ),
+        (ListMergeMode.EXTEND, [[1, 2], [3, 4]], [[5, 6]], [[1, 2], [3, 4], [5, 6]]),
+        (ListMergeMode.EXTEND, [1, 2], [1, 2], [1, 2, 1, 2]),
+        (ListMergeMode.EXTEND, [{"a": 1}], [{"a": 1}], [{"a": 1}, {"a": 1}]),
+        (ListMergeMode.EXTEND_UNIQUE, [1, 2], [1, 3], [1, 2, 3]),
+        (
+            ListMergeMode.EXTEND_UNIQUE,
+            [{"a": 1}, {"b": 2}],
+            [{"a": 1}, {"c": 3}],
+            [{"a": 1}, {"b": 2}, {"c": 3}],
+        ),
+    ],
+)
+def test_merge_list_modes(
+    merge: Any,
+    c1: Any,
+    c2: Any,
+    list_merge_mode: ListMergeMode,
+    expected: Any,
+) -> None:
+    a = OmegaConf.create(c1)
+    b = OmegaConf.create(c2)
+    merged = merge(a, b, list_merge_mode=list_merge_mode)
+    assert merged == expected
 
 
 @mark.parametrize("merge_func", [OmegaConf.merge, OmegaConf.unsafe_merge])
