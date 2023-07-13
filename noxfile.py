@@ -16,11 +16,7 @@ nox.options.error_on_missing_interpreters = True
 def deps(
     session: Session, editable_install: bool, requirements: str = "requirements/dev.txt"
 ) -> None:
-    session.install(
-        "--upgrade",
-        "setuptools<=66",  # pinned due to DeprecationWarning, see https://github.com/omry/omegaconf/issues/1068
-        "pip",
-    )
+    session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_install else []
     session.install("-r", requirements, *extra_flags, ".", silent=True)
 
