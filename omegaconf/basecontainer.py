@@ -570,6 +570,14 @@ class BaseContainer(Container, ABC):
             if do_deepcopy:
                 value = copy.deepcopy(value)
             value._set_parent(None)
+            
+            # print warning if key is already defined
+            try:
+                node = self._get_node(key)
+                if node == value:
+                    print(f"WARNING: value '{node}' is defined redundantly in '{node._get_full_key('')}'")
+            except:
+                pass
 
             try:
                 old = value._key()
