@@ -1,4 +1,12 @@
-from .base import Container, DictKeyType, ListMergeMode, Node, SCMode, UnionNode
+from .base import (
+    MISSING,
+    Container,
+    DictKeyType,
+    ListMergeMode,
+    Node,
+    SCMode,
+    UnionNode,
+)
 from .dictconfig import DictConfig
 from .errors import (
     KeyValidationError,
@@ -19,16 +27,7 @@ from .nodes import (
     StringNode,
     ValueNode,
 )
-from .omegaconf import (
-    II,
-    MISSING,
-    SI,
-    OmegaConf,
-    Resolver,
-    flag_override,
-    open_dict,
-    read_write,
-)
+from .omegaconf import II, SI, OmegaConf, Resolver, flag_override, open_dict, read_write
 from .version import __version__
 
 __all__ = [

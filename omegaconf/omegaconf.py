@@ -73,8 +73,6 @@ from .nodes import (
     ValueNode,
 )
 
-MISSING: Any = "???"
-
 Resolver = Callable[..., Any]
 
 

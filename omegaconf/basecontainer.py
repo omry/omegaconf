@@ -286,7 +286,7 @@ class BaseContainer(Container, ABC):
             if structured_config_mode == SCMode.INSTANTIATE and is_structured_config(
                 conf._metadata.object_type
             ):
-                return conf._to_object()
+                return conf._to_object(throw_on_missing=throw_on_missing)
 
             retdict: Dict[DictKeyType, Any] = {}
             for key in conf.keys():

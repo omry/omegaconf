@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Optional
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
+    MISSING,
     DictConfig,
     ListConfig,
     MissingMandatoryValue,
@@ -406,6 +407,17 @@ class TestInstantiateStructuredConfigs:
         assert isinstance(container, dict)
         assert container["color"] == "BLUE"
         assert container["obj"].not_optional is Color.BLUE
+
+    def test_to_container_INSTANTIATE_throw_on_missing_False(self, module: Any) -> None:
+        """Test the lower level `to_container` API with SCMode.INSTANTIATE and throw_on_missing=False"""
+        src = module.User("Bond")  # age: MISSING
+        cfg = OmegaConf.create(src)
+        container = OmegaConf.to_container(
+            cfg, throw_on_missing=False, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, module.User)
+        assert container.name == "Bond"
+        assert container.age is MISSING
 
     def test_to_object_InterpolationResolutionError(self, module: Any) -> None:
         with raises(InterpolationResolutionError):
