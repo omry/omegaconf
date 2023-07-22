@@ -13,7 +13,7 @@ exclude = '''
 '''
 
 [tool.pytest.ini_options]
-addopts = "--import-mode=append -Werror"
+addopts = "--import-mode=append -Werror -W 'ignore:pkg_resources is deprecated as an API:DeprecationWarning' -W 'ignore:Deprecated call to `pkg_resources:DeprecationWarning'"
 pythonpath = ["."]
 
 [tool.towncrier]
