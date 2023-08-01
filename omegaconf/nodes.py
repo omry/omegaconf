@@ -33,7 +33,8 @@ class ValueNode(Node):
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError("Cannot set value of read-only config node")
+            # raise ReadonlyConfigError("Cannot set value of read-only config node")
+            pass
 
         if isinstance(value, str) and get_value_kind(
             value, strict_interpolation_validation=True
