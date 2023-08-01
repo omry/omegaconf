@@ -5,6 +5,9 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
+import logging
+
+logger = logging.getLogger()
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -399,6 +402,18 @@ class BaseContainer(Container, ABC):
                 dest_node = dest._get_node(key)
 
             if dest_node is not None:
+
+                # check if the node was prefixed with a '~' as readonly operator
+                dest_readonly = dest_node._get_flag("readonly")
+                src_readonly = src_node._get_flag("readonly")
+                # overwrite the non-readonly node
+                if src_readonly:
+                    dest_node._set_value(src_value)
+                    dest.__setitem__(key, src_node)
+                elif dest_readonly:
+                    src_node = dest_node
+                    dest.__setitem__(key, src_node)
+
                 if isinstance(dest_node, BaseContainer):
                     if isinstance(src_node, BaseContainer):
                         dest_node._merge_with(
@@ -558,6 +573,13 @@ class BaseContainer(Container, ABC):
         Changes the value of the node key with the desired value. If the node key doesn't
         exist it creates a new one.
         """
+
+        # check if the key has '~' as prefix to indicate overwriting
+        readonly = False
+        if isinstance(key, str) and key.startswith("~"):
+            key = key.removeprefix("~")
+            readonly = True
+
         from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
@@ -570,12 +592,14 @@ class BaseContainer(Container, ABC):
             if do_deepcopy:
                 value = copy.deepcopy(value)
             value._set_parent(None)
-            
+
             # print warning if key is already defined
             try:
                 node = self._get_node(key)
                 if node == value:
-                    print(f"WARNING: value '{node}' is defined redundantly in '{node._get_full_key('')}'")
+                    logger.info(
+                        f"WARNING: value '{node}' is defined redundantly in '{node._get_full_key('')}'"
+                    )
             except:
                 pass
 
@@ -589,7 +613,8 @@ class BaseContainer(Container, ABC):
             self._validate_set(key, value)
 
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError("Cannot change read-only config container")
+            # raise ReadonlyConfigError("Cannot change read-only config container")
+            pass
 
         input_is_node = isinstance(value, Node)
         target_node_ref = self._get_node(key)
@@ -657,9 +682,11 @@ class BaseContainer(Container, ABC):
                 else:
                     assign(key, value)
             else:
-                self._wrap_value_and_set(key, value, target_type_hint)
+                self._wrap_value_and_set(key, value, target_type_hint, readonly)
 
-    def _wrap_value_and_set(self, key: Any, val: Any, type_hint: Any) -> None:
+    def _wrap_value_and_set(
+        self, key: Any, val: Any, type_hint: Any, readonly: bool = False
+    ) -> None:
         from omegaconf.omegaconf import _maybe_wrap
 
         is_optional, ref_type = _resolve_optional(type_hint)
@@ -672,6 +699,9 @@ class BaseContainer(Container, ABC):
                 is_optional=is_optional,
                 parent=self,
             )
+            # set node to readonly to imply overwriting
+            if readonly:
+                wrapped._set_flag("readonly", True)
         except ValidationError as e:
             self._format_and_raise(key=key, value=val, cause=e)
         self.__dict__["_content"][key] = wrapped

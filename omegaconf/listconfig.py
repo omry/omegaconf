@@ -92,7 +92,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self._validate_get(key, value)
 
         if self._get_flag("readonly"):
-            raise ReadonlyConfigError("ListConfig is read-only")
+            # raise ReadonlyConfigError("ListConfig is read-only")
+            pass
 
         if 0 <= key < self.__len__():
             target = self._get_node(key)
