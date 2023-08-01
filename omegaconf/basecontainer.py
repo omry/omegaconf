@@ -5,9 +5,8 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
-import logging
 
-logger = logging.getLogger()
+import omegaconf
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -596,10 +595,16 @@ class BaseContainer(Container, ABC):
             # print warning if key is already defined
             try:
                 node = self._get_node(key)
-                if node == value:
-                    logger.info(
-                        f"WARNING: value '{node}' is defined redundantly in '{node._get_full_key('')}'"
-                    )
+                if (
+                    omegaconf.omegaconf.log_file
+                    and not node._get_flag("readonly")
+                    and node == value
+                ):
+                    with open(omegaconf.omegaconf.log_file, "a") as file:
+                        print(
+                            f"value '{node}' is defined redundantly in '{node._get_full_key('')}'",
+                            file=file,
+                        )
             except:
                 pass
 

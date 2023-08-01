@@ -27,7 +27,6 @@ from typing import (
 )
 
 import yaml
-import logging
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
@@ -277,8 +276,8 @@ class OmegaConf:
         target = _ensure_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
 
-        if log_filename:
-            setup_logging(log_filename)
+        global log_file
+        log_file = log_filename
 
         with flag_override(target, "readonly", False):
             target.merge_with(
@@ -323,8 +322,8 @@ class OmegaConf:
         target = _ensure_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
 
-        if log_filename:
-            setup_logging(log_filename)
+        global log_file
+        log_file = log_filename
 
         with flag_override(
             target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
@@ -1182,9 +1181,3 @@ def _select_one(
 
     assert val is None or isinstance(val, Node)
     return val, ret_key
-
-
-def setup_logging(filename: str) -> None:
-    logging.basicConfig(
-        filename=filename, filemode="w", format="%(message)s", level=logging.DEBUG
-    )
