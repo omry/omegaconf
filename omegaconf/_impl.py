@@ -10,6 +10,7 @@ from ._utils import (
     _get_value,
     is_primitive_container,
     is_structured_config,
+    maybe_escape,
 )
 
 
@@ -33,7 +34,7 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
                 cfg[key] = resolved
             else:
-                node._set_value(_get_value(resolved))
+                node._set_value(maybe_escape(_get_value(resolved)))
     else:
         _resolve(node)
 
@@ -46,7 +47,7 @@ def _resolve(cfg: Node) -> Node:
         except InterpolationToMissingValueError:
             cfg._set_value(MISSING)
         else:
-            cfg._set_value(resolved._value())
+            cfg._set_value(maybe_escape(resolved._value()))
 
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():
