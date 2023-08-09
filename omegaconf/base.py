@@ -690,16 +690,13 @@ class Container(Box):
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            res = resolver(
+            return resolver(
                 root_node,
                 self,
                 node,
                 inter_args,
                 inter_args_str,
             )
-            
-            print(res)
-            return res
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"

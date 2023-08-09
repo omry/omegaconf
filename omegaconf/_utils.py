@@ -683,6 +683,42 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
+def maybe_escape(value: Any) -> Any:
+    """Escape interpolation strings and return other values unchanged.
+    When the input value is an interpolation string, the returned value is such that
+    it yields the original input string when resolved.
+    """
+    if not isinstance(value, str) or not _is_interpolation_string(
+        value, strict_interpolation_validation=False
+    ):
+        return value
+    start = 0
+    tokens = []
+    while True:
+        # Find next ${ that needs escaping.
+        first_inter = value.find("${", start)
+        if first_inter < 0:
+            tokens.append(value[start:])  # ensure we keep the end of the string
+            break
+        # Any backslash that comes before ${ will need to be escaped as well.
+        count_esc = 0
+        while (
+            first_inter - count_esc - 1 >= 0
+            and value[first_inter - count_esc - 1] == "\\"
+        ):
+            count_esc += 1
+        tokens += [
+            # Characters that need not be changed.
+            value[start : first_inter - count_esc],
+            # Escaped backslashes before the interpolation.
+            "\\" * (count_esc * 2),
+            # Escaped interpolation.
+            "\\${",
+        ]
+        start = first_inter + 2
+    return "".join(tokens)
+
+
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     args = getattr(ref_type, "__args__", None)
     if ref_type is not List and args is not None and args[0]:
