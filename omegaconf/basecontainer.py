@@ -396,6 +396,7 @@ class BaseContainer(Container, ABC):
                     dest_node = dest._get_node(key)
                 elif is_list_annotation(et):
                     dest[key] = ListConfig([], parent=dest, ref_type=et, is_optional=is_optional)
+                    dest_node = dest._get_node(key)
 
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
