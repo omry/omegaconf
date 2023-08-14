@@ -304,7 +304,7 @@ class BaseContainer(Container, ABC):
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import AnyNode, DictConfig, ValueNode
+        from omegaconf import AnyNode, DictConfig, ListConfig, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
