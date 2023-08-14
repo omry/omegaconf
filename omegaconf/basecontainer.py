@@ -384,12 +384,18 @@ class BaseContainer(Container, ABC):
                     dest_node = dest._get_node(key)
 
             is_optional, et = _resolve_optional(dest._metadata.element_type)
-            if dest_node is None and is_structured_config(et) and not src_node_missing:
-                # merging into a new node. Use element_type as a base
-                dest[key] = DictConfig(
-                    et, parent=dest, ref_type=et, is_optional=is_optional
-                )
-                dest_node = dest._get_node(key)
+            if dest_node is None and not src_node_missing:
+                if is_structured_config(et):
+                    # merging into a new node. Use element_type as a base
+                    dest[key] = DictConfig(
+                        et, parent=dest, ref_type=et, is_optional=is_optional
+                    )
+                    dest_node = dest._get_node(key)
+                elif is_dict_annotation(et):
+                    dest[key] = DictConfig({}, parent=dest, ref_type=et, is_optional=is_optional)
+                    dest_node = dest._get_node(key)
+                elif is_list_annotation(et):
+                    dest[key] = ListConfig([], parent=dest, ref_type=et, is_optional=is_optional)
 
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
