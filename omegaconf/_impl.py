@@ -14,7 +14,9 @@ from ._utils import (
 )
 
 
-def _resolve_container_value(cfg: Container, key: Any) -> None:
+def _resolve_container_value(
+    cfg: Container, key: Any, escape_interpolation_strings: bool
+) -> None:
     node = cfg._get_child(key)
     assert isinstance(node, Node)
     if node._is_interpolation():
@@ -24,7 +26,7 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             node._set_value(MISSING)
         else:
             if isinstance(resolved, Container):
-                _resolve(resolved)
+                _resolve(resolved, escape_interpolation_strings)
             if isinstance(resolved, InterpolationResultNode):
                 resolved_value = _get_value(resolved)
                 if is_primitive_container(resolved_value) or is_structured_config(
@@ -34,12 +36,15 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             if isinstance(resolved, Container) and isinstance(node, ValueNode):
                 cfg[key] = resolved
             else:
-                node._set_value(maybe_escape(_get_value(resolved)))
+                val = _get_value(resolved)
+                if escape_interpolation_strings:
+                    val = maybe_escape(val)
+                node._set_value(val)
     else:
-        _resolve(node)
+        _resolve(node, escape_interpolation_strings)
 
 
-def _resolve(cfg: Node) -> Node:
+def _resolve(cfg: Node, escape_interpolation_strings: bool) -> Node:
     assert isinstance(cfg, Node)
     if cfg._is_interpolation():
         try:
@@ -47,15 +52,18 @@ def _resolve(cfg: Node) -> Node:
         except InterpolationToMissingValueError:
             cfg._set_value(MISSING)
         else:
-            cfg._set_value(maybe_escape(resolved._value()))
+            val = resolved._value()
+            if escape_interpolation_strings:
+                val = maybe_escape(val)
+            cfg._set_value(val)
 
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():
-            _resolve_container_value(cfg, k)
+            _resolve_container_value(cfg, k, escape_interpolation_strings)
 
     elif isinstance(cfg, ListConfig):
         for i in range(len(cfg)):
-            _resolve_container_value(cfg, i)
+            _resolve_container_value(cfg, i, escape_interpolation_strings)
 
     return cfg
 
