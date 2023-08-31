@@ -12,6 +12,10 @@ Yes/No
 
 (How should this PR be tested? Do you require special setup to run the test or repro the fixed bug?)
 
-## Related Issues and PRs
+## Fixes
 
-(Is this PR part of a group of changes? Link the other relevant PRs and Issues here. Use https://help.github.com/en/articles/closing-issues-using-keywords for help on GitHub syntax)
+What issue does this PR fix? Use https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue to link this PR to a corresponding issue.
+
+## Related PRs
+
+(Is this PR part of a group of changes? Link the other relevant PRs.)
