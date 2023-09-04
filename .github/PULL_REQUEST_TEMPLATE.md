@@ -17,6 +17,7 @@ Yes/No
 What issue does this PR fix? Use https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue to link this PR to a corresponding issue.
 
 Fixes #<issue_number>
+
 ## Related PRs
 
 (Is this PR part of a group of changes? Link the other relevant PRs.)
