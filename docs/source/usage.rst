@@ -27,7 +27,7 @@ Just pip install::
 
     pip install omegaconf
 
-OmegaConf requires Python 3.6 and newer.
+OmegaConf requires Python 3.8 or newer.
 
 .. _creating:
 
@@ -315,12 +315,6 @@ Note that the saved file may be incompatible across different versions of OmegaC
     ...     assert fp.seek(0) == 0
     ...     loaded = pickle.load(fp)
     ...     assert conf == loaded
-
-Note for Python3.6 users: due to limitations in pickling support,
-:ref:`structured configs <structured_configs>` with complex type hints (such as
-:ref:`nested container types <nested_dict_and_list_annotations>` or
-:ref:`containers with optional element types <other_special_features>`) cannot
-be pickled using Python3.6.
 
 
 .. _interpolation:

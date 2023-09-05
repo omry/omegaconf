@@ -6,20 +6,9 @@ import string
 import sys
 import types
 import warnings
-from contextlib import contextmanager
 from enum import Enum
 from textwrap import dedent
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    get_type_hints,
-)
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
 
 import yaml
 
@@ -635,32 +624,22 @@ def is_dict_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
     # type_dict is a bit hard to detect.
     # this support is tentative, if it eventually causes issues in other areas it may be dropped.
-    if sys.version_info < (3, 7, 0):  # pragma: no cover
-        typed_dict = hasattr(type_, "__base__") and type_.__base__ == Dict
-        return origin is Dict or type_ is Dict or typed_dict
-    else:  # pragma: no cover
-        typed_dict = hasattr(type_, "__base__") and type_.__base__ == dict
-        return origin is dict or typed_dict
+    typed_dict = hasattr(type_, "__base__") and type_.__base__ == dict
+    return origin is dict or typed_dict
 
 
 def is_list_annotation(type_: Any) -> bool:
     if type_ in (list, List):
         return True
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info < (3, 7, 0):
-        return origin is List or type_ is List  # pragma: no cover
-    else:
-        return origin is list  # pragma: no cover
+    return origin is list  # pragma: no cover
 
 
 def is_tuple_annotation(type_: Any) -> bool:
     if type_ in (tuple, Tuple):
         return True
     origin = getattr(type_, "__origin__", None)
-    if sys.version_info < (3, 7, 0):
-        return origin is Tuple or type_ is Tuple  # pragma: no cover
-    else:
-        return origin is tuple  # pragma: no cover
+    return origin is tuple  # pragma: no cover
 
 
 def is_supported_union_annotation(obj: Any) -> bool:
@@ -1032,10 +1011,3 @@ def split_key(key: str) -> List[str]:
     tokens += [dot_key if dot_key else bracket_key for dot_key, bracket_key in others]
 
     return tokens
-
-
-# Similar to Python 3.7+'s `contextlib.nullcontext` (which should be used instead,
-# once support for Python 3.6 is dropped).
-@contextmanager
-def nullcontext(enter_result: Any = None) -> Iterator[Any]:
-    yield enter_result
