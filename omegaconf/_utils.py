@@ -632,14 +632,14 @@ def is_list_annotation(type_: Any) -> bool:
     if type_ in (list, List):
         return True
     origin = getattr(type_, "__origin__", None)
-    return origin is list  # pragma: no cover
+    return origin is list
 
 
 def is_tuple_annotation(type_: Any) -> bool:
     if type_ in (tuple, Tuple):
         return True
     origin = getattr(type_, "__origin__", None)
-    return origin is tuple  # pragma: no cover
+    return origin is tuple
 
 
 def is_supported_union_annotation(obj: Any) -> bool:
