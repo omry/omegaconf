@@ -785,7 +785,7 @@ class OmegaConf:
         )
 
     @staticmethod
-    def resolve(cfg: Container) -> None:
+    def resolve(cfg: Container, escape_interpolation_strings: bool = False) -> None:
         """
         Resolves all interpolations in the given config object in-place.
 
@@ -800,7 +800,10 @@ class OmegaConf:
             raise ValueError(
                 f"Invalid config type ({type(cfg).__name__}), expected an OmegaConf Container"
             )
-        omegaconf._impl._resolve(cfg)
+        omegaconf._impl._resolve(cfg, escape_interpolation_strings=True)
+        if not escape_interpolation_strings:
+            # Do a second pass without escaping.
+            omegaconf._impl._resolve(cfg, escape_interpolation_strings=False)
 
     @staticmethod
     def missing_keys(cfg: Any) -> Set[str]:
