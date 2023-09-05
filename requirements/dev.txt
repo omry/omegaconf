@@ -1,12 +1,12 @@
 -r base.txt
 -r docs.txt
 attrs
-black>=23.7.0
+black==23.7.0
 build
 coveralls
-flake8>=6.0.0
-isort>=5.12.0
-mypy>=1.4.1
+flake8==6.0.0
+isort==5.12.0
+mypy==1.4.1
 nox
 pre-commit
 pyflakes

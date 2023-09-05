@@ -1,6 +1,7 @@
 default_language_version:
       python: python3.8
 
+# Hook versions should match those in requirements/dev.txt
 repos:
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
