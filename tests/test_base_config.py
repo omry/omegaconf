@@ -183,6 +183,25 @@ def test_set_flags() -> None:
         c._set_flag(["readonly", "struct"], [True, False, False])
 
 
+@mark.parametrize("config", [{"a": {"b": 1}}, {"a": [1, 2, 3]}])
+def test_set_flag_recursively(config: Any) -> None:
+    c = OmegaConf.create(config)
+    assert not c._get_flag("readonly")
+    assert not c._get_flag("struct")
+    c.a._set_flag(["readonly", "struct"], [True, True], recursive=False)
+    assert c.a._get_flag("readonly")
+    assert c.a._get_flag("struct")
+    assert not c._get_flag("readonly")
+    assert not c._get_flag("struct")
+
+    c._set_flag("readonly", False, recursive=True)
+    assert not c.a._get_flag("readonly")
+    assert c.a._get_flag("struct")
+
+    c._set_flag("struct", False, recursive=True)
+    assert not c.a._get_flag("struct")
+
+
 @mark.parametrize("no_deepcopy_set_nodes", [True, False])
 @mark.parametrize("node", [20, {"b": 10}, [1, 2]])
 def test_get_flag_after_dict_assignment(no_deepcopy_set_nodes: bool, node: Any) -> None:

@@ -519,9 +519,11 @@ class OmegaConf:
         OmegaConf.set_cache(to_config, OmegaConf.get_cache(from_config))
 
     @staticmethod
-    def set_readonly(conf: Node, value: Optional[bool]) -> None:
+    def set_readonly(
+        conf: Node, value: Optional[bool], recursive: bool = False
+    ) -> None:
         # noinspection PyProtectedMember
-        conf._set_flag("readonly", value)
+        conf._set_flag("readonly", value, recursive=recursive)
 
     @staticmethod
     def is_readonly(conf: Node) -> Optional[bool]:
@@ -529,20 +531,11 @@ class OmegaConf:
         return conf._get_flag("readonly")
 
     @staticmethod
-    def set_readonly_recursively(conf: Node, value: Optional[bool]) -> None:
+    def set_struct(
+        conf: Container, value: Optional[bool], recursive: bool = False
+    ) -> None:
         # noinspection PyProtectedMember
-        conf._set_flag("readonly", value)
-        if isinstance(conf, DictConfig):
-            for key in conf.keys():
-                OmegaConf.set_readonly_recursively(conf._get_child(key), value)
-        elif isinstance(conf, ListConfig):
-            for index in conf:
-                OmegaConf.set_readonly_recursively(conf._get_child(index), value)
-
-    @staticmethod
-    def set_struct(conf: Container, value: Optional[bool]) -> None:
-        # noinspection PyProtectedMember
-        conf._set_flag("struct", value)
+        conf._set_flag("struct", value, recursive=recursive)
 
     @staticmethod
     def is_struct(conf: Container) -> Optional[bool]:
