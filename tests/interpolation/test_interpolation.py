@@ -149,7 +149,7 @@ def test_indirect_interpolation2() -> None:
 def test_type_inherit_type(cfg: Any) -> None:
     cfg = _ensure_container(cfg)
     assert isinstance(cfg.a, type(cfg.b))
-    assert type(cfg.s) == str  # check that string interpolations are always strings
+    assert isinstance(cfg.s, str)  # check that string interpolations are always strings
 
 
 def test_interpolation_in_list_key_error() -> None:

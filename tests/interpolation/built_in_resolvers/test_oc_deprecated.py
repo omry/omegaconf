@@ -72,7 +72,7 @@ def test_deprecated(
     with warns(UserWarning, match=re.escape(expected_warning)):
         value = OmegaConf.select(cfg, key)
     assert value == expected_value
-    assert type(value) == type(expected_value)
+    assert type(value) is type(expected_value)
 
 
 @mark.parametrize(

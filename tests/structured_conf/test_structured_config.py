@@ -444,10 +444,10 @@ class TestConfigs:
         assert conf.x == input_.x
         assert conf.z1 == conf.x
         assert conf.z2 == f"{conf.x}_{conf.y}"
-        assert type(conf.x) == int
-        assert type(conf.y) == int
-        assert type(conf.z1) == int
-        assert type(conf.z2) == str
+        assert isinstance(conf.x, int)
+        assert isinstance(conf.y, int)
+        assert isinstance(conf.z1, int)
+        assert isinstance(conf.z2, str)
 
     @mark.parametrize(
         "tested_type",
@@ -2010,7 +2010,7 @@ class TestUnionsOfPrimitiveTypes:
         if vk is _utils.ValueKind.VALUE:
             assert cfg[key] == expected_val
             if _utils.is_primitive_type_annotation(type(expected_val)):
-                assert type(cfg[key]) == type(expected_val)
+                assert type(cfg[key]) is type(expected_val)
             else:
                 assert isinstance(cfg[key], Container)
 

@@ -358,8 +358,8 @@ def test_items(cfg: Any, expected: Any, expected_no_resolve: Any) -> None:
         pairs = list(cfg.items_ex(resolve=False))
         assert pairs == expected_no_resolve
         for idx in range(len(expected_no_resolve)):
-            assert type(pairs[idx][0]) == type(expected_no_resolve[idx][0])  # noqa
-            assert type(pairs[idx][1]) == type(expected_no_resolve[idx][1])  # noqa
+            assert type(pairs[idx][0]) is type(expected_no_resolve[idx][0])
+            assert type(pairs[idx][1]) is type(expected_no_resolve[idx][1])
     else:
         with expected_no_resolve:
             cfg.items_ex(resolve=False)
@@ -515,7 +515,7 @@ def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -
         val = c.pop(key)
 
     assert val == expected
-    assert type(val) == type(expected)
+    assert type(val) is type(expected)
 
 
 def test_dict_struct_mode_pop() -> None:

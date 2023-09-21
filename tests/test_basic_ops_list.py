@@ -421,7 +421,7 @@ def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     lc.append(element)
     value = lc[-1]
     assert value == expected
-    assert type(value) == type(expected)
+    assert type(value) is type(expected)
 
 
 @mark.parametrize(
@@ -977,7 +977,7 @@ def test_setitem_slice(
         assert cfg == expected
     else:
         expected_exception: Any = expected.expected_exception
-        if type(constructor) == type(list) and issubclass(
+        if type(constructor) == type(list) and issubclass(  # noqa E721
             expected_exception, UnsupportedValueType
         ):
             return  # standard list() can accept object() so skip
