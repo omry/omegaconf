@@ -4,7 +4,7 @@ from typing import Tuple
 import nox
 from nox import Session
 
-DEFAULT_PYTHON_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+DEFAULT_PYTHON_VERSIONS = ["3.8", "3.9", "3.10", "3.11"]
 
 PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
@@ -63,7 +63,7 @@ def version_string_to_tuple(version: str) -> Tuple[int, ...]:
     return tuple(map(int, version.split(".")))
 
 
-@nox.session(python=[v for v in PYTHON_VERSIONS if version_string_to_tuple(v) >= (3, 7)])  # type: ignore
+@nox.session(python=PYTHON_VERSIONS)  # type: ignore
 def lint(session: Session) -> None:
     deps(session, editable_install=True)
     session.run(

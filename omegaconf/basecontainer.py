@@ -45,7 +45,6 @@ from .errors import (
     InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
-    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
@@ -133,12 +132,6 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = List
             else:
                 assert False
-        if sys.version_info < (3, 7):  # pragma: no cover
-            element_type = self._metadata.element_type
-            if is_union_annotation(element_type):
-                raise OmegaConfBaseException(
-                    "Serializing structured configs with `Union` element type requires python >= 3.7"
-                )
         return dict_copy
 
     # Support pickle

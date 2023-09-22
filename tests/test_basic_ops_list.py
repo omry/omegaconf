@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from contextlib import nullcontext
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, List, MutableSequence, Optional, Union
@@ -8,7 +9,7 @@ from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
-from omegaconf._utils import _ensure_container, nullcontext
+from omegaconf._utils import _ensure_container
 from omegaconf.base import Node
 from omegaconf.errors import (
     ConfigTypeError,

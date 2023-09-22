@@ -27,7 +27,6 @@ from omegaconf._utils import (  # _normalize_ref_type,
     is_supported_union_annotation,
     is_tuple_annotation,
     is_union_annotation,
-    nullcontext,
     split_key,
 )
 from omegaconf.errors import UnsupportedValueType, ValidationError
@@ -682,10 +681,7 @@ def test_type_str_ellipsis() -> None:
         (Union[float, bool, None], "Optional[Union[float, bool]]"),
         (Union[float, bool, NoneType], "Optional[Union[float, bool]]"),
         (object, "object"),
-        (
-            Optional[object],  # python3.6 treats `Optional[object]` as `object`
-            "Optional[object]" if sys.version_info >= (3, 7) else "object",
-        ),
+        (Optional[object], "Optional[object]"),
     ],
 )
 def test_type_str_nonetype(type_: Any, expected: str) -> None:
@@ -1091,15 +1087,6 @@ def test_marker_string_representation() -> None:
 )
 def test_split_key(key: str, expected: List[str]) -> None:
     assert split_key(key) == expected
-
-
-def test_nullcontext() -> None:
-    with nullcontext() as x:
-        assert x is None
-
-    obj = object()
-    with nullcontext(obj) as x:
-        assert x is obj
 
 
 @mark.parametrize("is_optional", [True, False])
