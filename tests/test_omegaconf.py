@@ -1,5 +1,6 @@
 import pathlib
 import platform
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Union
 
@@ -20,7 +21,7 @@ from omegaconf import (
     StringNode,
     UnionNode,
 )
-from omegaconf._utils import _is_none, nullcontext
+from omegaconf._utils import _is_none
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
