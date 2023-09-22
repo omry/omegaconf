@@ -7,7 +7,7 @@ import pathlib
 import sys
 import warnings
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from enum import Enum
 from textwrap import dedent
 from typing import (
@@ -49,7 +49,6 @@ from ._utils import (
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
-    nullcontext,
     split_key,
     type_str,
 )

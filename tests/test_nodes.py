@@ -1,7 +1,6 @@
 import copy
 import functools
 import re
-import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
@@ -105,10 +104,6 @@ def _build_union(content: Any) -> UnionNode:
             _build_union,
             True,
             True,
-            marks=mark.skipif(
-                sys.version_info < (3, 7),
-                reason="python3.6 treats Union[int, bool] as equivalent to Union[int]",
-            ),
             id="union-bool",
         ),
         param(_build_union, None, None, id="union-none"),

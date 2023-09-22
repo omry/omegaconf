@@ -15,11 +15,11 @@ Optionally install commit hooks: `pre-commit install`
 pre-commit will verify your code lints cleanly when you commit. You can use `git commit -n` to skip the pre-commit hook for a specific commit.
 
 ##### Mac
-OmegaConf is compatible with Python 3.6.4 and newer. Unfortunately Mac comes with older versions.
+OmegaConf is compatible with Python 3.8 and newer.
 
 One way to install multiple Python versions on Mac to to use pyenv.
 The instructions [here](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/MAC_SETUP.md)
-will provide full details. It shows how to use pyenv on mac to install multiple versions of Python and have
+will provide full details. It shows how to use pyenv on Mac to install multiple versions of Python and have
 pyenv make specific versions available in specific directories automatically.
 This plays well with Conda, which supports a single Python version. Pyenv will provide the versions not installed by Conda (which are used when running nox).
 
@@ -31,24 +31,16 @@ Run all CI tests with nox:
 ```
 $ nox -l
 Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
-* omegaconf-3.6
-* omegaconf-3.7
 * omegaconf-3.8
 * omegaconf-3.9
 * omegaconf-3.10
 * docs
-* coverage-3.6
-* coverage-3.7
 * coverage-3.8
 * coverage-3.9
 * coverage-3.10
-* lint-3.6
-* lint-3.7
 * lint-3.8
 * lint-3.9
 * lint-3.10
-* test_jupyter_notebook-3.6
-* test_jupyter_notebook-3.7
 * test_jupyter_notebook-3.8
 * test_jupyter_notebook-3.9
 * test_jupyter_notebook-3.10

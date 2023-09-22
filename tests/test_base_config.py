@@ -1,4 +1,5 @@
 import copy
+from contextlib import nullcontext
 from typing import Any, Dict, List, Optional, Union
 
 from pytest import mark, param, raises
@@ -19,7 +20,7 @@ from omegaconf import (
     open_dict,
     read_write,
 )
-from omegaconf._utils import _ensure_container, nullcontext
+from omegaconf._utils import _ensure_container
 from omegaconf.errors import ConfigAttributeError, ConfigKeyError, MissingMandatoryValue
 from tests import (
     ConcretePlugin,
