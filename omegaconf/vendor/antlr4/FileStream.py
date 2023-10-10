@@ -10,7 +10,7 @@
 #
 
 import codecs
-from .vendor.antlr4.InputStream import InputStream
+from omegaconf.vendor.antlr4.InputStream import InputStream
 
 
 class FileStream(InputStream):

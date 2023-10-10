@@ -10,12 +10,12 @@
 #/
 from io import StringIO
 from functools import reduce
-from .vendor.antlr4.PredictionContext import PredictionContext, merge
-from .vendor.antlr4.Utils import str_list
-from .vendor.antlr4.atn.ATN import ATN
-from .vendor.antlr4.atn.ATNConfig import ATNConfig
-from .vendor.antlr4.atn.SemanticContext import SemanticContext
-from .vendor.antlr4.error.Errors import UnsupportedOperationException, IllegalStateException
+from omegaconf.vendor.antlr4.PredictionContext import PredictionContext, merge
+from omegaconf.vendor.antlr4.Utils import str_list
+from omegaconf.vendor.antlr4.atn.ATN import ATN
+from omegaconf.vendor.antlr4.atn.ATNConfig import ATNConfig
+from omegaconf.vendor.antlr4.atn.SemanticContext import SemanticContext
+from omegaconf.vendor.antlr4.error.Errors import UnsupportedOperationException, IllegalStateException
 
 ATNSimulator = None
 

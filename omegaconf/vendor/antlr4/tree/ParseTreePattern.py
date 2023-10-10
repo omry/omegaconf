@@ -8,9 +8,9 @@
 # A pattern like {@code <ID> = <expr>;} converted to a {@link ParseTree} by
 # {@link ParseTreePatternMatcher#compile(String, int)}.
 #
-from .vendor.antlr4.tree.ParseTreePatternMatcher import ParseTreePatternMatcher
-from .vendor.antlr4.tree.Tree import ParseTree
-from .vendor.antlr4.xpath.XPathLexer import XPathLexer
+from omegaconf.vendor.antlr4.tree.ParseTreePatternMatcher import ParseTreePatternMatcher
+from omegaconf.vendor.antlr4.tree.Tree import ParseTree
+from omegaconf.vendor.antlr4.xpath.XPathLexer import XPathLexer
 
 
 class ParseTreePattern(object):

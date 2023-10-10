@@ -1,5 +1,5 @@
 # Generated from XPathLexer.g4 by ANTLR 4.9.3
-from .vendor.antlr4 import *
+from omegaconf.vendor.antlr4 import *
 from io import StringIO
 import sys
 if sys.version_info[1] > 5:

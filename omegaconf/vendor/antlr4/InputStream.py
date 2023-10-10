@@ -8,7 +8,7 @@
 #
 #  Vacuum all input from a string and then treat it like a buffer.
 #
-from .vendor.antlr4.Token import Token
+from omegaconf.vendor.antlr4.Token import Token
 
 
 class InputStream (object):

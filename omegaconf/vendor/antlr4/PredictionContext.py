@@ -5,11 +5,11 @@
 #/
 from io import StringIO
 
-from .vendor.antlr4.error.Errors import IllegalStateException
+from omegaconf.vendor.antlr4.error.Errors import IllegalStateException
 
-from .vendor.antlr4.RuleContext import RuleContext
-from .vendor.antlr4.atn.ATN import ATN
-from .vendor.antlr4.atn.ATNState import ATNState
+from omegaconf.vendor.antlr4.RuleContext import RuleContext
+from omegaconf.vendor.antlr4.atn.ATN import ATN
+from omegaconf.vendor.antlr4.atn.ATNState import ATNState
 
 
 class PredictionContext(object):

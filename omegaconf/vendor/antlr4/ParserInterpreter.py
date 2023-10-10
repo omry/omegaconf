@@ -17,18 +17,18 @@
 #
 #  See TestParserInterpreter for examples.
 #
-from .vendor.antlr4.dfa.DFA import DFA
-from .vendor.antlr4.BufferedTokenStream import TokenStream
-from .vendor.antlr4.Lexer import Lexer
-from .vendor.antlr4.Parser import Parser
-from .vendor.antlr4.ParserRuleContext import InterpreterRuleContext, ParserRuleContext
-from .vendor.antlr4.Token import Token
-from .vendor.antlr4.atn.ATN import ATN
-from .vendor.antlr4.atn.ATNState import StarLoopEntryState, ATNState, LoopEndState
-from .vendor.antlr4.atn.ParserATNSimulator import ParserATNSimulator
-from .vendor.antlr4.PredictionContext import PredictionContextCache
-from .vendor.antlr4.atn.Transition import Transition
-from .vendor.antlr4.error.Errors import RecognitionException, UnsupportedOperationException, FailedPredicateException
+from omegaconf.vendor.antlr4.dfa.DFA import DFA
+from omegaconf.vendor.antlr4.BufferedTokenStream import TokenStream
+from omegaconf.vendor.antlr4.Lexer import Lexer
+from omegaconf.vendor.antlr4.Parser import Parser
+from omegaconf.vendor.antlr4.ParserRuleContext import InterpreterRuleContext, ParserRuleContext
+from omegaconf.vendor.antlr4.Token import Token
+from omegaconf.vendor.antlr4.atn.ATN import ATN
+from omegaconf.vendor.antlr4.atn.ATNState import StarLoopEntryState, ATNState, LoopEndState
+from omegaconf.vendor.antlr4.atn.ParserATNSimulator import ParserATNSimulator
+from omegaconf.vendor.antlr4.PredictionContext import PredictionContextCache
+from omegaconf.vendor.antlr4.atn.Transition import Transition
+from omegaconf.vendor.antlr4.error.Errors import RecognitionException, UnsupportedOperationException, FailedPredicateException
 
 
 class ParserInterpreter(Parser):

@@ -2,13 +2,13 @@
 # Use of this file is governed by the BSD 3-clause license that
 # can be found in the LICENSE.txt file in the project root.
 #/
-from .vendor.antlr4.IntervalSet import IntervalSet
+from omegaconf.vendor.antlr4.IntervalSet import IntervalSet
 
-from .vendor.antlr4.RuleContext import RuleContext
+from omegaconf.vendor.antlr4.RuleContext import RuleContext
 
-from .vendor.antlr4.Token import Token
-from .vendor.antlr4.atn.ATNType import ATNType
-from .vendor.antlr4.atn.ATNState import ATNState, DecisionState
+from omegaconf.vendor.antlr4.Token import Token
+from omegaconf.vendor.antlr4.atn.ATNType import ATNType
+from omegaconf.vendor.antlr4.atn.ATNState import ATNState, DecisionState
 
 
 class ATN(object):
@@ -52,7 +52,7 @@ class ATN(object):
     #  the rule surrounding {@code s}. In other words, the set will be
     #  restricted to tokens reachable staying within {@code s}'s rule.
     def nextTokensInContext(self, s:ATNState, ctx:RuleContext):
-        from .vendor.antlr4.LL1Analyzer import LL1Analyzer
+        from omegaconf.vendor.antlr4.LL1Analyzer import LL1Analyzer
         anal = LL1Analyzer(self)
         return anal.LOOK(s, ctx=ctx)
 

@@ -25,9 +25,9 @@
 #  group values such as this aggregate.  The getters/setters are there to
 #  satisfy the superclass interface.
 
-from .vendor.antlr4.RuleContext import RuleContext
-from .vendor.antlr4.Token import Token
-from .vendor.antlr4.tree.Tree import ParseTreeListener, ParseTree, TerminalNodeImpl, ErrorNodeImpl, TerminalNode, \
+from omegaconf.vendor.antlr4.RuleContext import RuleContext
+from omegaconf.vendor.antlr4.Token import Token
+from omegaconf.vendor.antlr4.tree.Tree import ParseTreeListener, ParseTree, TerminalNodeImpl, ErrorNodeImpl, TerminalNode, \
     INVALID_INTERVAL
 
 # need forward declaration
