@@ -29,9 +29,9 @@
 # channel.</p>
 #/
 
-from omegaconf.vendor.antlr4.BufferedTokenStream import BufferedTokenStream
-from omegaconf.vendor.antlr4.Lexer import Lexer
-from omegaconf.vendor.antlr4.Token import Token
+from .vendor.antlr4.BufferedTokenStream import BufferedTokenStream
+from .vendor.antlr4.Lexer import Lexer
+from .vendor.antlr4.Token import Token
 
 
 class CommonTokenStream(BufferedTokenStream):

@@ -61,18 +61,18 @@
 # {@link #setDelimiters}. You must escape both start and stop strings
 # {@code \<} and {@code \>}.</p>
 #
-from omegaconf.vendor.antlr4.CommonTokenStream import CommonTokenStream
-from omegaconf.vendor.antlr4.InputStream import InputStream
-from omegaconf.vendor.antlr4.ParserRuleContext import ParserRuleContext
-from omegaconf.vendor.antlr4.Lexer import Lexer
-from omegaconf.vendor.antlr4.ListTokenSource import ListTokenSource
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.error.ErrorStrategy import BailErrorStrategy
-from omegaconf.vendor.antlr4.error.Errors import RecognitionException, ParseCancellationException
-from omegaconf.vendor.antlr4.tree.Chunk import TagChunk, TextChunk
-from omegaconf.vendor.antlr4.tree.RuleTagToken import RuleTagToken
-from omegaconf.vendor.antlr4.tree.TokenTagToken import TokenTagToken
-from omegaconf.vendor.antlr4.tree.Tree import ParseTree, TerminalNode, RuleNode
+from .vendor.antlr4.CommonTokenStream import CommonTokenStream
+from .vendor.antlr4.InputStream import InputStream
+from .vendor.antlr4.ParserRuleContext import ParserRuleContext
+from .vendor.antlr4.Lexer import Lexer
+from .vendor.antlr4.ListTokenSource import ListTokenSource
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.error.ErrorStrategy import BailErrorStrategy
+from .vendor.antlr4.error.Errors import RecognitionException, ParseCancellationException
+from .vendor.antlr4.tree.Chunk import TagChunk, TextChunk
+from .vendor.antlr4.tree.RuleTagToken import RuleTagToken
+from .vendor.antlr4.tree.TokenTagToken import TokenTagToken
+from .vendor.antlr4.tree.Tree import ParseTree, TerminalNode, RuleNode
 
 # need forward declaration
 Parser = None
@@ -151,7 +151,7 @@ class ParseTreePatternMatcher(object):
     def matchPattern(self, tree:ParseTree, pattern:ParseTreePattern):
         labels = dict()
         mismatchedNode = self.matchImpl(tree, pattern.patternTree, labels)
-        from omegaconf.vendor.antlr4.tree.ParseTreeMatch import ParseTreeMatch
+        from .vendor.antlr4.tree.ParseTreeMatch import ParseTreeMatch
         return ParseTreeMatch(tree, pattern, labels, mismatchedNode)
 
     #
@@ -162,7 +162,7 @@ class ParseTreePatternMatcher(object):
         tokenList = self.tokenize(pattern)
         tokenSrc = ListTokenSource(tokenList)
         tokens = CommonTokenStream(tokenSrc)
-        from omegaconf.vendor.antlr4.ParserInterpreter import ParserInterpreter
+        from .vendor.antlr4.ParserInterpreter import ParserInterpreter
         parserInterp = ParserInterpreter(self.parser.grammarFileName, self.parser.tokenNames,
                                 self.parser.ruleNames, self.parser.getATNWithBypassAlts(),tokens)
         tree = None
@@ -180,7 +180,7 @@ class ParseTreePatternMatcher(object):
         if tokens.LA(1)!=Token.EOF:
             raise StartRuleDoesNotConsumeFullPattern()
 
-        from omegaconf.vendor.antlr4.tree.ParseTreePattern import ParseTreePattern
+        from .vendor.antlr4.tree.ParseTreePattern import ParseTreePattern
         return ParseTreePattern(self, pattern, patternRuleIndex, tree)
 
     #

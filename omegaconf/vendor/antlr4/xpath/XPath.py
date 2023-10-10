@@ -47,18 +47,18 @@
 # <p>
 # Whitespace is not allowed.</p>
 #
-from omegaconf.vendor.antlr4 import CommonTokenStream, DFA, PredictionContextCache, Lexer, LexerATNSimulator, ParserRuleContext, TerminalNode
-from omegaconf.vendor.antlr4.InputStream import InputStream
-from omegaconf.vendor.antlr4.Parser import Parser
-from omegaconf.vendor.antlr4.RuleContext import RuleContext
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.atn.ATNDeserializer import ATNDeserializer
-from omegaconf.vendor.antlr4.error.ErrorListener import ErrorListener
-from omegaconf.vendor.antlr4.error.Errors import LexerNoViableAltException
-from omegaconf.vendor.antlr4.tree.Tree import ParseTree
-from omegaconf.vendor.antlr4.tree.Trees import Trees
+from .vendor.antlr4 import CommonTokenStream, DFA, PredictionContextCache, Lexer, LexerATNSimulator, ParserRuleContext, TerminalNode
+from .vendor.antlr4.InputStream import InputStream
+from .vendor.antlr4.Parser import Parser
+from .vendor.antlr4.RuleContext import RuleContext
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.atn.ATNDeserializer import ATNDeserializer
+from .vendor.antlr4.error.ErrorListener import ErrorListener
+from .vendor.antlr4.error.Errors import LexerNoViableAltException
+from .vendor.antlr4.tree.Tree import ParseTree
+from .vendor.antlr4.tree.Trees import Trees
 from io import StringIO
-from omegaconf.vendor.antlr4.xpath.XPathLexer import XPathLexer
+from .vendor.antlr4.xpath.XPathLexer import XPathLexer
 
 
 class XPath(object):

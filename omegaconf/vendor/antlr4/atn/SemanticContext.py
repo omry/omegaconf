@@ -11,8 +11,8 @@
 #  <p>I have scoped the {@link AND}, {@link OR}, and {@link Predicate} subclasses of
 #  {@link SemanticContext} within the scope of this outer class.</p>
 #
-from omegaconf.vendor.antlr4.Recognizer import Recognizer
-from omegaconf.vendor.antlr4.RuleContext import RuleContext
+from .vendor.antlr4.Recognizer import Recognizer
+from .vendor.antlr4.RuleContext import RuleContext
 from io import StringIO
 
 

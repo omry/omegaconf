@@ -7,20 +7,20 @@ if sys.version_info[1] > 5:
     from typing import TextIO
 else:
     from typing.io import TextIO
-from omegaconf.vendor.antlr4.BufferedTokenStream import TokenStream
-from omegaconf.vendor.antlr4.CommonTokenFactory import TokenFactory
-from omegaconf.vendor.antlr4.error.ErrorStrategy import DefaultErrorStrategy
-from omegaconf.vendor.antlr4.InputStream import InputStream
-from omegaconf.vendor.antlr4.Recognizer import Recognizer
-from omegaconf.vendor.antlr4.RuleContext import RuleContext
-from omegaconf.vendor.antlr4.ParserRuleContext import ParserRuleContext
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.Lexer import Lexer
-from omegaconf.vendor.antlr4.atn.ATNDeserializer import ATNDeserializer
-from omegaconf.vendor.antlr4.atn.ATNDeserializationOptions import ATNDeserializationOptions
-from omegaconf.vendor.antlr4.error.Errors import UnsupportedOperationException, RecognitionException
-from omegaconf.vendor.antlr4.tree.ParseTreePatternMatcher import ParseTreePatternMatcher
-from omegaconf.vendor.antlr4.tree.Tree import ParseTreeListener, TerminalNode, ErrorNode
+from .vendor.antlr4.BufferedTokenStream import TokenStream
+from .vendor.antlr4.CommonTokenFactory import TokenFactory
+from .vendor.antlr4.error.ErrorStrategy import DefaultErrorStrategy
+from .vendor.antlr4.InputStream import InputStream
+from .vendor.antlr4.Recognizer import Recognizer
+from .vendor.antlr4.RuleContext import RuleContext
+from .vendor.antlr4.ParserRuleContext import ParserRuleContext
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.Lexer import Lexer
+from .vendor.antlr4.atn.ATNDeserializer import ATNDeserializer
+from .vendor.antlr4.atn.ATNDeserializationOptions import ATNDeserializationOptions
+from .vendor.antlr4.error.Errors import UnsupportedOperationException, RecognitionException
+from .vendor.antlr4.tree.ParseTreePatternMatcher import ParseTreePatternMatcher
+from .vendor.antlr4.tree.Tree import ParseTreeListener, TerminalNode, ErrorNode
 
 class TraceListener(ParseTreeListener):
     __slots__ = '_parser'

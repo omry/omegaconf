@@ -6,8 +6,8 @@
 
 # Map a predicate to a predicted alternative.#/
 from io import StringIO
-from omegaconf.vendor.antlr4.atn.ATNConfigSet import ATNConfigSet
-from omegaconf.vendor.antlr4.atn.SemanticContext import SemanticContext
+from .vendor.antlr4.atn.ATNConfigSet import ATNConfigSet
+from .vendor.antlr4.atn.SemanticContext import SemanticContext
 
 
 class PredPrediction(object):

@@ -17,37 +17,37 @@ addopts = "--import-mode=append -Werror -W 'ignore:pkg_resources is deprecated a
 pythonpath = ["."]
 
 [tool.towncrier]
-    package = "omegaconf"
-    package_dir = ""
-    filename = "NEWS.md"
-    directory = "news/"
-    title_format = "## {version} ({project_date})"
-    template = "news/_template.rst"
-    issue_format = "[#{issue}](https://github.com/omry/omegaconf/issues/{issue})"
-    start_string = "<!-- TOWNCRIER -->\n"
-    underlines = [""]
+package = "omegaconf"
+package_dir = ""
+filename = "NEWS.md"
+directory = "news/"
+title_format = "## {version} ({project_date})"
+template = "news/_template.rst"
+issue_format = "[#{issue}](https://github.com/omry/omegaconf/issues/{issue})"
+start_string = "<!-- TOWNCRIER -->\n"
+underlines = [""]
 
-  [[tool.towncrier.type]]
-  directory = "feature"
-  name = "Features"
-  showcontent = true
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
 
-  [[tool.towncrier.type]]
-  directory = "bugfix"
-  name = "Bug Fixes"
-  showcontent = true
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
 
-  [[tool.towncrier.type]]
-  directory = "api_change"
-  name = "API changes and deprecations"
-  showcontent = true
+[[tool.towncrier.type]]
+directory = "api_change"
+name = "API changes and deprecations"
+showcontent = true
 
-  [[tool.towncrier.type]]
-  directory = "docs"
-  name = "Improved Documentation"
-  showcontent = true
+[[tool.towncrier.type]]
+directory = "docs"
+name = "Improved Documentation"
+showcontent = true
 
-  [[tool.towncrier.type]]
-  directory = "misc"
-  name = "Miscellaneous changes"
-  showcontent = true
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Miscellaneous changes"
+showcontent = true

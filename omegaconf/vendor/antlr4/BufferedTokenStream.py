@@ -14,8 +14,8 @@
 # {@link Token#HIDDEN_CHANNEL}, use a filtering token stream such a
 # {@link CommonTokenStream}.</p>
 from io import StringIO
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.error.Errors import IllegalStateException
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.error.Errors import IllegalStateException
 
 # need forward declaration
 Lexer = None
@@ -230,7 +230,7 @@ class BufferedTokenStream(TokenStream):
         self.lazyInit()
         if tokenIndex<0 or tokenIndex>=len(self.tokens):
             raise Exception(str(tokenIndex) + " not in 0.." + str(len(self.tokens)-1))
-        from omegaconf.vendor.antlr4.Lexer import Lexer
+        from .vendor.antlr4.Lexer import Lexer
         nextOnChannel = self.nextTokenOnChannel(tokenIndex + 1, Lexer.DEFAULT_TOKEN_CHANNEL)
         from_ = tokenIndex+1
         # if none onchannel to right, nextOnChannel=-1 so set to = last token
@@ -245,7 +245,7 @@ class BufferedTokenStream(TokenStream):
         self.lazyInit()
         if tokenIndex<0 or tokenIndex>=len(self.tokens):
             raise Exception(str(tokenIndex) + " not in 0.." + str(len(self.tokens)-1))
-        from omegaconf.vendor.antlr4.Lexer import Lexer
+        from .vendor.antlr4.Lexer import Lexer
         prevOnChannel = self.previousTokenOnChannel(tokenIndex - 1, Lexer.DEFAULT_TOKEN_CHANNEL)
         if prevOnChannel == tokenIndex - 1:
             return None
@@ -260,7 +260,7 @@ class BufferedTokenStream(TokenStream):
         for i in range(left, right+1):
             t = self.tokens[i]
             if channel==-1:
-                from omegaconf.vendor.antlr4.Lexer import Lexer
+                from .vendor.antlr4.Lexer import Lexer
                 if t.channel!= Lexer.DEFAULT_TOKEN_CHANNEL:
                     hidden.append(t)
             elif t.channel==channel:

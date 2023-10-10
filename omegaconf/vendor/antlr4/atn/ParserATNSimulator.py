@@ -232,26 +232,26 @@
 # the input.</p>
 #
 import sys
-from omegaconf.vendor.antlr4 import DFA
-from omegaconf.vendor.antlr4.PredictionContext import PredictionContextCache, PredictionContext, SingletonPredictionContext, \
+from .vendor.antlr4 import DFA
+from .vendor.antlr4.PredictionContext import PredictionContextCache, PredictionContext, SingletonPredictionContext, \
     PredictionContextFromRuleContext
-from omegaconf.vendor.antlr4.BufferedTokenStream import TokenStream
-from omegaconf.vendor.antlr4.Parser import Parser
-from omegaconf.vendor.antlr4.ParserRuleContext import ParserRuleContext
-from omegaconf.vendor.antlr4.RuleContext import RuleContext
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.Utils import str_list
-from omegaconf.vendor.antlr4.atn.ATN import ATN
-from omegaconf.vendor.antlr4.atn.ATNConfig import ATNConfig
-from omegaconf.vendor.antlr4.atn.ATNConfigSet import ATNConfigSet
-from omegaconf.vendor.antlr4.atn.ATNSimulator import ATNSimulator
-from omegaconf.vendor.antlr4.atn.ATNState import StarLoopEntryState, DecisionState, RuleStopState, ATNState
-from omegaconf.vendor.antlr4.atn.PredictionMode import PredictionMode
-from omegaconf.vendor.antlr4.atn.SemanticContext import SemanticContext, AND, andContext, orContext
-from omegaconf.vendor.antlr4.atn.Transition import Transition, RuleTransition, ActionTransition, PrecedencePredicateTransition, \
+from .vendor.antlr4.BufferedTokenStream import TokenStream
+from .vendor.antlr4.Parser import Parser
+from .vendor.antlr4.ParserRuleContext import ParserRuleContext
+from .vendor.antlr4.RuleContext import RuleContext
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.Utils import str_list
+from .vendor.antlr4.atn.ATN import ATN
+from .vendor.antlr4.atn.ATNConfig import ATNConfig
+from .vendor.antlr4.atn.ATNConfigSet import ATNConfigSet
+from .vendor.antlr4.atn.ATNSimulator import ATNSimulator
+from .vendor.antlr4.atn.ATNState import StarLoopEntryState, DecisionState, RuleStopState, ATNState
+from .vendor.antlr4.atn.PredictionMode import PredictionMode
+from .vendor.antlr4.atn.SemanticContext import SemanticContext, AND, andContext, orContext
+from .vendor.antlr4.atn.Transition import Transition, RuleTransition, ActionTransition, PrecedencePredicateTransition, \
     PredicateTransition, AtomTransition, SetTransition, NotSetTransition
-from omegaconf.vendor.antlr4.dfa.DFAState import DFAState, PredPrediction
-from omegaconf.vendor.antlr4.error.Errors import NoViableAltException
+from .vendor.antlr4.dfa.DFAState import DFAState, PredPrediction
+from .vendor.antlr4.error.Errors import NoViableAltException
 
 
 class ParserATNSimulator(ATNSimulator):

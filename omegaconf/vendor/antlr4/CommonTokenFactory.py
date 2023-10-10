@@ -8,7 +8,7 @@
 # This default implementation of {@link TokenFactory} creates
 # {@link CommonToken} objects.
 #
-from omegaconf.vendor.antlr4.Token import CommonToken
+from .vendor.antlr4.Token import CommonToken
 
 class TokenFactory(object):
 
