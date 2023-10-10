@@ -1,6 +1,7 @@
 import codecs
 import distutils.log
 import errno
+from functools import partial
 import os
 import re
 import shutil
@@ -12,6 +13,13 @@ from typing import List, Optional
 from setuptools import Command
 from setuptools.command import build_py, develop, sdist
 
+
+def patch_vendor_imports(file, replacements):
+    """Apply a list of replacements/patches to a given file"""
+    text = file.read_text('utf8')
+    for replacement in replacements:
+        text = replacement(text)
+    file.write_text(text, 'utf8')
 
 class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
     """Generate parsers using ANTLR."""
@@ -46,11 +54,40 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
 
             subprocess.check_call(command)
 
+            self.announce(
+                f"Fixing imports for generated parsers",
+                level=distutils.log.INFO,
+            )
+            self._fix_imports()
+
     def initialize_options(self) -> None:
         pass
 
     def finalize_options(self) -> None:
         pass
+
+    def _fix_imports(self) -> None:
+        """Fix imports from the generated parsers to use the vendored antlr4 instead"""
+        build_dir = Path(__file__).parent.absolute()
+        project_root = build_dir.parent
+        lib = "antlr4"
+        pkgname = f'omegaconf.vendor'
+
+        replacements = [
+            partial(  # import antlr4 -> import omegaconf.vendor.antlr4
+                re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
+                r'\1from {} import {}\n'.format(pkgname, lib)
+            ),
+            partial(  # from antlr4 -> from fomegaconf.vendor.antlr4
+                re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
+                r'\1from {}.{}\2'.format(pkgname, lib)
+            ),
+        ]
+
+        path = project_root / "omegaconf" / "grammar" / "gen"
+        for item in path.iterdir():
+            if item.is_file() and item.name.endswith(".py"):
+                patch_vendor_imports(item, replacements)
 
 
 class BuildPyCommand(build_py.build_py):  # pragma: no cover
