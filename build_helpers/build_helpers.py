@@ -13,14 +13,6 @@ from typing import List, Optional
 from setuptools import Command
 from setuptools.command import build_py, develop, sdist
 
-
-def patch_vendor_imports(file, replacements):
-    """Apply a list of replacements/patches to a given file"""
-    text = file.read_text('utf8')
-    for replacement in replacements:
-        text = replacement(text)
-    file.write_text(text, 'utf8')
-
 class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
     """Generate parsers using ANTLR."""
 
@@ -87,7 +79,10 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
         path = project_root / "omegaconf" / "grammar" / "gen"
         for item in path.iterdir():
             if item.is_file() and item.name.endswith(".py"):
-                patch_vendor_imports(item, replacements)
+                text = item.read_text('utf8')
+                for replacement in replacements:
+                    text = replacement(text)
+                item.write_text(text, 'utf8')
 
 
 class BuildPyCommand(build_py.build_py):  # pragma: no cover
