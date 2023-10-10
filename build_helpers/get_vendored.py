@@ -10,6 +10,8 @@ WHITELIST = {'README.txt', '__init__.py', 'vendor.txt'}
 
 
 def delete_all(*paths, whitelist=frozenset()):
+    """Clear all the items in each of the indicated paths, except for elements listed
+    in the whitelist"""
     for item in paths:
         if item.is_dir():
             shutil.rmtree(item, ignore_errors=True)
@@ -31,6 +33,7 @@ def iter_subtree(path):
 
 
 def patch_vendor_imports(file, replacements):
+    """Apply a list of replacements/patches to a given file"""
     text = file.read_text('utf8')
     for replacement in replacements:
         text = replacement(text)
@@ -76,11 +79,11 @@ def vendor(vendor_dir):
     replacements = []
     for lib in vendored_libs:
         replacements += (
-            partial(  # import bar -> import foo._vendor.bar
+            partial(  # import bar -> import foo.vendor.bar
                 re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
                 r'\1from {} import {}\n'.format(pkgname, lib)
             ),
-            partial(  # from bar -> from foo._vendor.bar
+            partial(  # from bar -> from foo.vendor.bar
                 re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
                 r'\1from {}.{}\2'.format(pkgname, lib)
             ),
@@ -91,9 +94,9 @@ def vendor(vendor_dir):
 
 
 if __name__ == '__main__':
-    # this assumes this is a script in foo next to foo/_vendor
+    # this assumes this is a script in `build_helpers`
     here = Path('__file__').resolve().parent
     vendor_dir = here / 'omegaconf' / 'vendor'
-    assert (vendor_dir / 'vendor.txt').exists(), 'vendor/vendor.txt file not found'
-    assert (vendor_dir / '__init__.py').exists(), 'vendor/__init__.py file not found'
+    assert (vendor_dir / 'vendor.txt').exists(), 'omegaconf/vendor/vendor.txt file not found'
+    assert (vendor_dir / '__init__.py').exists(), 'omegaconf/vendor/__init__.py file not found'
     vendor(vendor_dir)
