@@ -54,6 +54,8 @@ with open("README.md", "r") as fh:
             "omegaconf.grammar.gen",
             "omegaconf.resolvers",
             "omegaconf.resolvers.oc",
+            "omegaconf.vendor",
+            "omegaconf.vendor.antlr4",
             "pydevd_plugins",
             "pydevd_plugins.extensions",
         ],
