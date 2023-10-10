@@ -4,6 +4,7 @@ omit =
     *tests*
     docs/*
     omegaconf/grammar/gen/*
+    omegaconf/vendor/*
     omegaconf/version.py
     .stubs
 
