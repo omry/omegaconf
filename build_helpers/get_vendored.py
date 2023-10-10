@@ -55,7 +55,7 @@ def find_vendored_libs(vendor_dir, whitelist):
 
 
 def vendor(vendor_dir):
-    # target package is <parent>.<vendor_dir>; foo/_vendor -> foo._vendor
+    # target package is <parent>.<vendor_dir>; foo/vendor -> foo.vendor
     pkgname = f'{vendor_dir.parent.name}.{vendor_dir.name}'
 
     # remove everything
