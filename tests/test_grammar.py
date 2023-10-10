@@ -4,7 +4,7 @@ import threading
 import time
 from typing import Any, Callable, List, Optional, Set, Tuple
 
-import antlr4
+import omegaconf.vendor.antlr4 as antlr4
 from pytest import mark, param, raises, warns
 
 from omegaconf import (

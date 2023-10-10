@@ -2,8 +2,8 @@ import re
 import threading
 from typing import Any
 
-from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
-from antlr4.error.ErrorListener import ErrorListener
+from omegaconf.vendor.antlr4 import CommonTokenStream, InputStream, ParserRuleContext
+from omegaconf.vendor.antlr4.error.ErrorListener import ErrorListener
 
 from .errors import GrammarParseError
 
@@ -116,7 +116,7 @@ def parse(
 
         # The two lines below could be enabled in the future if we decide to switch
         # to SLL prediction mode. Warning though, it has not been fully tested yet!
-        # from antlr4 import PredictionMode
+        # from omegaconf.vendor.antlr4 import PredictionMode
         # parser._interp.predictionMode = PredictionMode.SLL
 
         # Note that although the input stream `istream` is implicitly cached within

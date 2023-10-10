@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
 
-from antlr4 import ParserRuleContext
+from omegaconf.vendor.antlr4 import ParserRuleContext
 
 from ._utils import (
     _DEFAULT_MARKER_,
