@@ -1,1 +1,1 @@
-Upgrade dependency on `python3-antlr4-runtime` from `v4.9.*` to `v4.11.*`.
+Upgrade dependency on `python3-antlr4-runtime` from `v4.9.*` to `v4.11.*`. `antlr4` runtime is now vendored to prevent conflicts with other dependencies.
