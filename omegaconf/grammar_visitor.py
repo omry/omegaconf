@@ -14,7 +14,7 @@ from typing import (
     Union,
 )
 
-from omegaconf.vendor.antlr4 import TerminalNode
+from .vendor.antlr4 import TerminalNode
 
 from .errors import InterpolationResolutionError
 

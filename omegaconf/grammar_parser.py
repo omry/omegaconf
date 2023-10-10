@@ -2,8 +2,8 @@ import re
 import threading
 from typing import Any
 
-from omegaconf.vendor.antlr4 import CommonTokenStream, InputStream, ParserRuleContext
-from omegaconf.vendor.antlr4.error.ErrorListener import ErrorListener
+from .vendor.antlr4 import CommonTokenStream, InputStream, ParserRuleContext
+from .vendor.antlr4.error.ErrorListener import ErrorListener
 
 from .errors import GrammarParseError
 
