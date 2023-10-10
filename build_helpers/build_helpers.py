@@ -71,7 +71,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
         build_dir = Path(__file__).parent.absolute()
         project_root = build_dir.parent
         lib = "antlr4"
-        pkgname = f'omegaconf.vendor'
+        pkgname = 'omegaconf.vendor'
 
         replacements = [
             partial(  # import antlr4 -> import omegaconf.vendor.antlr4
