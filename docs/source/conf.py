@@ -19,9 +19,9 @@ import sys
 
 from packaging.version import parse
 
-from omegaconf import version as v
-
 sys.path.insert(0, os.path.abspath("../../"))
+
+from omegaconf import version as v
 
 year = datetime.datetime.now().year
 parsed_ver = parse(v.__version__)
