@@ -1,17 +1,18 @@
 import codecs
 import distutils.log
 import errno
-from functools import partial
 import os
 import re
 import shutil
 import subprocess
 import sys
+from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
 from setuptools import Command
 from setuptools.command import build_py, develop, sdist
+
 
 class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
     """Generate parsers using ANTLR."""

@@ -1,11 +1,10 @@
+import re
 import shutil
 import subprocess
-import re
-
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import List, Generator, Tuple, Set, FrozenSet, Union, Callable
+from typing import Callable, FrozenSet, Generator, List, Set, Tuple, Union
 
 WHITELIST = {'README.txt', '__init__.py', 'vendor.txt'}
 
