@@ -441,8 +441,8 @@ class TestOmegaConfGrammar:
         # callbacks to resolve them, and the quoted string callback can simply
         # be the identity.
         visitor = grammar_visitor.GrammarVisitor(
-            node_interpolation_callback=None,  # type: ignore
-            resolver_interpolation_callback=None,  # type: ignore
+            node_interpolation_callback=None,
+            resolver_interpolation_callback=None,
             memo=None,
         )
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)

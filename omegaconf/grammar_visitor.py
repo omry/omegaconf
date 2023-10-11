@@ -14,7 +14,7 @@ from typing import (
     Union,
 )
 
-from .vendor.antlr4 import TerminalNode
+from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
 
 from .errors import InterpolationResolutionError
 
@@ -351,7 +351,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         chrs = []
         for node, next_node in zip_longest(seq, seq[1:]):
             if isinstance(node, TerminalNode):
-                s = node.symbol  # type: ignore[attr-defined]
+                s = node.symbol  # type: ignore
                 if s.type == OmegaConfGrammarLexer.ESC_INTER:
                     # `ESC_INTER` is of the form `\\...\${`: the formula below computes
                     # the number of characters to keep at the end of the string to remove

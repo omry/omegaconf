@@ -43,7 +43,7 @@ SIMPLE_INTERPOLATION_PATTERN = re.compile(
 
 # ParserRuleContext: TypeAlias = ParserRuleContext
 
-class OmegaConfErrorListener(ErrorListener):  # type: ignore
+class OmegaConfErrorListener(ErrorListener):
     def syntaxError(
         self,
         recognizer: Any,
@@ -136,7 +136,7 @@ def parse(
         parser.reset()
 
     try:
-        return getattr(parser, parser_rule)()
+        return getattr(parser, parser_rule)()  # type: ignore
     except Exception as exc:
         if type(exc) is Exception and str(exc) == "Empty Stack":
             # This exception is raised by antlr when trying to pop a mode while
