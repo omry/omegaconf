@@ -41,6 +41,7 @@ SIMPLE_INTERPOLATION_PATTERN = re.compile(
 
 # ParserRuleContext: TypeAlias = ParserRuleContext
 
+
 class OmegaConfErrorListener(ErrorListener):
     def syntaxError(
         self,
