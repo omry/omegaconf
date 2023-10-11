@@ -4,7 +4,8 @@ import threading
 import time
 from typing import Any, Callable, List, Optional, Set, Tuple
 
-import omegaconf.vendor.antlr4 as antlr4
+from omegaconf.vendor.antlr4 import ParserRuleContext
+
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
@@ -534,14 +535,14 @@ class TestOmegaConfGrammar:
 
     def _parse(
         self, rule: str, definition: str, expected: Any
-    ) -> Tuple[Optional[antlr4.ParserRuleContext], Any]:
+    ) -> Tuple[Optional[Antlr4ParserRuleContext], Any]:
         """
         Parse the expression given by `definition`.
 
         Return both the parse tree and the expected result when visiting this tree.
         """
 
-        def get_tree() -> antlr4.ParserRuleContext:
+        def get_tree() -> Antlr4ParserRuleContext:
             return grammar_parser.parse(
                 value=definition,
                 parser_rule=rule,
@@ -585,7 +586,7 @@ class TestOmegaConfGrammar:
                 self._check_is_same_type(result, expected)
 
     def _visit_with_config(
-        self, parse_tree: antlr4.ParserRuleContext, expected: Any
+        self, parse_tree: Antlr4ParserRuleContext, expected: Any
     ) -> None:
         """Visit the tree using the default config `BASE_TEST_CFG`"""
         if parse_tree is None:

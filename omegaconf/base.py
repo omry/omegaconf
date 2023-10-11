@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
 
-from .vendor.antlr4 import ParserRuleContext
+from .typing import Antlr4ParserRuleContext
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -726,7 +726,7 @@ class Container(Box):
 
     def resolve_parse_tree(
         self,
-        parse_tree: ParserRuleContext,
+        parse_tree: Antlr4ParserRuleContext,
         node: Node,
         memo: Optional[Set[int]] = None,
         key: Optional[Any] = None,

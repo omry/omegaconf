@@ -91,9 +91,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             return res
         else:
             assert isinstance(child, TerminalNode) and isinstance(
-                child.symbol.text, str
+                child.symbol.text, str  # type: ignore[attr-defined]
             )
-            return child.symbol.text
+            return child.symbol.text  # type: ignore[attr-defined]
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
@@ -138,7 +138,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         inter_key_tokens = []  # parsed elements of the dot path
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
-                s = child.symbol
+                s = child.symbol  # type: ignore[attr-defined]
                 if s.type in [
                     OmegaConfGrammarLexer.DOT,
                     OmegaConfGrammarLexer.BRACKET_OPEN,
@@ -168,7 +168,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         args = []
         args_str = []
         if isinstance(maybe_seq, TerminalNode):  # means there are no args
-            assert maybe_seq.symbol.type == OmegaConfGrammarLexer.BRACE_CLOSE
+            assert maybe_seq.symbol.type == OmegaConfGrammarLexer.BRACE_CLOSE  # type: ignore[attr-defined]
         else:
             assert isinstance(maybe_seq, OmegaConfGrammarParser.SequenceContext)
             for val, txt in self.visitSequence(maybe_seq):
@@ -191,7 +191,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         colon = ctx.getChild(1)
         assert (
             isinstance(colon, TerminalNode)
-            and colon.symbol.type == OmegaConfGrammarLexer.COLON
+            and colon.symbol.type == OmegaConfGrammarLexer.COLON  # type: ignore[attr-defined]
         )
         value = _get_value(self.visitElement(ctx.getChild(2)))
         return key, value
@@ -224,8 +224,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         items = []
         for child in list(ctx.getChildren())[::2]:
             if isinstance(child, TerminalNode):
-                assert child.symbol.type == OmegaConfGrammarLexer.ID
-                items.append(child.symbol.text)
+                assert child.symbol.type == OmegaConfGrammarLexer.ID  # type: ignore[attr-defined]
+                items.append(child.symbol.text)  # type: ignore[attr-defined]
             else:
                 assert isinstance(child, OmegaConfGrammarParser.InterpolationContext)
                 item = _get_value(self.visitInterpolation(child))
@@ -268,7 +268,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             else:
                 assert (
                     isinstance(child, TerminalNode)
-                    and child.symbol.type == OmegaConfGrammarLexer.COMMA
+                    and child.symbol.type == OmegaConfGrammarLexer.COMMA  # type: ignore[attr-defined]
                 )
                 if is_previous_comma:
                     empty_str_warning()
@@ -312,7 +312,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
                 return self.visitInterpolation(child)
             assert isinstance(child, TerminalNode)
-            symbol = child.symbol
+            symbol = child.symbol  # type: ignore[attr-defined]
             # Parse primitive types.
             if symbol.type in (
                 OmegaConfGrammarLexer.ID,
@@ -351,7 +351,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         chrs = []
         for node, next_node in zip_longest(seq, seq[1:]):
             if isinstance(node, TerminalNode):
-                s = node.symbol
+                s = node.symbol  # type: ignore[attr-defined]
                 if s.type == OmegaConfGrammarLexer.ESC_INTER:
                     # `ESC_INTER` is of the form `\\...\${`: the formula below computes
                     # the number of characters to keep at the end of the string to remove

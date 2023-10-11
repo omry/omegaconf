@@ -31,6 +31,8 @@ from .omegaconf import (
 )
 from .version import __version__
 
+from .typing import Antlr4ParserRuleContext
+
 __all__ = [
     "__version__",
     "MissingMandatoryValue",

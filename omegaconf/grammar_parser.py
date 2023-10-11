@@ -2,10 +2,12 @@ import re
 import threading
 from typing import Any
 
-from .vendor.antlr4 import CommonTokenStream, InputStream, ParserRuleContext
+from .vendor.antlr4 import CommonTokenStream, InputStream  # type: ignore[attr-defined]
 from .vendor.antlr4.error.ErrorListener import ErrorListener
 
 from .errors import GrammarParseError
+
+from .typing import Antlr4ParserRuleContext
 
 # Import from visitor in order to check the presence of generated grammar files
 # files in a single place.
@@ -39,6 +41,7 @@ SIMPLE_INTERPOLATION_PATTERN = re.compile(
 # it must not accept anything that isn't a valid interpolation (per the
 # interpolation grammar defined in `omegaconf/grammar/*.g4`).
 
+# ParserRuleContext: TypeAlias = ParserRuleContext
 
 class OmegaConfErrorListener(ErrorListener):  # type: ignore
     def syntaxError(
@@ -95,7 +98,7 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
 
 def parse(
     value: str, parser_rule: str = "configValue", lexer_mode: str = "DEFAULT_MODE"
-) -> ParserRuleContext:
+) -> Antlr4ParserRuleContext:
     """
     Parse interpolated string `value` (and return the parse tree).
     """
