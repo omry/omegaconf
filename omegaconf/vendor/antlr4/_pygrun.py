@@ -4,7 +4,7 @@ import optparse
 import sys
 import os
 import importlib
-from omegaconf.vendor.antlr4 import *
+from ..antlr4 import *
 
 
 # this is a python version of TestRig

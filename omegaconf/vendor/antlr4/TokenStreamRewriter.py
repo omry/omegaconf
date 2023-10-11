@@ -5,9 +5,9 @@
 #
 
 from io import StringIO
-from omegaconf.vendor.antlr4.Token import Token
+from ..antlr4.Token import Token
 
-from omegaconf.vendor.antlr4.CommonTokenStream import CommonTokenStream
+from ..antlr4.CommonTokenStream import CommonTokenStream
 
 
 class TokenStreamRewriter(object):

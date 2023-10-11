@@ -25,8 +25,8 @@
 #  @see ParserRuleContext
 #/
 from io import StringIO
-from omegaconf.vendor.antlr4.tree.Tree import RuleNode, INVALID_INTERVAL, ParseTreeVisitor
-from omegaconf.vendor.antlr4.tree.Trees import Trees
+from ..antlr4.tree.Tree import RuleNode, INVALID_INTERVAL, ParseTreeVisitor
+from ..antlr4.tree.Trees import Trees
 
 # need forward declarations
 RuleContext = None

@@ -3,14 +3,14 @@
 # Use of this file is governed by the BSD 3-clause license that
 # can be found in the LICENSE.txt file in the project root.
 #/
-from omegaconf.vendor.antlr4.IntervalSet import IntervalSet
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.PredictionContext import PredictionContext, SingletonPredictionContext, PredictionContextFromRuleContext
-from omegaconf.vendor.antlr4.RuleContext import RuleContext
-from omegaconf.vendor.antlr4.atn.ATN import ATN
-from omegaconf.vendor.antlr4.atn.ATNConfig import ATNConfig
-from omegaconf.vendor.antlr4.atn.ATNState import ATNState, RuleStopState
-from omegaconf.vendor.antlr4.atn.Transition import WildcardTransition, NotSetTransition, AbstractPredicateTransition, RuleTransition
+from ..antlr4.IntervalSet import IntervalSet
+from ..antlr4.Token import Token
+from ..antlr4.PredictionContext import PredictionContext, SingletonPredictionContext, PredictionContextFromRuleContext
+from ..antlr4.RuleContext import RuleContext
+from ..antlr4.atn.ATN import ATN
+from ..antlr4.atn.ATNConfig import ATNConfig
+from ..antlr4.atn.ATNState import ATNState, RuleStopState
+from ..antlr4.atn.Transition import WildcardTransition, NotSetTransition, AbstractPredicateTransition, RuleTransition
 
 
 class LL1Analyzer (object):

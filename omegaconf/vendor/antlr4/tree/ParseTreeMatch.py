@@ -9,8 +9,8 @@
 # Represents the result of matching a {@link ParseTree} against a tree pattern.
 #
 from io import StringIO
-from omegaconf.vendor.antlr4.tree.ParseTreePattern import ParseTreePattern
-from omegaconf.vendor.antlr4.tree.Tree import ParseTree
+from ...antlr4.tree.ParseTreePattern import ParseTreePattern
+from ...antlr4.tree.Tree import ParseTree
 
 
 class ParseTreeMatch(object):

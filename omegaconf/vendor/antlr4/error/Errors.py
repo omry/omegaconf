@@ -34,9 +34,9 @@ class CancellationException(IllegalStateException):
 #  in the input, where it is in the ATN, the rule invocation stack,
 #  and what kind of problem occurred.
 
-from omegaconf.vendor.antlr4.InputStream import InputStream
-from omegaconf.vendor.antlr4.ParserRuleContext import ParserRuleContext
-from omegaconf.vendor.antlr4.Recognizer import Recognizer
+from ...antlr4.InputStream import InputStream
+from ...antlr4.ParserRuleContext import ParserRuleContext
+from ...antlr4.Recognizer import Recognizer
 
 class RecognitionException(Exception):
 
@@ -142,7 +142,7 @@ class FailedPredicateException(RecognitionException):
                          input=recognizer.getInputStream(), ctx=recognizer._ctx)
         s = recognizer._interp.atn.states[recognizer.state]
         trans = s.transitions[0]
-        from omegaconf.vendor.antlr4.atn.Transition import PredicateTransition
+        from ...antlr4.atn.Transition import PredicateTransition
         if isinstance(trans, PredicateTransition):
             self.ruleIndex = trans.ruleIndex
             self.predicateIndex = trans.predIndex

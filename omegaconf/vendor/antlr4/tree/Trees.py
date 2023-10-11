@@ -7,9 +7,9 @@
 
 # A set of utility routines useful for all kinds of ANTLR trees.#
 from io import StringIO
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.Utils import escapeWhitespace
-from omegaconf.vendor.antlr4.tree.Tree import RuleNode, ErrorNode, TerminalNode, Tree, ParseTree
+from ...antlr4.Token import Token
+from ...antlr4.Utils import escapeWhitespace
+from ...antlr4.tree.Tree import RuleNode, ErrorNode, TerminalNode, Tree, ParseTree
 
 # need forward declaration
 Parser  = None
@@ -91,7 +91,7 @@ class Trees(object):
 
     @classmethod
     def _findAllNodes(cls, t:ParseTree, index:int, findTokens:bool, nodes:list):
-        from omegaconf.vendor.antlr4.ParserRuleContext import ParserRuleContext
+        from ...antlr4.ParserRuleContext import ParserRuleContext
         # check this node (the root) first
         if findTokens and isinstance(t, TerminalNode):
             if t.symbol.type==index:

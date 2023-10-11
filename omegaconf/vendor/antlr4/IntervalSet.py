@@ -5,7 +5,7 @@
 #
 
 from io import StringIO
-from omegaconf.vendor.antlr4.Token import Token
+from ..antlr4.Token import Token
 
 # need forward declarations
 IntervalSet = None

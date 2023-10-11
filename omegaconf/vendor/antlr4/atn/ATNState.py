@@ -64,7 +64,7 @@
 # <embed src="images/OptionalNonGreedy.svg" type="image/svg+xml"/>
 #
 
-from omegaconf.vendor.antlr4.atn.Transition import Transition
+from ...antlr4.atn.Transition import Transition
 
 INITIAL_NUM_TRANSITIONS = 4
 

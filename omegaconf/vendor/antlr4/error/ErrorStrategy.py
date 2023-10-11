@@ -4,11 +4,11 @@
 # can be found in the LICENSE.txt file in the project root.
 #
 import sys
-from omegaconf.vendor.antlr4.IntervalSet import IntervalSet
+from ...antlr4.IntervalSet import IntervalSet
 
-from omegaconf.vendor.antlr4.Token import Token
-from omegaconf.vendor.antlr4.atn.ATNState import ATNState
-from omegaconf.vendor.antlr4.error.Errors import RecognitionException, NoViableAltException, InputMismatchException, \
+from ...antlr4.Token import Token
+from ...antlr4.atn.ATNState import ATNState
+from ...antlr4.error.Errors import RecognitionException, NoViableAltException, InputMismatchException, \
     FailedPredicateException, ParseCancellationException
 
 # need forward declaration

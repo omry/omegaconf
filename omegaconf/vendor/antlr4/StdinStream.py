@@ -1,7 +1,7 @@
 import codecs
 import sys
 
-from omegaconf.vendor.antlr4.InputStream import InputStream
+from ..antlr4.InputStream import InputStream
 
 
 class StdinStream(InputStream):

@@ -19,17 +19,17 @@ def delete_all(*paths, whitelist=frozenset()):
             item.unlink()
 
 
-def iter_subtree(path):
+def iter_subtree(path, depth=0):
     """Recursively yield all files in a subtree, depth-first"""
     if not path.is_dir():
         if path.is_file():
-            yield path
+            yield path, depth
         return
     for item in path.iterdir():
         if item.is_dir():
-            yield from iter_subtree(item)
+            yield from iter_subtree(item, depth + 1)
         elif item.is_file():
-            yield item
+            yield item, depth + 1
 
 
 def patch_vendor_imports(file, replacements):
@@ -54,7 +54,7 @@ def find_vendored_libs(vendor_dir, whitelist):
     return vendored_libs, paths
 
 
-def vendor(vendor_dir):
+def vendor(vendor_dir, relative_imports=False):
     # target package is <parent>.<vendor_dir>; foo/vendor -> foo.vendor
     pkgname = f'{vendor_dir.parent.name}.{vendor_dir.name}'
 
@@ -76,20 +76,35 @@ def vendor(vendor_dir):
 
     vendored_libs, paths = find_vendored_libs(vendor_dir, WHITELIST)
 
-    replacements = []
-    for lib in vendored_libs:
-        replacements += (
-            partial(  # import bar -> import foo.vendor.bar
-                re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
-                r'\1from {} import {}\n'.format(pkgname, lib)
-            ),
-            partial(  # from bar -> from foo.vendor.bar
-                re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
-                r'\1from {}.{}\2'.format(pkgname, lib)
-            ),
-        )
+    if not relative_imports:
+        replacements = []
+        for lib in vendored_libs:
+            replacements += (
+                partial(  # import bar -> import foo.vendor.bar
+                    re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
+                    r'\1from {} import {}\n'.format(pkgname, lib)
+                ),
+                partial(  # from bar -> from foo.vendor.bar
+                    re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
+                    r'\1from {}.{}\2'.format(pkgname, lib)
+                ),
+            )
 
-    for file in chain.from_iterable(map(iter_subtree, paths)):
+    for file, depth in chain.from_iterable(map(iter_subtree, paths)):
+        if relative_imports:
+            pkgname = '.' * depth
+            replacements = []
+            for lib in vendored_libs:
+                replacements += (
+                    partial(  # import bar -> import foo.vendor.bar
+                        re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
+                        r'\1from {} import {}\n'.format(pkgname, lib)
+                    ),
+                    partial(  # from bar -> from foo.vendor.bar
+                        re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
+                        r'\1from {}.{}\2'.format(pkgname, lib)
+                    ),
+                )
         patch_vendor_imports(file, replacements)
 
 
@@ -99,4 +114,4 @@ if __name__ == '__main__':
     vendor_dir = here / 'omegaconf' / 'vendor'
     assert (vendor_dir / 'vendor.txt').exists(), 'omegaconf/vendor/vendor.txt file not found'
     assert (vendor_dir / '__init__.py').exists(), 'omegaconf/vendor/__init__.py file not found'
-    vendor(vendor_dir)
+    vendor(vendor_dir, relative_imports=True)

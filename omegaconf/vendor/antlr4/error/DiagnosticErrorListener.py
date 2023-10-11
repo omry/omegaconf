@@ -25,9 +25,9 @@
 # </ul>
 
 from io import StringIO
-from omegaconf.vendor.antlr4 import Parser, DFA
-from omegaconf.vendor.antlr4.atn.ATNConfigSet import ATNConfigSet
-from omegaconf.vendor.antlr4.error.ErrorListener import ErrorListener
+from ...antlr4 import Parser, DFA
+from ...antlr4.atn.ATNConfigSet import ATNConfigSet
+from ...antlr4.error.ErrorListener import ErrorListener
 
 class DiagnosticErrorListener(ErrorListener):
 
