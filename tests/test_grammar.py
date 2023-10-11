@@ -4,8 +4,6 @@ import threading
 import time
 from typing import Any, Callable, List, Optional, Set, Tuple
 
-from omegaconf.vendor.antlr4 import ParserRuleContext
-
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
@@ -25,6 +23,8 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
+
+from omegaconf.typing import Antlr4ParserRuleContext
 
 TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
 
