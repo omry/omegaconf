@@ -5,11 +5,12 @@ import re
 from functools import partial
 from itertools import chain
 from pathlib import Path
+from typing import Optional, List, Generator, Tuple, Set, FrozenSet, Union, TextIO, Callable
 
 WHITELIST = {'README.txt', '__init__.py', 'vendor.txt'}
 
 
-def delete_all(*paths, whitelist=frozenset()):
+def delete_all(*paths: Path, whitelist: Union[Set[str], FrozenSet[str]]=frozenset()) -> None:
     """Clear all the items in each of the indicated paths, except for elements listed
     in the whitelist"""
     for item in paths:
@@ -19,7 +20,7 @@ def delete_all(*paths, whitelist=frozenset()):
             item.unlink()
 
 
-def iter_subtree(path, depth=0):
+def iter_subtree(path: Path, depth: int=0) -> Generator[Tuple[Path, int], None, None]:
     """Recursively yield all files in a subtree, depth-first"""
     if not path.is_dir():
         if path.is_file():
@@ -32,7 +33,7 @@ def iter_subtree(path, depth=0):
             yield item, depth + 1
 
 
-def patch_vendor_imports(file, replacements):
+def patch_vendor_imports(file: Path, replacements: List[Callable[[str], str]]) -> None:
     """Apply a list of replacements/patches to a given file"""
     text = file.read_text('utf8')
     for replacement in replacements:
@@ -40,7 +41,7 @@ def patch_vendor_imports(file, replacements):
     file.write_text(text, 'utf8')
 
 
-def find_vendored_libs(vendor_dir, whitelist):
+def find_vendored_libs(vendor_dir: Path, whitelist: Set[str]) -> Tuple[List[str], List[Path]]:
     vendored_libs = []
     paths = []
     for item in vendor_dir.iterdir():
@@ -54,7 +55,7 @@ def find_vendored_libs(vendor_dir, whitelist):
     return vendored_libs, paths
 
 
-def vendor(vendor_dir, relative_imports=False):
+def vendor(vendor_dir: Path, relative_imports: bool=False) -> None:
     # target package is <parent>.<vendor_dir>; foo/vendor -> foo.vendor
     pkgname = f'{vendor_dir.parent.name}.{vendor_dir.name}'
 
@@ -77,7 +78,7 @@ def vendor(vendor_dir, relative_imports=False):
     vendored_libs, paths = find_vendored_libs(vendor_dir, WHITELIST)
 
     if not relative_imports:
-        replacements = []
+        replacements: List[Callable[[str], str]] = []
         for lib in vendored_libs:
             replacements += (
                 partial(  # import bar -> import foo.vendor.bar

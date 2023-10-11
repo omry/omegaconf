@@ -1,7 +1,8 @@
-try:
+import sys
+
+if sys.version_info >= (3, 10):
     from typing import TypeAlias
-except ImportError:
-    # Python <= 3.9
+else:
     from typing_extensions import TypeAlias
 
 from .vendor.antlr4.ParserRuleContext import ParserRuleContext
