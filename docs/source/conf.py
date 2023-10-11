@@ -21,7 +21,7 @@ from packaging.version import parse
 
 sys.path.insert(0, os.path.abspath("../../"))
 
-from omegaconf import version as v
+from omegaconf import version as v  # noqa E402
 
 year = datetime.datetime.now().year
 parsed_ver = parse(v.__version__)
