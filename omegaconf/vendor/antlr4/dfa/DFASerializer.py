@@ -6,7 +6,7 @@
 
 # A DFA walker that knows how to dump them to serialized strings.#/
 from io import StringIO
-from . import DFA
+from .. import DFA
 from ..Utils import str_list
 from ..dfa.DFAState import DFAState
 

@@ -4,7 +4,7 @@ import optparse
 import sys
 import os
 import importlib
-from  import *
+from . import *
 
 
 # this is a python version of TestRig

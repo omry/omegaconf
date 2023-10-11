@@ -232,7 +232,7 @@
 # the input.</p>
 #
 import sys
-from . import DFA
+from .. import DFA
 from ..PredictionContext import PredictionContextCache, PredictionContext, SingletonPredictionContext, \
     PredictionContextFromRuleContext
 from ..BufferedTokenStream import TokenStream

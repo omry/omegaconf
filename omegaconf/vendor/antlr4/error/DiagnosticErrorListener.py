@@ -25,7 +25,7 @@
 # </ul>
 
 from io import StringIO
-from . import Parser, DFA
+from .. import Parser, DFA
 from ..atn.ATNConfigSet import ATNConfigSet
 from ..error.ErrorListener import ErrorListener
 

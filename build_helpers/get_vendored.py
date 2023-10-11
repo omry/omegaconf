@@ -96,12 +96,16 @@ def vendor(vendor_dir, relative_imports=False):
             replacements = []
             for lib in vendored_libs:
                 replacements += (
-                    partial(  # import bar -> import foo.vendor.bar
+                    partial(
                         re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
                         r'\1from {} import {}\n'.format(pkgname, "")
                     ),
-                    partial(  # from bar -> from .
-                        re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
+                    partial(
+                        re.compile(r'^from {}(\s+)'.format(lib), flags=re.M).sub,
+                        r'from .{}\1'.format(pkgname)
+                    ),
+                    partial(
+                        re.compile(r'(^\s*)from {}(\.+)'.format(lib), flags=re.M).sub,
                         r'\1from {}\2'.format(pkgname)
                     ),
                 )
