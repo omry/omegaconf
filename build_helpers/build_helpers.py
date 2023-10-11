@@ -48,7 +48,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
             subprocess.check_call(command)
 
             self.announce(
-                f"Fixing imports for generated parsers",
+                "Fixing imports for generated parsers",
                 level=distutils.log.INFO,
             )
             self._fix_imports()

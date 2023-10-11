@@ -9,7 +9,7 @@ from typing import Callable, FrozenSet, Generator, List, Set, Tuple, Union
 WHITELIST = {'README.txt', '__init__.py', 'vendor.txt'}
 
 
-def delete_all(*paths: Path, whitelist: Union[Set[str], FrozenSet[str]]=frozenset()) -> None:
+def delete_all(*paths: Path, whitelist: Union[Set[str], FrozenSet[str]] = frozenset()) -> None:
     """Clear all the items in each of the indicated paths, except for elements listed
     in the whitelist"""
     for item in paths:
@@ -19,7 +19,7 @@ def delete_all(*paths: Path, whitelist: Union[Set[str], FrozenSet[str]]=frozense
             item.unlink()
 
 
-def iter_subtree(path: Path, depth: int=0) -> Generator[Tuple[Path, int], None, None]:
+def iter_subtree(path: Path, depth: int = 0) -> Generator[Tuple[Path, int], None, None]:
     """Recursively yield all files in a subtree, depth-first"""
     if not path.is_dir():
         if path.is_file():
@@ -54,7 +54,7 @@ def find_vendored_libs(vendor_dir: Path, whitelist: Set[str]) -> Tuple[List[str]
     return vendored_libs, paths
 
 
-def vendor(vendor_dir: Path, relative_imports: bool=False) -> None:
+def vendor(vendor_dir: Path, relative_imports: bool = False) -> None:
     # target package is <parent>.<vendor_dir>; foo/vendor -> foo.vendor
     pkgname = f'{vendor_dir.parent.name}.{vendor_dir.name}'
 
