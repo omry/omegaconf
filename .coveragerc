@@ -6,6 +6,7 @@ omit =
     omegaconf/grammar/gen/*
     omegaconf/vendor/*
     omegaconf/version.py
+    omegaconf/typing.py
     .stubs
 
 [report]
