@@ -23,7 +23,6 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
-
 from omegaconf.typing import Antlr4ParserRuleContext
 
 TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
