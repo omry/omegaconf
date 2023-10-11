@@ -4,7 +4,7 @@ import optparse
 import sys
 import os
 import importlib
-from ..antlr4 import *
+from  import *
 
 
 # this is a python version of TestRig

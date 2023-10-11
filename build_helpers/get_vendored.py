@@ -92,17 +92,17 @@ def vendor(vendor_dir, relative_imports=False):
 
     for file, depth in chain.from_iterable(map(iter_subtree, paths)):
         if relative_imports:
-            pkgname = '.' * depth
+            pkgname = '.' * (depth - 1)
             replacements = []
             for lib in vendored_libs:
                 replacements += (
                     partial(  # import bar -> import foo.vendor.bar
                         re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
-                        r'\1from {} import {}\n'.format(pkgname, lib)
+                        r'\1from {} import {}\n'.format(pkgname, "")
                     ),
-                    partial(  # from bar -> from foo.vendor.bar
+                    partial(  # from bar -> from .
                         re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
-                        r'\1from {}.{}\2'.format(pkgname, lib)
+                        r'\1from {}\2'.format(pkgname)
                     ),
                 )
         patch_vendor_imports(file, replacements)
