@@ -5,7 +5,7 @@ import re
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Optional, List, Generator, Tuple, Set, FrozenSet, Union, TextIO, Callable
+from typing import List, Generator, Tuple, Set, FrozenSet, Union, Callable
 
 WHITELIST = {'README.txt', '__init__.py', 'vendor.txt'}
 
