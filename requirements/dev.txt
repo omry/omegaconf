@@ -1,12 +1,12 @@
 -r base.txt
 -r docs.txt
 attrs
-black
+black==23.7.0
 build
 coveralls
-flake8>=4
-isort~=5.0
-mypy
+flake8==6.0.0
+isort==5.12.0
+mypy==1.4.1
 nox
 pre-commit
 pyflakes
@@ -15,6 +15,6 @@ pytest-benchmark
 pytest-lazy-fixture
 pytest-mock
 towncrier
+types-setuptools  # makes mypy happy
 twine
 pydevd
-

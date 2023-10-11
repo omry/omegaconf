@@ -22,10 +22,8 @@ Structured Configs
 Structured configs are used to create OmegaConf configuration object with runtime type safety.
 In addition, they can be used with tools like mypy or your IDE for static type checking.
 
-Two types of structures classes are supported: dataclasses and attr classes.
-
-- `dataclasses <https://docs.python.org/3.7/library/dataclasses.html>`_ are standard as of Python 3.7 or newer and are available in Python 3.6 via the `dataclasses` pip package.
-- `attrs <https://github.com/python-attrs/attrs>`_  Offset slightly cleaner syntax in some cases but depends on the attrs pip package.
+Two types of structures classes are supported: `dataclasses <https://docs.python.org/3/library/dataclasses.html>`_ and `attrs <https://github.com/python-attrs/attrs>`_ classes
+(that offers slightly cleaner syntax in some cases but depends on the attrs pip package).
 
 This documentation will use dataclasses, but you can use the annotation ``@attr.s(auto_attribs=True)`` from attrs instead of ``@dataclass``.
 
@@ -439,10 +437,6 @@ OmegaConf supports field modifiers such as ``MISSING`` and ``Optional``.
     ...     list_optional: List[Optional[int]] = field(default_factory=lambda: [10, MISSING, None])
 
     >>> conf: Modifiers = OmegaConf.structured(Modifiers)
-
-Note for Python3.6 users: :ref:`pickling <save_and_load_pickle_file>`
-structured configs with complex type annotations, such as dict-of-list or
-list-of-optional, is not supported.
 
 Mandatory missing values
 ++++++++++++++++++++++++

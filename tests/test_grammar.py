@@ -2,6 +2,7 @@ import math
 import re
 import threading
 import time
+from contextlib import nullcontext
 from typing import Any, Callable, List, Optional, Set, Tuple
 
 from pytest import mark, param, raises, warns
@@ -16,7 +17,6 @@ from omegaconf import (
     grammar_parser,
     grammar_visitor,
 )
-from omegaconf._utils import nullcontext
 from omegaconf.errors import (
     GrammarParseError,
     InterpolationKeyError,
