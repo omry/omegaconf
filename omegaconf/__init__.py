@@ -29,9 +29,8 @@ from .omegaconf import (
     open_dict,
     read_write,
 )
-from .version import __version__
-
 from .typing import Antlr4ParserRuleContext
+from .version import __version__
 
 __all__ = [
     "__version__",

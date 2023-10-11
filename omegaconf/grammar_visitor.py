@@ -14,9 +14,8 @@ from typing import (
     Union,
 )
 
-from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
-
 from .errors import InterpolationResolutionError
+from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
 
 if TYPE_CHECKING:
     from .base import Node  # noqa F401

@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
 
-from .typing import Antlr4ParserRuleContext
-
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
@@ -37,6 +35,7 @@ from .errors import (
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
+from .typing import Antlr4ParserRuleContext
 
 DictKeyType = Union[str, bytes, int, Enum, float, bool]
 

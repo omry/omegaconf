@@ -7,5 +7,4 @@ else:
 
 from .vendor.antlr4.ParserRuleContext import ParserRuleContext
 
-
 Antlr4ParserRuleContext: TypeAlias = ParserRuleContext  # type: ignore[valid-type]

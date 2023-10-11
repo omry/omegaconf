@@ -2,12 +2,7 @@ import re
 import threading
 from typing import Any
 
-from .vendor.antlr4 import CommonTokenStream, InputStream  # type: ignore[attr-defined]
-from .vendor.antlr4.error.ErrorListener import ErrorListener
-
 from .errors import GrammarParseError
-
-from .typing import Antlr4ParserRuleContext
 
 # Import from visitor in order to check the presence of generated grammar files
 # files in a single place.
@@ -15,6 +10,9 @@ from .grammar_visitor import (  # type: ignore
     OmegaConfGrammarLexer,
     OmegaConfGrammarParser,
 )
+from .typing import Antlr4ParserRuleContext
+from .vendor.antlr4 import CommonTokenStream, InputStream  # type: ignore[attr-defined]
+from .vendor.antlr4.error.ErrorListener import ErrorListener
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
 # We use a per-thread cache to make it thread-safe.
