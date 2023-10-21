@@ -305,6 +305,7 @@ class BaseContainer(Container, ABC):
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ListConfig, ValueNode
+        from ._utils import get_dict_key_value_types, get_list_element_type
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -380,22 +381,27 @@ class BaseContainer(Container, ABC):
             if dest_node is not None and dest_node._is_interpolation():
                 target_node = dest_node._maybe_dereference_node()
                 if isinstance(target_node, Container):
-                    dest[key] = target_node
+                    dest.__setitem__(key, target_node)
                     dest_node = dest._get_node(key)
 
             is_optional, et = _resolve_optional(dest._metadata.element_type)
             if dest_node is None and not src_node_missing:
+                # check if merging into a new node
                 if is_structured_config(et):
-                    # merging into a new node. Use element_type as a base
-                    dest[key] = DictConfig(
-                        et, parent=dest, ref_type=et, is_optional=is_optional
-                    )
+                    # Use element_type as a base
+                    dest.__setitem__(key, DictConfig(et, parent=dest, ref_type=et, is_optional=is_optional))
                     dest_node = dest._get_node(key)
                 elif is_dict_annotation(et):
-                    dest[key] = DictConfig({}, parent=dest, ref_type=et, is_optional=is_optional)
+                    key_type, element_type = get_dict_key_value_types(et)
+                    dest.__setitem__(key, DictConfig(
+                        {}, parent=dest, ref_type=et, key_type=key_type, element_type=element_type, is_optional=is_optional
+                    ))
                     dest_node = dest._get_node(key)
                 elif is_list_annotation(et):
-                    dest[key] = ListConfig([], parent=dest, ref_type=et, is_optional=is_optional)
+                    element_type = get_list_element_type(et)
+                    dest.__setitem__(key, ListConfig(
+                        [], parent=dest, ref_type=et, element_type=element_type, is_optional=is_optional
+                    ))
                     dest_node = dest._get_node(key)
 
             if dest_node is not None:
@@ -435,9 +441,9 @@ class BaseContainer(Container, ABC):
                 if is_structured_config(src_type):
                     # verified to be compatible above in _validate_merge
                     with open_dict(dest):
-                        dest[key] = src._get_node(key)
+                        dest.__setitem__(key, src._get_node(key))
                 else:
-                    dest[key] = src._get_node(key)
+                    dest.__setitem__(key, src._get_node(key))
 
         _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
 
@@ -455,6 +461,7 @@ class BaseContainer(Container, ABC):
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
+        from ._utils import get_dict_key_value_types, get_list_element_type
 
         assert isinstance(dest, ListConfig)
         assert isinstance(src, ListConfig)
@@ -473,15 +480,22 @@ class BaseContainer(Container, ABC):
                 dest.__dict__["_metadata"]
             )
             is_optional, et = _resolve_optional(dest._metadata.element_type)
+
+            prototype: Optional[Union[DictConfig, ListConfig]] = None
+
             if is_structured_config(et):
                 prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
-                for item in src._iter_ex(resolve=False):
-                    if isinstance(item, DictConfig):
-                        item = OmegaConf.merge(prototype, item)
-                    temp_target.append(item)
-            else:
-                for item in src._iter_ex(resolve=False):
-                    temp_target.append(item)
+            elif is_dict_annotation(et):
+                key_type, element_type = get_dict_key_value_types(et)
+                prototype = DictConfig({}, ref_type=et, key_type=key_type, element_type=element_type, is_optional=is_optional)
+            elif is_list_annotation(et):
+                element_type = get_list_element_type(et)
+                prototype = ListConfig([], ref_type=et, element_type=element_type, is_optional=is_optional)
+
+            for item in src._iter_ex(resolve=False):
+                if prototype is not None:
+                    item = OmegaConf.merge(prototype, item)
+                temp_target.append(item)
 
             if list_merge_mode == ListMergeMode.EXTEND:
                 dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
