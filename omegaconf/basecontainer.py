@@ -494,7 +494,7 @@ class BaseContainer(Container, ABC):
 
             for item in src._iter_ex(resolve=False):
                 if prototype is not None:
-                    item = OmegaConf.merge(prototype, item)
+                    item = OmegaConf.merge(prototype, item, list_merge_mode=list_merge_mode)
                 temp_target.append(item)
 
             if list_merge_mode == ListMergeMode.EXTEND:
