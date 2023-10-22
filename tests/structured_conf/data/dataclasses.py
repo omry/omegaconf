@@ -264,6 +264,14 @@ class NestedWithAny:
 
 
 @dataclass
+class DeeplyNestedUser:
+    dsdsu: Dict[str, Dict[str, User]]
+    dslu: Dict[str, List[User]]
+    ldsu: List[Dict[str, User]]
+    llu: List[List[User]]
+
+
+@dataclass
 class NoDefaultValue:
     no_default: Any
 

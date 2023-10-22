@@ -24,7 +24,7 @@ from omegaconf import (
     ValidationError,
     _utils,
 )
-from omegaconf.errors import ConfigKeyError, InterpolationToMissingValueError
+from omegaconf.errors import ConfigKeyError, ConfigTypeError, InterpolationToMissingValueError
 from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 
@@ -1891,6 +1891,36 @@ class TestNestedContainers:
         else:
             with raises(ValidationError):
                 node[last_key] = value
+
+    @mark.parametrize(
+        "user_value, expected_error",
+        [
+            param({'name': 'Bond', 'age': 7}, None, id='user'),
+            param({'cat': 'Bond', 'turnip': 7}, ConfigKeyError, id='user-bad-key'),
+            param({'name': 'Bond', 'age': 'two hundred billion'}, ValidationError, id='user-bad-type1'),
+            param([1, 2, 3], ConfigTypeError, id='user-bad-type2'),
+        ]
+    )
+    @mark.parametrize(
+        "key, make_nested_value",
+        [
+            param('dsdsu', lambda uv: {'level1': {'level2': uv}}, id='dsdsu'),
+            param('dslu', lambda uv: {'level1': [uv]}, id='dslu'),
+            param('ldsu', lambda uv: [{'level1': uv}], id='ldsu'),
+            param('llu', lambda uv: [[uv]], id='llu'),
+        ]
+    )
+    def test_merge_with_deep_nesting(
+        self, module: Any, key: str, make_nested_value, user_value, expected_error
+    ) -> None:
+        conf = OmegaConf.structured(module.DeeplyNestedUser)
+        src = {key: make_nested_value(user_value)}
+
+        if expected_error is None:
+            OmegaConf.merge(conf, src)
+        else:
+            with raises(expected_error):
+                OmegaConf.merge(conf, src)
 
 
 class TestUnionsOfPrimitiveTypes:
