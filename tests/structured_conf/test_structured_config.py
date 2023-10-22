@@ -1915,10 +1915,23 @@ class TestNestedContainers:
                 id="dsdsdsu",
             ),
             param(
-                "dsdslu", lambda uv: {"l1": {"l2": [uv]}}, ["l1", "l2", 0], id="dsdslu"
+                "dsdslu",
+                lambda uv: {"l1": {"l2": [uv]}},
+                ["l1", "l2", 0],
+                id="dsdslu",
             ),
-            param("lldsu", lambda uv: [[{"l3": uv}]], [0, 0, "l3"], id="lldsu"),
-            param("lllu", lambda uv: [[[uv]]], [0, 0, 0], id="lllu"),
+            param(
+                "lldsu",
+                lambda uv: [[{"l3": uv}]],
+                [0, 0, "l3"],
+                id="lldsu",
+            ),
+            param(
+                "lllu",
+                lambda uv: [[[uv]]],
+                [0, 0, 0],
+                id="lllu",
+            ),
         ],
     )
     def test_merge_with_deep_nesting(
