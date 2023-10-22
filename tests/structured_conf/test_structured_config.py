@@ -1903,7 +1903,7 @@ class TestNestedContainers:
             param({"cat": "Bond", "turnip": 7}, ConfigKeyError, id="user-bad-key"),
             param({"name": "Bond", "age": "abc"}, ValidationError, id="user-bad-type1"),
             param([1, 2, 3], ConfigTypeError, id="user-bad-type2"),
-        ]
+        ],
     )
     @mark.parametrize(
         "key, make_nested, indices",
@@ -1912,27 +1912,14 @@ class TestNestedContainers:
                 "dsdsdsu",
                 lambda uv: {"l1": {"l2": {"l3": uv}}},
                 ["l1", "l2", "l3"],
-                id="dsdsdsu"
+                id="dsdsdsu",
             ),
             param(
-                "dsdslu",
-                lambda uv: {"l1": {"l2": [uv]}},
-                ["l1", "l2", 0],
-                id="dsdslu"
+                "dsdslu", lambda uv: {"l1": {"l2": [uv]}}, ["l1", "l2", 0], id="dsdslu"
             ),
-            param(
-                "lldsu",
-                lambda uv: [[{"l3": uv}]],
-                [0, 0, "l3"],
-                id="lldsu"
-            ),
-            param(
-                "lllu",
-                lambda uv: [[[uv]]],
-                [0, 0, 0],
-                id="lllu"
-            ),
-        ]
+            param("lldsu", lambda uv: [[{"l3": uv}]], [0, 0, "l3"], id="lldsu"),
+            param("lllu", lambda uv: [[[uv]]], [0, 0, 0], id="lllu"),
+        ],
     )
     def test_merge_with_deep_nesting(
         self, module: Any, key: str, make_nested, indices, user_value, expected_error

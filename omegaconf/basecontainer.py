@@ -305,6 +305,7 @@ class BaseContainer(Container, ABC):
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ListConfig, ValueNode
+
         from ._utils import get_dict_key_value_types, get_list_element_type
 
         assert isinstance(dest, DictConfig)
@@ -389,19 +390,39 @@ class BaseContainer(Container, ABC):
                 # check if merging into a new node
                 if is_structured_config(et):
                     # Use element_type as a base
-                    dest.__setitem__(key, DictConfig(et, parent=dest, ref_type=et, is_optional=is_optional))
+                    dest.__setitem__(
+                        key,
+                        DictConfig(
+                            et, parent=dest, ref_type=et, is_optional=is_optional
+                        ),
+                    )
                     dest_node = dest._get_node(key)
                 elif is_dict_annotation(et):
                     key_type, element_type = get_dict_key_value_types(et)
-                    dest.__setitem__(key, DictConfig(
-                        {}, parent=dest, ref_type=et, key_type=key_type, element_type=element_type, is_optional=is_optional
-                    ))
+                    dest.__setitem__(
+                        key,
+                        DictConfig(
+                            {},
+                            parent=dest,
+                            ref_type=et,
+                            key_type=key_type,
+                            element_type=element_type,
+                            is_optional=is_optional,
+                        ),
+                    )
                     dest_node = dest._get_node(key)
                 elif is_list_annotation(et):
                     element_type = get_list_element_type(et)
-                    dest.__setitem__(key, ListConfig(
-                        [], parent=dest, ref_type=et, element_type=element_type, is_optional=is_optional
-                    ))
+                    dest.__setitem__(
+                        key,
+                        ListConfig(
+                            [],
+                            parent=dest,
+                            ref_type=et,
+                            element_type=element_type,
+                            is_optional=is_optional,
+                        ),
+                    )
                     dest_node = dest._get_node(key)
 
             if dest_node is not None:
@@ -461,6 +482,7 @@ class BaseContainer(Container, ABC):
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
+
         from ._utils import get_dict_key_value_types, get_list_element_type
 
         assert isinstance(dest, ListConfig)
@@ -487,14 +509,24 @@ class BaseContainer(Container, ABC):
                 prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
             elif is_dict_annotation(et):
                 key_type, element_type = get_dict_key_value_types(et)
-                prototype = DictConfig({}, ref_type=et, key_type=key_type, element_type=element_type, is_optional=is_optional)
+                prototype = DictConfig(
+                    {},
+                    ref_type=et,
+                    key_type=key_type,
+                    element_type=element_type,
+                    is_optional=is_optional,
+                )
             elif is_list_annotation(et):
                 element_type = get_list_element_type(et)
-                prototype = ListConfig([], ref_type=et, element_type=element_type, is_optional=is_optional)
+                prototype = ListConfig(
+                    [], ref_type=et, element_type=element_type, is_optional=is_optional
+                )
 
             for item in src._iter_ex(resolve=False):
                 if prototype is not None:
-                    item = OmegaConf.merge(prototype, item, list_merge_mode=list_merge_mode)
+                    item = OmegaConf.merge(
+                        prototype, item, list_merge_mode=list_merge_mode
+                    )
                 temp_target.append(item)
 
             if list_merge_mode == ListMergeMode.EXTEND:
