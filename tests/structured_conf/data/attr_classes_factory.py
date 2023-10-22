@@ -681,7 +681,7 @@ class NestedContainers:
         odsdsi_default: Optional[Dict[str, Dict[str, int]]] = attr.Factory(
             lambda: {
                 "dsi1": {},
-                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},  # type: ignore
+                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
                 "dsi3": MISSING,
             }
         )

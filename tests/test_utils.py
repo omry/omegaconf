@@ -297,13 +297,20 @@ class _TestAttrsClass:
     init_false: str = attr.field(init=False, default="foo")
 
 
+@attr.s(auto_attribs=True)
+class _TestAttrsTakesSelf:
+    x: int = 10
+    s: str = "foo"
+    description: str = attr.Factory(lambda self: f"{self.x}, {self.s}", takes_self=True)
+
+
 @dataclass
 class _TestDataclassIllegalValue:
     x: Any = field(default_factory=IllegalType)
 
 
 @attr.s(auto_attribs=True)
-class _TestAttrllegalValue:
+class _TestAttrIllegalValue:
     x: Any = IllegalType()
 
 
@@ -384,7 +391,7 @@ class TestGetStructuredConfigInfo:
     "test_cls",
     [
         _TestDataclassIllegalValue,
-        _TestAttrllegalValue,
+        _TestAttrIllegalValue,
     ],
 )
 def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
@@ -396,6 +403,12 @@ def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
 
     d = _utils.get_structured_config_data(test_cls, allow_objects=True)
     assert d["x"] == IllegalType()
+
+
+def test_get_structured_config_data_attrs_takes_self() -> None:
+    test_cls = _TestAttrsTakesSelf
+    with raises(ValueError):
+        _utils.get_structured_config_data(test_cls)
 
 
 def test_is_dataclass(mocker: Any) -> None:

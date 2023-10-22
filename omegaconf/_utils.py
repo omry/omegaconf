@@ -340,6 +340,9 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                         "'takes_self' in attrs attributes is not supported\n"
                         + f"{name}: {type_str(type_)}"
                     )
+                    format_and_raise(
+                        node=None, key=None, value=default, cause=e, msg=str(e)
+                    )
                 value = default.factory()  # type: ignore
             else:
                 value = default
