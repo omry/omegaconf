@@ -341,6 +341,8 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                         + f"{name}: {type_str(type_)}"
                     )
                 value = default.factory()  # type: ignore
+            else:
+                value = default
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
                 f"Unions of containers are not supported:\n{name}: {type_str(type_)}"
