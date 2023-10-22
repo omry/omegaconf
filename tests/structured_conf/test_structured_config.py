@@ -1899,38 +1899,38 @@ class TestNestedContainers:
     @mark.parametrize(
         "user_value, expected_error",
         [
-            param({'name': 'Bond', 'age': 7}, None, id='user-good'),
-            param({'cat': 'Bond', 'turnip': 7}, ConfigKeyError, id='user-bad-key'),
-            param({'name': 'Bond', 'age': 'abc'}, ValidationError, id='user-bad-type1'),
-            param([1, 2, 3], ConfigTypeError, id='user-bad-type2'),
+            param({"name": "Bond", "age": 7}, None, id="user-good"),
+            param({"cat": "Bond", "turnip": 7}, ConfigKeyError, id="user-bad-key"),
+            param({"name": "Bond", "age": "abc"}, ValidationError, id="user-bad-type1"),
+            param([1, 2, 3], ConfigTypeError, id="user-bad-type2"),
         ]
     )
     @mark.parametrize(
         "key, make_nested, indices",
         [
             param(
-                'dsdsdsu',
-                lambda uv: {'l1': {'l2': {'l3': uv}}},
-                ['l1', 'l2', 'l3'],
-                id='dsdsdsu'
+                "dsdsdsu",
+                lambda uv: {"l1": {"l2": {"l3": uv}}},
+                ["l1", "l2", "l3"],
+                id="dsdsdsu"
             ),
             param(
-                'dsdslu',
-                lambda uv: {'l1': {'l2': [uv]}},
-                ['l1', 'l2', 0],
-                id='dsdslu'
+                "dsdslu",
+                lambda uv: {"l1": {"l2": [uv]}},
+                ["l1", "l2", 0],
+                id="dsdslu"
             ),
             param(
-                'lldsu',
-                lambda uv: [[{'l3': uv}]],
-                [0, 0, 'l3'],
-                id='lldsu'
+                "lldsu",
+                lambda uv: [[{"l3": uv}]],
+                [0, 0, "l3"],
+                id="lldsu"
             ),
             param(
-                'lllu',
+                "lllu",
                 lambda uv: [[[uv]]],
                 [0, 0, 0],
-                id='lllu'
+                id="lllu"
             ),
         ]
     )
