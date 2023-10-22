@@ -24,7 +24,11 @@ from omegaconf import (
     ValidationError,
     _utils,
 )
-from omegaconf.errors import ConfigKeyError, ConfigTypeError, InterpolationToMissingValueError
+from omegaconf.errors import (
+    ConfigKeyError,
+    ConfigTypeError,
+    InterpolationToMissingValueError,
+)
 from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 
@@ -1895,29 +1899,57 @@ class TestNestedContainers:
     @mark.parametrize(
         "user_value, expected_error",
         [
-            param({'name': 'Bond', 'age': 7}, None, id='user'),
+            param({'name': 'Bond', 'age': 7}, None, id='user-good'),
             param({'cat': 'Bond', 'turnip': 7}, ConfigKeyError, id='user-bad-key'),
-            param({'name': 'Bond', 'age': 'two hundred billion'}, ValidationError, id='user-bad-type1'),
+            param({'name': 'Bond', 'age': 'abc'}, ValidationError, id='user-bad-type1'),
             param([1, 2, 3], ConfigTypeError, id='user-bad-type2'),
         ]
     )
     @mark.parametrize(
-        "key, make_nested_value",
+        "key, make_nested, indices",
         [
-            param('dsdsu', lambda uv: {'level1': {'level2': uv}}, id='dsdsu'),
-            param('dslu', lambda uv: {'level1': [uv]}, id='dslu'),
-            param('ldsu', lambda uv: [{'level1': uv}], id='ldsu'),
-            param('llu', lambda uv: [[uv]], id='llu'),
+            param(
+                'dsdsdsu',
+                lambda uv: {'l1': {'l2': {'l3': uv}}},
+                ['l1', 'l2', 'l3'],
+                id='dsdsdsu'
+            ),
+            param(
+                'dsdslu',
+                lambda uv: {'l1': {'l2': [uv]}},
+                ['l1', 'l2', 0],
+                id='dsdslu'
+            ),
+            param(
+                'lldsu',
+                lambda uv: [[{'l3': uv}]],
+                [0, 0, 'l3'],
+                id='lldsu'
+            ),
+            param(
+                'lllu',
+                lambda uv: [[[uv]]],
+                [0, 0, 0],
+                id='lllu'
+            ),
         ]
     )
     def test_merge_with_deep_nesting(
-        self, module: Any, key: str, make_nested_value, user_value, expected_error
+        self, module: Any, key: str, make_nested, indices, user_value, expected_error
     ) -> None:
         conf = OmegaConf.structured(module.DeeplyNestedUser)
-        src = {key: make_nested_value(user_value)}
+        src = {key: make_nested(user_value)}
 
         if expected_error is None:
-            OmegaConf.merge(conf, src)
+            merged = OmegaConf.merge(conf, src)
+            assert isinstance(merged, DictConfig)
+            value = merged[key]
+            for index in indices:
+                previous = value
+                value = value[index]
+                assert previous._metadata.key_type is type(index)
+                assert previous._metadata.element_type is value._metadata.ref_type
+            assert value._metadata.ref_type is module.User
         else:
             with raises(expected_error):
                 OmegaConf.merge(conf, src)
