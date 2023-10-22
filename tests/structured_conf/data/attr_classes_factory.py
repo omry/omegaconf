@@ -1,9 +1,8 @@
-import dataclasses
 import sys
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import attr
 from pytest import importorskip
 
 from omegaconf import II, MISSING, SI
@@ -12,8 +11,8 @@ from tests import Color, Enum1
 if sys.version_info >= (3, 8):  # pragma: no cover
     from typing import TypedDict
 
-# skip test if dataclasses are not available
-importorskip("dataclasses")
+# attr is a dependency of pytest which means it's always available when testing with pytest.
+importorskip("attr")
 
 
 class NotStructuredConfig:
@@ -29,57 +28,57 @@ class NotStructuredConfig:
 if sys.version_info >= (3, 8):  # pragma: no cover
 
     class TypedDictSubclass(TypedDict):
-        foo: str
+        foo: int
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class StructuredWithInvalidField:
-    bar: NotStructuredConfig = field(default_factory=NotStructuredConfig)
+    bar: NotStructuredConfig = attr.Factory(NotStructuredConfig)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class User:
     name: str = MISSING
     age: int = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UserList:
     list: List[User] = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UserDict:
     dict: Dict[str, User] = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UserWithDefaultName(User):
     name: str = "bob"
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class MissingUserField:
     user: User = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class MissingUserWithDefaultNameField:
     user: UserWithDefaultName = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class OptionalUser:
     user: Optional[User] = None
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class InterpolationToUser:
-    user: User = field(default_factory=lambda: User("Bond", 7))
+    user: User = attr.Factory(lambda: User("Bond", 7))
     admin: User = II("user")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class AnyTypeConfig:
     with_default: Any = "Can get any type at runtime"
     null_default: Any = None
@@ -102,7 +101,7 @@ class AnyTypeConfig:
     typed_int_default: int = 10
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class BoolConfig:
     # with default value
     with_default: bool = True
@@ -117,7 +116,7 @@ class BoolConfig:
     interpolation: bool = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class IntegersConfig:
     # with default value
     with_default: int = 10
@@ -132,7 +131,7 @@ class IntegersConfig:
     interpolation: int = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class StringConfig:
     # with default value
     with_default: str = "foo"
@@ -147,7 +146,7 @@ class StringConfig:
     interpolation: str = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class FloatConfig:
     # with default value
     with_default: float = 0.10
@@ -162,7 +161,7 @@ class FloatConfig:
     interpolation: float = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class BytesConfig:
     # with default value
     with_default: bytes = b"binary"
@@ -177,7 +176,7 @@ class BytesConfig:
     interpolation: bytes = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class PathConfig:
     # with default value
     with_default: Path = Path("hello.txt")
@@ -192,7 +191,7 @@ class PathConfig:
     interpolation: Path = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class EnumConfig:
     # with default value
     with_default: Color = Color.BLUE
@@ -207,25 +206,25 @@ class EnumConfig:
     interpolation: Color = II("with_default")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ConfigWithList:
-    list1: List[int] = field(default_factory=lambda: [1, 2, 3])
-    list2: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
+    list1: List[int] = attr.Factory(lambda: [1, 2, 3])
+    list2: Tuple[int, int, int] = attr.Factory(lambda: (1, 2, 3))
     missing: List[int] = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ConfigWithDict:
-    dict1: Dict[str, Any] = field(default_factory=lambda: {"foo": "bar"})
+    dict1: Dict[str, Any] = attr.Factory(lambda: {"foo": "bar"})
     missing: Dict[str, Any] = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ConfigWithDict2:
-    dict1: Dict[str, int] = field(default_factory=lambda: {"foo": 2})
+    dict1: Dict[str, int] = attr.Factory(lambda: {"foo": 2})
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Nested:
     # with default value
     with_default: int = 10
@@ -241,34 +240,32 @@ class Nested:
     interpolation: int = II("value_at_root")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NestedSubclass(Nested):
     additional: int = 20
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NestedConfig:
     default_value: Nested
 
     # with default value
-    user_provided_default: Nested = field(
-        default_factory=lambda: Nested(with_default=42)
-    )
+    user_provided_default: Nested = attr.Factory(lambda: Nested(with_default=42))
 
     value_at_root: int = 1000
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NestedWithAny:
-    var: Any = field(default_factory=Nested)
+    var: Any = attr.Factory(lambda: Nested())
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NoDefaultValue:
     no_default: Any
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Interpolation:
     x: int = 100
     y: int = 200
@@ -278,7 +275,7 @@ class Interpolation:
     z2: str = SI("${x}_${y}")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class RelativeInterpolation:
     x: int = 100
     y: int = 200
@@ -286,422 +283,410 @@ class RelativeInterpolation:
     z2: str = SI("${.x}_${.y}")
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class BoolOptional:
     with_default: Optional[bool] = True
     as_none: Optional[bool] = None
     not_optional: bool = True
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class IntegerOptional:
     with_default: Optional[int] = 1
     as_none: Optional[int] = None
     not_optional: int = 1
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class FloatOptional:
     with_default: Optional[float] = 1.0
     as_none: Optional[float] = None
     not_optional: float = 1
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class StringOptional:
     with_default: Optional[str] = "foo"
     as_none: Optional[str] = None
     not_optional: str = "foo"
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ListOptional:
-    with_default: Optional[List[int]] = field(default_factory=lambda: [1, 2, 3])
+    with_default: Optional[List[int]] = attr.Factory(lambda: [1, 2, 3])
     as_none: Optional[List[int]] = None
-    not_optional: List[int] = field(default_factory=lambda: [1, 2, 3])
+    not_optional: List[int] = attr.Factory(lambda: [1, 2, 3])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class TupleOptional:
-    with_default: Optional[Tuple[int, int, int]] = field(
-        default_factory=lambda: (1, 2, 3)
-    )
+    with_default: Optional[Tuple[int, int, int]] = attr.Factory(lambda: (1, 2, 3))
     as_none: Optional[Tuple[int, int, int]] = None
-    not_optional: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))
+    not_optional: Tuple[int, int, int] = attr.Factory(lambda: (1, 2, 3))
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class EnumOptional:
     with_default: Optional[Color] = Color.BLUE
     as_none: Optional[Color] = None
     not_optional: Color = Color.BLUE
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class DictOptional:
-    with_default: Optional[Dict[str, int]] = field(default_factory=lambda: {"a": 10})
+    with_default: Optional[Dict[str, int]] = attr.Factory(lambda: {"a": 10})
     as_none: Optional[Dict[str, int]] = None
-    not_optional: Dict[str, int] = field(default_factory=lambda: {"a": 10})
+    not_optional: Dict[str, int] = attr.Factory(lambda: {"a": 10})
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class RecursiveDict:
     d: Dict[str, "RecursiveDict"] = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class StructuredOptional:
-    with_default: Optional[Nested] = field(default_factory=Nested)
+    with_default: Optional[Nested] = attr.Factory(Nested)
     as_none: Optional[Nested] = None
-    not_optional: Nested = field(default_factory=Nested)
+    not_optional: Nested = attr.Factory(Nested)
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class FrozenClass:
-    user: User = field(default_factory=lambda: User(name="Bart", age=10))
+    user: User = attr.Factory(lambda: User(name="Bart", age=10))
     x: int = 10
-    list: List[int] = field(default_factory=lambda: [1, 2, 3])
+    list: List[int] = attr.Factory(lambda: [1, 2, 3])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ContainsFrozen:
     x: int = 10
     frozen: FrozenClass = FrozenClass()
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class WithListField:
-    list: List[int] = field(default_factory=lambda: [1, 2, 3])
+    list: List[int] = attr.Factory(lambda: [1, 2, 3])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class WithDictField:
-    dict: Dict[str, int] = field(default_factory=lambda: {"foo": 10, "bar": 20})
+    dict: Dict[str, int] = attr.Factory(lambda: {"foo": 10, "bar": 20})
 
 
 if sys.version_info >= (3, 8):  # pragma: no cover
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithTypedDictField:
         dict: TypedDictSubclass
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ErrorDictObjectKey:
     # invalid dict key, must be str
-    dict: Dict[object, str] = field(
-        default_factory=lambda: {object(): "foo", object(): "bar"}
-    )
+    dict: Dict[object, str] = attr.Factory(lambda: {object(): "foo", object(): "bar"})
 
 
 class RegularClass:
     pass
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ErrorDictUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: Dict[str, RegularClass] = field(default_factory=dict)
+    dict: Dict[str, RegularClass] = attr.Factory(dict)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ErrorListUnsupportedValue:
     # invalid dict value type, not one of the supported types
-    dict: List[RegularClass] = field(default_factory=list)
+    dict: List[RegularClass] = attr.Factory(list)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ListExamples:
-    any: List[Any] = field(default_factory=lambda: [1, "foo"])
-    ints: List[int] = field(default_factory=lambda: [1, 2])
-    strings: List[str] = field(default_factory=lambda: ["foo", "bar"])
-    booleans: List[bool] = field(default_factory=lambda: [True, False])
-    colors: List[Color] = field(default_factory=lambda: [Color.RED, Color.GREEN])
+    any: List[Any] = attr.Factory(lambda: [1, "foo"])
+    ints: List[int] = attr.Factory(lambda: [1, 2])
+    strings: List[str] = attr.Factory(lambda: ["foo", "bar"])
+    booleans: List[bool] = attr.Factory(lambda: [True, False])
+    colors: List[Color] = attr.Factory(lambda: [Color.RED, Color.GREEN])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class TupleExamples:
-    any: Tuple[Any, Any] = field(default_factory=lambda: (1, "foo"))
-    ints: Tuple[int, int] = field(default_factory=lambda: (1, 2))
-    strings: Tuple[str, str] = field(default_factory=lambda: ("foo", "bar"))
-    booleans: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
-    colors: Tuple[Color, Color] = field(
-        default_factory=lambda: (Color.RED, Color.GREEN)
-    )
+    any: Tuple[Any, Any] = attr.Factory(lambda: (1, "foo"))
+    ints: Tuple[int, int] = attr.Factory(lambda: (1, 2))
+    strings: Tuple[str, str] = attr.Factory(lambda: ("foo", "bar"))
+    booleans: Tuple[bool, bool] = attr.Factory(lambda: (True, False))
+    colors: Tuple[Color, Color] = attr.Factory(lambda: (Color.RED, Color.GREEN))
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class DictExamples:
-    any: Dict[str, Any] = field(default_factory=lambda: {"a": 1, "b": "foo"})
-    ints: Dict[str, int] = field(default_factory=lambda: {"a": 10, "b": 20})
-    strings: Dict[str, str] = field(default_factory=lambda: {"a": "foo", "b": "bar"})
-    booleans: Dict[str, bool] = field(default_factory=lambda: {"a": True, "b": False})
-    colors: Dict[str, Color] = field(
-        default_factory=lambda: {
+    any: Dict[str, Any] = attr.Factory(lambda: {"a": 1, "b": "foo"})
+    ints: Dict[str, int] = attr.Factory(lambda: {"a": 10, "b": 20})
+    strings: Dict[str, str] = attr.Factory(lambda: {"a": "foo", "b": "bar"})
+    booleans: Dict[str, bool] = attr.Factory(lambda: {"a": True, "b": False})
+    colors: Dict[str, Color] = attr.Factory(
+        lambda: {
             "red": Color.RED,
             "green": Color.GREEN,
             "blue": Color.BLUE,
         }
     )
-    int_keys: Dict[int, str] = field(default_factory=lambda: {1: "one", 2: "two"})
-    float_keys: Dict[float, str] = field(
-        default_factory=lambda: {1.1: "one", 2.2: "two"}
-    )
-    bool_keys: Dict[bool, str] = field(default_factory=lambda: {True: "T", False: "F"})
-    enum_key: Dict[Color, str] = field(
-        default_factory=lambda: {Color.RED: "red", Color.GREEN: "green"}
+    int_keys: Dict[int, str] = attr.Factory(lambda: {1: "one", 2: "two"})
+    float_keys: Dict[float, str] = attr.Factory(lambda: {1.1: "one", 2.2: "two"})
+    bool_keys: Dict[bool, str] = attr.Factory(lambda: {True: "T", False: "F"})
+    enum_key: Dict[Color, str] = attr.Factory(
+        lambda: {Color.RED: "red", Color.GREEN: "green"}
     )
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class DictOfObjects:
-    users: Dict[str, User] = field(
-        default_factory=lambda: {"joe": User(name="Joe", age=18)}
-    )
+    users: Dict[str, User] = attr.Factory(lambda: {"joe": User(name="Joe", age=18)})
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class DictOfObjectsMissing:
-    users: Dict[str, User] = field(default_factory=lambda: {"moe": MISSING})
+    users: Dict[str, User] = attr.Factory(lambda: {"moe": MISSING})
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ListOfObjects:
-    users: List[User] = field(default_factory=lambda: [User(name="Joe", age=18)])
+    users: List[User] = attr.Factory(lambda: [User(name="Joe", age=18)])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ListOfObjectsMissing:
-    users: List[User] = field(default_factory=lambda: [MISSING])
+    users: List[User] = attr.Factory(lambda: [MISSING])
 
 
 class DictSubclass:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2Str(Dict[str, str]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2Int(Dict[str, int]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Int2Str(Dict[int, str]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Float2Str(Dict[float, str]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Bool2Str(Dict[bool, str]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Color2Str(Dict[Color, str]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Color2Color(Dict[Color, Color]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2User(Dict[str, User]):
         pass
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2StrWithField(Dict[str, str]):
         foo: str = "bar"
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2IntWithStrField(Dict[str, int]):
         foo: int = 1
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Str2UserWithField(Dict[str, User]):
-        foo: User = field(default_factory=lambda: User("Bond", 7))
+        foo: User = attr.Factory(lambda: User("Bond", 7))
 
     class Error:
-        @dataclass
+        @attr.s(auto_attribs=True)
         class User2Str(Dict[User, str]):
             pass
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Plugin:
     name: str = MISSING
     params: Any = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ConcretePlugin(Plugin):
     name: str = "foobar_plugin"
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class FoobarParams:
         foo: int = 10
 
-    params: FoobarParams = field(default_factory=FoobarParams)
+    params: FoobarParams = attr.Factory(FoobarParams)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class PluginWithAdditionalField(Plugin):
     name: str = "foobar2_plugin"
     additional: int = 10
 
 
 # Does not extend Plugin, cannot be assigned or merged
-@dataclass
+@attr.s(auto_attribs=True)
 class FaultyPlugin:
     name: str = "faulty_plugin"
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class PluginHolder:
     none: Optional[Plugin] = None
     missing: Plugin = MISSING
-    plugin: Plugin = field(default_factory=Plugin)
-    plugin2: Plugin = field(default_factory=ConcretePlugin)
+    plugin: Plugin = attr.Factory(Plugin)
+    plugin2: Plugin = attr.Factory(ConcretePlugin)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class LinkedList:
     next: Optional["LinkedList"] = None
     value: Any = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class RecursiveList:
     d: List["RecursiveList"] = MISSING
 
 
 class MissingTest:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Missing1:
         head: LinkedList = MISSING
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Missing2:
-        head: LinkedList = field(
-            default_factory=lambda: LinkedList(next=MISSING, value=1)
-        )
+        head: LinkedList = attr.Factory(lambda: LinkedList(next=MISSING, value=1))
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NestedWithNone:
     plugin: Optional[Plugin] = None
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UnionError:
     x: Union[int, List[str]] = 10
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class WithNativeMISSING:
-    num: int = dataclasses.MISSING  # type: ignore
+    num: int = attr.NOTHING  # type: ignore
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class MissingStructuredConfigField:
     plugin: Plugin = MISSING
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class ListClass:
-    list: List[int] = field(default_factory=lambda: [])
-    tuple: Tuple[int, int] = field(default_factory=lambda: (1, 2))
+    list: List[int] = attr.Factory(lambda: [])
+    tuple: Tuple[int, int] = attr.Factory(lambda: (1, 2))
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UntypedList:
-    list: List = field(default_factory=lambda: [1, 2])  # type: ignore
+    list: List = attr.Factory(lambda: [1, 2])  # type: ignore
     opt_list: Optional[List] = None  # type: ignore
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class UntypedDict:
-    dict: Dict = field(default_factory=lambda: {"foo": "var"})  # type: ignore
+    dict: Dict = attr.Factory(lambda: {"foo": "var"})  # type: ignore
     opt_dict: Optional[Dict] = None  # type: ignore
 
 
 class StructuredSubclass:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ParentInts:
         int1: int
         int2: int
-        int3: int = dataclasses.MISSING  # type: ignore
+        int3: int = attr.NOTHING  # type: ignore
         int4: int = MISSING
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ChildInts(ParentInts):
         int2: int = 5
         int3: int = 10
         int4: int = 15
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ParentContainers:
         list1: List[int] = MISSING
-        list2: List[int] = field(default_factory=lambda: [5, 6])
+        list2: List[int] = attr.Factory(lambda: [5, 6])
         dict: Dict[str, Any] = MISSING
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ChildContainers(ParentContainers):
-        list1: List[int] = field(default_factory=lambda: [1, 2, 3])
-        dict: Dict[str, Any] = field(default_factory=lambda: {"a": 5, "b": 6})
+        list1: List[int] = attr.Factory(lambda: [1, 2, 3])
+        dict: Dict[str, Any] = attr.Factory(lambda: {"a": 5, "b": 6})
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ParentNoDefaultFactory:
         no_default_to_list: Any
         int_to_list: Any = 1
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ChildWithDefaultFactory(ParentNoDefaultFactory):
-        no_default_to_list: Any = field(default_factory=lambda: ["hi"])
-        int_to_list: Any = field(default_factory=lambda: ["hi"])
+        no_default_to_list: Any = attr.Factory(lambda: ["hi"])
+        int_to_list: Any = attr.Factory(lambda: ["hi"])
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasInitFalseFields:
-    post_initialized: str = field(init=False)
-    without_default: str = field(init=False)
-    with_default: str = field(init=False, default="default")
+    post_initialized: str = attr.field(init=False)
+    without_default: str = attr.field(init=False)
+    with_default: str = attr.field(init=False, default="default")
 
-    def __post_init__(self) -> None:
+    def __attrs_post_init__(self) -> None:
         self.post_initialized = "set_by_post_init"
 
 
 class NestedContainers:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ListOfLists:
         lls: List[List[str]]
         llx: List[List[User]]
         llla: List[List[List[Any]]]
         lloli: List[List[Optional[List[int]]]]
-        lls_default: List[List[str]] = field(
-            default_factory=lambda: [[], ["abc", "def", 123, MISSING], MISSING]  # type: ignore
+        lls_default: List[List[str]] = attr.Factory(
+            lambda: [[], ["abc", "def", 123, MISSING], MISSING]  # type: ignore
         )
-        lolx_default: List[Optional[List[User]]] = field(
-            default_factory=lambda: [
+        lolx_default: List[Optional[List[User]]] = attr.Factory(
+            lambda: [
                 [],
                 [User(), User(age=7, name="Bond"), MISSING],
                 MISSING,
             ]
         )
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class DictOfDicts:
         dsdsi: Dict[str, Dict[str, int]]
         dsdbi: Dict[str, Dict[bool, int]]
         dsdsx: Dict[str, Dict[str, User]]
-        odsdsi_default: Optional[Dict[str, Dict[str, int]]] = field(
-            default_factory=lambda: {
+        odsdsi_default: Optional[Dict[str, Dict[str, int]]] = attr.Factory(
+            lambda: {
                 "dsi1": {},
-                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
+                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},  # type: ignore
                 "dsi3": MISSING,
             }
         )
-        dsdsx_default: Dict[str, Dict[str, User]] = field(
-            default_factory=lambda: {
+        dsdsx_default: Dict[str, Dict[str, User]] = attr.Factory(
+            lambda: {
                 "dsx1": {},
                 "dsx2": {
                     "s1": User(),
@@ -712,30 +697,30 @@ class NestedContainers:
             }
         )
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ListsAndDicts:
         lldsi: List[List[Dict[str, int]]]
         ldaos: List[Dict[Any, Optional[str]]]
         dedsle: Dict[Color, Dict[str, List[Enum1]]]
         dsolx: Dict[str, Optional[List[User]]]
         oldfox: Optional[List[Dict[float, Optional[User]]]]
-        dedsle_default: Dict[Color, Dict[str, List[Enum1]]] = field(
-            default_factory=lambda: {
+        dedsle_default: Dict[Color, Dict[str, List[Enum1]]] = attr.Factory(
+            lambda: {
                 Color.RED: {"a": [Enum1.FOO, Enum1.BAR]},
                 Color.GREEN: {"b": []},
                 Color.BLUE: {},
             }
         )
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithDefault:
-        dsolx_default: Dict[str, Optional[List[User]]] = field(
-            default_factory=lambda: {"lx": [User()], "n": None}
+        dsolx_default: Dict[str, Optional[List[User]]] = attr.Factory(
+            lambda: {"lx": [User()], "n": None}
         )
 
 
 class UnionsOfPrimitveTypes:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class Simple:
         uis: Union[int, str]
         ubc: Union[bool, Color]
@@ -745,7 +730,7 @@ class UnionsOfPrimitveTypes:
         uisn: Union[int, str, None]
         uisN: Union[int, str, type(None)]  # type: ignore
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithDefaults:
         uis: Union[int, str] = "abc"
         ubc1: Union[bool, Color] = True
@@ -755,39 +740,39 @@ class UnionsOfPrimitveTypes:
         uisn: Union[int, str, None] = 123
         uisN: Union[int, str, type(None)] = "abc"  # type: ignore
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithExplicitMissing:
         uis_missing: Union[int, str] = MISSING
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithBadDefaults1:
         uis: Union[int, str] = None  # type: ignore
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithBadDefaults2:
         ubc: Union[bool, Color] = "abc"  # type: ignore
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithBadDefaults3:
         uxf: Union[bytes, float] = True
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class WithBadDefaults4:
         oufb: Optional[Union[float, bool]] = Color.RED  # type: ignore
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class ContainersOfUnions:
         lubc: List[Union[bool, Color]]
         dsubf: Dict[str, Union[bool, float]]
         dsoubf: Dict[str, Optional[Union[bool, float]]]
-        lubc_with_default: List[Union[bool, Color]] = field(
-            default_factory=lambda: [True, Color.RED]
+        lubc_with_default: List[Union[bool, Color]] = attr.Factory(
+            lambda: [True, Color.RED]
         )
-        dsubf_with_default: Dict[str, Union[bool, float]] = field(
-            default_factory=lambda: {"abc": True, "xyz": 1.2}
+        dsubf_with_default: Dict[str, Union[bool, float]] = attr.Factory(
+            lambda: {"abc": True, "xyz": 1.2}
         )
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class InterpolationFromUnion:
         ubi: Union[bool, int]
         oubi: Optional[Union[bool, int]]
@@ -798,20 +783,20 @@ class UnionsOfPrimitveTypes:
         ubi_with_default: Union[bool, int] = II("an_int")
         oubi_with_default: Optional[Union[bool, int]] = II("none")
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class InterpolationToUnion:
         a_float: float = II("ufs")
         bad_int_interp: bool = II("ufs")
         ufs: Union[float, str] = 10.1
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class BadInterpolationFromUnion:
         a_float: float = 10.1
         ubi: Union[bool, int] = II("a_float")
 
     if sys.version_info >= (3, 10):
 
-        @dataclass
+        @attr.s(auto_attribs=True)
         class SupportPEP604:
             """https://peps.python.org/pep-0604/"""
 
@@ -823,7 +808,7 @@ class UnionsOfPrimitveTypes:
 
 if sys.version_info >= (3, 9):
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class SupportPEP585:
         """
         PEP 585 – Type Hinting Generics In Standard Collections
@@ -833,21 +818,21 @@ if sys.version_info >= (3, 9):
         can be used instad of uppercase Dict/List/Tuple.
         """
 
-        dict_: dict[int, str] = field(default_factory=lambda: {123: "abc"})
-        list_: list[int] = field(default_factory=lambda: [123])
+        dict_: dict[int, str] = attr.Factory(lambda: {123: "abc"})
+        list_: list[int] = attr.Factory(lambda: [123])
         tuple_: tuple[int] = (123,)
-        dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})
-        list_no_subscript: list = field(default_factory=lambda: [123])
+        dict_no_subscript: dict = attr.Factory(lambda: {123: "abc"})
+        list_no_subscript: list = attr.Factory(lambda: [123])
         tuple_no_subscript: tuple = (123,)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasForwardRef:
-    @dataclass
+    @attr.s(auto_attribs=True)
     class CA:
         x: int = 3
 
-    @dataclass
+    @attr.s(auto_attribs=True)
     class CB:
         sub: "HasForwardRef.CA"
 
@@ -855,23 +840,23 @@ class HasForwardRef:
     b: CB
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasBadAnnotation1:
     data: object
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasBadAnnotation2:
     data: object()  # type: ignore
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasIgnoreMetadataRequired:
-    ignore: int = field(metadata={"omegaconf_ignore": True})
-    no_ignore: int = field(metadata={"omegaconf_ignore": False})
+    ignore: int = attr.field(metadata={"omegaconf_ignore": True})
+    no_ignore: int = attr.field(metadata={"omegaconf_ignore": False})
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class HasIgnoreMetadataWithDefault:
-    ignore: int = field(default=1, metadata={"omegaconf_ignore": True})
-    no_ignore: int = field(default=2, metadata={"omegaconf_ignore": False})
+    ignore: int = attr.field(default=1, metadata={"omegaconf_ignore": True})
+    no_ignore: int = attr.field(default=2, metadata={"omegaconf_ignore": False})

@@ -31,6 +31,10 @@ from tests import IllegalType
             ),
         ),
         param("tests.structured_conf.data.attr_classes", id="attr_classes"),
+        param(
+            "tests.structured_conf.data.attr_classes_factory",
+            id="attr_classes_factory",
+        ),
     ],
 )
 def module(request: Any) -> Any:
