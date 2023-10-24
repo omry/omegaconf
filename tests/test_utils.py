@@ -371,13 +371,15 @@ class TestGetStructuredConfigInfo:
         "test_cls_or_obj",
         [_TestDataclass, _TestDataclass(), _TestAttrsClass, _TestAttrsClass()],
     )
-    def test_get_structured_config_field_names(self, test_cls_or_obj: Any) -> None:
-        field_names = _utils.get_structured_config_init_field_names(test_cls_or_obj)
-        assert field_names == ["x", "s", "b", "p", "d", "f", "e", "list1", "dict1"]
+    def test_get_structured_config_field_aliases(self, test_cls_or_obj: Any) -> None:
+        field_names = _utils.get_structured_config_init_field_aliases(test_cls_or_obj)
+        compare = ["x", "s", "b", "p", "d", "f", "e", "list1", "dict1"]
+        assert list(field_names.keys()) == compare
+        assert list(field_names.values()) == compare
 
-    def test_get_structured_config_field_names_throws_ValueError(self) -> None:
+    def test_get_structured_config_field_aliases_throws_ValueError(self) -> None:
         with raises(ValueError):
-            _utils.get_structured_config_init_field_names("invalid")
+            _utils.get_structured_config_init_field_aliases("invalid")
 
 
 @mark.parametrize(

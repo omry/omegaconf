@@ -468,15 +468,27 @@ def is_structured_config_frozen(obj: Any) -> bool:
     return False
 
 
-def get_structured_config_init_field_names(obj: Any) -> List[str]:
+def _find_attrs_init_field_alias(field: Any) -> str:
+    # New versions of attrs, after 22.2.0, have the alias explicitly defined.
+    # Previous versions implicitly strip the underscore in the init parameter.
+    if hasattr(field, "alias"):
+        assert isinstance(field.alias, str)
+        return field.alias
+    else:  # pragma: no cover
+        assert isinstance(field.name, str)
+        return field.name.lstrip("_")
+
+
+def get_structured_config_init_field_aliases(obj: Any) -> Dict[str, str]:
     fields: Union[List["dataclasses.Field[Any]"], List["attr.Attribute[Any]"]]
     if is_dataclass(obj):
         fields = get_dataclass_fields(obj)
+        return {f.name: f.name for f in fields if f.init}
     elif is_attr_class(obj):
         fields = get_attr_class_fields(obj)
+        return {f.name: _find_attrs_init_field_alias(f) for f in fields if f.init}
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
-    return [f.name for f in fields if f.init]
 
 
 def get_structured_config_data(

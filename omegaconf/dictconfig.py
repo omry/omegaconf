@@ -28,7 +28,7 @@ from ._utils import (
     _valid_dict_key_annotation_type,
     format_and_raise,
     get_structured_config_data,
-    get_structured_config_init_field_names,
+    get_structured_config_init_field_aliases,
     get_type_of,
     get_value_kind,
     is_container_annotation,
@@ -726,7 +726,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         object_type = self._metadata.object_type
         assert is_structured_config(object_type)
-        init_field_names = set(get_structured_config_init_field_names(object_type))
+        init_field_aliases = get_structured_config_init_field_aliases(object_type)
 
         init_field_items: Dict[str, Any] = {}
         non_init_field_items: Dict[str, Any] = {}
@@ -739,7 +739,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             except InterpolationResolutionError as e:
                 self._format_and_raise(key=k, value=None, cause=e)
             if node._is_missing():
-                if k not in init_field_names:
+                if k not in init_field_aliases:
                     continue  # MISSING is ignored for init=False fields
                 self._format_and_raise(
                     key=k,
@@ -753,8 +753,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             else:
                 v = node._value()
 
-            if k in init_field_names:
-                init_field_items[k] = v
+            if k in init_field_aliases:
+                init_field_items[init_field_aliases[k]] = v
             else:
                 non_init_field_items[k] = v
 

@@ -676,6 +676,12 @@ class HasInitFalseFields:
         self.post_initialized = "set_by_post_init"
 
 
+@dataclass
+class LeadingUnderscoreFields:
+    _foo: str = "x"
+    _bar: str = "y"
+
+
 class NestedContainers:
     @dataclass
     class ListOfLists:

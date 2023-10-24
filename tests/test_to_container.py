@@ -527,6 +527,14 @@ class TestInstantiateStructuredConfigs:
         data = OmegaConf.to_object(cfg)
         assert data == module.HasIgnoreMetadataWithDefault(1, 4)
 
+    def test_leading_underscore_fields(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.LeadingUnderscoreFields)
+        container = OmegaConf.to_container(
+            cfg, structured_config_mode=SCMode.INSTANTIATE
+        )
+        assert isinstance(container, module.LeadingUnderscoreFields)
+        assert container._foo == "x" and container._bar == "y"
+
 
 class TestEnumToStr:
     """Test the `enum_to_str` argument to the `OmegaConf.to_container function`"""
