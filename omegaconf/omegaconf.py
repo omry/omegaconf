@@ -7,6 +7,7 @@ import pathlib
 import sys
 import warnings
 from collections import defaultdict
+from dataclasses import _MISSING_TYPE
 from contextlib import contextmanager, nullcontext
 from enum import Enum
 from textwrap import dedent
@@ -845,6 +846,8 @@ class OmegaConf:
 
             if obj is _DEFAULT_MARKER_:
                 obj = {}
+            if isinstance(obj, _MISSING_TYPE):
+                return OmegaConf.create({}, parent=parent, flags=flags)
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())
                 if obj is None:
