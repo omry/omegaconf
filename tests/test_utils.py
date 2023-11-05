@@ -29,7 +29,7 @@ from omegaconf._utils import (  # _normalize_ref_type,
     is_union_annotation,
     split_key,
 )
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import ConfigValueError, UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -407,7 +407,9 @@ def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
 
 def test_get_structured_config_data_attrs_takes_self() -> None:
     test_cls = _TestAttrsTakesSelf
-    with raises(ValueError):
+    with raises(
+        ConfigValueError, match="'takes_self' in attrs attributes is not supported"
+    ):
         _utils.get_structured_config_data(test_cls)
 
 
