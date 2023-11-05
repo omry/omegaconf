@@ -257,7 +257,7 @@ class NestedConfig:
 
 @attr.s(auto_attribs=True)
 class NestedWithAny:
-    var: Any = attr.Factory(lambda: Nested())
+    var: Any = attr.Factory(Nested)
 
 
 @attr.s(auto_attribs=True)
