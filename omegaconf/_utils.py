@@ -334,8 +334,9 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
             default = attrib.default
             if default == attr.NOTHING:
                 value = MISSING
-            elif isinstance(default, attr.Factory):  # type: ignore
-                if default.takes_self:  # type: ignore
+            elif isinstance(default, attr.Factory):  # type: ignore[arg-type]
+                assert default is not None
+                if default.takes_self:
                     e = ConfigValueError(
                         "'takes_self' in attrs attributes is not supported\n"
                         + f"{name}: {type_str(type_)}"
@@ -343,7 +344,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                     format_and_raise(
                         node=None, key=None, value=default, cause=e, msg=str(e)
                     )
-                value = default.factory()  # type: ignore
+                value = default.factory()
             else:
                 value = default
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
