@@ -76,6 +76,8 @@ class OptionalUser:
 class InterpolationToUser:
     user: User = User("Bond", 7)
     admin: User = II("user")
+    admin_list: List[User] = [II("user")]
+    admin_dict: Dict[str, User] = {"bond": II("user")}
 
 
 @attr.s(auto_attribs=True)

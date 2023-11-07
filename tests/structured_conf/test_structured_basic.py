@@ -247,6 +247,10 @@ class TestStructured:
             OmegaConf.resolve(cfg)
         assert OmegaConf.get_type(cfg.admin) is module.User
         assert cfg.admin == {"name": "Bond", "age": 7}
+        assert OmegaConf.get_type(cfg.admin_list[0]) is module.User
+        assert cfg.admin_list == [{"name": "Bond", "age": 7}]
+        assert OmegaConf.get_type(cfg.admin_dict["bond"]) is module.User
+        assert cfg.admin_dict == {"bond": {"name": "Bond", "age": 7}}
 
     class TestMissing:
         def test_missing1(self, module: Any) -> None:
