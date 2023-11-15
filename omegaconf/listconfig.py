@@ -106,6 +106,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         vk = get_value_kind(value)
         if vk == ValueKind.MANDATORY_MISSING:
             return
+        if vk == ValueKind.INTERPOLATION:
+            return
         else:
             is_optional, target_type = _resolve_optional(self._metadata.element_type)
             value_type = OmegaConf.get_type(value)

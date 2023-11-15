@@ -77,6 +77,8 @@ class OptionalUser:
 class InterpolationToUser:
     user: User = field(default_factory=lambda: User("Bond", 7))
     admin: User = II("user")
+    admin_list: List[User] = field(default_factory=lambda: [II("user")])
+    admin_dict: Dict[str, User] = field(default_factory=lambda: {"bond": II("user")})
 
 
 @dataclass
