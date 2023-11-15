@@ -18,10 +18,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.8"
-  commands:
-    - asdf plugin add java
-    - asdf install java latest:adoptopenjdk-11
-    - asdf global java latest:adoptopenjdk-11
+  jobs:
+    post_system_dependencies:
+      - asdf plugin add java
+      - asdf install java latest:adoptopenjdk-11
+      - asdf global java latest:adoptopenjdk-11
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
