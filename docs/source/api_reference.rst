@@ -27,3 +27,4 @@ Utility functions importable from the ``omegaconf`` module
 .. automethod:: omegaconf.read_write
 
 .. autoclass:: omegaconf.MISSING
+
