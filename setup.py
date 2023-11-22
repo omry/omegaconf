@@ -32,7 +32,7 @@ with pathlib.Path("requirements/base.txt").open() as requirements_txt:
 
 def find_vendored_packages(path: str) -> list[str]:
     """Add all the packages in the `vendor` directory"""
-    return [x[0].replace("/", ".") for x in os.walk(path) if not "__pycache__" in x[0]]
+    return [root.replace("/", ".") for root, dirs, files in os.walk(path) if "__pycache__" not in root]
 
 
 vendored_packages = find_vendored_packages("omegaconf/vendor")
