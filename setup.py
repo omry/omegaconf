@@ -30,7 +30,7 @@ with pathlib.Path("requirements/base.txt").open() as requirements_txt:
     ]
 
 
-def find_vendored_packages(path: str) -> list[str]:
+def find_vendored_packages(path):
     """Add all the packages in the `vendor` directory"""
     return [root.replace("/", ".") for root, dirs, files in os.walk(path) if "__pycache__" not in root]
 
