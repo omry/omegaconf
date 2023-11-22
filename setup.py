@@ -29,10 +29,11 @@ with pathlib.Path("requirements/base.txt").open() as requirements_txt:
         for requirement in pkg_resources.parse_requirements(requirements_txt)
     ]
 
+
 def find_vendored_packages(path: str) -> list[str]:
-    """Add all the packages in the `vendor` directory """
-    return [x[0].replace("/",
-    ".") for x in os.walk(path)]
+    """Add all the packages in the `vendor` directory"""
+    return [x[0].replace("/", ".") for x in os.walk(path)]
+
 
 vendored_packages = find_vendored_packages("omegaconf/vendor")
 
@@ -63,7 +64,8 @@ with open("README.md", "r") as fh:
             "omegaconf.resolvers.oc",
             "pydevd_plugins",
             "pydevd_plugins.extensions",
-        ] + vendored_packages,
+        ]
+        + vendored_packages,
         python_requires=">=3.8",
         classifiers=[
             "Programming Language :: Python :: 3.8",
