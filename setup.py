@@ -8,6 +8,7 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
+import os
 import pathlib
 
 import pkg_resources
@@ -28,6 +29,12 @@ with pathlib.Path("requirements/base.txt").open() as requirements_txt:
         for requirement in pkg_resources.parse_requirements(requirements_txt)
     ]
 
+def find_vendored_packages(path: str) -> list[str]:
+    """Add all the packages in the `vendor` directory """
+    return [x[0].replace("/",
+    ".") for x in os.walk(path)]
+
+vendored_packages = find_vendored_packages("omegaconf/vendor")
 
 with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
@@ -54,11 +61,9 @@ with open("README.md", "r") as fh:
             "omegaconf.grammar.gen",
             "omegaconf.resolvers",
             "omegaconf.resolvers.oc",
-            "omegaconf.vendor",
-            "omegaconf.vendor.antlr4",
             "pydevd_plugins",
             "pydevd_plugins.extensions",
-        ],
+        ] + vendored_packages,
         python_requires=">=3.8",
         classifiers=[
             "Programming Language :: Python :: 3.8",
