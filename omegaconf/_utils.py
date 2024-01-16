@@ -34,6 +34,13 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
+try:
+    from yaml import CSafeLoader
+
+    BaseLoader = CSafeLoader
+except ImportError:  # pragma: no cover
+    BaseLoader = yaml.SafeLoader
+
 NoneType: Type[None] = type(None)
 
 BUILTIN_VALUE_TYPES: Tuple[Type[Any], ...] = (
@@ -123,7 +130,7 @@ def yaml_is_bool(b: str) -> bool:
 
 
 def get_yaml_loader() -> Any:
-    class OmegaConfLoader(yaml.SafeLoader):  # type: ignore
+    class OmegaConfLoader(BaseLoader):  # type: ignore
         def construct_mapping(self, node: yaml.Node, deep: bool = False) -> Any:
             keys = set()
             for key_node, value_node in node.value:
