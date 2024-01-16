@@ -36,6 +36,7 @@ except ImportError:  # pragma: no cover
 
 try:
     from yaml import CSafeLoader
+
     BaseLoader = CSafeLoader
 except ImportError:  # pragma: no cover
     BaseLoader = yaml.SafeLoader
