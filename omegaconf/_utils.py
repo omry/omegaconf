@@ -36,10 +36,9 @@ except ImportError:  # pragma: no cover
 
 try:
     from yaml import CSafeLoader
-    BaseLoader: Type[SafeLoader] = CSafeLoader
+    BaseLoader = CSafeLoader
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader
-    BaseLoader: Type[SafeLoader] = SafeLoader
+    BaseLoader = yaml.SafeLoader
 
 NoneType: Type[None] = type(None)
 
