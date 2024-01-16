@@ -34,11 +34,12 @@ try:
 except ImportError:  # pragma: no cover
     attr = None  # type: ignore # pragma: no cover
 
-# Check for CSafeLoader availability
 try:
-    from yaml import CSafeLoader as BaseLoader
-except ImportError:
-    from yaml import SafeLoader as BaseLoader
+    from yaml import CSafeLoader
+    BaseLoader: Type[SafeLoader] = CSafeLoader
+except ImportError:  # pragma: no cover
+    from yaml import SafeLoader
+    BaseLoader: Type[SafeLoader] = SafeLoader
 
 NoneType: Type[None] = type(None)
 
