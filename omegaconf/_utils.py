@@ -41,6 +41,13 @@ try:
 except ImportError:  # pragma: no cover
     BaseLoader = yaml.SafeLoader
 
+try:
+    from yaml import CDumper
+
+    BaseDumper = CDumper
+except ImportError:  # pragma: no cover
+    BaseDumper = yaml.Dumper
+
 NoneType: Type[None] = type(None)
 
 BUILTIN_VALUE_TYPES: Tuple[Type[Any], ...] = (
@@ -105,7 +112,7 @@ class Marker:
 _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 
-class OmegaConfDumper(yaml.Dumper):  # type: ignore
+class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
 
     @staticmethod
