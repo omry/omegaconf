@@ -41,6 +41,13 @@ try:
 except ImportError:  # pragma: no cover
     BaseLoader = yaml.SafeLoader
 
+try:
+    from yaml import CDumper
+
+    BaseDumper = CDumper
+except ImportError:  # pragma: no cover
+    BaseDumper = yaml.Dumper
+
 NoneType: Type[None] = type(None)
 
 BUILTIN_VALUE_TYPES: Tuple[Type[Any], ...] = (
@@ -105,11 +112,11 @@ class Marker:
 _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 
-class OmegaConfDumper(yaml.Dumper):  # type: ignore
+class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
 
     @staticmethod
-    def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+    def str_representer(dumper: BaseDumper, data: str) -> yaml.ScalarNode:
         with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
         return dumper.represent_scalar(
             yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
