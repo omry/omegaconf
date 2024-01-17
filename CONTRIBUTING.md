@@ -55,7 +55,14 @@ Imports are sorted using isort, use `isort .` to sort all imports prior to pushi
 
 To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html`. Once the docs are built you can open `index.html` in the build directory to view the generated docs with your browser.
 
-### Modifying Jupyter notebook
+#### Submitting a PR
+
+When submitting a PR please ensure that it includes:
+- automated tests for any new feature or bugfix
+- documentation for any user-facing change
+- a one-line news fragment under the `news` folder (valid extensions are: `.feature`, `.bugfix`, `.api_change`, `.docs`, `.misc`)
+
+#### Modifying the Jupyter notebook
 
 In order to change the Jupyter notebook you first need to open it with `jupyter notebook`.
 Change the cell you want and then, execute it so the expected output is shown.
@@ -64,7 +71,6 @@ testing.
 
 In case that the in[number] of cells aren't in order you should go to the
 kernel in the toolbar and restart it.
-
 
 #### Releasing a version
 
