@@ -45,8 +45,10 @@ try:
     from yaml import CDumper
 
     BaseDumper = CDumper
+    BaseDumperType: Type[CDumper] = type(CDumper)
 except ImportError:  # pragma: no cover
     BaseDumper = yaml.Dumper
+    BaseDumperType: Type[yaml.Dumper] = type(yaml.Dumper)
 
 NoneType: Type[None] = type(None)
 
@@ -112,11 +114,11 @@ class Marker:
 _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 
-class OmegaConfDumper(BaseDumper):  # type: ignore
+class OmegaConfDumper(BaseDumperType):  # type: ignore
     str_representer_added = False
 
     @staticmethod
-    def str_representer(dumper: BaseDumper, data: str) -> yaml.ScalarNode:
+    def str_representer(dumper: BaseDumperType, data: str) -> yaml.ScalarNode:
         with_quotes = yaml_is_bool(data) or is_int(data) or is_float(data)
         return dumper.represent_scalar(
             yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
