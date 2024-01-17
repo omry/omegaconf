@@ -114,7 +114,7 @@ class Marker:
 _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 
-class OmegaConfDumper(BaseDumperType):  # type: ignore
+class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
 
     @staticmethod
