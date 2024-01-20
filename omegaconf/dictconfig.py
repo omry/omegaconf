@@ -38,7 +38,7 @@ from ._utils import (
     is_structured_config_frozen,
     type_str,
 )
-from .base import Box, Container, ContainerMetadata, DictKeyType, Node
+from .base import MISSING, Box, Container, ContainerMetadata, DictKeyType, Node
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -716,7 +716,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         return True
 
-    def _to_object(self) -> Any:
+    def _to_object(self, throw_on_missing: bool) -> Any:
         """
         Instantiate an instance of `self._metadata.object_type`.
         This requires `self` to be a structured config.
@@ -741,13 +741,16 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if node._is_missing():
                 if k not in init_field_aliases:
                     continue  # MISSING is ignored for init=False fields
-                self._format_and_raise(
-                    key=k,
-                    value=None,
-                    cause=MissingMandatoryValue(
-                        "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
-                    ),
-                )
+                if throw_on_missing:
+                    self._format_and_raise(
+                        key=k,
+                        value=None,
+                        cause=MissingMandatoryValue(
+                            "Structured config of type `$OBJECT_TYPE` has missing mandatory value: $KEY"
+                        ),
+                    )
+                else:
+                    v = MISSING
             if isinstance(node, Container):
                 v = OmegaConf.to_object(node)
             else:

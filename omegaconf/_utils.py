@@ -381,7 +381,8 @@ def get_dataclass_fields(obj: Any) -> List["dataclasses.Field[Any]"]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
-    from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
+    from omegaconf import MISSING, OmegaConf
+    from omegaconf.omegaconf import _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
     d = {}
