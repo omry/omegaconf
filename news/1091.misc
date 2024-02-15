@@ -1,0 +1,1 @@
+`antlr4` runtime is now vendored to prevent conflicts with other dependencies.
