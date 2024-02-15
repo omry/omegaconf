@@ -29,6 +29,7 @@ from .omegaconf import (
     open_dict,
     read_write,
 )
+from .typing import Antlr4ParserRuleContext
 from .version import __version__
 
 __all__ = [
@@ -63,4 +64,5 @@ __all__ = [
     "MISSING",
     "SI",
     "II",
+    "Antlr4ParserRuleContext",
 ]

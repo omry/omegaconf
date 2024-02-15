@@ -8,6 +8,7 @@ exclude = '''
     | omegaconf/grammar/gen
     | \.nox
     | build
+    | vendor
   )
 )
 '''

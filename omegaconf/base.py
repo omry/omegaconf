@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
 
-from antlr4 import ParserRuleContext
-
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
@@ -37,6 +35,7 @@ from .errors import (
 from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
+from .typing import Antlr4ParserRuleContext
 
 DictKeyType = Union[str, bytes, int, Enum, float, bool]
 
@@ -629,7 +628,7 @@ class Container(Box):
             # If the converted value is of the same type, it means that no conversion
             # was actually needed. As a result, we can keep the original `resolved`
             # (and otherwise, the converted value must be wrapped into a new node).
-            if type(conv_value) != type(res_value):
+            if type(conv_value) is not type(res_value):
                 must_wrap = True
                 resolved = conv_value
 
@@ -726,7 +725,7 @@ class Container(Box):
 
     def resolve_parse_tree(
         self,
-        parse_tree: ParserRuleContext,
+        parse_tree: Antlr4ParserRuleContext,
         node: Node,
         memo: Optional[Set[int]] = None,
         key: Optional[Any] = None,

@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
@@ -30,7 +31,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
             command = [
                 "java",
                 "-jar",
-                str(build_dir / "bin" / "antlr-4.9.3-complete.jar"),
+                str(build_dir / "bin" / "antlr-4.11.1-complete.jar"),
                 "-Dlanguage=Python3",
                 "-o",
                 str(project_root / "omegaconf" / "grammar" / "gen"),
@@ -46,11 +47,43 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
 
             subprocess.check_call(command)
 
+            self.announce(
+                "Fixing imports for generated parsers",
+                level=distutils.log.INFO,
+            )
+            self._fix_imports()
+
     def initialize_options(self) -> None:
         pass
 
     def finalize_options(self) -> None:
         pass
+
+    def _fix_imports(self) -> None:
+        """Fix imports from the generated parsers to use the vendored antlr4 instead"""
+        build_dir = Path(__file__).parent.absolute()
+        project_root = build_dir.parent
+        lib = "antlr4"
+        pkgname = 'omegaconf.vendor'
+
+        replacements = [
+            partial(  # import antlr4 -> import omegaconf.vendor.antlr4
+                re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
+                r'\1from {} import {}\n'.format(pkgname, lib)
+            ),
+            partial(  # from antlr4 -> from fomegaconf.vendor.antlr4
+                re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
+                r'\1from {}.{}\2'.format(pkgname, lib)
+            ),
+        ]
+
+        path = project_root / "omegaconf" / "grammar" / "gen"
+        for item in path.iterdir():
+            if item.is_file() and item.name.endswith(".py"):
+                text = item.read_text('utf8')
+                for replacement in replacements:
+                    text = replacement(text)
+                item.write_text(text, 'utf8')
 
 
 class BuildPyCommand(build_py.build_py):  # pragma: no cover

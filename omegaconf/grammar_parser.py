@@ -2,9 +2,6 @@ import re
 import threading
 from typing import Any
 
-from antlr4 import CommonTokenStream, InputStream, ParserRuleContext
-from antlr4.error.ErrorListener import ErrorListener
-
 from .errors import GrammarParseError
 
 # Import from visitor in order to check the presence of generated grammar files
@@ -13,6 +10,9 @@ from .grammar_visitor import (  # type: ignore
     OmegaConfGrammarLexer,
     OmegaConfGrammarParser,
 )
+from .typing import Antlr4ParserRuleContext
+from .vendor.antlr4 import CommonTokenStream, InputStream  # type: ignore[attr-defined]
+from .vendor.antlr4.error.ErrorListener import ErrorListener
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
 # We use a per-thread cache to make it thread-safe.
@@ -39,8 +39,10 @@ SIMPLE_INTERPOLATION_PATTERN = re.compile(
 # it must not accept anything that isn't a valid interpolation (per the
 # interpolation grammar defined in `omegaconf/grammar/*.g4`).
 
+# ParserRuleContext: TypeAlias = ParserRuleContext
 
-class OmegaConfErrorListener(ErrorListener):  # type: ignore
+
+class OmegaConfErrorListener(ErrorListener):
     def syntaxError(
         self,
         recognizer: Any,
@@ -95,7 +97,7 @@ class OmegaConfErrorListener(ErrorListener):  # type: ignore
 
 def parse(
     value: str, parser_rule: str = "configValue", lexer_mode: str = "DEFAULT_MODE"
-) -> ParserRuleContext:
+) -> Antlr4ParserRuleContext:
     """
     Parse interpolated string `value` (and return the parse tree).
     """
@@ -116,7 +118,7 @@ def parse(
 
         # The two lines below could be enabled in the future if we decide to switch
         # to SLL prediction mode. Warning though, it has not been fully tested yet!
-        # from antlr4 import PredictionMode
+        # from omegaconf.vendor.antlr4 import PredictionMode
         # parser._interp.predictionMode = PredictionMode.SLL
 
         # Note that although the input stream `istream` is implicitly cached within
@@ -133,7 +135,7 @@ def parse(
         parser.reset()
 
     try:
-        return getattr(parser, parser_rule)()
+        return getattr(parser, parser_rule)()  # type: ignore
     except Exception as exc:
         if type(exc) is Exception and str(exc) == "Empty Stack":
             # This exception is raised by antlr when trying to pop a mode while

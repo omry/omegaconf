@@ -5,7 +5,6 @@ import time
 from contextlib import nullcontext
 from typing import Any, Callable, List, Optional, Set, Tuple
 
-import antlr4
 from pytest import mark, param, raises, warns
 
 from omegaconf import (
@@ -24,6 +23,7 @@ from omegaconf.errors import (
     InterpolationResolutionError,
     UnsupportedInterpolationType,
 )
+from omegaconf.typing import Antlr4ParserRuleContext
 
 TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
 
@@ -440,8 +440,8 @@ class TestOmegaConfGrammar:
         # callbacks to resolve them, and the quoted string callback can simply
         # be the identity.
         visitor = grammar_visitor.GrammarVisitor(
-            node_interpolation_callback=None,  # type: ignore
-            resolver_interpolation_callback=None,  # type: ignore
+            node_interpolation_callback=None,
+            resolver_interpolation_callback=None,
             memo=None,
         )
         self._visit(lambda: visitor.visit(parse_tree), expected_visit)
@@ -534,14 +534,14 @@ class TestOmegaConfGrammar:
 
     def _parse(
         self, rule: str, definition: str, expected: Any
-    ) -> Tuple[Optional[antlr4.ParserRuleContext], Any]:
+    ) -> Tuple[Optional[Antlr4ParserRuleContext], Any]:
         """
         Parse the expression given by `definition`.
 
         Return both the parse tree and the expected result when visiting this tree.
         """
 
-        def get_tree() -> antlr4.ParserRuleContext:
+        def get_tree() -> Antlr4ParserRuleContext:
             return grammar_parser.parse(
                 value=definition,
                 parser_rule=rule,
@@ -585,7 +585,7 @@ class TestOmegaConfGrammar:
                 self._check_is_same_type(result, expected)
 
     def _visit_with_config(
-        self, parse_tree: antlr4.ParserRuleContext, expected: Any
+        self, parse_tree: Antlr4ParserRuleContext, expected: Any
     ) -> None:
         """Visit the tree using the default config `BASE_TEST_CFG`"""
         if parse_tree is None:
