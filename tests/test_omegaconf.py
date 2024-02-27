@@ -392,9 +392,11 @@ def test_is_interpolation(fac: Any) -> Any:
         ({"foo": FloatNode(None)}, type(None)),
         (
             {"foo": Path("hello.txt")},
-            pathlib.WindowsPath
-            if platform.system() == "Windows"
-            else pathlib.PosixPath,
+            (
+                pathlib.WindowsPath
+                if platform.system() == "Windows"
+                else pathlib.PosixPath
+            ),
         ),
         ({"foo": "bar"}, str),
         ({"foo": None}, type(None)),
@@ -420,9 +422,11 @@ def test_get_type(cfg: Any, type_: Any) -> None:
         (b"123", bytes),
         (
             Path("hello.txt"),
-            pathlib.WindowsPath
-            if platform.system() == "Windows"
-            else pathlib.PosixPath,
+            (
+                pathlib.WindowsPath
+                if platform.system() == "Windows"
+                else pathlib.PosixPath
+            ),
         ),
         ("foo", str),
         (DictConfig(content={}), dict),

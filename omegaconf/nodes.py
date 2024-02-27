@@ -76,8 +76,7 @@ class ValueNode(Node):
             return self._validate_and_convert_impl(value)
 
     @abstractmethod
-    def _validate_and_convert_impl(self, value: Any) -> Any:
-        ...
+    def _validate_and_convert_impl(self, value: Any) -> Any: ...
 
     def __str__(self) -> str:
         return str(self._val)

@@ -19,9 +19,11 @@ from tests import Enum1, User
         ({b"abc": "bytes key"}, "? !!binary |\n  YWJj\n: bytes key\n"),
         (
             {"path_value": Path("hello.txt")},
-            "path_value: !!python/object/apply:pathlib.WindowsPath\n- hello.txt\n"
-            if platform.system() == "Windows"
-            else "path_value: !!python/object/apply:pathlib.PosixPath\n- hello.txt\n",
+            (
+                "path_value: !!python/object/apply:pathlib.WindowsPath\n- hello.txt\n"
+                if platform.system() == "Windows"
+                else "path_value: !!python/object/apply:pathlib.PosixPath\n- hello.txt\n"
+            ),
         ),
         ({123: "int key"}, "123: int key\n"),
         ({123.45: "float key"}, "123.45: float key\n"),
@@ -39,7 +41,10 @@ def test_to_yaml(input_: Any, expected: str) -> None:
 @mark.parametrize(
     "input_, expected",
     [
-        (["item一", "item二", dict(key三="value三")], "- item一\n- item二\n- key三: value三\n"),
+        (
+            ["item一", "item二", dict(key三="value三")],
+            "- item一\n- item二\n- key三: value三\n",
+        ),
         (dict(你好="世界", list=[1, 2]), "你好: 世界\nlist:\n- 1\n- 2\n"),
     ],
 )
