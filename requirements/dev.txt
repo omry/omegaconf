@@ -12,7 +12,6 @@ pre-commit
 pyflakes
 pytest
 pytest-benchmark
-pytest-lazy-fixture
 pytest-mock
 towncrier
 types-setuptools  # makes mypy happy
