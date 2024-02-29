@@ -40,6 +40,10 @@ from tests import Color, Enum1, User, warns_dict_subclass_deprecated
             ),
         ),
         param("tests.structured_conf.data.attr_classes", id="attr_classes"),
+        param(
+            "tests.structured_conf.data.attr_classes_factory",
+            id="attr_classes_factory",
+        ),
     ],
 )
 def module(request: Any) -> Any:
