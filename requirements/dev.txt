@@ -1,18 +1,17 @@
 -r base.txt
 -r docs.txt
 attrs
-black==23.7.0
+black==24.2.0
 build
 coveralls
 flake8==6.0.0
-isort==5.12.0
-mypy==1.4.1
+isort==5.13.2
+mypy==1.8.0
 nox
 pre-commit
 pyflakes
 pytest
 pytest-benchmark
-pytest-lazy-fixture
 pytest-mock
 towncrier
 types-setuptools  # makes mypy happy

@@ -2,4 +2,4 @@
 exclude = .git,.nox,.tox,omegaconf/grammar/gen,build,omegaconf/vendor
 max-line-length = 119
 select = E,F,W,C
-ignore=W503,E203
+ignore=W503,E203,E701,E704

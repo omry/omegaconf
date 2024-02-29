@@ -1,4 +1,5 @@
 """OmegaConf module"""
+
 import copy
 import inspect
 import io
@@ -129,8 +130,7 @@ class OmegaConf:
         obj: str,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> Union[DictConfig, ListConfig]:
-        ...
+    ) -> Union[DictConfig, ListConfig]: ...
 
     @staticmethod
     @overload
@@ -138,8 +138,7 @@ class OmegaConf:
         obj: Union[List[Any], Tuple[Any, ...]],
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> ListConfig:
-        ...
+    ) -> ListConfig: ...
 
     @staticmethod
     @overload
@@ -147,8 +146,7 @@ class OmegaConf:
         obj: DictConfig,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> DictConfig:
-        ...
+    ) -> DictConfig: ...
 
     @staticmethod
     @overload
@@ -156,8 +154,7 @@ class OmegaConf:
         obj: ListConfig,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> ListConfig:
-        ...
+    ) -> ListConfig: ...
 
     @staticmethod
     @overload
@@ -165,8 +162,7 @@ class OmegaConf:
         obj: Optional[Dict[Any, Any]] = None,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> DictConfig:
-        ...
+    ) -> DictConfig: ...
 
     @staticmethod
     def create(  # noqa F811

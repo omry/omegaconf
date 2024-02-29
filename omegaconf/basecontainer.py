@@ -167,8 +167,7 @@ class BaseContainer(Container, ABC):
         self.__dict__.update(d)
 
     @abstractmethod
-    def __delitem__(self, key: Any) -> None:
-        ...
+    def __delitem__(self, key: Any) -> None: ...
 
     def __len__(self) -> int:
         if self._is_none() or self._is_missing() or self._is_interpolation():
@@ -722,12 +721,10 @@ class BaseContainer(Container, ABC):
         return _is_interpolation(self.__dict__["_content"])
 
     @abstractmethod
-    def _validate_get(self, key: Any, value: Any = None) -> None:
-        ...
+    def _validate_get(self, key: Any, value: Any = None) -> None: ...
 
     @abstractmethod
-    def _validate_set(self, key: Any, value: Any) -> None:
-        ...
+    def _validate_set(self, key: Any, value: Any) -> None: ...
 
     def _value(self) -> Any:
         return self.__dict__["_content"]

@@ -4,12 +4,12 @@ default_language_version:
 # Hook versions should match those in requirements/dev.txt
 repos:
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 24.2.0
     hooks:
       - id: black
 
@@ -19,7 +19,7 @@ repos:
       - id: flake8
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.8.0
     hooks:
       - id: mypy
         args: [--strict]

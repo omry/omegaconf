@@ -18,6 +18,7 @@ We have separate test classes for the following cases:
     TestPrimitiveTypeDunderMethods: for DictConfig where key_type is primitive
     TestEnumTypeDunderMethods: for DictConfig where key_type is Enum
 """
+
 from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, Optional

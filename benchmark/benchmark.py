@@ -1,7 +1,7 @@
 import copy
 from typing import Any, Dict, List
 
-from pytest import fixture, lazy_fixture, mark, param
+from pytest import fixture, mark, param
 
 from omegaconf import OmegaConf
 from omegaconf._utils import ValueKind, _is_missing_literal, get_value_kind
@@ -72,16 +72,17 @@ def small_listconfig(small_list: Any) -> Any:
 
 
 @mark.parametrize(
-    "data",
+    "data_fixture",
     [
-        lazy_fixture("small_dict"),  # type: ignore
-        lazy_fixture("large_dict"),  # type: ignore
-        lazy_fixture("small_dict_config"),  # type: ignore
-        lazy_fixture("large_dict_config"),  # type: ignore
-        lazy_fixture("dict_config_with_list_leaf"),  # type: ignore
+        "small_dict",
+        "large_dict",
+        "small_dict_config",
+        "large_dict_config",
+        "dict_config_with_list_leaf",
     ],
 )
-def test_omegaconf_create(data: Any, benchmark: Any) -> None:
+def test_omegaconf_create(data_fixture: str, benchmark: Any, request: Any) -> None:
+    data = request.getfixturevalue(data_fixture)
     benchmark(OmegaConf.create, data)
 
 
@@ -97,24 +98,27 @@ def test_omegaconf_merge(merge_function: Any, merge_data: Any, benchmark: Any) -
 
 
 @mark.parametrize(
-    "lst",
+    "lst_fixture",
     [
-        lazy_fixture("small_list"),  # type: ignore
-        lazy_fixture("small_listconfig"),  # type: ignore
+        "small_list",
+        "small_listconfig",
     ],
 )
-def test_list_in(lst: List[Any], benchmark: Any) -> None:
+def test_list_in(lst_fixture: str, benchmark: Any, request: Any) -> None:
+    lst: List[Any] = request.getfixturevalue(lst_fixture)
     benchmark(lambda seq, val: val in seq, lst, 10)
 
 
 @mark.parametrize(
-    "lst",
+    "lst_fixture",
     [
-        lazy_fixture("small_list"),  # type: ignore
-        lazy_fixture("small_listconfig"),  # type: ignore
+        "small_list",
+        "small_listconfig",
     ],
 )
-def test_list_iter(lst: List[Any], benchmark: Any) -> None:
+def test_list_iter(lst_fixture: str, benchmark: Any, request: Any) -> None:
+    lst: List[Any] = request.getfixturevalue(lst_fixture)
+
     def iterate(seq: Any) -> None:
         for _ in seq:
             pass
