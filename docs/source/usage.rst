@@ -539,9 +539,10 @@ Configuration flags
 -------------------
 
 OmegaConf support several configuration flags.
-Configuration flags can be set on any configuration node (Sequence or Mapping). if a configuration flag is not set
+Configuration flags can be set on any configuration node (Sequence or Mapping). If a configuration flag is not set
 it inherits the value from the parent of the node.
 The default value inherited from the root node is always false.
+To avoid this inhertence and set a flag explicitly to all children nodes, specify the option `recursive=True`.
 
 .. _read-only-flag:
 
@@ -567,6 +568,17 @@ You can temporarily remove the read only flag from a config object:
     >>> OmegaConf.set_readonly(conf, True)
     >>> with read_write(conf):
     ...   conf.a.b = 20
+    >>> conf.a.b
+    20
+
+Example using `recursive=True`:
+
+.. doctest:: loaded
+
+    >>> conf = OmegaConf.create({"a": {"b": 10}})
+    >>> OmegaConf.set_readonly(conf.a, True)
+    >>> OmegaConf.set_readonly(conf, False, recursive = True)
+    >>> conf.a.b = 20
     >>> conf.a.b
     20
 
