@@ -449,7 +449,7 @@ Web server configuration example:
    conf = OmegaConf.merge(server_cfg, plugin1_cfg, site1_cfg, site2_cfg)
 
 The following example creates two configs from files, and one from the cli. It then combines them into a single object.
-Note how the port changes to 82, and how the users lists are combined.
+Note how the port changes to 82.
 
 **example2.yaml** file:
 
