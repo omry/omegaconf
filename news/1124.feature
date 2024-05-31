@@ -1,0 +1,1 @@
+OmegaConf.set_readonly() and OmegaConf.set_struct() have an option recursive, that explicitly sets the flag to all children nodes
