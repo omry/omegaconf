@@ -1,0 +1,1 @@
+Fix a bug that caused `OmegaConf.missing_keys` to crash if passed a config object containing an interpolation to a missing field.
