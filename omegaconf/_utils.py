@@ -189,7 +189,18 @@ def get_yaml_loader() -> Any:
         "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
         lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
     )
-
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.Path",
+        lambda loader, node: pathlib.Path(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.PosixPath",
+        lambda loader, node: pathlib.PosixPath(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.WindowsPath",
+        lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
+    )
     return loader
 
 
