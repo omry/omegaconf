@@ -148,7 +148,7 @@ class DevelopCommand(develop.develop):  # pragma: no cover
 
 class SDistCommand(sdist.sdist):  # pragma: no cover
     def run(self) -> None:
-        if not self.dry_run:  # type: ignore
+        if not self.dry_run:
             self.run_command("clean")
             run_antlr(self)
         sdist.sdist.run(self)
