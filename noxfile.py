@@ -90,9 +90,6 @@ def test_jupyter_notebook(session: Session) -> None:
             # Ignore deprecation warnings raised by jupyter_client in Python 3.10
             # https://github.com/jupyter/jupyter_client/issues/713
             "-Wdefault:There is no current event loop:DeprecationWarning",
-            # Block warning issued by nbval
-            # https://github.com/computationalmodelling/nbval/issues/180
-            "-Wdefault::pytest.PytestRemovedIn8Warning",
         ]
     )
     session.run(
