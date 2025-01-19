@@ -191,9 +191,9 @@ PARAMS_SINGLE_ELEMENT_NO_INTERPOLATION: List[Tuple[str, str, Any]] = [
     ),
     (
         "dict_unquoted_key",
-        rf"{{a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",
+        rf"{{a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}\(\)\[\]\{{\}}\:\=\ \{TAB}\,:0}}",  # noqa: E231
         {
-            rf"a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}()[]{{}}:= {TAB},": 0
+            rf"a0-null-1-3.14-NaN- {TAB}-true-False-{UNQUOTED_SPECIAL}()[]{{}}:= {TAB},": 0  # noqa: E231
         },
     ),
     (

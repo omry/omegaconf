@@ -350,7 +350,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                 value = MISSING
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
-                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"
+                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
@@ -409,7 +409,7 @@ def get_dataclass_data(
 
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
-                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"
+                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         try:

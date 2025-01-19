@@ -738,9 +738,9 @@ class BaseContainer(Container, ABC):
 
         def _slice_to_str(x: slice) -> str:
             if x.step is not None:
-                return f"{x.start}:{x.stop}:{x.step}"
+                return f"{x.start}:{x.stop}:{x.step}"  # noqa: E231
             else:
-                return f"{x.start}:{x.stop}"
+                return f"{x.start}:{x.stop}"  # noqa: E231
 
         def prepand(
             full_key: str,
