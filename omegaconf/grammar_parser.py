@@ -29,7 +29,9 @@ _id = "[a-zA-Z_][\\w\\-]*"  # foo, foo_bar, foo-bar, abc123
 _resolver_name = f"({_id}(\\.{_id})*)?"  # foo, ns.bar3, ns_1.ns_2.b0z
 _arg = r"[a-zA-Z_0-9/\-\+.$%*@?|]+"  # string representing a resolver argument
 _args = f"{_arg}(\\s*,\\s*{_arg})*"  # list of resolver arguments  # noqa: E231
-_resolver_inter = f"\\${{\\s*{_resolver_name}\\s*:\\s*{_args}?\\s*}}"  # ${foo:bar}  # noqa: E231
+_resolver_inter = (
+    f"\\${{\\s*{_resolver_name}\\s*:\\s*{_args}?\\s*}}"  # ${foo:bar}  # noqa: E231
+)
 _inter = f"({_node_inter}|{_resolver_inter})"  # any kind of interpolation
 _outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
 SIMPLE_INTERPOLATION_PATTERN = re.compile(
