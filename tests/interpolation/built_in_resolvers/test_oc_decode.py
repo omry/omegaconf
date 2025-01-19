@@ -49,7 +49,7 @@ def test_decode(monkeypatch: Any, value: Optional[str], expected: Any) -> None:
         {
             # The node of interest is "node" (others are used to test interpolations).
             "parent": {
-                "node": f"${{oc.decode:'{value}'}}",
+                "node": f"${{oc.decode:'{value}'}}",  # noqa: E231
                 "sibling": 1,
             },
             "uncle": 2,
@@ -100,6 +100,6 @@ def test_decode_none() -> None:
     ],
 )
 def test_decode_error(monkeypatch: Any, value: Any, exc: Any) -> None:
-    c = OmegaConf.create({"x": f"${{oc.decode:{value}}}"})
+    c = OmegaConf.create({"x": f"${{oc.decode:{value}}}"})  # noqa: E231
     with exc:
         c.x
