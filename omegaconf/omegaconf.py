@@ -372,7 +372,7 @@ class OmegaConf:
                     f"to be an interpolation. Nested interpolations are not supported for "
                     f"resolvers registered with `[legacy_]register_resolver()`, please use "
                     f"`register_new_resolver()` instead (see "
-                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."
+                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."  # noqa: E231
                 )
             key = args_str
             val = cache[key] if key in cache else resolver(*args_unesc)
