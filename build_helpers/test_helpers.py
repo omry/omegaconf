@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from build_helpers.build_helpers import find, find_version, matches
+from build_helpers.build_helpers import find, matches
 
 
 @pytest.mark.parametrize(
@@ -134,9 +134,3 @@ def test_find(
 def test_matches(patterns: List[str], query: Path, expected: bool) -> None:
     ret = matches(patterns, query)
     assert ret == expected
-
-
-def test_find_version() -> None:
-    version = find_version("omegaconf", "version.py")
-    # Ensure `version` is a string starting with a digit.
-    assert isinstance(version, str) and version and "0" <= version[0] <= "9"
