@@ -8,7 +8,7 @@ Example with Conda: `conda create -n omegaconf38 python=3.8 -qy`
 
 Activate your new conda environment: `conda activate omegaconf38`
 
-Install development dependencies: `pip install -r requirements/dev.txt -e .`
+Install development dependencies: `pip install -e .[dev,docs,coverage]`
 
 Optionally install commit hooks: `pre-commit install`
 
