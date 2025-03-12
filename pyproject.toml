@@ -1,3 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omegaconf"
+version = "2.4.0.dev3"
+description = "A flexible configuration library"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["yaml", "configuration", "config"]
+license = { file = "LICENSE" }
+authors = [
+  { name = "Omry Yadan", email = "omry@yadan.net" }
+]
+urls = { Homepage = "https://github.com/omry/omegaconf", Repository = "https://github.com/omry/omegaconf" }
+classifiers = [
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "PyYAML>=5.1.0",
+  'typing-extensions; python_version<="3.9"'
+]
+
+[project.optional-dependencies]
+dev = [
+  "attrs",
+  "black==24.2.0",
+  "build",
+  "coveralls",
+  "flake8==6.0.0",
+  "isort==5.13.2",
+  "mypy==1.8.0",
+  "nox",
+  "pre-commit",
+  "pyflakes",
+  "pytest",
+  "pytest-benchmark",
+  "pytest-mock",
+  "towncrier",
+  "types-setuptools",
+  "twine",
+  "pydevd"
+]
+docs = [
+  "sphinx",
+  "sphinx-tabs"
+]
+coverage = [
+  "coveralls"
+]
+
+
 [tool.black]
 exclude = '''
 (

@@ -8,30 +8,25 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
+
 import os
-import pathlib
+import sys
 
-import pkg_resources
-import setuptools
+# Add the repository root to sys.path so that local modules like build_helpers are importable.
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+import setuptools  # noqa: E402
 
-from build_helpers.build_helpers import (
+from build_helpers.build_helpers import (  # noqa: E402
     ANTLRCommand,
     BuildPyCommand,
     CleanCommand,
     DevelopCommand,
     SDistCommand,
-    find_version,
 )
 
-with pathlib.Path("requirements/base.txt").open() as requirements_txt:
-    install_requires = [
-        str(requirement)
-        for requirement in pkg_resources.parse_requirements(requirements_txt)
-    ]
 
-
-def find_vendored_packages(path):
-    """Add all the packages in the `vendor` directory"""
+def find_vendored_packages(path: str) -> list[str]:
+    """Add all the packages in the `vendor` directory."""
     return [
         root.replace(os.path.sep, ".")
         for root, dirs, files in os.walk(path)
@@ -41,44 +36,23 @@ def find_vendored_packages(path):
 
 vendored_packages = find_vendored_packages("omegaconf/vendor")
 
-with open("README.md", "r") as fh:
-    LONG_DESC = fh.read()
-    setuptools.setup(
-        cmdclass={
-            "antlr": ANTLRCommand,
-            "clean": CleanCommand,
-            "sdist": SDistCommand,
-            "build_py": BuildPyCommand,
-            "develop": DevelopCommand,
-        },
-        name="omegaconf",
-        version=find_version("omegaconf", "version.py"),
-        author="Omry Yadan",
-        author_email="omry@yadan.net",
-        description="A flexible configuration library",
-        long_description=LONG_DESC,
-        long_description_content_type="text/markdown",
-        url="https://github.com/omry/omegaconf",
-        keywords="yaml configuration config",
-        packages=[
-            "omegaconf",
-            "omegaconf.grammar",
-            "omegaconf.grammar.gen",
-            "omegaconf.resolvers",
-            "omegaconf.resolvers.oc",
-            "pydevd_plugins",
-            "pydevd_plugins.extensions",
-        ]
-        + vendored_packages,
-        python_requires=">=3.8",
-        classifiers=[
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
-            "Programming Language :: Python :: 3.10",
-            "Programming Language :: Python :: 3.11",
-            "License :: OSI Approved :: BSD License",
-            "Operating System :: OS Independent",
-        ],
-        install_requires=install_requires,
-        package_data={"omegaconf": ["py.typed"]},
-    )
+setuptools.setup(
+    cmdclass={
+        "antlr": ANTLRCommand,
+        "clean": CleanCommand,
+        "sdist": SDistCommand,
+        "build_py": BuildPyCommand,
+        "develop": DevelopCommand,
+    },
+    # Metadata is now defined in pyproject.toml under [project].
+    packages=[
+        "omegaconf",
+        "omegaconf.grammar",
+        "omegaconf.grammar.gen",
+        "omegaconf.resolvers",
+        "omegaconf.resolvers.oc",
+        "pydevd_plugins",
+        "pydevd_plugins.extensions",
+    ]
+    + vendored_packages,
+)
