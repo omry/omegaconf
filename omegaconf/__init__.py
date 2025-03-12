@@ -1,3 +1,5 @@
+from importlib.metadata import version as get_version
+
 from .base import Container, DictKeyType, ListMergeMode, Node, SCMode, UnionNode
 from .dictconfig import DictConfig
 from .errors import (
@@ -30,7 +32,8 @@ from .omegaconf import (
     read_write,
 )
 from .typing import Antlr4ParserRuleContext
-from .version import __version__
+
+__version__ = get_version("omegaconf")
 
 __all__ = [
     "__version__",
