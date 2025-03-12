@@ -13,10 +13,10 @@ import os
 import sys
 
 # Add the repository root to sys.path so that local modules like build_helpers are importable.
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))  # noqa: E402
-import setuptools
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+import setuptools  # noqa: E402
 
-from build_helpers.build_helpers import (
+from build_helpers.build_helpers import (  # noqa: E402
     ANTLRCommand,
     BuildPyCommand,
     CleanCommand,
