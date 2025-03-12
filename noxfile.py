@@ -13,12 +13,10 @@ PYTHON_VERSIONS = os.environ.get(
 nox.options.error_on_missing_interpreters = True
 
 
-def deps(
-    session: Session, editable_install: bool, requirements: str = "requirements/dev.txt"
-) -> None:
+def deps(session: Session, editable_install: bool, extra: str = "dev") -> None:
     session.install("--upgrade", "setuptools", "pip")
     extra_flags = ["-e"] if editable_install else []
-    session.install("-r", requirements, *extra_flags, ".", silent=True)
+    session.install(*extra_flags, f".[{extra}]", silent=True)
 
 
 @nox.session(python=PYTHON_VERSIONS)  # type: ignore
@@ -35,7 +33,7 @@ def benchmark(session: Session) -> None:
 
 @nox.session  # type: ignore
 def docs(session: Session) -> None:
-    deps(session, False, "requirements/docs.txt")
+    deps(session, False, "dev,docs")
     session.chdir("docs")
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
     session.install("pytest")  # required for `sphinx-build -b doctest`:
