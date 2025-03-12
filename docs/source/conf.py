@@ -14,14 +14,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 import datetime
-import os
-import sys
+from importlib.metadata import version as get_version
 
 from packaging.version import parse
-
-sys.path.insert(0, os.path.abspath("../../"))
-
-from importlib.metadata import version as get_version
 
 year = datetime.datetime.now().year
 parsed_ver = parse(get_version("omegaconf"))
