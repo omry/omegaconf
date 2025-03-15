@@ -212,6 +212,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     result.reverse()
                 return result
             else:
+                # Handle negative indices by converting to positive indices
+                if index < 0:
+                    length = len(self)
+                    if -index > length:
+                        raise IndexError("list index out of range")
+                    index = length + index
                 return self._resolve_with_default(
                     key=index, value=self.__dict__["_content"][index]
                 )

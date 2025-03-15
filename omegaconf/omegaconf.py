@@ -60,6 +60,7 @@ from .errors import (
     OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
+    InterpolationKeyError,
 )
 from .nodes import (
     AnyNode,
@@ -1149,10 +1150,22 @@ def _select_one(
                 val = None
         else:
             ret_key = int(ret_key)
-            if ret_key < 0 or ret_key + 1 > len(c):
-                val = None
+            # Handle negative indices in interpolation
+            if ret_key < 0:
+                list_len = len(c)
+                if -ret_key > list_len:
+                    if throw_on_missing:
+                        raise InterpolationKeyError(f"list index {ret_key} is out of range")
+                    else:
+                        val = None
+                else:
+                    ret_key = list_len + ret_key  # Convert negative index to positive
+                    val = c._get_child(ret_key)
             else:
-                val = c._get_child(ret_key)
+                if ret_key + 1 > len(c):
+                    val = None
+                else:
+                    val = c._get_child(ret_key)
     else:
         assert False
 
