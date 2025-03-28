@@ -1,4 +1,4 @@
-Negative list access now works.
+Allows negative list access.
 
 ```python
 cfg = OmegaConf.create("list: [1, 2, 3]")

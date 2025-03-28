@@ -56,11 +56,11 @@ from ._utils import (
 from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
+    InterpolationKeyError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
-    InterpolationKeyError,
 )
 from .nodes import (
     AnyNode,
