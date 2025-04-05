@@ -171,11 +171,7 @@ class OmegaConf:
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Union[DictConfig, ListConfig]:
-        return OmegaConf._create_impl(
-            obj=obj,
-            parent=parent,
-            flags=flags,
-        )
+        return OmegaConf._create_impl(obj=obj, parent=parent, flags=flags)
 
     @staticmethod
     def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
@@ -272,10 +268,7 @@ class OmegaConf:
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(target, "readonly", False):
-            target.merge_with(
-                *configs[1:],
-                list_merge_mode=list_merge_mode,
-            )
+            target.merge_with(*configs[1:], list_merge_mode=list_merge_mode)
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -316,10 +309,7 @@ class OmegaConf:
         with flag_override(
             target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
         ):
-            target.merge_with(
-                *configs[1:],
-                list_merge_mode=list_merge_mode,
-            )
+            target.merge_with(*configs[1:], list_merge_mode=list_merge_mode)
             turned_readonly = target._get_flag("readonly") is True
 
         if turned_readonly:
@@ -385,11 +375,7 @@ class OmegaConf:
 
     @staticmethod
     def register_new_resolver(
-        name: str,
-        resolver: Resolver,
-        *,
-        replace: bool = False,
-        use_cache: bool = False,
+        name: str, resolver: Resolver, *, replace: bool = False, use_cache: bool = False
     ) -> None:
         """
         Register a resolver.
@@ -947,10 +933,7 @@ class OmegaConf:
     def _get_resolver(
         name: str,
     ) -> Optional[
-        Callable[
-            [Container, Container, Node, Tuple[Any, ...], Tuple[str, ...]],
-            Any,
-        ]
+        Callable[[Container, Container, Node, Tuple[Any, ...], Tuple[str, ...]], Any]
     ]:
         # noinspection PyProtectedMember
         return (
@@ -1006,11 +989,7 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    parent: Optional[Box],
-    is_optional: bool,
-    value: Any,
-    key: Any,
-    ref_type: Any = Any,
+    parent: Optional[Box], is_optional: bool, value: Any, key: Any, ref_type: Any = Any
 ) -> Node:
     node: Node
     if is_dict_annotation(ref_type) or (is_primitive_dict(value) and ref_type is Any):
@@ -1155,7 +1134,9 @@ def _select_one(
                 list_len = len(c)
                 if -ret_key > list_len:
                     if throw_on_missing:
-                        raise InterpolationKeyError(f"list index {ret_key} is out of range")
+                        raise InterpolationKeyError(
+                            f"list index {ret_key} is out of range"
+                        )
                     else:
                         val = None
                 else:
