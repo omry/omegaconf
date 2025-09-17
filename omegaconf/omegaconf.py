@@ -485,7 +485,7 @@ class OmegaConf:
         Returns a bool: True if resolver is removed and False if not removed.
 
         .. warning:
-            This method can remove deafult resolvers as well.
+            This method can remove default resolvers as well.
 
         :param name: Name of the resolver.
         :return: A bool (``True`` if resolver is removed, ``False`` if not found before removing).
