@@ -263,6 +263,14 @@ class NestedWithAny:
 
 
 @attr.s(auto_attribs=True)
+class DeeplyNestedUser:
+    dsdsdsu: Dict[str, Dict[str, Dict[str, User]]]
+    dsdslu: Dict[str, Dict[str, List[User]]]
+    lldsu: List[List[Dict[str, User]]]
+    lllu: List[List[List[User]]]
+
+
+@attr.s(auto_attribs=True)
 class NoDefaultValue:
     no_default: Any
 
