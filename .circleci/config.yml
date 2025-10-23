@@ -19,7 +19,9 @@ commands:
           name: "Testing OmegaConf"
           command: |
             export NOX_PYTHON_VERSIONS=<< parameters.py_version >>
-            nox --add-timestamp -s "omegaconf-<< parameters.py_version >>" -s "benchmark-<< parameters.py_version >>" -s "test_jupyter_notebook-<< parameters.py_version >>"
+            # Run only the parametrized sessions (omegaconf, benchmark, test_jupyter_notebook)
+            # Skip coverage, lint, docs which are handled by separate jobs
+            nox --add-timestamp -s omegaconf benchmark test_jupyter_notebook
 
 jobs:
   test_linux:
