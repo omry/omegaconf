@@ -10,7 +10,7 @@ mypy==1.8.0
 nox
 pre-commit
 pyflakes
-pytest
+pytest<8.4  # Pin to <8.4 due to removal of RaisesContext from private API
 pytest-benchmark
 pytest-mock
 towncrier
