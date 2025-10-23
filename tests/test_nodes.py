@@ -1002,7 +1002,7 @@ def test_interpolation_result_readonly(flags: Any) -> None:
     sys.version_info < (3, 12),
     reason="Hash collision between Path and str only exists in Python 3.12+",
 )
-def test_path_str_hash_collision_handling():
+def test_path_str_hash_collision_handling() -> None:
     """
     Regression test for Python 3.12+ hash collision between Path and str.
 
