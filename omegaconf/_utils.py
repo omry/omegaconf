@@ -129,7 +129,7 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
     def pathlib_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
         # Use old pathlib.Path tag for cross-version compatibility
         # Extract constructor args from __reduce__ and use sequence representation
-        return dumper.represent_sequence(
+        return dumper.represent_sequence(  # pragma: no cover
             "tag:yaml.org,2002:python/object/apply:pathlib.Path",
             [str(data)],
         )
@@ -145,7 +145,7 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
     @staticmethod
     def pathlib_windows_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
         # Use old pathlib.WindowsPath tag for cross-version compatibility
-        return dumper.represent_sequence(
+        return dumper.represent_sequence(  # pragma: no cover
             "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
             [str(data)],
         )
