@@ -1021,7 +1021,6 @@ def test_path_str_hash_collision_handling() -> None:
     assert hash(path_node) == hash(path_str)
     assert path_node != path_str
 
-
     list_cfg = OmegaConf.create([path_obj])
     assert path_obj in list_cfg
     assert path_str not in list_cfg
@@ -1030,10 +1029,12 @@ def test_path_str_hash_collision_handling() -> None:
     assert path_str in list_cfg
 
     # Test DictConfig with both types as values
-    dict_cfg = OmegaConf.create({
-        "by_path": {"file": path_obj},
-        "by_string": {"file": path_str},
-    })
+    dict_cfg = OmegaConf.create(
+        {
+            "by_path": {"file": path_obj},
+            "by_string": {"file": path_str},
+        }
+    )
     assert dict_cfg.by_path.file == path_obj
     assert dict_cfg.by_string.file == path_str
     assert dict_cfg.by_path.file != dict_cfg.by_string.file

@@ -161,9 +161,7 @@ def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
     if not OmegaConfDumper.pathlib_representers_added:
         from pathlib import Path, PosixPath, WindowsPath
 
-        OmegaConfDumper.add_representer(
-            Path, OmegaConfDumper.pathlib_path_representer
-        )
+        OmegaConfDumper.add_representer(Path, OmegaConfDumper.pathlib_path_representer)
         OmegaConfDumper.add_representer(
             PosixPath, OmegaConfDumper.pathlib_posix_path_representer
         )
