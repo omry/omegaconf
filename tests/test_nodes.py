@@ -1014,7 +1014,7 @@ def test_path_str_hash_collision_handling() -> None:
     path_str = "hello.txt"
     path_obj = Path(path_str)
     assert hash(path_obj) == hash(path_str)
-    assert path_obj != path_str
+    assert path_obj != path_str  # type: ignore[comparison-overlap]
 
     # Test PathNode behavior with hash collision
     path_node = PathNode(path_obj)
