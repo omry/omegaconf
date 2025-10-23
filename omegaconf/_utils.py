@@ -1002,7 +1002,7 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
             if isinstance(t, type) and issubclass(t, pathlib.PurePath):
                 # Python 3.13+ uses pathlib._local internally, normalize to pathlib for # Path types
                 # Normalize pathlib._local to pathlib for cross-version compatibility
-                if module_name == "pathlib._local":
+                if module_name == "pathlib._local":  # pragma: no cover
                     module_name = "pathlib"
 
             module_prefix = module_name + "."
