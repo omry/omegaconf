@@ -4,7 +4,7 @@ from typing import Tuple
 import nox
 from nox import Session
 
-DEFAULT_PYTHON_VERSIONS = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+DEFAULT_PYTHON_VERSIONS = ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
 PYTHON_VERSIONS = os.environ.get(
     "NOX_PYTHON_VERSIONS", ",".join(DEFAULT_PYTHON_VERSIONS)
@@ -42,13 +42,14 @@ def docs(session: Session) -> None:
     session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
 
 
-@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+@nox.session(python=["3.10"])  # type: ignore
 def coverage(session: Session) -> None:
     # For coverage, we must use the editable installation because
     # `coverage run -m pytest` prepends `sys.path` with "." (the current
     # folder), so that the local code will be used in tests even if we set
     # `editable_install=False`. This would cause problems due to potentially
     # missing the generated grammar files.
+    # Note: Coverage only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
@@ -63,8 +64,9 @@ def version_string_to_tuple(version: str) -> Tuple[int, ...]:
     return tuple(map(int, version.split(".")))
 
 
-@nox.session(python=PYTHON_VERSIONS)  # type: ignore
+@nox.session(python=["3.10"])  # type: ignore
 def lint(session: Session) -> None:
+    # Note: Linting only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)
     session.run(
         "mypy", ".", "--strict", "--install-types", "--non-interactive", silent=True

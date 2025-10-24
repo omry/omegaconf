@@ -19,7 +19,9 @@ commands:
           name: "Testing OmegaConf"
           command: |
             export NOX_PYTHON_VERSIONS=<< parameters.py_version >>
-            nox --add-timestamp
+            # Run only the parametrized sessions (omegaconf, benchmark, test_jupyter_notebook)
+            # Skip coverage, lint, docs which are handled by separate jobs
+            nox --add-timestamp -s omegaconf benchmark test_jupyter_notebook
 
 jobs:
   test_linux:
@@ -32,6 +34,54 @@ jobs:
       - linux:
           py_version: << parameters.py_version >>
 
+  coverage:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: "Preparing environment"
+          command: |
+            python --version
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jre
+            pip install nox
+      - run:
+          name: "Running coverage"
+          command: nox --add-timestamp -s coverage
+
+  lint:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: "Preparing environment"
+          command: |
+            python --version
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jre
+            pip install nox
+      - run:
+          name: "Running lint"
+          command: nox --add-timestamp -s lint
+
+  docs:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: "Preparing environment"
+          command: |
+            python --version
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jre
+            pip install nox
+      - run:
+          name: "Building docs"
+          command: nox --add-timestamp -s docs
+
 workflows:
   version: 2
   build:
@@ -39,4 +89,7 @@ workflows:
       - test_linux:
           matrix:
             parameters:
-              py_version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+              py_version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+      - coverage
+      - lint
+      - docs

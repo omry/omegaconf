@@ -114,6 +114,7 @@ _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
+    pathlib_representers_added = False
 
     @staticmethod
     def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
@@ -124,11 +125,51 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
             style=("'" if with_quotes else None),
         )
 
+    @staticmethod
+    def pathlib_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
+        # Use old pathlib.Path tag for cross-version compatibility
+        # Extract constructor args from __reduce__ and use sequence representation
+        return dumper.represent_sequence(  # pragma: no cover
+            "tag:yaml.org,2002:python/object/apply:pathlib.Path",
+            [str(data)],
+        )
+
+    @staticmethod
+    def pathlib_posix_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
+        # Use old pathlib.PosixPath tag for cross-version compatibility
+        return dumper.represent_sequence(
+            "tag:yaml.org,2002:python/object/apply:pathlib.PosixPath",
+            [str(data)],
+        )
+
+    @staticmethod
+    def pathlib_windows_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
+        # Use old pathlib.WindowsPath tag for cross-version compatibility
+        return dumper.represent_sequence(  # pragma: no cover
+            "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
+            [str(data)],
+        )
+
 
 def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
     if not OmegaConfDumper.str_representer_added:
         OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
         OmegaConfDumper.str_representer_added = True
+
+    # Add representers for pathlib types to ensure cross-version compatibility.
+    # Python 3.13+ uses pathlib._local.* internally, so we normalize to old pathlib.* tags
+    if not OmegaConfDumper.pathlib_representers_added:
+        from pathlib import Path, PosixPath, WindowsPath
+
+        OmegaConfDumper.add_representer(Path, OmegaConfDumper.pathlib_path_representer)
+        OmegaConfDumper.add_representer(
+            PosixPath, OmegaConfDumper.pathlib_posix_path_representer
+        )
+        OmegaConfDumper.add_representer(
+            WindowsPath, OmegaConfDumper.pathlib_windows_path_representer
+        )
+        OmegaConfDumper.pathlib_representers_added = True
+
     return OmegaConfDumper
 
 
@@ -187,6 +228,20 @@ def get_yaml_loader() -> Any:
     )
     loader.add_constructor(
         "tag:yaml.org,2002:python/object/apply:pathlib.WindowsPath",
+        lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
+    )
+
+    # Python 3.13+ uses internal pathlib._local module
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.Path",
+        lambda loader, node: pathlib.Path(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.PosixPath",
+        lambda loader, node: pathlib.PosixPath(*loader.construct_sequence(node)),
+    )
+    loader.add_constructor(
+        "tag:yaml.org,2002:python/object/apply:pathlib._local.WindowsPath",
         lambda loader, node: pathlib.WindowsPath(*loader.construct_sequence(node)),
     )
 
@@ -941,7 +996,14 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
             and t.__module__ != "typing"
             and not t.__module__.startswith("omegaconf.")
         ):
-            module_prefix = str(t.__module__) + "."
+            module_name = str(t.__module__)
+            if isinstance(t, type) and issubclass(t, pathlib.PurePath):
+                # Python 3.13+ uses pathlib._local internally, normalize to pathlib for # Path types
+                # Normalize pathlib._local to pathlib for cross-version compatibility
+                if module_name == "pathlib._local":  # pragma: no cover
+                    module_name = "pathlib"
+
+            module_prefix = module_name + "."
         else:
             module_prefix = ""
         ret = module_prefix + ret

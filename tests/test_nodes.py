@@ -1,6 +1,7 @@
 import copy
 import functools
 import re
+import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
@@ -837,8 +838,11 @@ def test_eq(node: ValueNode, value: Any, expected: Any) -> None:
     assert (value != node) != expected
 
     # Check hash except for unhashable types (dict/list).
-    if not isinstance(value, (dict, list)):
-        assert (node.__hash__() == value.__hash__()) == expected
+    # Per Python's hash contract: if a == b, then hash(a) == hash(b)
+    # Note: if a != b, hashes may or may not be equal (collisions are allowed)
+    # E.g. Path('a') != 'a' but their hashes are equal as of Python 3.12
+    if not isinstance(value, (dict, list)) and expected:
+        assert node.__hash__() == value.__hash__()
 
 
 @mark.parametrize(
@@ -992,3 +996,46 @@ def test_interpolation_result_readonly(flags: Any) -> None:
     # If no value was provided for the "readonly" flag, it should be set.
     if readonly is None:
         assert node._get_node_flag("readonly")
+
+
+@mark.skipif(
+    sys.version_info < (3, 12),
+    reason="Hash collision between Path and str only exists in Python 3.12+",
+)
+def test_path_str_hash_collision_handling() -> None:
+    """
+    Regression test for Python 3.12+ hash collision between Path and str.
+
+    In Python 3.12+, Path('x') and 'x' have identical hashes but are not equal.
+    This test verifies that OmegaConf's containers handle this collision correctly.
+    """
+    from pathlib import Path
+
+    path_str = "hello.txt"
+    path_obj = Path(path_str)
+    assert hash(path_obj) == hash(path_str)
+    assert path_obj != path_str  # type: ignore[comparison-overlap]
+
+    # Test PathNode behavior with hash collision
+    path_node = PathNode(path_obj)
+    assert hash(path_node) == hash(path_str)
+    assert path_node != path_str
+
+    list_cfg1 = OmegaConf.create([path_obj])
+    assert path_obj in list_cfg1
+    assert path_str not in list_cfg1
+
+    list_cfg2 = OmegaConf.create([path_str])
+    assert path_obj not in list_cfg2
+    assert path_str in list_cfg2
+
+    # Test DictConfig with both types as values
+    dict_cfg = OmegaConf.create(
+        {
+            "by_path": {"file": path_obj},
+            "by_string": {"file": path_str},
+        }
+    )
+    assert dict_cfg.by_path.file == path_obj
+    assert dict_cfg.by_string.file == path_str
+    assert dict_cfg.by_path.file != dict_cfg.by_string.file

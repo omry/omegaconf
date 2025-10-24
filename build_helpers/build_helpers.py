@@ -1,4 +1,3 @@
-import codecs
 import distutils.log
 import errno
 import os
@@ -64,26 +63,26 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
         build_dir = Path(__file__).parent.absolute()
         project_root = build_dir.parent
         lib = "antlr4"
-        pkgname = 'omegaconf.vendor'
+        pkgname = "omegaconf.vendor"
 
         replacements = [
             partial(  # import antlr4 -> import omegaconf.vendor.antlr4
-                re.compile(r'(^\s*)import {}\n'.format(lib), flags=re.M).sub,
-                r'\1from {} import {}\n'.format(pkgname, lib)
+                re.compile(r"(^\s*)import {}\n".format(lib), flags=re.M).sub,
+                r"\1from {} import {}\n".format(pkgname, lib),
             ),
             partial(  # from antlr4 -> from fomegaconf.vendor.antlr4
-                re.compile(r'(^\s*)from {}(\.|\s+)'.format(lib), flags=re.M).sub,
-                r'\1from {}.{}\2'.format(pkgname, lib)
+                re.compile(r"(^\s*)from {}(\.|\s+)".format(lib), flags=re.M).sub,
+                r"\1from {}.{}\2".format(pkgname, lib),
             ),
         ]
 
         path = project_root / "omegaconf" / "grammar" / "gen"
         for item in path.iterdir():
             if item.is_file() and item.name.endswith(".py"):
-                text = item.read_text('utf8')
+                text = item.read_text("utf8")
                 for replacement in replacements:
                     text = replacement(text)
-                item.write_text(text, 'utf8')
+                item.write_text(text, "utf8")
 
 
 class BuildPyCommand(build_py.build_py):  # pragma: no cover
@@ -196,7 +195,7 @@ def find(
 
 def find_version(*file_paths: str) -> str:
     root = Path(__file__).parent.parent.absolute()
-    with codecs.open(root / Path(*file_paths), "r") as fp:  # type: ignore
+    with open(root / Path(*file_paths), "r", encoding="utf-8") as fp:
         version_file = fp.read()
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
     if version_match:
