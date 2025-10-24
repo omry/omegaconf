@@ -1021,12 +1021,13 @@ def test_path_str_hash_collision_handling() -> None:
     assert hash(path_node) == hash(path_str)
     assert path_node != path_str
 
-    list_cfg = OmegaConf.create([path_obj])
-    assert path_obj in list_cfg
-    assert path_str not in list_cfg
-    list_cfg.append(path_str)
-    assert path_obj in list_cfg
-    assert path_str in list_cfg
+    list_cfg1 = OmegaConf.create([path_obj])
+    assert path_obj in list_cfg1
+    assert path_str not in list_cfg1
+
+    list_cfg2 = OmegaConf.create([path_str])
+    assert path_obj not in list_cfg2
+    assert path_str in list_cfg2
 
     # Test DictConfig with both types as values
     dict_cfg = OmegaConf.create(
