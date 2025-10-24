@@ -74,8 +74,42 @@ kernel in the toolbar and restart it.
 
 #### Releasing a version
 
-```
+OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated releases.
+
+**Prerequisites (one-time setup):**
+1. Configure Trusted Publisher on PyPI (project maintainers only):
+   - Go to https://pypi.org/manage/project/omegaconf/settings/publishing/
+   - Add GitHub as a trusted publisher with:
+     - Owner: `omry` (or your organization)
+     - Repository name: `omegaconf`
+     - Workflow name: `publish.yml`
+     - Environment name: `pypi-publish`
+
+2. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
+   - Add protection rules (e.g., require manual approval)
+
+**Release process:**
+1. Update version in `omegaconf/version.py`
+2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`)
+3. Commit changes and push to main branch
+4. Create a new release on GitHub:
+   - Go to https://github.com/omry/omegaconf/releases/new
+   - Create a new tag (e.g., `v2.4.0`)
+   - Add release notes
+   - Publish release
+5. GitHub Actions will automatically build and publish to PyPI
+
+The workflow handles:
+- Installing Java (required for ANTLR parser generation)
+- Building source distribution and wheel
+- Verifying artifacts with `twine check`
+- Publishing to PyPI via Trusted Publishers (no API tokens needed)
+
+**Manual release (fallback):**
+If you need to publish manually:
+```bash
 rm -rf dist/ omegaconf.egg-info/
-python setup.py sdist bdist_wheel
+python -m build
+twine check dist/*
 twine upload dist/*
 ```
