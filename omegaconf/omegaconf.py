@@ -731,9 +731,11 @@ class OmegaConf:
 
         last = split[-1]
 
-        assert isinstance(
-            root, Container
-        ), f"Unexpected type for root: {type(root).__name__}"
+        assert isinstance(root, Container), (
+            f"Unexpected type for root: {type(root).__name__}. "
+            f"We cannot set '{last}' to '{value}' when root is {root}. "
+            f"Please make sure the config value of {split} is valid."
+        )
 
         last_key: Union[str, int] = last
         if isinstance(root, ListConfig):
