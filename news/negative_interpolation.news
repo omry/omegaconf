@@ -1,0 +1,6 @@
+Allows negative list access.
+
+```python
+cfg = OmegaConf.create("list: [1, 2, 3]")
+print(cfg.list[-1])  # 3
+```
