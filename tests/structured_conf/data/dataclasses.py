@@ -413,12 +413,6 @@ class ErrorListUnsupportedValue:
 
 
 @dataclass
-class ErrorListUnsupportedStructuredConfig:
-    # Nesting of structured configs in Dict and List is not currently supported
-    list: List[User] = field(default_factory=list)
-
-
-@dataclass
 class ListExamples:
     any: List[Any] = field(default_factory=lambda: [1, "foo"])
     ints: List[int] = field(default_factory=lambda: [1, 2])

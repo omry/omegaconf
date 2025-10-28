@@ -400,9 +400,22 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
         if not is_type:
             value = getattr(obj, name)
         else:
-            value = attrib.default
-            if value == attr.NOTHING:
+            default = attrib.default
+            if default == attr.NOTHING:
                 value = MISSING
+            elif isinstance(default, attr.Factory):  # type: ignore[arg-type]
+                assert default is not None
+                if default.takes_self:
+                    e = ConfigValueError(
+                        "'takes_self' in attrs attributes is not supported\n"
+                        + f"{name}: {type_str(type_)}"
+                    )
+                    format_and_raise(
+                        node=None, key=None, value=default, cause=e, msg=str(e)
+                    )
+                value = default.factory()
+            else:
+                value = default
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
                 f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
