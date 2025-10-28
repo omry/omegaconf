@@ -818,10 +818,11 @@ class OmegaConf:
                 itr = _cfg
 
             for key in itr:
-                if OmegaConf.is_missing(_cfg, key):
-                    missings.add(_cfg._get_full_key(key))
-                elif OmegaConf.is_config(_cfg[key]):
-                    gather(_cfg[key])
+                if not OmegaConf.is_interpolation(_cfg, key):
+                    if OmegaConf.is_missing(_cfg, key):
+                        missings.add(_cfg._get_full_key(key))
+                    elif OmegaConf.is_config(_cfg[key]):
+                        gather(_cfg[key])
 
         gather(cfg)
         return missings
