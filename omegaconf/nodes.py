@@ -11,6 +11,7 @@ from omegaconf._utils import (
     _is_interpolation,
     get_type_of,
     get_value_kind,
+    is_literal_annotation,
     is_primitive_container,
     type_str,
 )
@@ -499,6 +500,57 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "EnumNode":
         res = EnumNode(enum_type=self.enum_type)
+        self._deepcopy_impl(res, memo)
+        return res
+
+
+class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
+    def __init__(
+        self,
+        ref_type: Any,
+        value: Optional[Union[Enum, str, int, bool]] = None,
+        key: Any = None,
+        parent: Optional[Box] = None,
+        is_optional: bool = True,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        if not is_literal_annotation(ref_type):
+            raise ValidationError(
+                f"LiteralNode can only operate on Literal annotation ({ref_type})"
+            )
+        self.ref_type = ref_type
+        self.fields = list(ref_type.__args__)
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                key=key,
+                optional=is_optional,
+                ref_type=ref_type,
+                object_type=ref_type,
+                flags=flags,
+            ),
+        )
+
+    def _validate_and_convert_impl(self, value: Any) -> Any:
+        return self.validate_and_convert_to_literal(ref_type=self.ref_type, value=value)
+
+    @staticmethod
+    def validate_and_convert_to_literal(ref_type: Any, value: Any) -> Any:
+        fields = list(ref_type.__args__)
+        if value not in fields:
+            valid = ", ".join([repr(x) for x in fields])
+            raise ValidationError(f"Invalid value '$VALUE', expected one of [{valid}]")
+        index = fields.index(value)
+        if not isinstance(value, type(fields[index])):
+            raise ValidationError(
+                f"Invalid value '$VALUE' of type '$VALUE_TYPE'. "
+                f"Expected type {type(fields[index]).__name__}"
+            )
+        return value
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "LiteralNode":
+        res = LiteralNode(ref_type=self.ref_type)
         self._deepcopy_impl(res, memo)
         return res
 

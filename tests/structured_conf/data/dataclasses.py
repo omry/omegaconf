@@ -2,7 +2,7 @@ import dataclasses
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from pytest import importorskip
 
@@ -207,6 +207,16 @@ class EnumConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: Color = II("with_default")
+
+
+@dataclass
+class LiteralConfig:
+    with_default: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = "foo"
+    null_default: Optional[Literal["foo", "bar", True, b"baz", 5, Color.GREEN]] = None
+    mandatory_missing: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = MISSING
+    interpolation: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = II(
+        "with_default"
+    )
 
 
 @dataclass

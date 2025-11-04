@@ -5,7 +5,7 @@ import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple, Type, Union
+from typing import Any, Callable, Dict, Literal, Tuple, Type, Union
 
 from pytest import fixture, mark, param, raises
 
@@ -18,6 +18,7 @@ from omegaconf import (
     FloatNode,
     IntegerNode,
     ListConfig,
+    LiteralNode,
     Node,
     OmegaConf,
     PathNode,
@@ -184,6 +185,25 @@ def test_valid_inputs(type_: type, input_: Any, output_: Any) -> None:
         (partial(EnumNode, Color), DictConfig({"foo": "bar"})),
         (PathNode, 1.0),
         (PathNode, ["hello.txt"]),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), "baz"),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), 4),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), Color.RED),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), False),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), b"bez"),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), 1.0),
+        (partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]), [1, 2]),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            {"foo": "bar"},
+        ),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            ListConfig([1, 2]),
+        ),
+        (
+            partial(LiteralNode, Literal["foo", b"bar", 5, Color.GREEN, True]),
+            DictConfig({"foo": "bar"}),
+        ),
     ],
 )
 def test_invalid_inputs(type_: type, input_: Any) -> None:
@@ -632,6 +652,13 @@ def test_illegal_assignment(node: ValueNode, value: Any) -> None:
         node._set_value(value)
 
 
+def test_literal_node_bad_literal_type() -> None:
+    with raises(ValidationError):
+        LiteralNode(ref_type=5, value=5)
+    with raises(ValidationError):
+        LiteralNode(ref_type=int, value=5)
+
+
 @mark.parametrize(
     "node_type",
     [
@@ -767,6 +794,18 @@ def test_deepcopy(obj: Any) -> None:
         (EnumNode(enum_type=Enum1, value=Enum1.BAR), "Enum1.BAR", False),
         (EnumNode(enum_type=Enum1, value="???"), "???", True),
         (EnumNode(enum_type=Enum1, value=None), Enum1.BAR, False),
+        (LiteralNode(ref_type=Literal["foo"], value="foo"), "foo", True),
+        (
+            LiteralNode(ref_type=Literal["foo"], value="foo"),
+            LiteralNode(ref_type=Literal["foo"], value="foo"),
+            True,
+        ),
+        (
+            LiteralNode(ref_type=Literal["foo"], value="foo"),
+            StringNode(value="foo"),
+            True,
+        ),
+        (LiteralNode(ref_type=Literal["foo"], value="foo"), 5, False),
         (EnumNode(enum_type=Enum1, value="${interp}"), "${interp}", True),
         (EnumNode(enum_type=Enum1, value="${interp}"), "${different_interp}", False),
         (InterpolationResultNode("foo"), "foo", True),
