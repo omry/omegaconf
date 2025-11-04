@@ -542,7 +542,8 @@ class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             valid = ", ".join([repr(x) for x in fields])
             raise ValidationError(f"Invalid value '$VALUE', expected one of [{valid}]")
         index = fields.index(value)
-        if not isinstance(value, type(fields[index])):
+        # Use exact type match to prevent bool/int cross-matching (True should not match Literal[1])
+        if type(value) is not type(fields[index]):  # noqa: E721
             raise ValidationError(
                 f"Invalid value '$VALUE' of type '$VALUE_TYPE'. "
                 f"Expected type {type(fields[index]).__name__}"

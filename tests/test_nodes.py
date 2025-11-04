@@ -659,6 +659,13 @@ def test_literal_node_bad_literal_type() -> None:
         LiteralNode(ref_type=int, value=5)
 
 
+def test_literal_node_type_mismatch() -> None:
+    with raises(ValidationError):
+        LiteralNode(ref_type=Literal[1], value=True)
+    with raises(ValidationError):
+        LiteralNode(ref_type=Literal[0], value=False)
+
+
 @mark.parametrize(
     "node_type",
     [
