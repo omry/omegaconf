@@ -191,7 +191,9 @@ def test_node_wrap(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
         ),
         # Literal
-        param(Literal[42], 42, LiteralNode(ref_type=Literal[42], value=42), id="Literal"),
+        param(
+            Literal[42], 42, LiteralNode(ref_type=Literal[42], value=42), id="Literal"
+        ),
         # bad type
         param(IllegalType, "nope", ValidationError, id="bad_type"),
         param(IllegalType, [1, 2, 3], ValidationError, id="list_bad_type"),
