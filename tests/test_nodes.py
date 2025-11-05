@@ -722,6 +722,7 @@ def test_legal_assignment_enum(
         IntegerNode(value=10),
         FloatNode(value=10.0),
         UnionNode(10.0, Union[float, bool]),
+        LiteralNode(ref_type=Literal[42], value=42),
         OmegaConf.create({}),
         OmegaConf.create([]),
         OmegaConf.create({"foo": "foo"}),
