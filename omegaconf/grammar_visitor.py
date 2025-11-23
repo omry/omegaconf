@@ -417,11 +417,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
         resolved = self.visitInterpolation(children[i])
         value = _get_value(resolved)
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
 
         result = value
         all_int = isinstance(value, int)
+        has_division = False
         i += 1
 
         while i < num_children:
@@ -451,12 +452,15 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             if operator is None or i >= num_children:
                 return None
 
+            if operator == "/":
+                has_division = True
+
             if not isinstance(children[i], OmegaConfGrammarParser.InterpolationContext):
                 return None
 
             resolved = self.visitInterpolation(children[i])
             value = _get_value(resolved)
-            if not isinstance(value, (int, float)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
                 return None
 
             result = operator_map[operator](result, value)
@@ -464,4 +468,6 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 all_int = False
             i += 1
 
+        if has_division:
+            return float(result)
         return int(result) if all_int else float(result)
