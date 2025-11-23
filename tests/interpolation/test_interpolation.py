@@ -20,14 +20,14 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
+from omegaconf.errors import InterpolationKeyError
+from omegaconf.errors import InterpolationResolutionError
+from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.errors import (
-    InterpolationKeyError,
-    InterpolationResolutionError,
     InterpolationToMissingValueError,
     InterpolationValidationError,
     ReadonlyConfigError,
 )
-from omegaconf.errors import InterpolationResolutionError as IRE
 from omegaconf.nodes import InterpolationResultNode
 from tests import (
     Color,
