@@ -807,3 +807,19 @@ def test_arithmetic_invalid_operator_char() -> None:
 def test_arithmetic_operator_with_invalid_token() -> None:
     cfg = OmegaConf.create({"a": 1, "d": "${a} +"})
     assert cfg.d == "1 +"
+
+
+def test_arithmetic_primitive_context() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "value": "${a} + ${b}"})
+    assert cfg.value == 3
+    assert isinstance(cfg.value, int)
+
+
+def test_arithmetic_primitive_with_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "value": "${a}  +  ${b}"})
+    assert cfg.value == 3
+
+
+def test_arithmetic_primitive_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "value": "${a}+${b}"})
+    assert cfg.value == 3
