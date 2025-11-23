@@ -823,3 +823,156 @@ def test_arithmetic_primitive_with_whitespace() -> None:
 def test_arithmetic_primitive_no_whitespace() -> None:
     cfg = OmegaConf.create({"a": 1, "b": 2, "value": "${a}+${b}"})
     assert cfg.value == 3
+
+
+def test_arithmetic_multiple_operators_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3, "value": "${a}+${b}+${c}"})
+    assert cfg.value == 6
+
+
+def test_arithmetic_multiple_operators_with_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3, "value": "${a}  +  ${b}  +  ${c}"})
+    assert cfg.value == 6
+
+
+def test_arithmetic_subtraction_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 5, "b": 2, "value": "${a}-${b}"})
+    assert cfg.value == 3
+
+
+def test_arithmetic_multiplication_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 2, "b": 3, "value": "${a}*${b}"})
+    assert cfg.value == 6
+
+
+def test_arithmetic_division_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": 2, "value": "${a}/${b}"})
+    assert cfg.value == 5.0
+
+
+def test_arithmetic_primitive_context_unquoted_char() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3})
+    cfg.p1 = "${a}+${b}"
+    cfg.p2 = "${a}-${b}"
+    cfg.p3 = "${a}*${b}"
+    cfg.p4 = "${a}/${b}"
+    cfg.p5 = "${a}+${b}+${c}"
+    assert cfg.p1 == 3
+    assert cfg.p2 == -1
+    assert cfg.p3 == 2
+    assert cfg.p4 == 0.5
+    assert cfg.p5 == 6
+
+
+def test_arithmetic_primitive_context_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3})
+    cfg.p1 = "${a}  +  ${b}"
+    cfg.p2 = "${a}  -  ${b}"
+    cfg.p3 = "${a}  *  ${b}"
+    cfg.p4 = "${a}  /  ${b}"
+    cfg.p5 = "${a}  +  ${b}  +  ${c}"
+    assert cfg.p1 == 3
+    assert cfg.p2 == -1
+    assert cfg.p3 == 2
+    assert cfg.p4 == 0.5
+    assert cfg.p5 == 6
+
+
+def test_arithmetic_coverage_unquoted_char_all_operators() -> None:
+    cfg = OmegaConf.create({"a": 5, "b": 2, "c": 3})
+    cfg.add = "${a}+${b}"
+    cfg.sub = "${a}-${b}"
+    cfg.mul = "${a}*${b}"
+    cfg.div = "${a}/${b}"
+    cfg.chain = "${a}+${b}+${c}"
+    assert cfg.add == 7
+    assert cfg.sub == 3
+    assert cfg.mul == 10
+    assert cfg.div == 2.5
+    assert cfg.chain == 10
+
+
+def test_arithmetic_coverage_whitespace_all_operators() -> None:
+    cfg = OmegaConf.create({"a": 5, "b": 2, "c": 3})
+    cfg.add = "${a}  +  ${b}"
+    cfg.sub = "${a}  -  ${b}"
+    cfg.mul = "${a}  *  ${b}"
+    cfg.div = "${a}  /  ${b}"
+    cfg.chain = "${a}  +  ${b}  +  ${c}"
+    assert cfg.add == 7
+    assert cfg.sub == 3
+    assert cfg.mul == 10
+    assert cfg.div == 2.5
+    assert cfg.chain == 10
+
+
+def test_arithmetic_in_list_items() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3})
+    cfg.list = ["${a}+${b}", "${a}-${b}", "${a}*${b}", "${a}/${b}", "${a}+${b}+${c}"]
+    assert cfg.list[0] == 3
+    assert cfg.list[1] == -1
+    assert cfg.list[2] == 2
+    assert cfg.list[3] == 0.5
+    assert cfg.list[4] == 6
+
+
+def test_arithmetic_in_dict_values() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3})
+    cfg.dict = {
+        "add": "${a}+${b}",
+        "sub": "${a}-${b}",
+        "mul": "${a}*${b}",
+        "div": "${a}/${b}",
+        "chain": "${a}+${b}+${c}",
+    }
+    assert cfg.dict.add == 3
+    assert cfg.dict.sub == -1
+    assert cfg.dict.mul == 2
+    assert cfg.dict.div == 0.5
+    assert cfg.dict.chain == 6
+
+
+def test_arithmetic_in_dict_values_with_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3})
+    cfg.dict = {
+        "add": "${a}  +  ${b}",
+        "sub": "${a}  -  ${b}",
+        "mul": "${a}  *  ${b}",
+        "div": "${a}  /  ${b}",
+        "chain": "${a}  +  ${b}  +  ${c}",
+    }
+    assert cfg.dict.add == 3
+    assert cfg.dict.sub == -1
+    assert cfg.dict.mul == 2
+    assert cfg.dict.div == 0.5
+    assert cfg.dict.chain == 6
+
+
+def test_arithmetic_yaml_list_primitive_context() -> None:
+    import yaml
+
+    yaml_str = """
+a: 1
+b: 2
+c: 3
+list:
+  - ${a}+${b}
+  - ${a}-${b}
+  - ${a}*${b}
+  - ${a}/${b}
+  - ${a}+${b}+${c}
+  - ${a}  +  ${b}
+  - ${a}  -  ${b}
+  - ${a}  *  ${b}
+  - ${a}  /  ${b}
+"""
+    cfg = OmegaConf.create(yaml.safe_load(yaml_str))
+    assert cfg.list[0] == 3
+    assert cfg.list[1] == -1
+    assert cfg.list[2] == 2
+    assert cfg.list[3] == 0.5
+    assert cfg.list[4] == 6
+    assert cfg.list[5] == 3
+    assert cfg.list[6] == -1
+    assert cfg.list[7] == 2
+    assert cfg.list[8] == 0.5
