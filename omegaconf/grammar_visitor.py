@@ -396,7 +396,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def _try_arithmetic_expression(
         self,
-        children: List[Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]],
+        children: List[
+            Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]
+        ],
     ) -> Optional[Any]:
         from ._utils import _get_value
 
