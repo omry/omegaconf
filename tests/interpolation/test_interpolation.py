@@ -857,10 +857,15 @@ def test_arithmetic_primitive_context_unquoted_char() -> None:
     cfg.p3 = "${a}*${b}"
     cfg.p4 = "${a}/${b}"
     cfg.p5 = "${a}+${b}+${c}"
+    assert isinstance(cfg.p1, int)
     assert cfg.p1 == 3
+    assert isinstance(cfg.p2, int)
     assert cfg.p2 == -1
+    assert isinstance(cfg.p3, int)
     assert cfg.p3 == 2
+    assert isinstance(cfg.p4, float)
     assert cfg.p4 == 0.5
+    assert isinstance(cfg.p5, int)
     assert cfg.p5 == 6
 
 
@@ -871,10 +876,15 @@ def test_arithmetic_primitive_context_whitespace() -> None:
     cfg.p3 = "${a}  *  ${b}"
     cfg.p4 = "${a}  /  ${b}"
     cfg.p5 = "${a}  +  ${b}  +  ${c}"
+    assert isinstance(cfg.p1, int)
     assert cfg.p1 == 3
+    assert isinstance(cfg.p2, int)
     assert cfg.p2 == -1
+    assert isinstance(cfg.p3, int)
     assert cfg.p3 == 2
+    assert isinstance(cfg.p4, float)
     assert cfg.p4 == 0.5
+    assert isinstance(cfg.p5, int)
     assert cfg.p5 == 6
 
 
@@ -885,10 +895,15 @@ def test_arithmetic_coverage_unquoted_char_all_operators() -> None:
     cfg.mul = "${a}*${b}"
     cfg.div = "${a}/${b}"
     cfg.chain = "${a}+${b}+${c}"
+    assert isinstance(cfg.add, int)
     assert cfg.add == 7
+    assert isinstance(cfg.sub, int)
     assert cfg.sub == 3
+    assert isinstance(cfg.mul, int)
     assert cfg.mul == 10
+    assert isinstance(cfg.div, float)
     assert cfg.div == 2.5
+    assert isinstance(cfg.chain, int)
     assert cfg.chain == 10
 
 
@@ -899,10 +914,15 @@ def test_arithmetic_coverage_whitespace_all_operators() -> None:
     cfg.mul = "${a}  *  ${b}"
     cfg.div = "${a}  /  ${b}"
     cfg.chain = "${a}  +  ${b}  +  ${c}"
+    assert isinstance(cfg.add, int)
     assert cfg.add == 7
+    assert isinstance(cfg.sub, int)
     assert cfg.sub == 3
+    assert isinstance(cfg.mul, int)
     assert cfg.mul == 10
+    assert isinstance(cfg.div, float)
     assert cfg.div == 2.5
+    assert isinstance(cfg.chain, int)
     assert cfg.chain == 10
 
 
@@ -925,11 +945,16 @@ def test_arithmetic_in_dict_values() -> None:
         "div": "${a}/${b}",
         "chain": "${a}+${b}+${c}",
     }
-    assert cfg.dict.add == 3
-    assert cfg.dict.sub == -1
-    assert cfg.dict.mul == 2
-    assert cfg.dict.div == 0.5
-    assert cfg.dict.chain == 6
+    assert isinstance(cfg.dict["add"], int)
+    assert cfg.dict["add"] == 3
+    assert isinstance(cfg.dict["sub"], int)
+    assert cfg.dict["sub"] == -1
+    assert isinstance(cfg.dict["mul"], int)
+    assert cfg.dict["mul"] == 2
+    assert isinstance(cfg.dict["div"], float)
+    assert cfg.dict["div"] == 0.5
+    assert isinstance(cfg.dict["chain"], int)
+    assert cfg.dict["chain"] == 6
 
 
 def test_arithmetic_in_dict_values_with_whitespace() -> None:
@@ -941,11 +966,16 @@ def test_arithmetic_in_dict_values_with_whitespace() -> None:
         "div": "${a}  /  ${b}",
         "chain": "${a}  +  ${b}  +  ${c}",
     }
-    assert cfg.dict.add == 3
-    assert cfg.dict.sub == -1
-    assert cfg.dict.mul == 2
-    assert cfg.dict.div == 0.5
-    assert cfg.dict.chain == 6
+    assert isinstance(cfg.dict["add"], int)
+    assert cfg.dict["add"] == 3
+    assert isinstance(cfg.dict["sub"], int)
+    assert cfg.dict["sub"] == -1
+    assert isinstance(cfg.dict["mul"], int)
+    assert cfg.dict["mul"] == 2
+    assert isinstance(cfg.dict["div"], float)
+    assert cfg.dict["div"] == 0.5
+    assert isinstance(cfg.dict["chain"], int)
+    assert cfg.dict["chain"] == 6
 
 
 def test_arithmetic_yaml_list_primitive_context() -> None:
