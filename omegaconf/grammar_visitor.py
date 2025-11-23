@@ -404,7 +404,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if num_children < 3:
             return None
 
-        operator_map = {"+": lambda a, b: a + b, "-": lambda a, b: a - b, "*": lambda a, b: a * b, "/": lambda a, b: a / b}
+        operator_map = {
+            "+": lambda a, b: a + b,
+            "-": lambda a, b: a - b,
+            "*": lambda a, b: a * b,
+            "/": lambda a, b: a / b,
+        }
         i = 0
 
         if not isinstance(children[i], OmegaConfGrammarParser.InterpolationContext):
