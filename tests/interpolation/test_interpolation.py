@@ -775,3 +775,35 @@ def test_arithmetic_four_operands() -> None:
     )
     assert cfg.d == 10
     assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_single_interpolation_no_operator() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a}"})
+    assert cfg.d == 1
+    assert not isinstance(cfg.d, str)
+
+
+def test_arithmetic_operator_followed_by_text() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a} + text"})
+    assert cfg.d == "1 + text"
+
+
+def test_arithmetic_no_operator_between_interpolations() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a} ${b}"})
+    assert cfg.d == "1 2"
+
+
+def test_arithmetic_unquoted_char_operator_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a}+${b}"})
+    assert cfg.d == 3
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_invalid_operator_char() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a} % ${b}"})
+    assert cfg.d == "1 % 2"
+
+
+def test_arithmetic_operator_with_invalid_token() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a} +"})
+    assert cfg.d == "1 +"
