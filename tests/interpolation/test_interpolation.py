@@ -519,3 +519,54 @@ def test_interpolation_like_result_is_not_an_interpolation(
     # Check that the resulting node is read-only.
     with raises(ReadonlyConfigError):
         resolved_node._set_value("foo")
+
+
+def test_arithmetic_addition() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2.0, "d": "${a} + ${b}"})
+    assert cfg.d == 3.0
+    assert isinstance(cfg.d, float)
+
+
+def test_arithmetic_subtraction() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a} - ${b}"})
+    assert cfg.d == -1
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_multiplication() -> None:
+    cfg = OmegaConf.create({"a": 2, "b": 3, "d": "${a} * ${b}"})
+    assert cfg.d == 6
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_division() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2.0, "d": "${a} / ${b}"})
+    assert cfg.d == 0.5
+    assert isinstance(cfg.d, float)
+
+
+def test_arithmetic_int_result() -> None:
+    cfg = OmegaConf.create({"a": 2, "b": 3, "d": "${a} * ${b}"})
+    assert isinstance(cfg.d, int)
+    assert cfg.d == 6
+
+
+def test_arithmetic_float_result() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2.0, "d": "${a} + ${b}"})
+    assert isinstance(cfg.d, float)
+    assert cfg.d == 3.0
+
+
+def test_arithmetic_with_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a}  +  ${b}"})
+    assert cfg.d == 3
+
+
+def test_arithmetic_non_numeric_fallback() -> None:
+    cfg = OmegaConf.create({"a": "hello", "b": "world", "d": "${a} + ${b}"})
+    assert cfg.d == "hello + world"
+
+
+def test_arithmetic_mixed_types_fallback() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": "world", "d": "${a} + ${b}"})
+    assert cfg.d == "1world"
