@@ -20,10 +20,14 @@ from omegaconf import (
     ValidationError,
 )
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import InterpolationKeyError
-from omegaconf.errors import InterpolationResolutionError
+from omegaconf.errors import (
+    InterpolationKeyError,
+    InterpolationResolutionError,
+    InterpolationToMissingValueError,
+    InterpolationValidationError,
+    ReadonlyConfigError,
+)
 from omegaconf.errors import InterpolationResolutionError as IRE
-from omegaconf.errors import InterpolationValidationError, ReadonlyConfigError
 from omegaconf.nodes import InterpolationResultNode
 from tests import (
     Color,
@@ -570,3 +574,204 @@ def test_arithmetic_non_numeric_fallback() -> None:
 def test_arithmetic_mixed_types_fallback() -> None:
     cfg = OmegaConf.create({"a": 1, "b": "world", "d": "${a} + ${b}"})
     assert cfg.d == "1 + world"
+
+
+def test_arithmetic_multiple_operations() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3, "d": "${a} + ${b} + ${c}"})
+    assert cfg.d == 6
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_no_whitespace() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a}+${b}"})
+    assert cfg.d == 3
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_negative_result() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 3, "d": "${a} - ${b}"})
+    assert cfg.d == -2
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_zero_result() -> None:
+    cfg = OmegaConf.create({"a": 5, "b": 5, "d": "${a} - ${b}"})
+    assert cfg.d == 0
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_negative_numbers() -> None:
+    cfg = OmegaConf.create({"a": -1, "b": -2, "d": "${a} + ${b}"})
+    assert cfg.d == -3
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_mixed_negative_positive() -> None:
+    cfg = OmegaConf.create({"a": -5, "b": 3, "d": "${a} + ${b}"})
+    assert cfg.d == -2
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_division_by_zero() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 0, "d": "${a} / ${b}"})
+    with raises(InterpolationResolutionError):
+        _ = cfg.d
+
+
+def test_arithmetic_float_division() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": 2, "d": "${a} / ${b}"})
+    assert cfg.d == 5.0
+    assert isinstance(cfg.d, float)
+
+
+def test_arithmetic_large_numbers() -> None:
+    cfg = OmegaConf.create({"a": 1000000, "b": 2000000, "d": "${a} + ${b}"})
+    assert cfg.d == 3000000
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_small_float_result() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 3, "d": "${a} / ${b}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert abs(result - 0.3333333333333333) < 1e-10
+
+
+def test_arithmetic_chained_operations() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": 2, "c": 3, "d": "${a} - ${b} - ${c}"})
+    assert cfg.d == 5
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_multiplication_with_zero() -> None:
+    cfg = OmegaConf.create({"a": 5, "b": 0, "d": "${a} * ${b}"})
+    assert cfg.d == 0
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_float_precision() -> None:
+    cfg = OmegaConf.create({"a": 0.1, "b": 0.2, "d": "${a} + ${b}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert abs(result - 0.3) < 1e-10
+
+
+def test_arithmetic_with_nested_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {"x": 2, "y": 3, "a": "${x}", "b": "${y}", "d": "${a} * ${b}"}
+    )
+    assert cfg.d == 6
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_fallback_with_string_prefix() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "result: ${a} + ${b}"})
+    assert cfg.d == "result: 1 + 2"
+
+
+def test_arithmetic_fallback_with_string_suffix() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "${a} + ${b} = result"})
+    assert cfg.d == "1 + 2 = result"
+
+
+def test_arithmetic_fallback_with_string_both_sides() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "d": "sum: ${a} + ${b} = total"})
+    assert cfg.d == "sum: 1 + 2 = total"
+
+
+def test_arithmetic_only_one_interpolation() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a} + 5"})
+    assert cfg.d == "1 + 5"
+
+
+def test_arithmetic_with_boolean_fallback() -> None:
+    cfg = OmegaConf.create({"a": True, "b": False, "d": "${a} + ${b}"})
+    assert cfg.d == "True + False"
+
+
+def test_arithmetic_with_missing_value() -> None:
+    from omegaconf import MISSING
+
+    cfg = OmegaConf.create({"a": 1, "b": MISSING, "d": "${a} + ${b}"})
+    with raises(InterpolationToMissingValueError):
+        _ = cfg.d
+
+
+def test_arithmetic_with_none_value() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": None, "d": "${a} + ${b}"})
+    assert cfg.d == "1 + None"
+
+
+def test_arithmetic_with_list_fallback() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": [1, 2, 3], "d": "${a} + ${b}"})
+    assert cfg.d == "1 + [1, 2, 3]"
+
+
+def test_arithmetic_with_dict_fallback() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": {"x": 2}, "d": "${a} + ${b}"})
+    assert cfg.d == "1 + {'x': 2}"
+
+
+def test_arithmetic_very_large_int() -> None:
+    large = 10**18
+    cfg = OmegaConf.create({"a": large, "b": 1, "d": "${a} + ${b}"})
+    assert cfg.d == large + 1
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_very_small_float() -> None:
+    cfg = OmegaConf.create({"a": 1e-10, "b": 2e-10, "d": "${a} + ${b}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert abs(result - 3e-10) < 1e-20
+
+
+def test_arithmetic_mixed_operations_subtract_add() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": 2, "c": 3, "d": "${a} - ${b} + ${c}"})
+    assert cfg.d == 11
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_all_float_operations() -> None:
+    cfg = OmegaConf.create({"a": 1.5, "b": 2.5, "c": 0.5, "d": "${a} + ${b} - ${c}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert abs(result - 3.5) < 1e-10
+
+
+def test_arithmetic_division_resulting_in_int() -> None:
+    cfg = OmegaConf.create({"a": 10, "b": 2, "d": "${a} / ${b}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert result == 5.0
+
+
+def test_arithmetic_multiplication_float_result() -> None:
+    cfg = OmegaConf.create({"a": 2.5, "b": 2, "d": "${a} * ${b}"})
+    result = cfg.d
+    assert isinstance(result, float)
+    assert result == 5.0
+
+
+def test_arithmetic_single_interpolation_with_operator() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a} +"})
+    assert cfg.d == "1 +"
+
+
+def test_arithmetic_operator_without_second_operand() -> None:
+    cfg = OmegaConf.create({"a": 1, "d": "${a} + "})
+    assert cfg.d == "1 + "
+
+
+def test_arithmetic_three_operands() -> None:
+    cfg = OmegaConf.create({"a": 1, "b": 2, "c": 3, "d": "${a} + ${b} + ${c}"})
+    assert cfg.d == 6
+    assert isinstance(cfg.d, int)
+
+
+def test_arithmetic_four_operands() -> None:
+    cfg = OmegaConf.create(
+        {"a": 1, "b": 2, "c": 3, "e": 4, "d": "${a} + ${b} + ${c} + ${e}"}
+    )
+    assert cfg.d == 10
+    assert isinstance(cfg.d, int)
