@@ -404,7 +404,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if num_children < 3:
             return None
 
-        operator_map = {
+        operator_map: Dict[str, Callable[[float, float], float]] = {
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
@@ -412,10 +412,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         }
         i = 0
 
-        if not isinstance(children[i], OmegaConfGrammarParser.InterpolationContext):
+        child = children[i]
+        if not isinstance(child, OmegaConfGrammarParser.InterpolationContext):
             return None
 
-        resolved = self.visitInterpolation(children[i])
+        resolved = self.visitInterpolation(child)
         value = _get_value(resolved)
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
@@ -455,15 +456,17 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             if operator == "/":
                 has_division = True
 
-            if not isinstance(children[i], OmegaConfGrammarParser.InterpolationContext):
+            child = children[i]
+            if not isinstance(child, OmegaConfGrammarParser.InterpolationContext):
                 return None
 
-            resolved = self.visitInterpolation(children[i])
+            resolved = self.visitInterpolation(child)
             value = _get_value(resolved)
             if isinstance(value, bool) or not isinstance(value, (int, float)):
                 return None
 
-            result = operator_map[operator](result, value)
+            op_func = operator_map[operator]
+            result = op_func(result, value)
             if not isinstance(value, int):
                 all_int = False
             i += 1
