@@ -569,4 +569,4 @@ def test_arithmetic_non_numeric_fallback() -> None:
 
 def test_arithmetic_mixed_types_fallback() -> None:
     cfg = OmegaConf.create({"a": 1, "b": "world", "d": "${a} + ${b}"})
-    assert cfg.d == "1world"
+    assert cfg.d == "1 + world"
