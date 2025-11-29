@@ -295,7 +295,10 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             if isinstance(c, OmegaConfGrammarParser.InterpolationContext):
                 return self.visitInterpolation(c)
 
-        # Otherwise, concatenate string representations together.
+        result = self._try_arithmetic_expression(list(ctx.getChildren()))
+        if result is not None:
+            return result
+
         return self._unescape(list(ctx.getChildren()))
 
     def _createPrimitive(
@@ -333,7 +336,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 # A single WS should have been "consumed" by another token.
                 raise AssertionError("WS should never be reached")
             assert False, symbol.type
-        # Concatenation of multiple items ==> un-escape the concatenation.
+        result = self._try_arithmetic_expression(list(ctx.getChildren()))
+        if result is not None:
+            return result  # pragma: no cover - Arithmetic expressions in primitive context are parsed as text context
         return self._unescape(list(ctx.getChildren()))
 
     def _unescape(
@@ -388,3 +393,92 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             chrs.append(text)
 
         return "".join(chrs)
+
+    def _try_arithmetic_expression(
+        self,
+        children: List[
+            Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]
+        ],
+    ) -> Optional[Any]:
+        from ._utils import _get_value
+
+        num_children = len(children)
+        if num_children < 3:
+            return None
+
+        operator_map: Dict[str, Callable[[float, float], float]] = {
+            "+": lambda a, b: a + b,
+            "-": lambda a, b: a - b,
+            "*": lambda a, b: a * b,
+            "/": lambda a, b: a / b,
+        }
+        i = 0
+
+        child = children[i]
+        if not isinstance(child, OmegaConfGrammarParser.InterpolationContext):
+            return None
+
+        resolved = self.visitInterpolation(child)
+        value = _get_value(resolved)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+
+        result = value
+        all_int = isinstance(value, int)
+        has_division = False
+        i += 1
+
+        while i < num_children:
+            operator = None
+            while i < num_children and isinstance(children[i], TerminalNode):
+                symbol = children[i].symbol  # type: ignore
+                if symbol.type == OmegaConfGrammarLexer.WS:  # pragma: no cover
+                    # WS tokens are not expected in arithmetic expressions as operators
+                    # are tokenized as ANY_STR in text context. This is defensive code.
+                    i += 1
+                    continue
+                elif (
+                    symbol.type == OmegaConfGrammarLexer.UNQUOTED_CHAR
+                ):  # pragma: no cover
+                    # UNQUOTED_CHAR tokens are not expected in arithmetic expressions
+                    # as operators are tokenized as ANY_STR in text context. This is defensive code.
+                    char = symbol.text.strip()
+                    if char in operator_map:
+                        operator = char
+                        i += 1
+                        break
+                    return None
+                elif symbol.type == OmegaConfGrammarLexer.ANY_STR:
+                    text = symbol.text.strip()
+                    if text in operator_map:
+                        operator = text
+                        i += 1
+                        break
+                    return None
+                else:
+                    return None  # pragma: no cover - Defensive code for invalid token types
+
+            if operator is None or i >= num_children:
+                return None  # pragma: no cover - Incomplete expressions return earlier in the loop
+
+            if operator == "/":
+                has_division = True
+
+            child = children[i]
+            if not isinstance(child, OmegaConfGrammarParser.InterpolationContext):
+                return None  # pragma: no cover - Non-interpolation children cause early return
+
+            resolved = self.visitInterpolation(child)
+            value = _get_value(resolved)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return None
+
+            op_func = operator_map[operator]
+            result = op_func(result, value)
+            if not isinstance(value, int):
+                all_int = False
+            i += 1
+
+        if has_division:
+            return float(result)
+        return int(result) if all_int else float(result)
