@@ -1408,7 +1408,7 @@ def test_merge_nested_list_promotion() -> None:
         ),
         param(
             [DictConfig({}, element_type=Dict[str, int]), {"foo": 123}],
-            "Value 123 (int) is incompatible with type hint 'typing.Dict[str, int]'",
+            "Cannot assign int to Dict[str, int]",
             id="merge-int-into-dict",
         ),
         param(
