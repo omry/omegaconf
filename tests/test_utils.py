@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import attr
 from pytest import mark, param, raises
@@ -37,6 +37,7 @@ from omegaconf.nodes import (
     EnumNode,
     FloatNode,
     IntegerNode,
+    LiteralNode,
     PathNode,
     StringNode,
 )
@@ -188,6 +189,10 @@ def test_node_wrap(
         param(Color, Path("hello.txt"), ValidationError, id="Color"),
         param(
             Color, "Color.RED", EnumNode(enum_type=Color, value=Color.RED), id="Color"
+        ),
+        # Literal
+        param(
+            Literal[42], 42, LiteralNode(ref_type=Literal[42], value=42), id="Literal"
         ),
         # bad type
         param(IllegalType, "nope", ValidationError, id="bad_type"),
