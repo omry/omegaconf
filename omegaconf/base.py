@@ -1063,6 +1063,7 @@ class UnionNode(Box):
                     )
                     return
 
+        validation_errors = []
         for candidate_ref_type in ref_type.__args__:
             try:
                 # `bool` is a subclass of `int` in Python. For unions that do not
@@ -1081,12 +1082,26 @@ class UnionNode(Box):
                     parent=self,
                 )
                 break
-            except ValidationError:
+            except ValidationError as e:
+                validation_errors.append(e)
                 continue
         else:
-            raise ValidationError(
-                f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
-            )
+            msg = f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
+            if validation_errors:
+                import textwrap
+
+                msg += "\nValidation errors of candidate types:"
+                for e in validation_errors:
+                    indented_err = textwrap.indent(str(e), prefix="  - ")
+                    # Replace subsequent lines' prefix so only first line has hyphen
+                    parts = indented_err.split("\n")
+                    if len(parts) > 1:
+                        for i in range(1, len(parts)):
+                            if parts[i].startswith("  - "):
+                                parts[i] = "    " + parts[i][4:]
+                    indented_err = "\n".join(parts)
+                    msg += f"\n{indented_err}"
+            raise ValidationError(msg)
 
     def _dereference_node_impl(
         self,

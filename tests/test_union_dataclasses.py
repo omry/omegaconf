@@ -64,6 +64,38 @@ def test_union_dataclass_invalid_selection() -> None:
         cfg.user = "Invalid"
 
 
+def test_union_dataclass_error_reporting() -> None:
+    @dataclass
+    class ChildA:
+        name: str
+        age: int
+
+    @dataclass
+    class ChildB:
+        title: str
+        score: float
+
+    @dataclass
+    class Parent:
+        child: Union[ChildA, ChildB]
+
+    cfg: Any = OmegaConf.structured(Parent)
+    with pytest.raises(ValidationError) as excinfo:
+        cfg.child = {"name": "test", "age": "invalid_int"}
+
+    msg = str(excinfo.value)
+    assert (
+        "Value '{'name': 'test', 'age': 'invalid_int'}' of type 'dict' is "
+        "incompatible with type hint 'Union[ChildA, ChildB]'"
+    ) in msg
+    assert "Validation errors of candidate types:" in msg
+    assert (
+        "- Value 'invalid_int' of type 'str' is incompatible with type hint 'int'"
+        in msg
+    )
+    assert "- Key 'name' not in 'ChildB'" in msg
+
+
 def test_union_dataclass_merge_uses_type_discriminator() -> None:
     cfg: Any = OmegaConf.structured(Config)
     merged = OmegaConf.merge(

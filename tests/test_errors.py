@@ -70,6 +70,23 @@ class NotOptionalA:
 
 
 @dataclass
+class UnionChildA:
+    name: str
+    age: int
+
+
+@dataclass
+class UnionChildB:
+    title: str
+    score: float
+
+
+@dataclass
+class UnionParent:
+    child: Union[UnionChildA, UnionChildB]
+
+
+@dataclass
 class Expected:
     exception_type: Type[Exception]
     msg: str
@@ -831,8 +848,54 @@ params = [
             full_key="foo.bar",
             parent_node=lambda cfg: cfg.foo,
             child_node=lambda cfg: cfg.foo._get_node("bar"),
+            num_lines=5,
         ),
         id="typed_DictConfig:assign_with_invalid_value-string_to_union[bool-float]",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(UnionParent),
+            op=lambda cfg: cfg.__setattr__("child", {"name": "test", "age": "bad"}),
+            exception_type=ValidationError,
+            msg=re.escape(
+                "Value '{'name': 'test', 'age': 'bad'}' of type 'dict' is incompatible with type hint 'Union["
+            )
+            + r"(tests\.test_errors\.)?UnionChildA, (tests\.test_errors\.)?UnionChildB\]'\n"
+            + re.escape(
+                "Validation errors of candidate types:\n"
+                "  - Value 'bad' of type 'str' is incompatible with type hint 'int'\n"
+                "        full_key: child.age\n"
+            )
+            + r"        reference_type=(tests\.test_errors\.)?UnionChildA\n"
+            + r"        object_type=(tests\.test_errors\.)?UnionChildA\n"
+            + re.escape(
+                "  - Key 'name' not in 'UnionChildB'\n        full_key: child.name\n"
+            )
+            + r"        reference_type=(tests\.test_errors\.)?UnionChildB\n"
+            + r"        object_type=(tests\.test_errors\.)?UnionChildB",
+            msg_is_regex=True,
+            key="child",
+            full_key="child",
+            parent_node=lambda cfg: cfg,
+            child_node=lambda cfg: cfg._get_node("child"),
+            num_lines=11,
+        ),
+        id="structured:union_duck_typing_error_reporting",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.structured(UnionParent),
+            op=lambda cfg: cfg.__setattr__(
+                "child", {"_type_": "UnionChildA", "name": "test", "age": "bad"}
+            ),
+            exception_type=ValidationError,
+            msg="Value 'bad' of type 'str' is incompatible with type hint 'int'",
+            key="age",
+            ref_type=UnionChildA,
+            object_type=UnionChildA,
+            low_level=True,
+        ),
+        id="structured:union_explicit_choice_error_reporting",
     ),
     param(
         Expected(
