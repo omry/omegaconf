@@ -553,6 +553,135 @@ def test_resolve_invalid_input() -> None:
     "cfg, expected",
     [
         # dict:
+        ({"a": 10, "b": {"c": "???", "d": "..."}}, {"a", "b.c", "b.d"}),
+        (
+            {
+                "a": "???",
+                "b": {
+                    "foo": "bar",
+                    "bar": "???",
+                    "more": {"missing": "???", "available": "yes"},
+                },
+                Color.GREEN: {"tint": "???", "default": Color.BLUE},
+            },
+            {
+                "a",
+                "b.foo",
+                "b.bar",
+                "b.more.missing",
+                "b.more.available",
+                "GREEN.tint",
+                "GREEN.default",
+            },
+        ),
+        (
+            {"a": "a", "b": {"foo": "bar", "bar": "foo"}},
+            {"a", "b.foo", "b.bar"},
+        ),
+        (
+            {"foo": "bar", "bar": "???", "more": {"foo": "???", "bar": "foo"}},
+            {"foo", "bar", "more.foo", "more.bar"},
+        ),
+        # list:
+        (["???", "foo", "bar", "???", 77], {"[0]", "[1]", "[2]", "[3]", "[4]"}),
+        (["", "foo", "bar"], {"[0]", "[1]", "[2]"}),
+        (["foo", "bar", "???"], {"[0]", "[1]", "[2]"}),
+        (["foo", "???", ["???", "bar"]], {"[0]", "[1]", "[2][0]", "[2][1]"}),
+        # mixing:
+        (
+            [
+                "???",
+                "foo",
+                {
+                    "a": True,
+                    "b": "???",
+                    "c": ["???", None],
+                    "d": {"e": "???", "f": "fff", "g": [True, "???"]},
+                },
+                "???",
+                77,
+            ],
+            {
+                "[0]",
+                "[1]",
+                "[2].a",
+                "[2].b",
+                "[2].c[0]",
+                "[2].c[1]",
+                "[2].d.e",
+                "[2].d.f",
+                "[2].d.g[0]",
+                "[2].d.g[1]",
+                "[3]",
+                "[4]",
+            },
+        ),
+        (
+            {
+                "list": [
+                    0,
+                    DictConfig({"foo": "???", "bar": None}),
+                    "???",
+                    ["???", 3, False],
+                ],
+                "x": "y",
+                "y": "???",
+            },
+            {
+                "list[0]",
+                "list[1].foo",
+                "list[1].bar",
+                "list[2]",
+                "list[3][0]",
+                "list[3][1]",
+                "list[3][2]",
+                "x",
+                "y",
+            },
+        ),
+        ({Color.RED: ["???", {"missing": "???"}]}, {"RED[0]", "RED[1].missing"}),
+        # with DictConfig and ListConfig:
+        (
+            DictConfig(
+                {
+                    "foo": "???",
+                    "list": ["???", 1],
+                    "bar": {"missing": "???", "more": "yes"},
+                }
+            ),
+            {"foo", "list[0]", "list[1]", "bar.missing", "bar.more"},
+        ),
+        (
+            ListConfig(
+                ["???", "yes", "???", [0, 1, "???"], {"missing": "???", "more": ""}],
+            ),
+            {
+                "[0]",
+                "[1]",
+                "[2]",
+                "[3][0]",
+                "[3][1]",
+                "[3][2]",
+                "[4].missing",
+                "[4].more",
+            },
+        ),
+    ],
+)
+def test_all_keys(cfg: Any, expected: Any) -> None:
+    assert OmegaConf.all_keys(cfg) == expected
+
+
+@mark.parametrize("cfg", [float, int])
+def test_all_keys_invalid_input(cfg: Any) -> None:
+    with raises(ValueError):
+        OmegaConf.all_keys(cfg)
+
+
+@mark.parametrize(
+    "cfg, expected",
+    [
+        # dict:
         ({"a": 10, "b": {"c": "???", "d": "..."}}, {"b.c"}),
         (
             {

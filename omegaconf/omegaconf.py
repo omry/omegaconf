@@ -798,6 +798,10 @@ class OmegaConf:
         omegaconf._impl._resolve(cfg)
 
     @staticmethod
+    def all_keys(cfg: Any) -> Set[str]:
+        raise NotImplementedError()
+
+    @staticmethod
     def missing_keys(cfg: Any) -> Set[str]:
         """
         Returns a set of missing keys in a dotlist style.
