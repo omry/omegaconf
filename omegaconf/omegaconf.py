@@ -799,7 +799,34 @@ class OmegaConf:
 
     @staticmethod
     def all_keys(cfg: Any) -> Set[str]:
-        raise NotImplementedError()
+        """
+        Returns a set of all keys in a dotlist style.
+
+        :param cfg: An ``OmegaConf.Container``,
+                    or a convertible object via ``OmegaConf.create`` (dict, list, ...).
+        :return: set of strings of the available keys.
+        :raises ValueError: On input not representing a config.
+        """
+        cfg = _ensure_container(cfg)
+        available_keys: Set[str] = set()
+
+        def gather(_cfg: Container) -> None:
+            itr: Iterable[Any]
+            if isinstance(_cfg, ListConfig):
+                itr = range(len(_cfg))
+            else:
+                itr = _cfg
+
+            for key in itr:
+                if OmegaConf.is_missing(_cfg, key):
+                    available_keys.add(_cfg._get_full_key(key))
+                elif OmegaConf.is_config(_cfg[key]):
+                    gather(_cfg[key])
+                else:
+                    available_keys.add(_cfg._get_full_key(key))
+
+        gather(cfg)
+        return available_keys
 
     @staticmethod
     def missing_keys(cfg: Any) -> Set[str]:
