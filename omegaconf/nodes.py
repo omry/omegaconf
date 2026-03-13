@@ -530,6 +530,9 @@ class LiteralNode(ValueNode):
             ),
         )
 
+    def _strict_validate_type(self, value: Any) -> None:
+        self._validate_and_convert_impl(value)
+
     def _validate_and_convert_impl(self, value: Any) -> Any:
         if not is_literal_annotation(self._metadata.ref_type):
             raise ValidationError("LiteralNode ref_type must be a Literal")

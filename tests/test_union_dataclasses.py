@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union, cast
+from typing import Any, Literal, Optional, Union, cast
 
 import pytest
 
@@ -622,3 +622,21 @@ def test_union_dataclass_deep_nested_to_object() -> None:
     assert obj.lvl2.mapping["first"].name == "a2"
     assert isinstance(obj.lvl2.mapping["second"], LeafB)
     assert obj.lvl2.mapping["second"].count == 2
+
+
+def test_union_literals() -> None:
+    @dataclass
+    class MyConfig:
+        strategy: Union[
+            Literal["ee_inverse_pool", "ee_ie_inverse_pool"],
+            Literal["e_inverse_pool", "e_i_inverse_pool"],
+        ] = "ee_inverse_pool"
+
+    cfg = OmegaConf.structured(MyConfig)
+    assert cfg.strategy == "ee_inverse_pool"
+
+    cfg.strategy = "e_inverse_pool"
+    assert cfg.strategy == "e_inverse_pool"
+
+    with pytest.raises(ValidationError):
+        cfg.strategy = "invalid_strategy"
