@@ -93,8 +93,24 @@ def test_get_parent_container() -> None:
 
     unode = cfg._get_node("foo")
     nested_node = unode._value()  # type: ignore
-    any_node = cfg._get_node("bar")
-
     assert unode._get_parent_container() is cfg  # type: ignore
     assert nested_node._get_parent_container() is cfg
-    assert any_node._get_parent_container() is cfg  # type: ignore
+    assert cfg._get_node("bar")._get_parent_container() is cfg  # type: ignore
+
+
+def test_union_node_get_root_standalone() -> None:
+    from tests import User
+
+    # Destination config. We set 'no_deepcopy_set_nodes' flag to True, as this is
+    # the internal flag used by OmegaConf.unsafe_merge to speed up operations.
+    dest = OmegaConf.create({"val": UnionNode(123, Union[User, int])})
+    dest._set_flag("no_deepcopy_set_nodes", True)
+
+    # Source: a standalone UnionNode containing a structured DictConfig
+    user = OmegaConf.structured(User)
+    src_union = UnionNode(content=user, ref_type=Union[User, int])
+
+    # Assignment triggers the _get_root() check in BaseContainer._set_item_impl
+    # This used to raise AssertionError because UnionNode is not a Container.
+    dest.val = src_union
+    assert dest.val == user

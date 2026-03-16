@@ -284,16 +284,14 @@ class Node(ABC):
             memo=memo,
         )
 
-    def _get_root(self) -> "Container":
+    def _get_root(self) -> "Box":
         root: Optional[Box] = self._get_parent()
         if root is None:
-            assert isinstance(self, Container)
-            return self
-        assert root is not None and isinstance(root, Box)
+            return self  # type: ignore
+        assert isinstance(root, Box)
         while root._get_parent() is not None:
             root = root._get_parent()
-            assert root is not None and isinstance(root, Box)
-        assert root is not None and isinstance(root, Container)
+            assert isinstance(root, Box)
         return root
 
     def _is_missing(self) -> bool:
@@ -436,7 +434,7 @@ class Container(Box):
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any: ...
 
-    def _resolve_key_and_root(self, key: str) -> Tuple["Container", str]:
+    def _resolve_key_and_root(self, key: str) -> Tuple["Box", str]:
         orig = key
         if not key.startswith("."):
             return self._get_root(), key
@@ -649,6 +647,9 @@ class Container(Box):
             raise InterpolationKeyError(
                 f"ConfigKeyError while resolving interpolation: {exc}"
             ).with_traceback(sys.exc_info()[2])
+
+        if not isinstance(root_node, Container):
+            raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
 
         try:
             parent, last_key, value = root_node._select_impl(
