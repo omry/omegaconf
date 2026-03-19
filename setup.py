@@ -1,4 +1,3 @@
-# type: ignore
 """
 OmegaConf setup
     Instructions:
@@ -10,8 +9,8 @@ OmegaConf setup
 """
 import os
 import pathlib
+import re
 
-import pkg_resources
 import setuptools
 
 from build_helpers.build_helpers import (
@@ -23,11 +22,27 @@ from build_helpers.build_helpers import (
     find_version,
 )
 
+
+def parse_requirements(requirements_file: pathlib.Path) -> list[str]:
+    """
+    Parse a requirements.txt file and return a list of requirement strings.
+
+    This replaces pkg_resources.parse_requirements(), which was removed from
+    setuptools 82+. pkg_resources simply strips each line and skips empty
+    lines and comments -- the same behavior as this function.
+    """
+    requirements = []
+    for line in requirements_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            # Strip trailing comments (e.g. "requests # comment")
+            line = re.split(r"\s+#", line)[0].strip()
+            requirements.append(line)
+    return requirements
+
+
 with pathlib.Path("requirements/base.txt").open() as requirements_txt:
-    install_requires = [
-        str(requirement)
-        for requirement in pkg_resources.parse_requirements(requirements_txt)
-    ]
+    install_requires = parse_requirements(requirements_txt)
 
 
 def find_vendored_packages(path):
