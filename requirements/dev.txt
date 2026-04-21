@@ -7,7 +7,7 @@ coveralls
 flake8==6.0.0
 isort==5.13.2
 mypy==1.8.0
-nox
+nox[pbs]
 pre-commit
 pyflakes
 pytest<8.4  # Pin to <8.4 due to removal of RaisesContext from private API
