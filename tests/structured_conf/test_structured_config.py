@@ -2377,7 +2377,7 @@ class TestUnionsOfPrimitiveTypes:
         assert cfg.uisn is None
         assert cfg.uis_with_default == 123
 
-    @mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+    @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
     def test_support_pep_585(self, module: Any) -> None:
         class_ = module.SupportPEP585
         cfg = OmegaConf.structured(class_)

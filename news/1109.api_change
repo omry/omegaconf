@@ -1,1 +1,1 @@
-Python 3.6 and 3.7 are not supported anymore: OmegaConf now requires Python 3.8+
+Support for Python 3.6, 3.7, 3.8 and 3.9 has been droppped. OmegaConf now requires Python 3.10+

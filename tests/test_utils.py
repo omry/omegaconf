@@ -1261,7 +1261,7 @@ def test_get_dict_key_value_types(
     assert element_type == expected_element_type
 
 
-@mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_dict_key_value_types_python_3_10() -> None:
     if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
         key_type, element_type = get_dict_key_value_types(dict[int, float])
@@ -1285,7 +1285,7 @@ def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> Non
     assert get_list_element_type(ref_type) == expected_element_type
 
 
-@mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9 or newer")
+@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_list_element_type_python_3_10() -> None:
     if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
         assert get_list_element_type(list[int]) == int

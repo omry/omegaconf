@@ -31,18 +31,10 @@ Run all CI tests with nox:
 ```
 $ nox -l
 Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
-* omegaconf-3.8
-* omegaconf-3.9
 * omegaconf-3.10
 * docs
-* coverage-3.8
-* coverage-3.9
 * coverage-3.10
-* lint-3.8
-* lint-3.9
 * lint-3.10
-* test_jupyter_notebook-3.8
-* test_jupyter_notebook-3.9
 * test_jupyter_notebook-3.10
 ```
 
