@@ -22,7 +22,8 @@ class IllegalType:
 T = TypeVar("T")
 
 
-class IllegalTypeGeneric(Generic[T]): ...  # noqa: E701
+class IllegalTypeGeneric(Generic[T]):
+    pass
 
 
 class NonCopyableIllegalType:
