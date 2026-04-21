@@ -524,7 +524,7 @@ class DictSubclass:
 
     @dataclass
     class Str2UserWithField(Dict[str, User]):
-        foo: User = User("Bond", 7)
+        foo: User = field(default_factory=lambda: User("Bond", 7))
 
     class Error:
         @dataclass
@@ -546,7 +546,7 @@ class ConcretePlugin(Plugin):
     class FoobarParams:
         foo: int = 10
 
-    params: FoobarParams = FoobarParams()
+    params: FoobarParams = field(default_factory=FoobarParams)
 
 
 @dataclass
@@ -565,8 +565,8 @@ class FaultyPlugin:
 class PluginHolder:
     none: Optional[Plugin] = None
     missing: Plugin = MISSING
-    plugin: Plugin = Plugin()
-    plugin2: Plugin = ConcretePlugin()
+    plugin: Plugin = field(default_factory=Plugin)
+    plugin2: Plugin = field(default_factory=ConcretePlugin)
 
 
 @dataclass
@@ -587,7 +587,9 @@ class MissingTest:
 
     @dataclass
     class Missing2:
-        head: LinkedList = LinkedList(next=MISSING, value=1)
+        head: LinkedList = field(
+            default_factory=lambda: LinkedList(next=MISSING, value=1)
+        )
 
 
 @dataclass
@@ -846,9 +848,9 @@ if sys.version_info >= (3, 9):
         dict_: dict[int, str] = field(default_factory=lambda: {123: "abc"})
         list_: list[int] = field(default_factory=lambda: [123])
         tuple_: tuple[int] = (123,)
-        dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})
-        list_no_subscript: list = field(default_factory=lambda: [123])
-        tuple_no_subscript: tuple = (123,)
+        dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})  # type: ignore[type-arg]
+        list_no_subscript: list = field(default_factory=lambda: [123])  # type: ignore[type-arg]
+        tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
 
 
 @dataclass

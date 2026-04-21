@@ -22,3 +22,6 @@ TODO
 .dmypy.json
 .python-version
 .vscode
+
+# untracked tests
+temp

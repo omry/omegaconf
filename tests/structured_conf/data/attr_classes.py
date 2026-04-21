@@ -809,9 +809,9 @@ if sys.version_info >= (3, 9):
         dict_: dict[int, str] = {123: "abc"}
         list_: list[int] = [123]
         tuple_: tuple[int] = (123,)
-        dict_no_subscript: dict = {123: "abc"}
-        list_no_subscript: list = [123]
-        tuple_no_subscript: tuple = (123,)
+        dict_no_subscript: dict = {123: "abc"}  # type: ignore[type-arg]
+        list_no_subscript: list = [123]  # type: ignore[type-arg]
+        tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
 
 
 @attr.s(auto_attribs=True)
