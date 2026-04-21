@@ -421,6 +421,67 @@ def test_yaml_merge() -> None:
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
 
 
+def test_yaml_merge_override_existing_key_with_reused_anchor() -> None:
+    yaml_document = dedent("""\
+        models:
+          base: &base
+            type: &LLM LargeModel
+            model_params: &model_params
+              temperature: 0.5
+          cached: &cached
+            <<: *base
+            model_params:
+              <<: *model_params
+              extra_headers:
+                x: y
+          other:
+            type: *LLM
+        use:
+          <<: *cached
+          prompt: test
+        """)
+    assert OmegaConf.create(yaml_document) == yaml.safe_load(yaml_document)
+
+
+def test_yaml_merge_sequence() -> None:
+    cfg = OmegaConf.create(dedent("""\
+        a: &A
+            x: 1
+        b: &B
+            y: 2
+        c:
+            <<: [*A, *B]
+            z: 3
+        """))
+    assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 1, "y": 2, "z": 3}}
+
+
+def test_yaml_merge_sequence_error() -> None:
+    with raises(yaml.constructor.ConstructorError):
+        OmegaConf.create(dedent("""\
+            a: &A
+                x: 1
+            c:
+                <<: [*A, 123]
+                z: 3
+            """))
+
+
+def test_yaml_merge_invalid_value() -> None:
+    with raises(yaml.constructor.ConstructorError):
+        OmegaConf.create(dedent("""\
+            a:
+                <<: 123
+            """))
+
+
+def test_yaml_value_key() -> None:
+    cfg = OmegaConf.create(dedent("""\
+        = : value
+        """))
+    assert cfg == {"=": "value"}
+
+
 @mark.parametrize(
     "path_type",
     [
