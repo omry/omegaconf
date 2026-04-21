@@ -163,10 +163,8 @@ def test_to_yaml_with_enum_key() -> None:
     ],
 )
 def test_structured_configs(user: User) -> None:
-    expected = dedent(
-        """\
+    expected = dedent("""\
         name: Bond
         age: 7
-        """
-    )
+        """)
     assert OmegaConf.to_yaml(user) == expected

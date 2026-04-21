@@ -149,7 +149,7 @@ def test_indirect_interpolation2() -> None:
 def test_type_inherit_type(cfg: Any) -> None:
     cfg = _ensure_container(cfg)
     assert isinstance(cfg.a, type(cfg.b))
-    assert type(cfg.s) == str  # check that string interpolations are always strings
+    assert type(cfg.s) is str  # check that string interpolations are always strings
 
 
 def test_interpolation_in_list_key_error() -> None:
@@ -171,7 +171,7 @@ def test_incremental_dict_with_interpolation() -> None:
     conf.a = 1
     conf.b = OmegaConf.create()
     conf.b.c = "${a}"
-    assert conf.b.c == conf.a  # type:ignore
+    assert conf.b.c == conf.a  # type: ignore
 
 
 @mark.parametrize(
@@ -340,14 +340,10 @@ def test_interpolation_type_validated_ok(
             "age",
             raises(
                 InterpolationValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
+                match=re.escape(dedent("""\
                         Value 'seven' of type 'str' could not be converted to Integer
                             full_key: age
-                        """
-                    )
-                ),
+                        """)),
             ),
             id="type_mismatch_resolver",
         ),

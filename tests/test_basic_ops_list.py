@@ -305,13 +305,9 @@ def test_nested_list_assign_illegal_value() -> None:
     c = OmegaConf.create({"a": [None]})
     with raises(
         UnsupportedValueType,
-        match=re.escape(
-            dedent(
-                """\
+        match=re.escape(dedent("""\
                 Value 'IllegalType' is not a supported primitive type
-                    full_key: a[0]"""
-            )
-        ),
+                    full_key: a[0]""")),
     ):
         c.a[0] = IllegalType()
 
@@ -422,7 +418,7 @@ def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     lc.append(element)
     value = lc[-1]
     assert value == expected
-    assert type(value) == type(expected)
+    assert type(value) is type(expected)
 
 
 @mark.parametrize(
@@ -978,7 +974,7 @@ def test_setitem_slice(
         assert cfg == expected
     else:
         expected_exception: Any = expected.expected_exception
-        if type(constructor) == type(list) and issubclass(
+        if isinstance(constructor, type) and issubclass(
             expected_exception, UnsupportedValueType
         ):
             return  # standard list() can accept object() so skip

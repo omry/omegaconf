@@ -88,7 +88,7 @@ def test_node_wrap(
         key=None,
     )
     assert ret._metadata.ref_type == ref_type
-    assert type(ret) == expected_type
+    assert type(ret) is expected_type
     assert ret == value
 
     if is_optional:
@@ -99,7 +99,7 @@ def test_node_wrap(
             parent=None,
             key=None,
         )
-        assert type(ret) == expected_type
+        assert type(ret) is expected_type
         # noinspection PyComparisonWithNone
         assert ret == None  # noqa E711
 
@@ -234,7 +234,7 @@ def test_node_wrap2(target_type: Any, value: Any, expected: Any) -> None:
         res = _node_wrap(
             ref_type=target_type, key="foo", value=value, is_optional=False, parent=None
         )
-        assert type(res) == type(expected)
+        assert type(res) is type(expected)
         assert res == expected
         assert res._key() == "foo"
     else:
@@ -516,7 +516,7 @@ def test_re_parent() -> None:
 
     cfg._get_node("str")._set_parent(None)  # type: ignore
     cfg._get_node("list")._set_parent(None)  # type: ignore
-    cfg.list._get_node(0)._set_parent(None)  # type:ignore
+    cfg.list._get_node(0)._set_parent(None)  # type: ignore
     unode = cfg._get_node("union")
     unode._set_parent(None)  # type: ignore
     unode._value()._set_parent(None)  # type: ignore
@@ -1046,7 +1046,7 @@ def test_get_value_container(content: Any) -> None:
 def test_get_value_of_node_subclass(node: Node, expected: Any) -> None:
     result = _get_value(node)
     assert result == expected
-    assert type(result) == type(expected)
+    assert type(result) is type(expected)
 
 
 def test_ensure_container_raises_ValueError() -> None:

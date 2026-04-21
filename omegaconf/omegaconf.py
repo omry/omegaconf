@@ -329,12 +329,10 @@ class OmegaConf:
     @staticmethod
     def register_resolver(name: str, resolver: Resolver) -> None:
         warnings.warn(
-            dedent(
-                """\
+            dedent("""\
             register_resolver() is deprecated.
             See https://github.com/omry/omegaconf/issues/426 for migration instructions.
-            """
-            ),
+            """),
             stacklevel=2,
         )
         return OmegaConf.legacy_register_resolver(name, resolver)

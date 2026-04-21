@@ -515,7 +515,7 @@ def test_dict_pop(cfg: Dict[Any, Any], key: Any, default_: Any, expected: Any) -
         val = c.pop(key)
 
     assert val == expected
-    assert type(val) == type(expected)
+    assert type(val) is type(expected)
 
 
 def test_dict_struct_mode_pop() -> None:

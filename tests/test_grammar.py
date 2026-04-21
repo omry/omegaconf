@@ -406,7 +406,7 @@ PARAMS_CONFIG_VALUE = [
 
 
 def parametrize_from(
-    data: List[Tuple[str, str, Any]]
+    data: List[Tuple[str, str, Any]],
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Utility function to create PyTest parameters from the lists above"""
     return mark.parametrize(

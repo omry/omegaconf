@@ -919,20 +919,16 @@ def format_and_raise(
     )
 
     if ref_type not in (None, Any):
-        template = dedent(
-            """\
+        template = dedent("""\
             $MSG
                 full_key: $FULL_KEY
                 reference_type=$REF_TYPE
-                object_type=$OBJECT_TYPE"""
-        )
+                object_type=$OBJECT_TYPE""")
     else:
-        template = dedent(
-            """\
+        template = dedent("""\
             $MSG
                 full_key: $FULL_KEY
-                object_type=$OBJECT_TYPE"""
-        )
+                object_type=$OBJECT_TYPE""")
     s = string.Template(template=template)
 
     message = s.substitute(

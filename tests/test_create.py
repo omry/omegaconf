@@ -346,9 +346,7 @@ def test_create_float_yaml() -> None:
     #   c_s not parsed as float. antlr does parse as float
     #   e_s and f_s not parsed. antlr does parse as float
     #   h_f and i_f parsed as float. antlr does not parse as float
-    cfg = OmegaConf.create(
-        dedent(
-            """\
+    cfg = OmegaConf.create(dedent("""\
             a_s: 0_e0
             b_i: 0_0
             c_s: 1_0e1_0
@@ -358,9 +356,7 @@ def test_create_float_yaml() -> None:
             g_f: 1_1_2.1
             h_f: 1__2.1
             i_f: 1.2_
-            """
-        )
-    )
+            """))
     assert cfg == {
         "a_s": "0_e0",
         "b_i": 0,
@@ -391,22 +387,18 @@ def test_create_untyped_dict() -> None:
 @mark.parametrize(
     "input_",
     [
-        dedent(
-            """\
+        dedent("""\
             a:
               b: 1
               c: 2
               b: 3
-            """
-        ),
-        dedent(
-            """\
+            """),
+        dedent("""\
             a:
               b: 1
             a:
               b: 2
-            """
-        ),
+            """),
     ],
 )
 def test_yaml_duplicate_keys(input_: str) -> None:
@@ -415,9 +407,7 @@ def test_yaml_duplicate_keys(input_: str) -> None:
 
 
 def test_yaml_merge() -> None:
-    cfg = OmegaConf.create(
-        dedent(
-            """\
+    cfg = OmegaConf.create(dedent("""\
             a: &A
                 x: 1
             b: &B
@@ -427,9 +417,7 @@ def test_yaml_merge() -> None:
                 <<: *B
                 x: 3
                 z: 1
-            """
-        )
-    )
+            """))
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
 
 
@@ -454,12 +442,10 @@ def test_yaml_merge() -> None:
     ],
 )
 def test_create_path(path_type: str) -> None:
-    yaml_document = dedent(
-        """\
+    yaml_document = dedent("""\
         foo: !!python/object/apply:pathlib.{}
           - hello.txt
-        """
-    )
+        """)
     yaml_document = yaml_document.format(path_type)
     assert OmegaConf.create(yaml_document) == yaml.unsafe_load(yaml_document)
 

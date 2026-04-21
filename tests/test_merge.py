@@ -620,15 +620,11 @@ def test_merge(
             ),
             raises(
                 ValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
+                match=re.escape(dedent("""\
                         field 'foo' is not Optional
                             full_key: foo
                             reference_type=User
-                            object_type=User"""
-                    )
-                ),
+                            object_type=User""")),
             ),
             None,
             None,
@@ -685,14 +681,10 @@ def test_merge(
             (DictConfig(content={}, element_type=User), {"foo": None}),
             raises(
                 ValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
+                match=re.escape(dedent("""\
                         field 'foo' is not Optional
                             full_key: foo
-                            object_type=dict"""
-                    )
-                ),
+                            object_type=dict""")),
             ),
             None,
             None,
@@ -743,15 +735,11 @@ def test_merge(
             (DictConfig(content={"foo": MISSING}, element_type=User), {"foo": None}),
             raises(
                 ValidationError,
-                match=re.escape(
-                    dedent(
-                        """\
+                match=re.escape(dedent("""\
                         field 'foo' is not Optional
                             full_key: foo
                             reference_type=User
-                            object_type=NoneType"""
-                    )
-                ),
+                            object_type=NoneType""")),
             ),
             None,
             None,
