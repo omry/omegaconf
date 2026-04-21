@@ -179,19 +179,72 @@ def yaml_is_bool(b: str) -> bool:
 
 def get_yaml_loader() -> Any:
     class OmegaConfLoader(BaseLoader):  # type: ignore
-        def construct_mapping(self, node: yaml.Node, deep: bool = False) -> Any:
-            keys = set()
-            for key_node, value_node in node.value:
+        def flatten_mapping(self, node: yaml.Node) -> Any:
+            merge_tag = "tag:yaml.org,2002:merge"
+            explicit_keys = set()
+            for key_node, _ in node.value:
+                if key_node.tag == merge_tag:
+                    continue
                 if key_node.tag != yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG:
                     continue
-                if key_node.value in keys:
+                if key_node.value in explicit_keys:
                     raise yaml.constructor.ConstructorError(
                         "while constructing a mapping",
                         node.start_mark,
                         f"found duplicate key {key_node.value}",
                         key_node.start_mark,
                     )
-                keys.add(key_node.value)
+                explicit_keys.add(key_node.value)
+
+            merge = []
+            index = 0
+            while index < len(node.value):
+                key_node, value_node = node.value[index]
+                if key_node.tag == merge_tag:
+                    del node.value[index]
+                    if isinstance(value_node, yaml.MappingNode):
+                        self.flatten_mapping(value_node)
+                        merge.extend(value_node.value)
+                    elif isinstance(value_node, yaml.SequenceNode):
+                        submerge = []
+                        for subnode in value_node.value:
+                            if not isinstance(subnode, yaml.MappingNode):
+                                raise yaml.constructor.ConstructorError(
+                                    "while constructing a mapping",
+                                    node.start_mark,
+                                    "expected a mapping for merging, but found "
+                                    f"{subnode.id}",
+                                    subnode.start_mark,
+                                )
+                            self.flatten_mapping(subnode)
+                            submerge.append(subnode.value)
+                        submerge.reverse()
+                        for value in submerge:
+                            merge.extend(value)
+                    else:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping",
+                            node.start_mark,
+                            "expected a mapping or list of mappings for merging, "
+                            f"but found {value_node.id}",
+                            value_node.start_mark,
+                        )
+                elif key_node.tag == "tag:yaml.org,2002:value":
+                    key_node.tag = yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG
+                    index += 1
+                else:
+                    index += 1
+
+            if merge:
+                merge = [
+                    (key_node, value_node)
+                    for key_node, value_node in merge
+                    if key_node.tag != yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG
+                    or key_node.value not in explicit_keys
+                ]
+                node.value = merge + node.value
+
+        def construct_mapping(self, node: yaml.Node, deep: bool = False) -> Any:
             return super().construct_mapping(node, deep=deep)
 
     loader = OmegaConfLoader
