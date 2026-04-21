@@ -11,7 +11,6 @@ OmegaConf setup
 import os
 import pathlib
 
-import pkg_resources
 import setuptools
 
 from build_helpers.build_helpers import (
@@ -25,8 +24,9 @@ from build_helpers.build_helpers import (
 
 with pathlib.Path("requirements/base.txt").open() as requirements_txt:
     install_requires = [
-        str(requirement)
-        for requirement in pkg_resources.parse_requirements(requirements_txt)
+        line.split("#")[0].strip()
+        for line in requirements_txt
+        if line.split("#")[0].strip()
     ]
 
 
