@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import re
-from contextlib import nullcontext
+from contextlib import AbstractContextManager, nullcontext
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, List, MutableSequence, Optional, Union
 
-from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
@@ -965,7 +964,7 @@ def test_setitem_slice(
     lst: List[Any],
     idx: slice,
     value: Union[List[Any], Any],
-    expected: Union[List[Any], RaisesContext[Any]],
+    expected: Union[List[Any], AbstractContextManager[Any]],
     constructor: Callable[[List[Any]], MutableSequence[Any]],
 ) -> None:
     cfg = constructor(lst)
@@ -973,7 +972,15 @@ def test_setitem_slice(
         cfg[idx] = value
         assert cfg == expected
     else:
-        expected_exception: Any = expected.expected_exception
+        expected_exception: Any = getattr(expected, "expected_exception", None)
+        if expected_exception is None:
+            expected_exceptions = getattr(expected, "expected_exceptions", None)
+            if isinstance(expected_exceptions, tuple):
+                expected_exception = (
+                    expected_exceptions[0] if expected_exceptions else None
+                )
+            else:
+                expected_exception = expected_exceptions
         if isinstance(constructor, type) and issubclass(
             expected_exception, UnsupportedValueType
         ):

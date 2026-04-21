@@ -1,6 +1,7 @@
 import copy
 import re
 import sys
+from contextlib import AbstractContextManager
 from textwrap import dedent
 from typing import (
     Any,
@@ -13,7 +14,6 @@ from typing import (
     Union,
 )
 
-from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import (
@@ -788,7 +788,7 @@ def test_optional_element_type_merge(
     inputs: Any, expected: Any, ref_type: Any, is_optional: bool
 ) -> None:
     configs = [_ensure_container(c) for c in inputs]
-    if isinstance(expected, RaisesContext):
+    if isinstance(expected, AbstractContextManager):
         with expected:
             OmegaConf.merge(*configs)
     else:
@@ -998,7 +998,7 @@ def test_optional_element_type_merge(
 )
 def test_union_merge(inputs: Any, expected: Any, type_hint: Any) -> None:
     configs = [_ensure_container(c) for c in inputs]
-    if isinstance(expected, RaisesContext):
+    if isinstance(expected, AbstractContextManager):
         with expected:
             OmegaConf.merge(*configs)
     else:

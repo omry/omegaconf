@@ -3,12 +3,12 @@ import inspect
 import pathlib
 import re
 import sys
+from contextlib import AbstractContextManager
 from importlib import import_module
 from pathlib import Path
 from types import LambdaType
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from _pytest.python_api import RaisesContext
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
@@ -2266,7 +2266,7 @@ class TestUnionsOfPrimitiveTypes:
         class_ = getattr(module.UnionsOfPrimitveTypes, class_name)
         cfg = OmegaConf.structured(class_)
 
-        if isinstance(expected, RaisesContext):
+        if isinstance(expected, AbstractContextManager):
             with expected:
                 cfg[key] = value
 
@@ -2327,7 +2327,7 @@ class TestUnionsOfPrimitiveTypes:
 
         assert _utils._get_value(cfg._get_node(key)) == value
 
-        if isinstance(expected, RaisesContext):
+        if isinstance(expected, AbstractContextManager):
             with expected:
                 cfg[key]
         else:
@@ -2360,7 +2360,7 @@ class TestUnionsOfPrimitiveTypes:
         class_ = module.UnionsOfPrimitveTypes.InterpolationToUnion
         cfg = OmegaConf.structured(class_)
 
-        if isinstance(expected, RaisesContext):
+        if isinstance(expected, AbstractContextManager):
             with expected:
                 cfg[key]
         else:

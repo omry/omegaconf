@@ -1,6 +1,6 @@
+from contextlib import AbstractContextManager
 from typing import Any, Optional
 
-from _pytest.python_api import RaisesContext
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
@@ -60,7 +60,7 @@ class TestSelect:
     ) -> None:
         cfg = _ensure_container(cfg)
         OmegaConf.set_struct(cfg, struct)
-        if isinstance(expected, RaisesContext):
+        if isinstance(expected, AbstractContextManager):
             with expected:
                 OmegaConf.select(cfg, key)
         else:
@@ -88,7 +88,7 @@ class TestSelect:
         register_func("func", lambda x: f"_{x}_")
         cfg = _ensure_container(cfg)
         OmegaConf.set_struct(cfg, struct)
-        if isinstance(expected, RaisesContext):
+        if isinstance(expected, AbstractContextManager):
             with expected:
                 OmegaConf.select(cfg, key)
         else:
@@ -284,7 +284,7 @@ class TestSelect:
 )
 def test_select_resolves_interpolation(cfg: Any, key: str, expected: Any) -> None:
     cfg = _ensure_container(cfg)
-    if isinstance(expected, RaisesContext):
+    if isinstance(expected, AbstractContextManager):
         with expected:
             OmegaConf.select(cfg, key)
     else:
