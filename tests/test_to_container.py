@@ -270,6 +270,71 @@ def test_string_interpolation_with_readonly_parent() -> None:
     }
 
 
+@mark.parametrize(
+    ("cfg_data", "expected"),
+    [
+        (
+            {
+                "a": "${increment:}",
+                "b": "${a}",
+                "c": "${a}",
+            },
+            {"a": 1, "b": 1, "c": 1},
+        ),
+        (
+            {
+                "node": {
+                    "a": "${increment:}",
+                    "b": "${.a}",
+                    "c": "${.a}",
+                }
+            },
+            {"node": {"a": 1, "b": 1, "c": 1}},
+        ),
+        (
+            {
+                "a": "${increment:}",
+                "b": "${a}",
+                "c": "${b}",
+                "d": "${b}",
+            },
+            {"a": 1, "b": 1, "c": 1, "d": 1},
+        ),
+        (
+            {
+                "node": {
+                    "a": "${increment:}",
+                    "b": "${.a}",
+                    "c": "${.b}",
+                    "d": "${.b}",
+                }
+            },
+            {"node": {"a": 1, "b": 1, "c": 1, "d": 1}},
+        ),
+    ],
+    ids=[
+        "direct_reference",
+        "relative_reference",
+        "two_indirections",
+        "relative_two_indirections",
+    ],
+)
+def test_to_container_resolves_referenced_node_once(
+    restore_resolvers: Any, cfg_data: Any, expected: Any
+) -> None:
+    counter = 0
+
+    def increment() -> int:
+        nonlocal counter
+        counter += 1
+        return counter
+
+    OmegaConf.register_new_resolver("increment", increment)
+    cfg = OmegaConf.create(cfg_data)
+
+    assert OmegaConf.to_container(cfg, resolve=True) == expected
+
+
 class TestInstantiateStructuredConfigs:
     @fixture(
         params=[

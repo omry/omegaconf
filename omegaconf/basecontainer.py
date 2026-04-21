@@ -214,8 +214,12 @@ class BaseContainer(Container, ABC):
         throw_on_missing: bool,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
+        resolved_node_cache: Optional[Dict[int, Node]] = None,
     ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
         from omegaconf import MISSING, DictConfig, ListConfig
+
+        if resolve and resolved_node_cache is None:
+            resolved_node_cache = {}
 
         def convert(val: Node) -> Any:
             value = val._value()
@@ -230,11 +234,26 @@ class BaseContainer(Container, ABC):
             except MissingMandatoryValue as e:
                 conf._format_and_raise(key=key, value=None, cause=e)
             assert isinstance(node, Node)
+            node_id = id(node)
             if resolve:
-                try:
-                    node = node._dereference_node()
-                except InterpolationResolutionError as e:
-                    conf._format_and_raise(key=key, value=None, cause=e)
+                cached = (
+                    resolved_node_cache.get(node_id)
+                    if resolved_node_cache is not None
+                    else None
+                )
+                if cached is not None:
+                    node = cached
+                else:
+                    try:
+                        node = node._maybe_dereference_node(
+                            throw_on_resolution_failure=True,
+                            resolved_node_cache=resolved_node_cache,
+                        )
+                    except InterpolationResolutionError as e:
+                        conf._format_and_raise(key=key, value=None, cause=e)
+                    assert node is not None
+                    if resolved_node_cache is not None:
+                        resolved_node_cache[node_id] = node
 
             if isinstance(node, Container):
                 value = BaseContainer._to_content(
@@ -243,6 +262,7 @@ class BaseContainer(Container, ABC):
                     throw_on_missing=throw_on_missing,
                     enum_to_str=enum_to_str,
                     structured_config_mode=structured_config_mode,
+                    resolved_node_cache=resolved_node_cache,
                 )
             else:
                 value = convert(node)

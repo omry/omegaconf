@@ -1,0 +1,1 @@
+``OmegaConf.to_container(..., resolve=True)`` now resolves each custom resolver at most once within a single conversion pass, even when multiple interpolations reference the same resolved node. This brings its behavior in line with ``OmegaConf.resolve()`` for such cases.
