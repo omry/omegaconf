@@ -6,12 +6,17 @@ exclude = '''
     | \.git          # root of the project
     | \.mypy_cache
     | omegaconf/grammar/gen
+    | omegaconf/vendor
     | \.nox
     | build
+    | temp
     | vendor
   )
 )
 '''
+
+[tool.isort]
+skip_glob = ["temp/*", "omegaconf/vendor/*"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"

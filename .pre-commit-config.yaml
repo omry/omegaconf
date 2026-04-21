@@ -1,6 +1,8 @@
 default_language_version:
   python: python
 
+exclude: ^(temp/|omegaconf/vendor/)
+
 # Hook versions should match those in requirements/dev.txt
 repos:
   - repo: https://github.com/PyCQA/isort

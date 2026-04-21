@@ -25,3 +25,9 @@ TODO
 
 # untracked tests
 temp
+
+# Agents hooks etc
+.agents
+.claude
+.codex
+.mcp.json
