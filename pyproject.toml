@@ -9,6 +9,8 @@ exclude = '''
     | omegaconf/vendor
     | \.nox
     | build
+    | build_pydev
+    | build_pydevd
     | temp
     | vendor
   )
@@ -16,7 +18,7 @@ exclude = '''
 '''
 
 [tool.isort]
-skip_glob = ["temp/*", "omegaconf/vendor/*"]
+skip_glob = ["temp/*", "build_pydev/*", "build_pydevd/*", "omegaconf/vendor/*"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"

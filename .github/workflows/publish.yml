@@ -10,14 +10,12 @@ on:
 # Use separate jobs for building and publishing so that write 
 # permissions are only accessible minimally.
 #
-# Both jobs require are run under the pypi-publish environment,
-# which is configured to require review and approval from authorized
-# maintainers.
+# Only the publish job runs under the protected pypi-publish
+# environment, so artifact builds do not require a separate approval.
 jobs:
   build-artifacts:
     name: Build distribution artifacts
     runs-on: ubuntu-latest
-    environment: pypi-publish 
     steps:
     - uses: actions/checkout@v5
 
@@ -38,11 +36,14 @@ jobs:
         pip install build
 
     - name: Build distribution
-      run: python -m build
+      run: |
+        python -m build
+        python setup_pydevd.py sdist bdist_wheel
 
     - name: Verify build artifacts
       run: |
         ls -lah dist/
+        python build_helpers/check_package_artifacts.py dist
         python -m pip install twine
         twine check dist/*
 
