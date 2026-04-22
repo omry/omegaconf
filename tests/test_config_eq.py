@@ -120,6 +120,7 @@ def test_missing_container_string_eq(cfg: Any, other: Any) -> None:
         param({}, {"a": 10}, id="empty_dict_neq_dict"),
         param({}, [], id="empty_dict_vs_list"),
         param({}, None, id="dict_neq_none"),
+        param(DictConfig(None), {}, id="none_dictconfig_neq_dict"),
         param({"foo": None}, {"foo": "bar"}, id="dict_none_neq_dict_not_none"),
         param({"a": 12}, {"a": 13}, id="simple_dict_neq"),
         param({"a": 0}, {"b": 0}, id="different_key_same_value"),
