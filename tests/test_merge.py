@@ -2,6 +2,7 @@ import copy
 import re
 import sys
 from contextlib import AbstractContextManager
+from dataclasses import dataclass, field
 from textwrap import dedent
 from typing import (
     Any,
@@ -445,6 +446,32 @@ def test_merge(
     else:
         with expected:
             merge_function(*configs)
+
+
+def test_merge_missing_structured_keeps_interpolation_target() -> None:
+    @dataclass
+    class Defaults:
+        value: int = 0
+
+    @dataclass
+    class Child:
+        ref: Defaults = "${target}"
+
+    @dataclass
+    class Parent:
+        target: str = "???"
+        child: Child = field(default_factory=Child)
+
+    cfg1 = OmegaConf.structured(Parent())
+    cfg2 = OmegaConf.structured(Parent(child="???"))
+
+    merged = OmegaConf.merge(cfg1, cfg2)
+
+    assert OmegaConf.to_container(merged, resolve=False) == {
+        "target": "???",
+        "child": {"ref": "${target}"},
+    }
+    assert merged._get_node("child")._get_node("ref")._is_interpolation()
 
 
 @mark.parametrize(
