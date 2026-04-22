@@ -122,5 +122,5 @@ if resolver != "DISABLE":  # pragma: no cover
         TypeResolveProvider.register(OmegaConfDeveloperResolver)
     else:
         sys.stderr.write(
-            f"OmegaConf pydev plugin: Not installing. Unknown mode {resolver}. Supported one of [USER, DEV, DISABLE]\n"
+            f"OmegaConf pydevd plugin: Not installing. Unknown mode {resolver}. Supported one of [USER, DEV, DISABLE]\n"
         )
