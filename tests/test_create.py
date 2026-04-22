@@ -68,6 +68,10 @@ def test_create_value(input_: Any, expected: Any) -> None:
     assert OmegaConf.create(input_) == expected
 
 
+def test_create_none_returns_literal_none() -> None:
+    assert OmegaConf.create(None) is None
+
+
 @mark.parametrize(
     "input_",
     [
