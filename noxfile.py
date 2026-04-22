@@ -68,12 +68,21 @@ def version_string_to_tuple(version: str) -> Tuple[int, ...]:
 def lint(session: Session) -> None:
     # Note: Linting only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)
+    session.run("python", "-c", "import os; os.makedirs('.mypy_cache', exist_ok=True)")
     session.run(
         "mypy", ".", "--strict", "--install-types", "--non-interactive", silent=True
     )
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)
     session.run("flake8")
+
+
+@nox.session(python=["3.10"])  # type: ignore
+def packaging(session: Session) -> None:
+    session.install("--upgrade", "setuptools", "pip")
+    session.run("python", "setup.py", "sdist", "bdist_wheel")
+    session.run("python", "setup_pydevd.py", "sdist", "bdist_wheel")
+    session.run("python", "build_helpers/check_package_artifacts.py", "dist")
 
 
 @nox.session(python=PYTHON_VERSIONS)  # type: ignore
