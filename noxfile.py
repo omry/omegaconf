@@ -76,6 +76,14 @@ def lint(session: Session) -> None:
     session.run("flake8")
 
 
+@nox.session(python=["3.10"])  # type: ignore
+def packaging(session: Session) -> None:
+    session.install("--upgrade", "setuptools", "pip")
+    session.run("python", "setup.py", "sdist", "bdist_wheel")
+    session.run("python", "setup_pydevd.py", "sdist", "bdist_wheel")
+    session.run("python", "build_helpers/check_package_artifacts.py", "dist")
+
+
 @nox.session(python=PYTHON_VERSIONS)  # type: ignore
 def test_jupyter_notebook(session: Session) -> None:
     if session.python not in DEFAULT_PYTHON_VERSIONS:

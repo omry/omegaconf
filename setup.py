@@ -67,8 +67,6 @@ with open("README.md", "r") as fh:
             "omegaconf.grammar.gen",
             "omegaconf.resolvers",
             "omegaconf.resolvers.oc",
-            "pydevd_plugins",
-            "pydevd_plugins.extensions",
         ]
         + vendored_packages,
         python_requires=">=3.10",
