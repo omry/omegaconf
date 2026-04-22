@@ -10,14 +10,12 @@ on:
 # Use separate jobs for building and publishing so that write 
 # permissions are only accessible minimally.
 #
-# Both jobs require are run under the pypi-publish environment,
-# which is configured to require review and approval from authorized
-# maintainers.
+# Only the publish job runs under the protected pypi-publish
+# environment, so artifact builds do not require a separate approval.
 jobs:
   build-artifacts:
     name: Build distribution artifacts
     runs-on: ubuntu-latest
-    environment: pypi-publish 
     steps:
     - uses: actions/checkout@v5
 
