@@ -32,11 +32,14 @@ jobs:
         pip install build
 
     - name: Build distribution
-      run: python -m build
+      run: |
+        python -m build
+        python setup_pydevd.py sdist bdist_wheel
 
     - name: Verify build artifacts
       run: |
         ls -lah dist/
+        python build_helpers/check_package_artifacts.py dist
         python -m pip install twine
         twine check dist/*
 

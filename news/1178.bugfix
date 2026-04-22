@@ -1,0 +1,1 @@
+OmegaConf no longer installs its optional `pydevd` debugger plugin by default. The plugin is now packaged separately as `omegaconf-pydevd` to avoid debugger conflicts in environments that bundle their own `pydevd`.
