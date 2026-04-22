@@ -467,7 +467,10 @@ def test_merge_missing_structured_keeps_interpolation_target() -> None:
 
     merged = OmegaConf.merge(cfg1, cfg2)
 
-    assert merged == {"target": "???", "child": {"ref": "${target}"}}
+    assert OmegaConf.to_container(merged, resolve=False) == {
+        "target": "???",
+        "child": {"ref": "${target}"},
+    }
     assert merged._get_node("child")._get_node("ref")._is_interpolation()
 
 
