@@ -4,6 +4,7 @@ import pathlib
 import re
 import sys
 from contextlib import AbstractContextManager
+from enum import Enum
 from importlib import import_module
 from pathlib import Path
 from types import LambdaType
@@ -62,6 +63,25 @@ class EnumConfigAssignments:
         (3, Color.BLUE),
     ]
     illegal = ["foo", True, b"RED", False, 4, 1.0, Path("hello.txt")]
+
+
+def test_string_valued_enum_assignment_by_member_name_and_value() -> None:
+    from dataclasses import dataclass
+
+    class Height(str, Enum):
+        SHORT = "short-value"
+        TALL = "very-tall-value"
+
+    @dataclass
+    class HeightConfig:
+        height: Height = Height.SHORT
+
+    cfg = OmegaConf.structured(HeightConfig)
+    cfg.height = "TALL"
+    assert cfg.height == Height.TALL
+
+    cfg.height = "very-tall-value"
+    assert cfg.height == Height.TALL
 
 
 class IntegersConfigAssignments:

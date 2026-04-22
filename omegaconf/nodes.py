@@ -487,7 +487,10 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
                 prefix = f"{enum_type.__name__}."
                 if value.startswith(prefix):
                     value = value[len(prefix) :]
-                return enum_type[value]
+                try:
+                    return enum_type[value]
+                except KeyError:
+                    return enum_type(value)
 
             assert False
 
