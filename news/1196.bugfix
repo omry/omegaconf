@@ -1,0 +1,1 @@
+Changed `OmegaConf.create(None)` to return literal `None` instead of a `DictConfig(None)` wrapper. This is a breaking change for code that relied on getting a config object back from `create(None)`.
