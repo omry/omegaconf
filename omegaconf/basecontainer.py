@@ -395,11 +395,12 @@ class BaseContainer(Container, ABC):
 
             node._set_value(val)
 
-        if (
+        src_was_missing_structured = (
             src._is_missing()
             and not dest._is_missing()
             and is_structured_config(src_ref_type)
-        ):
+        )
+        if src_was_missing_structured:
             # Replace `src` with a prototype of its corresponding structured config
             # whose fields are all missing (to avoid overwriting fields in `dest`).
             assert src_type is None  # src missing, so src's object_type should be None
@@ -408,7 +409,17 @@ class BaseContainer(Container, ABC):
                 ref_type=src_ref_type, object_type=src_type
             )
 
-        if (dest._is_interpolation() or dest._is_missing()) and not src._is_missing():
+        if dest._is_interpolation() and src_was_missing_structured:
+            # Keep unresolved structured interpolations intact when the source
+            # was originally MISSING; the synthesized prototype only exists to
+            # preserve type information during merge.
+            _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
+            return
+
+        if (
+            (dest._is_interpolation() and not src_was_missing_structured)
+            or dest._is_missing()
+        ) and not src._is_missing():
             expand(dest)
 
         src_items = list(src) if not src._is_missing() else []

@@ -1,0 +1,1 @@
+Fixed a bug where merging a missing structured config into an unresolved interpolation could replace the interpolation with the structured type's default value instead of preserving the interpolation.
