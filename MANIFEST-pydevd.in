@@ -1,9 +1,0 @@
-include LICENSE
-include README-pydevd.md
-include pyproject.toml
-include setup.cfg
-include setup_pydevd.py
-include omegaconf/version.py
-include build_helpers/__init__.py
-include build_helpers/build_helpers.py
-recursive-include pydevd_plugins *.py

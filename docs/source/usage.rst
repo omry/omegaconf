@@ -885,9 +885,8 @@ The function raises a `ValueError` on input not representing a config.
 Debugger integration
 --------------------
 
-OmegaConf provides an optional ``pydevd`` plugin for better debugging in PyCharm,
-VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_
-powered IDEs. Install it with ``pip install omegaconf-pydevd``.
+OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
+VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
 
 The debugger extension enables OmegaConf-aware object inspection:
  - providing information about interpolations.

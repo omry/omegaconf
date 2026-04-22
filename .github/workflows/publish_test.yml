@@ -11,6 +11,7 @@ jobs:
   build-artifacts:
     name: Build distribution artifacts
     runs-on: ubuntu-latest
+    environment: testpypi-publish
     steps:
     - uses: actions/checkout@v5
 
@@ -31,14 +32,11 @@ jobs:
         pip install build
 
     - name: Build distribution
-      run: |
-        python -m build
-        python setup_pydevd.py sdist bdist_wheel
+      run: python -m build
 
     - name: Verify build artifacts
       run: |
         ls -lah dist/
-        python build_helpers/check_package_artifacts.py dist
         python -m pip install twine
         twine check dist/*
 

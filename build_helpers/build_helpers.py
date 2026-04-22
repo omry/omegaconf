@@ -7,12 +7,10 @@ import subprocess
 import sys
 from functools import partial
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import List, Optional
 
 from setuptools import Command
 from setuptools.command import build_py, develop, sdist
-from setuptools.command.egg_info import egg_info as egg_info_command
-from setuptools.command.egg_info import manifest_maker
 
 
 class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
@@ -153,56 +151,6 @@ class SDistCommand(sdist.sdist):  # pragma: no cover
             self.run_command("clean")
             run_antlr(self)
         sdist.sdist.run(self)
-
-
-class PydevdSDistCommand(sdist.sdist):  # pragma: no cover
-    def initialize_options(self) -> None:
-        super().initialize_options()
-        self.template = "MANIFEST-pydevd.in"
-        self.use_defaults = False
-
-    def get_file_list(self) -> None:
-        template_exists = os.path.isfile(self.template)
-        if not template_exists:
-            self.warn(f"manifest template '{self.template}' does not exist")
-
-        self.filelist.findall()
-        self.filelist.files = []
-
-        if template_exists:
-            self.read_template()
-
-        if self.prune:
-            self.prune_file_list()
-
-        self.filelist.sort()
-        self.filelist.remove_duplicates()
-        self.write_manifest()
-
-
-class PydevdManifestMaker(manifest_maker):  # pragma: no cover
-    template = "MANIFEST-pydevd.in"
-    ignore_egg_info_dir: bool
-
-    def initialize_options(self) -> None:
-        super().initialize_options()
-        self.ignore_egg_info_dir = False
-
-    def add_defaults(self) -> None:
-        self.filelist.append(self.template)
-        self.filelist.append(self.manifest)
-        ei_cmd = cast(PydevdEggInfoCommand, self.get_finalized_command("egg_info"))
-        self.filelist.graft(ei_cmd.egg_info)  # type: ignore[no-untyped-call]
-
-
-class PydevdEggInfoCommand(egg_info_command):  # pragma: no cover
-    def find_sources(self) -> None:
-        manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
-        mm = PydevdManifestMaker(self.distribution)
-        mm.ignore_egg_info_dir = self.ignore_egg_info_in_manifest
-        mm.manifest = manifest_filename
-        mm.run()
-        self.filelist = mm.filelist
 
 
 def find(
