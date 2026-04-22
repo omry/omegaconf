@@ -676,6 +676,19 @@ def test_legal_assignment_enum(
                 node_type(enum_type)
 
 
+def test_legal_assignment_string_valued_enum_by_member_name_and_value() -> None:
+    class Height(str, Enum):
+        SHORT = "short-value"
+        TALL = "very-tall-value"
+
+    node = EnumNode(Height)
+    node._set_value("TALL")
+    assert node._value() == Height.TALL
+
+    node._set_value("very-tall-value")
+    assert node._value() == Height.TALL
+
+
 @mark.parametrize(
     "obj",
     [
