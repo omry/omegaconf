@@ -179,6 +179,25 @@ Runtime validation and conversion works for all supported types, including Enums
     >>> conf.height = 1
     >>> assert conf.height == Height.TALL
 
+For enums with string values, assignments can use either the enum member name
+or the enum value:
+
+.. doctest::
+
+    >>> class HttpStatus(str, Enum):
+    ...     OK = "ok-status"
+    ...     ERROR = "error-status"
+    ...
+    >>> @dataclass
+    ... class StringEnumConfig:
+    ...     status: HttpStatus = HttpStatus.OK
+    ...
+    >>> conf = OmegaConf.structured(StringEnumConfig)
+    >>> conf.status = "ERROR"
+    >>> assert conf.status == HttpStatus.ERROR
+    >>> conf.status = "error-status"
+    >>> assert conf.status == HttpStatus.ERROR
+
 .. _nesting_structured_configs:
 
 Nesting structured configs
