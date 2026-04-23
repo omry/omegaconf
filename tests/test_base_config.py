@@ -57,7 +57,7 @@ from tests import (
 def test_set_value(
     input_: Any, key: Union[str, int], value: Any, expected: Any
 ) -> None:
-    c = OmegaConf.create(input_)
+    c: Any = OmegaConf.create(input_)
     c[key] = value
     assert c == expected
 
@@ -72,7 +72,7 @@ def test_set_value(
     ],
 )
 def test_set_value_validation_fail(input_: Any, key: Any, value: Any) -> None:
-    c = OmegaConf.create(input_)
+    c: Any = OmegaConf.create(input_)
     with raises(ValidationError):
         c[key] = value
 
@@ -467,7 +467,7 @@ class TestCopy:
     def test_copy_with_interpolation(
         self, copy_method: Any, src: Any, interpolating_key: str, interpolated_key: str
     ) -> None:
-        cfg = OmegaConf.create(src)
+        cfg: Any = OmegaConf.create(src)
         assert cfg[interpolated_key] == cfg[interpolating_key]
         cp = copy_method(cfg)
         assert id(cfg) != id(cp)
@@ -562,7 +562,7 @@ def test_omegaconf_create() -> None:
     ],
 )
 def test_assign(parent: Any, key: Union[str, int], value: Any, expected: Any) -> None:
-    c = OmegaConf.create(parent)
+    c: Any = OmegaConf.create(parent)
     c[key] = value
     assert c == expected
 

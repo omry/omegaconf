@@ -50,8 +50,8 @@ from omegaconf.errors import InterpolationResolutionError
     ],
 )
 def test_create(cfg: Any, key: str, expected: Any) -> None:
-    cfg = OmegaConf.create(cfg)
-    val = cfg[key]
+    cfg_obj: Any = OmegaConf.create(cfg)
+    val = cfg_obj[key]
     assert val == expected
     assert type(val) is type(expected)
     assert val._get_flag("readonly") is None

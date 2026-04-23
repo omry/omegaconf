@@ -616,10 +616,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         previous_metadata = self.__dict__["_metadata"]
         try:
             self._set_value_impl(value, flags)
-        except Exception as e:
+        except Exception:
             self.__dict__["_content"] = previous_content
             self.__dict__["_metadata"] = previous_metadata
-            raise e
+            raise
 
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None

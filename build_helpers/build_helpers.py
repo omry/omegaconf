@@ -7,7 +7,7 @@ import subprocess
 import sys
 from functools import partial
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, ClassVar, List, Optional
 
 from setuptools import Command
 from setuptools.command import build_py, develop, sdist
@@ -17,7 +17,7 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
     """Generate parsers using ANTLR."""
 
     description = "Run ANTLR"
-    user_options: List[str] = []
+    user_options: ClassVar[Any] = []
 
     def run(self) -> None:
         """Run command."""
@@ -100,7 +100,7 @@ class CleanCommand(Command):  # type: ignore  # pragma: no cover
 
     description = "Cleans out generated and junk files we don't want in the repo"
     dry_run: bool
-    user_options: List[str] = []
+    user_options: ClassVar[Any] = []
 
     def run(self) -> None:
         root = Path(__file__).parent.parent.absolute()
@@ -211,7 +211,7 @@ def matches(patterns: List[str], path: Path) -> bool:
     return False
 
 
-def run_antlr(cmd: Command) -> None:  # pragma: no cover
+def run_antlr(cmd: Any) -> None:  # pragma: no cover
     try:
         cmd.announce("Generating parsers with antlr4", level=distutils.log.INFO)
         cmd.run_command("antlr")

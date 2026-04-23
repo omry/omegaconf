@@ -98,9 +98,21 @@ filename = "subprojects/omegaconf-pydevd/version.py"
   showcontent = true
 
 [tool.pyrefly]
-project-excludes = ["**/vendor", "**/grammar/gen/**"]
+project-excludes = [
+    "build/**",
+    "temp/**",
+    ".nox/**",
+    "omegaconf/vendor/**",
+    "subprojects/**",
+]
 project-includes = [
-    "omegaconf"
+    "benchmark",
+    "build_helpers",
+    "docs/source/conf.py",
+    "omegaconf",
+    "tests",
+    "noxfile.py",
+    "setup.py",
 ]
 ignore-missing-imports = [
     "omegaconf.grammar.gen.*",

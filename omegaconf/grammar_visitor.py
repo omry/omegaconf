@@ -8,10 +8,12 @@ from typing import (
     Dict,
     Generator,
     List,
+    NoReturn,
     Optional,
     Set,
     Tuple,
     Union,
+    cast,
 )
 
 from .errors import InterpolationResolutionError
@@ -38,11 +40,13 @@ except ModuleNotFoundError:  # pragma: no cover
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def __init__(
         self,
-        node_interpolation_callback: Callable[
-            [str, Optional[Set[int]]],
-            Optional["Node"],
+        node_interpolation_callback: Optional[
+            Callable[
+                [str, Optional[Set[int]]],
+                Optional["Node"],
+            ]
         ],
-        resolver_interpolation_callback: Callable[..., Any],
+        resolver_interpolation_callback: Optional[Callable[..., Any]],
         memo: Optional[Set[int]],
         **kw: Dict[Any, Any],
     ):
@@ -69,7 +73,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
         raise NotImplementedError
 
-    def defaultResult(self) -> List[Any]:  # pyrefly: ignore[bad-override]
+    def defaultResult(self) -> NoReturn:
         # Raising an exception because not currently used (like `aggregateResult()`).
         raise NotImplementedError
 
@@ -80,14 +84,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() == 1
         child = ctx.getChild(0)
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
+            child_text = child.getText()
             res = _get_value(self.visitInterpolation(child))
             if not isinstance(res, str):
-                child = ctx.getChild(0)
-                assert child is not None  # help type checkers
                 raise InterpolationResolutionError(
                     f"The following interpolation is used to denote a config key and "
                     f"thus should return a string, but instead returned `{res}` of "
-                    f"type `{type(res)}`: {child.getText()}"
+                    f"type `{type(res)}`: {child_text}"
                 )
             return res
         else:
@@ -111,7 +114,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         assert ctx.getChildCount() >= 2
         return dict(
             self.visitDictKeyValuePair(
-                ctx.getChild(i)  # pyrefly: ignore[bad-argument-type]
+                cast(OmegaConfGrammarParser.DictKeyValuePairContext, ctx.getChild(i))
             )
             for i in range(1, ctx.getChildCount() - 1, 2)
         )
@@ -158,6 +161,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 inter_key_tokens.append(self.visitConfigKey(child))
 
         inter_key = "".join(inter_key_tokens)
+        assert self.node_interpolation_callback is not None
         return self.node_interpolation_callback(inter_key, self.memo)
 
     def visitInterpolationResolver(
@@ -178,6 +182,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 args.append(val)
                 args_str.append(txt)
 
+        assert self.resolver_interpolation_callback is not None
         return self.resolver_interpolation_callback(
             name=resolver_name,
             args=tuple(args),

@@ -17,12 +17,11 @@ def find_version(*file_paths: str) -> str:
 
 
 VERSION = find_version("version.py")
-OMEGACONF_MAJOR_MINOR_VERSION = VERSION.split(".", 2)[:2]
+VERSION_MAJOR, VERSION_MINOR = VERSION.split(".", 2)[:2]
+NEXT_MINOR = int(VERSION_MINOR) + 1
 OMEGACONF_REQUIREMENT = (
-    f"omegaconf>={OMEGACONF_MAJOR_MINOR_VERSION[0]}."
-    f"{OMEGACONF_MAJOR_MINOR_VERSION[1]}.0.dev0,<"
-    f"{OMEGACONF_MAJOR_MINOR_VERSION[0]}."
-    f"{int(OMEGACONF_MAJOR_MINOR_VERSION[1]) + 1}.0"
+    f"omegaconf>={VERSION_MAJOR}.{VERSION_MINOR}.0.dev0,"
+    f"<{VERSION_MAJOR}.{NEXT_MINOR}.0"
 )
 
 with (ROOT / "README.md").open("r", encoding="utf-8") as fh:

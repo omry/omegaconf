@@ -1,6 +1,7 @@
 # type: ignore
 import os
 import pathlib
+from typing import Any, cast
 
 import setuptools
 
@@ -84,5 +85,5 @@ with open("README.md", "r") as fh:
         ],
         install_requires=install_requires,
         extras_require={"dev": read_requirements("requirements/dev.txt")},
-        package_data={"omegaconf": ["py.typed"]},
+        package_data=cast(Any, {"omegaconf": ["py.typed"]}),
     )

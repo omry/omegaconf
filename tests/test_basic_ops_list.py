@@ -122,7 +122,7 @@ def test_list_get_do_not_return_default(
 def test_iterate_list(
     input_: Any, expected: Any, expected_no_resolve: Any, list_key: str
 ) -> None:
-    c = OmegaConf.create(input_)
+    c: Any = OmegaConf.create(input_)
     if list_key is not None:
         lst = c.get(list_key)
     else:
@@ -1043,6 +1043,17 @@ def test_shallow_copy_none() -> None:
     c._set_value([1])
     assert c[0] == 1
     assert cfg._is_none()
+
+
+def test_set_value_restores_content_and_metadata_and_reraises_on_failure() -> None:
+    cfg = ListConfig(content=["bar"], element_type=str)
+    previous_metadata = cfg._metadata
+
+    with raises(ValidationError):
+        cfg._set_value([None])
+
+    assert cfg == ["bar"]
+    assert cfg._metadata is previous_metadata
 
 
 @mark.parametrize("flag", ["struct", "readonly"])

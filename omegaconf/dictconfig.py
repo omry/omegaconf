@@ -356,6 +356,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
+    # Container uses `key_or_index` because it abstracts over DictConfig and ListConfig.
     def __getitem__(  # pyrefly: ignore[bad-param-name-override]
         self, key: DictKeyType
     ) -> Any:
@@ -642,9 +643,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         previous_content = self.__dict__["_content"]
         try:
             self._set_value_impl(value, flags)
-        except Exception as e:
+        except Exception:
             self.__dict__["_content"] = previous_content
-            raise e
+            raise
 
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None

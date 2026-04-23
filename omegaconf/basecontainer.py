@@ -135,38 +135,39 @@ class BaseContainer(Container, ABC):
         return dict_copy
 
     # Support pickle
-    def __setstate__(  # pyrefly: ignore[bad-param-name-override]
-        self, d: Dict[str, Any]
-    ) -> None:
+    def __setstate__(self, state_dict: Dict[str, Any]) -> None:
         from omegaconf import DictConfig
         from omegaconf._utils import is_generic_dict, is_generic_list
 
+        key_type = Any
         if isinstance(self, DictConfig):
-            key_type = d["_metadata"].key_type
+            key_type = state_dict["_metadata"].key_type
 
             # backward compatibility to load OmegaConf 2.0 configs
             if key_type is None:
                 key_type = Any
-                d["_metadata"].key_type = key_type
+                state_dict["_metadata"].key_type = key_type
 
-        element_type = d["_metadata"].element_type
+        element_type = state_dict["_metadata"].element_type
 
         # backward compatibility to load OmegaConf 2.0 configs
         if element_type is None:
             element_type = Any
-            d["_metadata"].element_type = element_type
+            state_dict["_metadata"].element_type = element_type
 
-        ref_type = d["_metadata"].ref_type
+        ref_type = state_dict["_metadata"].ref_type
         if is_container_annotation(ref_type):
             if is_generic_dict(ref_type):
-                d["_metadata"].ref_type = Dict[key_type, element_type]  # type: ignore
+                state_dict["_metadata"].ref_type = Dict[
+                    key_type, element_type  # type: ignore[valid-type]
+                ]
             elif is_generic_list(ref_type):
-                d["_metadata"].ref_type = List[element_type]  # type: ignore
+                state_dict["_metadata"].ref_type = List[element_type]  # type: ignore
             else:
                 assert False
 
-        d["_flags_cache"] = None
-        self.__dict__.update(d)
+        state_dict["_flags_cache"] = None
+        self.__dict__.update(state_dict)
 
     @abstractmethod
     def __delitem__(self, key: Any) -> None: ...

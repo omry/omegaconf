@@ -76,8 +76,8 @@ def vendor(vendor_dir: Path, relative_imports: bool = False) -> None:
 
     vendored_libs, paths = find_vendored_libs(vendor_dir, WHITELIST)
 
+    replacements: List[Callable[[str], str]] = []
     if not relative_imports:
-        replacements: List[Callable[[str], str]] = []
         for lib in vendored_libs:
             replacements += (
                 partial(  # import bar -> import foo.vendor.bar

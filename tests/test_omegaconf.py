@@ -129,15 +129,15 @@ from tests import Color, ConcretePlugin, IllegalType, StructuredWithMissing
 def test_is_missing(
     cfg: Any, key: str, expected_is_missing: bool, expectation: Any
 ) -> None:
-    cfg = OmegaConf.create(cfg)
+    cfg_obj: Any = OmegaConf.create(cfg)
     with expectation:
-        cfg[key]
+        cfg_obj[key]
 
-    assert OmegaConf.is_missing(cfg, key) == expected_is_missing
-    OmegaConf.set_struct(cfg, True)
-    assert OmegaConf.is_missing(cfg, key) == expected_is_missing
-    OmegaConf.set_readonly(cfg, True)
-    assert OmegaConf.is_missing(cfg, key) == expected_is_missing
+    assert OmegaConf.is_missing(cfg_obj, key) == expected_is_missing
+    OmegaConf.set_struct(cfg_obj, True)
+    assert OmegaConf.is_missing(cfg_obj, key) == expected_is_missing
+    OmegaConf.set_readonly(cfg_obj, True)
+    assert OmegaConf.is_missing(cfg_obj, key) == expected_is_missing
 
 
 def test_is_missing_resets() -> None:
@@ -286,9 +286,9 @@ def test_is_none(fac: Any, is_none: bool) -> None:
     ],
 )
 def test_is_none_interpolation(cfg: Any, key: str, is_none: bool) -> None:
-    cfg = OmegaConf.create(cfg)
+    cfg_obj: Any = OmegaConf.create(cfg)
     check = _is_none(
-        cfg._get_node(key), resolve=True, throw_on_resolution_failure=False
+        cfg_obj._get_node(key), resolve=True, throw_on_resolution_failure=False
     )
     assert check == is_none
 

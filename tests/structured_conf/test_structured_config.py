@@ -850,7 +850,7 @@ class TestConfigs:
         conf._promote(None)
         assert conf == OmegaConf.create(module.AnyTypeConfig)
         with raises(ValueError):
-            conf._promote(42)
+            conf._promote(42)  # pyrefly: ignore[bad-argument-type]
         assert conf == OmegaConf.create(module.AnyTypeConfig)
 
     def test_promote_to_class(self, module: Any) -> None:

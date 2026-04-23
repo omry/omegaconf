@@ -585,7 +585,7 @@ class TestOmegaConfGrammar:
                 self._check_is_same_type(result, expected)
 
     def _visit_with_config(
-        self, parse_tree: Antlr4ParserRuleContext, expected: Any
+        self, parse_tree: Optional[Antlr4ParserRuleContext], expected: Any
     ) -> None:
         """Visit the tree using the default config `BASE_TEST_CFG`"""
         if parse_tree is None:
@@ -738,7 +738,7 @@ def test_parse_interpolation(inter: Any, key: Any, expected: Any) -> None:
 
     visitor = grammar_visitor.GrammarVisitor(
         node_interpolation_callback=callback,
-        resolver_interpolation_callback=None,  # type: ignore
+        resolver_interpolation_callback=None,
         memo=None,
     )
     ret = visitor.visit(tree)

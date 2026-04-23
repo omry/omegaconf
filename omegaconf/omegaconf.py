@@ -442,7 +442,9 @@ class OmegaConf:
                 try:
                     return cache[args_str]
                 except KeyError:
-                    pass
+                    ret = resolver(*args)
+                    cache[args_str] = ret
+                    return ret
 
             # Call resolver.
             kwargs: Dict[str, Node] = {}
@@ -454,9 +456,6 @@ class OmegaConf:
                 kwargs["_root_"] = config
 
             ret = resolver(*args, **kwargs)
-
-            if use_cache:
-                cache[args_str] = ret  # pyrefly: ignore[unbound-name]
             return ret
 
         # noinspection PyProtectedMember

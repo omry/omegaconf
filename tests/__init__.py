@@ -346,4 +346,4 @@ class OuterA:
 
 @dataclass
 class OuterB(OuterA):
-    x: InnerY
+    x: InnerY  # pyrefly: ignore[bad-override-mutable-attribute]

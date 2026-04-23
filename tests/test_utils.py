@@ -1457,18 +1457,40 @@ def test_resolve_optional_support_pep_604() -> None:
         param(tuple, Tuple[Any, ...], id="tuple"),
         param(Tuple, Tuple[Any, ...], id="Tuple"),
         param(Tuple[int], Tuple[int], id="Tuple[int]"),
-        param(Tuple["int"], Tuple[int], id="Tuple[int]_forward"),
+        param(
+            Tuple["int"],  # pyrefly: ignore[not-a-type]
+            Tuple[int],
+            id="Tuple[int]_forward",
+        ),
         param(Tuple[int, str], Tuple[int, str], id="Tuple[int,str]"),
-        param(Tuple["int", "str"], Tuple[int, str], id="Tuple[int,str]_forward"),
+        param(
+            Tuple[
+                "int",  # pyrefly: ignore[not-a-type]
+                "str",  # pyrefly: ignore[not-a-type]
+            ],
+            Tuple[int, str],
+            id="Tuple[int,str]_forward",
+        ),
         param(Tuple[int, ...], Tuple[int, ...], id="Tuple[int,...]"),
         param(dict, Dict[Any, Any], id="dict"),
         param(Dict, Dict[Any, Any], id="Dict"),
         param(Dict[int, str], Dict[int, str], id="Dict[int,str]"),
-        param(Dict["int", "str"], Dict[int, str], id="Dict[int,str]_forward"),
+        param(
+            Dict[
+                "int",  # pyrefly: ignore[not-a-type]
+                "str",  # pyrefly: ignore[not-a-type]
+            ],
+            Dict[int, str],
+            id="Dict[int,str]_forward",
+        ),
         param(list, List[Any], id="list"),
         param(List, List[Any], id="List"),
         param(List[int], List[int], id="List[int]"),
-        param(List["int"], List[int], id="List[int]_forward"),
+        param(
+            List["int"],  # pyrefly: ignore[not-a-type]
+            List[int],
+            id="List[int]_forward",
+        ),
     ],
 )
 def test_resolve_forward(type_: Any, expected: Any) -> None:

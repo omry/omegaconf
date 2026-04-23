@@ -2,7 +2,7 @@ import dataclasses
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from pytest import importorskip
 
@@ -690,7 +690,9 @@ class NestedContainers:
         llla: List[List[List[Any]]]
         lloli: List[List[Optional[List[int]]]]
         lls_default: List[List[str]] = field(
-            default_factory=lambda: [[], ["abc", "def", 123, MISSING], MISSING]  # type: ignore
+            default_factory=lambda: cast(
+                List[List[str]], [[], ["abc", "def", 123, MISSING], MISSING]
+            )
         )
         lolx_default: List[Optional[List[User]]] = field(
             default_factory=lambda: [
@@ -706,11 +708,14 @@ class NestedContainers:
         dsdbi: Dict[str, Dict[bool, int]]
         dsdsx: Dict[str, Dict[str, User]]
         odsdsi_default: Optional[Dict[str, Dict[str, int]]] = field(
-            default_factory=lambda: {
-                "dsi1": {},
-                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
-                "dsi3": MISSING,
-            }
+            default_factory=lambda: cast(
+                Optional[Dict[str, Dict[str, int]]],
+                {
+                    "dsi1": {},
+                    "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
+                    "dsi3": MISSING,
+                },
+            )
         )
         dsdsx_default: Dict[str, Dict[str, User]] = field(
             default_factory=lambda: {

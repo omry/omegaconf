@@ -159,7 +159,7 @@ class TestDictKeyTypes:
 )
 class TestDelitemKeyTypes:
     def test_dict_delitem(self, src: Any, key: DictKeyType, expected: Any) -> None:
-        c = OmegaConf.create(src)
+        c: Any = OmegaConf.create(src)
         assert c == src
         del c[key]
         assert c == expected
@@ -167,7 +167,7 @@ class TestDelitemKeyTypes:
     def test_dict_delitem_KeyError(
         self, src: Any, key: DictKeyType, expected: Any
     ) -> None:
-        c = OmegaConf.create(expected)
+        c: Any = OmegaConf.create(expected)
         assert c == expected
         with raises(KeyError):
             del c[key]
@@ -175,7 +175,7 @@ class TestDelitemKeyTypes:
     def test_dict_struct_delitem(
         self, src: Any, key: DictKeyType, expected: Any
     ) -> None:
-        c = OmegaConf.create(src)
+        c: Any = OmegaConf.create(src)
         OmegaConf.set_struct(c, True)
         with raises(ConfigTypeError):
             del c[key]
@@ -260,7 +260,7 @@ class TestGetWithDefault:
     def test_dict_get_with_default_errors(
         self, d: Any, exc: type, struct: Optional[bool], default_val: Any
     ) -> None:
-        c = OmegaConf.create(d)
+        c: Any = OmegaConf.create(d)
         OmegaConf.set_struct(c, struct)
         with raises(exc):
             c.get("key", default_value=123)
@@ -857,6 +857,15 @@ def test_shallow_copy_none() -> None:
     c._set_value({"foo": 1})
     assert c.foo == 1
     assert cfg._is_none()
+
+
+def test_set_value_restores_content_and_reraises_on_failure() -> None:
+    cfg = DictConfig(content={"foo": "bar"}, element_type=str)
+
+    with raises(ValidationError):
+        cfg._set_value({"foo": None})
+
+    assert cfg == {"foo": "bar"}
 
 
 @mark.parametrize(

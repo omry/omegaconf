@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import attr
 from pytest import importorskip
@@ -678,11 +678,14 @@ class NestedContainers:
         dsdsi: Dict[str, Dict[str, int]]
         dsdbi: Dict[str, Dict[bool, int]]
         dsdsx: Dict[str, Dict[str, User]]
-        odsdsi_default: Optional[Dict[str, Dict[str, int]]] = {
-            "dsi1": {},
-            "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},  # type: ignore
-            "dsi3": MISSING,
-        }
+        odsdsi_default: Optional[Dict[str, Dict[str, int]]] = cast(
+            Optional[Dict[str, Dict[str, int]]],
+            {
+                "dsi1": {},
+                "dsi2": {"s1": 1, "s2": "123", "s3": MISSING},
+                "dsi3": MISSING,
+            },
+        )
         dsdsx_default: Dict[str, Dict[str, User]] = {
             "dsx1": {},
             "dsx2": {

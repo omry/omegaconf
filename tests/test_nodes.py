@@ -36,7 +36,8 @@ from tests import Color, Enum1, IllegalType, User
 
 
 def _build_union(content: Any) -> UnionNode:
-    return UnionNode(content=content, ref_type=Union[(Enum, *BUILTIN_VALUE_TYPES)])
+    ref_type: Any = Union[(Enum,) + BUILTIN_VALUE_TYPES]  # pyrefly: ignore[not-a-type]
+    return UnionNode(content=content, ref_type=ref_type)
 
 
 # testing valid conversions

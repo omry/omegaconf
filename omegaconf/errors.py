@@ -92,8 +92,6 @@ class ConfigKeyError(OmegaConfBaseException, KeyError):
     Thrown from DictConfig when a regular dict access would have caused a KeyError.
     """
 
-    msg: str  # pyrefly: ignore[bad-override]
-
     def __init__(self, msg: str) -> None:
         super().__init__(msg)
         self.msg = msg
@@ -102,6 +100,7 @@ class ConfigKeyError(OmegaConfBaseException, KeyError):
         """
         Workaround to nasty KeyError quirk: https://bugs.python.org/issue2651
         """
+        assert self.msg is not None
         return self.msg
 
 
