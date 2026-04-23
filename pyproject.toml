@@ -58,6 +58,9 @@ first_value = "0"
 [[tool.bumpversion.files]]
 filename = "omegaconf/version.py"
 
+[[tool.bumpversion.files]]
+filename = "subprojects/omegaconf-pydevd/version.py"
+
 [tool.towncrier]
     package = "omegaconf"
     package_dir = ""

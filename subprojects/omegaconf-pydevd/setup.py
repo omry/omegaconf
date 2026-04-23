@@ -5,11 +5,10 @@ import re
 import setuptools
 
 ROOT = pathlib.Path(__file__).parent.resolve()
-REPO_ROOT = ROOT.parents[1]
 
 
 def find_version(*file_paths: str) -> str:
-    with open(REPO_ROOT / pathlib.Path(*file_paths), "r", encoding="utf-8") as fp:
+    with open(ROOT / pathlib.Path(*file_paths), "r", encoding="utf-8") as fp:
         version_file = fp.read()
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
     if version_match:
@@ -17,7 +16,7 @@ def find_version(*file_paths: str) -> str:
     raise RuntimeError("Unable to find version string.")
 
 
-VERSION = find_version("omegaconf", "version.py")
+VERSION = find_version("version.py")
 
 with (ROOT / "README.md").open("r", encoding="utf-8") as fh:
     LONG_DESC = fh.read()
