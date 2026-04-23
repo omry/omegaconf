@@ -13,12 +13,25 @@ from build_helpers.build_helpers import (
     find_version,
 )
 
-with pathlib.Path("requirements/base.txt").open() as requirements_txt:
-    install_requires = [
-        line.split("#")[0].strip()
-        for line in requirements_txt
-        if line.split("#")[0].strip()
-    ]
+
+def read_requirements(path):
+    requirements = []
+    req_path = pathlib.Path(path)
+    with req_path.open() as requirements_txt:
+        for line in requirements_txt:
+            requirement = line.split("#")[0].strip()
+            if not requirement:
+                continue
+            if requirement.startswith("-r "):
+                requirements.extend(
+                    read_requirements(req_path.parent / requirement[3:])
+                )
+            else:
+                requirements.append(requirement)
+    return requirements
+
+
+install_requires = read_requirements("requirements/base.txt")
 
 
 def find_vendored_packages(path):
@@ -70,5 +83,6 @@ with open("README.md", "r") as fh:
             "Operating System :: OS Independent",
         ],
         install_requires=install_requires,
+        extras_require={"dev": read_requirements("requirements/dev.txt")},
         package_data={"omegaconf": ["py.typed"]},
     )

@@ -17,6 +17,13 @@ def find_version(*file_paths: str) -> str:
 
 
 VERSION = find_version("version.py")
+OMEGACONF_MAJOR_MINOR_VERSION = VERSION.split(".", 2)[:2]
+OMEGACONF_REQUIREMENT = (
+    f"omegaconf>={OMEGACONF_MAJOR_MINOR_VERSION[0]}."
+    f"{OMEGACONF_MAJOR_MINOR_VERSION[1]}.0.dev0,<"
+    f"{OMEGACONF_MAJOR_MINOR_VERSION[0]}."
+    f"{int(OMEGACONF_MAJOR_MINOR_VERSION[1]) + 1}.0"
+)
 
 with (ROOT / "README.md").open("r", encoding="utf-8") as fh:
     LONG_DESC = fh.read()
@@ -49,5 +56,5 @@ setuptools.setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[f"omegaconf=={VERSION}"],
+    install_requires=[OMEGACONF_REQUIREMENT],
 )

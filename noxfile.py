@@ -74,6 +74,7 @@ def lint(session: Session) -> None:
     session.run("pyrefly", "check", silent=True)
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)
+    session.run("black", "--check", "docs/notebook/Tutorial.ipynb", silent=True)
     session.run("flake8")
 
 
