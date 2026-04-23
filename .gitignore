@@ -7,6 +7,7 @@
 build
 dist
 omegaconf.egg-info
+/subprojects/omegaconf-pydevd/omegaconf_pydevd.egg-info
 venv
 .envrc
 .idea
