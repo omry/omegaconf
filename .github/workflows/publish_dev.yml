@@ -9,7 +9,6 @@ jobs:
   build-artifacts:
     name: Build distribution artifacts
     runs-on: ubuntu-latest
-    environment: pypi-publish
     steps:
     - uses: actions/checkout@v5
 
@@ -66,7 +65,7 @@ jobs:
     needs: build-artifacts
     name: Upload dev release to PyPI
     runs-on: ubuntu-latest
-    environment: pypi-publish
+    environment: pypi-publish-dev
     permissions:
       id-token: write
     steps:
