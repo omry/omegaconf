@@ -2456,6 +2456,13 @@ class TestUnionsOfPrimitiveTypes:
         with raises(ValidationError):
             OmegaConf.resolve(cfg)
 
+    def test_select_union_interpolation_error_without_throwing(self, module: Any) -> None:
+        class_ = module.UnionsOfPrimitveTypes.InterpolationFromUnion
+        cfg = OmegaConf.structured(class_)
+        cfg.ubi = "${a_string}"
+
+        assert OmegaConf.select(cfg, "ubi", throw_on_resolution_failure=False) is None
+
     @mark.parametrize(
         "key, expected",
         [
