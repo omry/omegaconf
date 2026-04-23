@@ -1945,6 +1945,65 @@ class TestNestedContainers:
 
 class TestUnionsOfPrimitiveTypes:
     @mark.parametrize(
+        "container_type, default_factory, merge_value, expected, type_hint_checks",
+        [
+            param(
+                Dict[str, Dict[str, Union[str, int]]],
+                lambda: {"a": {"b": 1}},
+                {"c": {"b": 1}},
+                {"z": {"a": {"b": 1}, "c": {"b": 1}}},
+                [(lambda merged: merged.z.c, "b", Union[str, int])],
+                id="dict-dict",
+            ),
+            param(
+                List[List[Union[str, int]]],
+                lambda: [[1, 2]],
+                [[1, 2], [3]],
+                {"z": [[1, 2], [3]]},
+                [(lambda merged: merged.z, 1, List[Union[str, int]])],
+                id="list-list",
+            ),
+            param(
+                List[Dict[str, Union[str, int]]],
+                lambda: [{"a": 1}],
+                [{"a": 1}, {"b": 2}],
+                {"z": [{"a": 1}, {"b": 2}]},
+                [
+                    (lambda merged: merged.z, 1, Dict[str, Union[str, int]]),
+                    (lambda merged: merged.z[1], "b", Union[str, int]),
+                ],
+                id="list-dict",
+            ),
+            param(
+                Dict[str, List[Union[str, int]]],
+                lambda: {"a": [1, 2]},
+                {"c": [1]},
+                {"z": {"a": [1, 2], "c": [1]}},
+                [(lambda merged: merged.z, "c", List[Union[str, int]])],
+                id="dict-list",
+            ),
+        ],
+    )
+    def test_merge_nested_containers_with_union_types(
+        self,
+        container_type: Any,
+        default_factory: Callable[[], Any],
+        merge_value: Any,
+        expected: Any,
+        type_hint_checks: List[Tuple[Callable[[Any], Any], Any, Any]],
+    ) -> None:
+        HasUnion = dataclasses.make_dataclass(
+            "HasUnion",
+            [("z", container_type, dataclasses.field(default_factory=default_factory))],
+        )
+
+        merged = OmegaConf.merge(OmegaConf.structured(HasUnion), {"z": merge_value})
+
+        assert merged == expected
+        for node_getter, key, expected_type_hint in type_hint_checks:
+            assert _utils.get_type_hint(node_getter(merged), key) == expected_type_hint
+
+    @mark.parametrize(
         "class_name, key, expected_type_hint, expected_val",
         [
             param("Simple", "uis", Union[int, str], MISSING, id="simple-uis"),
@@ -2345,14 +2404,12 @@ class TestUnionsOfPrimitiveTypes:
                 "${none}",
                 raises(ValidationError),
                 id="interp-to-none-err",
-                marks=mark.xfail(reason="interpolations from unions are not validated"),
             ),
             param(
                 "ubi",
                 "${a_string}",
                 raises(ValidationError),
                 id="interp-to-str-err",
-                marks=mark.xfail(reason="interpolations from unions are not validated"),
             ),
             param(
                 "ubi",
@@ -2443,3 +2500,25 @@ class TestUnionsOfPrimitiveTypes:
         cfg.null_default = Path("hello.txt")
         assert isinstance(cfg.null_default, str)
         assert cfg.null_default == "hello.txt"
+
+
+class TestStructuredConfigValidationInNewNestedContainers:
+    def test_merge_new_nested_list_item_of_structured_config_rejects_unknown_key(
+        self,
+    ) -> None:
+        @dataclasses.dataclass
+        class Foo:
+            exist1: int
+            exist2: str
+
+        @dataclasses.dataclass
+        class BaseStructure:
+            z: Dict[str, List[Foo]] = dataclasses.field(
+                default_factory=lambda: {"a": [Foo(1, "lol")]}
+            )
+
+        with raises(ConfigKeyError):
+            OmegaConf.merge(
+                OmegaConf.structured(BaseStructure),
+                {"z": {"c": [{"exist1": 1, "dontexist2": "lol"}]}},
+            )
