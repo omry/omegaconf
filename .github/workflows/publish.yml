@@ -38,19 +38,24 @@ jobs:
         pip install build
 
     - name: Build distribution
-      run: python -m build
+      run: |
+        python -m build
+        python -m build subprojects/omegaconf-pydevd
 
     - name: Verify build artifacts
       run: |
         ls -lah dist/
+        ls -lah subprojects/omegaconf-pydevd/dist/
         python -m pip install twine
-        twine check dist/*
+        twine check dist/* subprojects/omegaconf-pydevd/dist/*
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: dist
-        path: dist/
+        path: |
+          dist/
+          subprojects/omegaconf-pydevd/dist/
         retention-days: 0
 
   pypi-publish:
