@@ -57,6 +57,13 @@ jobs:
         python -m pip install twine
         twine check dist/* subprojects/omegaconf-pydevd/dist/*
 
+    - name: Stage publish artifacts
+      run: |
+        mkdir -p publish-dist
+        cp dist/* publish-dist/
+        cp subprojects/omegaconf-pydevd/dist/* publish-dist/
+        ls -lah publish-dist/
+
     - name: Summarize publish artifacts
       run: |
         python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
@@ -64,10 +71,7 @@ jobs:
         import tarfile
         import zipfile
 
-        paths = [
-            pathlib.Path("dist"),
-            pathlib.Path("subprojects/omegaconf-pydevd/dist"),
-        ]
+        paths = [pathlib.Path("publish-dist")]
 
         def metadata_from_artifact(path: pathlib.Path) -> tuple[str, str]:
             if path.suffix == ".whl":
@@ -115,9 +119,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dist
-        path: |
-          dist/
-          subprojects/omegaconf-pydevd/dist/
+        path: publish-dist/*
         retention-days: 0
 
   pypi-publish:
@@ -133,6 +135,9 @@ jobs:
       with:
         name: dist
         path: dist/
+
+    - name: Show downloaded artifacts
+      run: ls -lah dist/
 
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
