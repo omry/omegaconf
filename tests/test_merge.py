@@ -35,6 +35,7 @@ from omegaconf._utils import (
     is_structured_config,
 )
 from omegaconf.base import ListMergeMode, Node
+from omegaconf.basecontainer import _deep_update_type_hint
 from omegaconf.errors import ConfigKeyError, UnsupportedValueType
 from omegaconf.nodes import IntegerNode
 from tests import (
@@ -1009,6 +1010,16 @@ def test_union_merge(inputs: Any, expected: Any, type_hint: Any) -> None:
         node = merged._get_node("foo")
         assert isinstance(node, Node)
         assert get_type_hint(node) == type_hint
+
+
+def test_deep_update_type_hint_rejects_incompatible_union_node() -> None:
+    node = UnionNode("abc", Union[int, str])
+
+    with raises(ValidationError):
+        _deep_update_type_hint(node, Union[bool, float])
+
+    assert node == "abc"
+    assert node._metadata.ref_type == Union[int, str]
 
 
 @mark.parametrize(

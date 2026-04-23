@@ -12,7 +12,7 @@ import yaml
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
 from tests import (
     ConcretePlugin,
     DictOfAny,
@@ -318,6 +318,42 @@ def test_list_assignment_deepcopy_semantics(node: Any) -> None:
     cfg.foo = node
     node[1] = 10
     assert cfg.foo[1] == 2
+
+
+@mark.parametrize(
+    "cfg,key,mutate",
+    [
+        param(
+            OmegaConf.create({"foo": {"bar": "before"}}),
+            "foo",
+            lambda node: setattr(node, "bar", "after"),
+            id="dict",
+        ),
+        param(
+            OmegaConf.create([[1]]),
+            0,
+            lambda node: node.append(2),
+            id="list",
+        ),
+    ],
+)
+def test_self_assignment_preserves_container_identity(
+    cfg: Any, key: Any, mutate: Any
+) -> None:
+    node = cfg[key]
+    cfg[key] = cfg[key]
+    assert cfg[key] is node
+
+    mutate(node)
+    assert cfg[key] == node
+
+
+def test_self_assignment_checks_readonly() -> None:
+    cfg = OmegaConf.create({"foo": {"bar": "before"}})
+    OmegaConf.set_readonly(cfg, True)
+
+    with raises(ReadonlyConfigError):
+        cfg.foo = cfg.foo
 
 
 @mark.parametrize("d", [{"a": {"b": 10}}, {"a": {"b": {"c": 10}}}])
