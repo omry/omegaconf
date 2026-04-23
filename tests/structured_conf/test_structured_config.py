@@ -46,6 +46,19 @@ def module(request: Any) -> Any:
     return import_module(request.param)
 
 
+@dataclasses.dataclass
+class ForwardRefListTree:
+    value: int = -1
+    children: Optional[list["ForwardRefListTree"]] = None
+
+
+class DottedForwardRefListTree:
+    @dataclasses.dataclass
+    class Node:
+        value: int = -1
+        children: Optional[list["DottedForwardRefListTree.Node"]] = None
+
+
 class EnumConfigAssignments:
     legal = [
         (Color.RED, Color.RED),
@@ -252,6 +265,23 @@ class TestConfigs:
 
         conf2 = OmegaConf.structured(module.ConfigWithList(list1=MISSING))
         assert OmegaConf.is_missing(conf2, "list1")
+
+    def test_structured_forward_ref_in_list(self) -> None:
+        cfg = OmegaConf.structured(
+            ForwardRefListTree(value=1, children=[ForwardRefListTree(value=2)])
+        )
+
+        assert cfg == {"value": 1, "children": [{"value": 2, "children": None}]}
+
+    def test_structured_dotted_forward_ref_in_list(self) -> None:
+        cfg = OmegaConf.structured(
+            DottedForwardRefListTree.Node(
+                value=1,
+                children=[DottedForwardRefListTree.Node(value=2)],
+            )
+        )
+
+        assert cfg == {"value": 1, "children": [{"value": 2, "children": None}]}
 
     def test_assignment_to_nested_structured_config(self, module: Any) -> None:
         conf = OmegaConf.structured(module.NestedConfig)

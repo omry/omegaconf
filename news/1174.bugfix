@@ -1,0 +1,2 @@
+Fixed structured config support for forward references inside container
+annotations on Python 3.10 and older.
