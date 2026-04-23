@@ -311,16 +311,23 @@ def get_yaml_loader() -> Any:
     return loader
 
 
-def _get_class(path: str) -> type:
+def _get_class(module_path: str, class_name: str) -> type:
     from importlib import import_module
 
-    module_path, _, class_name = path.rpartition(".")
-    mod = import_module(module_path)
-    try:
-        klass: type = getattr(mod, class_name)
-    except AttributeError:
-        raise ImportError(f"Class {class_name} is not in module {module_path}")
-    return klass
+    if not module_path or not class_name:
+        raise ValueError(
+            f"Invalid module/class specification: {module_path!r}, {class_name!r}"
+        )
+
+    obj: Any = import_module(module_path)
+    for attr_name in class_name.split("."):
+        try:
+            obj = getattr(obj, attr_name)
+        except AttributeError:
+            raise ImportError(f"Class {attr_name} is not in module {module_path}")
+
+    assert isinstance(obj, type)
+    return obj
 
 
 def is_union_annotation(type_: Any) -> bool:
@@ -371,7 +378,9 @@ def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
 
     forward = typing.ForwardRef if hasattr(typing, "ForwardRef") else typing._ForwardRef  # type: ignore
     if type(type_) is forward:
-        return _get_class(f"{module}.{type_.__forward_arg__}")
+        return _get_class(module, type_.__forward_arg__)
+    elif isinstance(type_, str):
+        return _get_class(module, type_)
     else:
         if is_dict_annotation(type_):
             kt, vt = get_dict_key_value_types(type_)
