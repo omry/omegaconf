@@ -159,7 +159,15 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
-        obj: Optional[Dict[Any, Any]] = None,
+        obj: None,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> None: ...
+
+    @staticmethod
+    @overload
+    def create(
+        obj: Dict[Any, Any] = ...,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> DictConfig: ...
@@ -169,7 +177,7 @@ class OmegaConf:
         obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> Union[DictConfig, ListConfig]:
+    ) -> Optional[Union[DictConfig, ListConfig]]:
         return OmegaConf._create_impl(
             obj=obj,
             parent=parent,
@@ -830,7 +838,7 @@ class OmegaConf:
         obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
-    ) -> Union[DictConfig, ListConfig]:
+    ) -> Optional[Union[DictConfig, ListConfig]]:
         try:
             from ._utils import get_yaml_loader
             from .dictconfig import DictConfig
@@ -838,6 +846,8 @@ class OmegaConf:
 
             if obj is _DEFAULT_MARKER_:
                 obj = {}
+            elif obj is None:
+                return None
             if isinstance(obj, str):
                 obj = yaml.load(obj, Loader=get_yaml_loader())
                 if obj is None:

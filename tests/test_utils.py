@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import attr
 from pytest import mark, param, raises
 
+from tests.structured_conf.data import dataclasses as structured_dataclasses
 from omegaconf import DictConfig, ListConfig, Node, OmegaConf, UnionNode, _utils
 from omegaconf._utils import (  # _normalize_ref_type,
     Marker,
@@ -523,16 +524,19 @@ def test_re_parent() -> None:
 
 
 def test_get_class() -> None:
-    name = "tests.examples.test_dataclass_example.SimpleTypes"
-    assert _utils._get_class(name).__name__ == "SimpleTypes"
+    assert (
+        _utils._get_class("tests.examples.test_dataclass_example", "SimpleTypes").__name__
+        == "SimpleTypes"
+    )
+    assert _utils._get_class("tests.structured_conf.data.dataclasses", "HasForwardRef.CA").__name__ == "CA"
     with raises(ValueError):
-        _utils._get_class("not_found")
+        _utils._get_class("", "not_found")
 
     with raises(ModuleNotFoundError):
-        _utils._get_class("foo.not_found")
+        _utils._get_class("foo", "not_found")
 
     with raises(ImportError):
-        _utils._get_class("tests.examples.test_dataclass_example.not_found")
+        _utils._get_class("tests.examples.test_dataclass_example", "not_found")
 
 
 @mark.parametrize(
@@ -1491,7 +1495,15 @@ def test_resolve_optional_support_pep_604() -> None:
             List[int],
             id="List[int]_forward",
         ),
+        param(
+            List["HasForwardRef.CA"],  # pyrefly: ignore[not-a-type]
+            List[structured_dataclasses.HasForwardRef.CA],
+            id="List[nested_forward]_forward",
+        ),
     ],
 )
 def test_resolve_forward(type_: Any, expected: Any) -> None:
-    assert _resolve_forward(type_, "builtins") == expected
+    module = "builtins"
+    if expected == List[structured_dataclasses.HasForwardRef.CA]:
+        module = "tests.structured_conf.data.dataclasses"
+    assert _resolve_forward(type_, module) == expected
