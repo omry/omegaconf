@@ -56,6 +56,7 @@ from tests import (
     UnionAnnotations,
     User,
 )
+from tests.structured_conf.data import dataclasses as structured_dataclasses
 
 
 class DummyEnum(Enum):
