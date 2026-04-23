@@ -55,7 +55,7 @@ OC_PYDEVD_RESOLVER=DEV python your_program.py
 From this repository root:
 
 ```bash
-cd subprojects/omegaconf-pydevd
-pip install -r ../../requirements/dev.txt -e .
-pytest
+pip install -r requirements/dev.txt -e .
+pip install -e subprojects/omegaconf-pydevd
+pytest subprojects/omegaconf-pydevd/tests
 ```
