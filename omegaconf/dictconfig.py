@@ -356,7 +356,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as e:
             self._format_and_raise(key=key, value=None, cause=e)
 
-    def __getitem__(self, key: DictKeyType) -> Any:
+    def __getitem__(  # pyrefly: ignore[bad-param-name-override]
+        self, key: DictKeyType
+    ) -> Any:
         """
         Allow map style access
         :param key:
@@ -637,8 +639,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self._metadata.object_type = object_type
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        previous_content = self.__dict__["_content"]
         try:
-            previous_content = self.__dict__["_content"]
             self._set_value_impl(value, flags)
         except Exception as e:
             self.__dict__["_content"] = previous_content

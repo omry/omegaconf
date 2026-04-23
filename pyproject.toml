@@ -96,3 +96,12 @@ filename = "subprojects/omegaconf-pydevd/version.py"
   directory = "misc"
   name = "Miscellaneous changes"
   showcontent = true
+
+[tool.pyrefly]
+project-excludes = ["**/vendor", "**/grammar/gen/**"]
+project-includes = [
+    "omegaconf"
+]
+ignore-missing-imports = [
+    "omegaconf.grammar.gen.*",
+]

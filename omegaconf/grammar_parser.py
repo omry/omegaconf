@@ -45,7 +45,7 @@ SIMPLE_INTERPOLATION_PATTERN = re.compile(
 
 
 class OmegaConfErrorListener(ErrorListener):
-    def syntaxError(
+    def syntaxError(  # pyrefly: ignore[bad-param-name-override]
         self,
         recognizer: Any,
         offending_symbol: Any,

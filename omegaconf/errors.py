@@ -92,7 +92,7 @@ class ConfigKeyError(OmegaConfBaseException, KeyError):
     Thrown from DictConfig when a regular dict access would have caused a KeyError.
     """
 
-    msg: str
+    msg: str  # pyrefly: ignore[bad-override]
 
     def __init__(self, msg: str) -> None:
         super().__init__(msg)

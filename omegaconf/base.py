@@ -4,7 +4,18 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    NoReturn,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -32,7 +43,6 @@ from .errors import (
     UnsupportedInterpolationType,
     ValidationError,
 )
-from .grammar.gen.OmegaConfGrammarParser import OmegaConfGrammarParser
 from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 from .typing import Antlr4ParserRuleContext
@@ -225,7 +235,7 @@ class Node(ABC):
         cause: Exception,
         msg: Optional[str] = None,
         type_override: Any = None,
-    ) -> None:
+    ) -> NoReturn:
         format_and_raise(
             node=self,
             key=key,
@@ -402,7 +412,7 @@ class Container(Box):
     Container tagging interface
     """
 
-    _metadata: ContainerMetadata
+    _metadata: ContainerMetadata  # pyrefly: ignore[bad-override]
 
     @abstractmethod
     def _get_child(
@@ -546,7 +556,7 @@ class Container(Box):
         parent: Optional["Container"],
         value: "Node",
         key: Any,
-        parse_tree: OmegaConfGrammarParser.ConfigValueContext,
+        parse_tree: Antlr4ParserRuleContext,
         throw_on_resolution_failure: bool,
         memo: Optional[Set[int]],
         resolved_node_cache: Optional[Dict[int, "Node"]] = None,
@@ -829,7 +839,7 @@ class UnionNode(Box):
     know about UnionNode (assuming they only use OmegaConf's public API).
     """
 
-    _parent: Optional[Container]
+    _parent: Optional[Container]  # pyrefly: ignore[bad-override]
     _content: Union[Node, None, str]
 
     def __init__(
