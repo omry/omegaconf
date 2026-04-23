@@ -11,6 +11,11 @@ providing a consistent API regardless of how the configuration was created.
 
 ## Releases
 
+### Upcoming (2.4.0.dev)
+OmegaConf 2.4.0.dev is the upcoming development version.
+* [Documentation](https://omegaconf.readthedocs.io/en/latest/)
+* [Source code](https://github.com/omry/omegaconf/tree/master)
+
 ### Stable (2.3)
 OmegaConf 2.3 is the current stable version.
 * [What's new](https://github.com/omry/omegaconf/releases/tag/v2.3.0)
@@ -18,34 +23,6 @@ OmegaConf 2.3 is the current stable version.
 * [Source code](https://github.com/omry/omegaconf/tree/2.3_branch)
 
 Install with `pip install --upgrade omegaconf`
-
-### Previous release (2.2)
-
-* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.1)
-* [Documentation](https://omegaconf.readthedocs.io/en/2.1_branch/)
-* [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
-* [Source code](https://github.com/omry/omegaconf/tree/2.1_branch)
-
-Install with `pip install omegaconf==2.1`
-
-
-### Previous release (2.1)
-
-* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.1.1)
-* [Documentation](https://omegaconf.readthedocs.io/en/2.1_branch/)
-* [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
-* [Source code](https://github.com/omry/omegaconf/tree/2.1_branch)
-
-Install with `pip install omegaconf==2.1`
-
-### Previous release (2.0)
-
-* [What's new](https://github.com/omry/omegaconf/releases/tag/v2.0.0)
-* [Documentation](https://omegaconf.readthedocs.io/en/2.0_branch/)
-* [Slides](https://docs.google.com/presentation/d/e/2PACX-1vT_UIV7hCnquIbLUm4NnkUpXvPEh33IKiUEvPRF850WKA8opOlZOszjKdZ3tPmf8u7hGNP6HpqS-NT5/pub?start=false&loop=false&delayms=3000)
-* [Source code](https://github.com/omry/omegaconf/tree/2.0_branch)
-
-Install with `pip install omegaconf==2.0.6`
 
 ## Live tutorial
 Run the live tutorial: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
