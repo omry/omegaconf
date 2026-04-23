@@ -576,6 +576,14 @@ class BaseContainer(Container, ABC):
         from .nodes import AnyNode, ValueNode
 
         if isinstance(value, Node):
+            target_node_ref = self._get_node(key, validate_access=False)
+            if target_node_ref is value:
+                if self._get_flag("readonly"):
+                    raise ReadonlyConfigError(
+                        "Cannot change read-only config container"
+                    )
+                return
+
             do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
             if not do_deepcopy and isinstance(value, Box):
                 # if value is from the same config, perform a deepcopy no matter what.
