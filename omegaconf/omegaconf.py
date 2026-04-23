@@ -456,7 +456,7 @@ class OmegaConf:
             ret = resolver(*args, **kwargs)
 
             if use_cache:
-                cache[args_str] = ret
+                cache[args_str] = ret  # pyrefly: ignore[unbound-name]
             return ret
 
         # noinspection PyProtectedMember

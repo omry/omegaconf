@@ -69,7 +69,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
         raise NotImplementedError
 
-    def defaultResult(self) -> List[Any]:
+    def defaultResult(self) -> List[Any]:  # pyrefly: ignore[bad-override]
         # Raising an exception because not currently used (like `aggregateResult()`).
         raise NotImplementedError
 
@@ -82,10 +82,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
             res = _get_value(self.visitInterpolation(child))
             if not isinstance(res, str):
+                child = ctx.getChild(0)
+                assert child is not None  # help type checkers
                 raise InterpolationResolutionError(
                     f"The following interpolation is used to denote a config key and "
                     f"thus should return a string, but instead returned `{res}` of "
-                    f"type `{type(res)}`: {ctx.getChild(0).getText()}"
+                    f"type `{type(res)}`: {child.getText()}"
                 )
             return res
         else:
@@ -108,7 +110,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         # BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE
         assert ctx.getChildCount() >= 2
         return dict(
-            self.visitDictKeyValuePair(ctx.getChild(i))
+            self.visitDictKeyValuePair(
+                ctx.getChild(i)  # pyrefly: ignore[bad-argument-type]
+            )
             for i in range(1, ctx.getChildCount() - 1, 2)
         )
 
@@ -192,7 +196,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             isinstance(colon, TerminalNode)
             and colon.symbol.type == OmegaConfGrammarLexer.COLON  # type: ignore[attr-defined]
         )
-        value = _get_value(self.visitElement(ctx.getChild(2)))
+        child = ctx.getChild(2)
+        assert child is not None  # help type checkers
+        value = _get_value(self.visitElement(child))
         return key, value
 
     def visitListContainer(

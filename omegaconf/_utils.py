@@ -1,4 +1,5 @@
 import copy
+import dataclasses
 import os
 import pathlib
 import re
@@ -8,7 +9,17 @@ import types
 import warnings
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    get_type_hints,
+)
 
 import yaml
 
@@ -21,12 +32,6 @@ from .errors import (
     ValidationError,
 )
 from .grammar_parser import SIMPLE_INTERPOLATION_PATTERN, parse
-
-try:
-    import dataclasses
-
-except ImportError:  # pragma: no cover
-    dataclasses = None  # type: ignore # pragma: no cover
 
 try:
     import attr
@@ -47,6 +52,11 @@ try:
     BaseDumper = CDumper
 except ImportError:  # pragma: no cover
     BaseDumper = yaml.Dumper
+
+if TYPE_CHECKING:
+    import attr
+    from attr import Attribute as AttrAttribute
+
 
 NoneType: Type[None] = type(None)
 
@@ -425,7 +435,8 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         return None
 
 
-def get_attr_class_fields(obj: Any) -> List["attr.Attribute[Any]"]:
+def get_attr_class_fields(obj: Any) -> List["AttrAttribute[Any]"]:
+    assert attr is not None  # help type-checkers
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
     fields = attr.fields_dict(obj_type).values()
@@ -447,6 +458,7 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     resolved_hints = get_type_hints(obj_type)
 
     for attrib in get_attr_class_fields(obj):
+        assert attr is not None  # help type-checkers
         name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
@@ -542,7 +554,7 @@ def get_dataclass_data(
 def is_dataclass(obj: Any) -> bool:
     from omegaconf.base import Node
 
-    if dataclasses is None or isinstance(obj, Node):
+    if isinstance(obj, Node):
         return False
     is_dataclass = dataclasses.is_dataclass(obj)
     assert isinstance(is_dataclass, bool)
@@ -602,7 +614,7 @@ def _find_attrs_init_field_alias(field: Any) -> str:
 
 
 def get_structured_config_init_field_aliases(obj: Any) -> Dict[str, str]:
-    fields: Union[List["dataclasses.Field[Any]"], List["attr.Attribute[Any]"]]
+    fields: Union[List["dataclasses.Field[Any]"], List["AttrAttribute[Any]"]]
     if is_dataclass(obj):
         fields = get_dataclass_fields(obj)
         return {f.name: f.name for f in fields if f.init}
@@ -995,6 +1007,7 @@ def format_and_raise(
 
     ex = exception_type(f"{message}")
     if issubclass(exception_type, OmegaConfBaseException):
+        assert isinstance(ex, OmegaConfBaseException)  # help type-checkers
         ex._initialized = True
         ex.msg = message
         ex.parent_node = node

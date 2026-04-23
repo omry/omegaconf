@@ -187,7 +187,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 ),
             )
 
-    def __getitem__(self, index: Union[int, slice]) -> Any:
+    def __getitem__(  # pyrefly: ignore[bad-param-name-override]
+        self, index: Union[int, slice]
+    ) -> Any:
         try:
             if self._is_missing():
                 raise MissingMandatoryValue("ListConfig is missing")
@@ -246,7 +248,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
         self._set_item_impl(index, value)
 
-    def __setitem__(self, index: Union[int, slice], value: Any) -> None:
+    def __setitem__(  # pyrefly: ignore[bad-param-name-override]
+        self, index: Union[int, slice], value: Any
+    ) -> None:
         try:
             if isinstance(index, slice):
                 _ = iter(value)  # check iterable
@@ -280,7 +284,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
                 # Insert any remaining input items
                 for val_i in range(val_i + 1, len(value)):
-                    curr_index += 1
+                    curr_index += 1  # pyrefly: ignore[unbound-name]
                     work_copy.insert(curr_index, value[val_i])
 
                 # Reinitialize self with work_copy
@@ -608,9 +612,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return False
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+        previous_content = self.__dict__["_content"]
+        previous_metadata = self.__dict__["_metadata"]
         try:
-            previous_content = self.__dict__["_content"]
-            previous_metadata = self.__dict__["_metadata"]
             self._set_value_impl(value, flags)
         except Exception as e:
             self.__dict__["_content"] = previous_content

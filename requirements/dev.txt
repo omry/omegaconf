@@ -11,6 +11,7 @@ mypy==1.8.0
 nox[pbs]
 pre-commit
 pyflakes
+pyrefly==0.62.0
 pytest
 pytest-benchmark
 pytest-mock

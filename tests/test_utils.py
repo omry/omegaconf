@@ -409,9 +409,6 @@ def test_is_dataclass(mocker: Any) -> None:
     assert _utils.is_dataclass(Foo())
     assert not _utils.is_dataclass(10)
 
-    mocker.patch("omegaconf._utils.dataclasses", None)
-    assert not _utils.is_dataclass(10)
-
 
 def test_is_attr_class(mocker: Any) -> None:
     @attr.s

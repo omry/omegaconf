@@ -135,7 +135,9 @@ class BaseContainer(Container, ABC):
         return dict_copy
 
     # Support pickle
-    def __setstate__(self, d: Dict[str, Any]) -> None:
+    def __setstate__(  # pyrefly: ignore[bad-param-name-override]
+        self, d: Dict[str, Any]
+    ) -> None:
         from omegaconf import DictConfig
         from omegaconf._utils import is_generic_dict, is_generic_list
 
