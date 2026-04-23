@@ -1,0 +1,1 @@
+Preserve container identity when assigning a config node to itself.
