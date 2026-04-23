@@ -833,7 +833,7 @@ def test_is_union_annotation(input_: Any, expected: bool) -> None:
 
 @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_is_union_annotation_PEP604() -> None:
-    if sys.version_info >= (3, 10):  # this if-statement is for mypy's benefit
+    if sys.version_info >= (3, 10):  # this if-statement is for type checkers
         assert is_union_annotation(int | str)
 
 
@@ -1260,7 +1260,7 @@ def test_get_dict_key_value_types(
 
 @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_dict_key_value_types_python_3_10() -> None:
-    if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
+    if sys.version_info >= (3, 9):  # this if-statement is for type checkers
         key_type, element_type = get_dict_key_value_types(dict[int, float])
         assert key_type == int
         assert element_type == float
@@ -1284,7 +1284,7 @@ def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> Non
 
 @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_list_element_type_python_3_10() -> None:
-    if sys.version_info >= (3, 9):  # this if-statement is for mypy's benefit
+    if sys.version_info >= (3, 9):  # this if-statement is for type checkers
         assert get_list_element_type(list[int]) == int
 
 
@@ -1434,7 +1434,7 @@ def test_resolve_optional(
 
 @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_resolve_optional_support_pep_604() -> None:
-    if sys.version_info >= (3, 10):  # this if-statement is for mypy's benefit
+    if sys.version_info >= (3, 10):  # this if-statement is for type checkers
         assert _resolve_optional(int | str) == (False, Union[int, str])
         assert _resolve_optional(Optional[int | str]) == (True, Union[int, str])
         assert _resolve_optional(int | Optional[str]) == (True, Union[int, str])

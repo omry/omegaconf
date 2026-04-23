@@ -7,7 +7,6 @@ bump-my-version
 coveralls
 flake8==7.3.0
 isort==5.13.2
-mypy==1.8.0
 nox[pbs]
 pre-commit
 pyflakes
@@ -16,6 +15,5 @@ pytest
 pytest-benchmark
 pytest-mock
 towncrier
-types-setuptools  # makes mypy happy
 twine
 pydevd

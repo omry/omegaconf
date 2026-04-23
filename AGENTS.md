@@ -82,7 +82,7 @@ This project uses several linting and formatting tools. Run them via `nox -s lin
 - `black .` / `black --check .` — code formatting
 - `flake8` — style and error checks (may need `--jobs=1` on some Python versions)
 - `isort . --check` — import sorting
-- `mypy . --strict` — static type checking
+- `pyrefly check` — static type checking
 
 All four must pass before a change is considered clean.
 

@@ -68,9 +68,6 @@ def version_string_to_tuple(version: str) -> Tuple[int, ...]:
 def lint(session: Session) -> None:
     # Note: Linting only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)
-    session.run(
-        "mypy", ".", "--strict", "--install-types", "--non-interactive", silent=True
-    )
     session.run("pyrefly", "check", silent=True)
     session.run("isort", ".", "--check", silent=True)
     session.run("black", "--check", ".", silent=True)

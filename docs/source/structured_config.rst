@@ -20,7 +20,7 @@ Structured Configs
     os.environ['USER'] = 'omry'
 
 Structured configs are used to create OmegaConf configuration object with runtime type safety.
-In addition, they can be used with tools like mypy or your IDE for static type checking.
+In addition, they can be used with tools like Pyrefly or your IDE for static type checking.
 
 Two types of structures classes are supported: `dataclasses <https://docs.python.org/3/library/dataclasses.html>`_ and `attrs <https://github.com/python-attrs/attrs>`_ classes
 (that offers slightly cleaner syntax in some cases but depends on the attrs pip package).
