@@ -885,8 +885,19 @@ The function raises a `ValueError` on input not representing a config.
 Debugger integration
 --------------------
 
-OmegaConf is packaged with a PyDev.Debugger extension which enables better debugging experience in PyCharm, 
-VSCode and other `PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
+OmegaConf provides an optional ``pydevd`` plugin via the separate
+``omegaconf-pydevd`` package, which enables a better debugging experience in
+PyCharm, VSCode and other
+`PyDev.Debugger <https://github.com/fabioz/PyDev.Debugger>`_ powered IDEs.
+
+Install it with:
+
+.. code-block:: bash
+
+    pip install omegaconf-pydevd
+
+See the `omegaconf-pydevd README <https://github.com/omry/omegaconf/tree/master/subprojects/omegaconf-pydevd/README.md>`_
+for usage details and an example debugger demo.
 
 The debugger extension enables OmegaConf-aware object inspection:
  - providing information about interpolations.
@@ -897,4 +908,4 @@ The plugin comes in two flavors:
  - DEV: Useful when debugging OmegaConf itself, shows the exact data model of OmegaConf.
 
 The default flavor is ``USER``. You can select which flavor to use using the environment variable ``OC_PYDEVD_RESOLVER``,
-Which takes the possible values ``USER``, ``DEV`` and ``DISABLE``.
+which takes the possible values ``USER``, ``DEV`` and ``DISABLE``.

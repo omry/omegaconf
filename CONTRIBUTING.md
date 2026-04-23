@@ -10,6 +10,9 @@ Activate your new conda environment: `conda activate omegaconf38`
 
 Install development dependencies: `pip install -r requirements/dev.txt -e .`
 
+The optional `omegaconf-pydevd` debugger plugin lives in
+`subprojects/omegaconf-pydevd/` and has its own packaging and tests.
+
 Optionally install commit hooks: `pre-commit install`
 
 pre-commit will verify your code lints cleanly when you commit. You can use `git commit -n` to skip the pre-commit hook for a specific commit.

@@ -1,6 +1,11 @@
 import builtins
+from enum import Enum
 from typing import Any
 
+from pydevd_plugins.extensions.pydevd_plugin_omegaconf import (
+    OmegaConfDeveloperResolver,
+    OmegaConfUserResolver,
+)
 from pytest import fixture, mark, param
 
 from omegaconf import (
@@ -20,11 +25,10 @@ from omegaconf import (
     ValueNode,
 )
 from omegaconf._utils import type_str
-from pydevd_plugins.extensions.pydevd_plugin_omegaconf import (
-    OmegaConfDeveloperResolver,
-    OmegaConfUserResolver,
-)
-from tests import Color
+
+
+class Color(Enum):
+    RED = 1
 
 
 @fixture
@@ -35,7 +39,6 @@ def resolver() -> Any:
 @mark.parametrize(
     ("obj", "expected"),
     [
-        # nodes
         param(AnyNode(10), {}, id="any:10"),
         param(StringNode("foo"), {}, id="str:foo"),
         param(IntegerNode(10), {}, id="int:10"),
@@ -44,9 +47,7 @@ def resolver() -> Any:
         param(BytesNode(b"binary"), {}, id="bytes:binary"),
         param(PathNode("hello.txt"), {}, id="path:hello.txt"),
         param(EnumNode(enum_type=Color, value=Color.RED), {}, id="Color:Color.RED"),
-        # nodes are never returning a dictionary
         param(AnyNode("${foo}", parent=DictConfig({"foo": 10})), {}, id="any:inter_10"),
-        # DictConfig
         param(DictConfig({"a": 10}), {"a": AnyNode(10)}, id="dict"),
         param(
             DictConfig({"a": 10, "b": "${a}"}),
@@ -64,7 +65,6 @@ def resolver() -> Any:
             id="dict:str_interpolation_value",
         ),
         param(DictConfig("${zzz}"), {}, id="dict:inter_error"),
-        # ListConfig
         param(
             ListConfig(["a", "b"]), {"0": AnyNode("a"), "1": AnyNode("b")}, id="list"
         ),
@@ -84,7 +84,6 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
 @mark.parametrize(
     ("obj", "attribute", "expected"),
     [
-        # dictconfig
         param(DictConfig({"a": 10}), "a", AnyNode(10), id="dict"),
         param(
             DictConfig({"a": DictConfig(None)}),
@@ -92,7 +91,6 @@ def test_get_dictionary_node(resolver: Any, obj: Any, expected: Any) -> None:
             DictConfig(None),
             id="dict:none",
         ),
-        # listconfig
         param(ListConfig([10]), 0, AnyNode(10), id="list"),
         param(ListConfig(["???"]), 0, AnyNode("???"), id="list:missing_item"),
     ],
@@ -120,12 +118,7 @@ def test_resolve(
             {},
             id="dict:missing_value",
         ),
-        param(
-            OmegaConf.create({"none": None}),
-            "none",
-            {},
-            id="dict:none_value",
-        ),
+        param(OmegaConf.create({"none": None}), "none", {}, id="dict:none_value"),
         param(
             OmegaConf.create({"none": DictConfig(None)}),
             "none",
@@ -222,11 +215,9 @@ def test_get_dictionary_listconfig(
 @mark.parametrize(
     ("type_", "expected"),
     [
-        # containers
         (Container, True),
         (DictConfig, True),
         (ListConfig, True),
-        # nodes
         (Node, True),
         (ValueNode, True),
         (AnyNode, True),
@@ -237,7 +228,6 @@ def test_get_dictionary_listconfig(
         (BytesNode, True),
         (PathNode, True),
         (EnumNode, True),
-        # not covering some other things.
         (builtins.int, False),
         (dict, False),
         (list, False),

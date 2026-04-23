@@ -9,6 +9,7 @@ exclude = '''
     | omegaconf/vendor
     | \.nox
     | build
+    | subprojects
     | temp
     | vendor
   )
@@ -16,11 +17,12 @@ exclude = '''
 '''
 
 [tool.isort]
-skip_glob = ["temp/*", "omegaconf/vendor/*"]
+skip_glob = ["temp/*", "omegaconf/vendor/*", "subprojects/*"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
 pythonpath = ["."]
+norecursedirs = ["subprojects"]
 
 [tool.towncrier]
     package = "omegaconf"

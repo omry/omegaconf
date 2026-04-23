@@ -9,6 +9,10 @@
 OmegaConf is a hierarchical configuration system, with support for merging configurations from multiple sources (YAML config files, dataclasses/objects and CLI arguments)
 providing a consistent API regardless of how the configuration was created.
 
+## Optional subprojects
+
+- [`omegaconf-pydevd`](./subprojects/omegaconf-pydevd/README.md): optional `pydevd` debugger plugin for inspecting OmegaConf objects in supported debuggers.
+
 ## Releases
 
 ### Stable (2.3)
