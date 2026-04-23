@@ -12,6 +12,12 @@ Sometimes it is necessary to perform arithmetic based on settings from your app'
 You can register Python's `builtins.eval`_ function as a :ref:`resolver<resolvers>`
 to perform simple computations.
 
+.. warning::
+
+    Python's ``eval`` can execute arbitrary code. Only use this pattern with
+    trusted config input. Do not register or expose an ``eval`` resolver for
+    configs that may be supplied or modified by untrusted users.
+
 .. _builtins.eval: https://docs.python.org/3/library/functions.html#eval
 
 First, register the ``builtins.eval`` function as a new resolver:
