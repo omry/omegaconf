@@ -1,14 +1,4 @@
 # type: ignore
-"""
-OmegaConf setup
-    Instructions:
-    # Build:
-    rm -rf dist/ omegaconf.egg-info/
-    python -m build
-    # Upload:
-    twine upload dist/*
-"""
-
 import os
 import pathlib
 

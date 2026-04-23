@@ -3,6 +3,7 @@
 attrs
 black==26.3.1
 build
+bump-my-version
 coveralls
 flake8==7.3.0
 isort==5.13.2

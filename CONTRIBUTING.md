@@ -79,12 +79,31 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
      - Repository name: `omegaconf`
      - Workflow name: `publish.yml`
      - Environment name: `pypi-publish`
+   - Repeat for the `omegaconf-pydevd` PyPI project if you want the plugin
+     package published by the same workflow.
 
-2. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
+2. Configure Trusted Publisher for dev releases on PyPI (project maintainers only):
+   - Add GitHub as a trusted publisher with:
+     - Owner: `omry` (or your organization)
+     - Repository name: `omegaconf`
+     - Workflow name: `publish_dev.yml`
+     - Environment name: `pypi-publish-dev`
+   - Repeat for the `omegaconf-pydevd` PyPI project if you want dev plugin
+     releases published too.
+
+3. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
    - Add protection rules (e.g., require manual approval)
 
-**Release process:**
-1. Update version in `omegaconf/version.py`
+4. Create the `pypi-publish-dev` environment in GitHub repository settings:
+   - Allow publishing from the development branch you use for dev releases
+     (for example `master`)
+   - Add protection rules (e.g., require manual approval)
+
+**Official release process:**
+1. Bump the version with `bump-my-version`, for example:
+   - `bump-my-version bump patch`
+   - `bump-my-version bump minor`
+   - `bump-my-version bump --new-version X.Y.Z`
 2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`)
 3. Commit changes and push to main branch
 4. Create a new release on GitHub:
@@ -96,15 +115,23 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
 
 The workflow handles:
 - Installing Java (required for ANTLR parser generation)
-- Building source distribution and wheel
-- Verifying artifacts with `twine check`
+- Building source distribution and wheel for both `omegaconf` and
+  `omegaconf-pydevd`
+- Verifying artifacts for both packages with `twine check`
 - Publishing to PyPI via Trusted Publishers (no API tokens needed)
+
+**Development release process:**
+1. Bump the dev version with `bump-my-version bump pre_n`
+2. Commit changes and push to the branch you use for dev releases
+3. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions
+4. Approve the `pypi-publish-dev` environment if required
 
 **Manual release (fallback):**
 If you need to publish manually:
 ```bash
 rm -rf dist/ omegaconf.egg-info/
 python -m build
-twine check dist/*
-twine upload dist/*
+python -m build subprojects/omegaconf-pydevd
+twine check dist/* subprojects/omegaconf-pydevd/dist/*
+twine upload dist/* subprojects/omegaconf-pydevd/dist/*
 ```
