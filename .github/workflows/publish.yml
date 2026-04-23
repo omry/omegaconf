@@ -49,6 +49,60 @@ jobs:
         python -m pip install twine
         twine check dist/* subprojects/omegaconf-pydevd/dist/*
 
+    - name: Summarize publish artifacts
+      run: |
+        python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import pathlib
+        import tarfile
+        import zipfile
+
+        paths = [
+            pathlib.Path("dist"),
+            pathlib.Path("subprojects/omegaconf-pydevd/dist"),
+        ]
+
+        def metadata_from_artifact(path: pathlib.Path) -> tuple[str, str]:
+            if path.suffix == ".whl":
+                with zipfile.ZipFile(path) as zf:
+                    metadata_name = next(
+                        name for name in zf.namelist() if name.endswith(".dist-info/METADATA")
+                    )
+                    metadata = zf.read(metadata_name).decode()
+            else:
+                with tarfile.open(path, "r:gz") as tf:
+                    member = next(
+                        member for member in tf.getmembers() if member.name.endswith("/PKG-INFO")
+                    )
+                    extracted = tf.extractfile(member)
+                    assert extracted is not None
+                    metadata = extracted.read().decode()
+
+            name = ""
+            version = ""
+            for line in metadata.splitlines():
+                if line.startswith("Name: "):
+                    name = line.removeprefix("Name: ")
+                elif line.startswith("Version: "):
+                    version = line.removeprefix("Version: ")
+                if name and version:
+                    break
+            return name, version
+
+        seen = {}
+        for directory in paths:
+            for artifact in sorted(directory.glob("*")):
+                if artifact.is_file():
+                    name, version = metadata_from_artifact(artifact)
+                    seen.setdefault((name, version), set()).add(artifact.name)
+
+        print("## Packages prepared for PyPI")
+        print()
+        print("| Package | Version |")
+        print("| --- | --- |")
+        for name, version in sorted(seen):
+            print(f"| {name} | {version} |")
+        PY
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
