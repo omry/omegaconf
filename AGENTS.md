@@ -88,6 +88,7 @@ All four must pass before a change is considered clean.
 
 ## Environment and hooks
 
+- Run commands in the `omegaconf+hydra` conda environment by default.
 - When validating contributor setup, shell initialization, or hook behavior, verify it from the same environment a developer would actually use, such as a normal shell session or `sl commit`, not only from a temporary sandbox-only environment.
 - Prefer hooks that do not depend on nontrivial user-environment tooling.
 - If an environment override is required for one command, explain why it must be part of that same process invocation.
