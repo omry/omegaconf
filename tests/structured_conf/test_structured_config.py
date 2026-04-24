@@ -265,6 +265,16 @@ class TestConfigs:
         with raises(ValueError):
             OmegaConf.structured(module.UnionError)
 
+    def test_container_union(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.ContainerUnion)
+        assert cfg.x == [1, 2]
+        cfg.x = {"a": 1}
+        assert cfg.x == {"a": 1}
+        cfg.x = [3, 4]
+        assert cfg.x == [3, 4]
+        with raises(ValidationError):
+            cfg.x = [1, "bad"]  # invalid for List[int]
+
     def test_config_with_list(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
             assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3], "missing": MISSING}

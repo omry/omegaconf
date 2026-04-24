@@ -601,7 +601,12 @@ class NestedWithNone:
 
 @dataclass
 class UnionError:
-    x: Union[int, List[str]] = 10
+    x: Union[int, Plugin] = 10
+
+
+@dataclass
+class ContainerUnion:
+    x: Union[List[int], Dict[str, int]] = field(default_factory=lambda: [1, 2])
 
 
 @dataclass

@@ -1,0 +1,1 @@
+Add support for unions of typed container types (e.g. ``Union[List[int], Dict[str, int]]``) in structured configs. Introduce ``OmegaConf.typed_list()`` and ``OmegaConf.typed_dict()`` for explicit container typing when disambiguating an otherwise ambiguous union assignment.
