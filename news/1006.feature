@@ -1,0 +1,1 @@
+Add support for the `|` and `|=` operators on `DictConfig` and `ListConfig`. `cfg1 | cfg2` returns a new merged config (equivalent to `OmegaConf.merge(cfg1, cfg2)`), and `cfg1 |= cfg2` merges in place (equivalent to `cfg1.merge_with(cfg2)`).

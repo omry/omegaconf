@@ -178,6 +178,17 @@ class BaseContainer(Container, ABC):
         content = self.__dict__["_content"]
         return len(content)
 
+    def __or__(self, other: Any) -> "BaseContainer":
+        from omegaconf import OmegaConf
+
+        return OmegaConf.merge(self, other)
+
+    __ror__ = __or__
+
+    def __ior__(self, other: Any) -> "BaseContainer":
+        self.merge_with(other)
+        return self
+
     def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]
         self.merge_with_dotlist(args_list)
