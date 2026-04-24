@@ -523,6 +523,34 @@ If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQ
     - user3
     <BLANKLINE>
 
+Union operator (``|`` and ``|=``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Python 3.9+ dict-style union operators are supported on ``DictConfig`` and ``ListConfig``.
+
+``cfg1 | cfg2`` returns a new merged config (equivalent to ``OmegaConf.merge(cfg1, cfg2)``):
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf
+    >>> cfg1 = OmegaConf.create({"a": 1, "b": 2})
+    >>> cfg2 = OmegaConf.create({"b": 20, "c": 3})
+    >>> result = cfg1 | cfg2
+    >>> print(result)
+    {'a': 1, 'b': 20, 'c': 3}
+    >>> print(cfg1)  # unchanged
+    {'a': 1, 'b': 2}
+
+``cfg1 |= cfg2`` merges in place (equivalent to ``cfg1.merge_with(cfg2)``):
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf
+    >>> cfg1 = OmegaConf.create({"a": 1, "b": 2})
+    >>> cfg1 |= {"b": 20, "c": 3}
+    >>> print(cfg1)
+    {'a': 1, 'b': 20, 'c': 3}
+
 OmegaConf.unsafe_merge()
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -531,8 +559,8 @@ OmegaConf offers a second faster function to merge config objects:
 .. code-block:: python
 
    conf = OmegaConf.unsafe_merge(base_cfg, model_cfg, optimizer_cfg, dataset_cfg)
-   
-Unlike OmegaConf.merge(), unsafe_merge() is destroying the input configs and they should no longer be used 
+
+Unlike OmegaConf.merge(), unsafe_merge() is destroying the input configs and they should no longer be used
 after this call. The upside is that it's substantially faster.
 
 Configuration flags
