@@ -220,6 +220,16 @@ class LiteralConfig:
 
 
 @dataclass
+class LiteralContainers:
+    list_: List[Literal["foo", "bar"]] = field(
+        default_factory=lambda: cast(List[Literal["foo", "bar"]], ["foo"])
+    )
+    dict_: Dict[str, Literal["foo", "bar"]] = field(
+        default_factory=lambda: cast(Dict[str, Literal["foo", "bar"]], {"key": "foo"})
+    )
+
+
+@dataclass
 class ConfigWithList:
     list1: List[int] = field(default_factory=lambda: [1, 2, 3])
     list2: Tuple[int, int, int] = field(default_factory=lambda: (1, 2, 3))

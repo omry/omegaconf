@@ -668,6 +668,27 @@ def test_literal_node_type_mismatch() -> None:
 
 
 @mark.parametrize(
+    "ref_type,value",
+    [
+        (Literal[True, 1], True),
+        (Literal[True, 1], 1),
+        (Literal[1, True], True),
+        (Literal[1, True], 1),
+        (Literal[False, 0], False),
+        (Literal[False, 0], 0),
+        (Literal[0, False], False),
+        (Literal[0, False], 0),
+    ],
+)
+def test_literal_node_accepts_bool_and_int_literals(
+    ref_type: Any, value: Union[bool, int]
+) -> None:
+    node = LiteralNode(ref_type=ref_type, value=value)
+    assert node._value() == value
+    assert type(node._value()) is type(value)
+
+
+@mark.parametrize(
     "node_type",
     [
         BooleanNode,

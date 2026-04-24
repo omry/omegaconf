@@ -335,6 +335,9 @@ class _TestUserClass:
         # container annotations
         (List[int], True),
         (Dict[str, int], True),
+        (Literal["foo", "bar"], True),
+        (List[Literal["foo", "bar"]], True),
+        (Dict[str, Literal["foo", "bar"]], True),
         # optional and union
         (Optional[int], True),
         (Union[int, str], True),

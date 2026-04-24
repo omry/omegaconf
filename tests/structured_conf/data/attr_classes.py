@@ -219,6 +219,14 @@ class LiteralConfig:
 
 
 @attr.s(auto_attribs=True)
+class LiteralContainers:
+    list_: List[Literal["foo", "bar"]] = cast(List[Literal["foo", "bar"]], ["foo"])
+    dict_: Dict[str, Literal["foo", "bar"]] = cast(
+        Dict[str, Literal["foo", "bar"]], {"key": "foo"}
+    )
+
+
+@attr.s(auto_attribs=True)
 class ConfigWithList:
     list1: List[int] = [1, 2, 3]
     list2: Tuple[int, int, int] = (1, 2, 3)

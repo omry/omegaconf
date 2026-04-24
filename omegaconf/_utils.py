@@ -868,6 +868,7 @@ def is_valid_value_annotation(type_: Any) -> bool:
     return (
         type_ is Any
         or is_primitive_type_annotation(type_)
+        or is_literal_annotation(type_)
         or is_structured_config(type_)
         or is_container_annotation(type_)
         or is_supported_union_annotation(type_)

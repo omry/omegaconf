@@ -541,17 +541,11 @@ class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
     @staticmethod
     def validate_and_convert_to_literal(ref_type: Any, value: Any) -> Any:
         fields = list(ref_type.__args__)
-        if value not in fields:
-            valid = ", ".join([repr(x) for x in fields])
-            raise ValidationError(f"Invalid value '$VALUE', expected one of [{valid}]")
-        index = fields.index(value)
-        # Use exact type match to prevent bool/int cross-matching (True should not match Literal[1])
-        if type(value) is not type(fields[index]):  # noqa: E721
-            raise ValidationError(
-                f"Invalid value '$VALUE' of type '$VALUE_TYPE'. "
-                f"Expected type {type(fields[index]).__name__}"
-            )
-        return value
+        for field in fields:
+            if type(value) is type(field) and value == field:  # noqa: E721
+                return value
+        valid = ", ".join([repr(x) for x in fields])
+        raise ValidationError(f"Invalid value '$VALUE', expected one of [{valid}]")
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "LiteralNode":
         res = LiteralNode(ref_type=self.ref_type)

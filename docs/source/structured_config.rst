@@ -15,7 +15,7 @@ Structured Configs
     import os
     import pathlib
     from pytest import raises
-    from typing import Dict, Any
+    from typing import Any, Dict, List, Literal
     import sys
     os.environ['USER'] = 'omry'
 
@@ -37,6 +37,8 @@ Currently, type hints supported in OmegaConf’s structured configs include:
    (user-defined subclasses of ``enum.Enum``). See the :ref:`simple_types` section below.
  - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``.
    See :ref:`union_types` below.
+ - literal types, e.g. ``Literal["train", "eval"]``.
+   See :ref:`literal_types` below.
  - structured config fields (i.e. MyConfig.x can have type hint MySubConfig).
    See the :ref:`nesting_structured_configs` section below.
  - dict and list types: ``typing.Dict[K, V]`` or ``typing.List[V]``, where K is
@@ -252,6 +254,30 @@ You can assign subclasses:
     >>> conf.manager = DuperUser()
     >>> assert conf.manager.duper == True
 
+.. _literal_types:
+
+Literal types
+^^^^^^^^^^^^^
+
+``typing.Literal`` can be used when a field must be exactly one of a fixed set
+of values. Literal annotations are also supported inside containers.
+
+.. doctest::
+
+    >>> @dataclass
+    ... class HasLiteral:
+    ...     mode: Literal["train", "eval"] = "train"
+    ...     stages: List[Literal["train", "eval"]] = field(default_factory=lambda: ["train"])
+
+    >>> cfg = OmegaConf.structured(HasLiteral)
+    >>> cfg.mode = "eval"
+    >>> cfg.stages.append("eval")
+    >>> cfg.mode = "debug"
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.ValidationError: Invalid value 'debug', expected one of ['train', 'eval']
+        full_key: mode
+        object_type=HasLiteral
 
 .. _lists:
 
