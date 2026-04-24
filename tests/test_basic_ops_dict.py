@@ -2,6 +2,7 @@
 import copy
 import re
 import tempfile
+from contextlib import nullcontext
 from typing import Any, Dict, List, Optional, Union
 
 from pytest import mark, param, raises
@@ -188,6 +189,86 @@ def test_attribute_error() -> None:
     c = OmegaConf.create()
     with raises(ConfigAttributeError):
         assert c.missing_key
+
+
+@mark.parametrize("struct", [None, False, True])
+@mark.parametrize(
+    "access,exc_type",
+    [
+        ("attr", ConfigAttributeError),
+        ("item", ConfigKeyError),
+    ],
+)
+def test_fuzzy_key_suggestion_single_match(
+    struct: Optional[bool], access: str, exc_type: Any
+) -> None:
+    c = OmegaConf.create({"missing": 1, "another": 2})
+    ctx = flag_override(c, "struct", struct) if struct is not None else nullcontext()
+    with ctx:
+        with raises(exc_type, match="Did you mean: 'missing'"):
+            if access == "attr":
+                c.missng
+            else:
+                c["missng"]
+
+
+@mark.parametrize("struct", [None, False, True])
+@mark.parametrize(
+    "access,exc_type",
+    [
+        ("attr", ConfigAttributeError),
+        ("item", ConfigKeyError),
+    ],
+)
+def test_fuzzy_key_suggestion_multiple_matches(
+    struct: Optional[bool], access: str, exc_type: Any
+) -> None:
+    c = OmegaConf.create({"mission": 1, "missing": 2, "misting": 3})
+    ctx = flag_override(c, "struct", struct) if struct is not None else nullcontext()
+    with ctx:
+        with raises(exc_type, match="Did you mean one of:"):
+            if access == "attr":
+                c.missng
+            else:
+                c["missng"]
+
+
+@mark.parametrize("struct", [None, False, True])
+@mark.parametrize(
+    "access,exc_type",
+    [
+        ("attr", ConfigAttributeError),
+        ("item", ConfigKeyError),
+    ],
+)
+def test_fuzzy_key_suggestion_no_match(
+    struct: Optional[bool], access: str, exc_type: Any
+) -> None:
+    c = OmegaConf.create({"alpha": 1, "beta": 2})
+    ctx = flag_override(c, "struct", struct) if struct is not None else nullcontext()
+    with ctx:
+        with raises(exc_type) as exc_info:
+            if access == "attr":
+                c.gamma
+            else:
+                c["gamma"]
+    assert "Did you mean" not in str(exc_info.value)
+
+
+@mark.parametrize(
+    "access,exc_type",
+    [
+        ("attr", ConfigAttributeError),
+        ("item", ConfigKeyError),
+    ],
+)
+def test_fuzzy_key_suggestion_typed_struct(access: str, exc_type: Any) -> None:
+    c = OmegaConf.structured(User(name="Bond", age=7))
+    with raises(exc_type, match="not in 'User'.*Did you mean: 'name'"):
+        if access == "attr":
+            c.nme
+        else:
+            c["nme"]
 
 
 @mark.parametrize("c", [{}, OmegaConf.create()])
