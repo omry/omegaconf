@@ -185,6 +185,46 @@ class OmegaConf:
         )
 
     @staticmethod
+    def typed_list(
+        content: Optional[List[Any]] = None,
+        element_type: Any = Any,
+    ) -> ListConfig:
+        """Create a ListConfig with an explicit element type.
+
+        Useful for disambiguating assignment to a Union[List[X], List[Y]] field
+        when the value is empty or otherwise matches multiple candidates.
+        """
+        from typing import List as _List
+
+        ref_type = _List[element_type]
+        return ListConfig(
+            content=content if content is not None else [],
+            element_type=element_type,
+            ref_type=ref_type,
+        )
+
+    @staticmethod
+    def typed_dict(
+        content: Optional[Dict[Any, Any]] = None,
+        key_type: Any = Any,
+        element_type: Any = Any,
+    ) -> DictConfig:
+        """Create a DictConfig with explicit key and value types.
+
+        Useful for disambiguating assignment to a Union[Dict[str, X], Dict[str, Y]]
+        field when the value is empty or otherwise matches multiple candidates.
+        """
+        from typing import Dict as _Dict
+
+        ref_type = _Dict[key_type, element_type]
+        return DictConfig(
+            content=content if content is not None else {},
+            key_type=key_type,
+            element_type=element_type,
+            ref_type=ref_type,
+        )
+
+    @staticmethod
     def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 

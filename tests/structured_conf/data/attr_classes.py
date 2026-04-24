@@ -576,7 +576,12 @@ class NestedWithNone:
 
 @attr.s(auto_attribs=True)
 class UnionError:
-    x: Union[int, List[str]] = 10
+    x: Union[int, Plugin] = 10
+
+
+@attr.s(auto_attribs=True)
+class ContainerUnion:
+    x: Union[List[int], Dict[str, int]] = [1, 2]  # type: ignore
 
 
 @attr.s(auto_attribs=True)
