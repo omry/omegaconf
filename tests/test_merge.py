@@ -1487,3 +1487,68 @@ def test_into_custom_resolver_that_throws(
     )
     expected = {"d": 20, "i": "zzz"}
     assert OmegaConf.merge(*configs) == expected
+
+
+def test_union_operator_dict() -> None:
+    c1 = OmegaConf.create({"a": 1, "b": 2})
+    c2 = OmegaConf.create({"b": 20, "c": 3})
+    result = c1 | c2
+    assert result == {"a": 1, "b": 20, "c": 3}
+    # original must be unchanged
+    assert c1 == {"a": 1, "b": 2}
+
+
+def test_union_operator_with_plain_dict() -> None:
+    c1 = OmegaConf.create({"a": 1, "b": 2})
+    result = c1 | {"b": 20, "c": 3}
+    assert result == {"a": 1, "b": 20, "c": 3}
+    assert c1 == {"a": 1, "b": 2}
+
+
+def test_union_operator_list_raises() -> None:
+    c1 = OmegaConf.create([1, 2, 3])
+    c2 = OmegaConf.create([4, 5])
+    with raises(TypeError):
+        c1 | c2
+
+
+def test_inplace_union_operator_list_raises() -> None:
+    c1 = OmegaConf.create([1, 2, 3])
+    with raises(TypeError):
+        c1 |= [4, 5]
+
+
+def test_inplace_union_operator_dict() -> None:
+    c1 = OmegaConf.create({"a": 1, "b": 2})
+    c2 = OmegaConf.create({"b": 20, "c": 3})
+    c1 |= c2
+    assert c1 == {"a": 1, "b": 20, "c": 3}
+
+
+def test_inplace_union_operator_with_plain_dict() -> None:
+    c1 = OmegaConf.create({"a": 1, "b": 2})
+    c1 |= {"b": 20, "c": 3}
+    assert c1 == {"a": 1, "b": 20, "c": 3}
+
+
+def test_union_operator_preserves_readonly() -> None:
+    c1 = OmegaConf.create({"a": 1})
+    OmegaConf.set_readonly(c1, True)
+    c2 = OmegaConf.create({"b": 2})
+    result = c1 | c2
+    assert OmegaConf.is_readonly(result)
+    assert result == {"a": 1, "b": 2}
+
+
+def test_union_operator_ror_priority() -> None:
+    # In `plain_dict | cfg`, plain_dict is the base and cfg is the override.
+    # cfg is the RHS so cfg's values should win.
+    c1 = OmegaConf.create({"a": 1, "b": 2})
+    result = {"b": 20, "c": 3} | c1
+    assert result == {"a": 1, "b": 2, "c": 3}
+
+
+def test_union_operator_ror_list_raises() -> None:
+    c1 = OmegaConf.create([1, 2, 3])
+    with raises(TypeError):
+        [4, 5] | c1
