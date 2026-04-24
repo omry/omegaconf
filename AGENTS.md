@@ -62,6 +62,13 @@ repo tooling.
 - Entry point: [`docs/source/index.rst`](./docs/source/index.rst)
 - Notebook tutorial: [`docs/notebook/Tutorial.ipynb`](./docs/notebook/Tutorial.ipynb)
 
+## Reproduction files
+
+When asked to create a reproduction for an issue, place files under `temp/`:
+
+- Single-file repro: `temp/<issue_number>.py`
+- Multi-file repro: `temp/<issue_number>/`
+
 ## Stop and ask
 
 - If a tracked repo file appears unexpectedly renamed, moved, regenerated, deleted, or otherwise changed, stop and ask before reverting, recreating, reclassifying, or staging over that change.
