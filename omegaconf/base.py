@@ -647,6 +647,24 @@ class Container(Box):
             if type(conv_value) is not type(res_value):
                 must_wrap = True
                 resolved = conv_value
+        elif isinstance(value, UnionNode):
+            res_value = _get_value(resolved)
+            try:
+                UnionNode(
+                    content=res_value,
+                    ref_type=value._metadata.ref_type,
+                    is_optional=value._is_optional(),
+                )
+            except ValidationError as e:
+                if throw_on_resolution_failure:
+                    self._format_and_raise(
+                        key=key,
+                        value=res_value,
+                        cause=e,
+                        msg=f"While dereferencing interpolation '{value}': {e}",
+                        type_override=InterpolationValidationError,
+                    )
+                return None
 
         if must_wrap:
             return InterpolationResultNode(value=resolved, key=key, parent=parent)
