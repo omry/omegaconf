@@ -1,12 +1,12 @@
 import platform
 from pathlib import Path
 from textwrap import dedent
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pytest import mark
 
-from omegaconf import DictConfig, EnumNode, ListConfig, OmegaConf, _utils
+from omegaconf import DictConfig, EnumNode, ListConfig, LiteralNode, OmegaConf, _utils
 from tests import Enum1, User
 
 
@@ -142,6 +142,24 @@ def test_to_yaml_with_enum() -> None:
     assert s == expected
     assert (
         OmegaConf.merge({"foo": EnumNode(Enum1, value="???")}, OmegaConf.create(s))
+        == cfg
+    )
+
+
+def test_to_yaml_with_literal() -> None:
+    cfg = OmegaConf.create()
+    assert isinstance(cfg, DictConfig)
+    cfg.mode = LiteralNode(ref_type=Literal["train", "eval"])
+    cfg.mode = "eval"
+
+    expected = "mode: eval\n"
+    s = OmegaConf.to_yaml(cfg)
+    assert s == expected
+    assert (
+        OmegaConf.merge(
+            {"mode": LiteralNode(ref_type=Literal["train", "eval"], value="???")},
+            OmegaConf.create(s),
+        )
         == cfg
     )
 

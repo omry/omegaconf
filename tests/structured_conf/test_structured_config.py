@@ -171,6 +171,11 @@ class AnyTypeConfigAssignments:
     illegal: Any = []
 
 
+class LiteralConfigAssignments:
+    legal = ["foo", "bar", True, b"baz", 5, Color.GREEN]
+    illegal = ["baz", False, 1, b"foo", Color.BLUE, Path("hello.txt")]
+
+
 class TestConfigs:
     def test_nested_config_is_none(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithNone)
@@ -367,6 +372,7 @@ class TestConfigs:
             ("PathConfig", PathConfigAssignments, {}),
             ("StringConfig", StringConfigAssignments, {}),
             ("EnumConfig", EnumConfigAssignments, {}),
+            ("LiteralConfig", LiteralConfigAssignments, {}),
             # Use instance to build config
             ("BoolConfig", BoolConfigAssignments, {"with_default": False}),
             ("IntegersConfig", IntegersConfigAssignments, {"with_default": 42}),
@@ -375,6 +381,7 @@ class TestConfigs:
             ("PathConfig", PathConfigAssignments, {"with_default": Path("file.txt")}),
             ("StringConfig", StringConfigAssignments, {"with_default": "fooooooo"}),
             ("EnumConfig", EnumConfigAssignments, {"with_default": Color.BLUE}),
+            ("LiteralConfig", LiteralConfigAssignments, {"with_default": "bar"}),
             ("AnyTypeConfig", AnyTypeConfigAssignments, {}),
         ],
     )
@@ -430,6 +437,22 @@ class TestConfigs:
 
         validate(input_class, input_class())
         validate(input_class(**init_dict), input_class(**init_dict))
+
+    def test_literal_containers(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.LiteralContainers)
+
+        assert conf.list_ == ["foo"]
+        assert conf.dict_ == {"key": "foo"}
+
+        conf.list_.append("bar")
+        assert conf.list_ == ["foo", "bar"]
+        with raises(ValidationError):
+            conf.list_.append("baz")
+
+        conf.dict_["other"] = "bar"
+        assert conf.dict_ == {"key": "foo", "other": "bar"}
+        with raises(ValidationError):
+            conf.dict_["bad"] = "baz"
 
     @mark.parametrize(
         "input_init, expected_init",
