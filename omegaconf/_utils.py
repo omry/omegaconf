@@ -14,6 +14,7 @@ from typing import (
     Any,
     Dict,
     List,
+    Literal,
     Optional,
     Tuple,
     Type,
@@ -803,6 +804,11 @@ def is_supported_union_annotation(obj: Any) -> bool:
         return False
     args = obj.__args__
     return all(is_primitive_type_annotation(arg) for arg in args)
+
+
+def is_literal_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    return origin is Literal
 
 
 def is_dict_subclass(type_: Any) -> bool:
