@@ -873,16 +873,30 @@ def _update_types(node: Node, ref_type: Any, object_type: Optional[type]) -> Non
 
 def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
     """Ensure node is compatible with type_hint, mutating if necessary."""
-    from omegaconf import DictConfig, ListConfig
+    from omegaconf import DictConfig, ListConfig, OmegaConf
 
     from ._utils import get_dict_key_value_types, get_list_element_type
 
     if type_hint is Any:
         return
 
+    new_is_optional, new_ref_type = _resolve_optional(type_hint)
+
+    if (
+        is_structured_config(new_ref_type)
+        and isinstance(node, DictConfig)
+        and not _is_special(node)
+        and not is_structured_config(node._metadata.object_type)
+    ):
+        prototype = DictConfig(
+            new_ref_type,
+            ref_type=new_ref_type,
+            is_optional=new_is_optional,
+        )
+        node._set_value(OmegaConf.merge(prototype, node))
+
     _shallow_validate_type_hint(node, type_hint)
 
-    new_is_optional, new_ref_type = _resolve_optional(type_hint)
     node._metadata.ref_type = new_ref_type
     node._metadata.optional = new_is_optional
 
@@ -911,7 +925,13 @@ def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) ->
     """Get node[key] and ensure it is compatible with value_type_hint, mutating if necessary."""
     subnode = node._get_node(key)
     assert isinstance(subnode, Node)
-    if _is_special(subnode):
+    if _is_special(subnode) or (
+        is_union_annotation(value_type_hint)
+        and (
+            not isinstance(subnode, UnionNode)
+            or get_type_hint(subnode) != value_type_hint
+        )
+    ):
         # Ensure special values are wrapped in a Node subclass that
         # is compatible with the type hint.
         node._wrap_value_and_set(key, subnode._value(), value_type_hint)
@@ -922,7 +942,7 @@ def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) ->
 
 def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     """Error if node's type, content and metadata are not compatible with type_hint."""
-    from omegaconf import DictConfig, ListConfig, ValueNode
+    from omegaconf import DictConfig, ListConfig, UnionNode, ValueNode
 
     is_optional, ref_type = _resolve_optional(type_hint)
 
@@ -946,6 +966,15 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
                     f"Value {value!r} ({type(value).__name__})"
                     + f" is incompatible with type hint '{ref_type.__name__}'"
                 )
+        elif is_union_annotation(ref_type) and isinstance(node, UnionNode):
+            # Validate the boxed value against the new union hint. The temporary
+            # UnionNode constructor raises ValidationError if it is incompatible.
+            UnionNode(
+                content=_get_value(node),
+                ref_type=ref_type,
+                is_optional=is_optional,
+            )
+            return
         elif is_structured_config(ref_type) and isinstance(node, DictConfig):
             return
         elif is_dict_annotation(ref_type) and isinstance(node, DictConfig):
