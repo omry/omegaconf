@@ -1,0 +1,1 @@
+Fixed ``OmegaConf.resolve()`` raising ``UnsupportedValueType`` when a custom resolver returns a ``dict`` or ``list``.
