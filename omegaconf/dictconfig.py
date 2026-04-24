@@ -1,4 +1,5 @@
 import copy
+import difflib
 from enum import Enum
 from typing import (
     Any,
@@ -52,6 +53,17 @@ from .errors import (
     ValidationError,
 )
 from .nodes import EnumNode, ValueNode
+
+
+def _make_key_suggestion(key: Any, available: Iterable) -> str:
+    close = difflib.get_close_matches(
+        str(key), [str(k) for k in available], n=3, cutoff=0.6
+    )
+    if not close:
+        return ""
+    if len(close) == 1:
+        return f". Did you mean: {close[0]!r}?"
+    return f". Did you mean one of: {', '.join(repr(k) for k in close)}?"
 
 
 class DictConfig(BaseContainer, MutableMapping[Any, Any]):
@@ -160,6 +172,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     msg = f"Key '{key}' not in '{self._metadata.object_type.__name__}'"
                 else:
                     msg = f"Key '{key}' is not in struct"
+                msg += _make_key_suggestion(key, self.keys())
                 self._format_and_raise(
                     key=key, value=value, cause=ConfigAttributeError(msg)
                 )
@@ -478,7 +491,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         value: Optional[Node] = self.__dict__["_content"].get(key)
         if value is None:
             if throw_on_missing_key:
-                raise ConfigKeyError(f"Missing key {key!s}")
+                msg = f"Missing key {key!s}" + _make_key_suggestion(key, self.keys())
+                raise ConfigKeyError(msg)
         elif throw_on_missing_value and value._is_missing():
             raise MissingMandatoryValue("Missing mandatory value: $KEY")
         return value
