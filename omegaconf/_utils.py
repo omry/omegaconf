@@ -15,6 +15,7 @@ from typing import (
     Dict,
     FrozenSet,
     List,
+    Literal,
     Optional,
     Tuple,
     Type,
@@ -833,6 +834,11 @@ def is_supported_union_annotation(obj: Any) -> bool:
     return all(is_primitive_type_annotation(arg) for arg in args)
 
 
+def is_literal_annotation(type_: Any) -> bool:
+    origin = getattr(type_, "__origin__", None)
+    return origin is Literal
+
+
 def is_dict_subclass(type_: Any) -> bool:
     return type_ is not None and isinstance(type_, type) and issubclass(type_, Dict)
 
@@ -890,6 +896,7 @@ def is_valid_value_annotation(type_: Any) -> bool:
     return (
         type_ is Any
         or is_primitive_type_annotation(type_)
+        or is_literal_annotation(type_)
         or is_structured_config(type_)
         or is_container_annotation(type_)
         or is_supported_union_annotation(type_)
