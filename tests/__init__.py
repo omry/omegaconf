@@ -149,7 +149,7 @@ class StructuredWithMissing:
 
 @dataclass
 class UnionError:
-    x: Union[int, List[str]] = 10
+    x: Union[int, User] = 10
 
 
 @dataclass

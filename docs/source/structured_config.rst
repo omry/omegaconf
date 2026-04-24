@@ -35,7 +35,8 @@ in the input class.
 Currently, type hints supported in OmegaConf’s structured configs include:
  - primitive types (``int``, ``float``, ``bool``, ``str``, ``bytes``, ``Path``) and enum types
    (user-defined subclasses of ``enum.Enum``). See the :ref:`simple_types` section below.
- - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``.
+ - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``, and
+   unions of typed container types, e.g. ``Union[List[int], Dict[str, int]]``.
    See :ref:`union_types` below.
  - literal types, e.g. ``Literal["train", "eval"]``.
    See :ref:`literal_types` below.
@@ -461,6 +462,79 @@ must precisely match one of the types in the ``Union`` annotation:
         full_key: u
         object_type=StrOrInt
 
+
+Unions of container types
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Union members may also be typed ``List[...]`` or ``Dict[...]`` containers.
+OmegaConf selects the matching branch at assignment time by validating the
+assigned value against each candidate:
+
+.. doctest::
+
+    >>> from dataclasses import field
+    >>> from typing import Dict, List, Union
+    >>>
+    >>> @dataclass
+    ... class HasContainerUnion:
+    ...     value: Union[List[int], Dict[str, int]] = field(default_factory=lambda: [1, 2])
+    ...
+    >>> cfg = OmegaConf.structured(HasContainerUnion)
+    >>> assert cfg.value == [1, 2]        # default selects List[int]
+    >>> cfg.value = {"x": 1}             # selects Dict[str, int]
+    >>> assert cfg.value == {"x": 1}
+    >>> cfg.value = [3, 4]               # back to List[int]
+    >>> assert cfg.value == [3, 4]
+
+Once a branch is selected, the field is fully typed and rejects values that
+violate the selected container's element type:
+
+.. doctest::
+
+    >>> cfg.value = [1, 2]
+    >>> cfg.value.append(1)              # ok — List[int]
+    >>> cfg.value.append("x")           # not ok — str is not int
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.ValidationError: Value 'x' of type 'str' is incompatible with type hint 'int'
+        full_key: value.[3]
+        reference_type=List[int]
+        object_type=list
+
+**Ambiguous assignments.** When a value is valid for more than one union
+member — most commonly an empty container — OmegaConf raises a
+``ValidationError`` rather than silently picking the first branch:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class ListUnion:
+    ...     value: Union[List[int], List[str]] = field(default_factory=lambda: [1])
+    ...
+    >>> cfg = OmegaConf.structured(ListUnion)
+    >>> cfg.value = []
+    Traceback (most recent call last):
+    ...
+    omegaconf.errors.ValidationError: Ambiguous assignment to Union[List[int], List[str]]. Value '[]' matches multiple union members: List[int], List[str]. Use an explicitly typed container to disambiguate.
+        full_key: value
+        object_type=ListUnion
+
+Use :py:meth:`OmegaConf.typed_list` or :py:meth:`OmegaConf.typed_dict` to
+create an explicitly typed container and resolve the ambiguity:
+
+.. doctest::
+
+    >>> cfg.value = OmegaConf.typed_list([], element_type=str)
+    >>> assert cfg.value == []
+    >>> cfg.value.append("hello")
+    >>> assert cfg.value == ["hello"]
+
+Both methods accept an optional initial content argument:
+
+.. doctest::
+
+    >>> lst = OmegaConf.typed_list([1, 2, 3], element_type=int)
+    >>> d = OmegaConf.typed_dict({"x": 1}, key_type=str, element_type=int)
 
 .. _other_special_features:
 

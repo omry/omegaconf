@@ -357,8 +357,8 @@ class _TestUserClass:
         # optional and union
         (Optional[int], True),
         (Union[int, str], True),
-        (Union[int, List[str]], False),
-        (Union[int, Dict[int, str]], False),
+        (Union[int, List[str]], True),
+        (Union[int, Dict[int, str]], True),
         (Union[int, _TestEnum], True),
         (Union[int, _TestAttrsClass], False),
         (Union[int, _TestDataclass], False),
@@ -895,8 +895,8 @@ def test_is_union_annotation_PEP604() -> None:
     "input_, expected",
     [
         (Union[int, str], True),
-        (Union[int, List[str]], False),
-        (Union[int, Dict[str, int]], False),
+        (Union[int, List[str]], True),
+        (Union[int, Dict[str, int]], True),
         (Union[int, User], False),
         (Optional[Union[int, str]], True),
         (Union[int, None], True),

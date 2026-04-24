@@ -860,7 +860,7 @@ params = [
             create=lambda: None,
             op=lambda cfg: OmegaConf.structured(UnionError),
             exception_type=ValueError,
-            msg="Unions of containers are not supported:\nx: Union[int, List[str]]",
+            msg="Unions of containers are not supported:\nx: Union[int, User]",
             num_lines=3,
         ),
         id="structured:create_with_union_error",

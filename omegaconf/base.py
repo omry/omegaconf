@@ -27,6 +27,8 @@ from ._utils import (
     _is_special,
     format_and_raise,
     get_value_kind,
+    is_dict_annotation,
+    is_list_annotation,
     is_union_annotation,
     is_valid_value_annotation,
     split_key,
@@ -939,6 +941,7 @@ class UnionNode(Box):
     def _set_value_impl(
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
+        from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
 
         ref_type = self._metadata.ref_type
@@ -953,9 +956,20 @@ class UnionNode(Box):
                         f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
                     )
             self.__dict__["_content"] = value
-        elif isinstance(value, Container):
-            raise ValidationError(
-                f"Cannot assign container '$VALUE' of type '$VALUE_TYPE' to {type_str(type_hint)}"
+        elif isinstance(value, (list, tuple, ListConfig)):
+            # Only try List[...] candidates — keeps primitive members out of container
+            # dispatch and makes ambiguity an error instead of silent first-match.
+            self._set_container_value(
+                value=value,
+                candidates=[t for t in ref_type.__args__ if is_list_annotation(t)],
+                type_hint=type_hint,
+            )
+        elif isinstance(value, (dict, Container)):
+            # Same policy for Dict[...] candidates.
+            self._set_container_value(
+                value=value,
+                candidates=[t for t in ref_type.__args__ if is_dict_annotation(t)],
+                type_hint=type_hint,
             )
         else:
             for candidate_ref_type in ref_type.__args__:
@@ -974,6 +988,68 @@ class UnionNode(Box):
                 raise ValidationError(
                     f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
                 )
+
+    def _set_container_value(
+        self,
+        value: Any,
+        candidates: List[Any],
+        type_hint: Any,
+    ) -> None:
+        from omegaconf.listconfig import ListConfig
+        from omegaconf.omegaconf import _node_wrap
+
+        from ._utils import get_dict_key_value_types, get_list_element_type
+
+        # For an already-typed container (from typed_list/typed_dict or another
+        # structured config), use its element-type metadata to narrow candidates
+        # before falling back to content-based validation. This makes empty
+        # containers unambiguous when the metadata uniquely identifies one branch.
+        if isinstance(value, ListConfig) and value._metadata.element_type is not Any:
+            meta_candidates = [
+                t
+                for t in candidates
+                if get_list_element_type(t) == value._metadata.element_type
+            ]
+            if meta_candidates:
+                candidates = meta_candidates
+        elif isinstance(value, Container) and not isinstance(value, ListConfig):
+            vkey, vval = get_dict_key_value_types(value._metadata.ref_type)
+            if vkey is not Any or vval is not Any:
+                meta_candidates = [
+                    t for t in candidates if get_dict_key_value_types(t) == (vkey, vval)
+                ]
+                if meta_candidates:
+                    candidates = meta_candidates
+
+        matches: List[Node] = []
+        for candidate_ref_type in candidates:
+            try:
+                node = _node_wrap(
+                    value=value,
+                    ref_type=candidate_ref_type,
+                    is_optional=False,
+                    key=None,
+                    parent=self,
+                )
+                matches.append(node)
+                if len(matches) > 1:
+                    break  # ambiguous — stop constructing further candidates
+            except Exception:
+                continue
+
+        if len(matches) == 0:
+            raise ValidationError(
+                f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
+            )
+        elif len(matches) == 1:
+            self.__dict__["_content"] = matches[0]
+        else:
+            matching_types = ", ".join(type_str(n._metadata.ref_type) for n in matches)
+            raise ValidationError(
+                f"Ambiguous assignment to {type_str(type_hint)}. "
+                f"Value '$VALUE' matches multiple union members: {matching_types}. "
+                f"Use an explicitly typed container to disambiguate."
+            )
 
     def _is_optional(self) -> bool:
         return self.__dict__["_metadata"].optional is True
