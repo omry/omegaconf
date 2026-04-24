@@ -339,6 +339,11 @@ def is_union_annotation(type_: Any) -> bool:
 
 def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     """Check whether `type_` is equivalent to `typing.Optional[T]` for some T."""
+    if sys.version_info >= (3, 12):
+        import typing  # lgtm [py/import-and-import-from]
+
+        if isinstance(type_, typing.TypeAliasType):
+            type_ = type_.__value__
     if is_union_annotation(type_):
         args = type_.__args__
         if NoneType in args:
