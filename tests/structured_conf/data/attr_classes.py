@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, cast
 
 import attr
 from pytest import importorskip
@@ -206,6 +206,24 @@ class EnumConfig:
 
     # interpolation, will inherit the type and value of `with_default'
     interpolation: Color = II("with_default")
+
+
+@attr.s(auto_attribs=True)
+class LiteralConfig:
+    with_default: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = "foo"
+    null_default: Optional[Literal["foo", "bar", True, b"baz", 5, Color.GREEN]] = None
+    mandatory_missing: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = MISSING
+    interpolation: Literal["foo", "bar", True, b"baz", 5, Color.GREEN] = II(
+        "with_default"
+    )
+
+
+@attr.s(auto_attribs=True)
+class LiteralContainers:
+    list_: List[Literal["foo", "bar"]] = cast(List[Literal["foo", "bar"]], ["foo"])
+    dict_: Dict[str, Literal["foo", "bar"]] = cast(
+        Dict[str, Literal["foo", "bar"]], {"key": "foo"}
+    )
 
 
 @attr.s(auto_attribs=True)
