@@ -2,7 +2,7 @@
 |  | Description |
 | --- | --- |
 | Project | [![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)[![Downloads](https://pepy.tech/badge/omegaconf/month)](https://pepy.tech/project/omegaconf)![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue) |
-| Code quality| [![CircleCI](https://img.shields.io/circleci/build/github/omry/omegaconf?logo=s&token=5de2f8dc2a0dd78438520575431aa533150806e3)](https://circleci.com/gh/omry/omegaconf)[![Coverage Status](https://coveralls.io/repos/github/omry/omegaconf/badge.svg)](https://coveralls.io/github/omry/omegaconf)|
+| Code quality| [![CircleCI](https://dl.circleci.com/status-badge/img/gh/omry/omegaconf/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/omry/omegaconf/tree/main)[![Coverage Status](https://coveralls.io/repos/github/omry/omegaconf/badge.svg)](https://coveralls.io/github/omry/omegaconf)|
 | Docs and support |[![Documentation Status](https://readthedocs.org/projects/omegaconf/badge/?version=2.0_branch)](https://omegaconf.readthedocs.io/en/2.1_branch/)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)|
 
 
