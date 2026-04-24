@@ -334,3 +334,25 @@ class TestStructured:
             with flag_override(cfg, "allow_objects", True):
                 cfg.plugin = pwo
                 assert cfg.plugin == pwo
+
+
+@mark.skipif(
+    sys.version_info < (3, 12),
+    reason="PEP 695 type alias syntax requires Python 3.12+",
+)
+class TestTypeAliases:
+    def test_type_alias(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType
+
+        # TypeAliasType is the runtime equivalent of `type MyInt = int` (PEP 695).
+        # Using the constructor avoids a SyntaxError on Python < 3.12.
+        # TODO: once Python 3.11 support is dropped, replace with `type MyInt = int`
+        MyInt = TypeAliasType("MyInt", int)
+
+        @dataclass
+        class C:
+            x: MyInt = 0
+
+        cfg = OmegaConf.structured(C)
+        assert cfg.x == 0
