@@ -736,6 +736,7 @@ def test_legal_assignment_string_valued_enum_by_member_name_and_value() -> None:
         IntegerNode(value=10),
         FloatNode(value=10.0),
         UnionNode(10.0, Union[float, bool]),
+        LiteralNode(ref_type=Literal[42], value=42),
         OmegaConf.create({}),
         OmegaConf.create([]),
         OmegaConf.create({"foo": "foo"}),
