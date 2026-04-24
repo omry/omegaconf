@@ -125,6 +125,16 @@ class OmegaConf:
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Any:
+        """
+        Alias for ``OmegaConf.create(obj)``. Accepts any input that ``create`` accepts,
+        though intended for structured config objects (dataclass or attrs types/instances).
+
+        :param obj: Source object — typically a dataclass or attrs type or instance,
+            but any value accepted by ``OmegaConf.create`` is valid.
+        :param parent: Optional parent node.
+        :param flags: Optional flags dict (e.g. ``{"readonly": True}``).
+        :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
+        """
         return OmegaConf.create(obj, parent, flags)
 
     @staticmethod
@@ -181,6 +191,18 @@ class OmegaConf:
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
     ) -> Optional[Union[DictConfig, ListConfig]]:
+        """
+        Create an OmegaConf config from ``obj``.
+
+        ``obj`` may be a YAML string, a dict, a list or tuple, a dataclass or attrs class (type or
+        instance), an existing ``DictConfig`` / ``ListConfig``, or ``None``.
+        Omitting ``obj`` (or passing ``{}`` explicitly) returns an empty ``DictConfig``.
+
+        :param obj: Source object to build the config from.
+        :param parent: Optional parent node.
+        :param flags: Optional flags dict (e.g. ``{"readonly": True}``).
+        :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
+        """
         return OmegaConf._create_impl(
             obj=obj,
             parent=parent,
@@ -229,6 +251,12 @@ class OmegaConf:
 
     @staticmethod
     def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
+        """
+        Load a YAML config from a file path or file-like object.
+
+        :param file_: A file path (str or ``pathlib.Path``) or an open file object.
+        :return: A ``DictConfig`` or ``ListConfig`` parsed from the YAML content.
+        """
         from ._utils import get_yaml_loader
 
         if isinstance(file_, (str, pathlib.Path)):
@@ -276,6 +304,14 @@ class OmegaConf:
 
     @staticmethod
     def from_cli(args_list: Optional[List[str]] = None) -> DictConfig:
+        """
+        Create a config from command-line arguments (``sys.argv[1:]`` by default).
+
+        Each argument must be a dotlist-style string such as ``"foo.bar=1"``.
+
+        :param args_list: Explicit list of dotlist strings; defaults to ``sys.argv[1:]``.
+        :return: A ``DictConfig`` built from the arguments.
+        """
         if args_list is None:
             # Skip program name
             args_list = sys.argv[1:]
@@ -535,6 +571,12 @@ class OmegaConf:
 
     @classmethod
     def has_resolver(cls, name: str) -> bool:
+        """
+        Return ``True`` if a resolver with the given name is registered.
+
+        :param name: Resolver name to check.
+        :return: ``True`` if registered, ``False`` otherwise.
+        """
         return cls._get_resolver(name) is not None
 
     # noinspection PyProtectedMember
@@ -568,37 +610,91 @@ class OmegaConf:
 
     @staticmethod
     def get_cache(conf: BaseContainer) -> Dict[str, Any]:
+        """
+        Return the resolver cache for ``conf``.
+
+        :param conf: An OmegaConf container.
+        :return: The resolver cache dict (resolver name -> cached values).
+        """
         return conf._metadata.resolver_cache
 
     @staticmethod
     def set_cache(conf: BaseContainer, cache: Dict[str, Any]) -> None:
+        """
+        Replace the resolver cache for ``conf`` with a deep copy of ``cache``.
+
+        :param conf: An OmegaConf container.
+        :param cache: New cache dict to install (will be deep-copied).
+        """
         conf._metadata.resolver_cache = copy.deepcopy(cache)
 
     @staticmethod
     def clear_cache(conf: BaseContainer) -> None:
+        """
+        Clear the resolver cache for ``conf``.
+
+        :param conf: An OmegaConf container.
+        """
         OmegaConf.set_cache(conf, defaultdict(dict, {}))
 
     @staticmethod
     def copy_cache(from_config: BaseContainer, to_config: BaseContainer) -> None:
+        """
+        Copy the resolver cache from one config to another.
+
+        :param from_config: Source container whose cache is copied.
+        :param to_config: Destination container that receives the cache copy.
+        """
         OmegaConf.set_cache(to_config, OmegaConf.get_cache(from_config))
 
     @staticmethod
     def set_readonly(conf: Node, value: Optional[bool]) -> None:
+        """
+        Set the read-only flag on ``conf``.
+
+        :param conf: An OmegaConf node.
+        :param value: ``True`` to make read-only, ``False`` to make writable,
+            ``None`` to inherit from the parent.
+        """
         # noinspection PyProtectedMember
         conf._set_flag("readonly", value)
 
     @staticmethod
     def is_readonly(conf: Node) -> Optional[bool]:
+        """
+        Return the effective read-only flag of ``conf``.
+
+        :param conf: An OmegaConf node.
+        :return: ``True`` if read-only, ``False`` if writable, ``None`` if not set
+            (inherits from parent).
+        """
         # noinspection PyProtectedMember
         return conf._get_flag("readonly")
 
     @staticmethod
     def set_struct(conf: Container, value: Optional[bool]) -> None:
+        """
+        Set the struct flag on ``conf``.
+
+        When struct mode is enabled, accessing or setting keys that do not exist in the
+        config raises an exception.
+
+        :param conf: An OmegaConf container.
+        :param value: ``True`` to enable struct mode, ``False`` to disable it,
+            ``None`` to inherit from the parent.
+        """
         # noinspection PyProtectedMember
         conf._set_flag("struct", value)
 
     @staticmethod
     def is_struct(conf: Container) -> Optional[bool]:
+        """
+        Return the effective struct flag of ``conf``.
+
+        :param conf: An OmegaConf container.
+        :return: ``True`` if struct mode is on, ``False`` if off, ``None`` if not set
+            (inherits from parent).
+        """
         # noinspection PyProtectedMember
         return conf._get_flag("struct")
 
@@ -683,6 +779,13 @@ class OmegaConf:
 
     @staticmethod
     def is_missing(cfg: Any, key: DictKeyType) -> bool:
+        """
+        Return ``True`` if ``cfg[key]`` is set to the mandatory-missing sentinel ``???``.
+
+        :param cfg: An OmegaConf container.
+        :param key: Key (str for DictConfig, int for ListConfig) to check.
+        :return: ``True`` if the value is missing, ``False`` otherwise.
+        """
         assert isinstance(cfg, Container)
         try:
             node = cfg._get_child(key)
@@ -695,6 +798,15 @@ class OmegaConf:
 
     @staticmethod
     def is_interpolation(node: Any, key: Optional[Union[int, str]] = None) -> bool:
+        """
+        Return ``True`` if the target node is an interpolation (e.g. ``${foo.bar}``).
+
+        If ``key`` is provided, checks ``node[key]``; otherwise checks ``node`` itself.
+
+        :param node: An OmegaConf node, or a container when ``key`` is given.
+        :param key: Optional key within ``node`` to inspect.
+        :return: ``True`` if the value is an interpolation, ``False`` otherwise.
+        """
         if key is not None:
             assert isinstance(node, Container)
             target = node._get_child(key)
@@ -707,24 +819,52 @@ class OmegaConf:
 
     @staticmethod
     def is_list(obj: Any) -> bool:
+        """
+        Return ``True`` if ``obj`` is an OmegaConf ``ListConfig``.
+
+        :param obj: Object to test.
+        :return: ``True`` if ``obj`` is a ``ListConfig``, ``False`` otherwise.
+        """
         from . import ListConfig
 
         return isinstance(obj, ListConfig)
 
     @staticmethod
     def is_dict(obj: Any) -> bool:
+        """
+        Return ``True`` if ``obj`` is an OmegaConf ``DictConfig``.
+
+        :param obj: Object to test.
+        :return: ``True`` if ``obj`` is a ``DictConfig``, ``False`` otherwise.
+        """
         from . import DictConfig
 
         return isinstance(obj, DictConfig)
 
     @staticmethod
     def is_config(obj: Any) -> bool:
+        """
+        Return ``True`` if ``obj`` is an OmegaConf config (``DictConfig`` or ``ListConfig``).
+
+        :param obj: Object to test.
+        :return: ``True`` if ``obj`` is an OmegaConf container, ``False`` otherwise.
+        """
         from . import Container
 
         return isinstance(obj, Container)
 
     @staticmethod
     def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+        """
+        Return the type of ``obj``, or of ``obj[key]`` when ``key`` is provided.
+
+        For structured configs this is the underlying dataclass or attrs class.
+        For plain containers it is ``dict`` or ``list``.
+
+        :param obj: An OmegaConf node or container.
+        :param key: Optional key within ``obj`` to inspect.
+        :return: The Python type, or ``None`` if not determinable.
+        """
         if key is not None:
             c = obj._get_child(key)
         else:
@@ -1068,6 +1208,16 @@ def flag_override(
     names: Union[List[str], str],
     values: Union[List[Optional[bool]], Optional[bool]],
 ) -> Generator[Node, None, None]:
+    """
+    Context manager that temporarily overrides one or more flags on ``config``.
+
+    The original flag values are restored on exit, even if an exception is raised.
+
+    :param config: An OmegaConf node whose flags will be overridden.
+    :param names: Flag name or list of flag names (e.g. ``"readonly"``, ``"struct"``).
+    :param values: New value or list of values corresponding to ``names``.
+    :return: Yields ``config`` with the overridden flags.
+    """
     if isinstance(names, str):
         names = [names]
     if values is None or isinstance(values, bool):
@@ -1084,6 +1234,14 @@ def flag_override(
 
 @contextmanager
 def read_write(config: Node) -> Generator[Node, None, None]:
+    """
+    Context manager that temporarily makes ``config`` writable.
+
+    The original read-only state is restored on exit, even if an exception is raised.
+
+    :param config: An OmegaConf node.
+    :return: Yields ``config`` in a writable state.
+    """
     prev_state = config._get_node_flag("readonly")
     try:
         OmegaConf.set_readonly(config, False)
@@ -1094,6 +1252,15 @@ def read_write(config: Node) -> Generator[Node, None, None]:
 
 @contextmanager
 def open_dict(config: Container) -> Generator[Container, None, None]:
+    """
+    Context manager that temporarily disables struct mode on ``config``.
+
+    While active, new keys can be added freely. The original struct state is restored
+    on exit, even if an exception is raised.
+
+    :param config: An OmegaConf container.
+    :return: Yields ``config`` with struct mode disabled.
+    """
     prev_state = config._get_node_flag("struct")
     try:
         OmegaConf.set_struct(config, False)
