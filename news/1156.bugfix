@@ -1,0 +1,1 @@
+``OmegaConf.create()`` now supports ``collections.OrderedDict`` as both a top-level input and a nested value.

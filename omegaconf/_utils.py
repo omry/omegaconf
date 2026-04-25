@@ -13,6 +13,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
+    FrozenSet,
     List,
     Optional,
     Tuple,
@@ -59,6 +60,15 @@ if TYPE_CHECKING:
 
 
 NoneType: Type[None] = type(None)
+
+# (module, qualname) pairs for dict types that are treated as primitive dicts,
+# enabling whitelisting of other dict types without pulling in extra dependencies.
+_PRIMITIVE_DICT_TYPES: FrozenSet[Tuple[str, str]] = frozenset(
+    {
+        ("builtins", "dict"),
+        ("collections", "OrderedDict"),
+    }
+)
 
 BUILTIN_VALUE_TYPES: Tuple[Type[Any], ...] = (
     int,
@@ -775,7 +785,7 @@ def is_primitive_list(obj: Any) -> bool:
 
 def is_primitive_dict(obj: Any) -> bool:
     t = get_type_of(obj)
-    return t is dict
+    return (t.__module__, t.__qualname__) in _PRIMITIVE_DICT_TYPES
 
 
 def is_dict_annotation(type_: Any) -> bool:

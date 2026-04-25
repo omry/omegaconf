@@ -3,6 +3,7 @@
 import platform
 import re
 import sys
+from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
 from textwrap import dedent
@@ -564,3 +565,24 @@ def test_create_from_str_check_parent(data: str) -> None:
     parent = OmegaConf.create({})
     cfg = OmegaConf.create(data, parent=parent)
     assert cfg._get_parent() is parent
+
+
+@mark.parametrize(
+    "input_, expected",
+    [
+        param(OrderedDict({"a": 1, "b": 2}), {"a": 1, "b": 2}, id="ordered_dict"),
+        param(
+            OrderedDict({"outer": OrderedDict({"inner": 42})}),
+            {"outer": {"inner": 42}},
+            id="nested_ordered_dict",
+        ),
+        param(
+            {"a": OrderedDict({"b": 1})},
+            {"a": {"b": 1}},
+            id="dict_with_ordered_dict_value",
+        ),
+    ],
+)
+def test_create_from_ordered_dict(input_: Any, expected: Any) -> None:
+    cfg = OmegaConf.create(input_)
+    assert OmegaConf.to_container(cfg) == expected
