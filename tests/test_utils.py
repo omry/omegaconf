@@ -1,5 +1,6 @@
 import re
 import sys
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -751,6 +752,8 @@ def test_is_primitive_list(obj: Any, expected: bool) -> None:
     [
         param({}, True, id="dict"),
         param({1: 2}, True, id="dict1"),
+        param(OrderedDict(), True, id="ordered_dict"),
+        param(OrderedDict({"a": 1}), True, id="ordered_dict_populated"),
         param([], False, id="list"),
         param((), False, id="tuple"),
     ],
