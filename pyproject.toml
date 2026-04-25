@@ -21,7 +21,7 @@ skip_glob = ["temp/*", "omegaconf/vendor/*", "subprojects/*"]
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
 pythonpath = ["."]
-norecursedirs = ["subprojects"]
+norecursedirs = ["subprojects", ".git", ".sl"]
 
 [tool.bumpversion]
 current_version = "2.4.0.dev10"

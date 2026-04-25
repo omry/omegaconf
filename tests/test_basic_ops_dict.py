@@ -104,6 +104,10 @@ def test_delattr(cfg: Any, struct: bool) -> None:
         param(True, "True", id="bool-T"),
         param(False, "False", id="bool-F"),
         param(Enum1.FOO, "FOO", id="enum"),
+        param("a.b", "a\\.b", id="str-dot"),
+        param("a[0]", r"a\[0\]", id="str-brackets"),
+        param("a]b", r"a\]b", id="str-close-bracket"),
+        param("a\\b", r"a\\b", id="str-backslash"),
     ],
 )
 class TestDictKeyTypes:
@@ -155,6 +159,10 @@ class TestDictKeyTypes:
         ({123.45: "a", 67.89: "b"}, 67.89, {123.45: "a"}),
         ({True: "a", False: "b"}, False, {True: "a"}),
         ({Enum1.FOO: "foo", Enum1.BAR: "bar"}, Enum1.FOO, {Enum1.BAR: "bar"}),
+        ({"a.b": 10, "c": 11}, "a.b", {"c": 11}),
+        ({"a[0]": 10, "c": 11}, "a[0]", {"c": 11}),
+        ({"a]b": 10, "c": 11}, "a]b", {"c": 11}),
+        ({"a\\b": 10, "c": 11}, "a\\b", {"c": 11}),
     ],
 )
 class TestDelitemKeyTypes:

@@ -140,6 +140,10 @@ From a YAML string
 From a dot-list
 ^^^^^^^^^^^^^^^^
 
+Each entry is a ``"key=value"`` string.  The key path uses dot/bracket notation.
+Keys that contain literal dots, brackets, or ``=`` can be escaped with a backslash
+(see :ref:`keypath-escaping`).
+
 .. doctest::
 
     >>> dot_list = ["a.aa.aaa=1", "a.aa.bbb=2", "a.bb.aaa=3", "a.bb.bbb=4"]
@@ -733,6 +737,7 @@ Example:
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
 ``OmegaConf.select()`` allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
+Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash (see :ref:`keypath-escaping`).
 
 .. doctest::
 
@@ -770,6 +775,7 @@ OmegaConf.select
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
 ``OmegaConf.update()`` allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
+Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash (see :ref:`keypath-escaping`).
 
 The merge flag controls the behavior if the input is a ``dict`` or a ``list``.
 If ``merge=True`` true (the default), dicts and lists are merged instead of being assigned.
@@ -793,6 +799,81 @@ The ``force_add`` flag ensures that the path is created even if it will result i
     >>> OmegaConf.update(cfg, "a.b.c.d", 10, force_add=True)
     >>> assert cfg.a.b.c.d == 10
 
+.. _keypath-escaping:
+
+Key path escaping
+^^^^^^^^^^^^^^^^^
+
+``OmegaConf.select``, ``OmegaConf.update``, ``OmegaConf.from_dotlist``, and
+``OmegaConf.from_cli`` all parse the key path through the same engine.  YAML
+allows keys to contain any character, including the delimiters that OmegaConf
+uses in key paths (``.``, ``[``, ``]``, ``=``).  Use a backslash to include
+these characters literally in a key name:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Escape sequence
+     - Result character
+     - Notes
+   * - ``\.``
+     - ``.``
+     - Dot is part of the key, not a path separator
+   * - ``\[``
+     - ``[``
+     - Open bracket is part of the key
+   * - ``\]``
+     - ``]``
+     - Close bracket is part of the key
+   * - ``\=``
+     - ``=``
+     - Useful in ``from_dotlist`` keys that contain ``=``
+   * - ``\x`` (any other char)
+     - ``\x``
+     - Passthrough: backslash + character unchanged
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"a.b": 10, "x": {"a[0]": 20}})
+    >>> OmegaConf.select(cfg, r"a\.b")
+    10
+    >>> OmegaConf.update(cfg, r"a\.b", 99)
+    >>> cfg["a.b"]
+    99
+    >>> OmegaConf.select(cfg, r"x.a\[0\]")
+    20
+
+For ``from_dotlist`` and ``from_cli``, the ``=`` in the key must also be
+escaped so that it is not mistaken for the key/value separator:
+
+.. doctest::
+
+    >>> conf = OmegaConf.from_dotlist([r"a\.b\=c=42"])
+    >>> conf["a.b=c"]
+    42
+
+Values may contain ``=`` freely — only the first *unescaped* ``=`` separates
+key from value:
+
+.. doctest::
+
+    >>> conf = OmegaConf.from_dotlist(["url=http://example.com?a=1&b=2"])
+    >>> conf.url
+    'http://example.com?a=1&b=2'
+
+**CLI / shell note:** When arguments are passed on the command line, the shell
+processes them before Python sees them.  A single backslash in a shell argument
+is typically consumed by the shell.  To preserve it, either quote the argument
+or double the backslash:
+
+.. code-block:: bash
+
+    # single-quote preserves the backslash literally
+    python app.py 'a\.b=1'
+
+    # or double-escape
+    python app.py a\\.b=1
 
 
 OmegaConf.masked_copy

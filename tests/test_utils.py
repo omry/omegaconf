@@ -13,6 +13,7 @@ from omegaconf._utils import (  # _normalize_ref_type,
     Marker,
     NoneType,
     _ensure_container,
+    _find_eq,
     _get_value,
     _is_optional,
     _resolve_forward,
@@ -1082,21 +1083,115 @@ def test_marker_string_representation() -> None:
         ("foo", ["foo"]),
         ("foo.bar", ["foo", "bar"]),
         ("foo[bar]", ["foo", "bar"]),
-        (".foo", ["", "foo"]),
-        ("..foo", ["", "", "foo"]),
-        (".foo[bar]", ["", "foo", "bar"]),
         ("[foo]", ["foo"]),
         ("[foo][bar]", ["foo", "bar"]),
-        (".[foo][bar]", ["", "foo", "bar"]),
-        ("..[foo][bar]", ["", "", "foo", "bar"]),
         (
-            "...a[b][c].d.e[f].g[h]",
-            ["", "", "", "a", "b", "c", "d", "e", "f", "g", "h"],
+            "a[b][c].d.e[f].g[h]",
+            ["a", "b", "c", "d", "e", "f", "g", "h"],
         ),
     ],
 )
 def test_split_key(key: str, expected: List[str]) -> None:
     assert split_key(key) == expected
+
+
+@mark.parametrize(
+    ("key", "expected"),
+    [
+        # \. -> literal dot in key (no split)
+        (r"\.", ["."]),
+        # \[ -> literal open-bracket in key
+        (r"\[", ["["]),
+        # \] -> literal close-bracket in key
+        (r"\]", ["]"]),
+        # escaped dot in the middle: no split at that dot
+        (r"a\.b", ["a.b"]),
+        # escaped brackets around inner segment
+        (r"a\[b\]", ["a[b]"]),
+        # escaped dot followed by a real dot delimiter
+        (r"a\.b.c", ["a.b", "c"]),
+        # two escaped dots: entire path is one key
+        (r"a\.b\.c", ["a.b.c"]),
+        # mix: escaped dot, real delimiter, escaped dot
+        (r"a\.b.c\.d", ["a.b", "c.d"]),
+        # bare \ before a non-special char passes through as-is
+        (r"a\b", [r"a\b"]),
+        (r"a\bc", [r"a\bc"]),
+        # bare \ at end of string passes through
+        ("a\\", ["a\\"]),
+        # two backslashes: first \ is bare (next char is \, not special), second is bare at end
+        (r"\\", [r"\\"]),
+        # \\. -> first \ bare (outputs \), second \ escapes dot -> key is \.
+        (r"\\.", [r"\."]),
+        # \\[ -> first \ bare, second \ escapes [ -> key is \[
+        (r"\\[", [r"\["]),
+        # \\] -> first \ bare, second \ escapes ] -> key is \]
+        (r"\\]", [r"\]"]),
+        # three backslashes: each is bare (no special char follows), key is unchanged
+        ("\\" * 3, ["\\" * 3]),
+        # bracket notation: dot inside [] is already literal
+        ("a[b.c]", ["a", "b.c"]),
+        # escaped brackets as part of a key, followed by real bracket notation
+        (r"a\[0\][b]", ["a[0]", "b"]),
+        # \] inside bracket notation: allows literal ] in key
+        (r"a[b\]c]", ["a", "b]c"]),
+        # \= -> literal equals sign in key (useful for dotlist keys containing =)
+        (r"a\=b", ["a=b"]),
+        (r"a\=b.c", ["a=b", "c"]),
+        # unescaped = is just a regular character (not a delimiter in split_key)
+        ("a=b", ["a=b"]),
+    ],
+)
+def test_split_key_escaping(key: str, expected: List[str]) -> None:
+    assert split_key(key) == expected
+
+
+@mark.parametrize(
+    ("key", "expected"),
+    [
+        # fast path (no backslash): unclosed bracket is silently dropped
+        ("a[b", ["a"]),
+        ("[a", []),
+        # slow path (backslash present) must match fast-path behaviour
+        (r"\a[b", [r"\a"]),
+        (r"\a[b.c", [r"\a"]),
+    ],
+)
+def test_split_key_unclosed_bracket(key: str, expected: List[str]) -> None:
+    """Unclosed brackets are silently dropped on both fast and slow paths."""
+    assert split_key(key) == expected
+
+
+@mark.parametrize(
+    ("s", "expected"),
+    [
+        # no '=' at all
+        ("a", -1),
+        ("a.b", -1),
+        # plain key=value
+        ("a=1", 1),
+        ("a.b=1", 3),
+        # value itself contains '='; only the first unescaped '=' is the separator
+        ("a=x=y", 1),
+        # escaped '=' in key: first '=' is shielded, second is the separator
+        (r"a\=b=1", 4),
+        # multiple escaped '=' before the real separator
+        (r"a\=b\=c=1", 7),
+        # escaped dot/bracket before '=' (skip past them)
+        (r"a\.b=1", 4),
+        (r"a\[b\]=1", 6),
+        # backslash before a non-special char does NOT shield the following char
+        (r"a\b=1", 3),
+        # '=' immediately at start
+        ("=1", 0),
+        # key-only (no '=')
+        ("abc", -1),
+        # all '=' are escaped: slow path, no unescaped separator found
+        (r"a\=b", -1),
+    ],
+)
+def test_find_eq(s: str, expected: int) -> None:
+    assert _find_eq(s) == expected
 
 
 @mark.parametrize("is_optional", [True, False])
@@ -1465,6 +1560,7 @@ def test_resolve_optional_support_pep_604() -> None:
     "type_, expected",
     [
         param(int, int, id="int"),
+        param("int", int, id="str"),
         param(tuple, Tuple[Any, ...], id="tuple"),
         param(Tuple, Tuple[Any, ...], id="Tuple"),
         param(Tuple[int], Tuple[int], id="Tuple[int]"),

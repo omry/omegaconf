@@ -48,6 +48,19 @@ class TestSelect:
             # relative selection
             param({"a": {"b": {"c": 10}}}, ".a", {"b": {"c": 10}}, id="relative"),
             param({"a": {"b": {"c": 10}}}, ".a.b", {"c": 10}, id="relative"),
+            # bracket notation without escaping
+            param({"a": {"b": 1}}, "a[b]", 1, id="bracket:dict"),
+            param({"a": {"b": {"c": 1}}}, "a[b][c]", 1, id="bracket:dict:nested"),
+            param({"a": {"b": {"c": 1}}}, "a[b].c", 1, id="bracket:dict:mixed"),
+            # keys containing special characters (dot, brackets, backslash+special)
+            param({"a.b": 1}, r"a\.b", 1, id="key:dot"),
+            param({"a[0]": 1}, r"a\[0\]", 1, id="key:brackets"),
+            param({"a]b": 1}, r"a\]b", 1, id="key:close-bracket"),
+            param({r"a\.b": 1}, r"a\\.b", 1, id="key:backslash-dot"),
+            param({"x": {"a.b": 1}}, r"x.a\.b", 1, id="key:nested:dot"),
+            param({"x": {"a[0]": 1}}, r"x.a\[0\]", 1, id="key:nested:brackets"),
+            param({"a=b": 1}, r"a\=b", 1, id="key:equals"),
+            param({"x": {"a=b": 1}}, r"x.a\=b", 1, id="key:nested:equals"),
         ],
     )
     def test_select(

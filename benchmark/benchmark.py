@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from pytest import fixture, mark, param
 
 from omegaconf import OmegaConf
-from omegaconf._utils import ValueKind, _is_missing_literal, get_value_kind
+from omegaconf._utils import ValueKind, _is_missing_literal, get_value_kind, split_key
 
 
 def build_dict(
@@ -153,6 +153,22 @@ def test_get_value_kind(
 
 def test_is_missing_literal(benchmark: Any) -> None:
     assert benchmark(_is_missing_literal, "???")
+
+
+@mark.parametrize(
+    "key",
+    [
+        param("a", id="single"),
+        param("a.b.c", id="dot:short"),
+        param("a.b.c.d.e.f.g.h", id="dot:long"),
+        param("a[b].c", id="bracket"),
+        param(r"a\.b.c", id="escaped_dot"),
+        param(r"a\[b\].c", id="escaped_brackets"),
+        param(r"a\.b\.c\.d\.e\.f\.g\.h", id="escaped_dot:long"),
+    ],
+)
+def test_split_key(key: str, benchmark: Any) -> None:
+    benchmark(split_key, key)
 
 
 @mark.parametrize("force_add", [False, True])
