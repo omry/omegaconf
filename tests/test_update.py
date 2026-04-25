@@ -4,8 +4,8 @@ from pytest import mark, param, raises
 
 from omegaconf import ListConfig, OmegaConf, ValidationError
 from omegaconf._utils import _ensure_container, is_primitive_container
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError
-from tests import Package, User
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError, ConfigTypeError
+from tests import Group, Package, User
 
 
 @mark.parametrize(
@@ -204,3 +204,38 @@ def test_update_force_add(cfg: Any, key: str, value: Any, expected: Any) -> None
 
     OmegaConf.update(cfg, key, value, force_add=True)
     assert cfg == expected
+
+
+def test_update_through_none_structured_node() -> None:
+    # Group.admin is Optional[User] = None; navigating into it must raise a
+    # clear ConfigTypeError naming the null intermediate key, not an AssertionError.
+    cfg = OmegaConf.structured(Group)
+    with raises(
+        ConfigTypeError, match="Cannot set 'admin.name' because 'admin' is None"
+    ):
+        OmegaConf.update(cfg, "admin.name", "Bond")
+
+
+def test_update_through_none_structured_node_nested() -> None:
+    # Verify _get_full_key includes the full path to the null node when it is
+    # more than one level deep: error should say "a.inner" not just "inner".
+    from dataclasses import dataclass, field
+    from typing import Optional
+
+    @dataclass
+    class Inner:
+        x: int = 0
+
+    @dataclass
+    class Middle:
+        inner: Optional[Inner] = None
+
+    @dataclass
+    class Outer:
+        a: Middle = field(default_factory=Middle)
+
+    cfg = OmegaConf.structured(Outer)
+    with raises(
+        ConfigTypeError, match="Cannot set 'a.inner.x' because 'a.inner' is None"
+    ):
+        OmegaConf.update(cfg, "a.inner.x", 1)

@@ -56,6 +56,7 @@ from ._utils import (
 from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigTypeError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -726,6 +727,11 @@ class OmegaConf:
             k = split[i]
             # if next_root is a primitive (string, int etc) replace it with an empty map
             next_root, key_ = _select_one(root, k, throw_on_missing=False)
+            if isinstance(next_root, Container) and next_root._is_none():
+                raise ConfigTypeError(
+                    f"Cannot set '{key}' because"
+                    f" '{root._get_full_key(key_)}' is None"
+                )
             if not isinstance(next_root, Container):
                 if force_add:
                     with flag_override(root, "struct", False):
@@ -736,9 +742,7 @@ class OmegaConf:
 
         last = split[-1]
 
-        assert isinstance(
-            root, Container
-        ), f"Unexpected type for root: {type(root).__name__}"
+        assert isinstance(root, Container), f"Unexpected type for root: {type(root).__name__}"
 
         last_key: Union[str, int] = last
         if isinstance(root, ListConfig):
