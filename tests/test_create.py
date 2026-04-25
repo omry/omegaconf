@@ -214,6 +214,14 @@ def test_cli_passing() -> None:
         (["a=hello", "b=world"], dict(a="hello", b="world")),
         # date-formatted string
         (["my_date=2019-12-11"], dict(my_date="2019-12-11")),
+        # escaped dot in key
+        ([r"a\.b=1"], {"a.b": 1}),
+        # escaped equals in key (= is the kv separator, so must escape it in the key)
+        ([r"a\=b=1"], {"a=b": 1}),
+        # escaped dot + escaped equals in the same key
+        ([r"a\.b\=c=42"], {"a.b=c": 42}),
+        # value containing = is unaffected (only first unescaped = is the separator)
+        (["a=x=y"], dict(a="x=y")),
     ],
 )
 def test_dotlist(input_: List[str], expected: Dict[str, Any]) -> None:

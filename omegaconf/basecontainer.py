@@ -10,6 +10,7 @@ from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
     _ensure_container,
+    _find_eq,
     _get_value,
     _is_interpolation,
     _is_missing_value,
@@ -217,7 +218,7 @@ class BaseContainer(Container, ABC):
             if not isinstance(arg, str):
                 fail()
 
-            idx = arg.find("=")
+            idx = _find_eq(arg)
             if idx == -1:
                 key = arg
                 value = None
