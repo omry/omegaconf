@@ -77,6 +77,23 @@ from tests import Group, Package, User
             {"list": [{"b": 2}]},
             id="list:merge",
         ),
+        # keys containing special characters (dot, brackets, backslash+special)
+        param({"a.b": 0}, r"a\.b", 1, {"a.b": 1}, id="key:dot"),
+        param({"a[0]": 0}, r"a\[0\]", 1, {"a[0]": 1}, id="key:brackets"),
+        param({"a]b": 0}, r"a\]b", 1, {"a]b": 1}, id="key:close-bracket"),
+        param({r"a\.b": 0}, r"a\\.b", 1, {r"a\.b": 1}, id="key:backslash-dot"),
+        param({"x": {"a.b": 0}}, r"x.a\.b", 1, {"x": {"a.b": 1}}, id="key:nested:dot"),
+        param(
+            {"x": {"a[0]": 0}},
+            r"x.a\[0\]",
+            1,
+            {"x": {"a[0]": 1}},
+            id="key:nested:brackets",
+        ),
+        param({"a=b": 0}, r"a\=b", 1, {"a=b": 1}, id="key:equals"),
+        param(
+            {"x": {"a=b": 0}}, r"x.a\=b", 1, {"x": {"a=b": 1}}, id="key:nested:equals"
+        ),
     ],
 )
 def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
