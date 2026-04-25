@@ -1,0 +1,1 @@
+``OmegaConf.update()`` now raises a ``ConfigTypeError`` with a clear message when navigating through a structured ``Optional`` node that is ``None``, instead of an ``AssertionError``.
