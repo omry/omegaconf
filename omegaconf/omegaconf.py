@@ -240,8 +240,29 @@ class OmegaConf:
 
     @staticmethod
     def from_dotlist(dotlist: List[str]) -> DictConfig:
-        """
-        Creates config from the content sys.argv or from the specified args list of not None
+        r"""
+        Creates a config from a list of dotlist-style strings (``"key=value"`` pairs).
+
+        Each entry is split on the first *unescaped* ``=``.  Everything before
+        it is the key path; everything after it is the value.  Key paths follow
+        the same dot/bracket syntax as :meth:`select` and :meth:`update`.
+
+        **Backslash escaping in keys:**
+        Use a backslash to include a literal special character in a key name.
+        The escapable characters are ``.``, ``[``, ``]``, and ``=``.
+
+        - ``r"a\.b=1"``    — key is ``"a.b"`` (dot is part of the key)
+        - ``r"a\=b=1"``    — key is ``"a=b"`` (``=`` is part of the key;
+          the second ``=`` is the key/value separator)
+
+        Values may contain ``=`` freely; only the first unescaped ``=`` separates
+        key from value (e.g. ``"url=http://x?a=1"`` gives key ``url``,
+        value ``http://x?a=1``).
+
+        **CLI / shell note:** When using :meth:`from_cli`, arguments pass through
+        the shell before reaching Python.  A single backslash in a shell argument
+        is usually consumed by the shell, so you must double it (``\\``) or
+        quote the argument (``'a\.b=1'``) to preserve it.
 
         :param dotlist: A list of dotlist-style strings, e.g. ``["foo.bar=1", "baz=qux"]``.
         :return: A ``DictConfig`` object created from the dotlist.
@@ -676,9 +697,24 @@ class OmegaConf:
         throw_on_resolution_failure: bool = True,
         throw_on_missing: bool = False,
     ) -> Any:
-        """
+        r"""
+        Select a value from a config using a key path.
+
+        The key path uses dot notation (``"a.b.c"``) or bracket notation
+        (``"a[b][c]"``), or a mix of both.
+
+        **Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
+        can be expressed by escaping them with a backslash:
+
+        - ``r"a\.b"``   — selects the key ``"a.b"`` (single key with a literal dot)
+        - ``r"a\[0\]"`` — selects the key ``"a[0]"``
+        - ``r"a\=b"``   — selects the key ``"a=b"``
+
+        A backslash before any other character passes through unchanged
+        (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
+
         :param cfg: Config node to select from
-        :param key: Key to select
+        :param key: Key path to select (dot/bracket notation, backslash-escapable)
         :param default: Default value to return if key is not found
         :param throw_on_resolution_failure: Raise an exception if an interpolation
                resolution error occurs, otherwise return None
@@ -708,11 +744,21 @@ class OmegaConf:
         merge: bool = True,
         force_add: bool = False,
     ) -> None:
-        """
-        Updates a dot separated key sequence to a value
+        r"""
+        Update a value in a config using a key path.
+
+        The key path uses dot notation (``"a.b.c"``) or bracket notation
+        (``"a[b][c]"``), or a mix of both.
+
+        **Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
+        can be expressed by escaping them with a backslash:
+
+        - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
+        - ``r"a\[0\]"`` — targets the key ``"a[0]"``
+        - ``r"a\=b"``   — targets the key ``"a=b"``
 
         :param cfg: input config to update
-        :param key: key to update (can be a dot separated path)
+        :param key: key path to update (dot/bracket notation, backslash-escapable)
         :param value: value to set, if value if a list or a dict it will be merged or set
             depending on merge_config_values
         :param merge: If value is a dict or a list, True (default) to merge

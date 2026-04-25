@@ -1,0 +1,1 @@
+Key paths in ``OmegaConf.update()``, ``OmegaConf.select()``, ``OmegaConf.from_dotlist()``, and ``OmegaConf.from_cli()`` now support backslash escaping so that keys whose names contain literal dots, brackets, or equals signs can be addressed (e.g. ``r"a\.b"`` selects the key ``"a.b"``).
