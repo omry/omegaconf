@@ -179,6 +179,40 @@ class BaseContainer(Container, ABC):
         content = self.__dict__["_content"]
         return len(content)
 
+    def __or__(self, other: Any) -> "BaseContainer":
+        from omegaconf import DictConfig, OmegaConf
+
+        if not isinstance(self, DictConfig) or not isinstance(
+            other, (DictConfig, dict)
+        ):
+            raise TypeError(
+                f"unsupported operand type(s) for |: '{type(self).__name__}' and '{type(other).__name__}'"
+            )
+        return OmegaConf.merge(self, other)
+
+    def __ror__(self, other: Any) -> "BaseContainer":
+        from omegaconf import DictConfig, OmegaConf
+
+        if not isinstance(self, DictConfig) or not isinstance(
+            other, (DictConfig, dict)
+        ):
+            raise TypeError(
+                f"unsupported operand type(s) for |: '{type(other).__name__}' and '{type(self).__name__}'"
+            )
+        return OmegaConf.merge(other, self)
+
+    def __ior__(self, other: Any) -> "BaseContainer":
+        from omegaconf import DictConfig
+
+        if not isinstance(self, DictConfig) or not isinstance(
+            other, (DictConfig, dict)
+        ):
+            raise TypeError(
+                f"unsupported operand type(s) for |=: '{type(self).__name__}' and '{type(other).__name__}'"
+            )
+        self.merge_with(other)
+        return self
+
     def merge_with_cli(self) -> None:
         args_list = sys.argv[1:]
         self.merge_with_dotlist(args_list)
