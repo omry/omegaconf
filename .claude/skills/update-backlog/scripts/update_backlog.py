@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +27,7 @@ END_MANUAL = "<!-- END MANUAL COMMENTS -->"
 MANUAL_FENCE = '```json\n{\n  "issues": {},\n  "general": []\n}\n```'
 
 STATUS_ORDER = ["in progress", "community PR", "blocked", "not started", "done"]
+DONE_EXPIRE_DAYS = 14
 
 CATEGORY_EMOJI = {
     "Bug": "🐛",
@@ -378,11 +379,6 @@ def extract_issue_numbers(text: str, repo: str | None = None) -> list[str]:
     return numbers
 
 
-def _extract_span_title(cell: str) -> str:
-    m = re.match(r'<span\s+title="([^"]*)">', cell.strip())
-    return m.group(1) if m else cell
-
-
 def parse_issue_table_rows(text: str) -> list[dict[str, Any]]:
     lines = text.splitlines()
     rows: list[dict[str, Any]] = []
@@ -410,12 +406,13 @@ def parse_issue_table_rows(text: str) -> list[dict[str, Any]]:
         issue_number = issue_match.group(1)
         pr_numbers = re.findall(r"#(\d+)", cells[4])
         labels = [label.strip() for label in cells[7].split(",") if label.strip()]
+        status_match = re.match(r'<span\s+title="([^"]*)">', cells[3].strip())
+        status = status_match.group(1) if status_match else cells[3]
         rows.append(
             {
                 "number": issue_number,
                 "title": cells[1].replace(r"\|", "|"),
-                "category": _extract_span_title(cells[2]),
-                "status": _extract_span_title(cells[3]),
+                "status": status,
                 "pr_numbers": pr_numbers,
                 "created": cells[5],
                 "updated": cells[6],
@@ -650,6 +647,7 @@ def normalize_previous_row(repo: str, row: dict[str, Any]) -> dict[str, Any]:
         **row,
         "title": title,
         "title_display": escape_table_cell(truncate_title(title)),
+        "category": categorize_issue({"title": title, "labels": [{"name": label} for label in labels]}),
         "labels": labels,
         "labels_display": escape_table_cell(format_label_string(labels)),
         "issue_link": issue_link(repo, row["number"]),
@@ -721,10 +719,25 @@ def build_previous_row_maps(
     return rows_by_number, order_by_status
 
 
+def _is_done_expired(row: dict[str, Any], closed_at: dict[str, str]) -> bool:
+    close_date_str = closed_at.get(row["number"])
+    if not close_date_str:
+        # Fall back to updated date stored in the row (uses non-breaking hyphens)
+        close_date_str = row.get("updated", "").replace("‑", "-")
+    if not close_date_str:
+        return False
+    try:
+        return (date.today() - date.fromisoformat(close_date_str)).days > DONE_EXPIRE_DAYS
+    except ValueError:
+        return False
+
+
 def merge_rows_for_render(
     current_records: list[dict[str, Any]],
     previous_rows: list[dict[str, Any]],
+    closed_at: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
+    closed_at = closed_at or {}
     previous_by_number, previous_order = build_previous_row_maps(previous_rows)
     current_by_number = {record["number"]: record for record in current_records}
     current_numbers = set(current_by_number)
@@ -748,6 +761,8 @@ def merge_rows_for_render(
     done_rows: list[dict[str, Any]] = []
     for row in previous_rows:
         if row["status"] == "done" and row["number"] not in current_numbers:
+            if _is_done_expired(row, closed_at):
+                continue
             row = dict(row)
             row["sort_key"] = (0, previous_order["done"].index(row["number"]))
             done_rows.append(row)
@@ -1023,9 +1038,20 @@ def main() -> int:
     current_records = build_current_issue_records(
         repo, active_open_issues, collaborators, pr_lookup
     )
-    render_rows = merge_rows_for_render(current_records, previous_rows)
-
     current_snapshot = snapshot_from_open_records(repo, current_records, generated_at)
+
+    prev_open = set((previous_snapshot or {}).get("issues", {}).keys())
+    curr_open = set(current_snapshot["issues"].keys())
+    run_date = generated_at[:10]
+    closed_at: dict[str, str] = dict((previous_snapshot or {}).get("closed_at", {}))
+    for num in prev_open - curr_open:
+        closed_at.setdefault(num, run_date)
+
+    render_rows = merge_rows_for_render(current_records, previous_rows, closed_at)
+    rendered_numbers = {row["number"] for row in render_rows}
+    current_snapshot["closed_at"] = {
+        num: dt for num, dt in closed_at.items() if num in rendered_numbers
+    }
     new_issues, status_changes, label_changes, closed_issues = compare_snapshots(
         previous_snapshot,
         current_snapshot,

@@ -245,6 +245,122 @@ def test_save_snapshot_creates_parent_dirs(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# normalize_previous_row — category derived from title/labels, not HTML
+# ---------------------------------------------------------------------------
+
+
+def _prev_row(number: str, title: str, status: str = "done", labels: list[str] = []) -> dict[str, Any]:
+    return {
+        "number": number,
+        "title": title,
+        "status": status,
+        "pr_numbers": [],
+        "created": "2024‑01‑01",
+        "updated": "2024‑01‑01",
+        "labels": labels,
+    }
+
+
+def test_normalize_previous_row_derives_category_from_title():
+    row = ub.normalize_previous_row("o/r", _prev_row("803", "[Question] Why hide this?"))
+    assert row["category"] == "Question"
+
+
+def test_normalize_previous_row_derives_category_from_label():
+    row = ub.normalize_previous_row("o/r", _prev_row("1", "Something", labels=["bug"]))
+    assert row["category"] == "Bug"
+
+
+def test_normalize_previous_row_ignores_stale_category_field():
+    # Even if a corrupted category was parsed and stored, normalize re-derives it
+    raw = {**_prev_row("1", "Add a feature"), "category": '<span title="<span>garbage</span>">✨</span>'}
+    row = ub.normalize_previous_row("o/r", raw)
+    assert row["category"] == "Enhancement"
+
+
+# ---------------------------------------------------------------------------
+# _is_done_expired
+# ---------------------------------------------------------------------------
+
+
+def test_is_done_expired_not_expired_via_closed_at():
+    from datetime import date, timedelta
+    recent = (date.today() - timedelta(days=5)).isoformat()
+    row = _prev_row("1", "t")
+    assert not ub._is_done_expired(row, {"1": recent})
+
+
+def test_is_done_expired_expired_via_closed_at():
+    from datetime import date, timedelta
+    old = (date.today() - timedelta(days=15)).isoformat()
+    row = _prev_row("1", "t")
+    assert ub._is_done_expired(row, {"1": old})
+
+
+def test_is_done_expired_boundary_exactly_14_days():
+    from datetime import date, timedelta
+    boundary = (date.today() - timedelta(days=14)).isoformat()
+    row = _prev_row("1", "t")
+    assert not ub._is_done_expired(row, {"1": boundary})
+
+
+def test_is_done_expired_fallback_to_updated_field():
+    from datetime import date, timedelta
+    old = (date.today() - timedelta(days=20)).isoformat().replace("-", "‑")
+    row = {**_prev_row("1", "t"), "updated": old}
+    assert ub._is_done_expired(row, {})
+
+
+def test_is_done_expired_no_date_not_expired():
+    row = {**_prev_row("1", "t"), "updated": ""}
+    assert not ub._is_done_expired(row, {})
+
+
+# ---------------------------------------------------------------------------
+# merge_rows_for_render — done expiry
+# ---------------------------------------------------------------------------
+
+
+def _done_prev_row(number: str, days_old: int) -> dict[str, Any]:
+    from datetime import date, timedelta
+    updated = (date.today() - timedelta(days=days_old)).isoformat().replace("-", "‑")
+    row = _prev_row(number, f"Issue {number}", status="done")
+    row["updated"] = updated
+    row["title_display"] = f"Issue {number}"
+    row["labels_display"] = ""
+    row["issue_link"] = f"[#{number}](url)"
+    row["pr_links"] = ""
+    row["category"] = "Enhancement"
+    return row
+
+
+def test_merge_keeps_fresh_done_row():
+    prev = [_done_prev_row("1", days_old=5)]
+    rows = ub.merge_rows_for_render([], prev)
+    assert any(r["number"] == "1" for r in rows)
+
+
+def test_merge_expires_old_done_row():
+    prev = [_done_prev_row("1", days_old=20)]
+    rows = ub.merge_rows_for_render([], prev)
+    assert not any(r["number"] == "1" for r in rows)
+
+
+def test_merge_closed_at_overrides_updated_field():
+    from datetime import date, timedelta
+    # updated says old, but closed_at says recent → should keep
+    prev = [_done_prev_row("1", days_old=20)]
+    recent = (date.today() - timedelta(days=3)).isoformat()
+    rows = ub.merge_rows_for_render([], prev, closed_at={"1": recent})
+    assert any(r["number"] == "1" for r in rows)
+
+
+# ---------------------------------------------------------------------------
+# closed_at snapshot tracking and pruning via main()
+# ---------------------------------------------------------------------------
+
+
 def test_event_log_cleared_after_update(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     event_log = tmp_path / "events.jsonl"
     event_log.write_text('{"event": "issues", "action": "opened"}\n', encoding="utf-8")
