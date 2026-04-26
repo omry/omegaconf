@@ -159,8 +159,8 @@
 | [#1263](https://github.com/omry/omegaconf/issues/1263) | Revert list_merge_mode before stable 2.4 | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1271](https://github.com/omry/omegaconf/issues/1271) | Support Union[Literal[...], other_type] annotations in... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1274](https://github.com/omry/omegaconf/issues/1274) | Python 3.10 minimum: remove version guards and moderniz... | <span title="Refactor">🔧</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
-| [#1282](https://github.com/omry/omegaconf/issues/1282) | Migrate Documentation from Read the docs to a GitHub ho... | <span title="Documentation">📄</span> | <span title="not started">⬜</span> |  | 2026‑04‑26 | 2026‑04‑26 |  |
-| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
+| [#1282](https://github.com/omry/omegaconf/issues/1282) | Migrate Documentation from Read the docs to a GitHub ho... | <span title="Documentation">📄</span> | <span title="not started">⬜</span> |  | 2026‑04‑26 | 2026‑04‑26 | documentation |
+| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="<span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span>"><span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span></span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T10:51:29Z",
+  "generated_at": "2026-04-26T10:51:37Z",
   "issues": {
     "1006": {
       "category": "Enhancement",
@@ -650,12 +650,14 @@
     "1282": {
       "category": "Documentation",
       "created_at": "2026-04-26T10:51:21Z",
-      "labels": [],
+      "labels": [
+        "documentation"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "updated_at": "2026-04-26T10:51:21Z"
+      "updated_at": "2026-04-26T10:51:31Z"
     },
     "131": {
       "category": "Enhancement",
