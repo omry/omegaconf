@@ -33,6 +33,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add BACKLOG.md BACKLOG-UPDATES.md
+          git add BACKLOG.md BACKLOG-UPDATES.md .claude/skills/update-backlog/state/last_snapshot.json
           git diff --cached --quiet || git commit -m "backlog: auto-update [skip ci]"
           git push
