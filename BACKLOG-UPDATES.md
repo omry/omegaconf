@@ -1,3 +1,5 @@
+- `2026-04-26T12:43:37Z` label: [#788](https://github.com/omry/omegaconf/issues/788) validation error when default_factory produces structured list containing missing: removed "needs triage"
+
 ## 2026-04-26
 
 ### Closed on GitHub
