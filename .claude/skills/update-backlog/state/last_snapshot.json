@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T08:16:24Z",
+  "generated_at": "2026-04-26T10:29:40Z",
   "issues": {
     "1006": {
       "category": "Enhancement",
@@ -736,7 +736,6 @@
         "wishlist"
       ],
       "pr_numbers": [
-        "865",
         "1272"
       ],
       "state": "OPEN",
