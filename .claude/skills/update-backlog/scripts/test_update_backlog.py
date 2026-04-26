@@ -1,7 +1,6 @@
 """Unit tests for update_backlog.py."""
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -11,7 +10,6 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
 import update_backlog as ub  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # try_command
@@ -68,7 +66,7 @@ def _issue(labels: list[str], title: str = "", body: str = "") -> dict[str, Any]
     return {
         "title": title,
         "body": body,
-        "labels": [{"name": l} for l in labels],
+        "labels": [{"name": name} for name in labels],
     }
 
 
@@ -114,7 +112,7 @@ def _open_issue(number: int, labels: list[str] = []) -> dict[str, Any]:
         "number": number,
         "title": f"Issue {number}",
         "body": "",
-        "labels": [{"name": l} for l in labels],
+        "labels": [{"name": name} for name in labels],
         "state": "OPEN",
         "createdAt": "2024-01-01T00:00:00Z",
         "updatedAt": "2024-01-01T00:00:00Z",
@@ -251,8 +249,6 @@ def test_event_log_cleared_after_update(tmp_path: Path, monkeypatch: pytest.Monk
     event_log = tmp_path / "events.jsonl"
     event_log.write_text('{"event": "issues", "action": "opened"}\n', encoding="utf-8")
     snapshot_path = tmp_path / "snap.json"
-
-    calls: list[str] = []
 
     def fake_fetch_collaborators(repo: str) -> set[str]:
         return set()
