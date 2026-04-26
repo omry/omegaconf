@@ -136,7 +136,17 @@ jobs:
           cd events-branch
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add last_snapshot.json events.jsonl
-          git diff --cached --quiet && exit 0
-          git commit -m "backlog: update snapshot [skip ci]"
-          git pull --rebase origin backlog-events && git push
+          # Save snapshot written by the update script before resetting
+          cp last_snapshot.json /tmp/last_snapshot.json
+          for i in 1 2 3; do
+            git fetch origin backlog-events
+            git reset --hard origin/backlog-events
+            cp /tmp/last_snapshot.json last_snapshot.json
+            > events.jsonl
+            git add last_snapshot.json events.jsonl
+            git diff --cached --quiet && exit 0
+            git commit -m "backlog: update snapshot [skip ci]"
+            git push && break
+            git reset HEAD~1
+            sleep $((i * 3))
+          done
