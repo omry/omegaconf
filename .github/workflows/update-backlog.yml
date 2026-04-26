@@ -120,6 +120,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          pip install omegaconf
           python .claude/skills/update-backlog/scripts/update_backlog.py \
             --snapshot-path events-branch/last_snapshot.json \
             --event-log-path events-branch/events.jsonl
