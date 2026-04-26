@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T10:29:40Z",
+  "generated_at": "2026-04-26T10:44:01Z",
   "issues": {
     "1006": {
       "category": "Enhancement",
@@ -1025,18 +1025,6 @@
       "status": "not started",
       "title": "Read-only flag not working during `OmegaConf.merge`",
       "updated_at": "2026-04-24T06:29:29Z"
-    },
-    "803": {
-      "category": "Question",
-      "created_at": "2021-10-14T11:57:10Z",
-      "labels": [
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "[Question] Why hide dictconfig debugging content?",
-      "updated_at": "2026-04-24T06:28:13Z"
     },
     "813": {
       "category": "Bug",

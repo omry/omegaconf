@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 45 | 44.6% |
-| ✨ Enhancement | 49 | 48.5% |
+| 🐛 Bug | 45 | 45.0% |
+| ✨ Enhancement | 49 | 49.0% |
 | 🔧 Refactor | 2 | 2.0% |
 | 🏗️ Build | 1 | 1.0% |
 | 📄 Documentation | 2 | 2.0% |
-| ❓ Question | 2 | 2.0% |
-| **Total** | **101** | |
+| ❓ Question | 1 | 1.0% |
+| **Total** | **100** | |
 
 </td><td>
 
@@ -51,8 +51,8 @@
 | 🔄 in progress | 14 |
 | 🤝 community PR | 7 |
 | 🚫 blocked | 4 |
-| ⬜ not started | 76 |
-| ✅ done | 0 |
+| ⬜ not started | 75 |
+| ✅ done | 1 |
 
 
 </td></tr></table>
@@ -109,7 +109,6 @@
 | [#794](https://github.com/omry/omegaconf/issues/794) | OmegaConf is vulenrable to ddos via specially crafted y... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2021‑10‑05 | 2026‑04‑24 | bug, needs triage, priority_medium |
 | [#801](https://github.com/omry/omegaconf/issues/801) | Feature: Read-only flag on leaf field | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2021‑10‑13 | 2026‑04‑24 | enhancement, needs triage, priority_low |
 | [#802](https://github.com/omry/omegaconf/issues/802) | Read-only flag not working during `OmegaConf.merge` | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2021‑10‑13 | 2026‑04‑24 | bug, needs triage |
-| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="Question">❓</span> | <span title="not started">⬜</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 | [#813](https://github.com/omry/omegaconf/issues/813) | OmegaConf.masked_copy does not preserve ValueNode type | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2021‑10‑28 | 2026‑04‑24 | bug, low priority, needs triage |
 | [#815](https://github.com/omry/omegaconf/issues/815) | merge-readonly interatction | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2021‑10‑29 | 2026‑04‑24 | needs triage |
 | [#846](https://github.com/omry/omegaconf/issues/846) | Nightly builds | <span title="Build">🏗️</span> | <span title="not started">⬜</span> |  | 2021‑12‑27 | 2026‑04‑24 | maintenance, needs triage |
@@ -160,6 +159,7 @@
 | [#1263](https://github.com/omry/omegaconf/issues/1263) | Revert list_merge_mode before stable 2.4 | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1271](https://github.com/omry/omegaconf/issues/1271) | Support Union[Literal[...], other_type] annotations in... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1274](https://github.com/omry/omegaconf/issues/1274) | Python 3.10 minimum: remove version guards and moderniz... | <span title="Refactor">🔧</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
+| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="<span title="Question">❓</span>"><span title="Question">❓</span></span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments
