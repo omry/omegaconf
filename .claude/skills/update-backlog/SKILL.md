@@ -1,9 +1,9 @@
 ---
 name: update-backlog
-description: Sync backlog.md with current GitHub issue state (labels, status, new issues) while preserving hand-curated notes. Appends a change summary to backlog-updates.md.
+description: Sync BACKLOG.md with current GitHub issue state (labels, status, new issues) while preserving hand-curated notes. Appends a change summary to BACKLOG-UPDATES.md.
 ---
 
-Update `backlog.md` by syncing it against the current state of the omry/omegaconf GitHub repo. Follow these steps in order:
+Update `BACKLOG.md` by syncing it against the current state of the omry/omegaconf GitHub repo. Follow these steps in order:
 
 ## 1. Fetch maintainers
 
@@ -51,16 +51,16 @@ Look at recently merged PRs for issues that should now be marked done:
 gh pr list --repo omry/omegaconf --state merged --limit 30 --json number,title,body,mergedAt
 ```
 
-Cross-reference against issues still marked `not started` or `in progress` in backlog.md. If a merged PR clearly fixes a tracked issue (by title match or body reference), mark it `done` and note the PR number.
+Cross-reference against issues still marked `not started` or `in progress` in BACKLOG.md. If a merged PR clearly fixes a tracked issue (by title match or body reference), mark it `done` and note the PR number.
 
-## 6. Update backlog.md
+## 6. Update BACKLOG.md
 
 The required file structure and table format are defined in `backlog-template.md` (same directory as this skill). Follow it exactly — column order, header text, separator, and status legend must all match the template. Key rules:
 - Titles longer than ~55 chars should be truncated with `...`
 - A literal `|` in a title must be escaped as `\|`
 - Valid categories: `Bug`, `Enhancement`, `Refactor`, `Build`, `Documentation`, `Question`
 
-For each issue in backlog.md, update:
+For each issue in BACKLOG.md, update:
 - **Labels**: replace with current labels from GitHub (full, untruncated)
 - **Status**: update based on rules above
 - **PR column**: add/update PR number if status is `in progress`, `community PR`, or `done`
@@ -69,11 +69,11 @@ For each issue in backlog.md, update:
 - Any notes or annotations added manually below the table
 - Issues that were manually removed from the list
 
-**Handle new issues** (in GitHub but not in backlog.md):
+**Handle new issues** (in GitHub but not in BACKLOG.md):
 - Add them at the bottom of the table (in issue-number order) with status `not started`
 - Leave the PR column blank
 
-**Handle closed issues** (in backlog.md but no longer open on GitHub):
+**Handle closed issues** (in BACKLOG.md but no longer open on GitHub):
 - Mark status as `done` if not already
 - Keep the row so the history is preserved
 
@@ -95,15 +95,15 @@ Note: `#1006` has a literal `\|` in its title — split on unescaped `|` only wh
 
 Recount By Status (all issues) and By Category (open issues only — exclude `done` rows) tables.
 
-## 8. Update the generation timestamp
+## 9. Update the generation timestamp
 
 Change the `Generated on` date at the top to today's date.
 
-## 9. Append to backlog-updates.md
+## 10. Append to BACKLOG-UPDATES.md
 
 **Only append if at least one change occurred** (new issues, status changes, or label changes). If nothing changed, skip this step entirely — do not write a "none" entry.
 
-Append a structured entry to `backlog-updates.md` (create the file if it doesn't exist). The entry format is:
+Append a structured entry to `BACKLOG-UPDATES.md` (create the file if it doesn't exist). The entry format is:
 
 ```
 ## YYYY-MM-DD
@@ -131,11 +131,11 @@ Append a structured entry to `backlog-updates.md` (create the file if it doesn't
 
 Only include sections that have actual changes. Do not rewrite or modify previous entries — only append.
 
-## 10. Commit the result
+## 11. Commit the result
 
 ```
-sl add backlog.md backlog-updates.md 2>/dev/null
-sl commit -m "Update backlog.md: sync labels, status, and PRs from GitHub"
+sl add BACKLOG.md BACKLOG-UPDATES.md 2>/dev/null
+sl commit -m "Update BACKLOG.md: sync labels, status, and PRs from GitHub"
 ```
 
 If there are newly identified done issues that haven't been formally closed on GitHub, ask the user whether to close them before committing.
