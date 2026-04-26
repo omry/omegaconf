@@ -1,3 +1,5 @@
+- `2026-04-26T17:47:58Z` label: [#702](https://github.com/omry/omegaconf/issues/702) Provide correct full key on nested Structured Config creation error.: removed "needs triage"
+
 - `2026-04-26T17:46:30Z` label: [#651](https://github.com/omry/omegaconf/issues/651) Interpolations can't refer to non-string keys: removed "needs triage"
 
 - `2026-04-26T17:45:07Z` label: [#580](https://github.com/omry/omegaconf/issues/580) _ensure_container does not set flags if target is already a DictConfig/ListConfig: removed "needs triage", "priority_medium"
