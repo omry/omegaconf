@@ -3,6 +3,7 @@ show_missing = True
 omit =
     .nox/*
     */tests/*
+    .claude/*
     docs/*
     omegaconf/grammar/gen/*
     omegaconf/vendor/*
