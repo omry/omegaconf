@@ -27,6 +27,8 @@ temp
 
 # Agents hooks etc
 .agents
-.claude
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 .codex
 .mcp.json
