@@ -37,7 +37,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git commit -m "init: backlog-events branch"
-            git push origin backlog-events
+            git push origin backlog-events || true  # tolerate race with parallel job
             git checkout -
           fi
 
@@ -96,7 +96,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git commit -m "init: backlog-events branch"
-            git push origin backlog-events
+            git push origin backlog-events || true  # tolerate race with parallel job
             git checkout -
           fi
 
