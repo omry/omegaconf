@@ -1,0 +1,152 @@
+name: Update Backlog
+run-name: "backlog: ${{ github.event_name }}.${{ github.event.action }} #${{ github.event.issue.number || github.event.pull_request.number || 'n/a' }} ${{ github.event.issue.title || github.event.pull_request.title }}"
+
+on:
+  issues:
+    types: [opened, closed, labeled, unlabeled, reopened]
+  pull_request:
+    types: [opened, closed, labeled, unlabeled, reopened]
+  schedule:
+    - cron: '0 7 * * *'  # daily at 7am UTC as a fallback
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  # Logs the triggering event to events.jsonl on the backlog-events branch.
+  # Runs immediately on every issue/PR event, independent of the process job.
+  # The backlog-events branch holds events.jsonl and last_snapshot.json,
+  # keeping main clean. Named branches are never GC'd by GitHub.
+  log-event:
+    if: github.event_name == 'issues' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize backlog-events branch if needed
+        run: |
+          if ! git ls-remote --exit-code origin backlog-events; then
+            git checkout --orphan backlog-events
+            git rm -rf . --quiet || true
+            echo '' > events.jsonl
+            git add events.jsonl
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "init: backlog-events branch"
+            git push origin backlog-events || true  # tolerate race with parallel job
+            git checkout "$GITHUB_REF_NAME"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: backlog-events
+          path: events-branch
+
+      - name: Append event to log
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: |
+          jq -n \
+            --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg event "$EVENT_NAME" \
+            --arg action "$EVENT_ACTION" \
+            --arg number "$ISSUE_NUMBER" \
+            '{ts: $ts, event: $event, action: $action, number: $number}' \
+            >> events-branch/events.jsonl
+
+      - name: Push event log (with rebase retry for concurrent appends)
+        run: |
+          cd events-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add events.jsonl
+          git diff --cached --quiet && exit 0
+          git commit -m "event: ${{ github.event_name }}.${{ github.event.action }} #${{ github.event.issue.number || github.event.pull_request.number }}"
+          for i in 1 2 3; do
+            git pull --rebase origin backlog-events && git push && break
+            sleep $((i * 3))
+          done
+
+  # Processes all pending events and updates BACKLOG.md on main.
+  # Debounced: waits 60s on event triggers so rapid bursts collapse to one run.
+  # Concurrency cancel-in-progress ensures only the latest surviving run processes.
+  process:
+    concurrency:
+      group: update-backlog
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize backlog-events branch if needed
+        run: |
+          if ! git ls-remote --exit-code origin backlog-events; then
+            git checkout --orphan backlog-events
+            git rm -rf . --quiet || true
+            echo '' > events.jsonl
+            git add events.jsonl
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "init: backlog-events branch"
+            git push origin backlog-events || true  # tolerate race with parallel job
+            git checkout "$GITHUB_REF_NAME"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: backlog-events
+          path: events-branch
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Debounce (event-triggered runs only)
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
+        run: sleep 60
+
+      - name: Update backlog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python .claude/skills/update-backlog/scripts/update_backlog.py \
+            --snapshot-path events-branch/last_snapshot.json \
+            --event-log-path events-branch/events.jsonl
+
+      - name: Commit BACKLOG.md to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add BACKLOG.md
+          [ -f BACKLOG-UPDATES.md ] && git add BACKLOG-UPDATES.md || true
+          git diff --cached --quiet || git commit -m "backlog: auto-update [skip ci]"
+          git push
+
+      - name: Commit snapshot and cleared event log to backlog-events
+        run: |
+          cd events-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Save snapshot written by the update script before resetting
+          cp last_snapshot.json /tmp/last_snapshot.json
+          for i in 1 2 3; do
+            git fetch origin backlog-events
+            git reset --hard origin/backlog-events
+            cp /tmp/last_snapshot.json last_snapshot.json
+            > events.jsonl
+            git add last_snapshot.json events.jsonl
+            git diff --cached --quiet && exit 0
+            git commit -m "backlog: update snapshot [skip ci]"
+            git push && break
+            git reset HEAD~1
+            sleep $((i * 3))
+          done

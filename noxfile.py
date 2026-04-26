@@ -65,6 +65,15 @@ def version_string_to_tuple(version: str) -> Tuple[int, ...]:
 
 
 @nox.session(python=["3.10"])  # type: ignore
+def fix(session: Session) -> None:
+    """Auto-fix formatting issues with isort and black."""
+    deps(session, editable_install=True)
+    session.run("isort", ".")
+    session.run("black", ".")
+    session.run("black", "docs/notebook/Tutorial.ipynb")
+
+
+@nox.session(python=["3.10"])  # type: ignore
 def lint(session: Session) -> None:
     # Note: Linting only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)

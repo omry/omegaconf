@@ -30,7 +30,7 @@ from omegaconf._utils import (  # _normalize_ref_type,
     is_union_annotation,
     split_key,
 )
-from omegaconf.errors import UnsupportedValueType, ValidationError
+from omegaconf.errors import ConfigValueError, UnsupportedValueType, ValidationError
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -299,13 +299,28 @@ class _TestAttrsClass:
     init_false: str = attr.field(init=False, default="foo")
 
 
+@attr.s(auto_attribs=True)
+class _TestAttrsTakesSelf:
+    x: int = 10
+    s: str = "foo"
+    description: str = attr.Factory(lambda self: f"{self.x}, {self.s}", takes_self=True)
+
+
+@attr.s(auto_attribs=True)
+class _TestAttrsFactory:
+    list1: List[int] = attr.Factory(list)
+    dict1: Dict[str, int] = attr.Factory(dict)
+    x: int = attr.Factory(lambda: 10)
+    s: str = attr.Factory(lambda: "foo")
+
+
 @dataclass
 class _TestDataclassIllegalValue:
     x: Any = field(default_factory=IllegalType)
 
 
 @attr.s(auto_attribs=True)
-class _TestAttrllegalValue:
+class _TestAttrIllegalValue:
     x: Any = IllegalType()
 
 
@@ -388,7 +403,7 @@ class TestGetStructuredConfigInfo:
     "test_cls",
     [
         _TestDataclassIllegalValue,
-        _TestAttrllegalValue,
+        _TestAttrIllegalValue,
     ],
 )
 def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
@@ -400,6 +415,23 @@ def test_get_structured_config_data_illegal_value(test_cls: Any) -> None:
 
     d = _utils.get_structured_config_data(test_cls, allow_objects=True)
     assert d["x"] == IllegalType()
+
+
+def test_get_structured_config_data_attrs_takes_self() -> None:
+    test_cls = _TestAttrsTakesSelf
+    with raises(
+        ConfigValueError, match="'takes_self' in attrs attributes is not supported"
+    ):
+        _utils.get_structured_config_data(test_cls)
+
+
+def test_get_structured_config_data_attrs_factory() -> None:
+    test_cls = _TestAttrsFactory
+    d = _utils.get_structured_config_data(test_cls)
+    assert d["list1"] == []
+    assert d["dict1"] == {}
+    assert d["x"] == 10
+    assert d["s"] == "foo"
 
 
 def test_is_dataclass(mocker: Any) -> None:

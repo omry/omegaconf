@@ -1,0 +1,51 @@
+*Generated on: {{generated_on}}*
+
+<table><tr><td>
+
+**Status legend**
+
+| Status | Meaning |
+|--------|---------|
+| ⬜ `not started` | No open PR |
+| 🔄 `in progress` | Open PR by a maintainer |
+| 🤝 `community PR` | Open PR by a non-maintainer |
+| 🚫 `blocked` | Labelled `awaiting response`, no open PR |
+| ✅ `done` | Closed or addressed by a merged PR |
+
+</td><td>
+
+**Category legend**
+
+| Category |
+|----------|
+| 🐛 `Bug` |
+| ✨ `Enhancement` |
+| 🔧 `Refactor` |
+| 🏗️ `Build` |
+| 📄 `Documentation` |
+| ❓ `Question` |
+
+</td></tr><tr><td>
+
+**By Category (open issues only)**
+
+| Category | Count | Percentage |
+|----------|-------|------------|
+{{#category_rows}}| {{category}} | {{count}} | {{percentage}} |
+{{/category_rows}}| **Total** | **{{open_total}}** | |
+
+</td><td>
+
+**By Status**
+
+| Status | Count |
+|--------|-------|
+{{#status_rows}}| {{status}} | {{count}} |
+{{/status_rows}}
+
+</td></tr></table>
+
+| Issue | Title | Category | Status | PR | Created | Updated | Labels |
+|-------|-------|----------|----|---------|---------|---------|--------|
+{{#issue_rows}}| {{issue_link}} | {{title}} | {{category}} | {{status}} | {{pr_links}} | {{created}} | {{updated}} | {{labels}} |
+{{/issue_rows}}

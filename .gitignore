@@ -1,6 +1,7 @@
 .benchmarks
 .cache
 *.pyc
+**/__pycache__/
 .pytest_cache
 .tox
 .nox
@@ -27,6 +28,9 @@ temp
 
 # Agents hooks etc
 .agents
-.claude
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 .codex
 .mcp.json
+__pycache__

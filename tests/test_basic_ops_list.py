@@ -151,6 +151,23 @@ def test_iterate_list_with_missing_interpolation() -> None:
         next(itr)
 
 
+def test_structured_list_of_dataclasses_with_missing_default_factory() -> None:
+    # Regression test for #788: constructing a List[Dataclass] whose default_factory
+    # returns [MISSING] used to raise ValidationError
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class Item:
+        x: int = 0
+
+    @dataclass
+    class Cfg:
+        entries: List[Item] = field(default_factory=lambda: [MISSING])
+
+    cfg = OmegaConf.structured(Cfg)
+    assert OmegaConf.is_missing(cfg.entries, 0)
+
+
 def test_iterate_list_with_missing() -> None:
     c = OmegaConf.create([1, "???"])
     itr = iter(c)

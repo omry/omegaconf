@@ -11,12 +11,13 @@ exclude = '''
     | subprojects
     | temp
     | vendor
+    | \.claude
   )
 )
 '''
 
 [tool.isort]
-skip_glob = ["temp/*", "omegaconf/vendor/*", "subprojects/*"]
+skip_glob = ["temp/*", "omegaconf/vendor/*", "subprojects/*", ".claude/*"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
