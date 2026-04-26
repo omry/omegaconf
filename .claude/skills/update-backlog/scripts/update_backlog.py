@@ -8,9 +8,12 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from omegaconf import DictConfig, OmegaConf
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
@@ -19,6 +22,7 @@ BACKLOG_PATH = REPO_ROOT / "BACKLOG.md"
 UPDATES_PATH = REPO_ROOT / "BACKLOG-UPDATES.md"
 TEMPLATE_PATH = SKILL_DIR / "templates" / "backlog.md.tmpl"
 STATE_PATH = SKILL_DIR / "state" / "last_snapshot.json"
+CONFIG_PATH = SCRIPT_DIR / "config.yaml"
 
 BEGIN_GENERATED = "<!-- BEGIN GENERATED BACKLOG -->"
 END_GENERATED = "<!-- END GENERATED BACKLOG -->"
@@ -27,7 +31,29 @@ END_MANUAL = "<!-- END MANUAL COMMENTS -->"
 MANUAL_FENCE = '```json\n{\n  "issues": {},\n  "general": []\n}\n```'
 
 STATUS_ORDER = ["in progress", "community PR", "blocked", "not started", "done"]
-DONE_EXPIRE_DAYS = 14
+
+
+@dataclass
+class CategoryConfig:
+    labels: list[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
+
+
+@dataclass
+class BacklogConfig:
+    done_expire_days: int | None = 14
+    backlog_filename: str = "BACKLOG.md"
+    updates_filename: str = "BACKLOG-UPDATES.md"
+    categories: dict[str, CategoryConfig] = field(
+        default_factory=lambda: {k: CategoryConfig(list(v.labels), list(v.keywords)) for k, v in _DEFAULT_CATEGORIES.items()}
+    )
+
+
+def load_config() -> DictConfig:
+    defaults = OmegaConf.structured(BacklogConfig)
+    if CONFIG_PATH.exists():
+        return OmegaConf.merge(defaults, OmegaConf.load(CONFIG_PATH))
+    return defaults
 
 CATEGORY_EMOJI = {
     "Bug": "🐛",
@@ -55,78 +81,35 @@ CATEGORY_ORDER = [
     "Question",
 ]
 
-LABEL_TO_CATEGORY = {
-    "bug": "Bug",
-    "enhancement": "Enhancement",
-    "documentation": "Documentation",
-    "question": "Question",
-    "good first issue": "Enhancement",
-    "help wanted": "Enhancement",
-    "performance": "Enhancement",
-    "refactor": "Refactor",
-    "build": "Build",
-    "dependencies": "Build",
-    "duplicate": "Enhancement",
-    "invalid": "Enhancement",
-    "wontfix": "Enhancement",
-    "discussion": "Enhancement",
-    "awaiting response": "Enhancement",
-    "wishlist": "Enhancement",
+_DEFAULT_CATEGORIES: dict[str, CategoryConfig] = {
+    "Bug": CategoryConfig(
+        labels=["bug"],
+        keywords=["bug", "error", "fail", "broken", "crash", "exception", "runtimeerror", "assertionerror"],
+    ),
+    "Enhancement": CategoryConfig(
+        labels=["enhancement", "good first issue", "help wanted", "performance",
+                "duplicate", "invalid", "wontfix", "discussion", "awaiting response", "wishlist"],
+        keywords=["feature", "add", "support", "allow", "enable", "implement", "enhancement",
+                  "request", "wishlist", "consider",
+                  "performance", "speed", "slow", "optimize", "memory", "cpu", "latency"],
+    ),
+    "Documentation": CategoryConfig(
+        labels=["documentation"],
+        keywords=["doc", "documentation", "readme", "comment", "typo", "spelling"],
+    ),
+    "Question": CategoryConfig(
+        labels=["question"],
+        keywords=["question", "how to", "help", "confused", "unclear", "wonder"],
+    ),
+    "Refactor": CategoryConfig(
+        labels=["refactor"],
+        keywords=["refactor", "cleanup", "clean up", "remove", "delete", "deprecated", "modernize"],
+    ),
+    "Build": CategoryConfig(
+        labels=["build", "dependencies"],
+        keywords=["build", "package", "release", "ci", "github actions", "setup.py", "pyproject", "wheel", "packaging"],
+    ),
 }
-
-BUG_KEYWORDS = [
-    "bug",
-    "error",
-    "fail",
-    "broken",
-    "crash",
-    "exception",
-    "runtimeerror",
-    "assertionerror",
-]
-ENHANCEMENT_KEYWORDS = [
-    "feature",
-    "add",
-    "support",
-    "allow",
-    "enable",
-    "implement",
-    "enhancement",
-    "request",
-    "wishlist",
-    "consider",
-]
-DOC_KEYWORDS = ["doc", "documentation", "readme", "comment", "typo", "spelling"]
-QUESTION_KEYWORDS = ["question", "how to", "help", "confused", "unclear", "wonder"]
-PERFORMANCE_KEYWORDS = [
-    "performance",
-    "speed",
-    "slow",
-    "optimize",
-    "memory",
-    "cpu",
-    "latency",
-]
-REFACTOR_KEYWORDS = [
-    "refactor",
-    "cleanup",
-    "clean up",
-    "remove",
-    "delete",
-    "deprecated",
-    "modernize",
-]
-BUILD_KEYWORDS = [
-    "build",
-    "package",
-    "release",
-    "ci",
-    "github actions",
-    "setup.py",
-    "pyproject",
-    "wheel",
-    "packaging",
-]
 
 
 def strip_ansi(text: str) -> str:
@@ -325,37 +308,28 @@ def parse_labels(issue: dict[str, Any]) -> list[str]:
     return labels
 
 
-def contains_bug_keyword(title: str) -> bool:
-    if re.search(r"(?<![A-Za-z0-9_])bug(?![A-Za-z0-9_])", title):
-        return True
-    return any(keyword in title for keyword in BUG_KEYWORDS if keyword != "bug")
+def _keyword_matches(title: str, keyword: str) -> bool:
+    if keyword == "bug":
+        return bool(re.search(r"(?<![A-Za-z0-9_])bug(?![A-Za-z0-9_])", title))
+    return keyword in title
 
 
-def categorize_issue(issue: dict[str, Any]) -> str:
+def categorize_issue(
+    issue: dict[str, Any],
+    label_to_category: dict[str, str],
+    category_keywords: dict[str, list[str]],
+) -> str:
     labels = [label.lower().strip() for label in parse_labels(issue)]
     for label in labels:
-        if label in LABEL_TO_CATEGORY:
-            return LABEL_TO_CATEGORY[label]
+        if label in label_to_category:
+            return label_to_category[label]
 
+    # Fallback classification uses the title only — issue bodies contain generic
+    # triage wording that makes body-based matching too noisy.
     title = (issue.get("title") or "").lower()
-
-    # Fallback classification intentionally uses the title only.
-    # Issue bodies frequently contain generic triage/template wording such as
-    # "issue" or "problem", which makes body-based matching far too noisy.
-    if contains_bug_keyword(title):
-        return "Bug"
-    if any(keyword in title for keyword in ENHANCEMENT_KEYWORDS):
-        return "Enhancement"
-    if any(keyword in title for keyword in DOC_KEYWORDS):
-        return "Documentation"
-    if any(keyword in title for keyword in QUESTION_KEYWORDS):
-        return "Question"
-    if any(keyword in title for keyword in PERFORMANCE_KEYWORDS):
-        return "Enhancement"
-    if any(keyword in title for keyword in REFACTOR_KEYWORDS):
-        return "Refactor"
-    if any(keyword in title for keyword in BUILD_KEYWORDS):
-        return "Build"
+    for category, keywords in category_keywords.items():
+        if any(_keyword_matches(title, kw) for kw in keywords):
+            return category
     return "Enhancement"
 
 
@@ -639,7 +613,12 @@ def format_label_string(labels: list[str]) -> str:
     return ", ".join(escape_table_cell(label) for label in labels)
 
 
-def normalize_previous_row(repo: str, row: dict[str, Any]) -> dict[str, Any]:
+def normalize_previous_row(
+    repo: str,
+    row: dict[str, Any],
+    label_to_category: dict[str, str],
+    category_keywords: dict[str, list[str]],
+) -> dict[str, Any]:
     pr_numbers = sorted(row.get("pr_numbers", []), key=lambda value: int(value))
     title = row.get("title") or ""
     labels = row.get("labels", []) or []
@@ -647,7 +626,7 @@ def normalize_previous_row(repo: str, row: dict[str, Any]) -> dict[str, Any]:
         **row,
         "title": title,
         "title_display": escape_table_cell(truncate_title(title)),
-        "category": categorize_issue({"title": title, "labels": [{"name": label} for label in labels]}),
+        "category": categorize_issue({"title": title, "labels": [{"name": label} for label in labels]}, label_to_category, category_keywords),
         "labels": labels,
         "labels_display": escape_table_cell(format_label_string(labels)),
         "issue_link": issue_link(repo, row["number"]),
@@ -661,6 +640,8 @@ def build_current_issue_records(
     open_issues: list[dict[str, Any]],
     collaborators: set[str],
     pr_lookup: dict[str, list[dict[str, Any]]],
+    label_to_category: dict[str, str],
+    category_keywords: dict[str, list[str]],
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for issue in open_issues:
@@ -696,7 +677,7 @@ def build_current_issue_records(
                 "updated_at": issue.get("updatedAt") or "",
                 "created": (issue.get("createdAt") or "")[:10].replace("-", "‑"),
                 "updated": (issue.get("updatedAt") or "")[:10].replace("-", "‑"),
-                "category": categorize_issue(issue),
+                "category": categorize_issue(issue, label_to_category, category_keywords),
                 "status": status,
                 "pr_numbers": pr_numbers,
                 "issue_link": issue_link(repo, number),
@@ -719,7 +700,9 @@ def build_previous_row_maps(
     return rows_by_number, order_by_status
 
 
-def _is_done_expired(row: dict[str, Any], closed_at: dict[str, str]) -> bool:
+def _is_done_expired(row: dict[str, Any], closed_at: dict[str, str], expire_days: int | None) -> bool:
+    if expire_days is None:
+        return False
     close_date_str = closed_at.get(row["number"])
     if not close_date_str:
         # Fall back to updated date stored in the row (uses non-breaking hyphens)
@@ -727,7 +710,7 @@ def _is_done_expired(row: dict[str, Any], closed_at: dict[str, str]) -> bool:
     if not close_date_str:
         return False
     try:
-        return (date.today() - date.fromisoformat(close_date_str)).days > DONE_EXPIRE_DAYS
+        return (date.today() - date.fromisoformat(close_date_str)).days > expire_days
     except ValueError:
         return False
 
@@ -736,6 +719,7 @@ def merge_rows_for_render(
     current_records: list[dict[str, Any]],
     previous_rows: list[dict[str, Any]],
     closed_at: dict[str, str] | None = None,
+    expire_days: int | None = 14,
 ) -> list[dict[str, Any]]:
     closed_at = closed_at or {}
     previous_by_number, previous_order = build_previous_row_maps(previous_rows)
@@ -761,7 +745,7 @@ def merge_rows_for_render(
     done_rows: list[dict[str, Any]] = []
     for row in previous_rows:
         if row["status"] == "done" and row["number"] not in current_numbers:
-            if _is_done_expired(row, closed_at):
+            if _is_done_expired(row, closed_at, expire_days):
                 continue
             row = dict(row)
             row["sort_key"] = (0, previous_order["done"].index(row["number"]))
@@ -1004,16 +988,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    cfg = load_config()
     repo = resolve_repo(args.repo)
     generated_on = today()
     generated_at = iso_now()
 
     snapshot_path = Path(args.snapshot_path) if args.snapshot_path else STATE_PATH
     event_log_path = Path(args.event_log_path) if args.event_log_path else None
+    backlog_path = REPO_ROOT / cfg.backlog_filename
+    updates_path = REPO_ROOT / cfg.updates_filename
+    categories: dict[str, CategoryConfig] = OmegaConf.to_object(cfg.categories)  # type: ignore[assignment]
+    label_to_category: dict[str, str] = {
+        label: cat for cat, c in categories.items() for label in c.labels
+    }
+    category_keywords: dict[str, list[str]] = {
+        cat: c.keywords for cat, c in categories.items()
+    }
 
-    backlog_text = read_text(BACKLOG_PATH) if BACKLOG_PATH.exists() else ""
+    backlog_text = read_text(backlog_path) if backlog_path.exists() else ""
     previous_rows = [
-        normalize_previous_row(repo, row)
+        normalize_previous_row(repo, row, label_to_category, category_keywords)
         for row in parse_issue_table_rows(backlog_text)
     ]
     previous_rows_by_number = {row["number"]: row for row in previous_rows}
@@ -1036,7 +1030,7 @@ def main() -> int:
     open_prs = fetch_open_prs(repo)
     pr_lookup = build_pr_lookup(open_prs, open_issue_numbers)
     current_records = build_current_issue_records(
-        repo, active_open_issues, collaborators, pr_lookup
+        repo, active_open_issues, collaborators, pr_lookup, label_to_category, category_keywords
     )
     current_snapshot = snapshot_from_open_records(repo, current_records, generated_at)
 
@@ -1047,7 +1041,7 @@ def main() -> int:
     for num in prev_open - curr_open:
         closed_at.setdefault(num, run_date)
 
-    render_rows = merge_rows_for_render(current_records, previous_rows, closed_at)
+    render_rows = merge_rows_for_render(current_records, previous_rows, closed_at, expire_days=cfg.done_expire_days)
     rendered_numbers = {row["number"] for row in render_rows}
     current_snapshot["closed_at"] = {
         num: dt for num, dt in closed_at.items() if num in rendered_numbers
@@ -1064,7 +1058,7 @@ def main() -> int:
 
     backlog_content = render_backlog_file(repo, render_rows, generated_on, manual_block)
     backlog_changed = (
-        not BACKLOG_PATH.exists() or read_text(BACKLOG_PATH) != backlog_content
+        not backlog_path.exists() or read_text(backlog_path) != backlog_content
     )
     updates_changed = bool(updates_lines)
 
@@ -1078,12 +1072,12 @@ def main() -> int:
         return 0
 
     if backlog_changed:
-        write_text(BACKLOG_PATH, backlog_content)
+        write_text(backlog_path, backlog_content)
 
     if updates_changed:
-        existing_updates = read_text(UPDATES_PATH) if UPDATES_PATH.exists() else ""
+        existing_updates = read_text(updates_path) if updates_path.exists() else ""
         separator = "\n" if existing_updates and not existing_updates.startswith("\n") else ""
-        write_text(UPDATES_PATH, updates_lines + separator + existing_updates)
+        write_text(updates_path, updates_lines + separator + existing_updates)
 
     save_snapshot(current_snapshot, snapshot_path)
     if event_log_path and event_log_path.exists():

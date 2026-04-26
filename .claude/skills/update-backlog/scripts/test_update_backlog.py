@@ -11,6 +11,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 import update_backlog as ub  # noqa: E402
 
+# Helpers derived from _DEFAULT_CATEGORIES for tests
+_L2C = {label: cat for cat, c in ub._DEFAULT_CATEGORIES.items() for label in c.labels}
+_KW = {cat: c.keywords for cat, c in ub._DEFAULT_CATEGORIES.items()}
+
 # ---------------------------------------------------------------------------
 # try_command
 # ---------------------------------------------------------------------------
@@ -71,35 +75,35 @@ def _issue(labels: list[str], title: str = "", body: str = "") -> dict[str, Any]
 
 
 def test_categorize_bug_label():
-    assert ub.categorize_issue(_issue(["bug"])) == "Bug"
+    assert ub.categorize_issue(_issue(["bug"]), _L2C, _KW) == "Bug"
 
 
 def test_categorize_enhancement_label():
-    assert ub.categorize_issue(_issue(["enhancement"])) == "Enhancement"
+    assert ub.categorize_issue(_issue(["enhancement"]), _L2C, _KW) == "Enhancement"
 
 
 def test_categorize_refactor_label():
-    assert ub.categorize_issue(_issue(["refactor"])) == "Refactor"
+    assert ub.categorize_issue(_issue(["refactor"]), _L2C, _KW) == "Refactor"
 
 
 def test_categorize_documentation_label():
-    assert ub.categorize_issue(_issue(["documentation"])) == "Documentation"
+    assert ub.categorize_issue(_issue(["documentation"]), _L2C, _KW) == "Documentation"
 
 
 def test_categorize_question_label():
-    assert ub.categorize_issue(_issue(["question"])) == "Question"
+    assert ub.categorize_issue(_issue(["question"]), _L2C, _KW) == "Question"
 
 
 def test_categorize_bug_keyword_in_title():
-    assert ub.categorize_issue(_issue([], title="crash when using merge")) == "Bug"
+    assert ub.categorize_issue(_issue([], title="crash when using merge"), _L2C, _KW) == "Bug"
 
 
 def test_categorize_enhancement_fallback():
-    assert ub.categorize_issue(_issue([])) == "Enhancement"
+    assert ub.categorize_issue(_issue([]), _L2C, _KW) == "Enhancement"
 
 
 def test_categorize_bug_label_beats_enhancement_keyword():
-    assert ub.categorize_issue(_issue(["bug"], title="add feature")) == "Bug"
+    assert ub.categorize_issue(_issue(["bug"], title="add feature"), _L2C, _KW) == "Bug"
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +136,7 @@ def _pr(number: str, author: str, linked: list[str]) -> dict[str, Any]:
 def test_status_not_started():
     issues = [_open_issue(1)]
     pr_lookup: dict[str, Any] = {}
-    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup)
+    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup, _L2C, _KW)
     assert records[0]["status"] == "not started"
 
 
@@ -140,20 +144,20 @@ def test_status_in_progress_maintainer_pr():
     issues = [_open_issue(1)]
     collaborators = {"maintainer"}
     pr_lookup = ub.build_pr_lookup([_pr("10", "maintainer", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup)
+    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup, _L2C, _KW)
     assert records[0]["status"] == "in progress"
 
 
 def test_status_community_pr():
     issues = [_open_issue(1)]
     pr_lookup = ub.build_pr_lookup([_pr("10", "community_user", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup)
+    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup, _L2C, _KW)
     assert records[0]["status"] == "community PR"
 
 
 def test_status_blocked_awaiting_response():
     issues = [_open_issue(1, labels=["awaiting response"])]
-    records = ub.build_current_issue_records("o/r", issues, set(), {})
+    records = ub.build_current_issue_records("o/r", issues, set(), {}, _L2C, _KW)
     assert records[0]["status"] == "blocked"
 
 
@@ -161,7 +165,7 @@ def test_status_in_progress_beats_blocked():
     issues = [_open_issue(1, labels=["awaiting response"])]
     collaborators = {"maintainer"}
     pr_lookup = ub.build_pr_lookup([_pr("10", "maintainer", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup)
+    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup, _L2C, _KW)
     assert records[0]["status"] == "in progress"
 
 
@@ -241,11 +245,6 @@ def test_save_snapshot_creates_parent_dirs(tmp_path: Path):
 
 
 # ---------------------------------------------------------------------------
-# event log cleared after processing
-# ---------------------------------------------------------------------------
-
-
-# ---------------------------------------------------------------------------
 # normalize_previous_row — category derived from title/labels, not HTML
 # ---------------------------------------------------------------------------
 
@@ -263,19 +262,18 @@ def _prev_row(number: str, title: str, status: str = "done", labels: list[str] =
 
 
 def test_normalize_previous_row_derives_category_from_title():
-    row = ub.normalize_previous_row("o/r", _prev_row("803", "[Question] Why hide this?"))
+    row = ub.normalize_previous_row("o/r", _prev_row("803", "[Question] Why hide this?"), _L2C, _KW)
     assert row["category"] == "Question"
 
 
 def test_normalize_previous_row_derives_category_from_label():
-    row = ub.normalize_previous_row("o/r", _prev_row("1", "Something", labels=["bug"]))
+    row = ub.normalize_previous_row("o/r", _prev_row("1", "Something", labels=["bug"]), _L2C, _KW)
     assert row["category"] == "Bug"
 
 
 def test_normalize_previous_row_ignores_stale_category_field():
-    # Even if a corrupted category was parsed and stored, normalize re-derives it
     raw = {**_prev_row("1", "Add a feature"), "category": '<span title="<span>garbage</span>">✨</span>'}
-    row = ub.normalize_previous_row("o/r", raw)
+    row = ub.normalize_previous_row("o/r", raw, _L2C, _KW)
     assert row["category"] == "Enhancement"
 
 
@@ -288,33 +286,40 @@ def test_is_done_expired_not_expired_via_closed_at():
     from datetime import date, timedelta
     recent = (date.today() - timedelta(days=5)).isoformat()
     row = _prev_row("1", "t")
-    assert not ub._is_done_expired(row, {"1": recent})
+    assert not ub._is_done_expired(row, {"1": recent}, 14)
 
 
 def test_is_done_expired_expired_via_closed_at():
     from datetime import date, timedelta
     old = (date.today() - timedelta(days=15)).isoformat()
     row = _prev_row("1", "t")
-    assert ub._is_done_expired(row, {"1": old})
+    assert ub._is_done_expired(row, {"1": old}, 14)
 
 
 def test_is_done_expired_boundary_exactly_14_days():
     from datetime import date, timedelta
     boundary = (date.today() - timedelta(days=14)).isoformat()
     row = _prev_row("1", "t")
-    assert not ub._is_done_expired(row, {"1": boundary})
+    assert not ub._is_done_expired(row, {"1": boundary}, 14)
 
 
 def test_is_done_expired_fallback_to_updated_field():
     from datetime import date, timedelta
     old = (date.today() - timedelta(days=20)).isoformat().replace("-", "‑")
     row = {**_prev_row("1", "t"), "updated": old}
-    assert ub._is_done_expired(row, {})
+    assert ub._is_done_expired(row, {}, 14)
 
 
 def test_is_done_expired_no_date_not_expired():
     row = {**_prev_row("1", "t"), "updated": ""}
-    assert not ub._is_done_expired(row, {})
+    assert not ub._is_done_expired(row, {}, 14)
+
+
+def test_is_done_expired_none_expire_days_never_expires():
+    from datetime import date, timedelta
+    old = (date.today() - timedelta(days=999)).isoformat()
+    row = _prev_row("1", "t")
+    assert not ub._is_done_expired(row, {"1": old}, None)
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +354,7 @@ def test_merge_expires_old_done_row():
 
 def test_merge_closed_at_overrides_updated_field():
     from datetime import date, timedelta
+
     # updated says old, but closed_at says recent → should keep
     prev = [_done_prev_row("1", days_old=20)]
     recent = (date.today() - timedelta(days=3)).isoformat()
@@ -378,8 +384,7 @@ def test_event_log_cleared_after_update(tmp_path: Path, monkeypatch: pytest.Monk
     monkeypatch.setattr(ub, "fetch_collaborators", fake_fetch_collaborators)
     monkeypatch.setattr(ub, "fetch_open_issues", fake_fetch_open_issues)
     monkeypatch.setattr(ub, "fetch_open_prs", fake_fetch_open_prs)
-    monkeypatch.setattr(ub, "BACKLOG_PATH", tmp_path / "BACKLOG.md")
-    monkeypatch.setattr(ub, "UPDATES_PATH", tmp_path / "BACKLOG-UPDATES.md")
+    monkeypatch.setattr(ub, "REPO_ROOT", tmp_path)
 
     with patch.object(ub, "resolve_repo", return_value="o/r"):
         sys.argv = [
