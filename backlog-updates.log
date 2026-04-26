@@ -1,0 +1,18 @@
+## 2026-04-26
+
+### New issues
+- #181 [Feature Request] Add .toJSON() method (Enhancement, 6h)
+- #144 Full Union type support in structured configs (Enhancement, 40h)
+- #131 Evaluate usefulness of pep-593 for structured configs (Enhancement, 3h)
+- #91 Consider supporting basic operators in interpolations of numbers (Enhancement, 12h)
+
+### Status changes
+- #91 Consider supporting basic operators in interpolations of numbers: not started → in progress (PR #1229)
+
+### Label changes
+none
+
+### Closed on GitHub (should be removed/archived)
+none
+
+---

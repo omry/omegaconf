@@ -1,41 +1,50 @@
 ---
 name: update-backlog
-description: Sync backlog.md with current GitHub issue state (labels, status, new issues) while preserving hand-curated fields like time estimates and manual notes. Appends a change summary to backlog-updates.log.
+description: Sync backlog.md with current GitHub issue state (labels, status, new issues) while preserving hand-curated notes. Appends a change summary to backlog-updates.md.
 ---
 
 Update `backlog.md` by syncing it against the current state of the omry/omegaconf GitHub repo. Follow these steps in order:
 
-## 1. Fetch current open issues
+## 1. Fetch maintainers
 
 ```
-gh issue list --repo omry/omegaconf --state open --limit 200 --json number,title,labels,state
+gh api repos/omry/omegaconf/collaborators --jq '.[].login'
 ```
 
-## 2. Fetch full labels for all issues
+Any PR author whose login appears in this list is a maintainer (`in progress`); all others are community contributors (`community PR`).
+
+## 2. Fetch current open issues
 
 ```
-gh issue list --repo omry/omegaconf --state open --limit 200 --json number,labels | jq -r '.[] | [.number, (.labels | map(.name) | join(", "))] | @tsv'
+gh issue list --repo omry/omegaconf --state open --limit 1000 --json number,title,labels,state
 ```
 
-## 3. Identify status for each issue
+## 3. Fetch full labels for all issues
+
+```
+gh issue list --repo omry/omegaconf --state open --limit 1000 --json number,labels | jq -r '.[] | [.number, (.labels | map(.name) | join(", "))] | @tsv'
+```
+
+## 4. Identify status for each issue
 
 Determine status using these rules (in priority order):
 - **done**: issue is closed on GitHub, OR a merged PR formally closes it
-- **in progress**: issue has an open PR that references or closes it
+- **in progress**: issue has an open PR by a maintainer (from step 1) that references or closes it
+- **community PR**: issue has an open PR by a non-maintainer that references or closes it
 - **blocked**: issue carries the `awaiting response` label and has no open PR
 - **not started**: everything else
 
-To find open PRs and which issues they close:
+To find open PRs with their authors and which issues they close:
 ```
-gh api graphql -f query='{ repository(owner: "omry", name: "omegaconf") { pullRequests(states: OPEN, first: 50) { nodes { number title closingIssuesReferences(first: 10) { nodes { number } } } } } }' | jq -r '.data.repository.pullRequests.nodes[] | select(.closingIssuesReferences.nodes | length > 0) | "PR #\(.number) -> \(.closingIssuesReferences.nodes | map(.number) | join(", "))"'
+gh api graphql -f query='{ repository(owner: "omry", name: "omegaconf") { pullRequests(states: OPEN, first: 50) { nodes { number title author { login } closingIssuesReferences(first: 10) { nodes { number } } } } } }' | jq -r '.data.repository.pullRequests.nodes[] | select(.closingIssuesReferences.nodes | length > 0) | "PR #\(.number) [\(.author.login)] -> \(.closingIssuesReferences.nodes | map(.number) | join(", "))"'
 ```
 
 Also scan PR bodies for informal issue mentions:
 ```
-gh pr list --repo omry/omegaconf --state open --limit 50 --json number,title,body | jq -r '.[] | . as $pr | (.body | scan("#([0-9]+)") | .[0]) as $i | "PR #\($pr.number) mentions #\($i)"'
+gh pr list --repo omry/omegaconf --state open --limit 50 --json number,title,body,author | jq -r '.[] | . as $pr | (.body | scan("#([0-9]+)") | .[0]) as $i | "PR #\($pr.number) [\($pr.author.login)] mentions #\($i)"'
 ```
 
-## 4. Check for newly resolvable issues
+## 5. Check for newly resolvable issues
 
 Look at recently merged PRs for issues that should now be marked done:
 ```
@@ -44,68 +53,88 @@ gh pr list --repo omry/omegaconf --state merged --limit 30 --json number,title,b
 
 Cross-reference against issues still marked `not started` or `in progress` in backlog.md. If a merged PR clearly fixes a tracked issue (by title match or body reference), mark it `done` and note the PR number.
 
-## 5. Update backlog.md
+## 6. Update backlog.md
+
+The required file structure and table format are defined in `backlog-template.md` (same directory as this skill). Follow it exactly — column order, header text, separator, and status legend must all match the template. Key rules:
+- Titles longer than ~55 chars should be truncated with `...`
+- A literal `|` in a title must be escaped as `\|`
+- Valid categories: `Bug`, `Enhancement`, `Refactor`, `Build`, `Documentation`, `Question`
 
 For each issue in backlog.md, update:
 - **Labels**: replace with current labels from GitHub (full, untruncated)
 - **Status**: update based on rules above
-- **PR column**: add/update PR number if status is `in progress` or `done`
+- **PR column**: add/update PR number if status is `in progress`, `community PR`, or `done`
 
 **Preserve without changes:**
-- Time estimates (hand-curated judgment calls)
 - Any notes or annotations added manually below the table
 - Issues that were manually removed from the list
 
 **Handle new issues** (in GitHub but not in backlog.md):
-- Add them at the top of the table with status `not started`
-- Assign a time estimate based on category and complexity (see methodology at bottom of backlog.md)
+- Add them at the bottom of the table (in issue-number order) with status `not started`
 - Leave the PR column blank
 
 **Handle closed issues** (in backlog.md but no longer open on GitHub):
 - Mark status as `done` if not already
 - Keep the row so the history is preserved
 
-## 6. Update summary statistics
+## 7. Sort the table by status
 
-Recount By Status and By Category tables. Do not change the Time Estimates section.
+After all row updates, re-sort the table rows in this priority order (top to bottom):
 
-## 7. Update the generation timestamp
+1. `in progress`
+2. `community PR`
+3. `blocked`
+4. `not started`
+5. `done`
+
+Within each status group, preserve the existing row order (do not re-sort by issue number).
+
+Note: `#1006` has a literal `\|` in its title — split on unescaped `|` only when determining column positions.
+
+## 8. Update summary statistics
+
+Recount By Status (all issues) and By Category (open issues only — exclude `done` rows) tables.
+
+## 8. Update the generation timestamp
 
 Change the `Generated on` date at the top to today's date.
 
-## 8. Append to backlog-updates.log
+## 9. Append to backlog-updates.md
 
-Before committing, append a structured entry to `backlog-updates.log` (create the file if it doesn't exist). The entry format is:
+**Only append if at least one change occurred** (new issues, status changes, or label changes). If nothing changed, skip this step entirely — do not write a "none" entry.
+
+Append a structured entry to `backlog-updates.md` (create the file if it doesn't exist). The entry format is:
 
 ```
 ## YYYY-MM-DD
 
 ### New issues
-- #NNNN Title (Category, Xh)
-... or "none"
+- #NNNN Title
+... or omit section if none
 
 ### Status changes
-- #NNNN Title: not started → in progress (PR #MMMM)
+- #NNNN Title: not started → in progress (PR #MMMM by omry)
+- #NNNN Title: not started → community PR (PR #MMMM by someuser)
 - #NNNN Title: in progress → done (PR #MMMM)
-... or "none"
+... or omit section if none
 
 ### Label changes
 - #NNNN: added "foo", removed "bar"
-... or "none"
+... or omit section if none
 
 ### Closed on GitHub (should be removed/archived)
 - #NNNN Title — suggest closing: reason
-... or "none"
+... or omit section if none
 
 ---
 ```
 
-Only log changes that actually occurred in this run. If a section has no changes, write "none" under it. Do not rewrite or modify previous entries — only append.
+Only include sections that have actual changes. Do not rewrite or modify previous entries — only append.
 
-## 9. Commit the result
+## 10. Commit the result
 
 ```
-sl add backlog.md backlog-updates.log 2>/dev/null
+sl add backlog.md backlog-updates.md 2>/dev/null
 sl commit -m "Update backlog.md: sync labels, status, and PRs from GitHub"
 ```
 
