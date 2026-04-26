@@ -1,3 +1,5 @@
+- `2026-04-26T17:49:30Z` label: [#392](https://github.com/omry/omegaconf/issues/392) Improve Tuple support: removed "needs triage"
+
 - `2026-04-26T17:47:58Z` label: [#702](https://github.com/omry/omegaconf/issues/702) Provide correct full key on nested Structured Config creation error.: removed "needs triage"
 
 - `2026-04-26T17:46:30Z` label: [#651](https://github.com/omry/omegaconf/issues/651) Interpolations can't refer to non-string keys: removed "needs triage"
