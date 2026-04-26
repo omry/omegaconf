@@ -22,3 +22,9 @@
 - #755 negative list indices in variable interpolation: in progress → community PR (PR #1212 by sean-roelofs-ai)
 
 ---
+## 2026-04-26
+
+### Status changes
+- [#755](https://github.com/omry/omegaconf/issues/755) negative list indices in variable interpolation: not started → community PR ([#1212](https://github.com/omry/omegaconf/pull/1212))
+
+---
