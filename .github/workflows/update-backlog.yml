@@ -1,0 +1,38 @@
+name: Update Backlog
+
+on:
+  issues:
+    types: [opened, closed, labeled, unlabeled, reopened]
+  pull_request:
+    types: [opened, closed, labeled, unlabeled, reopened]
+  schedule:
+    - cron: '0 7 * * *'  # daily at 7am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  update-backlog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Update backlog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .claude/skills/update-backlog/scripts/update_backlog.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add BACKLOG.md BACKLOG-UPDATES.md
+          git diff --cached --quiet || git commit -m "backlog: auto-update [skip ci]"
+          git push
