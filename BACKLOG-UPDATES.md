@@ -1,3 +1,5 @@
+- `2026-04-26T19:17:31Z` status: [#945](https://github.com/omry/omegaconf/issues/945) `get_attr_data` doesn't handle default factory correctly: community PR → not started
+
 - `2026-04-26T17:49:30Z` label: [#392](https://github.com/omry/omegaconf/issues/392) Improve Tuple support: removed "needs triage"
 
 - `2026-04-26T17:47:58Z` label: [#702](https://github.com/omry/omegaconf/issues/702) Provide correct full key on nested Structured Config creation error.: removed "needs triage"
