@@ -273,9 +273,9 @@ def load_json_file(path: Path) -> dict[str, Any] | None:
     return json.loads(read_text(path))
 
 
-def save_snapshot(snapshot: dict[str, Any]) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(
+def save_snapshot(snapshot: dict[str, Any], path: Path = STATE_PATH) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
         json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
@@ -1006,11 +1006,22 @@ def main() -> int:
         action="store_true",
         help="Show what would change without writing files",
     )
+    parser.add_argument(
+        "--snapshot-path",
+        help="Path to snapshot JSON file. Defaults to the state/ directory next to this script.",
+    )
+    parser.add_argument(
+        "--event-log-path",
+        help="Path to events.jsonl. Cleared after a successful update.",
+    )
     args = parser.parse_args()
 
     repo = resolve_repo(args.repo)
     generated_on = today()
     generated_at = iso_now()
+
+    snapshot_path = Path(args.snapshot_path) if args.snapshot_path else STATE_PATH
+    event_log_path = Path(args.event_log_path) if args.event_log_path else None
 
     backlog_text = read_text(BACKLOG_PATH) if BACKLOG_PATH.exists() else ""
     previous_rows = [
@@ -1019,7 +1030,7 @@ def main() -> int:
     ]
     previous_rows_by_number = {row["number"]: row for row in previous_rows}
     manual_block = load_existing_manual_block(backlog_text) or canonical_manual_block()
-    previous_snapshot = load_json_file(STATE_PATH)
+    previous_snapshot = load_json_file(snapshot_path)
     if previous_snapshot and previous_snapshot.get("repo") not in {None, repo}:
         previous_snapshot = None
 
@@ -1079,7 +1090,9 @@ def main() -> int:
         )
         write_text(UPDATES_PATH, existing_updates + separator + updates_entry)
 
-    save_snapshot(current_snapshot)
+    save_snapshot(current_snapshot, snapshot_path)
+    if event_log_path and event_log_path.exists():
+        event_log_path.write_text("", encoding="utf-8")
     print(
         "Updated BACKLOG.md" if backlog_changed else "BACKLOG.md already up to date",
         file=sys.stdout,
