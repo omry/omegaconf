@@ -150,13 +150,16 @@ def run_command(args: list[str]) -> str:
 
 
 def try_command(args: list[str]) -> str | None:
-    completed = subprocess.run(
-        args,
-        check=False,
-        capture_output=True,
-        text=True,
-        env={**os.environ, "NO_COLOR": "1", "CLICOLOR": "0"},
-    )
+    try:
+        completed = subprocess.run(
+            args,
+            check=False,
+            capture_output=True,
+            text=True,
+            env={**os.environ, "NO_COLOR": "1", "CLICOLOR": "0"},
+        )
+    except FileNotFoundError:
+        return None
     if completed.returncode != 0:
         return None
     return strip_ansi(completed.stdout)
