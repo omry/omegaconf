@@ -18,7 +18,6 @@ REPO_ROOT = SKILL_DIR.parents[2]
 BACKLOG_PATH = REPO_ROOT / "BACKLOG.md"
 UPDATES_PATH = REPO_ROOT / "BACKLOG-UPDATES.md"
 TEMPLATE_PATH = SKILL_DIR / "templates" / "backlog.md.tmpl"
-UPDATES_TEMPLATE_PATH = SKILL_DIR / "templates" / "backlog_updates_entry.md.tmpl"
 STATE_PATH = SKILL_DIR / "state" / "last_snapshot.json"
 
 BEGIN_GENERATED = "<!-- BEGIN GENERATED BACKLOG -->"
@@ -379,6 +378,11 @@ def extract_issue_numbers(text: str, repo: str | None = None) -> list[str]:
     return numbers
 
 
+def _extract_span_title(cell: str) -> str:
+    m = re.match(r'<span\s+title="([^"]*)">', cell.strip())
+    return m.group(1) if m else cell
+
+
 def parse_issue_table_rows(text: str) -> list[dict[str, Any]]:
     lines = text.splitlines()
     rows: list[dict[str, Any]] = []
@@ -410,8 +414,8 @@ def parse_issue_table_rows(text: str) -> list[dict[str, Any]]:
             {
                 "number": issue_number,
                 "title": cells[1].replace(r"\|", "|"),
-                "category": cells[2],
-                "status": cells[3],
+                "category": _extract_span_title(cells[2]),
+                "status": _extract_span_title(cells[3]),
                 "pr_numbers": pr_numbers,
                 "created": cells[5],
                 "updated": cells[6],
@@ -830,13 +834,39 @@ def render_backlog_file(
     return f"# Detailed Open Issues: {repo}\n\n{generated_block}\n\n## Manual comments\n{manual_block}\n"
 
 
-def render_updates_entry(date: str, sections: list[dict[str, Any]]) -> str:
-    if not sections:
-        return ""
-    template = read_text(UPDATES_TEMPLATE_PATH)
-    return (
-        render_template(template, {"date": date, "sections": sections}).rstrip() + "\n"
-    )
+def render_updates_lines(
+    generated_at: str,
+    new_issues: list[dict[str, Any]],
+    status_changes: list[dict[str, Any]],
+    label_changes: list[dict[str, Any]],
+    closed_issues: list[dict[str, Any]],
+) -> str:
+    ts = f"`{generated_at}`"
+    lines = []
+    for row in new_issues:
+        title = row.get("title_display") or row.get("title") or ""
+        lines.append(f"- {ts} new: {row['issue_link']} {title}")
+    for change in status_changes:
+        pr_suffix = f" ({change['pr_links']})" if change.get("pr_links") else ""
+        title = change.get("title") or ""
+        lines.append(
+            f"- {ts} status: {change['issue_link']} {title}:"
+            f" {change['old_status']} → {change['new_status']}{pr_suffix}"
+        )
+    for change in label_changes:
+        pieces = []
+        if change.get("added"):
+            pieces.append("added " + ", ".join(f'"{lb}"' for lb in change["added"]))
+        if change.get("removed"):
+            pieces.append("removed " + ", ".join(f'"{lb}"' for lb in change["removed"]))
+        title = change.get("title") or ""
+        lines.append(
+            f"- {ts} label: {change['issue_link']} {title}: {'; '.join(pieces)}"
+        )
+    for row in closed_issues:
+        title = row.get("title_display") or row.get("title") or ""
+        lines.append(f"- {ts} closed: {row['issue_link']} {title}")
+    return "\n".join(lines) + "\n" if lines else ""
 
 
 def snapshot_from_open_records(
@@ -936,63 +966,6 @@ def compare_snapshots(
     return new_issues, status_changes, label_changes, closed_issues
 
 
-def build_updates_sections(
-    new_issues: list[dict[str, Any]],
-    status_changes: list[dict[str, Any]],
-    label_changes: list[dict[str, Any]],
-    closed_issues: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    sections: list[dict[str, Any]] = []
-
-    if new_issues:
-        lines = [
-            f"- {row['issue_link']} {row.get('title_display', row.get('title', ''))}"
-            for row in new_issues
-        ]
-        sections.append({"heading": "New issues", "items_markdown": "\n".join(lines)})
-
-    if status_changes:
-        lines = []
-        for change in status_changes:
-            pr_suffix = f" ({change['pr_links']})" if change["pr_links"] else ""
-            lines.append(
-                f"- {change['issue_link']} {change.get('title_display', change.get('title', ''))}: {change['old_status']} → {change['new_status']}{pr_suffix}"
-            )
-        sections.append(
-            {"heading": "Status changes", "items_markdown": "\n".join(lines)}
-        )
-
-    if label_changes:
-        lines = []
-        for change in label_changes:
-            pieces = []
-            if change["added"]:
-                added = ", ".join(f'"{label}"' for label in change["added"])
-                pieces.append(f"added {added}")
-            if change["removed"]:
-                removed = ", ".join(f'"{label}"' for label in change["removed"])
-                pieces.append(f"removed {removed}")
-            lines.append(
-                f"- {change['issue_link']} {change.get('title_display', change.get('title', ''))}: {'; '.join(pieces)}"
-            )
-        sections.append(
-            {"heading": "Label changes", "items_markdown": "\n".join(lines)}
-        )
-
-    if closed_issues:
-        lines = []
-        for row in closed_issues:
-            pr_suffix = f" — {row['pr_links']}" if row.get("pr_links") else ""
-            lines.append(
-                f"- {row['issue_link']} {row.get('title_display', row.get('title', ''))} — closed on GitHub{pr_suffix}"
-            )
-        sections.append(
-            {"heading": "Closed on GitHub", "items_markdown": "\n".join(lines)}
-        )
-
-    return sections
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Regenerate BACKLOG.md and BACKLOG-UPDATES.md from GitHub state."
@@ -1059,23 +1032,21 @@ def main() -> int:
         {record["number"]: record for record in current_records},
         previous_rows_by_number,
     )
-    update_sections = build_updates_sections(
-        new_issues, status_changes, label_changes, closed_issues
+    updates_lines = render_updates_lines(
+        generated_at, new_issues, status_changes, label_changes, closed_issues
     )
 
     backlog_content = render_backlog_file(repo, render_rows, generated_on, manual_block)
-    updates_entry = render_updates_entry(generated_on, update_sections)
-
     backlog_changed = (
         not BACKLOG_PATH.exists() or read_text(BACKLOG_PATH) != backlog_content
     )
-    updates_changed = bool(update_sections)
+    updates_changed = bool(updates_lines)
 
     if args.dry_run:
         print(f"Resolved GitHub repo: {repo}")
         print(f"BACKLOG.md would {'change' if backlog_changed else 'remain unchanged'}")
         print(
-            f"BACKLOG-UPDATES.md would {'append an entry' if updates_changed else 'remain unchanged'}"
+            f"BACKLOG-UPDATES.md would {'prepend lines' if updates_changed else 'remain unchanged'}"
         )
         print(f"Snapshot would contain {len(current_snapshot['issues'])} open issues")
         return 0
@@ -1085,10 +1056,8 @@ def main() -> int:
 
     if updates_changed:
         existing_updates = read_text(UPDATES_PATH) if UPDATES_PATH.exists() else ""
-        separator = (
-            "\n" if existing_updates and not existing_updates.endswith("\n") else ""
-        )
-        write_text(UPDATES_PATH, existing_updates + separator + updates_entry)
+        separator = "\n" if existing_updates and not existing_updates.startswith("\n") else ""
+        write_text(UPDATES_PATH, updates_lines + separator + existing_updates)
 
     save_snapshot(current_snapshot, snapshot_path)
     if event_log_path and event_log_path.exists():
@@ -1098,9 +1067,9 @@ def main() -> int:
         file=sys.stdout,
     )
     if updates_changed:
-        print("Appended BACKLOG-UPDATES.md entry", file=sys.stdout)
+        print("Prepended lines to BACKLOG-UPDATES.md", file=sys.stdout)
     else:
-        print("No backlog update entry needed", file=sys.stdout)
+        print("No backlog updates needed", file=sys.stdout)
     print(
         f"Saved snapshot for {repo} with {len(current_snapshot['issues'])} open issues",
         file=sys.stdout,
