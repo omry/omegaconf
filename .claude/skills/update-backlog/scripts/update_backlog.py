@@ -28,6 +28,24 @@ END_MANUAL = "<!-- END MANUAL COMMENTS -->"
 MANUAL_FENCE = '```json\n{\n  "issues": {},\n  "general": []\n}\n```'
 
 STATUS_ORDER = ["in progress", "community PR", "blocked", "not started", "done"]
+
+CATEGORY_EMOJI = {
+    "Bug": "🐛",
+    "Enhancement": "✨",
+    "Refactor": "🔧",
+    "Build": "🏗️",
+    "Documentation": "📄",
+    "Question": "❓",
+}
+
+STATUS_EMOJI = {
+    "in progress": "🔄",
+    "community PR": "🤝",
+    "blocked": "🚫",
+    "not started": "⬜",
+    "done": "✅",
+}
+
 CATEGORY_ORDER = [
     "Bug",
     "Enhancement",
@@ -783,14 +801,20 @@ def render_backlog_file(
     context = {
         "generated_on": generated_on,
         "open_total": str(open_total),
-        "category_rows": category_rows,
-        "status_rows": status_rows,
+        "category_rows": [
+            {**r, "category": f"{CATEGORY_EMOJI.get(r['category'], '')} {r['category']}"}
+            for r in category_rows
+        ],
+        "status_rows": [
+            {**r, "status": f"{STATUS_EMOJI.get(r['status'], '')} {r['status']}"}
+            for r in status_rows
+        ],
         "issue_rows": [
             {
                 "issue_link": row["issue_link"],
                 "title": row["title_display"],
-                "category": row["category"],
-                "status": row["status"],
+                "category": f"{CATEGORY_EMOJI.get(row['category'], '')} {row['category']}",
+                "status": f"{STATUS_EMOJI.get(row['status'], '')} {row['status']}",
                 "pr_links": row["pr_links"],
                 "created": row["created"],
                 "updated": row["updated"],
