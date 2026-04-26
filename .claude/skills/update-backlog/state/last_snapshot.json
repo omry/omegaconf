@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T10:44:01Z",
+  "generated_at": "2026-04-26T10:51:29Z",
   "issues": {
     "1006": {
       "category": "Enhancement",
@@ -646,6 +646,16 @@
       "status": "in progress",
       "title": "Support Union of Structured Configs (dataclasses/attr classes)",
       "updated_at": "2026-04-24T14:34:45Z"
+    },
+    "1282": {
+      "category": "Documentation",
+      "created_at": "2026-04-26T10:51:21Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
+      "updated_at": "2026-04-26T10:51:21Z"
     },
     "131": {
       "category": "Enhancement",
