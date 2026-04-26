@@ -35,11 +35,11 @@
 | Category | Count | Percentage |
 |----------|-------|------------|
 | 🐛 Bug | 45 | 44.6% |
-| ✨ Enhancement | 49 | 48.5% |
+| ✨ Enhancement | 50 | 49.5% |
 | 🔧 Refactor | 2 | 2.0% |
 | 🏗️ Build | 1 | 1.0% |
 | 📄 Documentation | 3 | 3.0% |
-| ❓ Question | 1 | 1.0% |
+| ❓ Question | 0 | 0.0% |
 | **Total** | **101** | |
 
 </td><td>
@@ -77,7 +77,7 @@
 | [#755](https://github.com/omry/omegaconf/issues/755) | negative list indices in variable interpolation | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1212](https://github.com/omry/omegaconf/pull/1212) | 2021‑06‑17 | 2026‑04‑25 | enhancement |
 | [#945](https://github.com/omry/omegaconf/issues/945) | `get_attr_data` doesn't handle default factory correctly | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1134](https://github.com/omry/omegaconf/pull/1134) | 2022‑05‑25 | 2026‑04‑24 | bug, needs triage |
 | [#1019](https://github.com/omry/omegaconf/issues/1019) | Nested structured config validation | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1133](https://github.com/omry/omegaconf/pull/1133) | 2022‑10‑04 | 2026‑04‑24 | bug, needs triage |
-| [#1118](https://github.com/omry/omegaconf/issues/1118) | `OmegaConf.missing_keys(cfg)` may fail if contained cus... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1117](https://github.com/omry/omegaconf/pull/1117) | 2023‑08‑24 | 2026‑04‑24 | bug, needs triage |
+| [#1118](https://github.com/omry/omegaconf/issues/1118) | `OmegaConf.missing_keys(cfg)` may fail if contained cus... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1117](https://github.com/omry/omegaconf/pull/1117) | 2023‑08‑24 | 2026‑04‑26 | bug |
 | [#1123](https://github.com/omry/omegaconf/issues/1123) | Inconsistencies in recursive behavior in `set_readonly()` | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1124](https://github.com/omry/omegaconf/pull/1124) | 2023‑09‑20 | 2026‑04‑24 | bug, needs triage |
 | [#1239](https://github.com/omry/omegaconf/issues/1239) | RuntimeError: dictionary changed size during iteration... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1240](https://github.com/omry/omegaconf/pull/1240) | 2026‑03‑12 | 2026‑04‑24 | bug, awaiting response |
 | [#1160](https://github.com/omry/omegaconf/issues/1160) | Support `Boost.Python.enum` Enums as annotation and sup... | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑25 | awaiting response |
@@ -136,7 +136,7 @@
 | [#1048](https://github.com/omry/omegaconf/issues/1048) | [Feature Request] Use SimpleNamespace for to_container(... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2022‑12‑26 | 2026‑04‑24 | needs triage |
 | [#1052](https://github.com/omry/omegaconf/issues/1052) | How can I get the data type of an attribute at a depth>1? | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑01‑06 | 2026‑04‑24 | needs triage |
 | [#1054](https://github.com/omry/omegaconf/issues/1054) | Structured Config schema Type validation of "list[list[... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2023‑01‑22 | 2026‑04‑24 | bug, needs triage |
-| [#1056](https://github.com/omry/omegaconf/issues/1056) | How to properly escape ??? | <span title="Question">❓</span> | <span title="not started">⬜</span> |  | 2023‑01‑31 | 2026‑04‑24 | needs triage, has-workaround |
+| [#1056](https://github.com/omry/omegaconf/issues/1056) | How to properly escape ??? | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑01‑31 | 2026‑04‑26 | enhancement, has-workaround |
 | [#1058](https://github.com/omry/omegaconf/issues/1058) | structured config types are discarded on list merge | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2023‑02‑19 | 2026‑04‑24 | bug, needs triage |
 | [#1059](https://github.com/omry/omegaconf/issues/1059) | oc.decode resolver failing to parse "???" as MISSING | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2023‑02‑21 | 2026‑04‑24 | bug, needs triage |
 | [#1061](https://github.com/omry/omegaconf/issues/1061) | Enum inheritance Support | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑03‑07 | 2026‑04‑24 | needs triage |
@@ -160,7 +160,7 @@
 | [#1271](https://github.com/omry/omegaconf/issues/1271) | Support Union[Literal[...], other_type] annotations in... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1274](https://github.com/omry/omegaconf/issues/1274) | Python 3.10 minimum: remove version guards and moderniz... | <span title="Refactor">🔧</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1282](https://github.com/omry/omegaconf/issues/1282) | Migrate Documentation from Read the docs to a GitHub ho... | <span title="Documentation">📄</span> | <span title="not started">⬜</span> |  | 2026‑04‑26 | 2026‑04‑26 | documentation |
-| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="<span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span>"><span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span></span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
+| [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="<span title="<span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span>"><span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span></span>"><span title="<span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span>"><span title="<span title="<span title="Question">❓</span>"><span title="Question">❓</span></span>"><span title="<span title="Question">❓</span>"><span title="Question">❓</span></span></span></span></span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments
