@@ -186,7 +186,10 @@ class OmegaConf:
         )
 
     @staticmethod
-    def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
+    def load(
+        file_: Union[str, pathlib.Path, IO[Any]],
+        flags: Optional[Dict[str, bool]] = None,
+    ) -> Union[DictConfig, ListConfig]:
         from ._utils import get_yaml_loader
 
         if isinstance(file_, (str, pathlib.Path)):
@@ -204,9 +207,9 @@ class OmegaConf:
 
         ret: Union[DictConfig, ListConfig]
         if obj is None:
-            ret = OmegaConf.create()
+            ret = OmegaConf.create(flags=flags)
         else:
-            ret = OmegaConf.create(obj)
+            ret = OmegaConf.create(obj, flags=flags)
         return ret
 
     @staticmethod
