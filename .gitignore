@@ -1,6 +1,7 @@
 .benchmarks
 .cache
 *.pyc
+**/__pycache__/
 .pytest_cache
 .tox
 .nox
@@ -32,3 +33,4 @@ temp
 !.claude/skills/**
 .codex
 .mcp.json
+__pycache__
