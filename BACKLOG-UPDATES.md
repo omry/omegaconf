@@ -28,3 +28,9 @@
 - [#755](https://github.com/omry/omegaconf/issues/755) negative list indices in variable interpolation: not started → community PR ([#1212](https://github.com/omry/omegaconf/pull/1212))
 
 ---
+## 2026-04-26
+
+### New issues
+- [#1178](https://github.com/omry/omegaconf/issues/1178) `incompatible copy of pydevd already imported` when run...
+
+---
