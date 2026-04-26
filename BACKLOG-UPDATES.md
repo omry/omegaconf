@@ -1,3 +1,5 @@
+- `2026-04-26T17:46:30Z` label: [#651](https://github.com/omry/omegaconf/issues/651) Interpolations can't refer to non-string keys: removed "needs triage"
+
 - `2026-04-26T17:45:07Z` label: [#580](https://github.com/omry/omegaconf/issues/580) _ensure_container does not set flags if target is already a DictConfig/ListConfig: removed "needs triage", "priority_medium"
 
 - `2026-04-26T13:03:38Z` closed: [#910](https://github.com/omry/omegaconf/issues/910) Allow assigning variable interpolation to structured co...
