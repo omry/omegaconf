@@ -1,3 +1,6 @@
+- `2026-04-27T01:57:42Z` closed: [#1006](https://github.com/omry/omegaconf/issues/1006) Allow merging configs with union operator \| in Python 3.9+
+- `2026-04-27T01:57:42Z` closed: [#422](https://github.com/omry/omegaconf/issues/422) Allow the use of typing.Literal as a pythonic alternati...
+
 - `2026-04-27T01:55:00Z` status: [#265](https://github.com/omry/omegaconf/issues/265) Attribute/KeyError can suggest matches from the available keys.: in progress → not started
 - `2026-04-27T01:55:00Z` closed: [#1156](https://github.com/omry/omegaconf/issues/1156) Convert from OrderedDict?
 - `2026-04-27T01:55:00Z` closed: [#1221](https://github.com/omry/omegaconf/issues/1221) Suggest similar key names when a key is not found

@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 43 | 44.8% |
-| ✨ Enhancement | 47 | 49.0% |
+| 🐛 Bug | 43 | 45.7% |
+| ✨ Enhancement | 45 | 47.9% |
 | 🔧 Refactor | 2 | 2.1% |
-| 🏗️ Build | 1 | 1.0% |
-| 📄 Documentation | 3 | 3.1% |
+| 🏗️ Build | 1 | 1.1% |
+| 📄 Documentation | 3 | 3.2% |
 | ❓ Question | 0 | 0.0% |
-| **Total** | **96** | |
+| **Total** | **94** | |
 
 </td><td>
 
@@ -48,19 +48,17 @@
 
 | Status | Count |
 |--------|-------|
-| 🔄 in progress | 10 |
+| 🔄 in progress | 8 |
 | 🤝 community PR | 6 |
 | 🚫 blocked | 4 |
 | ⬜ not started | 76 |
-| ✅ done | 6 |
+| ✅ done | 8 |
 
 
 </td></tr></table>
 
 | Issue | Title | Category | Status | PR | Created | Updated | Labels |
 |-------|-------|----------|----|---------|---------|---------|--------|
-| [#422](https://github.com/omry/omegaconf/issues/422) | Allow the use of typing.Literal as a pythonic alternati... | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1272](https://github.com/omry/omegaconf/pull/1272) | 2020‑10‑27 | 2026‑04‑24 | enhancement, wishlist, needs triage |
-| [#1006](https://github.com/omry/omegaconf/issues/1006) | Allow merging configs with union operator \| in Python 3.9+ | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1277](https://github.com/omry/omegaconf/pull/1277) | 2022‑09‑15 | 2026‑04‑24 | enhancement, dictconfig |
 | [#1087](https://github.com/omry/omegaconf/issues/1087) | `unsafe_merge` crashes with nested structured config an... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1088](https://github.com/omry/omegaconf/pull/1088) | 2023‑06‑11 | 2026‑04‑24 | bug, needs triage |
 | [#1103](https://github.com/omry/omegaconf/issues/1103) | One should be allowed to re-instantiate a structured ob... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1104](https://github.com/omry/omegaconf/pull/1104) | 2023‑07‑14 | 2026‑04‑24 | bug, needs triage |
 | [#1112](https://github.com/omry/omegaconf/issues/1112) | Unexpected behavior for multiline-strings | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1113](https://github.com/omry/omegaconf/pull/1113) | 2023‑08‑08 | 2026‑04‑24 | bug, needs triage |
@@ -161,6 +159,8 @@
 | [#1156](https://github.com/omry/omegaconf/issues/1156) | Convert from OrderedDict? | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1278](https://github.com/omry/omegaconf/pull/1278) | 2024‑02‑22 | 2026‑04‑25 |  |
 | [#1221](https://github.com/omry/omegaconf/issues/1221) | Suggest similar key names when a key is not found | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1265](https://github.com/omry/omegaconf/pull/1265) | 2025‑08‑06 | 2026‑04‑24 | enhancement |
 | [#1222](https://github.com/omry/omegaconf/issues/1222) | Better doc strings | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1264](https://github.com/omry/omegaconf/pull/1264) | 2025‑08‑21 | 2026‑04‑24 | enhancement |
+| [#422](https://github.com/omry/omegaconf/issues/422) | Allow the use of typing.Literal as a pythonic alternati... | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1272](https://github.com/omry/omegaconf/pull/1272) | 2020‑10‑27 | 2026‑04‑24 | enhancement, wishlist, needs triage |
+| [#1006](https://github.com/omry/omegaconf/issues/1006) | Allow merging configs with union operator \| in Python 3.9+ | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1277](https://github.com/omry/omegaconf/pull/1277) | 2022‑09‑15 | 2026‑04‑24 | enhancement, dictconfig |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments
