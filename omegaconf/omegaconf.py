@@ -1023,11 +1023,12 @@ class OmegaConf:
         """
         Resolves all interpolations in the given config object in-place.
 
-        This function performs a single, in-order traversal of the config tree,
-        replacing each interpolation with its resolved value as it is encountered.
-        Because the traversal is a simple single pass, results can depend on key
-        insertion order when interpolations form a graph (i.e. when multiple nodes
-        reference the same target or when resolvers are stateful).
+        This function works correctly for configs that use only node interpolations
+        (``${key}``) with no custom resolvers. When custom resolvers are involved,
+        results may depend on the depth-first, key insertion order traversal, because
+        custom resolvers can do anything — they may be stateful, have side effects, or
+        return different values on each call — and this function has no way to account
+        for that.
 
         :param cfg: An OmegaConf container (DictConfig or ListConfig).
         :raises ValueError: If the input object is not an OmegaConf container.
