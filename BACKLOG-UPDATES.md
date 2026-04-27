@@ -1,3 +1,5 @@
+- `2026-04-27T04:43:10Z` label: [#1103](https://github.com/omry/omegaconf/issues/1103) One should be allowed to re-instantiate a structured object with missing values: added "awaiting response"; removed "needs triage"
+
 - `2026-04-27T04:37:11Z` label: [#1087](https://github.com/omry/omegaconf/issues/1087) `unsafe_merge` crashes with nested structured config and union type: removed "needs triage"
 
 - `2026-04-27T03:10:03Z` closed: [#1019](https://github.com/omry/omegaconf/issues/1019) Nested structured config validation
