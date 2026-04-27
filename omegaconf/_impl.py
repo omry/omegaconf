@@ -49,7 +49,7 @@ def _resolve(cfg: Node) -> Node:
             cfg._set_value(resolved._value())
 
     if isinstance(cfg, DictConfig):
-        for k in cfg.keys():
+        for k in list(cfg.keys()):
             _resolve_container_value(cfg, k)
 
     elif isinstance(cfg, ListConfig):

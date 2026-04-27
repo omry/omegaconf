@@ -549,6 +549,34 @@ def test_resolve_invalid_input() -> None:
         OmegaConf.resolve("aaa")  # type: ignore
 
 
+def test_resolve_does_not_raise_when_resolver_adds_keys() -> None:
+    """Regression test: OmegaConf.resolve must not raise RuntimeError when a
+    custom resolver returns a DictConfig that causes new keys to be written into
+    the parent dict during iteration (Python 3.12+ raises
+    'RuntimeError: dictionary changed size during iteration' without the fix).
+    """
+    OmegaConf.register_new_resolver(
+        "merge_test",
+        lambda a, b: OmegaConf.merge(a, b),
+        replace=True,
+    )
+    try:
+        cfg = OmegaConf.create(
+            {
+                "base": {"x": 1, "y": 2},
+                "extra": {"z": 3},
+                "merged": "${merge_test:${base},${extra}}",
+            }
+        )
+        # Must not raise RuntimeError: dictionary changed size during iteration
+        OmegaConf.resolve(cfg)
+        result = OmegaConf.to_container(cfg, resolve=False)
+        assert isinstance(result, dict)
+        assert result["merged"] == {"x": 1, "y": 2, "z": 3}
+    finally:
+        OmegaConf.clear_resolvers()
+
+
 @mark.parametrize(
     "cfg, expected",
     [
