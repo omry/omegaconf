@@ -1,3 +1,8 @@
+- `2026-04-27T01:55:00Z` status: [#265](https://github.com/omry/omegaconf/issues/265) Attribute/KeyError can suggest matches from the available keys.: in progress → not started
+- `2026-04-27T01:55:00Z` closed: [#1156](https://github.com/omry/omegaconf/issues/1156) Convert from OrderedDict?
+- `2026-04-27T01:55:00Z` closed: [#1221](https://github.com/omry/omegaconf/issues/1221) Suggest similar key names when a key is not found
+- `2026-04-27T01:55:00Z` closed: [#1222](https://github.com/omry/omegaconf/issues/1222) Better doc strings
+
 - `2026-04-26T19:17:31Z` status: [#945](https://github.com/omry/omegaconf/issues/945) `get_attr_data` doesn't handle default factory correctly: community PR → not started
 
 - `2026-04-26T17:49:30Z` label: [#392](https://github.com/omry/omegaconf/issues/392) Improve Tuple support: removed "needs triage"

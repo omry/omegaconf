@@ -1,7 +1,7 @@
 # Detailed Open Issues: omry/omegaconf
 
 <!-- BEGIN GENERATED BACKLOG -->
-*Generated on: 2026-04-26*
+*Generated on: 2026-04-27*
 
 <table><tr><td>
 
@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 43 | 43.4% |
-| ✨ Enhancement | 50 | 50.5% |
-| 🔧 Refactor | 2 | 2.0% |
+| 🐛 Bug | 43 | 44.8% |
+| ✨ Enhancement | 47 | 49.0% |
+| 🔧 Refactor | 2 | 2.1% |
 | 🏗️ Build | 1 | 1.0% |
-| 📄 Documentation | 3 | 3.0% |
+| 📄 Documentation | 3 | 3.1% |
 | ❓ Question | 0 | 0.0% |
-| **Total** | **99** | |
+| **Total** | **96** | |
 
 </td><td>
 
@@ -48,28 +48,24 @@
 
 | Status | Count |
 |--------|-------|
-| 🔄 in progress | 14 |
+| 🔄 in progress | 10 |
 | 🤝 community PR | 6 |
 | 🚫 blocked | 4 |
-| ⬜ not started | 75 |
-| ✅ done | 3 |
+| ⬜ not started | 76 |
+| ✅ done | 6 |
 
 
 </td></tr></table>
 
 | Issue | Title | Category | Status | PR | Created | Updated | Labels |
 |-------|-------|----------|----|---------|---------|---------|--------|
-| [#265](https://github.com/omry/omegaconf/issues/265) | Attribute/KeyError can suggest matches from the availab... | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1265](https://github.com/omry/omegaconf/pull/1265) | 2020‑06‑11 | 2026‑04‑24 | enhancement, needs triage, priority_low |
 | [#422](https://github.com/omry/omegaconf/issues/422) | Allow the use of typing.Literal as a pythonic alternati... | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1272](https://github.com/omry/omegaconf/pull/1272) | 2020‑10‑27 | 2026‑04‑24 | enhancement, wishlist, needs triage |
 | [#1006](https://github.com/omry/omegaconf/issues/1006) | Allow merging configs with union operator \| in Python 3.9+ | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1277](https://github.com/omry/omegaconf/pull/1277) | 2022‑09‑15 | 2026‑04‑24 | enhancement, dictconfig |
 | [#1087](https://github.com/omry/omegaconf/issues/1087) | `unsafe_merge` crashes with nested structured config an... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1088](https://github.com/omry/omegaconf/pull/1088) | 2023‑06‑11 | 2026‑04‑24 | bug, needs triage |
 | [#1103](https://github.com/omry/omegaconf/issues/1103) | One should be allowed to re-instantiate a structured ob... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1104](https://github.com/omry/omegaconf/pull/1104) | 2023‑07‑14 | 2026‑04‑24 | bug, needs triage |
 | [#1112](https://github.com/omry/omegaconf/issues/1112) | Unexpected behavior for multiline-strings | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1113](https://github.com/omry/omegaconf/pull/1113) | 2023‑08‑08 | 2026‑04‑24 | bug, needs triage |
 | [#1120](https://github.com/omry/omegaconf/issues/1120) | Escaped resolver modifying `_root_` doesn't work | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1113](https://github.com/omry/omegaconf/pull/1113) | 2023‑08‑30 | 2026‑04‑24 | bug, needs triage |
-| [#1156](https://github.com/omry/omegaconf/issues/1156) | Convert from OrderedDict? | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1278](https://github.com/omry/omegaconf/pull/1278) | 2024‑02‑22 | 2026‑04‑25 |  |
 | [#1205](https://github.com/omry/omegaconf/issues/1205) | When merging DictConfs and interpolation fails due to M... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1249](https://github.com/omry/omegaconf/pull/1249) | 2025‑01‑11 | 2026‑04‑24 | bug |
-| [#1221](https://github.com/omry/omegaconf/issues/1221) | Suggest similar key names when a key is not found | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1265](https://github.com/omry/omegaconf/pull/1265) | 2025‑08‑06 | 2026‑04‑24 | enhancement |
-| [#1222](https://github.com/omry/omegaconf/issues/1222) | Better doc strings | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1264](https://github.com/omry/omegaconf/pull/1264) | 2025‑08‑21 | 2026‑04‑24 | enhancement |
 | [#1230](https://github.com/omry/omegaconf/issues/1230) | Allow backslash-escaping of special characters in key p... | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1279](https://github.com/omry/omegaconf/pull/1279) | 2025‑12‑04 | 2026‑04‑25 | enhancement |
 | [#1261](https://github.com/omry/omegaconf/issues/1261) | Support unions of Dict and List container types | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1262](https://github.com/omry/omegaconf/pull/1262) | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1275](https://github.com/omry/omegaconf/issues/1275) | Support Union of Structured Configs (dataclasses/attr c... | <span title="Enhancement">✨</span> | <span title="in progress">🔄</span> | [#1262](https://github.com/omry/omegaconf/pull/1262) | 2026‑04‑24 | 2026‑04‑24 |  |
@@ -158,9 +154,13 @@
 | [#1274](https://github.com/omry/omegaconf/issues/1274) | Python 3.10 minimum: remove version guards and moderniz... | <span title="Refactor">🔧</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1282](https://github.com/omry/omegaconf/issues/1282) | Migrate Documentation from Read the docs to a GitHub ho... | <span title="Documentation">📄</span> | <span title="not started">⬜</span> |  | 2026‑04‑26 | 2026‑04‑26 | documentation |
 | [#945](https://github.com/omry/omegaconf/issues/945) | `get_attr_data` doesn't handle default factory correctly | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑05‑25 | 2026‑04‑24 | bug, needs triage |
+| [#265](https://github.com/omry/omegaconf/issues/265) | Attribute/KeyError can suggest matches from the availab... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2020‑06‑11 | 2026‑04‑24 | enhancement, needs triage, priority_low |
 | [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="Question">❓</span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 | [#788](https://github.com/omry/omegaconf/issues/788) | validation error when default_factory produces structur... | <span title="Bug">🐛</span> | <span title="done">✅</span> |  | 2021‑09‑14 | 2026‑04‑26 | bug, priority_low |
 | [#910](https://github.com/omry/omegaconf/issues/910) | Allow assigning variable interpolation to structured co... | <span title="Bug">🐛</span> | <span title="done">✅</span> |  | 2022‑05‑05 | 2026‑04‑24 | bug, needs triage, interpolation, structured config |
+| [#1156](https://github.com/omry/omegaconf/issues/1156) | Convert from OrderedDict? | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1278](https://github.com/omry/omegaconf/pull/1278) | 2024‑02‑22 | 2026‑04‑25 |  |
+| [#1221](https://github.com/omry/omegaconf/issues/1221) | Suggest similar key names when a key is not found | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1265](https://github.com/omry/omegaconf/pull/1265) | 2025‑08‑06 | 2026‑04‑24 | enhancement |
+| [#1222](https://github.com/omry/omegaconf/issues/1222) | Better doc strings | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1264](https://github.com/omry/omegaconf/pull/1264) | 2025‑08‑21 | 2026‑04‑24 | enhancement |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments
