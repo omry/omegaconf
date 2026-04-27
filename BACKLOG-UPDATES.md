@@ -1,3 +1,5 @@
+- `2026-04-27T04:37:11Z` label: [#1087](https://github.com/omry/omegaconf/issues/1087) `unsafe_merge` crashes with nested structured config and union type: removed "needs triage"
+
 - `2026-04-27T03:10:03Z` closed: [#1019](https://github.com/omry/omegaconf/issues/1019) Nested structured config validation
 
 - `2026-04-27T02:01:09Z` status: [#1275](https://github.com/omry/omegaconf/issues/1275) Support Union of Structured Configs (dataclasses/attr classes): in progress → not started
