@@ -772,13 +772,15 @@ Example:
 
 .. warning::
 
-    ``OmegaConf.resolve()`` performs a single, in-order traversal of the config
-    tree.  Because it mutates the config as it walks, results can depend on key
-    insertion order when interpolations form a graph (i.e. when multiple nodes
-    reference the same target, or when resolvers are stateful).
-    For these cases, prefer accessing values lazily (the default) or use
-    ``OmegaConf.to_container(cfg, resolve=True)`` to get a resolved plain Python
-    container without mutating the config in place.
+    ``OmegaConf.resolve()`` works correctly for configs that use only node
+    interpolations (``${key}``) with no custom resolvers.  When custom resolvers
+    are involved, results may depend on the depth-first, key insertion order
+    traversal, because custom resolvers can do anything — they may be stateful,
+    have side effects, or return different values on each call.  No traversal
+    strategy can account for this, so the limitation is by design.
+    For configs that use custom resolvers, prefer accessing values lazily (the
+    default) or use ``OmegaConf.to_container(cfg, resolve=True)`` to get a
+    resolved plain Python container without mutating the config in place.
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
