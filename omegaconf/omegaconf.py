@@ -1023,8 +1023,14 @@ class OmegaConf:
         """
         Resolves all interpolations in the given config object in-place.
 
-        :param cfg: An OmegaConf container (DictConfig, ListConfig)
-                    Raises a ValueError if the input object is not an OmegaConf container.
+        This function performs a single, in-order traversal of the config tree,
+        replacing each interpolation with its resolved value as it is encountered.
+        Because the traversal is a simple single pass, results can depend on key
+        insertion order when interpolations form a graph (i.e. when multiple nodes
+        reference the same target or when resolvers are stateful).
+
+        :param cfg: An OmegaConf container (DictConfig or ListConfig).
+        :raises ValueError: If the input object is not an OmegaConf container.
         """
         import omegaconf._impl
 
