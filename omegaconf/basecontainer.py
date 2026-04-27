@@ -633,7 +633,8 @@ class BaseContainer(Container, ABC):
             do_deepcopy = not self._get_flag("no_deepcopy_set_nodes")
             if not do_deepcopy and isinstance(value, Box):
                 # if value is from the same config, perform a deepcopy no matter what.
-                if self._get_root() is value._get_root():
+                value_root = value._get_root() if value._get_parent() is not None else value
+                if self._get_root() is value_root:
                     do_deepcopy = True
 
             if do_deepcopy:

@@ -1590,3 +1590,27 @@ def test_union_operator_ror_list_raises() -> None:
     c1 = OmegaConf.create([1, 2, 3])
     with raises(TypeError):
         [4, 5] | c1
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_with_nested_structured_config_and_union_type(
+    merge: Any,
+) -> None:
+    from dataclasses import dataclass
+    from typing import Union
+
+    @dataclass
+    class Inner:
+        x: Union[int, str]
+
+    @dataclass
+    class Outer:
+        inner: Inner
+
+    dst = OmegaConf.structured(Outer)
+    src = OmegaConf.create({"inner": {"x": 10}})
+    res = merge(dst, src)
+
+    expected = {"inner": {"x": 10}}
+    assert res == expected
+
