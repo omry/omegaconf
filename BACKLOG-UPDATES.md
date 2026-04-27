@@ -1,3 +1,9 @@
+- `2026-04-27T04:43:10Z` label: [#1103](https://github.com/omry/omegaconf/issues/1103) One should be allowed to re-instantiate a structured object with missing values: added "awaiting response"; removed "needs triage"
+
+- `2026-04-27T04:37:11Z` label: [#1087](https://github.com/omry/omegaconf/issues/1087) `unsafe_merge` crashes with nested structured config and union type: removed "needs triage"
+
+- `2026-04-27T03:10:03Z` closed: [#1019](https://github.com/omry/omegaconf/issues/1019) Nested structured config validation
+
 - `2026-04-27T02:01:09Z` status: [#1275](https://github.com/omry/omegaconf/issues/1275) Support Union of Structured Configs (dataclasses/attr classes): in progress → not started
 - `2026-04-27T02:01:09Z` closed: [#1205](https://github.com/omry/omegaconf/issues/1205) When merging DictConfs and interpolation fails due to M...
 - `2026-04-27T02:01:09Z` closed: [#1230](https://github.com/omry/omegaconf/issues/1230) Allow backslash-escaping of special characters in key p...

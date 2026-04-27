@@ -750,17 +750,14 @@ structured_config_mode=SCMode.INSTANTIATE)``.
 
 OmegaConf.resolve
 ^^^^^^^^^^^^^^^^^
+
+Normally interpolations are resolved lazily, at access time.
+``OmegaConf.resolve()`` eagerly resolves all interpolations in the given config object in-place.
+
 .. code-block:: python
 
-    def resolve(cfg: Container) -> None:
-        """
-        Resolves all interpolations in the given config object in-place.
-        :param cfg: An OmegaConf container (DictConfig, ListConfig)
-                    Raises a ValueError if the input object is not an OmegaConf container.
-        """
+    OmegaConf.resolve(cfg)
 
-Normally interpolations are resolved lazily, at access time. 
-This function eagerly resolves all interpolations in the given config object in-place.
 Example:
 
 .. doctest::
@@ -772,6 +769,16 @@ Example:
     >>> OmegaConf.resolve(cfg)
     >>> show(cfg)
     type: DictConfig, value: {'a': 10, 'b': 10}
+
+.. warning::
+
+    ``OmegaConf.resolve()`` performs a single, in-order traversal of the config
+    tree.  Because it mutates the config as it walks, results can depend on key
+    insertion order when interpolations form a graph (i.e. when multiple nodes
+    reference the same target, or when resolvers are stateful).
+    For these cases, prefer accessing values lazily (the default) or use
+    ``OmegaConf.to_container(cfg, resolve=True)`` to get a resolved plain Python
+    container without mutating the config in place.
 
 OmegaConf.select
 ^^^^^^^^^^^^^^^^
