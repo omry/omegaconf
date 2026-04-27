@@ -1,3 +1,5 @@
+- `2026-04-27T05:54:53Z` closed: [#1112](https://github.com/omry/omegaconf/issues/1112) Unexpected behavior for multiline-strings
+
 - `2026-04-27T04:43:10Z` label: [#1103](https://github.com/omry/omegaconf/issues/1103) One should be allowed to re-instantiate a structured object with missing values: added "awaiting response"; removed "needs triage"
 
 - `2026-04-27T04:37:11Z` label: [#1087](https://github.com/omry/omegaconf/issues/1087) `unsafe_merge` crashes with nested structured config and union type: removed "needs triage"
