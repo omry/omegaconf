@@ -55,6 +55,7 @@ def load_config() -> DictConfig:
         return OmegaConf.merge(defaults, OmegaConf.load(CONFIG_PATH))
     return defaults
 
+
 CATEGORY_EMOJI = {
     "Bug": "🐛",
     "Enhancement": "✨",
