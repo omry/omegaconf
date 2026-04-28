@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 40 | 44.9% |
-| ✨ Enhancement | 43 | 48.3% |
-| 🔧 Refactor | 2 | 2.2% |
+| 🐛 Bug | 39 | 44.3% |
+| ✨ Enhancement | 43 | 48.9% |
+| 🔧 Refactor | 2 | 2.3% |
 | 🏗️ Build | 1 | 1.1% |
 | 📄 Documentation | 3 | 3.4% |
 | ❓ Question | 0 | 0.0% |
-| **Total** | **89** | |
+| **Total** | **88** | |
 
 </td><td>
 
@@ -49,10 +49,10 @@
 | Status | Count |
 |--------|-------|
 | 🔄 in progress | 3 |
-| 🤝 community PR | 5 |
+| 🤝 community PR | 4 |
 | 🚫 blocked | 4 |
 | ⬜ not started | 77 |
-| ✅ done | 13 |
+| ✅ done | 14 |
 
 
 </td></tr></table>
@@ -65,10 +65,9 @@
 | [#91](https://github.com/omry/omegaconf/issues/91) | Consider supporting basic operators in interpolations o... | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1229](https://github.com/omry/omegaconf/pull/1229) | 2019‑12‑02 | 2026‑04‑26 | enhancement, has-workaround |
 | [#755](https://github.com/omry/omegaconf/issues/755) | negative list indices in variable interpolation | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1212](https://github.com/omry/omegaconf/pull/1212) | 2021‑06‑17 | 2026‑04‑25 | enhancement |
 | [#1118](https://github.com/omry/omegaconf/issues/1118) | `OmegaConf.missing_keys(cfg)` may fail if contained cus... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1117](https://github.com/omry/omegaconf/pull/1117) | 2023‑08‑24 | 2026‑04‑26 | bug |
-| [#1123](https://github.com/omry/omegaconf/issues/1123) | Inconsistencies in recursive behavior in `set_readonly()` | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1124](https://github.com/omry/omegaconf/pull/1124) | 2023‑09‑20 | 2026‑04‑24 | bug, needs triage |
 | [#1239](https://github.com/omry/omegaconf/issues/1239) | RuntimeError: dictionary changed size during iteration... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1240](https://github.com/omry/omegaconf/pull/1240) | 2026‑03‑12 | 2026‑04‑24 | bug, awaiting response |
 | [#1160](https://github.com/omry/omegaconf/issues/1160) | Support `Boost.Python.enum` Enums as annotation and sup... | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑28 | awaiting response |
-| [#1161](https://github.com/omry/omegaconf/issues/1161) | Feature Request: Key-based readonly flag. | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑24 | enhancement, awaiting response |
+| [#1161](https://github.com/omry/omegaconf/issues/1161) | Feature Request: Key-based readonly flag. | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑28 | enhancement, awaiting response |
 | [#1178](https://github.com/omry/omegaconf/issues/1178) | `incompatible copy of pydevd already imported` when run... | <span title="Bug">🐛</span> | <span title="blocked">🚫</span> |  | 2024‑06‑03 | 2026‑04‑28 | bug, awaiting response |
 | [#1210](https://github.com/omry/omegaconf/issues/1210) | test_nodes fails for Python >= 3.12 because of changes... | <span title="Bug">🐛</span> | <span title="blocked">🚫</span> |  | 2025‑03‑10 | 2026‑04‑24 | bug, awaiting response |
 | [#131](https://github.com/omry/omegaconf/issues/131) | Evaluate usefulness of pep-593 for structured configs | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2020‑01‑21 | 2026‑04‑24 | needs triage |
@@ -161,6 +160,7 @@
 | [#1261](https://github.com/omry/omegaconf/issues/1261) | Support unions of Dict and List container types | <span title="Enhancement">✨</span> | <span title="done">✅</span> | [#1262](https://github.com/omry/omegaconf/pull/1262) | 2026‑04‑24 | 2026‑04‑24 |  |
 | [#1019](https://github.com/omry/omegaconf/issues/1019) | Nested structured config validation | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1133](https://github.com/omry/omegaconf/pull/1133) | 2022‑10‑04 | 2026‑04‑24 | bug, needs triage |
 | [#1112](https://github.com/omry/omegaconf/issues/1112) | Unexpected behavior for multiline-strings | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1113](https://github.com/omry/omegaconf/pull/1113), [#1287](https://github.com/omry/omegaconf/pull/1287) | 2023‑08‑08 | 2026‑04‑24 | bug, needs triage |
+| [#1123](https://github.com/omry/omegaconf/issues/1123) | Inconsistencies in recursive behavior in `set_readonly()` | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1124](https://github.com/omry/omegaconf/pull/1124) | 2023‑09‑20 | 2026‑04‑24 | bug, needs triage |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments
