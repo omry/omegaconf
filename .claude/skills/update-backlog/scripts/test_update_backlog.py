@@ -199,28 +199,28 @@ def _record(number: str, status: str = "not started", labels: list[str] = []) ->
 
 def test_compare_no_previous_snapshot():
     current = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
-    new, status, labels, closed = ub.compare_snapshots(None, current, {"1": _record("1")}, {})
-    assert new == [] and status == [] and labels == [] and closed == []
+    new, status, labels, closed, prs = ub.compare_snapshots(None, current, {"1": _record("1")}, {})
+    assert new == [] and status == [] and labels == [] and closed == [] and prs == []
 
 
 def test_compare_detects_new_issue():
     prev = _snapshot({})
     curr = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
-    new, _, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1")}, {})
+    new, _, _, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1")}, {})
     assert len(new) == 1 and new[0]["number"] == "1"
 
 
 def test_compare_detects_status_change():
     prev = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
     curr = _snapshot({"1": {"title": "t", "status": "in progress", "labels": [], "category": "Enhancement"}})
-    _, status, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1", "in progress")}, {})
+    _, status, _, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1", "in progress")}, {})
     assert len(status) == 1 and status[0]["new_status"] == "in progress"
 
 
 def test_compare_detects_closed():
     prev = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
     curr = _snapshot({})
-    _, _, _, closed = ub.compare_snapshots(prev, curr, {}, {"1": _record("1")})
+    _, _, _, closed, _ = ub.compare_snapshots(prev, curr, {}, {"1": _record("1")})
     assert len(closed) == 1
 
 
