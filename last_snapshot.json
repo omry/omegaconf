@@ -11,7 +11,7 @@
     "1261": "2026-04-27",
     "422": "2026-04-27"
   },
-  "generated_at": "2026-04-27T18:37:45Z",
+  "generated_at": "2026-04-28T09:14:14Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -373,7 +373,7 @@
       "state": "OPEN",
       "status": "blocked",
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
-      "updated_at": "2026-04-27T07:58:01Z"
+      "updated_at": "2026-04-28T09:13:32Z"
     },
     "1161": {
       "category": "Enhancement",
@@ -398,7 +398,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Consider adding config \"blame\" metadata.",
-      "updated_at": "2026-04-27T11:56:55Z"
+      "updated_at": "2026-04-28T06:44:56Z"
     },
     "1178": {
       "category": "Bug",
@@ -411,7 +411,7 @@
       "state": "OPEN",
       "status": "blocked",
       "title": "`incompatible copy of pydevd already imported` when running omegaconf",
-      "updated_at": "2026-04-27T12:21:34Z"
+      "updated_at": "2026-04-28T08:18:25Z"
     },
     "1184": {
       "category": "Enhancement",
