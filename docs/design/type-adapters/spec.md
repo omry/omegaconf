@@ -7,13 +7,6 @@ public API shape, and open decisions.
 
 **Status:** Draft
 **Stability:** The initial release will be marked experimental, allowing the public-facing adapter API (`TypeAdapter`, `TypeAdapterDescriptor`, `load_type_adapter`, etc.) to evolve without backward-compatibility constraints.
-**Related issues (partial list):**
-- [#725](https://github.com/omry/omegaconf/issues/725) - numpy float/ndarray assignment
-- [#1160](https://github.com/omry/omegaconf/issues/1160) - Boost.Python.enum support
-- [#851](https://github.com/omry/omegaconf/issues/851) - datetime.datetime support
-- [#97](https://github.com/omry/omegaconf/issues/97), [#873](https://github.com/omry/omegaconf/issues/873) - pathlib.Path support (integrated into core)
-- [#844](https://github.com/omry/omegaconf/issues/844), [#872](https://github.com/omry/omegaconf/issues/872) - bytes support (integrated into core)
-- [discussion #874](https://github.com/omry/omegaconf/discussions/874) - register custom node type (Jasha)
 
 ---
 
@@ -27,51 +20,6 @@ public API shape, and open decisions.
 | **Import module name** | The Python importable name, e.g. `omegaconf_torch`. Used in `load_type_adapter()`. |
 | **Adapter manifest** | A lightweight dataclass instance, defined by OmegaConf core and exposed through package entry point metadata, that declares adapter descriptors without importing heavy upstream libraries. |
 | **Adapter id** | A stable `package:name` string, e.g. `torch:tensor`. Names the representation contract. Used in `configure_type_adapter()` and stored in node metadata. |
-
----
-
-## Problem
-
-OmegaConf supports a fixed set of primitive value types: `int`, `float`, `bool`, `str`, `bytes`, `pathlib.Path`, `Enum` subclasses, and structured configs (dataclasses / attrs classes). This set is closed: any value whose type falls outside it is rejected with a `ValidationError`.
-
-Users regularly encounter this wall with types from the scientific Python ecosystem:
-
-| User type                                | Why it fails today                                                                                          |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `numpy.float64`, `numpy.int32`, ...      | `type(v) in (float, str, int)` - type-identity check                                                       |
-| `numpy.ndarray` (n-dimensional)          | not a list/dict/primitive - no adapter path exists                                                          |
-| `torch.Tensor` (scalar or n-dimensional) | same                                                                                                        |
-| `Boost.Python.enum`                      | `issubclass(T, enum.Enum)` - not a stdlib Enum                                                              |
-| `datetime.datetime`                      | no adapter path; blocked on per-node metadata support (format string is per-field, not global)              |
-| `decimal.Decimal`                        | `type(v) in (float, str, int)` - type-identity check                                                       |
-| `ipaddress.IPv4Network`                  | not a list/dict/primitive - no adapter path exists                                                          |
-
-The pattern is identical in every case: OmegaConf uses **closed type whitelists** where **open adapter extension points** would serve users better.
-
-### Why not add direct support?
-
-OmegaConf is intentionally low in the stack. Adding `import numpy`, `import torch`, or `import Boost` as dependencies - even optional ones - would violate that constraint. The solution must be dependency-free at the OmegaConf level.
-
-### Historical precedent
-
-`pathlib.Path` and `bytes` are concrete examples of this pressure playing out — both were added directly to OmegaConf core at the cost of special-casing them throughout the codebase. Being stdlib types made their inclusion defensible, but each one added maintenance surface.
-
-Every user type that does not fit the existing primitives creates the same pressure to bake it in as a one-off. For stdlib types that means maintenance burden alone. For third-party types (`numpy`, `torch`, `Boost`) it also means an unacceptable dependency. The adapter system addresses both.
-
-### Why not use PyYAML `!!python/object` tags?
-
-PyYAML can serialize arbitrary Python objects via `!!python/object/apply:torch.tensor` tags. This was considered and rejected for several reasons:
-
-- Requires `yaml.full_load` / unsafe loader, enabling arbitrary code execution from config files. OmegaConf deliberately uses a safe loader.
-- Produces Python-specific YAML that is not portable to non-Python consumers.
-- Config files that contain `!!python/object:torch.Tensor` cannot be loaded on a machine without `torch` installed, even if the tensor field is never accessed.
-- Opaque blobs break OmegaConf's interpolation machinery.
-
-### Why not loosen scalar conversion (`__float__` / `__int__` protocol)?
-
-Loosening `FloatNode` to accept any object where `float(v)` succeeds would fix the numpy scalar case with minimal code, and may work in narrow cases. However, it converts the value to a nearby Python primitive and loses the external scalar type, making roundtripping complicated — the same problem already visible with `enum_to_str`. It is not nearly enough for the general case.
-
-If external scalar types are supported, the goal should be exact preservation for leaf values, not implicit conversion to `float` or `int`.
 
 ---
 
@@ -98,7 +46,7 @@ OmegaConf.to_object(cfg).weights     # np.array([1.0, 2.0, 3.0])  — materializ
 
 Storing external values through adapters rather than raw Python objects preserves OmegaConf's core benefits: interpolation (`${lr}` in YAML refers to the scalar directly), config merging across files and command-line overrides, runtime type safety at schema-annotated fields, YAML portability of the stored representation, and correct deep-copy and pickle semantics.
 
-The `TypeAdapter` abstract base class defines the runtime interface that all adapters must implement. The manifest declares the stable adapter id and string-based handled type descriptors used for discovery; the runtime adapter declares the real Python types it handles and implements three core methods: `convert()` to validate and coerce an incoming value into one of the adapter's handled external types, `to_node()` to represent a validated value as OmegaConf nodes, and `from_node()` to materialize it back.
+The `TypeAdapter` abstract base class defines the runtime interface that all adapters must implement. The manifest declares the stable adapter id and string-based handled type descriptors used for discovery; the runtime adapter declares the real Python types it handles and implements three core methods: `convert()` to validate and coerce an incoming value into one of the adapter's handled external types, `to_node()` to represent an external value as OmegaConf nodes, and `from_node()` to materialize it back.
 
 The adapter contract is split across two objects with distinct lifetimes:
 
@@ -148,7 +96,7 @@ class TypeAdapter(ABC, Generic[T]):
 
     @abstractmethod
     def to_node(self, value: T) -> Node:
-        """Represent a validated external value as OmegaConf nodes."""
+        """Represent an external value as OmegaConf nodes."""
         ...
 
     @abstractmethod

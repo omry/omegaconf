@@ -43,16 +43,52 @@ The core model is:
 
 ## Problem
 
-OmegaConf currently accepts a closed set of value types: primitive scalars,
-`bytes`, `pathlib.Path`, `Enum` subclasses, and structured configs. Users hit the
-same boundary with `numpy.float32`, `numpy.ndarray`, `torch.Tensor`,
-`Boost.Python.enum`, `datetime.datetime`, `decimal.Decimal`, and other types that
-naturally appear in configs.
+OmegaConf currently accepts a closed set of value types: `int`, `float`, `bool`,
+`str`, `bytes`, `pathlib.Path`, `Enum` subclasses, and structured configs. Users
+hit the same boundary with types that naturally appear in configs:
+
+| User type                                | Why it fails today                             |
+| ---------------------------------------- | ---------------------------------------------- |
+| `numpy.float64`, `numpy.int32`, ...      | type-identity primitive checks                 |
+| `numpy.ndarray`                          | not a list/dict/primitive                      |
+| `torch.Tensor`                           | not a list/dict/primitive                      |
+| `Boost.Python.enum`                      | inherits from `int`, not stdlib `Enum`         |
+| `datetime.datetime`                      | needs per-node metadata for field formats      |
+| `decimal.Decimal`                        | type-identity primitive checks                 |
+| `ipaddress.IPv4Network`                  | not a list/dict/primitive                      |
+
+The pattern is identical in every case: OmegaConf uses closed type whitelists
+where an open adapter extension point would serve users better.
 
 Adding these directly to OmegaConf core would create one-off special cases and
 unacceptable optional dependency pressure. Unsafe YAML tags such as
 `!!python/object` are also not viable because they are Python-specific, require
 unsafe loading, and break portability.
+
+Related issues and discussions:
+
+- [#725](https://github.com/omry/omegaconf/issues/725) - numpy float/ndarray assignment
+- [#1160](https://github.com/omry/omegaconf/issues/1160) - Boost.Python.enum support
+- [#851](https://github.com/omry/omegaconf/issues/851) - datetime.datetime support
+- [#97](https://github.com/omry/omegaconf/issues/97), [#873](https://github.com/omry/omegaconf/issues/873) - pathlib.Path support, now integrated into core
+- [#844](https://github.com/omry/omegaconf/issues/844), [#872](https://github.com/omry/omegaconf/issues/872) - bytes support, now integrated into core
+- [discussion #874](https://github.com/omry/omegaconf/discussions/874) - register custom node type
+
+## Motivation And Alternatives
+
+`pathlib.Path` and `bytes` show the cost of adding special cases directly to
+OmegaConf core. Being stdlib types made their inclusion defensible, but each one
+added maintenance surface. Third-party types would add both maintenance burden
+and unacceptable dependencies.
+
+PyYAML `!!python/object` tags were rejected because they require unsafe loading,
+produce Python-specific YAML, require the external package at load time, and make
+config data opaque to OmegaConf interpolation and merge behavior.
+
+Loosening scalar conversion through protocols such as `__float__` or `__int__`
+would help narrow cases like NumPy scalars, but it would coerce the value to a
+nearby builtin and lose the external scalar type. The adapter design requires
+exact preservation for adapted scalar values.
 
 ## Goals
 
