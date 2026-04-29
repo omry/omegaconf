@@ -1,7 +1,7 @@
 from typing import Any
 
-from omegaconf import MISSING, Container, DictConfig, ListConfig, Node, ValueNode
-from omegaconf.errors import ConfigTypeError, InterpolationToMissingValueError
+from omegaconf import Container, DictConfig, ListConfig, Node, ValueNode
+from omegaconf.errors import ConfigTypeError
 from omegaconf.nodes import InterpolationResultNode
 
 from ._utils import (
@@ -17,23 +17,19 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
     node = cfg._get_child(key)
     assert isinstance(node, Node)
     if node._is_interpolation():
-        try:
-            resolved = node._dereference_node()
-        except InterpolationToMissingValueError:
-            node._set_value(MISSING)
+        resolved = node._dereference_node()
+        if isinstance(resolved, Container):
+            _resolve(resolved)
+        if isinstance(resolved, InterpolationResultNode):
+            resolved_value = _get_value(resolved)
+            if is_primitive_container(resolved_value) or is_structured_config(
+                resolved_value
+            ):
+                resolved = _ensure_container(resolved_value)
+        if isinstance(resolved, Container) and isinstance(node, ValueNode):
+            cfg[key] = resolved
         else:
-            if isinstance(resolved, Container):
-                _resolve(resolved)
-            if isinstance(resolved, InterpolationResultNode):
-                resolved_value = _get_value(resolved)
-                if is_primitive_container(resolved_value) or is_structured_config(
-                    resolved_value
-                ):
-                    resolved = _ensure_container(resolved_value)
-            if isinstance(resolved, Container) and isinstance(node, ValueNode):
-                cfg[key] = resolved
-            else:
-                node._set_value(_get_value(resolved))
+            node._set_value(_get_value(resolved))
     else:
         _resolve(node)
 
@@ -41,12 +37,8 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
 def _resolve(cfg: Node) -> Node:
     assert isinstance(cfg, Node)
     if cfg._is_interpolation():
-        try:
-            resolved = cfg._dereference_node()
-        except InterpolationToMissingValueError:
-            cfg._set_value(MISSING)
-        else:
-            cfg._set_value(resolved._value())
+        resolved = cfg._dereference_node()
+        cfg._set_value(resolved._value())
 
     if isinstance(cfg, DictConfig):
         for k in cfg.keys():

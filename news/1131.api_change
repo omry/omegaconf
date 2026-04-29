@@ -1,0 +1,1 @@
+``OmegaConf.resolve()`` now raises ``InterpolationToMissingValueError`` when an interpolation dereferences to a missing (``???``) value, instead of silently overwriting the node with ``???``. This restores the invariant that working with a resolved config gives the same results as working with the unresolved config.
