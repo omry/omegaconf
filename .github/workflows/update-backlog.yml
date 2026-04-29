@@ -48,11 +48,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add events.jsonl
           git diff --cached --quiet && exit 0
-          git commit -m "event: ${{ github.event_name }}.${{ github.event.action }} #${{ github.event.issue.number || github.event.pull_request.number }}"
+          git commit -m "event: ${{ github.event_name }}.${{ github.event.action }} #${{ github.event.issue.number || github.event.pull_request.number }} [skip ci]"
           for i in 1 2 3; do
-            git pull --rebase origin backlog && git push && break
+            if git pull --rebase origin backlog && git push; then
+              exit 0
+            fi
             sleep $((i * 3))
           done
+          exit 1
 
   # Processes all pending events and updates BACKLOG.md on the backlog branch.
   # Debounced: waits 60s on event triggers so rapid bursts collapse to one run.
@@ -79,6 +82,11 @@ jobs:
       - name: Debounce (event-triggered runs only)
         if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
         run: sleep 60
+
+      - name: Refresh backlog branch after debounce
+        run: |
+          cd backlog-branch
+          git pull --rebase origin backlog
 
       - name: Seed backlog files for script
         run: |
@@ -107,6 +115,9 @@ jobs:
           COMMIT_MSG=$(cat /tmp/backlog_commit_msg.txt 2>/dev/null || echo "backlog: sync [skip ci]")
           git commit -m "$COMMIT_MSG"
           for i in 1 2 3; do
-            git pull --rebase origin backlog && git push && break
+            if git pull --rebase origin backlog && git push; then
+              exit 0
+            fi
             sleep $((i * 3))
           done
+          exit 1
