@@ -1,4 +1,5 @@
-"""Unit tests for update_backlog.py."""
+"""Unit tests for the backlog tool."""
+
 from __future__ import annotations
 
 import sys
@@ -9,11 +10,18 @@ from unittest.mock import patch
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
-import update_backlog as ub  # noqa: E402
+import backlog_tool as ub  # noqa: E402
 
 # Helpers derived from _DEFAULT_CATEGORIES for tests
 _L2C = {label: cat for cat, c in ub._DEFAULT_CATEGORIES.items() for label in c.labels}
 _KW = {cat: c.keywords for cat, c in ub._DEFAULT_CATEGORIES.items()}
+
+
+def _cfg(repo: str = "o/r") -> Any:
+    cfg = ub.load_config()
+    cfg.repo = repo
+    return cfg
+
 
 # ---------------------------------------------------------------------------
 # try_command
@@ -95,7 +103,10 @@ def test_categorize_question_label():
 
 
 def test_categorize_bug_keyword_in_title():
-    assert ub.categorize_issue(_issue([], title="crash when using merge"), _L2C, _KW) == "Bug"
+    assert (
+        ub.categorize_issue(_issue([], title="crash when using merge"), _L2C, _KW)
+        == "Bug"
+    )
 
 
 def test_categorize_enhancement_fallback():
@@ -136,7 +147,9 @@ def _pr(number: str, author: str, linked: list[str]) -> dict[str, Any]:
 def test_status_not_started():
     issues = [_open_issue(1)]
     pr_lookup: dict[str, Any] = {}
-    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup, _L2C, _KW)
+    records = ub.build_current_issue_records(
+        _cfg(), issues, set(), pr_lookup, _L2C, _KW
+    )
     assert records[0]["status"] == "not started"
 
 
@@ -144,20 +157,24 @@ def test_status_in_progress_maintainer_pr():
     issues = [_open_issue(1)]
     collaborators = {"maintainer"}
     pr_lookup = ub.build_pr_lookup([_pr("10", "maintainer", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup, _L2C, _KW)
+    records = ub.build_current_issue_records(
+        _cfg(), issues, collaborators, pr_lookup, _L2C, _KW
+    )
     assert records[0]["status"] == "in progress"
 
 
 def test_status_community_pr():
     issues = [_open_issue(1)]
     pr_lookup = ub.build_pr_lookup([_pr("10", "community_user", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, set(), pr_lookup, _L2C, _KW)
+    records = ub.build_current_issue_records(
+        _cfg(), issues, set(), pr_lookup, _L2C, _KW
+    )
     assert records[0]["status"] == "community PR"
 
 
 def test_status_blocked_awaiting_response():
     issues = [_open_issue(1, labels=["awaiting response"])]
-    records = ub.build_current_issue_records("o/r", issues, set(), {}, _L2C, _KW)
+    records = ub.build_current_issue_records(_cfg(), issues, set(), {}, _L2C, _KW)
     assert records[0]["status"] == "blocked"
 
 
@@ -165,7 +182,9 @@ def test_status_in_progress_beats_blocked():
     issues = [_open_issue(1, labels=["awaiting response"])]
     collaborators = {"maintainer"}
     pr_lookup = ub.build_pr_lookup([_pr("10", "maintainer", ["1"])], {"1"})
-    records = ub.build_current_issue_records("o/r", issues, collaborators, pr_lookup, _L2C, _KW)
+    records = ub.build_current_issue_records(
+        _cfg(), issues, collaborators, pr_lookup, _L2C, _KW
+    )
     assert records[0]["status"] == "in progress"
 
 
@@ -178,7 +197,9 @@ def _snapshot(issues: dict[str, Any]) -> dict[str, Any]:
     return {"repo": "o/r", "generated_at": "2024-01-01T00:00:00Z", "issues": issues}
 
 
-def _record(number: str, status: str = "not started", labels: list[str] = []) -> dict[str, Any]:
+def _record(
+    number: str, status: str = "not started", labels: list[str] = []
+) -> dict[str, Any]:
     return {
         "number": number,
         "title": f"Issue {number}",
@@ -198,27 +219,76 @@ def _record(number: str, status: str = "not started", labels: list[str] = []) ->
 
 
 def test_compare_no_previous_snapshot():
-    current = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
-    new, status, labels, closed, prs = ub.compare_snapshots(None, current, {"1": _record("1")}, {})
+    current = _snapshot(
+        {
+            "1": {
+                "title": "t",
+                "status": "not started",
+                "labels": [],
+                "category": "Enhancement",
+            }
+        }
+    )
+    new, status, labels, closed, prs = ub.compare_snapshots(
+        None, current, {"1": _record("1")}, {}
+    )
     assert new == [] and status == [] and labels == [] and closed == [] and prs == []
 
 
 def test_compare_detects_new_issue():
     prev = _snapshot({})
-    curr = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
+    curr = _snapshot(
+        {
+            "1": {
+                "title": "t",
+                "status": "not started",
+                "labels": [],
+                "category": "Enhancement",
+            }
+        }
+    )
     new, _, _, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1")}, {})
     assert len(new) == 1 and new[0]["number"] == "1"
 
 
 def test_compare_detects_status_change():
-    prev = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
-    curr = _snapshot({"1": {"title": "t", "status": "in progress", "labels": [], "category": "Enhancement"}})
-    _, status, _, _, _ = ub.compare_snapshots(prev, curr, {"1": _record("1", "in progress")}, {})
+    prev = _snapshot(
+        {
+            "1": {
+                "title": "t",
+                "status": "not started",
+                "labels": [],
+                "category": "Enhancement",
+            }
+        }
+    )
+    curr = _snapshot(
+        {
+            "1": {
+                "title": "t",
+                "status": "in progress",
+                "labels": [],
+                "category": "Enhancement",
+            }
+        }
+    )
+    _, status, _, _, _ = ub.compare_snapshots(
+        prev, curr, {"1": _record("1", "in progress")}, {}
+    )
     assert len(status) == 1 and status[0]["new_status"] == "in progress"
 
 
 def test_compare_detects_closed():
-    prev = _snapshot({"1": {"title": "t", "status": "not started", "labels": [], "category": "Enhancement"}})
+    prev = _snapshot(
+        {
+            "1": {
+                "title": "t",
+                "status": "not started",
+                "labels": [],
+                "category": "Enhancement",
+            }
+        }
+    )
     curr = _snapshot({})
     _, _, _, closed, _ = ub.compare_snapshots(prev, curr, {}, {"1": _record("1")})
     assert len(closed) == 1
@@ -249,7 +319,9 @@ def test_save_snapshot_creates_parent_dirs(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 
-def _prev_row(number: str, title: str, status: str = "done", labels: list[str] = []) -> dict[str, Any]:
+def _prev_row(
+    number: str, title: str, status: str = "done", labels: list[str] = []
+) -> dict[str, Any]:
     return {
         "number": number,
         "title": title,
@@ -262,18 +334,25 @@ def _prev_row(number: str, title: str, status: str = "done", labels: list[str] =
 
 
 def test_normalize_previous_row_derives_category_from_title():
-    row = ub.normalize_previous_row("o/r", _prev_row("803", "[Question] Why hide this?"), _L2C, _KW)
+    row = ub.normalize_previous_row(
+        _cfg(), _prev_row("803", "[Question] Why hide this?"), _L2C, _KW
+    )
     assert row["category"] == "Question"
 
 
 def test_normalize_previous_row_derives_category_from_label():
-    row = ub.normalize_previous_row("o/r", _prev_row("1", "Something", labels=["bug"]), _L2C, _KW)
+    row = ub.normalize_previous_row(
+        _cfg(), _prev_row("1", "Something", labels=["bug"]), _L2C, _KW
+    )
     assert row["category"] == "Bug"
 
 
 def test_normalize_previous_row_ignores_stale_category_field():
-    raw = {**_prev_row("1", "Add a feature"), "category": '<span title="<span>garbage</span>">✨</span>'}
-    row = ub.normalize_previous_row("o/r", raw, _L2C, _KW)
+    raw = {
+        **_prev_row("1", "Add a feature"),
+        "category": '<span title="<span>garbage</span>">✨</span>',
+    }
+    row = ub.normalize_previous_row(_cfg(), raw, _L2C, _KW)
     assert row["category"] == "Enhancement"
 
 
@@ -284,6 +363,7 @@ def test_normalize_previous_row_ignores_stale_category_field():
 
 def test_is_done_expired_not_expired_via_closed_at():
     from datetime import date, timedelta
+
     recent = (date.today() - timedelta(days=5)).isoformat()
     row = _prev_row("1", "t")
     assert not ub._is_done_expired(row, {"1": recent}, 14)
@@ -291,6 +371,7 @@ def test_is_done_expired_not_expired_via_closed_at():
 
 def test_is_done_expired_expired_via_closed_at():
     from datetime import date, timedelta
+
     old = (date.today() - timedelta(days=15)).isoformat()
     row = _prev_row("1", "t")
     assert ub._is_done_expired(row, {"1": old}, 14)
@@ -298,6 +379,7 @@ def test_is_done_expired_expired_via_closed_at():
 
 def test_is_done_expired_boundary_exactly_14_days():
     from datetime import date, timedelta
+
     boundary = (date.today() - timedelta(days=14)).isoformat()
     row = _prev_row("1", "t")
     assert not ub._is_done_expired(row, {"1": boundary}, 14)
@@ -305,6 +387,7 @@ def test_is_done_expired_boundary_exactly_14_days():
 
 def test_is_done_expired_fallback_to_updated_field():
     from datetime import date, timedelta
+
     old = (date.today() - timedelta(days=20)).isoformat().replace("-", "‑")
     row = {**_prev_row("1", "t"), "updated": old}
     assert ub._is_done_expired(row, {}, 14)
@@ -317,6 +400,7 @@ def test_is_done_expired_no_date_not_expired():
 
 def test_is_done_expired_none_expire_days_never_expires():
     from datetime import date, timedelta
+
     old = (date.today() - timedelta(days=999)).isoformat()
     row = _prev_row("1", "t")
     assert not ub._is_done_expired(row, {"1": old}, None)
@@ -329,6 +413,7 @@ def test_is_done_expired_none_expire_days_never_expires():
 
 def _done_prev_row(number: str, days_old: int) -> dict[str, Any]:
     from datetime import date, timedelta
+
     updated = (date.today() - timedelta(days=days_old)).isoformat().replace("-", "‑")
     row = _prev_row(number, f"Issue {number}", status="done")
     row["updated"] = updated
@@ -367,7 +452,9 @@ def test_merge_closed_at_overrides_updated_field():
 # ---------------------------------------------------------------------------
 
 
-def test_event_log_cleared_after_update(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_event_log_cleared_after_update(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     event_log = tmp_path / "events.jsonl"
     event_log.write_text('{"event": "issues", "action": "opened"}\n', encoding="utf-8")
     snapshot_path = tmp_path / "snap.json"
@@ -384,14 +471,103 @@ def test_event_log_cleared_after_update(tmp_path: Path, monkeypatch: pytest.Monk
     monkeypatch.setattr(ub, "fetch_collaborators", fake_fetch_collaborators)
     monkeypatch.setattr(ub, "fetch_open_issues", fake_fetch_open_issues)
     monkeypatch.setattr(ub, "fetch_open_prs", fake_fetch_open_prs)
-    monkeypatch.setattr(ub, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(ub, "detect_target_root", lambda *a, **kw: tmp_path)
 
     with patch.object(ub, "resolve_repo", return_value="o/r"):
         sys.argv = [
-            "update_backlog.py",
-            "--snapshot-path", str(snapshot_path),
-            "--event-log-path", str(event_log),
+            "backlog-tool",
+            "update",
+            "--snapshot-path",
+            str(snapshot_path),
+            "--event-log-path",
+            str(event_log),
         ]
         ub.main()
 
     assert event_log.read_text(encoding="utf-8") == ""
+
+
+# ---------------------------------------------------------------------------
+# install / uninstall
+# ---------------------------------------------------------------------------
+
+
+def test_workflow_template_substitutes_pip_spec():
+    out = ub.load_workflow_template("git+https://example.com/x.git")
+    assert "__BACKLOG_TOOL_PIP__" not in out
+    assert "BACKLOG_TOOL_PIP: git+https://example.com/x.git" in out
+    assert 'pip install "$BACKLOG_TOOL_PIP"' in out
+    assert "backlog-tool update" in out
+    assert "backlog-tool dump-web" in out
+    # GitHub Actions ${{ }} expressions must be preserved verbatim.
+    assert "${{ github.event_name }}" in out
+    assert "${{ github.event.action }}" in out
+
+
+def test_install_writes_workflow_when_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(ub, "gh_branch_exists", lambda repo, branch: True)
+    monkeypatch.setattr(ub, "resolve_repo", lambda r: "o/r")
+    sys.argv = [
+        "backlog-tool",
+        "install",
+        "--repo",
+        "o/r",
+        "--target-root",
+        str(tmp_path),
+        "--skip-branch",
+        "--pip-spec",
+        "git+https://example.com/x.git",
+    ]
+    rc = ub.main()
+    assert rc == 0
+    wf = tmp_path / ".github" / "workflows" / "update-backlog.yml"
+    assert wf.exists()
+    content = wf.read_text(encoding="utf-8")
+    assert "BACKLOG_TOOL_PIP: git+https://example.com/x.git" in content
+    assert "${{ github.event_name }}" in content
+
+
+def test_install_idempotent_when_workflow_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    wf = tmp_path / ".github" / "workflows" / "update-backlog.yml"
+    wf.parent.mkdir(parents=True)
+    wf.write_text("# preexisting\n", encoding="utf-8")
+    monkeypatch.setattr(ub, "gh_branch_exists", lambda repo, branch: True)
+    monkeypatch.setattr(ub, "resolve_repo", lambda r: "o/r")
+    sys.argv = [
+        "backlog-tool",
+        "install",
+        "--repo",
+        "o/r",
+        "--target-root",
+        str(tmp_path),
+        "--skip-branch",
+    ]
+    rc = ub.main()
+    assert rc == 0
+    # Existing workflow not overwritten
+    assert wf.read_text(encoding="utf-8") == "# preexisting\n"
+
+
+def test_uninstall_removes_workflow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    wf = tmp_path / ".github" / "workflows" / "update-backlog.yml"
+    wf.parent.mkdir(parents=True)
+    wf.write_text("workflow content\n", encoding="utf-8")
+    monkeypatch.setattr(ub, "gh_branch_exists", lambda repo, branch: False)
+    monkeypatch.setattr(ub, "resolve_repo", lambda r: "o/r")
+    sys.argv = [
+        "backlog-tool",
+        "uninstall",
+        "--repo",
+        "o/r",
+        "--target-root",
+        str(tmp_path),
+        "--keep-branch",
+        "--yes",
+    ]
+    rc = ub.main()
+    assert rc == 0
+    assert not wf.exists()

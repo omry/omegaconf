@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, closed, labeled, unlabeled, reopened]
   schedule:
-    - cron: '0 7 * * *'  # daily at 7am UTC as a fallback
+    - cron: '0 7 * * *'  # daily fallback
   workflow_dispatch:
 
 permissions:
@@ -15,9 +15,10 @@ permissions:
   issues: read
   pull-requests: read
 
+env:
+  BACKLOG_TOOL_PIP: __BACKLOG_TOOL_PIP__
+
 jobs:
-  # Logs the triggering event to events.jsonl on the backlog branch.
-  # Runs immediately on every issue/PR event, independent of the process job.
   log-event:
     if: github.event_name == 'issues' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -26,7 +27,6 @@ jobs:
         with:
           ref: backlog
           path: backlog-branch
-
       - name: Append event to log
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -40,8 +40,7 @@ jobs:
             --arg number "$ISSUE_NUMBER" \
             '{ts: $ts, event: $event, action: $action, number: $number}' \
             >> backlog-branch/events.jsonl
-
-      - name: Push event log (with rebase retry for concurrent appends)
+      - name: Push event log
         run: |
           cd backlog-branch
           git config user.name "github-actions[bot]"
@@ -57,9 +56,6 @@ jobs:
           done
           exit 1
 
-  # Processes all pending events and updates BACKLOG.md on the backlog branch.
-  # Debounced: waits 60s on event triggers so rapid bursts collapse to one run.
-  # Concurrency cancel-in-progress ensures only the latest surviving run processes.
   process:
     concurrency:
       group: update-backlog
@@ -69,33 +65,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-
       - uses: actions/checkout@v4
         with:
           ref: backlog
           path: backlog-branch
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
+      - name: Install backlog-tool
+        run: pip install "$BACKLOG_TOOL_PIP"
       - name: Debounce (event-triggered runs only)
         if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
         run: sleep 60
-
       - name: Refresh backlog branch after debounce
         run: |
           cd backlog-branch
           git pull --rebase origin backlog
-
-      - name: Seed backlog files for script
+      - name: Seed backlog files for tool
         run: |
           cp backlog-branch/BACKLOG.md BACKLOG.md 2>/dev/null || true
           cp backlog-branch/BACKLOG-UPDATES.md BACKLOG-UPDATES.md 2>/dev/null || true
-
-      - name: Install backlog-tool
-        run: pip install ./subprojects/backlog-tool
-
       - name: Update backlog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,11 +95,9 @@ jobs:
             --data-json-path backlog-branch/backlog.json \
             --updates-jsonl-path backlog-branch/updates.jsonl \
             --commit-msg-path /tmp/backlog_commit_msg.txt
-
       - name: Stage web assets on backlog branch
         run: |
           backlog-tool dump-web --output backlog-branch/index.html
-
       - name: Commit to backlog branch
         run: |
           cp BACKLOG.md backlog-branch/BACKLOG.md

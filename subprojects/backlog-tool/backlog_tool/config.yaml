@@ -1,6 +1,6 @@
 # Backlog updater configuration
 # Set done_expire_days to null to keep done items indefinitely.
-done_expire_days: 14
+done_expire_days: 365
 
 # backlog_filename: BACKLOG.md
 # updates_filename: BACKLOG-UPDATES.md

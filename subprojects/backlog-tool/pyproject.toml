@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backlog-tool"
+version = "0.1.0"
+description = "Generate a backlog snapshot, changelog, and web UI from a GitHub repo."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "omegaconf>=2.3",
+]
+
+[project.scripts]
+backlog-tool = "backlog_tool:main"
+
+[tool.setuptools]
+packages = ["backlog_tool"]
+
+[tool.setuptools.package-data]
+backlog_tool = [
+    "config.yaml",
+    "templates/*.tmpl",
+    "web/*",
+]

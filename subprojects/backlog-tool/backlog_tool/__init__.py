@@ -15,14 +15,11 @@ from typing import Any
 
 from omegaconf import DictConfig, OmegaConf
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-SKILL_DIR = SCRIPT_DIR.parent
-REPO_ROOT = SKILL_DIR.parents[2]
-BACKLOG_PATH = REPO_ROOT / "BACKLOG.md"
-UPDATES_PATH = REPO_ROOT / "BACKLOG-UPDATES.md"
-TEMPLATE_PATH = SKILL_DIR / "templates" / "backlog.md.tmpl"
-STATE_PATH = SKILL_DIR / "state" / "last_snapshot.json"
-CONFIG_PATH = SCRIPT_DIR / "config.yaml"
+PROJECT_DIR = Path(__file__).resolve().parent
+TEMPLATE_PATH = PROJECT_DIR / "templates" / "backlog.md.tmpl"
+WORKFLOW_TEMPLATE_PATH = PROJECT_DIR / "templates" / "workflow.yml.tmpl"
+WEB_DIR = PROJECT_DIR / "web"
+CONFIG_PATH = PROJECT_DIR / "config.yaml"
 
 BEGIN_GENERATED = "<!-- BEGIN GENERATED BACKLOG -->"
 END_GENERATED = "<!-- END GENERATED BACKLOG -->"
@@ -35,6 +32,7 @@ STATUS_ORDER = ["in progress", "community PR", "blocked", "not started", "done"]
 
 @dataclass
 class CategoryConfig:
+    emoji: str = ""
     labels: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
 
@@ -44,8 +42,30 @@ class BacklogConfig:
     done_expire_days: int | None = 14
     backlog_filename: str = "BACKLOG.md"
     updates_filename: str = "BACKLOG-UPDATES.md"
+    updates_jsonl_filename: str = "updates.jsonl"
+    data_json_filename: str = "backlog.json"
+    data_updates_limit: int = 200
+    title_max_length: int = 58
+    blocked_labels: list[str] = field(default_factory=lambda: ["awaiting response"])
+    repo: str | None = None
+    issue_url_template: str = "https://github.com/${repo}/issues/{number}"
+    pr_url_template: str = "https://github.com/${repo}/pull/{number}"
+    status_emojis: dict[str, str] = field(
+        default_factory=lambda: {
+            "in progress": "🔄",
+            "community PR": "🤝",
+            "blocked": "🚫",
+            "not started": "⬜",
+            "done": "✅",
+        }
+    )
     categories: dict[str, CategoryConfig] = field(
-        default_factory=lambda: {k: CategoryConfig(list(v.labels), list(v.keywords)) for k, v in _DEFAULT_CATEGORIES.items()}
+        default_factory=lambda: {
+            k: CategoryConfig(
+                emoji=v.emoji, labels=list(v.labels), keywords=list(v.keywords)
+            )
+            for k, v in _DEFAULT_CATEGORIES.items()
+        }
     )
 
 
@@ -56,59 +76,92 @@ def load_config() -> DictConfig:
     return defaults
 
 
-CATEGORY_EMOJI = {
-    "Bug": "🐛",
-    "Enhancement": "✨",
-    "Refactor": "🔧",
-    "Build": "🏗️",
-    "Documentation": "📄",
-    "Question": "❓",
-}
-
-STATUS_EMOJI = {
-    "in progress": "🔄",
-    "community PR": "🤝",
-    "blocked": "🚫",
-    "not started": "⬜",
-    "done": "✅",
-}
-
-CATEGORY_ORDER = [
-    "Bug",
-    "Enhancement",
-    "Refactor",
-    "Build",
-    "Documentation",
-    "Question",
-]
-
 _DEFAULT_CATEGORIES: dict[str, CategoryConfig] = {
     "Bug": CategoryConfig(
+        emoji="🐛",
         labels=["bug"],
-        keywords=["bug", "error", "fail", "broken", "crash", "exception", "runtimeerror", "assertionerror"],
+        keywords=[
+            "bug",
+            "error",
+            "fail",
+            "broken",
+            "crash",
+            "exception",
+            "runtimeerror",
+            "assertionerror",
+        ],
     ),
     "Enhancement": CategoryConfig(
-        labels=["enhancement", "good first issue", "help wanted", "performance",
-                "duplicate", "invalid", "wontfix", "discussion", "awaiting response", "wishlist"],
-        keywords=["feature", "add", "support", "allow", "enable", "implement", "enhancement",
-                  "request", "wishlist", "consider",
-                  "performance", "speed", "slow", "optimize", "memory", "cpu", "latency"],
+        emoji="✨",
+        labels=[
+            "enhancement",
+            "good first issue",
+            "help wanted",
+            "performance",
+            "duplicate",
+            "invalid",
+            "wontfix",
+            "discussion",
+            "awaiting response",
+            "wishlist",
+        ],
+        keywords=[
+            "feature",
+            "add",
+            "support",
+            "allow",
+            "enable",
+            "implement",
+            "enhancement",
+            "request",
+            "wishlist",
+            "consider",
+            "performance",
+            "speed",
+            "slow",
+            "optimize",
+            "memory",
+            "cpu",
+            "latency",
+        ],
     ),
     "Documentation": CategoryConfig(
+        emoji="📄",
         labels=["documentation"],
         keywords=["doc", "documentation", "readme", "comment", "typo", "spelling"],
     ),
     "Question": CategoryConfig(
+        emoji="❓",
         labels=["question"],
         keywords=["question", "how to", "help", "confused", "unclear", "wonder"],
     ),
     "Refactor": CategoryConfig(
+        emoji="🔧",
         labels=["refactor"],
-        keywords=["refactor", "cleanup", "clean up", "remove", "delete", "deprecated", "modernize"],
+        keywords=[
+            "refactor",
+            "cleanup",
+            "clean up",
+            "remove",
+            "delete",
+            "deprecated",
+            "modernize",
+        ],
     ),
     "Build": CategoryConfig(
+        emoji="🏗️",
         labels=["build", "dependencies"],
-        keywords=["build", "package", "release", "ci", "github actions", "setup.py", "pyproject", "wheel", "packaging"],
+        keywords=[
+            "build",
+            "package",
+            "release",
+            "ci",
+            "github actions",
+            "setup.py",
+            "pyproject",
+            "wheel",
+            "packaging",
+        ],
     ),
 }
 
@@ -210,12 +263,12 @@ def split_repo(repo: str) -> tuple[str, str]:
     return owner, name
 
 
-def issue_url(repo: str, number: str) -> str:
-    return f"https://github.com/{repo}/issues/{number}"
+def issue_url(cfg: DictConfig, number: str | int) -> str:
+    return str(cfg.issue_url_template).format(number=number)
 
 
-def pr_url(repo: str, number: str) -> str:
-    return f"https://github.com/{repo}/pull/{number}"
+def pr_url(cfg: DictConfig, number: str | int) -> str:
+    return str(cfg.pr_url_template).format(number=number)
 
 
 def run_gh(args: list[str]) -> str:
@@ -248,6 +301,7 @@ def write_text_if_changed(path: Path, content: str) -> bool:
 
 
 def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
@@ -257,7 +311,7 @@ def load_json_file(path: Path) -> dict[str, Any] | None:
     return json.loads(read_text(path))
 
 
-def save_snapshot(snapshot: dict[str, Any], path: Path = STATE_PATH) -> None:
+def save_snapshot(snapshot: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -292,12 +346,12 @@ def escape_table_cell(text: str) -> str:
     return (text or "").replace("|", r"\|").replace("\r", " ").replace("\n", " ")
 
 
-def issue_link(repo: str, number: str) -> str:
-    return f"[#{number}]({issue_url(repo, number)})"
+def issue_link(cfg: DictConfig, number: str | int) -> str:
+    return f"[#{number}]({issue_url(cfg, number)})"
 
 
-def pr_link(repo: str, number: str) -> str:
-    return f"[#{number}]({pr_url(repo, number)})"
+def pr_link(cfg: DictConfig, number: str | int) -> str:
+    return f"[#{number}]({pr_url(cfg, number)})"
 
 
 def parse_labels(issue: dict[str, Any]) -> list[str]:
@@ -615,7 +669,7 @@ def format_label_string(labels: list[str]) -> str:
 
 
 def normalize_previous_row(
-    repo: str,
+    cfg: DictConfig,
     row: dict[str, Any],
     label_to_category: dict[str, str],
     category_keywords: dict[str, list[str]],
@@ -626,24 +680,29 @@ def normalize_previous_row(
     return {
         **row,
         "title": title,
-        "title_display": escape_table_cell(truncate_title(title)),
-        "category": categorize_issue({"title": title, "labels": [{"name": label} for label in labels]}, label_to_category, category_keywords),
+        "title_display": escape_table_cell(truncate_title(title, cfg.title_max_length)),
+        "category": categorize_issue(
+            {"title": title, "labels": [{"name": label} for label in labels]},
+            label_to_category,
+            category_keywords,
+        ),
         "labels": labels,
         "labels_display": escape_table_cell(format_label_string(labels)),
-        "issue_link": issue_link(repo, row["number"]),
+        "issue_link": issue_link(cfg, row["number"]),
         "pr_numbers": pr_numbers,
-        "pr_links": ", ".join(pr_link(repo, pr_number) for pr_number in pr_numbers),
+        "pr_links": ", ".join(pr_link(cfg, pr_number) for pr_number in pr_numbers),
     }
 
 
 def build_current_issue_records(
-    repo: str,
+    cfg: DictConfig,
     open_issues: list[dict[str, Any]],
     collaborators: set[str],
     pr_lookup: dict[str, list[dict[str, Any]]],
     label_to_category: dict[str, str],
     category_keywords: dict[str, list[str]],
 ) -> list[dict[str, Any]]:
+    blocked_labels_set = {lbl.lower().strip() for lbl in cfg.blocked_labels}
     records: list[dict[str, Any]] = []
     for issue in open_issues:
         number = str(issue["number"])
@@ -658,19 +717,19 @@ def build_current_issue_records(
             status = "in progress"
         elif has_open_pr:
             status = "community PR"
-        elif "awaiting response" in {label.lower().strip() for label in labels}:
+        elif {label.lower().strip() for label in labels} & blocked_labels_set:
             status = "blocked"
         else:
             status = "not started"
 
         pr_numbers = sorted(pr["number"] for pr in linked_prs)
-        pr_links = ", ".join(pr_link(repo, pr_number) for pr_number in pr_numbers)
+        pr_links = ", ".join(pr_link(cfg, pr_number) for pr_number in pr_numbers)
         records.append(
             {
                 "number": number,
                 "title": issue.get("title") or "",
                 "title_display": escape_table_cell(
-                    truncate_title(issue.get("title") or "")
+                    truncate_title(issue.get("title") or "", cfg.title_max_length)
                 ),
                 "labels": labels,
                 "labels_display": escape_table_cell(format_label_string(labels)),
@@ -678,10 +737,12 @@ def build_current_issue_records(
                 "updated_at": issue.get("updatedAt") or "",
                 "created": (issue.get("createdAt") or "")[:10].replace("-", "‑"),
                 "updated": (issue.get("updatedAt") or "")[:10].replace("-", "‑"),
-                "category": categorize_issue(issue, label_to_category, category_keywords),
+                "category": categorize_issue(
+                    issue, label_to_category, category_keywords
+                ),
                 "status": status,
                 "pr_numbers": pr_numbers,
-                "issue_link": issue_link(repo, number),
+                "issue_link": issue_link(cfg, number),
                 "pr_links": pr_links,
             }
         )
@@ -701,7 +762,9 @@ def build_previous_row_maps(
     return rows_by_number, order_by_status
 
 
-def _is_done_expired(row: dict[str, Any], closed_at: dict[str, str], expire_days: int | None) -> bool:
+def _is_done_expired(
+    row: dict[str, Any], closed_at: dict[str, str], expire_days: int | None
+) -> bool:
     if expire_days is None:
         return False
     close_date_str = closed_at.get(row["number"])
@@ -773,6 +836,7 @@ def merge_rows_for_render(
 
 
 def compute_summary_rows(
+    cfg: DictConfig,
     rows: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
     open_rows = [row for row in rows if row["status"] != "done"]
@@ -783,7 +847,7 @@ def compute_summary_rows(
         category_counts[row["category"]] += 1
 
     category_rows = []
-    for category in CATEGORY_ORDER:
+    for category in cfg.categories.keys():
         count = category_counts.get(category, 0)
         percentage = f"{(count / open_total * 100):.1f}%" if open_total else "0.0%"
         category_rows.append(
@@ -800,28 +864,96 @@ def compute_summary_rows(
     return category_rows, status_rows, open_total
 
 
+def category_emoji(cfg: DictConfig, category: str) -> str:
+    cat_cfg = cfg.categories.get(category)
+    return cat_cfg.emoji if cat_cfg is not None else ""
+
+
+def status_emoji(cfg: DictConfig, status: str) -> str:
+    return cfg.status_emojis.get(status, "")
+
+
+def build_issue_json(cfg: DictConfig, row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "number": int(row["number"]),
+        "title": row.get("title", ""),
+        "category": row["category"],
+        "category_emoji": category_emoji(cfg, row["category"]),
+        "status": row["status"],
+        "status_emoji": status_emoji(cfg, row["status"]),
+        "prs": [
+            {"number": int(n), "url": pr_url(cfg, n)} for n in row.get("pr_numbers", [])
+        ],
+        "created": row.get("created", "").replace("‑", "-"),
+        "updated": row.get("updated", "").replace("‑", "-"),
+        "labels": list(row.get("labels", [])),
+        "url": issue_url(cfg, row["number"]),
+    }
+
+
+def build_data_json(
+    cfg: DictConfig,
+    render_rows: list[dict[str, Any]],
+    generated_on: str,
+    generated_at: str,
+) -> dict[str, Any]:
+    category_rows, status_rows, open_total = compute_summary_rows(cfg, render_rows)
+    return {
+        "generated_on": generated_on,
+        "generated_at": generated_at,
+        "repo": cfg.repo,
+        "summary": {
+            "open_total": open_total,
+            "by_category": [
+                {
+                    "category": r["category"],
+                    "emoji": category_emoji(cfg, r["category"]),
+                    "count": int(r["count"]),
+                    "percentage": float(r["percentage"].rstrip("%")),
+                }
+                for r in category_rows
+            ],
+            "by_status": [
+                {
+                    "status": r["status"],
+                    "emoji": status_emoji(cfg, r["status"]),
+                    "count": int(r["count"]),
+                }
+                for r in status_rows
+            ],
+        },
+        "issues": [build_issue_json(cfg, row) for row in render_rows],
+    }
+
+
 def render_backlog_file(
-    repo: str, rows: list[dict[str, Any]], generated_on: str, manual_block: str
+    cfg: DictConfig,
+    rows: list[dict[str, Any]],
+    generated_on: str,
+    manual_block: str,
 ) -> str:
-    category_rows, status_rows, open_total = compute_summary_rows(rows)
+    category_rows, status_rows, open_total = compute_summary_rows(cfg, rows)
     template = read_text(TEMPLATE_PATH)
     context = {
         "generated_on": generated_on,
         "open_total": str(open_total),
         "category_rows": [
-            {**r, "category": f"{CATEGORY_EMOJI.get(r['category'], '')} {r['category']}"}
+            {
+                **r,
+                "category": f"{category_emoji(cfg, r['category'])} {r['category']}",
+            }
             for r in category_rows
         ],
         "status_rows": [
-            {**r, "status": f"{STATUS_EMOJI.get(r['status'], '')} {r['status']}"}
+            {**r, "status": f"{status_emoji(cfg, r['status'])} {r['status']}"}
             for r in status_rows
         ],
         "issue_rows": [
             {
                 "issue_link": row["issue_link"],
                 "title": row["title_display"],
-                "category": f'<span title="{row["category"]}">{CATEGORY_EMOJI.get(row["category"], row["category"])}</span>',
-                "status": f'<span title="{row["status"]}">{STATUS_EMOJI.get(row["status"], row["status"])}</span>',
+                "category": f'<span title="{row["category"]}">{category_emoji(cfg, row["category"]) or row["category"]}</span>',
+                "status": f'<span title="{row["status"]}">{status_emoji(cfg, row["status"]) or row["status"]}</span>',
                 "pr_links": row["pr_links"],
                 "created": row["created"],
                 "updated": row["updated"],
@@ -831,7 +963,172 @@ def render_backlog_file(
         ],
     }
     generated_block = f"{BEGIN_GENERATED}\n{render_template(template, context).rstrip()}\n{END_GENERATED}"
-    return f"# Detailed Open Issues: {repo}\n\n{generated_block}\n\n## Manual comments\n{manual_block}\n"
+    return f"# Detailed Open Issues: {cfg.repo}\n\n{generated_block}\n\n## Manual comments\n{manual_block}\n"
+
+
+def build_run_events(
+    cfg: DictConfig,
+    generated_at: str,
+    new_issues: list[dict[str, Any]],
+    status_changes: list[dict[str, Any]],
+    label_changes: list[dict[str, Any]],
+    closed_issues: list[dict[str, Any]],
+    pr_changes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+
+    for row in new_issues:
+        events.append(
+            {
+                "ts": generated_at,
+                "kind": "new",
+                "issue": int(row["number"]),
+                "issue_url": issue_url(cfg, row["number"]),
+                "title": row.get("title", ""),
+            }
+        )
+    for change in status_changes:
+        evt: dict[str, Any] = {
+            "ts": generated_at,
+            "kind": "status",
+            "issue": int(change["number"]),
+            "issue_url": issue_url(cfg, change["number"]),
+            "title": change.get("title", ""),
+            "detail": f"{change['old_status']} → {change['new_status']}",
+        }
+        prs = change.get("current_pr_numbers") or []
+        if prs:
+            evt["pr"] = {
+                "number": int(prs[0]),
+                "url": pr_url(cfg, prs[0]),
+            }
+        events.append(evt)
+    for change in label_changes:
+        pieces = []
+        if change.get("added"):
+            pieces.append("added " + ", ".join(f'"{lb}"' for lb in change["added"]))
+        if change.get("removed"):
+            pieces.append("removed " + ", ".join(f'"{lb}"' for lb in change["removed"]))
+        events.append(
+            {
+                "ts": generated_at,
+                "kind": "label",
+                "issue": int(change["number"]),
+                "issue_url": issue_url(cfg, change["number"]),
+                "title": change.get("title", ""),
+                "detail": "; ".join(pieces),
+            }
+        )
+    for row in closed_issues:
+        events.append(
+            {
+                "ts": generated_at,
+                "kind": "closed",
+                "issue": int(row["number"]),
+                "issue_url": issue_url(cfg, row["number"]),
+                "title": row.get("title", ""),
+            }
+        )
+    for change in pr_changes:
+        if change.get("added_prs"):
+            events.append(
+                {
+                    "ts": generated_at,
+                    "kind": "pr",
+                    "issue": int(change["number"]),
+                    "issue_url": issue_url(cfg, change["number"]),
+                    "title": change.get("title", ""),
+                    "detail": "linked "
+                    + ", ".join(f"#{p}" for p in change["added_prs"]),
+                }
+            )
+        if change.get("removed_prs"):
+            events.append(
+                {
+                    "ts": generated_at,
+                    "kind": "pr",
+                    "issue": int(change["number"]),
+                    "issue_url": issue_url(cfg, change["number"]),
+                    "title": change.get("title", ""),
+                    "detail": "unlinked "
+                    + ", ".join(f"#{p}" for p in change["removed_prs"]),
+                }
+            )
+    return events
+
+
+_UPDATES_LINE_RE = re.compile(
+    r"^- `(?P<ts>[^`]+)` (?P<kind>new|closed|status|label|pr): "
+    r"\[#(?P<num>\d+)\]\((?P<url>[^)]+)\) "
+    r"(?P<rest>.*)$"
+)
+_STATUS_TAIL_RE = re.compile(
+    r"^(?P<title>.*?): "
+    r"(?P<old>not started|in progress|community PR|blocked|done) → "
+    r"(?P<new>not started|in progress|community PR|blocked|done)"
+    r"(?: \(\[#(?P<pr_num>\d+)\]\((?P<pr_url>[^)]+)\)\))?$"
+)
+_LABEL_TAIL_RE = re.compile(r"^(?P<title>.*?): (?P<detail>(?:added|removed) .*)$")
+
+
+def parse_updates_md(text: str) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for line in text.splitlines():
+        match = _UPDATES_LINE_RE.match(line)
+        if not match:
+            continue
+        kind = match.group("kind")
+        rest = match.group("rest").strip()
+        evt: dict[str, Any] = {
+            "ts": match.group("ts"),
+            "kind": kind,
+            "issue": int(match.group("num")),
+            "issue_url": match.group("url"),
+        }
+        if kind == "status":
+            tail = _STATUS_TAIL_RE.match(rest)
+            if tail:
+                evt["title"] = tail.group("title")
+                evt["detail"] = f"{tail.group('old')} → {tail.group('new')}"
+                if tail.group("pr_num"):
+                    evt["pr"] = {
+                        "number": int(tail.group("pr_num")),
+                        "url": tail.group("pr_url"),
+                    }
+            else:
+                evt["title"] = rest
+        elif kind == "label":
+            tail = _LABEL_TAIL_RE.match(rest)
+            if tail:
+                evt["title"] = tail.group("title")
+                evt["detail"] = tail.group("detail")
+            else:
+                evt["title"] = rest
+        else:
+            evt["title"] = rest
+        events.append(evt)
+    # File is newest-first; jsonl is oldest-first
+    events.reverse()
+    return events
+
+
+def append_events_jsonl(path: Path, events: list[dict[str, Any]]) -> None:
+    if not events:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        for evt in events:
+            f.write(json.dumps(evt, ensure_ascii=False) + "\n")
+
+
+def read_recent_events(path: Path, limit: int) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    lines = [ln for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    tail = lines[-limit:] if limit and len(lines) > limit else lines
+    events = [json.loads(ln) for ln in tail]
+    events.reverse()  # newest first for the UI
+    return events
 
 
 def render_updates_lines(
@@ -1034,10 +1331,7 @@ def build_commit_message(
     return "backlog: " + "; ".join(parts) + " [skip ci]"
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Regenerate BACKLOG.md and BACKLOG-UPDATES.md from GitHub state."
-    )
+def _add_update_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--repo",
         help="GitHub repo in owner/name format. Defaults to Sapling/Git remote detection.",
@@ -1059,17 +1353,43 @@ def main() -> int:
         "--commit-msg-path",
         help="Write the descriptive commit message to this file.",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--data-json-path",
+        help="Override the path where backlog.json is written.",
+    )
+    parser.add_argument(
+        "--updates-jsonl-path",
+        help="Override the path of the append-only structured updates log (updates.jsonl).",
+    )
 
+
+def run_update(args: argparse.Namespace) -> int:
     cfg = load_config()
     repo = resolve_repo(args.repo)
+    cfg.repo = repo
     generated_on = today()
     generated_at = iso_now()
 
-    snapshot_path = Path(args.snapshot_path) if args.snapshot_path else STATE_PATH
+    target_root = detect_target_root()
+    state_dir = target_root / ".backlog-tool"
+    snapshot_path = (
+        Path(args.snapshot_path)
+        if args.snapshot_path
+        else state_dir / "last_snapshot.json"
+    )
     event_log_path = Path(args.event_log_path) if args.event_log_path else None
-    backlog_path = REPO_ROOT / cfg.backlog_filename
-    updates_path = REPO_ROOT / cfg.updates_filename
+    backlog_path = target_root / cfg.backlog_filename
+    updates_path = target_root / cfg.updates_filename
+    data_json_path = (
+        Path(args.data_json_path)
+        if args.data_json_path
+        else state_dir / cfg.data_json_filename
+    )
+    updates_jsonl_path = (
+        Path(args.updates_jsonl_path)
+        if args.updates_jsonl_path
+        else state_dir / cfg.updates_jsonl_filename
+    )
     categories: dict[str, CategoryConfig] = OmegaConf.to_object(cfg.categories)  # type: ignore[assignment]
     label_to_category: dict[str, str] = {
         label: cat for cat, c in categories.items() for label in c.labels
@@ -1080,7 +1400,7 @@ def main() -> int:
 
     backlog_text = read_text(backlog_path) if backlog_path.exists() else ""
     previous_rows = [
-        normalize_previous_row(repo, row, label_to_category, category_keywords)
+        normalize_previous_row(cfg, row, label_to_category, category_keywords)
         for row in parse_issue_table_rows(backlog_text)
     ]
     previous_rows_by_number = {row["number"]: row for row in previous_rows}
@@ -1103,7 +1423,12 @@ def main() -> int:
     open_prs = fetch_open_prs(repo)
     pr_lookup = build_pr_lookup(open_prs, open_issue_numbers)
     current_records = build_current_issue_records(
-        repo, active_open_issues, collaborators, pr_lookup, label_to_category, category_keywords
+        cfg,
+        active_open_issues,
+        collaborators,
+        pr_lookup,
+        label_to_category,
+        category_keywords,
     )
     current_snapshot = snapshot_from_open_records(repo, current_records, generated_at)
 
@@ -1114,26 +1439,63 @@ def main() -> int:
     for num in prev_open - curr_open:
         closed_at.setdefault(num, run_date)
 
-    render_rows = merge_rows_for_render(current_records, previous_rows, closed_at, expire_days=cfg.done_expire_days)
+    render_rows = merge_rows_for_render(
+        current_records, previous_rows, closed_at, expire_days=cfg.done_expire_days
+    )
     rendered_numbers = {row["number"] for row in render_rows}
     current_snapshot["closed_at"] = {
         num: dt for num, dt in closed_at.items() if num in rendered_numbers
     }
-    new_issues, status_changes, label_changes, closed_issues, pr_changes = compare_snapshots(
-        previous_snapshot,
-        current_snapshot,
-        {record["number"]: record for record in current_records},
-        previous_rows_by_number,
+    new_issues, status_changes, label_changes, closed_issues, pr_changes = (
+        compare_snapshots(
+            previous_snapshot,
+            current_snapshot,
+            {record["number"]: record for record in current_records},
+            previous_rows_by_number,
+        )
     )
     updates_lines = render_updates_lines(
         generated_at, new_issues, status_changes, label_changes, closed_issues
     )
 
-    backlog_content = render_backlog_file(repo, render_rows, generated_on, manual_block)
+    backlog_content = render_backlog_file(cfg, render_rows, generated_on, manual_block)
     backlog_changed = (
         not backlog_path.exists() or read_text(backlog_path) != backlog_content
     )
     updates_changed = bool(updates_lines)
+
+    run_events = build_run_events(
+        cfg,
+        generated_at,
+        new_issues,
+        status_changes,
+        label_changes,
+        closed_issues,
+        pr_changes,
+    )
+
+    bootstrapped = False
+    if not updates_jsonl_path.exists() and updates_path.exists():
+        seed = parse_updates_md(read_text(updates_path))
+        if seed:
+            append_events_jsonl(updates_jsonl_path, seed)
+            bootstrapped = True
+
+    if not args.dry_run and run_events:
+        append_events_jsonl(updates_jsonl_path, run_events)
+
+    recent_events = read_recent_events(updates_jsonl_path, cfg.data_updates_limit)
+    if args.dry_run and run_events:
+        # Dry-run still wants to preview the updates that would be embedded.
+        recent_events = list(reversed(run_events)) + recent_events
+        recent_events = recent_events[: cfg.data_updates_limit]
+
+    data_obj = build_data_json(cfg, render_rows, generated_on, generated_at)
+    data_obj["updates"] = recent_events
+    data_json_content = json.dumps(data_obj, indent=2, ensure_ascii=False) + "\n"
+    data_json_changed = (
+        not data_json_path.exists() or read_text(data_json_path) != data_json_content
+    )
 
     if args.dry_run:
         print(f"Resolved GitHub repo: {repo}")
@@ -1141,15 +1503,31 @@ def main() -> int:
         print(
             f"BACKLOG-UPDATES.md would {'prepend lines' if updates_changed else 'remain unchanged'}"
         )
+        print(
+            f"{cfg.data_json_filename} would {'change' if data_json_changed else 'remain unchanged'}"
+        )
+        if bootstrapped:
+            print(
+                f"{cfg.updates_jsonl_filename} would be bootstrapped from {cfg.updates_filename}"
+            )
+        print(
+            f"{cfg.updates_jsonl_filename} would append {len(run_events)} event(s)"
+            if run_events
+            else f"{cfg.updates_jsonl_filename} would not change"
+        )
         print(f"Snapshot would contain {len(current_snapshot['issues'])} open issues")
         return 0
 
     if backlog_changed:
         write_text(backlog_path, backlog_content)
+    if data_json_changed:
+        write_text(data_json_path, data_json_content)
 
     if updates_changed:
         existing_updates = read_text(updates_path) if updates_path.exists() else ""
-        separator = "\n" if existing_updates and not existing_updates.startswith("\n") else ""
+        separator = (
+            "\n" if existing_updates and not existing_updates.startswith("\n") else ""
+        )
         write_text(updates_path, updates_lines + separator + existing_updates)
 
     save_snapshot(current_snapshot, snapshot_path)
@@ -1159,6 +1537,24 @@ def main() -> int:
         "Updated BACKLOG.md" if backlog_changed else "BACKLOG.md already up to date",
         file=sys.stdout,
     )
+    print(
+        (
+            f"Updated {cfg.data_json_filename}"
+            if data_json_changed
+            else f"{cfg.data_json_filename} already up to date"
+        ),
+        file=sys.stdout,
+    )
+    if bootstrapped:
+        print(
+            f"Bootstrapped {cfg.updates_jsonl_filename} from {cfg.updates_filename}",
+            file=sys.stdout,
+        )
+    if run_events:
+        print(
+            f"Appended {len(run_events)} event(s) to {cfg.updates_jsonl_filename}",
+            file=sys.stdout,
+        )
     if updates_changed:
         print("Prepended lines to BACKLOG-UPDATES.md", file=sys.stdout)
     else:
@@ -1178,6 +1574,315 @@ def main() -> int:
         )
         Path(args.commit_msg_path).write_text(commit_msg, encoding="utf-8")
         print(f"Commit message: {commit_msg}", file=sys.stdout)
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# install / uninstall
+# ---------------------------------------------------------------------------
+
+
+def load_workflow_template(pip_spec: str) -> str:
+    return read_text(WORKFLOW_TEMPLATE_PATH).replace("__BACKLOG_TOOL_PIP__", pip_spec)
+
+
+def gh_branch_exists(repo: str, branch: str) -> bool:
+    output = try_command(["gh", "api", f"repos/{repo}/branches/{branch}"])
+    return output is not None and '"name"' in output
+
+
+def gh_create_orphan_branch(
+    repo: str, branch: str, seed_path: str, content: str
+) -> None:
+    """Create an orphan branch with a single seed file via the GitHub API."""
+    import base64
+
+    blob_resp = run_command(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/git/blobs",
+            "--method",
+            "POST",
+            "-f",
+            f"content={base64.b64encode(content.encode()).decode()}",
+            "-f",
+            "encoding=base64",
+        ]
+    )
+    blob_sha = json.loads(blob_resp)["sha"]
+    tree_resp = run_command(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/git/trees",
+            "--method",
+            "POST",
+            "-f",
+            f"tree[][path]={seed_path}",
+            "-f",
+            "tree[][mode]=100644",
+            "-f",
+            "tree[][type]=blob",
+            "-f",
+            f"tree[][sha]={blob_sha}",
+        ]
+    )
+    tree_sha = json.loads(tree_resp)["sha"]
+    commit_resp = run_command(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/git/commits",
+            "--method",
+            "POST",
+            "-f",
+            f"message=backlog: initialize {branch} branch",
+            "-f",
+            f"tree={tree_sha}",
+        ]
+    )
+    commit_sha = json.loads(commit_resp)["sha"]
+    run_command(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/git/refs",
+            "--method",
+            "POST",
+            "-f",
+            f"ref=refs/heads/{branch}",
+            "-f",
+            f"sha={commit_sha}",
+        ]
+    )
+
+
+def gh_delete_branch(repo: str, branch: str) -> None:
+    run_command(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/git/refs/heads/{branch}",
+            "--method",
+            "DELETE",
+        ]
+    )
+
+
+def find_workflow_target(target_repo_root: Path) -> Path:
+    return target_repo_root / ".github" / "workflows" / "update-backlog.yml"
+
+
+def detect_target_root(cwd: Path | None = None) -> Path:
+    """Find the working tree root containing cwd via sl or git, else cwd itself."""
+    cwd = (cwd or Path.cwd()).resolve()
+    output = try_command(["sl", "root"])
+    if output:
+        candidate = Path(output.strip())
+        if candidate.exists():
+            return candidate
+    output = try_command(["git", "-C", str(cwd), "rev-parse", "--show-toplevel"])
+    if output:
+        candidate = Path(output.strip())
+        if candidate.exists():
+            return candidate
+    return cwd
+
+
+def run_install(args: argparse.Namespace) -> int:
+    cfg = load_config()
+    repo = resolve_repo(args.repo)
+    target_root = Path(args.target_root) if args.target_root else detect_target_root()
+    pip_spec = args.pip_spec or "backlog-tool"
+
+    print(f"Target repo: {repo}")
+    print(f"Target working tree: {target_root}")
+    print(f"Workflow will install: {pip_spec}")
+
+    did_anything = False
+
+    # 1. Backlog branch
+    if not args.skip_branch:
+        if gh_branch_exists(repo, "backlog"):
+            print("✓ backlog branch already exists")
+        else:
+            print("· creating backlog branch via gh API ...")
+            seed = (
+                f"# Detailed Open Issues: {repo}\n\n"
+                f"{BEGIN_GENERATED}\n*Generated on: -*\n{END_GENERATED}\n\n"
+                f"## Manual comments\n{canonical_manual_block()}\n"
+            )
+            gh_create_orphan_branch(repo, "backlog", "BACKLOG.md", seed)
+            print("✓ backlog branch created")
+            did_anything = True
+
+    # 2. Workflow file
+    if not args.skip_workflow:
+        wf_path = find_workflow_target(target_root)
+        if wf_path.exists():
+            print(f"✓ workflow already exists at {wf_path}")
+        else:
+            wf_content = load_workflow_template(pip_spec)
+            wf_path.parent.mkdir(parents=True, exist_ok=True)
+            wf_path.write_text(wf_content, encoding="utf-8")
+            print(f"✓ wrote workflow to {wf_path}")
+            did_anything = True
+
+    if did_anything:
+        print()
+        print("Next steps:")
+        print(f"  - commit & push the new workflow file in {target_root}")
+        print(f"  - trigger once: gh workflow run 'Update Backlog' --repo {repo}")
+        print(
+            f"  - enable Pages: https://github.com/{repo}/settings/pages "
+            "(branch: backlog, folder: /)"
+        )
+    else:
+        print("\nNothing to do — backlog-tool is already installed in this repo.")
+    _ = cfg  # config loaded for validation only
+    return 0
+
+
+def run_uninstall(args: argparse.Namespace) -> int:
+    cfg = load_config()
+    repo = resolve_repo(args.repo)
+    target_root = Path(args.target_root) if args.target_root else detect_target_root()
+
+    print(f"Target repo: {repo}")
+    print(f"Target working tree: {target_root}")
+
+    if not args.yes:
+        print("\nThis will:")
+        if not args.keep_workflow:
+            print(
+                "  - remove .github/workflows/update-backlog.yml from the working tree"
+            )
+        if not args.keep_branch:
+            print("  - DELETE the backlog branch on GitHub (irreversible)")
+        try:
+            confirm = input("\nProceed? [y/N] ").strip().lower()
+        except EOFError:
+            confirm = ""
+        if confirm not in {"y", "yes"}:
+            print("Aborted.")
+            return 1
+
+    if not args.keep_workflow:
+        wf_path = find_workflow_target(target_root)
+        if wf_path.exists():
+            wf_path.unlink()
+            print(f"✓ removed {wf_path}")
+        else:
+            print("· no workflow file to remove")
+
+    if not args.keep_branch:
+        if gh_branch_exists(repo, "backlog"):
+            gh_delete_branch(repo, "backlog")
+            print(f"✓ deleted backlog branch on {repo}")
+        else:
+            print("· no backlog branch to delete")
+
+    print("\nUninstall complete. Remember to commit the workflow removal.")
+    _ = cfg
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="backlog-tool")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_update = sub.add_parser(
+        "update",
+        help="Regenerate BACKLOG.md, backlog.json, and updates.jsonl from GitHub state.",
+    )
+    _add_update_args(p_update)
+
+    p_install = sub.add_parser(
+        "install",
+        help="Set up the backlog branch and GitHub Actions workflow in a repo.",
+    )
+    p_install.add_argument(
+        "--repo", help="GitHub repo owner/name (auto-detected by default)."
+    )
+    p_install.add_argument(
+        "--target-root",
+        help="Target working tree root (default: detected via 'sl root' or 'git rev-parse --show-toplevel' from cwd).",
+    )
+    p_install.add_argument(
+        "--pip-spec",
+        help=(
+            "What the generated workflow passes to 'pip install'. "
+            "Default: 'backlog-tool'. Use a git URL or 'pip install ./local-path' "
+            "for pre-publish setups."
+        ),
+    )
+    p_install.add_argument(
+        "--skip-branch", action="store_true", help="Don't touch the backlog branch."
+    )
+    p_install.add_argument(
+        "--skip-workflow", action="store_true", help="Don't write the workflow YAML."
+    )
+
+    p_uninstall = sub.add_parser(
+        "uninstall",
+        help="Remove the workflow and (optionally) delete the backlog branch.",
+    )
+    p_uninstall.add_argument(
+        "--repo", help="GitHub repo owner/name (auto-detected by default)."
+    )
+    p_uninstall.add_argument("--target-root", help="Target working tree root.")
+    p_uninstall.add_argument(
+        "--keep-branch", action="store_true", help="Don't delete the backlog branch."
+    )
+    p_uninstall.add_argument(
+        "--keep-workflow", action="store_true", help="Don't remove the workflow YAML."
+    )
+    p_uninstall.add_argument(
+        "-y", "--yes", action="store_true", help="Skip confirmation prompt."
+    )
+
+    p_dump_web = sub.add_parser(
+        "dump-web",
+        help="Write the bundled web UI files to a target directory or single file.",
+    )
+    p_dump_web.add_argument(
+        "--output",
+        required=True,
+        help=(
+            "Output path. If it ends with .html, only index.html is written there. "
+            "Otherwise treated as a directory and all bundled web files are copied in."
+        ),
+    )
+
+    args = parser.parse_args()
+
+    if args.cmd == "update":
+        return run_update(args)
+    if args.cmd == "install":
+        return run_install(args)
+    if args.cmd == "uninstall":
+        return run_uninstall(args)
+    if args.cmd == "dump-web":
+        return run_dump_web(args)
+    parser.print_help()
+    return 2
+
+
+def run_dump_web(args: argparse.Namespace) -> int:
+    out = Path(args.output)
+    if out.suffix == ".html":
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes((WEB_DIR / "index.html").read_bytes())
+        print(f"✓ wrote {out}")
+        return 0
+    out.mkdir(parents=True, exist_ok=True)
+    count = 0
+    for src in WEB_DIR.iterdir():
+        if src.is_file():
+            (out / src.name).write_bytes(src.read_bytes())
+            count += 1
+    print(f"✓ wrote {count} file(s) to {out}")
     return 0
 
 
