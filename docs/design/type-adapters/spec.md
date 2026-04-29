@@ -1,14 +1,19 @@
-# Design Note: Type Adapter System
+# Type Adapter System Implementor Spec
+
+This is the detailed implementor and maintainer specification for the type
+adapter system. Most reviewers should start with
+[rfc.md](rfc.md), which summarizes the architecture,
+public API shape, and open decisions.
 
 **Status:** Draft
 **Stability:** The initial release will be marked experimental, allowing the public-facing adapter API (`TypeAdapter`, `TypeAdapterDescriptor`, `load_type_adapter`, etc.) to evolve without backward-compatibility constraints.
 **Related issues (partial list):**
-- #725 — numpy float/ndarray assignment
-- #1160 — Boost.Python.enum support
-- #851 — datetime.datetime support
-- #97, #873 — pathlib.Path support (integrated into core)
-- #844, #872 — bytes support (integrated into core)
-- discussion #874 — register custom node type (Jasha)
+- [#725](https://github.com/omry/omegaconf/issues/725) - numpy float/ndarray assignment
+- [#1160](https://github.com/omry/omegaconf/issues/1160) - Boost.Python.enum support
+- [#851](https://github.com/omry/omegaconf/issues/851) - datetime.datetime support
+- [#97](https://github.com/omry/omegaconf/issues/97), [#873](https://github.com/omry/omegaconf/issues/873) - pathlib.Path support (integrated into core)
+- [#844](https://github.com/omry/omegaconf/issues/844), [#872](https://github.com/omry/omegaconf/issues/872) - bytes support (integrated into core)
+- [discussion #874](https://github.com/omry/omegaconf/discussions/874) - register custom node type (Jasha)
 
 ---
 
