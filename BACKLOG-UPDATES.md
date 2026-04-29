@@ -1,3 +1,5 @@
+- `2026-04-29T19:33:02Z` closed: [#1148](https://github.com/omry/omegaconf/issues/1148) ImportError: cannot import name 'get_ref_type' from 'om...
+
 - `2026-04-29T19:25:08Z` label: [#1129](https://github.com/omry/omegaconf/issues/1129) Add function to check if key exists: removed "needs triage"
 
 - `2026-04-29T05:31:21Z` new: [#1288](https://github.com/omry/omegaconf/issues/1288) RFC: Type Adapter System for external Python value types

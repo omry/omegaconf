@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 39 | 43.8% |
-| ✨ Enhancement | 44 | 49.4% |
-| 🔧 Refactor | 2 | 2.2% |
+| 🐛 Bug | 38 | 43.2% |
+| ✨ Enhancement | 44 | 50.0% |
+| 🔧 Refactor | 2 | 2.3% |
 | 🏗️ Build | 1 | 1.1% |
 | 📄 Documentation | 3 | 3.4% |
 | ❓ Question | 0 | 0.0% |
-| **Total** | **89** | |
+| **Total** | **88** | |
 
 </td><td>
 
@@ -51,8 +51,8 @@
 | 🔄 in progress | 3 |
 | 🤝 community PR | 4 |
 | 🚫 blocked | 4 |
-| ⬜ not started | 78 |
-| ✅ done | 14 |
+| ⬜ not started | 77 |
+| ✅ done | 15 |
 
 
 </td></tr></table>
@@ -133,7 +133,6 @@
 | [#1130](https://github.com/omry/omegaconf/issues/1130) | Interpolations that resolve to missing value `???` don'... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑10‑11 | 2026‑04‑24 | needs triage |
 | [#1131](https://github.com/omry/omegaconf/issues/1131) | `OmegaConf.resolve` should crash when a resolver input... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2023‑10‑11 | 2026‑04‑24 | bug |
 | [#1132](https://github.com/omry/omegaconf/issues/1132) | [Feature Request] integration between omegaconf and AWS... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑10‑16 | 2026‑04‑24 | needs triage |
-| [#1148](https://github.com/omry/omegaconf/issues/1148) | ImportError: cannot import name 'get_ref_type' from 'om... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2024‑01‑08 | 2026‑04‑24 | needs triage |
 | [#1154](https://github.com/omry/omegaconf/issues/1154) | Merge Option of update function does not merge list | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2024‑02‑21 | 2026‑04‑24 | bug, needs triage |
 | [#1173](https://github.com/omry/omegaconf/issues/1173) | Consider adding config "blame" metadata. | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2024‑04‑19 | 2026‑04‑28 | wishlist |
 | [#1184](https://github.com/omry/omegaconf/issues/1184) | Merging Multiple Configs with Interpolation has Unexpec... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2024‑07‑18 | 2026‑04‑24 | enhancement, wishlist |
@@ -162,6 +161,7 @@
 | [#1019](https://github.com/omry/omegaconf/issues/1019) | Nested structured config validation | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1133](https://github.com/omry/omegaconf/pull/1133) | 2022‑10‑04 | 2026‑04‑24 | bug, needs triage |
 | [#1112](https://github.com/omry/omegaconf/issues/1112) | Unexpected behavior for multiline-strings | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1113](https://github.com/omry/omegaconf/pull/1113), [#1287](https://github.com/omry/omegaconf/pull/1287) | 2023‑08‑08 | 2026‑04‑24 | bug, needs triage |
 | [#1123](https://github.com/omry/omegaconf/issues/1123) | Inconsistencies in recursive behavior in `set_readonly()` | <span title="Bug">🐛</span> | <span title="done">✅</span> | [#1124](https://github.com/omry/omegaconf/pull/1124) | 2023‑09‑20 | 2026‑04‑24 | bug, needs triage |
+| [#1148](https://github.com/omry/omegaconf/issues/1148) | ImportError: cannot import name 'get_ref_type' from 'om... | <span title="Bug">🐛</span> | <span title="done">✅</span> |  | 2024‑01‑08 | 2026‑04‑24 | needs triage |
 <!-- END GENERATED BACKLOG -->
 
 ## Manual comments

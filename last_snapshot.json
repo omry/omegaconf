@@ -4,6 +4,7 @@
     "1019": "2026-04-27",
     "1112": "2026-04-27",
     "1123": "2026-04-28",
+    "1148": "2026-04-29",
     "1156": "2026-04-27",
     "1205": "2026-04-27",
     "1221": "2026-04-27",
@@ -12,7 +13,7 @@
     "1261": "2026-04-27",
     "422": "2026-04-27"
   },
-  "generated_at": "2026-04-29T19:25:08Z",
+  "generated_at": "2026-04-29T19:33:02Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -321,18 +322,6 @@
       "status": "not started",
       "title": "[Feature Request] integration between omegaconf and AWS Sagemaker Estimator's hyperparameters",
       "updated_at": "2026-04-24T05:03:28Z"
-    },
-    "1148": {
-      "category": "Bug",
-      "created_at": "2024-01-08T02:30:11Z",
-      "labels": [
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "ImportError: cannot import name 'get_ref_type' from 'omegaconf._utils'",
-      "updated_at": "2026-04-24T05:03:29Z"
     },
     "1154": {
       "category": "Bug",
