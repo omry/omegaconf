@@ -463,30 +463,14 @@ def test_is_issubclass() -> None:
         ),
         param(OmegaConf.create({"a": "???"}), {"a": "???"}, id="dict:missing"),
         param(
-            OmegaConf.create({"a": "???", "b": "${a}"}),
-            {"a": "???", "b": "???"},
-            id="dict:missing",
-        ),
-        param(
             OmegaConf.create({"a": 10, "b": "a_${a}"}),
             {"a": 10, "b": "a_10"},
             id="dict:str_inter",
-        ),
-        # This seems like a reasonable resolution for a string interpolation pointing to a missing node:
-        param(
-            OmegaConf.create({"a": "???", "b": "a_${a}"}),
-            {"a": "???", "b": "???"},
-            id="dict:str_inter_missing",
         ),
         param(
             DictConfig("${a}", parent=OmegaConf.create({"a": {"b": 10}})),
             {"b": 10},
             id="inter_dict",
-        ),
-        param(
-            DictConfig("${a}", parent=OmegaConf.create({"a": "???"})),
-            "???",
-            id="inter_dict_to_missing",
         ),
         param(
             OmegaConf.create({"x": "${y}", "y": {"z": "${foo}"}, "foo": 0}),
@@ -500,16 +484,10 @@ def test_is_issubclass() -> None:
         param(OmegaConf.create([]), [], id="list"),
         param(OmegaConf.create([10, "${0}"]), [10, 10], id="list"),
         param(OmegaConf.create(["???"]), ["???"], id="list:missing"),
-        param(OmegaConf.create(["${1}", "???"]), ["???", "???"], id="list:missing"),
         param(
             ListConfig("${a}", parent=OmegaConf.create({"a": [1, 2]})),
             [1, 2],
             id="inter_list",
-        ),
-        param(
-            ListConfig("${a}", parent=OmegaConf.create({"a": "???"})),
-            "???",
-            id="inter_list_to_missing",
         ),
         param(ListConfig(None), None, id="none_list"),
         # comparing to ??? because to_container returns it.
@@ -547,6 +525,45 @@ def test_resolve(cfg: Any, expected: Any) -> None:
 def test_resolve_invalid_input() -> None:
     with raises(ValueError):
         OmegaConf.resolve("aaa")  # type: ignore
+
+
+@mark.parametrize(
+    "cfg",
+    [
+        param(
+            OmegaConf.create({"a": "???", "b": "${a}"}),
+            id="dict:node_inter_to_missing",
+        ),
+        param(
+            OmegaConf.create({"a": "???", "b": "a_${a}"}),
+            id="dict:str_inter_to_missing",
+        ),
+        param(
+            DictConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            id="inter_dict_to_missing",
+        ),
+        param(
+            OmegaConf.create(["${1}", "???"]),
+            id="list:node_inter_to_missing",
+        ),
+        param(
+            ListConfig("${a}", parent=OmegaConf.create({"a": "???"})),
+            id="inter_list_to_missing",
+        ),
+    ],
+)
+def test_resolve_raises_on_interpolation_to_missing(cfg: Any) -> None:
+    with raises(InterpolationToMissingValueError):
+        OmegaConf.resolve(cfg)
+
+
+def test_resolve_raises_on_resolver_arg_to_missing(restore_resolvers: Any) -> None:
+    """https://github.com/omry/omegaconf/issues/1131"""
+    OmegaConf.register_new_resolver("no_op", lambda x: x)
+    cfg = OmegaConf.create({"a": "${no_op:${b}}", "b": "???"})
+    assert not OmegaConf.is_missing(cfg, "a")
+    with raises(InterpolationToMissingValueError):
+        OmegaConf.resolve(cfg)
 
 
 @mark.parametrize(

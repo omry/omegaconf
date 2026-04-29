@@ -904,9 +904,10 @@ def compare_snapshots(
     list[dict[str, Any]],
     list[dict[str, Any]],
     list[dict[str, Any]],
+    list[dict[str, Any]],
 ]:
     if not previous_snapshot:
-        return [], [], [], []
+        return [], [], [], [], []
 
     previous_issues = previous_snapshot.get("issues", {})
     current_issues = current_snapshot.get("issues", {})
@@ -915,6 +916,7 @@ def compare_snapshots(
     status_changes: list[dict[str, Any]] = []
     label_changes: list[dict[str, Any]] = []
     closed_issues: list[dict[str, Any]] = []
+    pr_changes: list[dict[str, Any]] = []
 
     for issue_number, current in current_issues.items():
         previous = previous_issues.get(issue_number)
@@ -956,6 +958,21 @@ def compare_snapshots(
                 }
             )
 
+        previous_prs = set(previous.get("pr_numbers", []))
+        current_prs = set(current.get("pr_numbers", []))
+        added_prs = sorted(current_prs - previous_prs, key=int)
+        removed_prs = sorted(previous_prs - current_prs, key=int)
+        if added_prs or removed_prs:
+            pr_changes.append(
+                {
+                    "number": issue_number,
+                    "title": current_rows_by_number[issue_number]["title"],
+                    "issue_link": current_rows_by_number[issue_number]["issue_link"],
+                    "added_prs": added_prs,
+                    "removed_prs": removed_prs,
+                }
+            )
+
     for issue_number, previous in previous_issues.items():
         if issue_number not in current_issues:
             previous_row = previous_rows_by_number.get(issue_number)
@@ -963,7 +980,58 @@ def compare_snapshots(
                 continue
             closed_issues.append(previous_row)
 
-    return new_issues, status_changes, label_changes, closed_issues
+    return new_issues, status_changes, label_changes, closed_issues, pr_changes
+
+
+def build_commit_message(
+    new_issues: list[dict[str, Any]],
+    status_changes: list[dict[str, Any]],
+    label_changes: list[dict[str, Any]],
+    closed_issues: list[dict[str, Any]],
+    pr_changes: list[dict[str, Any]],
+    open_count: int,
+) -> str:
+    parts: list[str] = []
+
+    if new_issues:
+        nums = ", ".join(f"#{r['number']}" for r in new_issues[:3])
+        suffix = f" +{len(new_issues) - 3} more" if len(new_issues) > 3 else ""
+        parts.append(f"new {nums}{suffix}")
+
+    if closed_issues:
+        nums = ", ".join(f"#{r['number']}" for r in closed_issues[:3])
+        suffix = f" +{len(closed_issues) - 3} more" if len(closed_issues) > 3 else ""
+        parts.append(f"closed {nums}{suffix}")
+
+    for c in status_changes[:3]:
+        parts.append(f"#{c['number']} {c['old_status']} → {c['new_status']}")
+    if len(status_changes) > 3:
+        parts.append(f"+{len(status_changes) - 3} more status changes")
+
+    for c in pr_changes[:3]:
+        if c["added_prs"]:
+            prs = ", ".join(f"#{p}" for p in c["added_prs"])
+            parts.append(f"link {prs} to #{c['number']}")
+        if c["removed_prs"]:
+            prs = ", ".join(f"#{p}" for p in c["removed_prs"])
+            parts.append(f"unlink {prs} from #{c['number']}")
+    if len(pr_changes) > 3:
+        parts.append(f"+{len(pr_changes) - 3} more PR changes")
+
+    for c in label_changes[:2]:
+        pieces = []
+        if c.get("added"):
+            pieces.append("+" + ", ".join(c["added"]))
+        if c.get("removed"):
+            pieces.append("-" + ", ".join(c["removed"]))
+        parts.append(f"#{c['number']} labels: {'; '.join(pieces)}")
+    if len(label_changes) > 2:
+        parts.append(f"+{len(label_changes) - 2} more label changes")
+
+    if not parts:
+        return f"backlog: sync ({open_count} open) [skip ci]"
+
+    return "backlog: " + "; ".join(parts) + " [skip ci]"
 
 
 def main() -> int:
@@ -986,6 +1054,10 @@ def main() -> int:
     parser.add_argument(
         "--event-log-path",
         help="Path to events.jsonl. Cleared after a successful update.",
+    )
+    parser.add_argument(
+        "--commit-msg-path",
+        help="Write the descriptive commit message to this file.",
     )
     args = parser.parse_args()
 
@@ -1047,7 +1119,7 @@ def main() -> int:
     current_snapshot["closed_at"] = {
         num: dt for num, dt in closed_at.items() if num in rendered_numbers
     }
-    new_issues, status_changes, label_changes, closed_issues = compare_snapshots(
+    new_issues, status_changes, label_changes, closed_issues, pr_changes = compare_snapshots(
         previous_snapshot,
         current_snapshot,
         {record["number"]: record for record in current_records},
@@ -1095,6 +1167,17 @@ def main() -> int:
         f"Saved snapshot for {repo} with {len(current_snapshot['issues'])} open issues",
         file=sys.stdout,
     )
+    if args.commit_msg_path:
+        commit_msg = build_commit_message(
+            new_issues,
+            status_changes,
+            label_changes,
+            closed_issues,
+            pr_changes,
+            len(current_snapshot["issues"]),
+        )
+        Path(args.commit_msg_path).write_text(commit_msg, encoding="utf-8")
+        print(f"Commit message: {commit_msg}", file=sys.stdout)
     return 0
 
 
