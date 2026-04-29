@@ -12,7 +12,7 @@
     "1261": "2026-04-27",
     "422": "2026-04-27"
   },
-  "generated_at": "2026-04-28T14:54:11Z",
+  "generated_at": "2026-04-29T05:31:21Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -359,7 +359,7 @@
       "state": "OPEN",
       "status": "blocked",
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
-      "updated_at": "2026-04-28T09:13:32Z"
+      "updated_at": "2026-04-29T05:15:08Z"
     },
     "1161": {
       "category": "Enhancement",
@@ -397,7 +397,7 @@
       "state": "OPEN",
       "status": "blocked",
       "title": "`incompatible copy of pydevd already imported` when running omegaconf",
-      "updated_at": "2026-04-28T14:41:28Z"
+      "updated_at": "2026-04-28T19:04:18Z"
     },
     "1184": {
       "category": "Enhancement",
@@ -527,6 +527,18 @@
       "status": "not started",
       "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
       "updated_at": "2026-04-26T10:51:51Z"
+    },
+    "1288": {
+      "category": "Enhancement",
+      "created_at": "2026-04-29T05:14:25Z",
+      "labels": [
+        "RFC"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "RFC: Type Adapter System for external Python value types",
+      "updated_at": "2026-04-29T05:29:52Z"
     },
     "131": {
       "category": "Enhancement",
@@ -1097,14 +1109,13 @@
       "category": "Bug",
       "created_at": "2022-07-13T20:08:49Z",
       "labels": [
-        "as designed",
         "needs triage"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "fails on `Dict[Any, str]` if passed in a list of strings",
-      "updated_at": "2026-04-24T06:28:22Z"
+      "updated_at": "2026-04-29T05:28:54Z"
     },
     "976": {
       "category": "Bug",

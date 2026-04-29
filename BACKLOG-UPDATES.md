@@ -1,3 +1,6 @@
+- `2026-04-29T05:31:21Z` new: [#1288](https://github.com/omry/omegaconf/issues/1288) RFC: Type Adapter System for external Python value types
+- `2026-04-29T05:31:21Z` label: [#974](https://github.com/omry/omegaconf/issues/974) fails on `Dict[Any, str]` if passed in a list of strings: removed "as designed"
+
 - `2026-04-28T14:54:11Z` closed: [#1123](https://github.com/omry/omegaconf/issues/1123) Inconsistencies in recursive behavior in `set_readonly()`
 
 - `2026-04-27T04:43:10Z` label: [#1103](https://github.com/omry/omegaconf/issues/1103) One should be allowed to re-instantiate a structured object with missing values: added "awaiting response"; removed "needs triage"

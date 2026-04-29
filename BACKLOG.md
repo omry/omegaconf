@@ -1,7 +1,7 @@
 # Detailed Open Issues: omry/omegaconf
 
 <!-- BEGIN GENERATED BACKLOG -->
-*Generated on: 2026-04-28*
+*Generated on: 2026-04-29*
 
 <table><tr><td>
 
@@ -34,13 +34,13 @@
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| 🐛 Bug | 39 | 44.3% |
-| ✨ Enhancement | 43 | 48.9% |
-| 🔧 Refactor | 2 | 2.3% |
+| 🐛 Bug | 39 | 43.8% |
+| ✨ Enhancement | 44 | 49.4% |
+| 🔧 Refactor | 2 | 2.2% |
 | 🏗️ Build | 1 | 1.1% |
 | 📄 Documentation | 3 | 3.4% |
 | ❓ Question | 0 | 0.0% |
-| **Total** | **88** | |
+| **Total** | **89** | |
 
 </td><td>
 
@@ -51,7 +51,7 @@
 | 🔄 in progress | 3 |
 | 🤝 community PR | 4 |
 | 🚫 blocked | 4 |
-| ⬜ not started | 77 |
+| ⬜ not started | 78 |
 | ✅ done | 14 |
 
 
@@ -66,7 +66,7 @@
 | [#755](https://github.com/omry/omegaconf/issues/755) | negative list indices in variable interpolation | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1212](https://github.com/omry/omegaconf/pull/1212) | 2021‑06‑17 | 2026‑04‑25 | enhancement |
 | [#1118](https://github.com/omry/omegaconf/issues/1118) | `OmegaConf.missing_keys(cfg)` may fail if contained cus... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1117](https://github.com/omry/omegaconf/pull/1117) | 2023‑08‑24 | 2026‑04‑26 | bug |
 | [#1239](https://github.com/omry/omegaconf/issues/1239) | RuntimeError: dictionary changed size during iteration... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1240](https://github.com/omry/omegaconf/pull/1240) | 2026‑03‑12 | 2026‑04‑24 | bug, awaiting response |
-| [#1160](https://github.com/omry/omegaconf/issues/1160) | Support `Boost.Python.enum` Enums as annotation and sup... | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑28 | awaiting response |
+| [#1160](https://github.com/omry/omegaconf/issues/1160) | Support `Boost.Python.enum` Enums as annotation and sup... | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑29 | awaiting response |
 | [#1161](https://github.com/omry/omegaconf/issues/1161) | Feature Request: Key-based readonly flag. | <span title="Enhancement">✨</span> | <span title="blocked">🚫</span> |  | 2024‑02‑28 | 2026‑04‑28 | enhancement, awaiting response |
 | [#1178](https://github.com/omry/omegaconf/issues/1178) | `incompatible copy of pydevd already imported` when run... | <span title="Bug">🐛</span> | <span title="blocked">🚫</span> |  | 2024‑06‑03 | 2026‑04‑28 | bug, awaiting response |
 | [#1210](https://github.com/omry/omegaconf/issues/1210) | test_nodes fails for Python >= 3.12 because of changes... | <span title="Bug">🐛</span> | <span title="blocked">🚫</span> |  | 2025‑03‑10 | 2026‑04‑24 | bug, awaiting response |
@@ -109,7 +109,7 @@
 | [#958](https://github.com/omry/omegaconf/issues/958) | ```OmegaConf.to_yaml``` adds unexpected new lines and q... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2022‑05‑31 | 2026‑04‑24 | needs triage |
 | [#959](https://github.com/omry/omegaconf/issues/959) | Would you please consider realizing an comparing funcit... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2022‑06‑01 | 2026‑04‑24 | needs triage |
 | [#969](https://github.com/omry/omegaconf/issues/969) | Follow up on deprecation of `register_resolver()` | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2022‑06‑21 | 2026‑04‑24 | maintenance, needs triage |
-| [#974](https://github.com/omry/omegaconf/issues/974) | fails on `Dict[Any, str]` if passed in a list of strings | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑07‑13 | 2026‑04‑24 | needs triage, as designed |
+| [#974](https://github.com/omry/omegaconf/issues/974) | fails on `Dict[Any, str]` if passed in a list of strings | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑07‑13 | 2026‑04‑29 | needs triage |
 | [#976](https://github.com/omry/omegaconf/issues/976) | Improve support for NoneType | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑07‑14 | 2026‑04‑24 | bug, needs triage, structured config |
 | [#998](https://github.com/omry/omegaconf/issues/998) | Merging does not preserve target `ref_type` when source... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑08‑18 | 2026‑04‑24 | bug, needs triage |
 | [#999](https://github.com/omry/omegaconf/issues/999) | `List[Tuple[T, ...]]` not supported | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑08‑29 | 2026‑04‑24 | bug, needs triage |
@@ -147,6 +147,7 @@
 | [#945](https://github.com/omry/omegaconf/issues/945) | `get_attr_data` doesn't handle default factory correctly | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2022‑05‑25 | 2026‑04‑24 | bug, needs triage |
 | [#265](https://github.com/omry/omegaconf/issues/265) | Attribute/KeyError can suggest matches from the availab... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2020‑06‑11 | 2026‑04‑24 | enhancement, needs triage, priority_low |
 | [#1275](https://github.com/omry/omegaconf/issues/1275) | Support Union of Structured Configs (dataclasses/attr c... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑24 | 2026‑04‑24 |  |
+| [#1288](https://github.com/omry/omegaconf/issues/1288) | RFC: Type Adapter System for external Python value types | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2026‑04‑29 | 2026‑04‑29 | RFC |
 | [#803](https://github.com/omry/omegaconf/issues/803) | [Question] Why hide dictconfig debugging content? | <span title="Question">❓</span> | <span title="done">✅</span> |  | 2021‑10‑14 | 2026‑04‑24 | needs triage |
 | [#788](https://github.com/omry/omegaconf/issues/788) | validation error when default_factory produces structur... | <span title="Bug">🐛</span> | <span title="done">✅</span> |  | 2021‑09‑14 | 2026‑04‑26 | bug, priority_low |
 | [#910](https://github.com/omry/omegaconf/issues/910) | Allow assigning variable interpolation to structured co... | <span title="Bug">🐛</span> | <span title="done">✅</span> |  | 2022‑05‑05 | 2026‑04‑24 | bug, needs triage, interpolation, structured config |
