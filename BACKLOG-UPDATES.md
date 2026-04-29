@@ -1,3 +1,5 @@
+- `2026-04-29T20:40:32Z` status: [#1131](https://github.com/omry/omegaconf/issues/1131) `OmegaConf.resolve` should crash when a resolver input is missing: not started → in progress ([#1289](https://github.com/omry/omegaconf/pull/1289))
+
 - `2026-04-29T19:33:02Z` closed: [#1148](https://github.com/omry/omegaconf/issues/1148) ImportError: cannot import name 'get_ref_type' from 'om...
 
 - `2026-04-29T19:25:08Z` label: [#1129](https://github.com/omry/omegaconf/issues/1129) Add function to check if key exists: removed "needs triage"

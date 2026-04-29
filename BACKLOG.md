@@ -48,10 +48,10 @@
 
 | Status | Count |
 |--------|-------|
-| 🔄 in progress | 3 |
+| 🔄 in progress | 4 |
 | 🤝 community PR | 4 |
 | 🚫 blocked | 4 |
-| ⬜ not started | 77 |
+| ⬜ not started | 76 |
 | ✅ done | 15 |
 
 
@@ -62,6 +62,7 @@
 | [#1087](https://github.com/omry/omegaconf/issues/1087) | `unsafe_merge` crashes with nested structured config an... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1285](https://github.com/omry/omegaconf/pull/1285) | 2023‑06‑11 | 2026‑04‑27 | bug |
 | [#1103](https://github.com/omry/omegaconf/issues/1103) | One should be allowed to re-instantiate a structured ob... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1104](https://github.com/omry/omegaconf/pull/1104) | 2023‑07‑14 | 2026‑04‑27 | bug, awaiting response |
 | [#1120](https://github.com/omry/omegaconf/issues/1120) | Escaped resolver modifying `_root_` doesn't work | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1113](https://github.com/omry/omegaconf/pull/1113) | 2023‑08‑30 | 2026‑04‑24 | bug, needs triage |
+| [#1131](https://github.com/omry/omegaconf/issues/1131) | `OmegaConf.resolve` should crash when a resolver input... | <span title="Bug">🐛</span> | <span title="in progress">🔄</span> | [#1289](https://github.com/omry/omegaconf/pull/1289) | 2023‑10‑11 | 2026‑04‑24 | bug |
 | [#91](https://github.com/omry/omegaconf/issues/91) | Consider supporting basic operators in interpolations o... | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1229](https://github.com/omry/omegaconf/pull/1229) | 2019‑12‑02 | 2026‑04‑26 | enhancement, has-workaround |
 | [#755](https://github.com/omry/omegaconf/issues/755) | negative list indices in variable interpolation | <span title="Enhancement">✨</span> | <span title="community PR">🤝</span> | [#1212](https://github.com/omry/omegaconf/pull/1212) | 2021‑06‑17 | 2026‑04‑25 | enhancement |
 | [#1118](https://github.com/omry/omegaconf/issues/1118) | `OmegaConf.missing_keys(cfg)` may fail if contained cus... | <span title="Bug">🐛</span> | <span title="community PR">🤝</span> | [#1117](https://github.com/omry/omegaconf/pull/1117) | 2023‑08‑24 | 2026‑04‑26 | bug |
@@ -131,7 +132,6 @@
 | [#1127](https://github.com/omry/omegaconf/issues/1127) | Make `select` and `oc.select` more robust | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑09‑26 | 2026‑04‑24 | needs triage |
 | [#1129](https://github.com/omry/omegaconf/issues/1129) | Add function to check if key exists | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑10‑03 | 2026‑04‑29 |  |
 | [#1130](https://github.com/omry/omegaconf/issues/1130) | Interpolations that resolve to missing value `???` don'... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑10‑11 | 2026‑04‑24 | needs triage |
-| [#1131](https://github.com/omry/omegaconf/issues/1131) | `OmegaConf.resolve` should crash when a resolver input... | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2023‑10‑11 | 2026‑04‑24 | bug |
 | [#1132](https://github.com/omry/omegaconf/issues/1132) | [Feature Request] integration between omegaconf and AWS... | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2023‑10‑16 | 2026‑04‑24 | needs triage |
 | [#1154](https://github.com/omry/omegaconf/issues/1154) | Merge Option of update function does not merge list | <span title="Bug">🐛</span> | <span title="not started">⬜</span> |  | 2024‑02‑21 | 2026‑04‑24 | bug, needs triage |
 | [#1173](https://github.com/omry/omegaconf/issues/1173) | Consider adding config "blame" metadata. | <span title="Enhancement">✨</span> | <span title="not started">⬜</span> |  | 2024‑04‑19 | 2026‑04‑28 | wishlist |

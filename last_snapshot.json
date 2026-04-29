@@ -13,7 +13,7 @@
     "1261": "2026-04-27",
     "422": "2026-04-27"
   },
-  "generated_at": "2026-04-29T19:33:02Z",
+  "generated_at": "2026-04-29T20:40:32Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -305,9 +305,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1289"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "`OmegaConf.resolve` should crash when a resolver input is missing",
       "updated_at": "2026-04-24T19:45:25Z"
     },
