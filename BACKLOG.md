@@ -1,9 +1,10 @@
 # Detailed Open Issues: omry/omegaconf
 
 <!-- BEGIN GENERATED BACKLOG -->
-*Generated on: 2026-04-29*
+*Generated on: 2026-04-30*
 
-<table><tr><td>
+<table align="right">
+<tr><td>
 
 **Status legend**
 
@@ -15,7 +16,8 @@
 | 🚫 `blocked` | Labelled `awaiting response`, no open PR |
 | ✅ `done` | Closed or addressed by a merged PR |
 
-</td><td>
+</td></tr>
+<tr><td>
 
 **Category legend**
 
@@ -28,7 +30,10 @@
 | 📄 `Documentation` |
 | ❓ `Question` |
 
-</td></tr><tr><td>
+</td></tr>
+</table>
+
+<table><tr><td>
 
 **By Category (open issues only)**
 
@@ -36,10 +41,10 @@
 |----------|-------|------------|
 | 🐛 Bug | 38 | 43.2% |
 | ✨ Enhancement | 44 | 50.0% |
-| 🔧 Refactor | 2 | 2.3% |
-| 🏗️ Build | 1 | 1.1% |
 | 📄 Documentation | 3 | 3.4% |
 | ❓ Question | 0 | 0.0% |
+| 🔧 Refactor | 2 | 2.3% |
+| 🏗️ Build | 1 | 1.1% |
 | **Total** | **88** | |
 
 </td><td>
