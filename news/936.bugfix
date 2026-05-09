@@ -1,0 +1,1 @@
+Drop `from typing.io import TextIO` from the vendored antlr4 runtime so OmegaConf imports cleanly on Python 3.13+ (where `typing.io` was removed) and emits no `DeprecationWarning` on 3.10-3.12.

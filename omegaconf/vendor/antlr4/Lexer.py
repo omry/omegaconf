@@ -11,10 +11,7 @@
 from io import StringIO
 
 import sys
-if sys.version_info[1] > 5:
-    from typing import TextIO
-else:
-    from typing.io import TextIO
+from typing import TextIO
 from .CommonTokenFactory import CommonTokenFactory
 from .atn.LexerATNSimulator import LexerATNSimulator
 from .InputStream import InputStream

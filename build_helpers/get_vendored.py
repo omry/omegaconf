@@ -90,6 +90,27 @@ def vendor(vendor_dir: Path, relative_imports: bool = False) -> None:
                 ),
             )
 
+    # `typing.io` was deprecated in 3.8 and removed in 3.13. The vendored
+    # antlr4 runtime guards `from typing.io import TextIO` behind a
+    # `sys.version_info[1] > 5` check; the legacy branch breaks on 3.13+.
+    # `TextIO` has always lived directly under `typing` on supported
+    # Pythons, so collapse the version guard into a plain import for any
+    # future re-vendor. See issue #936.
+    typing_io_block_fix = partial(
+        re.compile(
+            r'^(?P<indent>[ \t]*)if sys\.version_info\[1\] > 5:\n'
+            r'(?P=indent)[ \t]+from typing import (\w+)\n'
+            r'(?P=indent)else:\n'
+            r'(?P=indent)[ \t]+from typing\.io import \w+\n',
+            flags=re.M,
+        ).sub,
+        r'\g<indent>from typing import \2\n',
+    )
+    typing_io_simple_fix = partial(
+        re.compile(r'^(\s*)from typing\.io import (\w+)$', flags=re.M).sub,
+        r'\1from typing import \2',
+    )
+
     for file, depth in chain.from_iterable(map(iter_subtree, paths)):
         if relative_imports:
             pkgname = '.' * (depth - 1)
@@ -109,7 +130,9 @@ def vendor(vendor_dir: Path, relative_imports: bool = False) -> None:
                         r'\1from {}\2'.format(pkgname)
                     ),
                 )
-        patch_vendor_imports(file, replacements)
+        patch_vendor_imports(
+            file, replacements + [typing_io_block_fix, typing_io_simple_fix]
+        )
 
 
 if __name__ == '__main__':
