@@ -225,9 +225,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         stop = index.stop
         step = index.step
         if index.start and index.start < 0:
-            start = self.__len__() + index.start
+            # Clamp to 0 to match Python list slice semantics; otherwise
+            # itertools.islice rejects negative bounds with ValueError when
+            # the slice goes "before" the list (e.g. lst[-1:] on []).
+            start = max(0, self.__len__() + index.start)
         if index.stop and index.stop < 0:
-            stop = self.__len__() + index.stop
+            # Same clamp as start: lst[:-1] on an empty list should yield []
+            # rather than raising. See issue #1086.
+            stop = max(0, self.__len__() + index.stop)
         if index.step and index.step < 0:
             step = abs(step)
             if start and stop:

@@ -850,6 +850,29 @@ def test_getitem_slice(sli: slice) -> None:
 
 
 @mark.parametrize(
+    "sli",
+    [
+        # Slices that walk "before" the start of the list. Native Python lists
+        # silently return []; ListConfig used to raise ValueError because the
+        # negative computed bound (e.g. len(empty)+(-1) = -1) was passed
+        # straight to itertools.islice. Regression test for issue #1086.
+        slice(None, -1, None),
+        slice(-1, None, None),
+        slice(-5, None, None),
+        slice(None, -5, None),
+        slice(None, None, -1),
+        slice(-1, None, -1),
+    ],
+)
+def test_getitem_slice_empty_list(sli: slice) -> None:
+    """ListConfig slicing on an empty list must match native list behavior."""
+    lst: list = []
+    olst = OmegaConf.create([])
+    expected = lst[sli.start : sli.stop : sli.step]
+    assert olst.__getitem__(sli) == expected
+
+
+@mark.parametrize(
     "constructor",
     [OmegaConf.create, list, lambda lst: OmegaConf.create({"foo": lst}).foo],
 )

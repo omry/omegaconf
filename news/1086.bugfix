@@ -1,0 +1,1 @@
+Fix `ValueError` from `itertools.islice` when slicing a `ListConfig` with negative bounds that walk before index 0 (e.g. `cfg.xs[:-1]` on an empty list). Now matches native Python list semantics.
