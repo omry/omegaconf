@@ -998,6 +998,11 @@ OmegaConf.missing_keys
 Each missing key is represented as a ``str``, using a dotlist style.
 This utility function can be used after creating a config object, after merging sources and so on,
 to check for missing mandatory fields and aid in creating a proper error message.
+Node interpolations that dereference missing values are reported as missing keys,
+whether they are the full value or part of a string. By default, custom resolver
+interpolations are skipped when collecting missing keys. Pass
+``resolve_custom_resolvers=True`` to resolve custom resolvers and report them as
+missing if they dereference a missing value.
 
 .. doctest::
 

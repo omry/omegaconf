@@ -5,6 +5,7 @@ import inspect
 import io
 import os
 import pathlib
+import re
 import sys
 import warnings
 from collections import defaultdict
@@ -58,6 +59,8 @@ from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigTypeError,
+    InterpolationResolutionError,
+    InterpolationToMissingValueError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -79,6 +82,7 @@ from .nodes import (
 MISSING: Any = "???"
 
 Resolver = Callable[..., Any]
+_CUSTOM_RESOLVER_INTERPOLATION_PATTERN = re.compile(r"\${[^}]*:")
 
 
 def II(interpolation: str) -> Any:
@@ -1044,17 +1048,60 @@ class OmegaConf:
         omegaconf._impl._resolve(cfg)
 
     @staticmethod
-    def missing_keys(cfg: Any) -> Set[str]:
+    def missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> Set[str]:
         """
         Returns a set of missing keys in a dotlist style.
 
+        Node interpolations that dereference missing values are reported as missing
+        keys, whether they are the full value or part of a string.
+
         :param cfg: An ``OmegaConf.Container``,
                     or a convertible object via ``OmegaConf.create`` (dict, list, ...).
+        :param resolve_custom_resolvers: If ``True``, custom resolver
+                    interpolations are resolved and reported as missing when they
+                    dereference missing values. If ``False`` (the default),
+                    custom resolver interpolations are not resolved and are not
+                    reported as missing keys.
         :return: set of strings of the missing keys.
         :raises ValueError: On input not representing a config.
         """
         cfg = _ensure_container(cfg)
         missings: Set[str] = set()
+
+        def contains_custom_resolver_interpolation(node: Node) -> bool:
+            value = node._value()
+            assert isinstance(value, str)
+            if _CUSTOM_RESOLVER_INTERPOLATION_PATTERN.search(value) is None:
+                return False
+
+            from .grammar_parser import OmegaConfGrammarParser, parse
+
+            def has_resolver_interpolation(ctx: Any) -> bool:
+                if isinstance(ctx, OmegaConfGrammarParser.InterpolationResolverContext):
+                    return True
+                get_children = getattr(ctx, "getChildren", None)
+                if get_children is None:
+                    return False
+                return any(
+                    has_resolver_interpolation(child) for child in get_children()
+                )
+
+            return has_resolver_interpolation(parse(value))
+
+        def is_missing_value_error(exc: BaseException) -> bool:
+            current: Optional[BaseException] = exc
+            while current is not None:
+                if isinstance(
+                    current,
+                    (InterpolationToMissingValueError, MissingMandatoryValue),
+                ):
+                    return True
+                current = (
+                    current.__cause__
+                    if current.__cause__ is not None
+                    else current.__context__
+                )
+            return False
 
         def gather(_cfg: Container) -> None:
             itr: Iterable[Any]
@@ -1064,10 +1111,27 @@ class OmegaConf:
                 itr = _cfg
 
             for key in itr:
-                if OmegaConf.is_missing(_cfg, key):
+                node = _cfg._get_child(key)
+                assert isinstance(node, Node)
+                if node._is_missing():
                     missings.add(_cfg._get_full_key(key))
-                elif OmegaConf.is_config(_cfg[key]):
-                    gather(_cfg[key])
+                elif (
+                    not resolve_custom_resolvers
+                    and node._is_interpolation()
+                    and contains_custom_resolver_interpolation(node)
+                ):
+                    continue
+                else:
+                    try:
+                        value = _cfg[key]
+                    except InterpolationResolutionError as exc:
+                        if is_missing_value_error(exc):
+                            missings.add(_cfg._get_full_key(key))
+                        else:
+                            raise
+                    else:
+                        if OmegaConf.is_config(value):
+                            gather(value)
 
         gather(cfg)
         return missings
