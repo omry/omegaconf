@@ -1,5 +1,4 @@
 import copy
-import itertools
 from typing import (
     Any,
     Callable,
@@ -202,16 +201,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert isinstance(self.__dict__["_content"], list)
             if isinstance(index, slice):
                 result = []
-                start, stop, step = self._correct_index_params(index)
-                for slice_idx in itertools.islice(
-                    range(0, len(self)), start, stop, step
-                ):
+                # Normalize the slice using Python's own list-index semantics
+                # before resolving the selected elements one by one.
+                for slice_idx in range(*index.indices(len(self))):
                     val = self._resolve_with_default(
                         key=slice_idx, value=self.__dict__["_content"][slice_idx]
                     )
                     result.append(val)
-                if index.step and index.step < 0:
-                    result.reverse()
                 return result
             else:
                 return self._resolve_with_default(
@@ -219,31 +215,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
         except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
-
-    def _correct_index_params(self, index: slice) -> Tuple[int, int, int]:
-        start = index.start
-        stop = index.stop
-        step = index.step
-        if index.start and index.start < 0:
-            start = self.__len__() + index.start
-        if index.stop and index.stop < 0:
-            stop = self.__len__() + index.stop
-        if index.step and index.step < 0:
-            step = abs(step)
-            if start and stop:
-                if start > stop:
-                    start, stop = stop + 1, start + 1
-                else:
-                    start = stop = 0
-            elif not start and stop:
-                start = list(range(self.__len__() - 1, stop, -step))[0]
-                stop = None
-            elif start and not stop:
-                stop = start + 1
-                start = (stop - 1) % step
-            else:
-                start = (self.__len__() - 1) % step
-        return start, stop, step
 
     def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
         self._set_item_impl(index, value)

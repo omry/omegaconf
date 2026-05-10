@@ -1745,6 +1745,12 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
         c.x
 
 
+def test_list_getitem_slice_zero_step_error() -> None:
+    cfg = OmegaConf.create([1, 2, 3])
+    with raises(ValueError, match=re.escape("slice step cannot be zero")):
+        cfg[slice(None, None, 0)]
+
+
 def test_dict_subclass_error() -> None:
     """
     Test calling OmegaConf.structured(malformed_dict_subclass).
