@@ -1002,7 +1002,13 @@ class OmegaConf:
                 assert False
 
     @staticmethod
-    def to_yaml(cfg: Any, *, resolve: bool = False, sort_keys: bool = False) -> str:
+    def to_yaml(
+        cfg: Any,
+        *,
+        resolve: bool = False,
+        sort_keys: bool = False,
+        default_flow_style: Optional[bool] = False,
+    ) -> str:
         """
         returns a yaml dump of this config object.
 
@@ -1010,13 +1016,14 @@ class OmegaConf:
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
             interpolations are preserved
         :param sort_keys: If True, will print dict keys in sorted order. default False.
+        :param default_flow_style: PyYAML default_flow_style setting. default False.
         :return: A string containing the yaml representation.
         """
         cfg = _ensure_container(cfg)
         container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
         return yaml.dump(  # type: ignore
             container,
-            default_flow_style=False,
+            default_flow_style=default_flow_style,
             allow_unicode=True,
             sort_keys=sort_keys,
             Dumper=get_omega_conf_dumper(),
