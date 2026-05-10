@@ -566,6 +566,28 @@ def test_resolve_raises_on_resolver_arg_to_missing(restore_resolvers: Any) -> No
         OmegaConf.resolve(cfg)
 
 
+def test_resolve_does_not_raise_when_resolver_returns_dict_config(
+    restore_resolvers: Any,
+) -> None:
+    OmegaConf.register_new_resolver(
+        "merge_test",
+        lambda a, b: OmegaConf.merge(a, b),
+        replace=True,
+    )
+    cfg = OmegaConf.create(
+        {
+            "base": {"x": 1, "y": 2},
+            "extra": {"z": 3},
+            "merged": "${merge_test:${base},${extra}}",
+        }
+    )
+
+    OmegaConf.resolve(cfg)
+    result = OmegaConf.to_container(cfg, resolve=False)
+    assert isinstance(result, dict)
+    assert result["merged"] == {"x": 1, "y": 2, "z": 3}
+
+
 @mark.parametrize(
     "cfg, expected",
     [

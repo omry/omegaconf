@@ -1,0 +1,1 @@
+Fix ``RuntimeError: dictionary changed size during iteration`` in ``OmegaConf.resolve()`` on Python 3.12+ when a resolver returns a ``DictConfig``.
