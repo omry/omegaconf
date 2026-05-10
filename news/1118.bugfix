@@ -1,0 +1,1 @@
+Fix `OmegaConf.missing_keys()` raising when an interpolation dereferences a missing value, and add a `resolve_custom_resolvers` flag to opt into custom resolver evaluation.

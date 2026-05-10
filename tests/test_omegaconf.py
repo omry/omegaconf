@@ -25,6 +25,7 @@ from omegaconf._utils import _is_none
 from omegaconf.errors import (
     ConfigKeyError,
     InterpolationKeyError,
+    InterpolationResolutionError,
     InterpolationToMissingValueError,
     UnsupportedInterpolationType,
 )
@@ -669,6 +670,78 @@ def test_resolve_does_not_raise_when_resolver_returns_dict_config(
 )
 def test_missing_keys(cfg: Any, expected: Any) -> None:
     assert OmegaConf.missing_keys(cfg) == expected
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        param({"a": "???", "b": "${.a}"}, {"a", "b"}, id="node-interpolation"),
+        param(
+            {"a": "???", "b": "prefix_${.a}"},
+            {"a", "b"},
+            id="string-node-interpolation",
+        ),
+        param(
+            ["???", "${0}"],
+            {"[0]", "[1]"},
+            id="list-node-interpolation",
+        ),
+        param(
+            ["???", "prefix_${0}"],
+            {"[0]", "[1]"},
+            id="list-string-node-interpolation",
+        ),
+    ],
+)
+def test_missing_keys_interpolation_to_missing(cfg: Any, expected: Any) -> None:
+    assert OmegaConf.missing_keys(cfg) == expected
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=False) == expected
+
+
+def test_missing_keys_custom_resolver_interpolation_to_missing(
+    restore_resolvers: Any,
+) -> None:
+    OmegaConf.register_new_resolver("add", lambda a, b: a + b)
+    cfg = OmegaConf.create(
+        {
+            "a": "???",
+            "b": "???",
+            "c": "${add:${a},${b}}",
+            "d": "prefix_${add:${a},${b}}",
+        }
+    )
+    assert OmegaConf.missing_keys(cfg) == {"a", "b"}
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=True) == {
+        "a",
+        "b",
+        "c",
+        "d",
+    }
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=False) == {"a", "b"}
+
+
+def test_missing_keys_custom_resolver_body_dereferences_missing(
+    restore_resolvers: Any,
+) -> None:
+    OmegaConf.register_new_resolver("read", lambda *, _root_: _root_.a)
+    cfg = OmegaConf.create({"a": "???", "b": "${read:}"})
+    assert OmegaConf.missing_keys(cfg) == {"a"}
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=True) == {"a", "b"}
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=False) == {"a"}
+
+
+def test_missing_keys_custom_resolver_non_missing_error(
+    restore_resolvers: Any,
+) -> None:
+    def boom() -> None:
+        raise ValueError("boom")
+
+    OmegaConf.register_new_resolver("boom", boom)
+    cfg = OmegaConf.create({"missing": "???", "err": "${boom:}"})
+    assert OmegaConf.missing_keys(cfg) == {"missing"}
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=False) == {"missing"}
+    with raises(InterpolationResolutionError, match="ValueError raised"):
+        OmegaConf.missing_keys(cfg, resolve_custom_resolvers=True)
 
 
 @mark.parametrize("cfg", [float, int])
