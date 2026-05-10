@@ -45,6 +45,9 @@ Use `Read`, `Grep`, `Glob`, `Edit`, and `Write` for file operations. Reserve
 deleting files, or `nox` / `pytest` / `python` for tests, linting, and other
 repo tooling.
 
+- Avoid inline Python snippets (e.g. `python3 -c ...`) when a dedicated tool or standard CLI utility is sufficient.
+- Use `jq` to parse and extract JSON from shell output instead of piping to Python.
+
 ### Goal-driven execution
 
 - Translate requests into concrete success criteria that can be verified.
