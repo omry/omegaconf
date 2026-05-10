@@ -1,7 +1,7 @@
 import platform
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 import yaml
 from pytest import mark
@@ -128,6 +128,39 @@ def test_to_yaml_sort_keys() -> None:
     assert OmegaConf.to_yaml(c) == "b: 2\na: 1\n"
     c = OmegaConf.create({"b": 2, "a": 1})
     assert OmegaConf.to_yaml(c, sort_keys=True) == "a: 1\nb: 2\n"
+
+
+@mark.parametrize(
+    "default_flow_style, expected",
+    [
+        (
+            False,
+            "nhood:\n"
+            "- - -1\n"
+            "  - 0\n"
+            "  - 0\n"
+            "- - 0\n"
+            "  - -1\n"
+            "  - 0\n"
+            "- - 0\n"
+            "  - 0\n"
+            "  - -1\n",
+        ),
+        (
+            None,
+            "nhood:\n- [-1, 0, 0]\n- [0, -1, 0]\n- [0, 0, -1]\n",
+        ),
+        (
+            True,
+            "{nhood: [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]}\n",
+        ),
+    ],
+)
+def test_to_yaml_default_flow_style(
+    default_flow_style: Optional[bool], expected: str
+) -> None:
+    c = OmegaConf.create({"nhood": [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]})
+    assert OmegaConf.to_yaml(c, default_flow_style=default_flow_style) == expected
 
 
 def test_to_yaml_with_enum() -> None:

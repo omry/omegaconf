@@ -290,6 +290,20 @@ OmegaConf objects can be saved and loaded with OmegaConf.save() and OmegaConf.lo
 The created file is in YAML format.
 Save and load can operate on file-names, Paths and file objects.
 
+YAML flow style
+^^^^^^^^^^^^^^^
+``OmegaConf.to_yaml()`` accepts PyYAML's ``default_flow_style`` option.
+For example, ``default_flow_style=None`` can keep nested collections compact:
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({"nhood": [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]})
+    >>> print(OmegaConf.to_yaml(conf, default_flow_style=None), end="")
+    nhood:
+    - [-1, 0, 0]
+    - [0, -1, 0]
+    - [0, 0, -1]
+
 Save/Load YAML file
 ^^^^^^^^^^^^^^^^^^^
 

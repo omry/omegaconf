@@ -1003,11 +1003,11 @@ class OmegaConf:
 
     @staticmethod
     def to_yaml(
-            cfg: Any,
-            *,
-            resolve: bool = False,
-            sort_keys: bool = False,
-            default_flow_style: Optional[bool] = False
+        cfg: Any,
+        *,
+        resolve: bool = False,
+        sort_keys: bool = False,
+        default_flow_style: Optional[bool] = False,
     ) -> str:
         """
         returns a yaml dump of this config object.
@@ -1016,12 +1016,7 @@ class OmegaConf:
         :param resolve: if True, will return a string with the interpolations resolved, otherwise
             interpolations are preserved
         :param sort_keys: If True, will print dict keys in sorted order. default False.
-        :param default_flow_style: Set default_flow_style option for PyYAML's yaml.dump().
-            Choices:
-             - False: Always use block style for collections
-             - True: Always use flow style
-             - None: Use block style for nested collections, otherwise use flow style
-            default False.
+        :param default_flow_style: PyYAML default_flow_style setting. default False.
         :return: A string containing the yaml representation.
         """
         cfg = _ensure_container(cfg)
