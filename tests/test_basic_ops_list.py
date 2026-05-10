@@ -826,6 +826,12 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
         assert lst.__getitem__(idx) == expected
 
 
+def test_getitem_slice_zero_step_matches_python() -> None:
+    cfg = OmegaConf.create([1, 2, 3])
+    with raises(ValueError, match="slice step cannot be zero"):
+        cfg[slice(None, None, 0)]
+
+
 @mark.parametrize(
     "sli",
     [
@@ -845,6 +851,27 @@ def test_getitem(lst: Any, idx: Any, expected: Any) -> None:
 def test_getitem_slice(sli: slice) -> None:
     lst = [1, 2, 3]
     olst = OmegaConf.create([1, 2, 3])
+    expected = lst[sli.start : sli.stop : sli.step]
+    assert olst.__getitem__(sli) == expected
+
+
+@mark.parametrize(
+    "lst, sli",
+    [
+        ([], slice(None, -1, None)),
+        ([], slice(-1, None, None)),
+        ([], slice(None, None, -1)),
+        ([1, 2, 3], slice(-5, None, None)),
+        ([1, 2, 3], slice(None, -5, None)),
+        ([1, 2, 3], slice(None, -5, -1)),
+        ([1, 2, 3], slice(-5, None, -1)),
+        ([1, 2, 3], slice(-5, -1, -1)),
+    ],
+)
+def test_getitem_slice_matches_python_for_negative_bounds(
+    lst: List[int], sli: slice
+) -> None:
+    olst = OmegaConf.create(lst)
     expected = lst[sli.start : sli.stop : sli.step]
     assert olst.__getitem__(sli) == expected
 

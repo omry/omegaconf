@@ -1432,6 +1432,9 @@ def _select_one(
                 val = None
         else:
             ret_key = int(ret_key)
+            if ret_key < 0:
+                ret_key += len(c)
+
             if ret_key < 0 or ret_key + 1 > len(c):
                 val = None
             else:

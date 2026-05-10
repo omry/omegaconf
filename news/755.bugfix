@@ -1,0 +1,1 @@
+Align `ListConfig` negative index behavior more closely with Python lists by supporting negative list-index interpolations and by fixing negative slicing edge cases such as `cfg.xs[:-1]` on empty lists.
