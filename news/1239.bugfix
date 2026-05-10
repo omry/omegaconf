@@ -1,0 +1,1 @@
+Fix `OmegaConf.resolve()` raising `RuntimeError` on Python 3.12+ when a custom resolver returns a `DictConfig`.
