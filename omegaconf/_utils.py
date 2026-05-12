@@ -966,8 +966,13 @@ def _raise(ex: Exception, cause: Exception) -> None:
     env_var = os.environ["OC_CAUSE"] if "OC_CAUSE" in os.environ else None
     debugging = sys.gettrace() is not None
     full_backtrace = (debugging and not env_var == "0") or (env_var == "1")
-    if full_backtrace and cause is not ex:
-        ex.__cause__ = cause
+    if full_backtrace:
+        # In the alias case (`cause is ex`), assigning `ex.__cause__ = cause`
+        # would create a self-reference cycle that pins `ex` (and transitively
+        # its traceback frames and locals) until cyclic GC runs. Use a shallow
+        # clone so `__cause__` is non-None for the OC_CAUSE=1 contract while
+        # remaining a distinct object that doesn't loop back to `ex`.
+        ex.__cause__ = copy.copy(cause) if cause is ex else cause
     else:
         ex.__cause__ = None
     try:
