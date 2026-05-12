@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from pytest import mark, param, raises
 
@@ -1652,68 +1652,101 @@ def test_assertion_error() -> None:
             assert False
 
 
-def test_exception_no_reference_cycle() -> None:
-    """Test that exception raised by `format_and_raise()` has no reference cycle.
-    See https://github.com/omry/omegaconf/issues/1295 for more details.
-    """
+def _initialized_config_attribute_error() -> ConfigAttributeError:
+    ex = ConfigAttributeError("already initialized")
+    ex._initialized = True
+    return ex
 
-    class LargeObject:
-        def __init__(self, on_del):
-            self._on_del = on_del
 
-        def __del__(self):
-            self._on_del()
+def _assert_format_and_raise_releases_frame_local(
+    *,
+    cause_factory: Callable[[], Exception],
+    expected_type: Type[Exception],
+) -> None:
+    """Verify issue #1295 without relying on cyclic GC."""
 
-    def inner1():
+    class FrameLocal:
+        def __init__(self, on_delete: Callable[[], None]) -> None:
+            self._on_delete = on_delete
+
+        def __del__(self) -> None:
+            self._on_delete()
+
+    def raise_error() -> None:
         format_and_raise(
             node=None,
             key=None,
             value=None,
-            msg="TypeError",
-            cause=TypeError("TypeError"),
+            msg=str(expected_type),
+            cause=cause_factory(),
         )
 
-    def outer1(on_del):
-        # `large_object` is intentionally bound: its frame-lifetime is the test signal.
-        large_object = LargeObject(on_del)  # noqa: F841
+    def outer() -> None:
+        frame_local = FrameLocal(lambda: del_called.__setitem__(0, True))
+        assert frame_local is not None
         try:
-            inner1()
-        except Exception:
+            raise_error()
+        except expected_type:
             pass
+        else:
+            assert False
 
-    def initialized_exception():
-        ex = ConfigAttributeError("already initialized")
-        ex._initialized = True
-        return ex
-
-    def inner2():
-        format_and_raise(
-            node=None,
-            key=None,
-            value=None,
-            msg="already initialized",
-            cause=initialized_exception(),
-        )
-
-    def outer2(on_del):
-        # `large_object` is intentionally bound: its frame-lifetime is the test signal.
-        large_object = LargeObject(on_del)  # noqa: F841
-        try:
-            inner2()
-        except Exception:
-            pass
-
+    del_called = [False]
     gc.disable()
     try:
-        del_called = [False]
-        outer1(lambda: del_called.__setitem__(0, True))
-        assert del_called[0]
-
-        del_called = [False]
-        outer2(lambda: del_called.__setitem__(0, True))
+        outer()
         assert del_called[0]
     finally:
         gc.enable()
+
+
+@mark.parametrize(
+    ("cause_factory", "expected_type"),
+    [
+        param(
+            lambda: ConfigAttributeError("new"),
+            ConfigAttributeError,
+            id="new-exception",
+        ),
+        param(
+            _initialized_config_attribute_error,
+            ConfigAttributeError,
+            id="initialized-exception",
+        ),
+    ],
+)
+def test_format_and_raise_releases_frame_locals(
+    monkeypatch: Any,
+    cause_factory: Callable[[], Exception],
+    expected_type: Type[Exception],
+) -> None:
+    monkeypatch.setenv("OC_CAUSE", "0")
+    _assert_format_and_raise_releases_frame_local(
+        cause_factory=cause_factory,
+        expected_type=expected_type,
+    )
+
+
+def test_format_and_raise_initialized_exception_does_not_self_chain(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("OC_CAUSE", "1")
+    cause = _initialized_config_attribute_error()
+
+    try:
+        format_and_raise(
+            node=None,
+            key=None,
+            value=None,
+            msg=str(ConfigAttributeError),
+            cause=cause,
+        )
+    except ConfigAttributeError as exc:
+        assert exc is cause
+        assert exc.__cause__ is not None
+        assert exc.__cause__ is not exc
+    else:
+        assert False
 
 
 @mark.parametrize(
