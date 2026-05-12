@@ -971,7 +971,9 @@ def _raise(ex: Exception, cause: Exception) -> None:
     else:
         ex.__cause__ = None
     try:
-        raise ex.with_traceback(sys.exc_info()[2])  # set env var OC_CAUSE=1 for full trace
+        raise ex.with_traceback(
+            sys.exc_info()[2]
+        )  # set env var OC_CAUSE=1 for full trace
     finally:
         # Follow https://peps.python.org/pep-3110/ to break
         # the exception reference cycle.
