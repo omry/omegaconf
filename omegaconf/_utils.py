@@ -970,7 +970,12 @@ def _raise(ex: Exception, cause: Exception) -> None:
         ex.__cause__ = cause
     else:
         ex.__cause__ = None
-    raise ex.with_traceback(sys.exc_info()[2])  # set env var OC_CAUSE=1 for full trace
+    try:
+        raise ex.with_traceback(sys.exc_info()[2])  # set env var OC_CAUSE=1 for full trace
+    finally:
+        # Follow https://peps.python.org/pep-3110/ to break
+        # the exception reference cycle.
+        del ex
 
 
 def format_and_raise(
@@ -992,7 +997,12 @@ def format_and_raise(
         if type_override is not None:
             ex = type_override(str(cause))
             ex.__dict__ = copy.deepcopy(cause.__dict__)
-        _raise(ex, cause)
+        try:
+            _raise(ex, cause)
+        finally:
+            # Follow https://peps.python.org/pep-3110/ to break
+            # the exception reference cycle.
+            del ex
 
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
@@ -1069,7 +1079,12 @@ def format_and_raise(
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
-    _raise(ex, cause)
+    try:
+        _raise(ex, cause)
+    finally:
+        # Follow https://peps.python.org/pep-3110/ to break
+        # the exception reference cycle.
+        del ex
 
 
 def type_str(t: Any, include_module_name: bool = False) -> str:
