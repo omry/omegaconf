@@ -966,7 +966,7 @@ def _raise(ex: Exception, cause: Exception) -> None:
     env_var = os.environ["OC_CAUSE"] if "OC_CAUSE" in os.environ else None
     debugging = sys.gettrace() is not None
     full_backtrace = (debugging and not env_var == "0") or (env_var == "1")
-    if full_backtrace:
+    if full_backtrace and cause is not ex:
         ex.__cause__ = cause
     else:
         ex.__cause__ = None
