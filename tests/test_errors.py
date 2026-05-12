@@ -1,4 +1,5 @@
 import re
+import gc
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -1649,6 +1650,68 @@ def test_assertion_error() -> None:
             assert exc2 is exc  # we expect the original exception to be raised
         else:
             assert False
+
+
+def test_exception_no_reference_cycle() -> None:
+    """Test that exception raised by `format_and_raise()` has no reference cycle.
+    See https://github.com/omry/omegaconf/issues/1295 for more details.
+    """
+
+    class LargeObject:
+        def __init__(self, on_del):
+            self._on_del = on_del
+
+        def __del__(self):
+            self._on_del()
+
+    def inner1():
+        format_and_raise(
+            node=None,
+            key=None,
+            value=None,
+            msg="TypeError",
+            cause=TypeError("TypeError"),
+        )
+
+    def outer1(on_del):
+        large_object = LargeObject(on_del)
+        try:
+            inner1()
+        except:
+            pass
+
+    def initialized_exception():
+        ex = ConfigAttributeError("already initialized")
+        ex._initialized = True
+        return ex
+
+    def inner2():
+        format_and_raise(
+            node=None,
+            key=None,
+            value=None,
+            msg="already initialized",
+            cause=initialized_exception(),
+        )
+
+    def outer2(on_del):
+        large_object = LargeObject(on_del)
+        try:
+            inner2()
+        except:
+            pass
+
+    gc.disable()
+    try:
+        del_called = [False]
+        outer1(lambda: del_called.__setitem__(0, True))
+        assert del_called[0]
+
+        del_called = [False]
+        outer2(lambda: del_called.__setitem__(0, True))
+        assert del_called[0]
+    finally:
+        gc.enable()
 
 
 @mark.parametrize(
