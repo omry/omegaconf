@@ -1017,7 +1017,7 @@ def format_and_raise(
         # Unreachable: `_raise` always raises. The explicit `return` lets static
         # analysis see that the conditional `del cause` above does not escape
         # this branch, so `cause` stays bound for the rest of the function.
-        return
+        return  # pragma: no cover
 
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
