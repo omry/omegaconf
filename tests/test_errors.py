@@ -1,5 +1,5 @@
-import re
 import gc
+import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -1674,10 +1674,11 @@ def test_exception_no_reference_cycle() -> None:
         )
 
     def outer1(on_del):
-        large_object = LargeObject(on_del)
+        # `large_object` is intentionally bound: its frame-lifetime is the test signal.
+        large_object = LargeObject(on_del)  # noqa: F841
         try:
             inner1()
-        except:
+        except Exception:
             pass
 
     def initialized_exception():
@@ -1695,10 +1696,11 @@ def test_exception_no_reference_cycle() -> None:
         )
 
     def outer2(on_del):
-        large_object = LargeObject(on_del)
+        # `large_object` is intentionally bound: its frame-lifetime is the test signal.
+        large_object = LargeObject(on_del)  # noqa: F841
         try:
             inner2()
-        except:
+        except Exception:
             pass
 
     gc.disable()
