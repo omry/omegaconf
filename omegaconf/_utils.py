@@ -977,6 +977,8 @@ def _raise(ex: Exception, cause: Exception) -> None:
     finally:
         # Follow https://peps.python.org/pep-3110/ to break
         # the exception reference cycle.
+        if cause is ex:
+            del cause
         del ex
 
 
@@ -1004,6 +1006,8 @@ def format_and_raise(
         finally:
             # Follow https://peps.python.org/pep-3110/ to break
             # the exception reference cycle.
+            if cause is ex:
+                del cause
             del ex
 
     object_type: Optional[Type[Any]]
