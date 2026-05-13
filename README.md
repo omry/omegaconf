@@ -21,6 +21,8 @@ OmegaConf 2.4.0.dev is the upcoming development version.
 * [Documentation](https://omegaconf.readthedocs.io/en/latest/)
 * [Source code](https://github.com/omry/omegaconf/tree/master)
 
+Install with `pip install --upgrade --pre omegaconf`
+
 ### Stable (2.3)
 OmegaConf 2.3 is the current stable version.
 * [What's new](https://github.com/omry/omegaconf/releases/tag/v2.3.0)
@@ -28,6 +30,3 @@ OmegaConf 2.3 is the current stable version.
 * [Source code](https://github.com/omry/omegaconf/tree/2.3_branch)
 
 Install with `pip install --upgrade omegaconf`
-
-## Live tutorial
-Run the live tutorial: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omry/omegaconf/master?filepath=docs%2Fnotebook%2FTutorial.ipynb)
