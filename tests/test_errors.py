@@ -1692,12 +1692,14 @@ def _assert_format_and_raise_releases_frame_local(
             assert False
 
     del_called = [False]
+    was_enabled = gc.isenabled()
     gc.disable()
     try:
         outer()
         assert del_called[0]
     finally:
-        gc.enable()
+        if was_enabled:
+            gc.enable()
 
 
 @mark.parametrize(
