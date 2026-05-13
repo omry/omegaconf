@@ -246,6 +246,57 @@ class TestSelect:
         assert OmegaConf.select(cfg, "missing", throw_on_missing=False) is None
         assert OmegaConf.select(cfg, "missing") is None
 
+    @mark.parametrize(
+        ("cfg", "key", "expected"),
+        [
+            param({"model": {"name": "resnet"}}, "model.name", True, id="nested"),
+            param({"model": {"name": None}}, "model.name", True, id="none"),
+            param({"model": {"name": "???"}}, "model.name", False, id="missing"),
+            param({"model": {}}, "model.name", False, id="not_found"),
+            param({"items": [10, None, "???"]}, "items.0", True, id="list_value"),
+            param({"items": [10, None, "???"]}, "items.1", True, id="list_none"),
+            param({"items": [10, None, "???"]}, "items.2", False, id="list_missing"),
+            param({"items": [10, None, "???"]}, "items.3", False, id="list_oob"),
+            param({"a.b": 10}, r"a\.b", True, id="escaped_dot"),
+            param({"a.b": 10}, "a.b", False, id="unescaped_dot"),
+            param({"a": 10}, "..missing", False, id="relative_above_root"),
+        ],
+    )
+    def test_can_select(
+        self, cfg: Any, key: str, expected: bool, struct: Optional[bool]
+    ) -> None:
+        cfg = _ensure_container(cfg)
+        OmegaConf.set_struct(cfg, struct)
+        assert OmegaConf.can_select(cfg, key) is expected
+
+    def test_can_select_returns_false_instead_of_throwing(
+        self, struct: Optional[bool]
+    ) -> None:
+        cfg = _ensure_container(
+            {
+                "missing": "???",
+                "bad_interpolation": "${not_found}",
+                "interpolation_to_missing": "${missing}",
+                "items": [10],
+            }
+        )
+        OmegaConf.set_struct(cfg, struct)
+
+        assert not OmegaConf.can_select(cfg, "missing", throw_on_missing=True)
+        assert not OmegaConf.can_select(
+            cfg, "bad_interpolation", throw_on_resolution_failure=True
+        )
+        assert not OmegaConf.can_select(
+            cfg, "bad_interpolation", throw_on_resolution_failure=False
+        )
+        assert not OmegaConf.can_select(
+            cfg, "interpolation_to_missing", throw_on_resolution_failure=True
+        )
+        assert not OmegaConf.can_select(
+            cfg, "interpolation_to_missing", throw_on_resolution_failure=False
+        )
+        assert not OmegaConf.can_select(cfg, "items.bad_index")
+
 
 @mark.parametrize(
     "cfg,key,expected",

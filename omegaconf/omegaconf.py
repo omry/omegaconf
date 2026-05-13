@@ -924,6 +924,48 @@ class OmegaConf:
         return OmegaConf._get_obj_type(c)
 
     @staticmethod
+    def can_select(
+        cfg: Container,
+        key: str,
+        *,
+        throw_on_resolution_failure: bool = True,
+        throw_on_missing: bool = False,
+    ) -> bool:
+        r"""
+        Return ``True`` if ``OmegaConf.select()`` can select a value from a config.
+
+        This uses the same key path syntax and behavior flag names as
+        ``select()`` for convenience, but ``can_select()`` does not raise for
+        select failures. It returns ``False`` instead of raising or returning a
+        default when the path cannot be selected. A selected ``None`` value
+        counts as selectable.
+
+        :param cfg: Config node to select from
+        :param key: Key path to select (dot/bracket notation, backslash-escapable)
+        :param throw_on_resolution_failure: Treat an interpolation resolution error
+               as not selectable
+        :param throw_on_missing: Treat selecting a missing key (with the value
+               '???') as not selectable
+        :return: ``True`` if the key can be selected, otherwise ``False``.
+        """
+        from ._impl import select_value
+
+        default = object()
+        try:
+            return (
+                select_value(
+                    cfg=cfg,
+                    key=key,
+                    default=default,
+                    throw_on_resolution_failure=throw_on_resolution_failure,
+                    throw_on_missing=throw_on_missing,
+                )
+                is not default
+            )
+        except Exception:
+            return False
+
+    @staticmethod
     def select(
         cfg: Container,
         key: str,
