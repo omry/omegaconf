@@ -834,6 +834,35 @@ Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash
     omegaconf.errors.MissingMandatoryValue: missing node selected
         full_key: foo.missing
 
+OmegaConf.can_select
+^^^^^^^^^^^^^^^^^^^^
+``OmegaConf.can_select()`` checks whether ``OmegaConf.select()`` can select a
+config node or value without returning a default or raising. It uses the same
+key path syntax and behavior flag names as ``OmegaConf.select()`` for
+convenience, but ``OmegaConf.can_select()`` itself does not raise for select
+failures. A selected ``None`` value is considered selectable.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({
+    ...     "foo": {
+    ...         "bar": 10,
+    ...         "none": None,
+    ...         "missing": "???",
+    ...     },
+    ...     "bad": "${not_found}",
+    ... })
+    >>> assert OmegaConf.can_select(cfg, "foo.bar")
+    >>> assert OmegaConf.can_select(cfg, "foo.none")
+    >>> assert not OmegaConf.can_select(cfg, "foo.missing")
+    >>> assert not OmegaConf.can_select(cfg, "foo.no_such_key")
+    >>> assert not OmegaConf.can_select(cfg, "bad")
+    >>> assert not OmegaConf.can_select(
+    ...     cfg,
+    ...     "bad",
+    ...     throw_on_resolution_failure=False,
+    ... )
+
 OmegaConf.update
 ^^^^^^^^^^^^^^^^
 ``OmegaConf.update()`` allows you to update values in your config using either a dot-notation or brackets to denote sub-keys.
