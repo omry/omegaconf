@@ -55,6 +55,7 @@ from ._utils import (
     split_key,
     type_str,
 )
+from ._yaml import _DEFAULT_MAX_YAML_EXPANDED_NODES, get_yaml_loader
 from .base import Box, Container, ListMergeMode, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
@@ -128,6 +129,8 @@ class OmegaConf:
         obj: Any,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> Any:
         """
         Alias for ``OmegaConf.create(obj)``. Accepts any input that ``create`` accepts,
@@ -137,9 +140,17 @@ class OmegaConf:
             but any value accepted by ``OmegaConf.create`` is valid.
         :param parent: Optional parent node.
         :param flags: Optional flags dict (e.g. ``{"readonly": True}``).
+        :param max_yaml_expanded_nodes: Maximum YAML nodes after alias expansion
+            when ``obj`` is a YAML string. By default, OmegaConf uses the
+            ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
+            otherwise ``10_000``. Explicit arguments override the environment.
+            Pass ``None`` only for trusted input. See
+            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
         :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
         """
-        return OmegaConf.create(obj, parent, flags)
+        return OmegaConf.create(
+            obj, parent, flags, max_yaml_expanded_nodes=max_yaml_expanded_nodes
+        )
 
     @staticmethod
     @overload
@@ -147,6 +158,8 @@ class OmegaConf:
         obj: str,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> Union[DictConfig, ListConfig]: ...
 
     @staticmethod
@@ -155,6 +168,8 @@ class OmegaConf:
         obj: Union[List[Any], Tuple[Any, ...]],
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
 
     @staticmethod
@@ -163,6 +178,8 @@ class OmegaConf:
         obj: DictConfig,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> DictConfig: ...
 
     @staticmethod
@@ -171,6 +188,8 @@ class OmegaConf:
         obj: ListConfig,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
 
     @staticmethod
@@ -179,6 +198,8 @@ class OmegaConf:
         obj: None,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> None: ...
 
     @staticmethod
@@ -187,6 +208,8 @@ class OmegaConf:
         obj: Dict[Any, Any] = ...,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> DictConfig: ...
 
     @staticmethod
@@ -194,6 +217,8 @@ class OmegaConf:
         obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> Optional[Union[DictConfig, ListConfig]]:
         """
         Create an OmegaConf config from ``obj``.
@@ -205,12 +230,19 @@ class OmegaConf:
         :param obj: Source object to build the config from.
         :param parent: Optional parent node.
         :param flags: Optional flags dict (e.g. ``{"readonly": True}``).
+        :param max_yaml_expanded_nodes: Maximum YAML nodes after alias expansion
+            when ``obj`` is a YAML string. By default, OmegaConf uses the
+            ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
+            otherwise ``10_000``. Explicit arguments override the environment.
+            Pass ``None`` only for trusted input. See
+            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
         :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
         """
         return OmegaConf._create_impl(
             obj=obj,
             parent=parent,
             flags=flags,
+            max_yaml_expanded_nodes=max_yaml_expanded_nodes,
         )
 
     @staticmethod
@@ -254,20 +286,36 @@ class OmegaConf:
         )
 
     @staticmethod
-    def load(file_: Union[str, pathlib.Path, IO[Any]]) -> Union[DictConfig, ListConfig]:
+    def load(
+        file_: Union[str, pathlib.Path, IO[Any]],
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> Union[DictConfig, ListConfig]:
         """
         Load a YAML config from a file path or file-like object.
 
         :param file_: A file path (str or ``pathlib.Path``) or an open file object.
+        :param max_yaml_expanded_nodes: Maximum YAML nodes after alias expansion.
+            By default, OmegaConf uses the
+            ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
+            otherwise ``10_000``. Explicit arguments override the environment.
+            Pass ``None`` only for trusted input. See
+            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
         :return: A ``DictConfig`` or ``ListConfig`` parsed from the YAML content.
         """
-        from ._utils import get_yaml_loader
-
         if isinstance(file_, (str, pathlib.Path)):
             with io.open(os.path.abspath(file_), "r", encoding="utf-8") as f:
-                obj = yaml.load(f, Loader=get_yaml_loader())
+                obj = yaml.load(
+                    f,
+                    Loader=get_yaml_loader(
+                        max_yaml_expanded_nodes=max_yaml_expanded_nodes
+                    ),
+                )
         elif getattr(file_, "read", None):
-            obj = yaml.load(file_, Loader=get_yaml_loader())
+            obj = yaml.load(
+                file_,
+                Loader=get_yaml_loader(max_yaml_expanded_nodes=max_yaml_expanded_nodes),
+            )
         else:
             raise TypeError("Unexpected file type")
 
@@ -280,7 +328,7 @@ class OmegaConf:
         if obj is None:
             ret = OmegaConf.create()
         else:
-            ret = OmegaConf.create(obj)
+            ret = OmegaConf.create(obj, max_yaml_expanded_nodes=max_yaml_expanded_nodes)
         return ret
 
     @staticmethod
@@ -1150,9 +1198,10 @@ class OmegaConf:
         obj: Any = _DEFAULT_MARKER_,
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> Optional[Union[DictConfig, ListConfig]]:
         try:
-            from ._utils import get_yaml_loader
             from .dictconfig import DictConfig
             from .listconfig import ListConfig
 
@@ -1161,7 +1210,12 @@ class OmegaConf:
             elif obj is None:
                 return None
             if isinstance(obj, str):
-                obj = yaml.load(obj, Loader=get_yaml_loader())
+                obj = yaml.load(
+                    obj,
+                    Loader=get_yaml_loader(
+                        max_yaml_expanded_nodes=max_yaml_expanded_nodes
+                    ),
+                )
                 if obj is None:
                     return OmegaConf.create({}, parent=parent, flags=flags)
                 elif isinstance(obj, str):

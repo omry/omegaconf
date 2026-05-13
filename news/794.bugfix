@@ -1,0 +1,1 @@
+Limited YAML alias expansion by default to avoid excessive config growth from crafted YAML input, with an environment override for trusted configurations.

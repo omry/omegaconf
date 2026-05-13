@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
+import yaml
 from pytest import mark, param, raises
 
 from omegaconf import MISSING, DictConfig, ListConfig, Node, OmegaConf, UnionNode
@@ -62,6 +63,55 @@ def save_load_from_filename(
 def test_load_from_invalid() -> None:
     with raises(TypeError):
         OmegaConf.load(3.1415)  # type: ignore
+
+
+def test_load_yaml_aliases_are_allowed_within_default_expansion_limit(
+    tmp_path: Path,
+) -> None:
+    yaml_document = "a: &A\n  x: 1\nb: *A\n"
+    filename = tmp_path / "config.yaml"
+    filename.write_text(yaml_document, encoding="utf-8")
+    assert OmegaConf.load(filename) == yaml.safe_load(yaml_document)
+
+
+def test_load_yaml_alias_expansion_limit_can_be_configured_by_environment(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    yaml_document = "base: &base [0, 1]\nalias: *base\n"
+    filename = tmp_path / "config.yaml"
+    filename.write_text(yaml_document, encoding="utf-8")
+
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "8")
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="configured limit of 8.*yaml_aliases\\.html",
+    ):
+        OmegaConf.load(filename)
+
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "9")
+    assert OmegaConf.load(filename) == yaml.safe_load(yaml_document)
+
+
+def test_load_yaml_alias_expansion_limit_argument_overrides_environment(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    yaml_document = "base: &base [0]\nitems: [" + ",".join(["*base"] * 600) + "]\n"
+    filename = tmp_path / "config.yaml"
+    filename.write_text(yaml_document, encoding="utf-8")
+
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "8")
+    assert OmegaConf.load(filename, max_yaml_expanded_nodes=None) == yaml.safe_load(
+        yaml_document
+    )
+
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "none")
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="configured limit of 8.*yaml_aliases\\.html",
+    ):
+        OmegaConf.load(filename, max_yaml_expanded_nodes=8)
 
 
 @mark.parametrize(

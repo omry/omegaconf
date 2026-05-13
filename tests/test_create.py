@@ -455,8 +455,140 @@ def test_yaml_duplicate_keys(input_: str) -> None:
         OmegaConf.create(input_)
 
 
+def test_yaml_aliases_are_allowed_within_default_expansion_limit() -> None:
+    yaml_document = dedent("""\
+        a: &A
+            x: 1
+        b: *A
+        """)
+    assert OmegaConf.create(yaml_document) == yaml.safe_load(yaml_document)
+
+
+def test_yaml_alias_expansion_limit() -> None:
+    yaml_document = dedent("""\
+        lol1: &lol1 "lol"
+        lol2: &lol2 [*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1]
+        lol3: &lol3 [*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2]
+        lol4: &lol4 [*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3]
+        lol5: &lol5 [*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4]
+        lol6: &lol6 [*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5]
+        """)
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="YAML node expansion.*larger positive integer.*trusted input",
+    ):
+        OmegaConf.create(yaml_document)
+
+
+def test_yaml_alias_expansion_limit_applies_to_mapping_keys() -> None:
+    yaml_document = dedent("""\
+        base: &base [0, 1]
+        ? *base
+        : value
+        """)
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="YAML node expansion.*larger positive integer.*trusted input",
+    ):
+        OmegaConf.create(yaml_document, max_yaml_expanded_nodes=6)
+
+
+def test_yaml_alias_amplification_limit() -> None:
+    yaml_document = "base: &base [0]\nitems: [" + ",".join(["*base"] * 600) + "]\n"
+    with raises(
+        yaml.constructor.ConstructorError,
+        match=(
+            "YAML aliases expand the document from 6 nodes to 1206 nodes, "
+            "exceeding the supported ratio of 100x.*yaml_aliases\\.html"
+        ),
+    ):
+        OmegaConf.create(yaml_document)
+
+
+@mark.parametrize("max_yaml_expanded_nodes", [10_000, None])
+def test_yaml_recursive_aliases_are_rejected(
+    max_yaml_expanded_nodes: Optional[int],
+) -> None:
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="YAML recursive aliases are not supported",
+    ):
+        OmegaConf.create(
+            "a: &A [*A]\n", max_yaml_expanded_nodes=max_yaml_expanded_nodes
+        )
+
+
+def test_yaml_alias_expansion_limit_can_be_disabled_for_trusted_input() -> None:
+    yaml_document = "base: &base [0]\nitems: [" + ",".join(["*base"] * 600) + "]\n"
+    assert OmegaConf.create(
+        yaml_document, max_yaml_expanded_nodes=None
+    ) == yaml.safe_load(yaml_document)
+
+
+def test_yaml_alias_expansion_limit_can_be_configured_by_environment(
+    monkeypatch: Any,
+) -> None:
+    yaml_document = dedent("""\
+        base: &base [0, 1]
+        alias: *base
+        """)
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "8")
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="configured limit of 8.*yaml_aliases\\.html",
+    ):
+        OmegaConf.create(yaml_document)
+
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "9")
+    assert OmegaConf.create(yaml_document) == yaml.safe_load(yaml_document)
+
+
+def test_yaml_alias_expansion_limit_can_be_disabled_by_environment_for_trusted_input(
+    monkeypatch: Any,
+) -> None:
+    yaml_document = "base: &base [0]\nitems: [" + ",".join(["*base"] * 600) + "]\n"
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "none")
+    assert OmegaConf.create(yaml_document) == yaml.safe_load(yaml_document)
+
+
+def test_yaml_alias_expansion_limit_argument_overrides_environment(
+    monkeypatch: Any,
+) -> None:
+    yaml_document = dedent("""\
+        lol1: &lol1 "lol"
+        lol2: &lol2 [*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1,*lol1]
+        lol3: &lol3 [*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2,*lol2]
+        lol4: &lol4 [*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3,*lol3]
+        lol5: &lol5 [*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4,*lol4]
+        lol6: &lol6 [*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5,*lol5]
+        """)
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "none")
+    with raises(
+        yaml.constructor.ConstructorError,
+        match="YAML node expansion.*yaml_aliases\\.html",
+    ):
+        OmegaConf.create(yaml_document, max_yaml_expanded_nodes=10_000)
+
+
+def test_yaml_alias_expansion_limit_rejects_invalid_environment_value(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "banana")
+    with raises(ValueError, match="OMEGACONF_MAX_YAML_EXPANDED_NODES"):
+        OmegaConf.create("a: 1")
+
+
+@mark.parametrize("max_yaml_expanded_nodes", [0, -1, True])
+def test_yaml_alias_expansion_limit_rejects_invalid_argument(
+    max_yaml_expanded_nodes: Any,
+) -> None:
+    with raises(ValueError, match="max_yaml_expanded_nodes"):
+        OmegaConf.create("a: 1", max_yaml_expanded_nodes=max_yaml_expanded_nodes)
+
+
 def test_yaml_merge() -> None:
-    cfg = OmegaConf.create(dedent("""\
+    cfg = OmegaConf.create(
+        dedent("""\
             a: &A
                 x: 1
             b: &B
@@ -466,7 +598,8 @@ def test_yaml_merge() -> None:
                 <<: *B
                 x: 3
                 z: 1
-            """))
+            """),
+    )
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 3, "y": 2, "z": 1}}
 
 
@@ -493,7 +626,8 @@ def test_yaml_merge_override_existing_key_with_reused_anchor() -> None:
 
 
 def test_yaml_merge_sequence() -> None:
-    cfg = OmegaConf.create(dedent("""\
+    cfg = OmegaConf.create(
+        dedent("""\
         a: &A
             x: 1
         b: &B
@@ -501,19 +635,22 @@ def test_yaml_merge_sequence() -> None:
         c:
             <<: [*A, *B]
             z: 3
-        """))
+        """),
+    )
     assert cfg == {"a": {"x": 1}, "b": {"y": 2}, "c": {"x": 1, "y": 2, "z": 3}}
 
 
 def test_yaml_merge_sequence_error() -> None:
     with raises(yaml.constructor.ConstructorError):
-        OmegaConf.create(dedent("""\
-            a: &A
-                x: 1
-            c:
-                <<: [*A, 123]
-                z: 3
-            """))
+        OmegaConf.create(
+            dedent("""\
+                a: &A
+                    x: 1
+                c:
+                    <<: [*A, 123]
+                    z: 3
+                """),
+        )
 
 
 def test_yaml_merge_invalid_value() -> None:
