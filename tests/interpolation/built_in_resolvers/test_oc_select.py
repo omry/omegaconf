@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from typing import Any
 
-from pytest import mark
+from pytest import mark, raises
 
-from omegaconf import OmegaConf
+from omegaconf import SI, OmegaConf
+from omegaconf.errors import InterpolationKeyError
 
 
 def test_oc_select_abs() -> None:
@@ -100,6 +102,34 @@ def test_oc_nested_select_relative_level_up() -> None:
 
     n = cfg.nested
     assert n.a0 == n.a1 == n.a2 == 10
+
+
+def test_oc_select_default_for_relative_key_above_root() -> None:
+    cfg = OmegaConf.create({"a": "${oc.select:..member, 5}"})
+    assert cfg.a == 5
+
+
+def test_oc_select_default_for_relative_key_above_root_in_structured_config() -> None:
+    @dataclass
+    class Config:
+        a: int = SI("${oc.select:..member, 5}")
+
+    cfg = OmegaConf.structured(Config)
+    assert cfg.a == 5
+
+
+def test_oc_select_default_in_dynamic_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {
+            "fallback": 123,
+            "ok": "${${oc.select:..member, fallback}}",
+            "bad": "${${oc.select:..member, nowhere}}",
+        }
+    )
+
+    assert cfg.ok == 123
+    with raises(InterpolationKeyError):
+        cfg.bad
 
 
 @mark.parametrize(

@@ -1,0 +1,1 @@
+Fixed `OmegaConf.select` and `oc.select` to return the provided default when a relative key climbs above the config root.

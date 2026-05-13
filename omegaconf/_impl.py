@@ -1,7 +1,7 @@
 from typing import Any
 
 from omegaconf import Container, DictConfig, ListConfig, Node, ValueNode
-from omegaconf.errors import ConfigTypeError
+from omegaconf.errors import ConfigKeyError, ConfigTypeError
 from omegaconf.nodes import InterpolationResultNode
 
 from ._utils import (
@@ -94,7 +94,11 @@ def select_node(
         if not absolute_key and not key.startswith("."):
             key = f".{key}"
 
-        cfg, key = cfg._resolve_key_and_root(key)
+        try:
+            cfg, key = cfg._resolve_key_and_root(key)
+        except ConfigKeyError:
+            return None
+
         _root, _last_key, node = cfg._select_impl(
             key,
             throw_on_missing=throw_on_missing,

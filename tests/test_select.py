@@ -48,6 +48,7 @@ class TestSelect:
             # relative selection
             param({"a": {"b": {"c": 10}}}, ".a", {"b": {"c": 10}}, id="relative"),
             param({"a": {"b": {"c": 10}}}, ".a.b", {"c": 10}, id="relative"),
+            param({"a": 10}, "..missing", None, id="relative_above_root"),
             # bracket notation without escaping
             param({"a": {"b": 1}}, "a[b]", 1, id="bracket:dict"),
             param({"a": {"b": {"c": 1}}}, "a[b][c]", 1, id="bracket:dict:nested"),
@@ -114,6 +115,7 @@ class TestSelect:
             param({}, "not_found", id="empty"),
             param({"missing": "???"}, "missing", id="missing"),
             param({"int": 0}, "int.y", id="non_container"),
+            param({"a": 10}, "..missing", id="relative_above_root"),
         ],
     )
     def test_select_default_returned(
