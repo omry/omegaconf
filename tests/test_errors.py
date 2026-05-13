@@ -1,9 +1,10 @@
+import gc
 import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from pytest import mark, param, raises
 
@@ -1649,6 +1650,105 @@ def test_assertion_error() -> None:
             assert exc2 is exc  # we expect the original exception to be raised
         else:
             assert False
+
+
+def _initialized_config_attribute_error() -> ConfigAttributeError:
+    ex = ConfigAttributeError("already initialized")
+    ex._initialized = True
+    return ex
+
+
+def _assert_format_and_raise_releases_frame_local(
+    *,
+    cause_factory: Callable[[], Exception],
+    expected_type: Type[Exception],
+) -> None:
+    """Verify issue #1295 without relying on cyclic GC."""
+
+    class FrameLocal:
+        def __init__(self, on_delete: Callable[[], None]) -> None:
+            self._on_delete = on_delete
+
+        def __del__(self) -> None:
+            self._on_delete()
+
+    def raise_error() -> None:
+        format_and_raise(
+            node=None,
+            key=None,
+            value=None,
+            msg=str(expected_type),
+            cause=cause_factory(),
+        )
+
+    def outer() -> None:
+        frame_local = FrameLocal(lambda: del_called.__setitem__(0, True))
+        assert frame_local is not None
+        try:
+            raise_error()
+        except expected_type:
+            pass
+        else:
+            assert False
+
+    del_called = [False]
+    was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        outer()
+        assert del_called[0]
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
+@mark.parametrize(
+    ("cause_factory", "expected_type"),
+    [
+        param(
+            lambda: ConfigAttributeError("new"),
+            ConfigAttributeError,
+            id="new-exception",
+        ),
+        param(
+            _initialized_config_attribute_error,
+            ConfigAttributeError,
+            id="initialized-exception",
+        ),
+    ],
+)
+def test_format_and_raise_releases_frame_locals(
+    monkeypatch: Any,
+    cause_factory: Callable[[], Exception],
+    expected_type: Type[Exception],
+) -> None:
+    monkeypatch.setenv("OC_CAUSE", "0")
+    _assert_format_and_raise_releases_frame_local(
+        cause_factory=cause_factory,
+        expected_type=expected_type,
+    )
+
+
+def test_format_and_raise_initialized_exception_does_not_self_chain(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv("OC_CAUSE", "1")
+    cause = _initialized_config_attribute_error()
+
+    try:
+        format_and_raise(
+            node=None,
+            key=None,
+            value=None,
+            msg=str(ConfigAttributeError),
+            cause=cause,
+        )
+    except ConfigAttributeError as exc:
+        assert exc is cause
+        assert exc.__cause__ is not None
+        assert exc.__cause__ is not exc
+    else:
+        assert False
 
 
 @mark.parametrize(

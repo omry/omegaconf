@@ -836,10 +836,24 @@ def _raise(ex: Exception, cause: Exception) -> None:
     debugging = sys.gettrace() is not None
     full_backtrace = (debugging and not env_var == "0") or (env_var == "1")
     if full_backtrace:
-        ex.__cause__ = cause
+        # In the alias case (`cause is ex`), assigning `ex.__cause__ = cause`
+        # would create a self-reference cycle that pins `ex` (and transitively
+        # its traceback frames and locals) until cyclic GC runs. Use a shallow
+        # clone so `__cause__` is non-None for the OC_CAUSE=1 contract while
+        # remaining a distinct object that doesn't loop back to `ex`.
+        ex.__cause__ = copy.copy(cause) if cause is ex else cause
     else:
         ex.__cause__ = None
-    raise ex.with_traceback(sys.exc_info()[2])  # set env var OC_CAUSE=1 for full trace
+    try:
+        raise ex.with_traceback(
+            sys.exc_info()[2]
+        )  # set env var OC_CAUSE=1 for full trace
+    finally:
+        # Follow https://peps.python.org/pep-3110/ to break
+        # the exception reference cycle.
+        if cause is ex:
+            del cause
+        del ex
 
 
 def format_and_raise(
@@ -861,7 +875,18 @@ def format_and_raise(
         if type_override is not None:
             ex = type_override(str(cause))
             ex.__dict__ = copy.deepcopy(cause.__dict__)
-        _raise(ex, cause)
+        try:
+            _raise(ex, cause)
+        finally:
+            # Follow https://peps.python.org/pep-3110/ to break
+            # the exception reference cycle.
+            if cause is ex:
+                del cause
+            del ex
+        # Unreachable: `_raise` always raises. The explicit `return` lets static
+        # analysis see that the conditional `del cause` above does not escape
+        # this branch, so `cause` stays bound for the rest of the function.
+        return  # pragma: no cover
 
     object_type: Optional[Type[Any]]
     object_type_str: Optional[str] = None
@@ -938,7 +963,12 @@ def format_and_raise(
         ex.ref_type = ref_type
         ex.ref_type_str = ref_type_str
 
-    _raise(ex, cause)
+    try:
+        _raise(ex, cause)
+    finally:
+        # Follow https://peps.python.org/pep-3110/ to break
+        # the exception reference cycle.
+        del ex
 
 
 def type_str(t: Any, include_module_name: bool = False) -> str:

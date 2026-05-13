@@ -1,0 +1,1 @@
+Fix OmegaConf exceptions retaining traceback frame locals through reference cycles.
