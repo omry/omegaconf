@@ -20,7 +20,6 @@ from ._utils import (
     get_structured_config_data,
     get_type_hint,
     get_value_kind,
-    get_yaml_loader,
     is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
@@ -30,6 +29,7 @@ from ._utils import (
     is_tuple_annotation,
     is_union_annotation,
 )
+from ._yaml import get_yaml_loader
 from .base import (
     Box,
     Container,
