@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-05-17",
-  "generated_at": "2026-05-17T09:09:53Z",
+  "generated_at": "2026-05-17T20:33:00Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -8,14 +8,14 @@
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 23,
-        "percentage": 35.4
+        "count": 22,
+        "percentage": 33.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 37,
-        "percentage": 56.9
+        "count": 38,
+        "percentage": 58.5
       },
       {
         "category": "Documentation",
@@ -32,14 +32,14 @@
       {
         "category": "Refactor",
         "emoji": "🔧",
-        "count": 2,
-        "percentage": 3.1
+        "count": 3,
+        "percentage": 4.6
       },
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 1,
-        "percentage": 1.5
+        "count": 0,
+        "percentage": 0.0
       }
     ],
     "by_status": [
@@ -205,8 +205,8 @@
     {
       "number": 537,
       "title": "Refactor test_errors.py",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "category": "Refactor",
+      "category_emoji": "🔧",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
@@ -432,8 +432,8 @@
     {
       "number": 846,
       "title": "Nightly builds",
-      "category": "Build",
-      "category_emoji": "🏗️",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],

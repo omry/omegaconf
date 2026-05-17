@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-05-17T09:09:53Z",
+  "generated_at": "2026-05-17T20:33:00Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -457,7 +457,7 @@
       "updated_at": "2026-04-25T12:58:52Z"
     },
     "537": {
-      "category": "Bug",
+      "category": "Refactor",
       "created_at": "2021-02-11T01:05:19Z",
       "labels": [
         "maintenance",
@@ -642,7 +642,7 @@
       "updated_at": "2026-04-24T06:28:14Z"
     },
     "846": {
-      "category": "Build",
+      "category": "Enhancement",
       "created_at": "2021-12-27T21:48:09Z",
       "labels": [
         "maintenance",
