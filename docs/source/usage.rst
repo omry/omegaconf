@@ -542,7 +542,7 @@ If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQ
     <BLANKLINE>
 
 Missing values in ``merge()``
-"""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``merge()`` treats ``MISSING`` (``"???"``) on the *source* side as "no value
 to apply" rather than as a value to write — a non-missing value on the
