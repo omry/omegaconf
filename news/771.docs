@@ -1,0 +1,1 @@
+Documented `OmegaConf.merge` behavior with `MISSING` values: a missing value on the source side does not overwrite a non-missing value on the target.

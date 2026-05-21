@@ -529,7 +529,7 @@ If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQ
     >>>
     >>> cfg_1 = OmegaConf.load('source/example2.yaml')
     >>> cfg_2 = OmegaConf.load('source/example4.yaml')
-    >>> 
+    >>>
     >>> mode = ListMergeMode.EXTEND_UNIQUE
     >>> conf = OmegaConf.merge(cfg_1, cfg_2, list_merge_mode=mode)
     >>> print(OmegaConf.to_yaml(conf))
@@ -540,6 +540,32 @@ If you load them and merge them with ``list_merge_mode=ListMergeMode.EXTEND_UNIQ
     - user2
     - user3
     <BLANKLINE>
+
+Missing values in ``merge()``
+"""""""""""""""""""""""""""""
+
+``merge()`` treats ``MISSING`` (``"???"``) on the *source* side as "no value
+to apply" rather than as a value to write — a non-missing value on the
+target is never overwritten by a missing value coming from a later config.
+Merging in the opposite order does fill the missing value:
+
+.. doctest::
+
+    >>> from omegaconf import OmegaConf
+    >>> base = OmegaConf.create({"port": 80})
+    >>> override = OmegaConf.create({"port": "???"})
+    >>>
+    >>> # MISSING on the source side does not overwrite an existing value.
+    >>> print(OmegaConf.merge(base, override))
+    {'port': 80}
+    >>>
+    >>> # The reverse order does fill the missing value.
+    >>> print(OmegaConf.merge(override, base))
+    {'port': 80}
+
+This is useful when a later config (e.g. a base schema) declares some keys
+as mandatory: those declarations do not clobber concrete values supplied by
+an earlier config.
 
 Union operator (``|`` and ``|=``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
