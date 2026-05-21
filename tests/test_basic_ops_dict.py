@@ -924,6 +924,46 @@ def test_masked_copy_is_deep() -> None:
         OmegaConf.masked_copy("fail", [])  # type: ignore
 
 
+# Regression test for https://github.com/omry/omegaconf/issues/813 — when
+# masked_copy was implemented via items_ex(resolve=False) the top-level
+# ValueNodes were unwrapped to their raw Python values and lost their typed
+# node class (IntegerNode/StringNode/etc) in the copy. The nested DictConfig
+# kept its typing because items_ex did not unwrap container nodes — only
+# leaf ValueNodes. The fix is to deep-copy nodes (not values) into the new
+# DictConfig so leaf typing survives.
+def test_masked_copy_preserves_value_node_types() -> None:
+    from dataclasses import dataclass, field
+
+    from omegaconf import IntegerNode, StringNode
+
+    @dataclass
+    class Nested:
+        x: int = 123
+        y: str = "abc"
+
+    @dataclass
+    class MySchema:
+        a: int = 456
+        b: str = "xyz"
+        nested: Nested = field(default_factory=Nested)
+
+    cfg = OmegaConf.create(MySchema)
+
+    # Sanity: source has typed nodes at both levels.
+    assert isinstance(cfg._get_node("a"), IntegerNode)
+    assert isinstance(cfg._get_node("b"), StringNode)
+    assert isinstance(cfg.nested._get_node("x"), IntegerNode)
+
+    masked = OmegaConf.masked_copy(cfg, ["a", "b", "nested"])
+
+    # Top-level typing was the regression: it must survive the copy.
+    assert isinstance(masked._get_node("a"), IntegerNode)
+    assert isinstance(masked._get_node("b"), StringNode)
+    # Nested typing should also still be intact.
+    assert isinstance(masked.nested._get_node("x"), IntegerNode)
+    assert isinstance(masked.nested._get_node("y"), StringNode)
+
+
 def test_shallow_copy() -> None:
     cfg = OmegaConf.create({"a": 1, "b": 2})
     c = cfg.copy()

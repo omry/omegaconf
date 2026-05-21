@@ -759,6 +759,8 @@ class OmegaConf:
         :param keys: keys to preserve in the copy
         :return: The masked ``DictConfig`` object.
         """
+        import copy as _copy
+
         from .dictconfig import DictConfig
 
         if not isinstance(conf, DictConfig):
@@ -766,7 +768,17 @@ class OmegaConf:
 
         if isinstance(keys, str):
             keys = [keys]
-        content = {key: value for key, value in conf.items_ex(resolve=False, keys=keys)}
+        # Issue #813: copy nodes rather than values. items_ex(resolve=False)
+        # unwraps top-level ValueNodes to their raw Python value, which then
+        # round-trips through DictConfig.__init__ as an AnyNode and drops the
+        # IntegerNode / StringNode / EnumNode typing. Deep-copying the node
+        # itself preserves both the leaf node class and (recursively) any
+        # nested container's node-level typing.
+        content = {
+            key: _copy.deepcopy(conf._get_node(key))
+            for key in conf.keys()
+            if key in keys
+        }
         return DictConfig(content=content)
 
     @staticmethod
