@@ -1,0 +1,1 @@
+Fixed `omegaconf._utils._ensure_container` silently dropping the `flags` argument when the input was already a `DictConfig` or `ListConfig`.

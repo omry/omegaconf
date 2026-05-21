@@ -1031,7 +1031,15 @@ def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> A
         target = OmegaConf.create(target, flags=flags)
     elif is_structured_config(target):
         target = OmegaConf.structured(target, flags=flags)
-    elif not OmegaConf.is_config(target):
+    elif OmegaConf.is_config(target):
+        # Issue #580: when the input is already a DictConfig/ListConfig the
+        # primitive/structured branches above never run, so `flags` was being
+        # silently dropped. Apply each flag explicitly to honor the contract
+        # the function advertises through its signature.
+        if flags is not None:
+            for name, value in flags.items():
+                target._set_flag(name, value)
+    else:
         raise ValueError(
             "Invalid input. Supports one of "
             + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
