@@ -947,7 +947,7 @@ def test_masked_copy_preserves_value_node_types() -> None:
         b: str = "xyz"
         nested: Nested = field(default_factory=Nested)
 
-    cfg = OmegaConf.create(MySchema)
+    cfg = OmegaConf.structured(MySchema)
 
     # Sanity: source has typed nodes at both levels.
     assert isinstance(cfg._get_node("a"), IntegerNode)
