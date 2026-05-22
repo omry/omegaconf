@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-05-21",
-  "generated_at": "2026-05-21T10:43:28Z",
+  "generated_on": "2026-05-22",
+  "generated_at": "2026-05-22T10:27:41Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 1
+        "count": 4
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 64
+        "count": 61
       },
       {
         "status": "done",
@@ -91,6 +91,69 @@
         "has-workaround"
       ],
       "url": "https://github.com/omry/omegaconf/issues/91"
+    },
+    {
+      "number": 580,
+      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1307,
+          "url": "https://github.com/omry/omegaconf/pull/1307"
+        }
+      ],
+      "created": "2021-03-05",
+      "updated": "2026-05-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/580"
+    },
+    {
+      "number": 771,
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1309,
+          "url": "https://github.com/omry/omegaconf/pull/1309"
+        }
+      ],
+      "created": "2021-07-21",
+      "updated": "2026-04-24",
+      "labels": [
+        "documentation",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/771"
+    },
+    {
+      "number": 813,
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1308,
+          "url": "https://github.com/omry/omegaconf/pull/1308"
+        }
+      ],
+      "created": "2021-10-28",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "low priority",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
       "number": 131,
@@ -217,21 +280,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/537"
-    },
-    {
-      "number": 580,
-      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-03-05",
-      "updated": "2026-05-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/580"
     },
     {
       "number": 610,
@@ -380,39 +428,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/762"
-    },
-    {
-      "number": 771,
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-07-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "documentation",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/771"
-    },
-    {
-      "number": 813,
-      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-10-28",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "low priority",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
       "number": 815,
@@ -1095,5 +1110,66 @@
       "url": "https://github.com/omry/omegaconf/issues/1302"
     }
   ],
-  "updates": []
+  "updates": [
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "pr",
+      "issue": 813,
+      "issue_url": "https://github.com/omry/omegaconf/issues/813",
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "detail": "linked #1308"
+    },
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "pr",
+      "issue": 771,
+      "issue_url": "https://github.com/omry/omegaconf/issues/771",
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "detail": "linked #1309"
+    },
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "pr",
+      "issue": 580,
+      "issue_url": "https://github.com/omry/omegaconf/issues/580",
+      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
+      "detail": "linked #1307"
+    },
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "status",
+      "issue": 813,
+      "issue_url": "https://github.com/omry/omegaconf/issues/813",
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1308,
+        "url": "https://github.com/omry/omegaconf/pull/1308"
+      }
+    },
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "status",
+      "issue": 771,
+      "issue_url": "https://github.com/omry/omegaconf/issues/771",
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1309,
+        "url": "https://github.com/omry/omegaconf/pull/1309"
+      }
+    },
+    {
+      "ts": "2026-05-22T10:27:41Z",
+      "kind": "status",
+      "issue": 580,
+      "issue_url": "https://github.com/omry/omegaconf/issues/580",
+      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1307,
+        "url": "https://github.com/omry/omegaconf/pull/1307"
+      }
+    }
+  ]
 }

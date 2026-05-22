@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-05-21T10:43:28Z",
+  "generated_at": "2026-05-22T10:27:41Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -475,9 +475,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1307"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
       "updated_at": "2026-05-15T14:39:54Z"
     },
@@ -609,9 +611,11 @@
         "documentation",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1309"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "updated_at": "2026-04-24T06:29:26Z"
     },
@@ -623,9 +627,11 @@
         "low priority",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1308"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
       "updated_at": "2026-04-24T06:28:13Z"
     },
