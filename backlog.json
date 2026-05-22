@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-05-22",
-  "generated_at": "2026-05-22T10:27:41Z",
+  "generated_at": "2026-05-22T14:14:14Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -147,11 +147,10 @@
         }
       ],
       "created": "2021-10-28",
-      "updated": "2026-04-24",
+      "updated": "2026-05-22",
       "labels": [
         "bug",
-        "low priority",
-        "needs triage"
+        "low priority"
       ],
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
@@ -1111,6 +1110,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-05-22T14:14:14Z",
+      "kind": "label",
+      "issue": 813,
+      "issue_url": "https://github.com/omry/omegaconf/issues/813",
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "detail": "removed \"needs triage\""
+    },
     {
       "ts": "2026-05-22T10:27:41Z",
       "kind": "pr",

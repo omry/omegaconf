@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-05-22T10:27:41Z",
+  "generated_at": "2026-05-22T14:14:14Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -624,8 +624,7 @@
       "created_at": "2021-10-28T03:06:32Z",
       "labels": [
         "bug",
-        "low priority",
-        "needs triage"
+        "low priority"
       ],
       "pr_numbers": [
         "1308"
@@ -633,7 +632,7 @@
       "state": "OPEN",
       "status": "community PR",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
-      "updated_at": "2026-04-24T06:28:13Z"
+      "updated_at": "2026-05-22T14:13:34Z"
     },
     "815": {
       "category": "Enhancement",
