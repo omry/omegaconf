@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-06-07",
-  "generated_at": "2026-06-07T10:08:24Z",
+  "generated_on": "2026-06-08",
+  "generated_at": "2026-06-08T12:04:07Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -943,7 +943,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-05-05",
+      "updated": "2026-06-07",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1263"
     },

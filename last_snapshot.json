@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-06-07T10:08:24Z",
+  "generated_at": "2026-06-08T12:04:07Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -237,7 +237,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "updated_at": "2026-05-05T10:33:47Z"
+      "updated_at": "2026-06-07T19:09:36Z"
     },
     "1271": {
       "category": "Enhancement",
