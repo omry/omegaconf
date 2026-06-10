@@ -15,6 +15,7 @@ from typing import (
 
 from ._utils import (
     ValueKind,
+    _get_value,
     _is_missing_literal,
     _is_none,
     _resolve_optional,
@@ -512,9 +513,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.resolve = resolve
             self.iterator = iter(lst.__dict__["_content"])
             self.index = 0
+            from .base import UnionNode
             from .nodes import ValueNode
 
             self.ValueNode = ValueNode
+            self.UnionNode = UnionNode
 
         def __next__(self) -> Any:
             x = next(self.iterator)
@@ -526,6 +529,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.index = self.index + 1
             if isinstance(x, self.ValueNode):
                 return x._value()
+            elif self.resolve and isinstance(x, self.UnionNode):
+                # Resolved iteration mirrors indexing and yields the selected
+                # concrete value instead of leaking the UnionNode wrapper. The
+                # unresolved path keeps the node so copies preserve its type.
+                return _get_value(x)
             else:
                 # Must be omegaconf.Container. not checking for perf reasons.
                 if x._is_none():
