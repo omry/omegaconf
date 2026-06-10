@@ -176,6 +176,42 @@ def test_iterate_list_with_missing() -> None:
         next(itr)
 
 
+def test_iterate_list_of_union() -> None:
+    # Regression test for the UnionNode leak: iterating a List[Union[...]] used
+    # to yield UnionNode wrappers instead of the selected concrete values, while
+    # indexing already unwrapped them.
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class Cfg:
+        a: List[Union[float, int]] = field(default_factory=lambda: [0.8, 9])
+
+    cfg = OmegaConf.structured(Cfg)
+
+    assert type(next(iter(cfg.a))) is type(cfg.a[0])
+    iterated = list(cfg.a)
+    assert iterated == [0.8, 9]
+    # The concrete int/float distinction selected by the union is preserved.
+    assert [type(v) for v in iterated] == [float, int]
+    assert [v * 10 for v in cfg.a] == [8.0, 90]
+
+
+def test_copy_list_of_union_preserves_node_type() -> None:
+    # The unresolved iteration path is used internally when copying a ListConfig;
+    # it must keep the UnionNode so the copy retains its union typing.
+    from dataclasses import dataclass, field
+
+    from omegaconf.base import UnionNode
+
+    @dataclass
+    class Cfg:
+        a: List[Union[float, int]] = field(default_factory=lambda: [0.8, 9])
+
+    cfg = OmegaConf.create(OmegaConf.structured(Cfg))
+    assert isinstance(cfg._get_node("a")._get_node(0), UnionNode)
+    assert list(cfg.a) == [0.8, 9]
+
+
 def test_items_with_interpolation() -> None:
     c = OmegaConf.create(["foo", "${0}"])
     assert c == ["foo", "foo"]
