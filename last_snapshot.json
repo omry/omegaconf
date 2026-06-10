@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-06-09T10:37:16Z",
+  "generated_at": "2026-06-10T04:20:45Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -378,6 +378,20 @@
       "status": "not started",
       "title": "Evaluate usefulness of pep-593 for structured configs",
       "updated_at": "2026-04-24T06:29:52Z"
+    },
+    "1310": {
+      "category": "Bug",
+      "created_at": "2026-06-10T04:19:24Z",
+      "labels": [
+        "bug",
+        "listconfig",
+        "structured config"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
+      "updated_at": "2026-06-10T04:19:24Z"
     },
     "144": {
       "category": "Enhancement",

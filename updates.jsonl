@@ -5,3 +5,4 @@
 {"ts": "2026-05-22T10:27:41Z", "kind": "pr", "issue": 771, "issue_url": "https://github.com/omry/omegaconf/issues/771", "title": "Document special treatment of \"???\" by OmegaConf.merge", "detail": "linked #1309"}
 {"ts": "2026-05-22T10:27:41Z", "kind": "pr", "issue": 813, "issue_url": "https://github.com/omry/omegaconf/issues/813", "title": "OmegaConf.masked_copy does not preserve ValueNode type", "detail": "linked #1308"}
 {"ts": "2026-05-22T14:14:14Z", "kind": "label", "issue": 813, "issue_url": "https://github.com/omry/omegaconf/issues/813", "title": "OmegaConf.masked_copy does not preserve ValueNode type", "detail": "removed \"needs triage\""}
+{"ts": "2026-06-10T04:20:45Z", "kind": "new", "issue": 1310, "issue_url": "https://github.com/omry/omegaconf/issues/1310", "title": "ListConfig iteration leaks UnionNode for List[Union[...]]"}
