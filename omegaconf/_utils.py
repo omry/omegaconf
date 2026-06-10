@@ -747,7 +747,10 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     if args is None:
         bases = getattr(ref_type, "__orig_bases__", None)
         if bases is not None and len(bases) > 0:
-            args = getattr(bases[0], "__args__", None)
+            for base in bases:
+                if is_dict_annotation(base):
+                    args = getattr(base, "__args__", None)
+                    break
 
     key_type: Any
     element_type: Any
@@ -755,7 +758,7 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
         key_type = Any
         element_type = Any
     else:
-        if args is not None:
+        if args is not None and len(args) == 2:
             key_type = args[0]
             element_type = args[1]
         else:
