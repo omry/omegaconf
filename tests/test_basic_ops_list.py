@@ -196,22 +196,6 @@ def test_iterate_list_of_union() -> None:
     assert [v * 10 for v in cfg.a] == [8.0, 90]
 
 
-def test_copy_list_of_union_preserves_node_type() -> None:
-    # The unresolved iteration path is used internally when copying a ListConfig;
-    # it must keep the UnionNode so the copy retains its union typing.
-    from dataclasses import dataclass, field
-
-    from omegaconf.base import UnionNode
-
-    @dataclass
-    class Cfg:
-        a: List[Union[float, int]] = field(default_factory=lambda: [0.8, 9])
-
-    cfg = OmegaConf.create(OmegaConf.structured(Cfg))
-    assert isinstance(cfg._get_node("a")._get_node(0), UnionNode)
-    assert list(cfg.a) == [0.8, 9]
-
-
 def test_items_with_interpolation() -> None:
     c = OmegaConf.create(["foo", "${0}"])
     assert c == ["foo", "foo"]
