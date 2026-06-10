@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-06-10",
-  "generated_at": "2026-06-10T20:49:52Z",
+  "generated_at": "2026-06-10T21:11:21Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 65,
+    "open_total": 66,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 21,
-        "percentage": 32.3
+        "count": 22,
+        "percentage": 33.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 60.0
+        "percentage": 59.1
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 2,
-        "percentage": 3.1
+        "percentage": 3.0
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 4.6
+        "percentage": 4.5
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 61
+        "count": 62
       },
       {
         "status": "done",
@@ -1105,6 +1105,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
+      "number": 1314,
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-06-10",
+      "updated": "2026-06-10",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1314"
+    },
+    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1144,6 +1159,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-10T21:11:21Z",
+      "kind": "new",
+      "issue": 1314,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1314",
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC"
+    },
     {
       "ts": "2026-06-10T17:44:00Z",
       "kind": "closed",

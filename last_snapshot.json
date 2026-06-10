@@ -3,7 +3,7 @@
     "1310": "2026-06-10",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-10T20:49:52Z",
+  "generated_at": "2026-06-10T21:11:21Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -391,6 +391,18 @@
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
       "updated_at": "2026-06-10T17:16:07Z"
+    },
+    "1314": {
+      "category": "Bug",
+      "created_at": "2026-06-10T21:09:49Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "updated_at": "2026-06-10T21:09:49Z"
     },
     "144": {
       "category": "Enhancement",
