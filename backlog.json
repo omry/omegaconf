@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-10",
-  "generated_at": "2026-06-10T04:20:45Z",
+  "generated_at": "2026-06-10T11:01:51Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 66,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 4
+        "count": 5
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 62
+        "count": 61
       },
       {
         "status": "done",
@@ -153,6 +153,28 @@
         "low priority"
       ],
       "url": "https://github.com/omry/omegaconf/issues/813"
+    },
+    {
+      "number": 1310,
+      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1311,
+          "url": "https://github.com/omry/omegaconf/pull/1311"
+        }
+      ],
+      "created": "2026-06-10",
+      "updated": "2026-06-10",
+      "labels": [
+        "bug",
+        "structured config",
+        "listconfig"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1310"
     },
     {
       "number": 131,
@@ -1107,26 +1129,29 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1302"
-    },
-    {
-      "number": 1310,
-      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-06-10",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug",
-        "structured config",
-        "listconfig"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1310"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-10T11:01:51Z",
+      "kind": "pr",
+      "issue": 1310,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1310",
+      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
+      "detail": "linked #1311"
+    },
+    {
+      "ts": "2026-06-10T11:01:51Z",
+      "kind": "status",
+      "issue": 1310,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1310",
+      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1311,
+        "url": "https://github.com/omry/omegaconf/pull/1311"
+      }
+    },
     {
       "ts": "2026-06-10T04:20:45Z",
       "kind": "new",

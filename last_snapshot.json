@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-06-10T04:20:45Z",
+  "generated_at": "2026-06-10T11:01:51Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -387,9 +387,11 @@
         "listconfig",
         "structured config"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1311"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "updated_at": "2026-06-10T04:19:24Z"
     },
