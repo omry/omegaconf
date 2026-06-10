@@ -1,8 +1,9 @@
 {
   "closed_at": {
-    "1310": "2026-06-10"
+    "1310": "2026-06-10",
+    "945": "2026-06-10"
   },
-  "generated_at": "2026-06-10T17:17:31Z",
+  "generated_at": "2026-06-10T17:44:00Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -239,7 +240,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "updated_at": "2026-06-07T19:09:36Z"
+      "updated_at": "2026-06-10T17:26:37Z"
     },
     "1271": {
       "category": "Enhancement",
@@ -582,14 +583,13 @@
       "created_at": "2021-05-24T20:41:53Z",
       "labels": [
         "bug",
-        "needs triage",
         "priority_medium"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Subclasses of `Generic` cannot be used as structured configs",
-      "updated_at": "2026-04-25T13:06:57Z"
+      "updated_at": "2026-06-10T17:42:42Z"
     },
     "750": {
       "category": "Refactor",
@@ -792,19 +792,6 @@
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
       "updated_at": "2026-05-15T14:39:55Z"
     },
-    "945": {
-      "category": "Bug",
-      "created_at": "2022-05-25T18:54:20Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "`get_attr_data` doesn't handle default factory correctly",
-      "updated_at": "2026-04-24T06:28:20Z"
-    },
     "969": {
       "category": "Enhancement",
       "created_at": "2022-06-21T22:31:15Z",
@@ -861,6 +848,19 @@
       "status": "done",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "updated_at": "2026-06-10T04:19:24Z"
+    },
+    "945": {
+      "category": "Bug",
+      "created_at": "2022-05-25T18:54:20Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "`get_attr_data` doesn't handle default factory correctly",
+      "updated_at": "2026-04-24T06:28:20Z"
     }
   },
   "repo": "omry/omegaconf"

@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-06-10",
-  "generated_at": "2026-06-10T17:17:31Z",
+  "generated_at": "2026-06-10T17:44:00Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 66,
+    "open_total": 65,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 22,
-        "percentage": 33.3
+        "count": 21,
+        "percentage": 32.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 59.1
+        "percentage": 60.0
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 2,
-        "percentage": 3.0
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 4.5
+        "percentage": 4.6
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 62
+        "count": 61
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 1
+        "count": 2
       }
     ]
   },
@@ -389,10 +389,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-05-24",
-      "updated": "2026-04-25",
+      "updated": "2026-06-10",
       "labels": [
         "bug",
-        "needs triage",
         "priority_medium"
       ],
       "url": "https://github.com/omry/omegaconf/issues/731"
@@ -588,22 +587,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/928"
-    },
-    {
-      "number": 945,
-      "title": "`get_attr_data` doesn't handle default factory correctly",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-05-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/945"
     },
     {
       "number": 969,
@@ -943,7 +926,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-06-07",
+      "updated": "2026-06-10",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1263"
     },
@@ -1142,9 +1125,40 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1310"
+    },
+    {
+      "number": 945,
+      "title": "`get_attr_data` doesn't handle default factory correctly",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-05-25",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/945"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-10T17:44:00Z",
+      "kind": "closed",
+      "issue": 945,
+      "issue_url": "https://github.com/omry/omegaconf/issues/945",
+      "title": "`get_attr_data` doesn't handle default factory correctly"
+    },
+    {
+      "ts": "2026-06-10T17:44:00Z",
+      "kind": "label",
+      "issue": 731,
+      "issue_url": "https://github.com/omry/omegaconf/issues/731",
+      "title": "Subclasses of `Generic` cannot be used as structured configs",
+      "detail": "removed \"needs triage\""
+    },
     {
       "ts": "2026-06-10T17:17:31Z",
       "kind": "closed",
