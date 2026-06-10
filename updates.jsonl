@@ -8,3 +8,5 @@
 {"ts": "2026-06-10T04:20:45Z", "kind": "new", "issue": 1310, "issue_url": "https://github.com/omry/omegaconf/issues/1310", "title": "ListConfig iteration leaks UnionNode for List[Union[...]]"}
 {"ts": "2026-06-10T11:01:51Z", "kind": "status", "issue": 1310, "issue_url": "https://github.com/omry/omegaconf/issues/1310", "title": "ListConfig iteration leaks UnionNode for List[Union[...]]", "detail": "not started → community PR", "pr": {"number": 1311, "url": "https://github.com/omry/omegaconf/pull/1311"}}
 {"ts": "2026-06-10T11:01:51Z", "kind": "pr", "issue": 1310, "issue_url": "https://github.com/omry/omegaconf/issues/1310", "title": "ListConfig iteration leaks UnionNode for List[Union[...]]", "detail": "linked #1311"}
+{"ts": "2026-06-10T17:17:31Z", "kind": "new", "issue": 1312, "issue_url": "https://github.com/omry/omegaconf/issues/1312", "title": "Support more flexible merge semantics in OmegaConf.merge"}
+{"ts": "2026-06-10T17:17:31Z", "kind": "closed", "issue": 1310, "issue_url": "https://github.com/omry/omegaconf/issues/1310", "title": "ListConfig iteration leaks UnionNode for List[Union[...]]"}
