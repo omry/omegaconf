@@ -829,12 +829,16 @@ def get_type_hint(obj: Any, key: Any = None) -> Optional[Type[Any]]:
         return Any  # type: ignore
 
 
-def _raise(ex: Exception, cause: Exception) -> None:
+def _is_full_backtrace_enabled() -> bool:
     # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
     # causing exception.
     env_var = os.environ["OC_CAUSE"] if "OC_CAUSE" in os.environ else None
     debugging = sys.gettrace() is not None
-    full_backtrace = (debugging and not env_var == "0") or (env_var == "1")
+    return (debugging and not env_var == "0") or (env_var == "1")
+
+
+def _raise(ex: Exception, cause: Exception) -> None:
+    full_backtrace = _is_full_backtrace_enabled()
     if full_backtrace:
         # In the alias case (`cause is ex`), assigning `ex.__cause__ = cause`
         # would create a self-reference cycle that pins `ex` (and transitively
@@ -845,9 +849,12 @@ def _raise(ex: Exception, cause: Exception) -> None:
     else:
         ex.__cause__ = None
     try:
-        raise ex.with_traceback(
-            sys.exc_info()[2]
-        )  # set env var OC_CAUSE=1 for full trace
+        # Set env var OC_CAUSE=1 for full trace. In normal mode, avoid
+        # preserving the active traceback because it can retain caller frame
+        # locals until cyclic GC runs.
+        if full_backtrace:
+            raise ex.with_traceback(sys.exc_info()[2])
+        raise ex.with_traceback(None) from None
     finally:
         # Follow https://peps.python.org/pep-3110/ to break
         # the exception reference cycle.

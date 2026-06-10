@@ -1729,6 +1729,87 @@ def test_format_and_raise_releases_frame_locals(
     )
 
 
+@mark.parametrize(
+    "scenario",
+    [
+        "getattr_missing",
+        "hasattr_missing",
+        "setattr_missing",
+        "create_unsupported",
+        "merge_validation",
+    ],
+)
+def test_omegaconf_error_paths_release_frame_locals(
+    monkeypatch: Any, scenario: str
+) -> None:
+    """Verify swallowed OmegaConf exceptions release frame locals without cyclic GC."""
+
+    @dataclass
+    class OneInt:
+        x: int = 10
+
+    class FrameLocal:
+        def __init__(self, on_delete: Callable[[], None]) -> None:
+            self._on_delete = on_delete
+
+        def __del__(self) -> None:
+            self._on_delete()
+
+    def outer() -> None:
+        frame_local = FrameLocal(lambda: del_called.__setitem__(0, True))
+        retained_by_frame = [frame_local]
+
+        if scenario == "getattr_missing":
+            cfg = OmegaConf.structured(OneInt())
+            try:
+                cfg.data
+            except AttributeError:
+                pass
+            else:
+                assert False
+        elif scenario == "hasattr_missing":
+            cfg = OmegaConf.structured(OneInt())
+            assert not hasattr(cfg, "data")
+        elif scenario == "setattr_missing":
+            cfg = OmegaConf.structured(OneInt())
+            try:
+                cfg.data = 1
+            except Exception:
+                pass
+            else:
+                assert False
+        elif scenario == "create_unsupported":
+            try:
+                OmegaConf.create({"x": object()})
+            except Exception:
+                pass
+            else:
+                assert False
+        elif scenario == "merge_validation":
+            cfg = OmegaConf.structured(OneInt())
+            try:
+                OmegaConf.merge(cfg, {"x": "nope"})
+            except Exception:
+                pass
+            else:
+                assert False
+        else:
+            assert False
+
+        assert retained_by_frame == [frame_local]
+
+    monkeypatch.setenv("OC_CAUSE", "0")
+    del_called = [False]
+    was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        outer()
+        assert del_called[0]
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
 def test_format_and_raise_initialized_exception_does_not_self_chain(
     monkeypatch: Any,
 ) -> None:

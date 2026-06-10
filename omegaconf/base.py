@@ -22,6 +22,7 @@ from ._utils import (
     NoneType,
     ValueKind,
     _get_value,
+    _is_full_backtrace_enabled,
     _is_interpolation,
     _is_missing_value,
     _is_special,
@@ -42,6 +43,7 @@ from .errors import (
     InterpolationToMissingValueError,
     InterpolationValidationError,
     MissingMandatoryValue,
+    OmegaConfBaseException,
     UnsupportedInterpolationType,
     ValidationError,
 )
@@ -238,6 +240,17 @@ class Node(ABC):
         msg: Optional[str] = None,
         type_override: Any = None,
     ) -> NoReturn:
+        if (
+            type_override is None
+            and isinstance(cause, OmegaConfBaseException)
+            and cause._initialized
+        ):
+            if not _is_full_backtrace_enabled():
+                cause.__traceback__ = None
+                cause.__context__ = None
+            # Keep the re-raise in this common wrapper so callers do not need
+            # to remember traceback cleanup before forwarding OmegaConf errors.
+            raise
         format_and_raise(
             node=self,
             key=key,
