@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-10",
-  "generated_at": "2026-06-10T17:44:00Z",
+  "generated_at": "2026-06-10T17:50:22Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -1105,6 +1105,22 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
+      "number": 945,
+      "title": "`get_attr_data` doesn't handle default factory correctly",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-05-25",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/945"
+    },
+    {
       "number": 1310,
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "category": "Bug",
@@ -1125,22 +1141,6 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1310"
-    },
-    {
-      "number": 945,
-      "title": "`get_attr_data` doesn't handle default factory correctly",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-05-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/945"
     }
   ],
   "updates": [
