@@ -1,0 +1,17 @@
+{
+  "ignore_dirs": [
+    ".agents",
+    ".benchmarks",
+    ".nox",
+    "docs/build",
+    "omegaconf/grammar/gen",
+    "subprojects/backlog-tool/.backlog-tool",
+    "subprojects/backlog-tool/.benchmarks",
+    "subprojects/backlog-tool/__pycache__",
+    "subprojects/backlog-tool/build",
+    "subprojects/backlog-tool/dist",
+    "subprojects/omegaconf-pydevd/build",
+    "subprojects/omegaconf-pydevd/omegaconf_pydevd.egg-info",
+    "temp"
+  ]
+}
