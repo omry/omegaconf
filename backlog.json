@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T11:26:17Z",
+  "generated_at": "2026-06-11T11:59:42Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 61
+        "count": 60
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1126,
+      "title": "Improve error message for relative interpolations",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1317,
+          "url": "https://github.com/omry/omegaconf/pull/1317"
+        }
+      ],
+      "created": "2023-09-22",
+      "updated": "2026-04-24",
+      "labels": [
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1126"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -827,21 +847,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1120"
     },
     {
-      "number": 1126,
-      "title": "Improve error message for relative interpolations",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-09-22",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1126"
-    },
-    {
       "number": 1160,
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
       "category": "Enhancement",
@@ -1177,6 +1182,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-11T11:59:42Z",
+      "kind": "pr",
+      "issue": 1126,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1126",
+      "title": "Improve error message for relative interpolations",
+      "detail": "linked #1317"
+    },
+    {
+      "ts": "2026-06-11T11:59:42Z",
+      "kind": "status",
+      "issue": 1126,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1126",
+      "title": "Improve error message for relative interpolations",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1317,
+        "url": "https://github.com/omry/omegaconf/pull/1317"
+      }
+    },
     {
       "ts": "2026-06-11T06:29:03Z",
       "kind": "closed",
