@@ -48,7 +48,6 @@ from .errors import (
     InterpolationResolutionError,
     KeyValidationError,
     MissingMandatoryValue,
-    OmegaConfBaseException,
     ReadonlyConfigError,
     ValidationError,
 )
@@ -344,8 +343,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         try:
             self.__set_impl(key, value)
         except Exception as e:
-            if isinstance(e, OmegaConfBaseException) and e._initialized:
-                raise e
             self._format_and_raise(key=key, value=value, cause=e)
             assert False
 
