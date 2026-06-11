@@ -272,13 +272,26 @@ params = [
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
             exception_type=InterpolationKeyError,
-            msg="Interpolation key 'missing' not found",
+            msg="Interpolation key '.missing' not found (resolved to 'foo.missing')",
             key="bar",
             full_key="foo.bar",
             child_node=lambda cfg: cfg.foo._get_node("bar"),
             parent_node=lambda cfg: cfg.foo,
         ),
         id="dict,accessing_missing_relative_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.create({"a": {"a": {"a": "${..b}"}}}),
+            op=lambda cfg: getattr(cfg.a.a, "a"),
+            exception_type=InterpolationKeyError,
+            msg="Interpolation key '..b' not found (resolved to 'a.b')",
+            key="a",
+            full_key="a.a.a",
+            child_node=lambda cfg: cfg.a.a._get_node("a"),
+            parent_node=lambda cfg: cfg.a.a,
+        ),
+        id="dict,accessing_missing_parent_relative_interpolation",
     ),
     param(
         Expected(
@@ -1924,6 +1937,26 @@ def test_get_full_key_failure_in_format_and_raise() -> None:
 
     with raises(RecursionError, match=match):
         c.x
+
+
+def test_relative_interpolation_missing_key_preserves_error_type_when_resolved_key_formatting_fails(
+    monkeypatch: Any,
+) -> None:
+    cfg = OmegaConf.create({"foo": {"bar": "${.missing}"}})
+    foo_node = cfg._get_node("foo")
+    assert isinstance(foo_node, DictConfig)
+
+    def fail_get_full_key(self: Any, key: Any) -> str:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(DictConfig, "_get_full_key", fail_get_full_key)
+    match = re.escape(
+        "Interpolation key '.missing' not found "
+        "(resolved to '<unresolvable due to RuntimeError: boom>')"
+    )
+
+    with raises(InterpolationKeyError, match=match):
+        cfg.foo.bar
 
 
 def test_list_getitem_slice_zero_step_error() -> None:
