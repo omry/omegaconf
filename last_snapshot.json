@@ -1,9 +1,10 @@
 {
   "closed_at": {
     "1310": "2026-06-10",
+    "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T03:27:12Z",
+  "generated_at": "2026-06-11T05:07:44Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -405,16 +406,6 @@
       "status": "in progress",
       "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
       "updated_at": "2026-06-10T21:09:49Z"
-    },
-    "1315": {
-      "category": "Build",
-      "created_at": "2026-06-11T02:51:56Z",
-      "labels": [],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 \u2014 fix exists at HEAD, please cut a release",
-      "updated_at": "2026-06-11T02:51:56Z"
     },
     "144": {
       "category": "Enhancement",
@@ -872,6 +863,16 @@
       "status": "done",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "updated_at": "2026-06-10T04:19:24Z"
+    },
+    "1315": {
+      "category": "Build",
+      "created_at": "2026-06-11T02:51:56Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 \u2014 fix exists at HEAD, please cut a release",
+      "updated_at": "2026-06-11T02:51:56Z"
     },
     "945": {
       "category": "Bug",

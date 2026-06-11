@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T03:27:12Z",
+  "generated_at": "2026-06-11T05:07:44Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 67,
+    "open_total": 66,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 22,
-        "percentage": 32.8
+        "percentage": 33.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 58.2
+        "percentage": 59.1
       },
       {
         "category": "Documentation",
@@ -38,8 +38,8 @@
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 1,
-        "percentage": 1.5
+        "count": 0,
+        "percentage": 0.0
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 62
+        "count": 61
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 2
+        "count": 3
       }
     ]
   },
@@ -1125,19 +1125,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
-      "number": 1315,
-      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-06-11",
-      "updated": "2026-06-11",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1315"
-    },
-    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1174,9 +1161,29 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1310"
+    },
+    {
+      "number": 1315,
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
+      "category": "Build",
+      "category_emoji": "🏗️",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1315"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-11T05:07:44Z",
+      "kind": "closed",
+      "issue": 1315,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1315",
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release"
+    },
     {
       "ts": "2026-06-11T03:27:12Z",
       "kind": "pr",
