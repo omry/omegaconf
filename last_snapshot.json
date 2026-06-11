@@ -3,7 +3,7 @@
     "1310": "2026-06-10",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-10T21:11:21Z",
+  "generated_at": "2026-06-11T02:53:14Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -403,6 +403,16 @@
       "status": "not started",
       "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
       "updated_at": "2026-06-10T21:09:49Z"
+    },
+    "1315": {
+      "category": "Build",
+      "created_at": "2026-06-11T02:51:56Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 \u2014 fix exists at HEAD, please cut a release",
+      "updated_at": "2026-06-11T02:51:56Z"
     },
     "144": {
       "category": "Enhancement",

@@ -1,21 +1,21 @@
 {
-  "generated_on": "2026-06-10",
-  "generated_at": "2026-06-10T21:11:21Z",
+  "generated_on": "2026-06-11",
+  "generated_at": "2026-06-11T02:53:14Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 66,
+    "open_total": 67,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 22,
-        "percentage": 33.3
+        "percentage": 32.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 59.1
+        "percentage": 58.2
       },
       {
         "category": "Documentation",
@@ -38,8 +38,8 @@
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 0,
-        "percentage": 0.0
+        "count": 1,
+        "percentage": 1.5
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 62
+        "count": 63
       },
       {
         "status": "done",
@@ -1120,6 +1120,19 @@
       "url": "https://github.com/omry/omegaconf/issues/1314"
     },
     {
+      "number": 1315,
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
+      "category": "Build",
+      "category_emoji": "🏗️",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1315"
+    },
+    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1159,6 +1172,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-11T02:53:14Z",
+      "kind": "new",
+      "issue": 1315,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1315",
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release"
+    },
     {
       "ts": "2026-06-10T21:11:21Z",
       "kind": "new",
