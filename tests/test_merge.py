@@ -1295,6 +1295,71 @@ def test_with_readonly_c1(merge: Any, c1: Any, c2: Any) -> None:
     assert OmegaConf.is_readonly(cfg3)
 
 
+@mark.parametrize(
+    "merge, input_unchanged",
+    [(OmegaConf.merge, True), (OmegaConf.unsafe_merge, False)],
+)
+def test_merge_nested_frozen_structured_config(
+    merge: Any, input_unchanged: bool
+) -> None:
+    @dataclass(frozen=True)
+    class Inner:
+        x: int = MISSING
+
+    @dataclass(frozen=True)
+    class Outer:
+        inner: Inner = MISSING
+        y: int = 1
+
+    cfg = OmegaConf.structured(Outer(inner=Inner()))
+
+    with raises(ReadonlyConfigError):
+        cfg.merge_with({"inner": {"x": 3}})
+
+    merged = merge(cfg, {"inner": {"x": 3}})
+    assert merged == {"inner": {"x": 3}, "y": 1}
+    if input_unchanged:
+        assert OmegaConf.is_missing(cfg.inner, "x")
+    else:
+        assert merged is cfg
+    assert OmegaConf.is_readonly(merged)
+    assert OmegaConf.is_readonly(merged.inner)
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_restores_nested_readonly_flag(merge: Any) -> None:
+    cfg = OmegaConf.create({"node": {"x": 1}})
+    src = OmegaConf.create({"node": {"x": 2}})
+    OmegaConf.set_readonly(cfg.node, True)
+    OmegaConf.set_readonly(src.node, False)
+
+    merged = merge(cfg, src)
+
+    assert merged == {"node": {"x": 2}}
+    assert merged.node._get_node_flag("readonly") is True
+    assert OmegaConf.is_readonly(merged.node)
+
+
+@mark.parametrize(
+    "merge, input_unchanged",
+    [(OmegaConf.merge, True), (OmegaConf.unsafe_merge, False)],
+)
+def test_merge_inner_node_inherits_readonly(merge: Any, input_unchanged: bool) -> None:
+    cfg = OmegaConf.create({"inner": {"x": 1}})
+    src = OmegaConf.create({"inner": {"x": 2}})
+    OmegaConf.set_readonly(cfg, True)
+
+    merged = merge(cfg.inner, src.inner)
+
+    assert merged == {"x": 2}
+    assert merged._get_node_flag("readonly") is None
+    assert OmegaConf.is_readonly(merged)
+    if input_unchanged:
+        assert cfg.inner.x == 1
+    else:
+        assert merged is cfg.inner
+
+
 @mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @mark.parametrize(
     "c1, c2",

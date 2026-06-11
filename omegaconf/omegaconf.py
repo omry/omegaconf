@@ -430,15 +430,11 @@ class OmegaConf:
         target = _ensure_container(target)
         assert isinstance(target, (DictConfig, ListConfig))
 
-        with flag_override(target, "readonly", False):
-            target.merge_with(
-                *configs[1:],
-                list_merge_mode=list_merge_mode,
-            )
-            turned_readonly = target._get_flag("readonly") is True
-
-        if turned_readonly:
-            OmegaConf.set_readonly(target, True)
+        target._merge_with(
+            *configs[1:],
+            list_merge_mode=list_merge_mode,
+            _allow_readonly_target=True,
+        )
 
         return target
 
@@ -475,9 +471,10 @@ class OmegaConf:
         with flag_override(
             target, ["readonly", "no_deepcopy_set_nodes"], [False, True]
         ):
-            target.merge_with(
+            target._merge_with(
                 *configs[1:],
                 list_merge_mode=list_merge_mode,
+                _allow_readonly_target=True,
             )
             turned_readonly = target._get_flag("readonly") is True
 
