@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T11:59:42Z",
+  "generated_at": "2026-06-11T12:27:09Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 65,
+    "open_total": 64,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 21,
-        "percentage": 32.3
+        "count": 20,
+        "percentage": 31.2
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 60.0
+        "percentage": 60.9
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 4.6
+        "percentage": 4.7
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 60
+        "count": 59
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 4
+        "count": 5
       }
     ]
   },
@@ -831,22 +831,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1102"
     },
     {
-      "number": 1120,
-      "title": "Escaped resolver modifying `_root_` doesn't work",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-08-30",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1120"
-    },
-    {
       "number": 1160,
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
       "category": "Enhancement",
@@ -1179,9 +1163,32 @@
       "updated": "2026-06-11",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1315"
+    },
+    {
+      "number": 1120,
+      "title": "Escaped resolver modifying `_root_` doesn't work",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2023-08-30",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1120"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-11T12:27:09Z",
+      "kind": "closed",
+      "issue": 1120,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1120",
+      "title": "Escaped resolver modifying `_root_` doesn't work"
+    },
     {
       "ts": "2026-06-11T11:59:42Z",
       "kind": "pr",

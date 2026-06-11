@@ -1,11 +1,12 @@
 {
   "closed_at": {
+    "1120": "2026-06-11",
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T11:59:42Z",
+  "generated_at": "2026-06-11T12:27:09Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -147,19 +148,6 @@
       "status": "not started",
       "title": "Merging nested readonly structured configs doesn't work.",
       "updated_at": "2026-04-24T06:27:56Z"
-    },
-    "1120": {
-      "category": "Bug",
-      "created_at": "2023-08-30T13:55:55Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Escaped resolver modifying `_root_` doesn't work",
-      "updated_at": "2026-04-24T06:27:58Z"
     },
     "1126": {
       "category": "Bug",
@@ -837,6 +825,19 @@
     }
   },
   "recent_done": {
+    "1120": {
+      "category": "Bug",
+      "created_at": "2023-08-30T13:55:55Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Escaped resolver modifying `_root_` doesn't work",
+      "updated_at": "2026-04-24T06:27:58Z"
+    },
     "1310": {
       "category": "Bug",
       "created_at": "2026-06-10T04:19:24Z",
