@@ -7,7 +7,7 @@
     "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T13:58:31Z",
+  "generated_at": "2026-06-11T15:41:53Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -144,9 +144,11 @@
         "bug",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1318"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Merging nested readonly structured configs doesn't work.",
       "updated_at": "2026-04-24T06:27:56Z"
     },

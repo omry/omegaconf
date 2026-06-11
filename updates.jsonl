@@ -22,3 +22,5 @@
 {"ts": "2026-06-11T11:59:42Z", "kind": "pr", "issue": 1126, "issue_url": "https://github.com/omry/omegaconf/issues/1126", "title": "Improve error message for relative interpolations", "detail": "linked #1317"}
 {"ts": "2026-06-11T12:27:09Z", "kind": "closed", "issue": 1120, "issue_url": "https://github.com/omry/omegaconf/issues/1120", "title": "Escaped resolver modifying `_root_` doesn't work"}
 {"ts": "2026-06-11T13:58:31Z", "kind": "closed", "issue": 1126, "issue_url": "https://github.com/omry/omegaconf/issues/1126", "title": "Improve error message for relative interpolations"}
+{"ts": "2026-06-11T15:41:53Z", "kind": "status", "issue": 1102, "issue_url": "https://github.com/omry/omegaconf/issues/1102", "title": "Merging nested readonly structured configs doesn't work.", "detail": "not started → in progress", "pr": {"number": 1318, "url": "https://github.com/omry/omegaconf/pull/1318"}}
+{"ts": "2026-06-11T15:41:53Z", "kind": "pr", "issue": 1102, "issue_url": "https://github.com/omry/omegaconf/issues/1102", "title": "Merging nested readonly structured configs doesn't work.", "detail": "linked #1318"}
