@@ -1,10 +1,11 @@
 {
   "closed_at": {
     "1310": "2026-06-10",
+    "1314": "2026-06-11",
     "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T05:07:44Z",
+  "generated_at": "2026-06-11T06:29:03Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -392,20 +393,6 @@
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
       "updated_at": "2026-06-10T17:16:07Z"
-    },
-    "1314": {
-      "category": "Bug",
-      "created_at": "2026-06-10T21:09:49Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1316"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
-      "updated_at": "2026-06-10T21:09:49Z"
     },
     "144": {
       "category": "Enhancement",
@@ -863,6 +850,20 @@
       "status": "done",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "updated_at": "2026-06-10T04:19:24Z"
+    },
+    "1314": {
+      "category": "Bug",
+      "created_at": "2026-06-10T21:09:49Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1316"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "updated_at": "2026-06-10T21:09:49Z"
     },
     "1315": {
       "category": "Build",
