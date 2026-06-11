@@ -1,12 +1,13 @@
 {
   "closed_at": {
     "1120": "2026-06-11",
+    "1126": "2026-06-11",
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T12:27:09Z",
+  "generated_at": "2026-06-11T13:58:31Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -148,20 +149,6 @@
       "status": "not started",
       "title": "Merging nested readonly structured configs doesn't work.",
       "updated_at": "2026-04-24T06:27:56Z"
-    },
-    "1126": {
-      "category": "Bug",
-      "created_at": "2023-09-22T10:58:51Z",
-      "labels": [
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1317"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Improve error message for relative interpolations",
-      "updated_at": "2026-04-24T06:27:59Z"
     },
     "1160": {
       "category": "Enhancement",
@@ -837,6 +824,20 @@
       "status": "done",
       "title": "Escaped resolver modifying `_root_` doesn't work",
       "updated_at": "2026-04-24T06:27:58Z"
+    },
+    "1126": {
+      "category": "Bug",
+      "created_at": "2023-09-22T10:58:51Z",
+      "labels": [
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1317"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Improve error message for relative interpolations",
+      "updated_at": "2026-04-24T06:27:59Z"
     },
     "1310": {
       "category": "Bug",

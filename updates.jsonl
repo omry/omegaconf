@@ -21,3 +21,4 @@
 {"ts": "2026-06-11T11:59:42Z", "kind": "status", "issue": 1126, "issue_url": "https://github.com/omry/omegaconf/issues/1126", "title": "Improve error message for relative interpolations", "detail": "not started → in progress", "pr": {"number": 1317, "url": "https://github.com/omry/omegaconf/pull/1317"}}
 {"ts": "2026-06-11T11:59:42Z", "kind": "pr", "issue": 1126, "issue_url": "https://github.com/omry/omegaconf/issues/1126", "title": "Improve error message for relative interpolations", "detail": "linked #1317"}
 {"ts": "2026-06-11T12:27:09Z", "kind": "closed", "issue": 1120, "issue_url": "https://github.com/omry/omegaconf/issues/1120", "title": "Escaped resolver modifying `_root_` doesn't work"}
+{"ts": "2026-06-11T13:58:31Z", "kind": "closed", "issue": 1126, "issue_url": "https://github.com/omry/omegaconf/issues/1126", "title": "Improve error message for relative interpolations"}
