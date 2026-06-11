@@ -1,3 +1,9 @@
+## 2.3.1 (2026-06-11)
+
+
+### Bug Fixes
+
+- Fix source installs with setuptools versions that no longer provide pkg_resources. ([#1315](https://github.com/omry/omegaconf/issues/1315))
 ## 2.3.0 (2022-12-06)
 ### Features
 
