@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T06:29:03Z",
+  "generated_at": "2026-06-11T11:26:17Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 65,
@@ -1143,19 +1143,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1310"
     },
     {
-      "number": 1315,
-      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-06-11",
-      "updated": "2026-06-11",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1315"
-    },
-    {
       "number": 1314,
       "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
       "category": "Bug",
@@ -1174,6 +1161,19 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1314"
+    },
+    {
+      "number": 1315,
+      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
+      "category": "Build",
+      "category_emoji": "🏗️",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1315"
     }
   ],
   "updates": [
