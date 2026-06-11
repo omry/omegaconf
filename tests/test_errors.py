@@ -272,13 +272,26 @@ params = [
             create=lambda: OmegaConf.create({"foo": {"bar": "${.missing}"}}),
             op=lambda cfg: getattr(cfg.foo, "bar"),
             exception_type=InterpolationKeyError,
-            msg="Interpolation key 'missing' not found",
+            msg="Interpolation key '.missing' not found (resolved to 'foo.missing')",
             key="bar",
             full_key="foo.bar",
             child_node=lambda cfg: cfg.foo._get_node("bar"),
             parent_node=lambda cfg: cfg.foo,
         ),
         id="dict,accessing_missing_relative_interpolation",
+    ),
+    param(
+        Expected(
+            create=lambda: OmegaConf.create({"a": {"a": {"a": "${..b}"}}}),
+            op=lambda cfg: getattr(cfg.a.a, "a"),
+            exception_type=InterpolationKeyError,
+            msg="Interpolation key '..b' not found (resolved to 'a.b')",
+            key="a",
+            full_key="a.a.a",
+            child_node=lambda cfg: cfg.a.a._get_node("a"),
+            parent_node=lambda cfg: cfg.a.a,
+        ),
+        id="dict,accessing_missing_parent_relative_interpolation",
     ),
     param(
         Expected(

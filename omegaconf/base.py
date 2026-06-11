@@ -703,6 +703,7 @@ class Container(Box):
         resolved_node_cache: Optional[Dict[int, "Node"]] = None,
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
+        original_inter_key = inter_key
         try:
             root_node, inter_key = self._resolve_key_and_root(inter_key)
         except ConfigKeyError as exc:
@@ -724,7 +725,14 @@ class Container(Box):
             ).with_traceback(sys.exc_info()[2])
 
         if parent is None or value is None:
-            raise InterpolationKeyError(f"Interpolation key '{inter_key}' not found")
+            msg = f"Interpolation key '{inter_key}' not found"
+            if original_inter_key != inter_key:
+                resolved_inter_key = root_node._get_full_key(inter_key)
+                msg = (
+                    f"Interpolation key '{original_inter_key}' not found"
+                    f" (resolved to '{resolved_inter_key}')"
+                )
+            raise InterpolationKeyError(msg)
         else:
             self._validate_not_dereferencing_to_parent(node=self, target=value)
             return value
