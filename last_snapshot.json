@@ -3,7 +3,7 @@
     "1310": "2026-06-10",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T02:53:14Z",
+  "generated_at": "2026-06-11T03:27:12Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -398,9 +398,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1316"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
       "updated_at": "2026-06-10T21:09:49Z"
     },

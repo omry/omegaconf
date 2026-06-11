@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T02:53:14Z",
+  "generated_at": "2026-06-11T03:27:12Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 67,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 63
+        "count": 62
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1314,
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1316,
+          "url": "https://github.com/omry/omegaconf/pull/1316"
+        }
+      ],
+      "created": "2026-06-10",
+      "updated": "2026-06-10",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1314"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1105,21 +1125,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
-      "number": 1314,
-      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-06-10",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1314"
-    },
-    {
       "number": 1315,
       "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
       "category": "Build",
@@ -1172,6 +1177,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-11T03:27:12Z",
+      "kind": "pr",
+      "issue": 1314,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1314",
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "detail": "linked #1316"
+    },
+    {
+      "ts": "2026-06-11T03:27:12Z",
+      "kind": "status",
+      "issue": 1314,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1314",
+      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1316,
+        "url": "https://github.com/omry/omegaconf/pull/1316"
+      }
+    },
     {
       "ts": "2026-06-11T02:53:14Z",
       "kind": "new",
