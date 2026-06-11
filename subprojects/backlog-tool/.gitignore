@@ -1,8 +1,0 @@
-backlog_tool/web/backlog.json
-.backlog-tool/
-__pycache__/
-*.pyc
-.benchmarks/
-*.egg-info/
-build/
-dist/
