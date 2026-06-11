@@ -8,7 +8,7 @@ from enum import Enum
 from importlib import import_module
 from pathlib import Path
 from types import LambdaType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 
 from pytest import fixture, mark, param, raises
 
@@ -58,6 +58,29 @@ class DottedForwardRefListTree:
     class Node:
         value: int = -1
         children: Optional[list["DottedForwardRefListTree.Node"]] = None
+
+
+T = TypeVar("T")
+
+
+@dataclasses.dataclass
+class GenericBase(Generic[T]):
+    x: int = 1
+
+
+@dataclasses.dataclass
+class GenericDerived(GenericBase[int]):
+    pass
+
+
+@dataclasses.dataclass
+class GenericValueBase(Generic[T]):
+    x: T = MISSING  # type: ignore[assignment]
+
+
+@dataclasses.dataclass
+class GenericValueDerived(GenericValueBase[int]):
+    x: int = 1
 
 
 class EnumConfigAssignments:
@@ -1177,6 +1200,16 @@ def test_forward_ref(module: Any) -> None:
     C = module.HasForwardRef
     obj = C(a=C.CA(), b=C.CB(C.CA(x=33)))
     OmegaConf.create(obj)
+
+
+def test_generic_structured_config_base_class() -> None:
+    cfg = OmegaConf.structured(GenericDerived)
+    assert cfg.x == 1
+    assert OmegaConf.get_type(cfg) is GenericDerived
+
+    cfg = OmegaConf.structured(GenericValueDerived)
+    assert cfg.x == 1
+    assert OmegaConf.get_type(cfg) is GenericValueDerived
 
 
 class TestDictSubclass:
