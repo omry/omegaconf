@@ -1,5 +1,6 @@
 {
   "closed_at": {
+    "1102": "2026-06-11",
     "1120": "2026-06-11",
     "1126": "2026-06-11",
     "1310": "2026-06-10",
@@ -7,7 +8,7 @@
     "1315": "2026-06-11",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T15:41:53Z",
+  "generated_at": "2026-06-11T17:11:55Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -135,21 +136,6 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Validation error merging structured configs containing enum in a nested list",
-      "updated_at": "2026-04-24T06:27:56Z"
-    },
-    "1102": {
-      "category": "Bug",
-      "created_at": "2023-07-14T18:15:32Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1318"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Merging nested readonly structured configs doesn't work.",
       "updated_at": "2026-04-24T06:27:56Z"
     },
     "1160": {
@@ -814,6 +800,21 @@
     }
   },
   "recent_done": {
+    "1102": {
+      "category": "Bug",
+      "created_at": "2023-07-14T18:15:32Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1318"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Merging nested readonly structured configs doesn't work.",
+      "updated_at": "2026-04-24T06:27:56Z"
+    },
     "1120": {
       "category": "Bug",
       "created_at": "2023-08-30T13:55:55Z",
