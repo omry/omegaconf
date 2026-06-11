@@ -1,0 +1,1 @@
+Fixed `OmegaConf.merge()` and `OmegaConf.unsafe_merge()` with nested readonly structured configs.

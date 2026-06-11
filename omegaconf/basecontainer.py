@@ -359,6 +359,7 @@ class BaseContainer(Container, ABC):
         dest: "BaseContainer",
         src: "BaseContainer",
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
+        _allow_readonly_target: bool = False,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
         from omegaconf import AnyNode, DictConfig, ValueNode
@@ -465,6 +466,7 @@ class BaseContainer(Container, ABC):
                         dest_node._merge_with(
                             src_node,
                             list_merge_mode=list_merge_mode,
+                            _allow_readonly_target=_allow_readonly_target,
                         )
                     elif not src_node_missing:
                         dest.__setitem__(key, src_node)
@@ -581,6 +583,7 @@ class BaseContainer(Container, ABC):
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
+        _allow_readonly_target: bool = False,
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
@@ -594,21 +597,35 @@ class BaseContainer(Container, ABC):
             if self._get_flag("allow_objects") is True:
                 my_flags = {"allow_objects": True}
             other = _ensure_container(other, flags=my_flags)
+            prev_readonly = self._get_node_flag("readonly")
 
-            if isinstance(self, DictConfig) and isinstance(other, DictConfig):
-                BaseContainer._map_merge(
-                    self,
-                    other,
-                    list_merge_mode=list_merge_mode,
-                )
-            elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
-                BaseContainer._list_merge(
-                    self,
-                    other,
-                    list_merge_mode=list_merge_mode,
-                )
-            else:
-                raise TypeError("Cannot merge DictConfig with ListConfig")
+            readonly_overridden = (
+                _allow_readonly_target and self._get_flag("readonly") is True
+            )
+            if readonly_overridden:
+                # Non-public merge construction may target readonly containers.
+                # Temporarily relax them without changing merge_with() semantics.
+                self._set_flag("readonly", False)
+
+            try:
+                if isinstance(self, DictConfig) and isinstance(other, DictConfig):
+                    BaseContainer._map_merge(
+                        self,
+                        other,
+                        list_merge_mode=list_merge_mode,
+                        _allow_readonly_target=_allow_readonly_target,
+                    )
+                elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                    BaseContainer._list_merge(
+                        self,
+                        other,
+                        list_merge_mode=list_merge_mode,
+                    )
+                else:
+                    raise TypeError("Cannot merge DictConfig with ListConfig")
+            finally:
+                if readonly_overridden:
+                    self._set_flag("readonly", prev_readonly)
 
         # recursively correct the parent hierarchy after the merge
         self._re_parent()
