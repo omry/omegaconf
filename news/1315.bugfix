@@ -1,0 +1,1 @@
+Fix source installs with setuptools versions that no longer provide pkg_resources.

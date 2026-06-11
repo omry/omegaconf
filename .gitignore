@@ -1,12 +1,14 @@
 .benchmarks
 .cache
 *.pyc
+**/__pycache__/
 .pytest_cache
 .tox
 .nox
 build
 dist
 omegaconf.egg-info
+/subprojects/omegaconf-pydevd/omegaconf_pydevd.egg-info
 venv
 .envrc
 .idea
@@ -22,3 +24,12 @@ TODO
 .dmypy.json
 .python-version
 .vscode
+
+# untracked tests
+temp
+
+# Agent hooks etc
+.agents
+.codex
+.mcp.json
+__pycache__
