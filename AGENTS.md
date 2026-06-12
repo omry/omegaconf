@@ -98,8 +98,10 @@ All four must pass before a change is considered clean.
 
 ## Environment and hooks
 
-- Run commands in the `omegaconf+hydra` conda environment by default.
-- When validating contributor setup, shell initialization, or hook behavior, verify it from the same environment a developer would actually use, such as a normal shell session or `sl commit`, not only from a temporary sandbox-only environment.
+- Use the repo-local `.venv` directory as the default development environment.
+- Prefer `.venv/bin/python -m ...` for Python module commands and `.venv/bin/<tool>` for installed tools such as `pytest`, `nox`, `black`, and `isort`.
+- If `.venv` is missing and environment setup is part of the task, create it with `python3 -m venv .venv` and install development dependencies with `.venv/bin/python -m pip install -r requirements/dev.txt -e .`.
+- When validating contributor setup, shell initialization, or hook behavior, verify it from the same `.venv` environment a developer would actually use, such as a normal shell session or `sl commit`, not only from a temporary sandbox-only environment.
 - Prefer hooks that do not depend on nontrivial user-environment tooling.
 - If an environment override is required for one command, explain why it must be part of that same process invocation.
 - If a small system tool would materially simplify the workflow, it is fine to suggest it or ask the user to install it.

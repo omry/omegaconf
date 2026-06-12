@@ -2,13 +2,26 @@
 
 #### Essentials
 
-We recomend using Conda or pyenv to create a new environment.
+Use a repo-local virtual environment in `.venv`.
 
-Example with Conda: `conda create -n omegaconf38 python=3.8 -qy`
+Create the environment:
 
-Activate your new conda environment: `conda activate omegaconf38`
+```bash
+python3 -m venv .venv
+```
 
-Install development dependencies: `pip install -r requirements/dev.txt -e .`
+Activate it:
+
+```bash
+source .venv/bin/activate
+```
+
+Install development dependencies:
+
+```bash
+python -m pip install --upgrade pip setuptools
+python -m pip install -r requirements/dev.txt -e .
+```
 
 The optional `omegaconf-pydevd` debugger plugin lives in
 `subprojects/omegaconf-pydevd/` and has its own packaging and tests.
@@ -20,11 +33,11 @@ pre-commit will verify your code lints cleanly when you commit. You can use `git
 ##### Mac
 OmegaConf is compatible with Python 3.8 and newer.
 
-One way to install multiple Python versions on Mac to to use pyenv.
+One way to install multiple Python versions on Mac is to use pyenv.
 The instructions [here](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/MAC_SETUP.md)
 will provide full details. It shows how to use pyenv on Mac to install multiple versions of Python and have
 pyenv make specific versions available in specific directories automatically.
-This plays well with Conda, which supports a single Python version. Pyenv will provide the versions not installed by Conda (which are used when running nox).
+After selecting the Python version for this checkout, create `.venv` with that interpreter.
 
 #### Testing
 Run tests directly with `pytest`.
