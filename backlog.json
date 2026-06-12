@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:43:02Z",
+  "generated_at": "2026-06-12T18:48:00Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -673,10 +673,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2022-11-28",
-      "updated": "2026-04-24",
+      "updated": "2026-06-12",
       "labels": [
-        "bug",
-        "needs triage"
+        "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1037"
     },
@@ -1191,6 +1190,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T18:48:00Z",
+      "kind": "label",
+      "issue": 1037,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1037",
+      "title": "Structured config type coercion not working correctly for DictConfig keys",
+      "detail": "removed \"needs triage\""
+    },
     {
       "ts": "2026-06-12T18:43:02Z",
       "kind": "label",
