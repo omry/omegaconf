@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:07:24Z",
+  "generated_at": "2026-06-12T18:20:33Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 59,
+    "open_total": 58,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 17,
-        "percentage": 28.8
+        "count": 16,
+        "percentage": 27.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 38,
-        "percentage": 64.4
+        "percentage": 65.5
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.1
+        "percentage": 5.2
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 56
+        "count": 55
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 10
+        "count": 11
       }
     ]
   },
@@ -711,22 +711,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1052"
     },
     {
-      "number": 1054,
-      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-01-22",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1054"
-    },
-    {
       "number": 1058,
       "title": "structured config types are discarded on list merge",
       "category": "Bug",
@@ -1188,9 +1172,32 @@
       "updated": "2026-06-11",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1315"
+    },
+    {
+      "number": 1054,
+      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2023-01-22",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1054"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T18:20:33Z",
+      "kind": "closed",
+      "issue": 1054,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1054",
+      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'"
+    },
     {
       "ts": "2026-06-12T18:07:24Z",
       "kind": "label",

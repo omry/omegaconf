@@ -1,5 +1,6 @@
 {
   "closed_at": {
+    "1054": "2026-06-12",
     "1061": "2026-06-12",
     "1095": "2026-06-12",
     "1102": "2026-06-11",
@@ -11,7 +12,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T18:07:24Z",
+  "generated_at": "2026-06-12T18:20:33Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -89,19 +90,6 @@
       "status": "not started",
       "title": "How can I get the data type of an attribute at a depth>1?",
       "updated_at": "2026-04-24T06:27:52Z"
-    },
-    "1054": {
-      "category": "Bug",
-      "created_at": "2023-01-22T02:42:13Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
-      "updated_at": "2026-04-24T06:27:53Z"
     },
     "1058": {
       "category": "Bug",
@@ -762,6 +750,19 @@
     }
   },
   "recent_done": {
+    "1054": {
+      "category": "Bug",
+      "created_at": "2023-01-22T02:42:13Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
+      "updated_at": "2026-04-24T06:27:53Z"
+    },
     "1061": {
       "category": "Enhancement",
       "created_at": "2023-03-07T19:21:09Z",
