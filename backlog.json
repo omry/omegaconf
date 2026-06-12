@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T05:57:41Z",
+  "generated_at": "2026-06-12T11:05:38Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 61,
@@ -1037,6 +1037,27 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
+      "number": 771,
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1309,
+          "url": "https://github.com/omry/omegaconf/pull/1309"
+        }
+      ],
+      "created": "2021-07-21",
+      "updated": "2026-04-24",
+      "labels": [
+        "documentation",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/771"
+    },
+    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1163,27 +1184,6 @@
       "updated": "2026-06-11",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1315"
-    },
-    {
-      "number": 771,
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1309,
-          "url": "https://github.com/omry/omegaconf/pull/1309"
-        }
-      ],
-      "created": "2021-07-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "documentation",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/771"
     }
   ],
   "updates": [
