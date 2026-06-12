@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:56:35Z",
+  "generated_at": "2026-06-12T19:46:07Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -640,10 +640,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2022-10-29",
-      "updated": "2026-04-24",
+      "updated": "2026-06-12",
       "labels": [
         "enhancement",
-        "needs triage",
         "interpolation",
         "has-workaround"
       ],
@@ -1190,6 +1189,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T19:46:07Z",
+      "kind": "label",
+      "issue": 1024,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1024",
+      "title": "Interpolations in dictionary keys",
+      "detail": "removed \"needs triage\""
+    },
     {
       "ts": "2026-06-12T18:56:35Z",
       "kind": "label",

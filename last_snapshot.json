@@ -13,7 +13,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T18:56:35Z",
+  "generated_at": "2026-06-12T19:46:07Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -34,14 +34,13 @@
       "labels": [
         "enhancement",
         "has-workaround",
-        "interpolation",
-        "needs triage"
+        "interpolation"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Interpolations in dictionary keys",
-      "updated_at": "2026-04-24T06:27:50Z"
+      "updated_at": "2026-06-12T19:44:47Z"
     },
     "1028": {
       "category": "Enhancement",
@@ -53,7 +52,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Add support for equals sign and other symbols in resolver arguments",
-      "updated_at": "2026-06-12T18:56:15Z"
+      "updated_at": "2026-06-12T19:11:34Z"
     },
     "1037": {
       "category": "Bug",
