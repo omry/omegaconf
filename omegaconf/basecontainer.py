@@ -989,17 +989,24 @@ def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
 
 def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) -> None:
     """Get node[key] and ensure it is compatible with value_type_hint, mutating if necessary."""
+    from .nodes import AnyNode
+
     subnode = node._get_node(key)
     assert isinstance(subnode, Node)
-    if _is_special(subnode) or (
-        is_union_annotation(value_type_hint)
-        and (
-            not isinstance(subnode, UnionNode)
-            or get_type_hint(subnode) != value_type_hint
+    _, ref_type = _resolve_optional(value_type_hint)
+    if (
+        _is_special(subnode)
+        or (isinstance(subnode, AnyNode) and ref_type is not Any)
+        or (
+            is_union_annotation(value_type_hint)
+            and (
+                not isinstance(subnode, UnionNode)
+                or get_type_hint(subnode) != value_type_hint
+            )
         )
     ):
-        # Ensure special values are wrapped in a Node subclass that
-        # is compatible with the type hint.
+        # Ensure dynamically typed or special values are wrapped in a Node
+        # subclass that is compatible with the type hint.
         node._wrap_value_and_set(key, subnode._value(), value_type_hint)
         subnode = node._get_node(key)
         assert isinstance(subnode, Node)
