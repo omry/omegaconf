@@ -1,5 +1,6 @@
 {
   "closed_at": {
+    "1095": "2026-06-12",
     "1102": "2026-06-11",
     "1120": "2026-06-11",
     "1126": "2026-06-11",
@@ -9,7 +10,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T15:01:14Z",
+  "generated_at": "2026-06-12T15:11:58Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -125,21 +126,6 @@
       "status": "not started",
       "title": "Enum inheritance Support",
       "updated_at": "2026-04-24T06:27:54Z"
-    },
-    "1095": {
-      "category": "Bug",
-      "created_at": "2023-06-23T20:18:48Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1320"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Validation error merging structured configs containing enum in a nested list",
-      "updated_at": "2026-04-24T06:27:56Z"
     },
     "1160": {
       "category": "Enhancement",
@@ -788,6 +774,21 @@
     }
   },
   "recent_done": {
+    "1095": {
+      "category": "Bug",
+      "created_at": "2023-06-23T20:18:48Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1320"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Validation error merging structured configs containing enum in a nested list",
+      "updated_at": "2026-04-24T06:27:56Z"
+    },
     "1102": {
       "category": "Bug",
       "created_at": "2023-07-14T18:15:32Z",
