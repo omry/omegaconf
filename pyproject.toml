@@ -7,6 +7,7 @@ exclude = '''
     | omegaconf/grammar/gen
     | omegaconf/vendor
     | \.nox
+    | \.venv
     | build
     | subprojects
     | temp
@@ -17,12 +18,18 @@ exclude = '''
 '''
 
 [tool.isort]
-skip_glob = ["temp/*", "omegaconf/vendor/*", "subprojects/*", ".claude/*"]
+skip_glob = [
+    ".venv/*",
+    "temp/*",
+    "omegaconf/vendor/*",
+    "subprojects/*",
+    ".claude/*",
+]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
 pythonpath = ["."]
-norecursedirs = ["subprojects", ".git", ".sl"]
+norecursedirs = ["subprojects", ".git", ".sl", ".venv"]
 
 [tool.bumpversion]
 current_version = "2.4.0.dev11"
@@ -102,6 +109,7 @@ project-excludes = [
     "build/**",
     "temp/**",
     ".nox/**",
+    ".venv/**",
     "omegaconf/vendor/**",
     "subprojects/**",
 ]
