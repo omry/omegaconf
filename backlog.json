@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:32:53Z",
+  "generated_at": "2026-06-12T18:43:02Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -689,9 +689,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2022-12-26",
-      "updated": "2026-04-24",
+      "updated": "2026-06-12",
       "labels": [
-        "needs triage"
+        "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1048"
     },
@@ -1011,6 +1011,21 @@
       "url": "https://github.com/omry/omegaconf/issues/945"
     },
     {
+      "number": 1052,
+      "title": "How can I get the data type of an attribute at a depth>1?",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2023-01-06",
+      "updated": "2026-04-24",
+      "labels": [
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1052"
+    },
+    {
       "number": 1054,
       "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
       "category": "Bug",
@@ -1173,24 +1188,17 @@
       "updated": "2026-06-11",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1315"
-    },
-    {
-      "number": 1052,
-      "title": "How can I get the data type of an attribute at a depth>1?",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2023-01-06",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1052"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T18:43:02Z",
+      "kind": "label",
+      "issue": 1048,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1048",
+      "title": "[Feature Request] Use SimpleNamespace for to_container() and to_object()",
+      "detail": "added \"enhancement\"; removed \"needs triage\""
+    },
     {
       "ts": "2026-06-12T18:32:53Z",
       "kind": "closed",

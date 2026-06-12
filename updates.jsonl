@@ -33,3 +33,4 @@
 {"ts": "2026-06-12T18:07:24Z", "kind": "label", "issue": 1058, "issue_url": "https://github.com/omry/omegaconf/issues/1058", "title": "structured config types are discarded on list merge", "detail": "removed \"needs triage\""}
 {"ts": "2026-06-12T18:20:33Z", "kind": "closed", "issue": 1054, "issue_url": "https://github.com/omry/omegaconf/issues/1054", "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'"}
 {"ts": "2026-06-12T18:32:53Z", "kind": "closed", "issue": 1052, "issue_url": "https://github.com/omry/omegaconf/issues/1052", "title": "How can I get the data type of an attribute at a depth>1?"}
+{"ts": "2026-06-12T18:43:02Z", "kind": "label", "issue": 1048, "issue_url": "https://github.com/omry/omegaconf/issues/1048", "title": "[Feature Request] Use SimpleNamespace for to_container() and to_object()", "detail": "added \"enhancement\"; removed \"needs triage\""}
