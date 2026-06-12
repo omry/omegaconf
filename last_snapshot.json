@@ -6,9 +6,10 @@
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
+    "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-11T17:11:55Z",
+  "generated_at": "2026-06-12T05:57:41Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -583,21 +584,6 @@
       "title": "Dereferencing a resolver that returns \"???\"",
       "updated_at": "2026-04-24T06:29:25Z"
     },
-    "771": {
-      "category": "Documentation",
-      "created_at": "2021-07-21T21:11:54Z",
-      "labels": [
-        "documentation",
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1309"
-      ],
-      "state": "OPEN",
-      "status": "community PR",
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "updated_at": "2026-04-24T06:29:26Z"
-    },
     "813": {
       "category": "Bug",
       "created_at": "2021-10-28T03:06:32Z",
@@ -881,6 +867,21 @@
       "status": "done",
       "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 \u2014 fix exists at HEAD, please cut a release",
       "updated_at": "2026-06-11T02:51:56Z"
+    },
+    "771": {
+      "category": "Documentation",
+      "created_at": "2021-07-21T21:11:54Z",
+      "labels": [
+        "documentation",
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1309"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "updated_at": "2026-04-24T06:29:26Z"
     },
     "945": {
       "category": "Bug",

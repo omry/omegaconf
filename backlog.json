@@ -1,27 +1,27 @@
 {
-  "generated_on": "2026-06-11",
-  "generated_at": "2026-06-11T17:11:55Z",
+  "generated_on": "2026-06-12",
+  "generated_at": "2026-06-12T05:57:41Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 62,
+    "open_total": 61,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 18,
-        "percentage": 29.0
+        "percentage": 29.5
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 62.9
+        "percentage": 63.9
       },
       {
         "category": "Documentation",
         "emoji": "📄",
-        "count": 2,
-        "percentage": 3.2
+        "count": 1,
+        "percentage": 1.6
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 4.8
+        "percentage": 4.9
       },
       {
         "category": "Build",
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 4
+        "count": 3
       },
       {
         "status": "blocked",
@@ -66,7 +66,7 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 7
+        "count": 8
       }
     ]
   },
@@ -111,27 +111,6 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/580"
-    },
-    {
-      "number": 771,
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1309,
-          "url": "https://github.com/omry/omegaconf/pull/1309"
-        }
-      ],
-      "created": "2021-07-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "documentation",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/771"
     },
     {
       "number": 813,
@@ -1074,6 +1053,27 @@
       "url": "https://github.com/omry/omegaconf/issues/945"
     },
     {
+      "number": 1102,
+      "title": "Merging nested readonly structured configs doesn't work.",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1318,
+          "url": "https://github.com/omry/omegaconf/pull/1318"
+        }
+      ],
+      "created": "2023-07-14",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1102"
+    },
+    {
       "number": 1120,
       "title": "Escaped resolver modifying `_root_` doesn't work",
       "category": "Bug",
@@ -1165,28 +1165,35 @@
       "url": "https://github.com/omry/omegaconf/issues/1315"
     },
     {
-      "number": 1102,
-      "title": "Merging nested readonly structured configs doesn't work.",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 771,
+      "title": "Document special treatment of \"???\" by OmegaConf.merge",
+      "category": "Documentation",
+      "category_emoji": "📄",
       "status": "done",
       "status_emoji": "✅",
       "prs": [
         {
-          "number": 1318,
-          "url": "https://github.com/omry/omegaconf/pull/1318"
+          "number": 1309,
+          "url": "https://github.com/omry/omegaconf/pull/1309"
         }
       ],
-      "created": "2023-07-14",
+      "created": "2021-07-21",
       "updated": "2026-04-24",
       "labels": [
-        "bug",
+        "documentation",
         "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1102"
+      "url": "https://github.com/omry/omegaconf/issues/771"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T05:57:41Z",
+      "kind": "closed",
+      "issue": 771,
+      "issue_url": "https://github.com/omry/omegaconf/issues/771",
+      "title": "Document special treatment of \"???\" by OmegaConf.merge"
+    },
     {
       "ts": "2026-06-11T17:11:55Z",
       "kind": "closed",
