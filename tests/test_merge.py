@@ -44,6 +44,7 @@ from tests import (
     A,
     B,
     C,
+    Color,
     ConcretePlugin,
     ConfWithMissingDict,
     Dataframe,
@@ -1216,6 +1217,17 @@ def test_merge_list_list() -> None:
     b = OmegaConf.create([4, 5, 6])
     a.merge_with(b)
     assert a == b
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_nested_list_of_enum_names(merge: Any) -> None:
+    @dataclass
+    class Config:
+        list_list: List[List[Color]] = field(default_factory=lambda: [[Color.RED]])
+
+    cfg = merge(Config(), OmegaConf.create({"list_list": [["BLUE"]]}))
+
+    assert cfg.list_list == [[Color.BLUE]]
 
 
 @mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
