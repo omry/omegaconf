@@ -30,3 +30,4 @@
 {"ts": "2026-06-12T15:01:14Z", "kind": "pr", "issue": 1095, "issue_url": "https://github.com/omry/omegaconf/issues/1095", "title": "Validation error merging structured configs containing enum in a nested list", "detail": "linked #1320"}
 {"ts": "2026-06-12T15:11:58Z", "kind": "closed", "issue": 1095, "issue_url": "https://github.com/omry/omegaconf/issues/1095", "title": "Validation error merging structured configs containing enum in a nested list"}
 {"ts": "2026-06-12T17:19:51Z", "kind": "closed", "issue": 1061, "issue_url": "https://github.com/omry/omegaconf/issues/1061", "title": "Enum inheritance Support"}
+{"ts": "2026-06-12T18:07:24Z", "kind": "label", "issue": 1058, "issue_url": "https://github.com/omry/omegaconf/issues/1058", "title": "structured config types are discarded on list merge", "detail": "removed \"needs triage\""}

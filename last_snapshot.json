@@ -11,7 +11,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T17:19:51Z",
+  "generated_at": "2026-06-12T18:07:24Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -107,14 +107,13 @@
       "category": "Bug",
       "created_at": "2023-02-19T09:50:12Z",
       "labels": [
-        "bug",
-        "needs triage"
+        "bug"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "structured config types are discarded on list merge",
-      "updated_at": "2026-04-24T06:27:53Z"
+      "updated_at": "2026-06-12T18:06:05Z"
     },
     "1160": {
       "category": "Enhancement",
