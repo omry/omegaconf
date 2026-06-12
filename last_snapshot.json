@@ -1,5 +1,6 @@
 {
   "closed_at": {
+    "1061": "2026-06-12",
     "1095": "2026-06-12",
     "1102": "2026-06-11",
     "1120": "2026-06-11",
@@ -10,7 +11,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T15:11:58Z",
+  "generated_at": "2026-06-12T17:19:51Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -114,18 +115,6 @@
       "status": "not started",
       "title": "structured config types are discarded on list merge",
       "updated_at": "2026-04-24T06:27:53Z"
-    },
-    "1061": {
-      "category": "Enhancement",
-      "created_at": "2023-03-07T19:21:09Z",
-      "labels": [
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Enum inheritance Support",
-      "updated_at": "2026-04-24T06:27:54Z"
     },
     "1160": {
       "category": "Enhancement",
@@ -774,6 +763,18 @@
     }
   },
   "recent_done": {
+    "1061": {
+      "category": "Enhancement",
+      "created_at": "2023-03-07T19:21:09Z",
+      "labels": [
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Enum inheritance Support",
+      "updated_at": "2026-04-24T06:27:54Z"
+    },
     "1095": {
       "category": "Bug",
       "created_at": "2023-06-23T20:18:48Z",

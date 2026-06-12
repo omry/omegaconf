@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T15:11:58Z",
+  "generated_at": "2026-06-12T17:19:51Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 60,
+    "open_total": 59,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 17,
-        "percentage": 28.3
+        "percentage": 28.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 39,
-        "percentage": 65.0
+        "count": 38,
+        "percentage": 64.4
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.0
+        "percentage": 5.1
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 57
+        "count": 56
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 9
+        "count": 10
       }
     ]
   },
@@ -743,21 +743,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1058"
     },
     {
-      "number": 1061,
-      "title": "Enum inheritance Support",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-03-07",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1061"
-    },
-    {
       "number": 1160,
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
       "category": "Enhancement",
@@ -1058,6 +1043,27 @@
       "url": "https://github.com/omry/omegaconf/issues/945"
     },
     {
+      "number": 1095,
+      "title": "Validation error merging structured configs containing enum in a nested list",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1320,
+          "url": "https://github.com/omry/omegaconf/pull/1320"
+        }
+      ],
+      "created": "2023-06-23",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1095"
+    },
+    {
       "number": 1102,
       "title": "Merging nested readonly structured configs doesn't work.",
       "category": "Bug",
@@ -1170,28 +1176,29 @@
       "url": "https://github.com/omry/omegaconf/issues/1315"
     },
     {
-      "number": 1095,
-      "title": "Validation error merging structured configs containing enum in a nested list",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 1061,
+      "title": "Enum inheritance Support",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1320,
-          "url": "https://github.com/omry/omegaconf/pull/1320"
-        }
-      ],
-      "created": "2023-06-23",
+      "prs": [],
+      "created": "2023-03-07",
       "updated": "2026-04-24",
       "labels": [
-        "bug",
         "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1095"
+      "url": "https://github.com/omry/omegaconf/issues/1061"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T17:19:51Z",
+      "kind": "closed",
+      "issue": 1061,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1061",
+      "title": "Enum inheritance Support"
+    },
     {
       "ts": "2026-06-12T15:11:58Z",
       "kind": "closed",
