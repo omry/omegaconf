@@ -26,3 +26,5 @@
 {"ts": "2026-06-11T15:41:53Z", "kind": "pr", "issue": 1102, "issue_url": "https://github.com/omry/omegaconf/issues/1102", "title": "Merging nested readonly structured configs doesn't work.", "detail": "linked #1318"}
 {"ts": "2026-06-11T17:11:55Z", "kind": "closed", "issue": 1102, "issue_url": "https://github.com/omry/omegaconf/issues/1102", "title": "Merging nested readonly structured configs doesn't work."}
 {"ts": "2026-06-12T05:57:41Z", "kind": "closed", "issue": 771, "issue_url": "https://github.com/omry/omegaconf/issues/771", "title": "Document special treatment of \"???\" by OmegaConf.merge"}
+{"ts": "2026-06-12T15:01:14Z", "kind": "status", "issue": 1095, "issue_url": "https://github.com/omry/omegaconf/issues/1095", "title": "Validation error merging structured configs containing enum in a nested list", "detail": "not started → in progress", "pr": {"number": 1320, "url": "https://github.com/omry/omegaconf/pull/1320"}}
+{"ts": "2026-06-12T15:01:14Z", "kind": "pr", "issue": 1095, "issue_url": "https://github.com/omry/omegaconf/issues/1095", "title": "Validation error merging structured configs containing enum in a nested list", "detail": "linked #1320"}
