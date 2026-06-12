@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:48:00Z",
+  "generated_at": "2026-06-12T18:56:35Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -658,9 +658,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2022-11-09",
-      "updated": "2026-04-24",
+      "updated": "2026-06-12",
       "labels": [
-        "needs triage"
+        "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1028"
     },
@@ -1190,6 +1190,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T18:56:35Z",
+      "kind": "label",
+      "issue": 1028,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1028",
+      "title": "Add support for equals sign and other symbols in resolver arguments",
+      "detail": "added \"enhancement\"; removed \"needs triage\""
+    },
     {
       "ts": "2026-06-12T18:48:00Z",
       "kind": "label",

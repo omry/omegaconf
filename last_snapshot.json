@@ -13,7 +13,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T18:48:00Z",
+  "generated_at": "2026-06-12T18:56:35Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -47,13 +47,13 @@
       "category": "Enhancement",
       "created_at": "2022-11-09T16:48:10Z",
       "labels": [
-        "needs triage"
+        "enhancement"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Add support for equals sign and other symbols in resolver arguments",
-      "updated_at": "2026-04-24T06:27:51Z"
+      "updated_at": "2026-06-12T18:56:15Z"
     },
     "1037": {
       "category": "Bug",
@@ -65,7 +65,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "updated_at": "2026-06-12T18:46:43Z"
+      "updated_at": "2026-06-12T18:54:53Z"
     },
     "1048": {
       "category": "Enhancement",
