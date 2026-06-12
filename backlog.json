@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-06-12",
-  "generated_at": "2026-06-12T18:20:33Z",
+  "generated_at": "2026-06-12T18:32:53Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 58,
+    "open_total": 57,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 16,
-        "percentage": 27.6
+        "percentage": 28.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 38,
-        "percentage": 65.5
+        "count": 37,
+        "percentage": 64.9
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.7
+        "percentage": 1.8
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.2
+        "percentage": 5.3
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 55
+        "count": 54
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 11
+        "count": 12
       }
     ]
   },
@@ -696,21 +696,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1048"
     },
     {
-      "number": 1052,
-      "title": "How can I get the data type of an attribute at a depth>1?",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-01-06",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1052"
-    },
-    {
       "number": 1058,
       "title": "structured config types are discarded on list merge",
       "category": "Bug",
@@ -1026,6 +1011,22 @@
       "url": "https://github.com/omry/omegaconf/issues/945"
     },
     {
+      "number": 1054,
+      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2023-01-22",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1054"
+    },
+    {
       "number": 1061,
       "title": "Enum inheritance Support",
       "category": "Enhancement",
@@ -1174,23 +1175,29 @@
       "url": "https://github.com/omry/omegaconf/issues/1315"
     },
     {
-      "number": 1054,
-      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 1052,
+      "title": "How can I get the data type of an attribute at a depth>1?",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2023-01-22",
+      "created": "2023-01-06",
       "updated": "2026-04-24",
       "labels": [
-        "bug",
         "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1054"
+      "url": "https://github.com/omry/omegaconf/issues/1052"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-12T18:32:53Z",
+      "kind": "closed",
+      "issue": 1052,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1052",
+      "title": "How can I get the data type of an attribute at a depth>1?"
+    },
     {
       "ts": "2026-06-12T18:20:33Z",
       "kind": "closed",
