@@ -11,9 +11,10 @@
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "771": "2026-06-12",
-    "945": "2026-06-10"
+    "945": "2026-06-10",
+    "998": "2026-06-13"
   },
-  "generated_at": "2026-06-13T04:09:32Z",
+  "generated_at": "2026-06-13T04:21:18Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -708,21 +709,6 @@
       "title": "Follow up on deprecation of `register_resolver()`",
       "updated_at": "2026-04-24T06:28:21Z"
     },
-    "998": {
-      "category": "Bug",
-      "created_at": "2022-08-18T20:39:47Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1321"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
-      "updated_at": "2026-04-24T06:28:23Z"
-    },
     "999": {
       "category": "Enhancement",
       "created_at": "2022-08-29T16:40:13Z",
@@ -898,6 +884,21 @@
       "status": "done",
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "updated_at": "2026-04-24T06:28:20Z"
+    },
+    "998": {
+      "category": "Bug",
+      "created_at": "2022-08-18T20:39:47Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1321"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
+      "updated_at": "2026-04-24T06:28:23Z"
     }
   },
   "repo": "omry/omegaconf"
