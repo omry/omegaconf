@@ -1,12 +1,20 @@
 from contextlib import AbstractContextManager
 from typing import Any, Optional
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
+
+
+def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
+    if register_func is OmegaConf.legacy_register_resolver:
+        with warns(UserWarning, match="legacy_register_resolver"):
+            register_func(name, resolver)
+    else:
+        register_func(name, resolver)
 
 
 @mark.parametrize(
@@ -82,7 +90,7 @@ class TestSelect:
 
     @mark.parametrize(
         "register_func",
-        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_resolver],
     )
     @mark.parametrize(
         "cfg, key, expected",
@@ -99,7 +107,7 @@ class TestSelect:
         register_func: Any,
         struct: Optional[bool],
     ) -> None:
-        register_func("func", lambda x: f"_{x}_")
+        _register_resolver(register_func, "func", lambda x: f"_{x}_")
         cfg = _ensure_container(cfg)
         OmegaConf.set_struct(cfg, struct)
         if isinstance(expected, AbstractContextManager):

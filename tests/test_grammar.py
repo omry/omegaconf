@@ -457,9 +457,9 @@ class TestOmegaConfGrammar:
     ) -> None:
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
 
-        OmegaConf.register_new_resolver("test", self._resolver_test)
-        OmegaConf.register_new_resolver("first", self._resolver_first)
-        OmegaConf.register_new_resolver("ns1.ns2.test", self._resolver_test)
+        OmegaConf.register_resolver("test", self._resolver_test)
+        OmegaConf.register_resolver("first", self._resolver_first)
+        OmegaConf.register_resolver("ns1.ns2.test", self._resolver_test)
 
         self._visit_with_config(parse_tree, expected_visit)
 
@@ -468,7 +468,7 @@ class TestOmegaConfGrammar:
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
         parse_tree, expected_visit = self._parse("configValue", definition, expected)
-        OmegaConf.register_new_resolver("test", self._resolver_test)
+        OmegaConf.register_resolver("test", self._resolver_test)
         self._visit_with_config(parse_tree, expected_visit)
 
     @parametrize_from(
@@ -487,7 +487,7 @@ class TestOmegaConfGrammar:
     def test_deprecated_empty_args(
         self, restore_resolvers: Any, definition: str, expected: Any
     ) -> None:
-        OmegaConf.register_new_resolver("test", self._resolver_test)
+        OmegaConf.register_resolver("test", self._resolver_test)
 
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
         with warns(
@@ -754,7 +754,7 @@ def test_custom_resolver_param_supported_chars() -> None:
     supported_chars = r"abc123_:" + UNQUOTED_SPECIAL
     c = OmegaConf.create({"dir1": "${copy:" + supported_chars + "}"})
 
-    OmegaConf.register_new_resolver("copy", lambda x: x)
+    OmegaConf.register_resolver("copy", lambda x: x)
     assert c.dir1 == supported_chars
 
 

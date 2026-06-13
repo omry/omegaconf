@@ -329,7 +329,7 @@ def test_to_container_resolves_referenced_node_once(
         counter += 1
         return counter
 
-    OmegaConf.register_new_resolver("increment", increment)
+    OmegaConf.register_resolver("increment", increment)
     cfg = OmegaConf.create(cfg_data)
 
     assert OmegaConf.to_container(cfg, resolve=True) == expected

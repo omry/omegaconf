@@ -29,7 +29,7 @@ def common_resolvers(restore_resolvers: Any) -> Any:
     def cast(t: Any, v: Any) -> Any:
         return {"str": str, "int": int}[t](v)  # cast `v` to type `t`
 
-    OmegaConf.register_new_resolver("cast", cast)
-    OmegaConf.register_new_resolver("identity", lambda x: x)
+    OmegaConf.register_resolver("cast", cast)
+    OmegaConf.register_resolver("identity", lambda x: x)
 
     yield

@@ -560,7 +560,7 @@ def test_resolve_raises_on_interpolation_to_missing(cfg: Any) -> None:
 
 def test_resolve_raises_on_resolver_arg_to_missing(restore_resolvers: Any) -> None:
     """https://github.com/omry/omegaconf/issues/1131"""
-    OmegaConf.register_new_resolver("no_op", lambda x: x)
+    OmegaConf.register_resolver("no_op", lambda x: x)
     cfg = OmegaConf.create({"a": "${no_op:${b}}", "b": "???"})
     assert not OmegaConf.is_missing(cfg, "a")
     with raises(InterpolationToMissingValueError):
@@ -570,7 +570,7 @@ def test_resolve_raises_on_resolver_arg_to_missing(restore_resolvers: Any) -> No
 def test_resolve_does_not_raise_when_resolver_returns_dict_config(
     restore_resolvers: Any,
 ) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "merge_test",
         lambda a, b: OmegaConf.merge(a, b),
         replace=True,
@@ -701,7 +701,7 @@ def test_missing_keys_interpolation_to_missing(cfg: Any, expected: Any) -> None:
 def test_missing_keys_custom_resolver_interpolation_to_missing(
     restore_resolvers: Any,
 ) -> None:
-    OmegaConf.register_new_resolver("add", lambda a, b: a + b)
+    OmegaConf.register_resolver("add", lambda a, b: a + b)
     cfg = OmegaConf.create(
         {
             "a": "???",
@@ -723,7 +723,7 @@ def test_missing_keys_custom_resolver_interpolation_to_missing(
 def test_missing_keys_custom_resolver_body_dereferences_missing(
     restore_resolvers: Any,
 ) -> None:
-    OmegaConf.register_new_resolver("read", lambda *, _root_: _root_.a)
+    OmegaConf.register_resolver("read", lambda *, _root_: _root_.a)
     cfg = OmegaConf.create({"a": "???", "b": "${read:}"})
     assert OmegaConf.missing_keys(cfg) == {"a"}
     assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=True) == {"a", "b"}
@@ -736,7 +736,7 @@ def test_missing_keys_custom_resolver_non_missing_error(
     def boom() -> None:
         raise ValueError("boom")
 
-    OmegaConf.register_new_resolver("boom", boom)
+    OmegaConf.register_resolver("boom", boom)
     cfg = OmegaConf.create({"missing": "???", "err": "${boom:}"})
     assert OmegaConf.missing_keys(cfg) == {"missing"}
     assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=False) == {"missing"}
@@ -782,7 +782,7 @@ def test_clear_resolver(
     restore_resolvers: Any, register_resolver_params: Any, name: str, expected: Any
 ) -> None:
     if register_resolver_params:
-        OmegaConf.register_new_resolver(**register_resolver_params)
+        OmegaConf.register_resolver(**register_resolver_params)
     assert expected["pre_clear"] == OmegaConf.has_resolver(name)
 
     assert OmegaConf.clear_resolver(name) == expected["result"]
