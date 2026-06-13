@@ -934,6 +934,19 @@ def _update_types(node: Node, ref_type: Any, object_type: Optional[type]) -> Non
         node._metadata.object_type = object_type
 
     if node._metadata.ref_type is Any:
+        new_is_optional, new_ref_type = _resolve_optional(ref_type)
+        if is_dict_annotation(new_ref_type) and is_structured_config(
+            node._metadata.object_type
+        ):
+            from ._utils import get_dict_key_value_types
+
+            assert isinstance(node._metadata, ContainerMetadata)
+            node._metadata.optional = new_is_optional
+            node._metadata.ref_type = new_ref_type
+            node._metadata.key_type, node._metadata.element_type = (
+                get_dict_key_value_types(new_ref_type)
+            )
+            return
         _deep_update_type_hint(node, ref_type)
 
 

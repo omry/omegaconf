@@ -1,0 +1,1 @@
+Preserve structured child type metadata when merging a missing dict-annotated field over an existing structured config.

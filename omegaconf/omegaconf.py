@@ -417,6 +417,9 @@ class OmegaConf:
         """
         Merge a list of previously created configs into a single one
 
+        Note for maintainers: changes to merge behavior should also consider
+        whether OmegaConf.unsafe_merge() needs the same coverage.
+
         :param configs: Input configs
         :param list_merge_mode: Behavior for merging lists
             REPLACE: Replaces the target list with the new one (default)
