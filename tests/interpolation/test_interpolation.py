@@ -247,7 +247,7 @@ def test_invalid_intermediate_result_when_not_throwing(
     def fail_if_called(x: Any) -> None:
         assert False
 
-    OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
+    OmegaConf.register_resolver("fail_if_called", fail_if_called)
     cfg = OmegaConf.create(
         {
             "x": "${fail_if_called:${%s}}" % ref,
@@ -260,7 +260,7 @@ def test_invalid_intermediate_result_when_not_throwing(
 
 
 def test_none_value_in_quoted_string(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("test", lambda x: x)
+    OmegaConf.register_resolver("test", lambda x: x)
     cfg = OmegaConf.create({"x": "${test:'${missing}'}", "missing": None})
     assert cfg.x == "None"
 
@@ -319,7 +319,7 @@ def test_interpolation_type_validated_ok(
     def drop_last(s: str) -> str:
         return s[0:-1]  # drop last character from string `s`
 
-    OmegaConf.register_new_resolver("drop_last", drop_last)
+    OmegaConf.register_resolver("drop_last", drop_last)
 
     cfg = OmegaConf.structured(cfg)
 

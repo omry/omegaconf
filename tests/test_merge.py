@@ -15,7 +15,7 @@ from typing import (
     Union,
 )
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     II,
@@ -65,6 +65,14 @@ from tests import (
     User,
     Users,
 )
+
+
+def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
+    if register_func is OmegaConf.legacy_register_resolver:
+        with warns(UserWarning, match="legacy_register_resolver"):
+            register_func(name, resolver)
+    else:
+        register_func(name, resolver)
 
 
 @mark.parametrize(
@@ -1598,7 +1606,7 @@ def test_merge_with_error_not_changing_target(c1: Any, c2: Any) -> Any:
 
 @mark.parametrize(
     "register_func",
-    [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
+    [OmegaConf.legacy_register_resolver, OmegaConf.register_resolver],
 )
 def test_into_custom_resolver_that_throws(
     restore_resolvers: Any, register_func: Any
@@ -1606,7 +1614,7 @@ def test_into_custom_resolver_that_throws(
     def fail() -> None:
         raise ValueError()
 
-    register_func("fail", fail)
+    _register_resolver(register_func, "fail", fail)
 
     configs = (
         {"d": 20, "i": "${fail:}"},

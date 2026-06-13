@@ -25,7 +25,7 @@ First, register the ``builtins.eval`` function as a new resolver:
 .. doctest::
 
     >>> from omegaconf import OmegaConf
-    >>> OmegaConf.register_new_resolver("eval", eval)
+    >>> OmegaConf.register_resolver("eval", eval)
 
 Now, define a config and perform some arithmetic using the ``eval`` resolver:
 
