@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-13",
-  "generated_at": "2026-06-13T03:24:10Z",
+  "generated_at": "2026-06-13T03:28:51Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -8,14 +8,14 @@
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 16,
-        "percentage": 28.1
+        "count": 15,
+        "percentage": 26.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 37,
-        "percentage": 64.9
+        "count": 38,
+        "percentage": 66.7
       },
       {
         "category": "Documentation",
@@ -602,16 +602,15 @@
     {
       "number": 999,
       "title": "`List[Tuple[T, ...]]` not supported",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
       "created": "2022-08-29",
-      "updated": "2026-04-24",
+      "updated": "2026-06-13",
       "labels": [
-        "bug",
-        "needs triage"
+        "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/999"
     },
@@ -1188,6 +1187,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-13T03:28:51Z",
+      "kind": "label",
+      "issue": 999,
+      "issue_url": "https://github.com/omry/omegaconf/issues/999",
+      "title": "`List[Tuple[T, ...]]` not supported",
+      "detail": "added \"enhancement\"; removed \"bug\", \"needs triage\""
+    },
     {
       "ts": "2026-06-13T03:24:10Z",
       "kind": "label",

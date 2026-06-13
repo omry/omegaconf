@@ -38,3 +38,4 @@
 {"ts": "2026-06-12T18:56:35Z", "kind": "label", "issue": 1028, "issue_url": "https://github.com/omry/omegaconf/issues/1028", "title": "Add support for equals sign and other symbols in resolver arguments", "detail": "added \"enhancement\"; removed \"needs triage\""}
 {"ts": "2026-06-12T19:46:07Z", "kind": "label", "issue": 1024, "issue_url": "https://github.com/omry/omegaconf/issues/1024", "title": "Interpolations in dictionary keys", "detail": "removed \"needs triage\""}
 {"ts": "2026-06-13T03:24:10Z", "kind": "label", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "removed \"needs triage\""}
+{"ts": "2026-06-13T03:28:51Z", "kind": "label", "issue": 999, "issue_url": "https://github.com/omry/omegaconf/issues/999", "title": "`List[Tuple[T, ...]]` not supported", "detail": "added \"enhancement\"; removed \"bug\", \"needs triage\""}

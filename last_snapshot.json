@@ -13,7 +13,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-13T03:24:10Z",
+  "generated_at": "2026-06-13T03:28:51Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -722,17 +722,16 @@
       "updated_at": "2026-04-24T06:28:23Z"
     },
     "999": {
-      "category": "Bug",
+      "category": "Enhancement",
       "created_at": "2022-08-29T16:40:13Z",
       "labels": [
-        "bug",
-        "needs triage"
+        "enhancement"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "`List[Tuple[T, ...]]` not supported",
-      "updated_at": "2026-04-24T06:28:23Z"
+      "updated_at": "2026-06-13T03:27:17Z"
     }
   },
   "recent_done": {
