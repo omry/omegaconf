@@ -478,6 +478,27 @@ def test_merge_missing_structured_keeps_interpolation_target() -> None:
     assert OmegaConf.is_interpolation(merged.child, "ref")
 
 
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_missing_dict_annotation_keeps_structured_child_ref_types(
+    merge: Any,
+) -> None:
+    @dataclass
+    class HydraConf:
+        mode: Color = Color.RED
+
+    @dataclass
+    class AppConf:
+        hydra: Dict[str, Any]
+
+    cfg = merge(
+        {"hydra": HydraConf},
+        AppConf,
+    )
+
+    assert cfg.hydra._metadata.object_type == HydraConf
+    assert cfg.hydra._get_node("mode")._metadata.ref_type == Color
+
+
 @mark.parametrize(
     "inputs,expected,ref_type,is_optional",
     [
