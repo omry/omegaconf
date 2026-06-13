@@ -13,7 +13,7 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-13T03:28:51Z",
+  "generated_at": "2026-06-13T04:09:32Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -715,9 +715,11 @@
         "bug",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1321"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
       "updated_at": "2026-04-24T06:28:23Z"
     },

@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-13",
-  "generated_at": "2026-06-13T03:28:51Z",
+  "generated_at": "2026-06-13T04:09:32Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 54
+        "count": 53
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 998,
+      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1321,
+          "url": "https://github.com/omry/omegaconf/pull/1321"
+        }
+      ],
+      "created": "2022-08-18",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/998"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -582,22 +603,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/969"
-    },
-    {
-      "number": 998,
-      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-08-18",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/998"
     },
     {
       "number": 999,
@@ -1187,6 +1192,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-13T04:09:32Z",
+      "kind": "pr",
+      "issue": 998,
+      "issue_url": "https://github.com/omry/omegaconf/issues/998",
+      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
+      "detail": "linked #1321"
+    },
+    {
+      "ts": "2026-06-13T04:09:32Z",
+      "kind": "status",
+      "issue": 998,
+      "issue_url": "https://github.com/omry/omegaconf/issues/998",
+      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1321,
+        "url": "https://github.com/omry/omegaconf/pull/1321"
+      }
+    },
     {
       "ts": "2026-06-13T03:28:51Z",
       "kind": "label",
