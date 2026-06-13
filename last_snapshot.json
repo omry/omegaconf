@@ -13,20 +13,19 @@
     "771": "2026-06-12",
     "945": "2026-06-10"
   },
-  "generated_at": "2026-06-12T19:46:07Z",
+  "generated_at": "2026-06-13T03:24:10Z",
   "issues": {
     "1020": {
       "category": "Bug",
       "created_at": "2022-10-20T18:34:18Z",
       "labels": [
-        "bug",
-        "needs triage"
+        "bug"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Failure to merge interpolation into structured config",
-      "updated_at": "2026-04-24T06:27:50Z"
+      "updated_at": "2026-06-13T03:22:54Z"
     },
     "1024": {
       "category": "Enhancement",
