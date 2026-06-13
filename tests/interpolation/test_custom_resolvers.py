@@ -10,22 +10,27 @@ from tests import User
 from tests.interpolation import dereference_node
 
 
+def legacy_register_resolver(name: str, resolver: Resolver) -> None:
+    with warns(UserWarning, match="legacy_register_resolver"):
+        OmegaConf.legacy_register_resolver(name, resolver)
+
+
 def test_register_resolver_twice_error(restore_resolvers: Any) -> None:
     def foo(_: Any) -> int:
         return 10
 
-    OmegaConf.register_new_resolver("foo", foo)
+    OmegaConf.register_resolver("foo", foo)
     with raises(ValueError, match=re.escape("resolver 'foo' is already registered")):
-        OmegaConf.register_new_resolver("foo", foo)
+        OmegaConf.register_resolver("foo", foo)
 
 
 def test_register_resolver_twice_error_legacy(restore_resolvers: Any) -> None:
     def foo() -> int:
         return 10
 
-    OmegaConf.legacy_register_resolver("foo", foo)
+    legacy_register_resolver("foo", foo)
     with raises(AssertionError):
-        OmegaConf.legacy_register_resolver("foo", lambda: 10)
+        legacy_register_resolver("foo", lambda: 10)
 
 
 def test_register_resolver_twice_error_legacy_and_regular(
@@ -34,19 +39,19 @@ def test_register_resolver_twice_error_legacy_and_regular(
     def foo() -> int:
         return 10
 
-    OmegaConf.legacy_register_resolver("foo", foo)
+    legacy_register_resolver("foo", foo)
     with raises(ValueError):
-        OmegaConf.register_new_resolver("foo", foo)
+        OmegaConf.register_resolver("foo", foo)
 
 
 def test_register_resolver_error_non_callable(restore_resolvers: Any) -> None:
     with raises(TypeError, match=re.escape("resolver must be callable")):
-        OmegaConf.register_new_resolver("foo", 0)  # type: ignore
+        OmegaConf.register_resolver("foo", 0)  # type: ignore
 
 
 def test_register_resolver_error_empty_name(restore_resolvers: Any) -> None:
     with raises(ValueError, match=re.escape("cannot use an empty resolver name")):
-        OmegaConf.register_new_resolver("", lambda: None)
+        OmegaConf.register_resolver("", lambda: None)
 
 
 def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) -> None:
@@ -57,7 +62,7 @@ def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) 
         raise ValueError
 
     mocker.patch("inspect.signature", signature_not_inspectable)
-    OmegaConf.register_new_resolver("not_inspectable", lambda: 123)
+    OmegaConf.register_resolver("not_inspectable", lambda: 123)
     assert OmegaConf.create({"x": "${not_inspectable:}"}).x == 123
 
 
@@ -76,18 +81,16 @@ def test_register_resolver_with_replace(
     use_cache_2: bool,
     expected: Any,
 ) -> None:
-    OmegaConf.register_new_resolver("foo", lambda: 1, use_cache=use_cache_1)
+    OmegaConf.register_resolver("foo", lambda: 1, use_cache=use_cache_1)
     cfg = OmegaConf.create({"x": "${foo:}"})
     assert cfg.x == 1
-    OmegaConf.register_new_resolver(
-        "foo", lambda: 2, use_cache=use_cache_2, replace=True
-    )
+    OmegaConf.register_resolver("foo", lambda: 2, use_cache=use_cache_2, replace=True)
     assert cfg.x == expected
 
 
 def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
     assert not OmegaConf.has_resolver("foo")
-    OmegaConf.register_new_resolver("foo", lambda x: x + 10)
+    OmegaConf.register_resolver("foo", lambda x: x + 10)
     assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
     assert not OmegaConf.has_resolver("foo")
@@ -95,14 +98,14 @@ def test_clear_resolvers_and_has_resolver(restore_resolvers: Any) -> None:
 
 def test_clear_resolvers_and_has_resolver_legacy(restore_resolvers: Any) -> None:
     assert not OmegaConf.has_resolver("foo")
-    OmegaConf.legacy_register_resolver("foo", lambda x: int(x) + 10)
+    legacy_register_resolver("foo", lambda x: int(x) + 10)
     assert OmegaConf.has_resolver("foo")
     OmegaConf.clear_resolvers()
     assert not OmegaConf.has_resolver("foo")
 
 
 def test_register_resolver_1(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
+    OmegaConf.register_resolver("plus_10", lambda x: x + 10)
     c = OmegaConf.create(
         {"k": "${plus_10:990}", "node": {"bar": 10, "foo": "${plus_10:${.bar}}"}}
     )
@@ -113,7 +116,7 @@ def test_register_resolver_1(restore_resolvers: Any) -> None:
 
 
 def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
-    OmegaConf.legacy_register_resolver("plus_10", lambda x: int(x) + 10)
+    legacy_register_resolver("plus_10", lambda x: int(x) + 10)
     c = OmegaConf.create({"k": "${plus_10:990}"})
 
     assert type(c.k) is int
@@ -123,7 +126,7 @@ def test_register_resolver_1_legacy(restore_resolvers: Any) -> None:
 def test_resolver_cache_1(restore_resolvers: Any) -> None:
     # The cache is important to allow embedding of functions like time()
     # without having the value change during the program execution.
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "random", lambda _: random.randint(0, 10000000), use_cache=True
     )
     c = OmegaConf.create({"k": "${random:__}"})
@@ -131,7 +134,7 @@ def test_resolver_cache_1(restore_resolvers: Any) -> None:
 
 
 def test_resolver_cache_1_legacy(restore_resolvers: Any) -> None:
-    OmegaConf.legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
+    legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:_}"})
     assert c.k == c.k
 
@@ -140,7 +143,7 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
     """
     Tests that resolver cache is not shared between different OmegaConf objects
     """
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "random", lambda _: random.randint(0, 10000000), use_cache=True
     )
     c1 = OmegaConf.create({"k": "${random:__}"})
@@ -152,7 +155,7 @@ def test_resolver_cache_2(restore_resolvers: Any) -> None:
 
 
 def test_resolver_cache_2_legacy(restore_resolvers: Any) -> None:
-    OmegaConf.legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
+    legacy_register_resolver("random", lambda _: random.randint(0, 10000000))
     c1 = OmegaConf.create({"k": "${random:_}"})
     c2 = OmegaConf.create({"k": "${random:_}"})
 
@@ -168,7 +171,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
     Note that since the cache is based on string literals, changing the order of
     items in a dictionary is considered as a different input.
     """
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "random", lambda _: random.uniform(0, 1), use_cache=True
     )
     c = OmegaConf.create(
@@ -193,7 +196,7 @@ def test_resolver_cache_3_dict_list(restore_resolvers: Any) -> None:
 
 
 def test_resolver_cache_4_interpolation(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("test", lambda x: x, use_cache=True)
+    OmegaConf.register_resolver("test", lambda x: x, use_cache=True)
     c = OmegaConf.create({"x": "${test:${y}}", "y": 0})
 
     assert c.x == 0
@@ -202,7 +205,7 @@ def test_resolver_cache_4_interpolation(restore_resolvers: Any) -> None:
 
 
 def test_resolver_no_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "random", lambda _: random.uniform(0, 1), use_cache=False
     )
     c = OmegaConf.create({"k": "${random:__}"})
@@ -250,7 +253,7 @@ def test_resolver_dot_start_legacy(common_resolvers: Any) -> None:
 def test_resolver_that_allows_a_list_of_arguments(
     restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
 ) -> None:
-    OmegaConf.register_new_resolver("my_resolver", resolver)
+    OmegaConf.register_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
     assert c[name] == result
 
@@ -277,18 +280,21 @@ def test_resolver_that_allows_a_list_of_arguments(
 def test_resolver_that_allows_a_list_of_arguments_legacy(
     restore_resolvers: Any, resolver: Resolver, name: str, key: str, result: Any
 ) -> None:
-    OmegaConf.legacy_register_resolver("my_resolver", resolver)
+    legacy_register_resolver("my_resolver", resolver)
     c = OmegaConf.create({name: key})
     assert c[name] == result
 
 
-def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
-    # Ensure that resolvers registered with the old "register_resolver()" function
-    # behave as expected.
+def test_register_new_resolver_deprecated_alias(restore_resolvers: Any) -> None:
+    with warns(UserWarning, match="register_new_resolver"):
+        OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
+    cfg = OmegaConf.create({"x": 10, "y": "${plus_10:${x}}"})
+    assert cfg.y == 20
 
-    # The registration should trigger a deprecation warning.
-    with warns(UserWarning):
-        OmegaConf.register_resolver("my_resolver", lambda *args: args)
+
+def test_legacy_register_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
+    # Ensure that resolvers registered with the legacy API behave as expected.
+    legacy_register_resolver("my_resolver", lambda *args: args)
 
     c = OmegaConf.create(
         {
@@ -306,14 +312,13 @@ def test_resolver_deprecated_behavior(restore_resolvers: Any) -> None:
     assert c.bool == ("TruE", "falSE")
     assert c.str == ("a", "b", "c")
 
-    # Trying to nest interpolations should trigger an error (users should switch to
-    # `register_new_resolver()` in order to use nested interpolations).
+    # Trying to nest interpolations should trigger an error.
     with raises(ValueError):
         c.inter
 
 
 def test_copy_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "random", lambda _: random.randint(0, 10000000), use_cache=True
     )
     d = {"k": "${random:__}"}
@@ -333,7 +338,7 @@ def test_copy_cache(restore_resolvers: Any) -> None:
 
 
 def test_clear_cache(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("random", lambda _: random.randint(0, 10000000))
+    OmegaConf.register_resolver("random", lambda _: random.randint(0, 10000000))
     c = OmegaConf.create({"k": "${random:__}"})
     old = c.k
     OmegaConf.clear_cache(c)
@@ -343,7 +348,7 @@ def test_clear_cache(restore_resolvers: Any) -> None:
 @mark.parametrize("readonly", [True, False])
 def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
     some_dict = {"a": 0, "b": "${y}"}
-    OmegaConf.register_new_resolver("dict", lambda: some_dict)
+    OmegaConf.register_resolver("dict", lambda: some_dict)
     c = OmegaConf.create({"x": "${dict:}", "y": -1})
     OmegaConf.set_readonly(c, readonly)
     assert isinstance(c.x, dict)
@@ -364,7 +369,7 @@ def test_resolver_output_dict(restore_resolvers: Any, readonly: bool) -> None:
 def test_resolver_output_plain_dict_list(
     restore_resolvers: Any, readonly: bool, data: Any, expected_type: type
 ) -> None:
-    OmegaConf.register_new_resolver("get_data", lambda: data)
+    OmegaConf.register_resolver("get_data", lambda: data)
     c = OmegaConf.create({"x": "${get_data:}", "y": -1})
     OmegaConf.set_readonly(c, readonly)
 
@@ -378,15 +383,13 @@ def test_resolver_output_plain_dict_list(
 
 def test_register_cached_resolver_with_keyword_unsupported() -> None:
     with raises(ValueError):
-        OmegaConf.register_new_resolver("root", lambda _root_: None, use_cache=True)
+        OmegaConf.register_resolver("root", lambda _root_: None, use_cache=True)
     with raises(ValueError):
-        OmegaConf.register_new_resolver("parent", lambda _parent_: None, use_cache=True)
+        OmegaConf.register_resolver("parent", lambda _parent_: None, use_cache=True)
 
 
 def test_resolver_with_parent(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver(
-        "parent", lambda _parent_: _parent_, use_cache=False
-    )
+    OmegaConf.register_resolver("parent", lambda _parent_: _parent_, use_cache=False)
 
     cfg = OmegaConf.create(
         {
@@ -404,7 +407,7 @@ def test_resolver_with_parent(restore_resolvers: Any) -> None:
 
 
 def test_resolver_with_root(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver("root", lambda _root_: _root_, use_cache=False)
+    OmegaConf.register_resolver("root", lambda _root_: _root_, use_cache=False)
     cfg = OmegaConf.create(
         {
             "a": 10,
@@ -421,7 +424,7 @@ def test_resolver_with_root(restore_resolvers: Any) -> None:
 
 
 def test_resolver_with_root_and_parent(restore_resolvers: Any) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "both", lambda _root_, _parent_: _root_.add + _parent_.add, use_cache=False
     )
 
@@ -443,7 +446,7 @@ def test_resolver_with_parent_and_default_value(restore_resolvers: Any) -> None:
     def parent_and_default(default: int = 10, *, _parent_: Any) -> Any:
         return _parent_.add + default
 
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "parent_and_default", parent_and_default, use_cache=False
     )
 
@@ -473,7 +476,7 @@ def test_resolver_with_parent_and_default_value(restore_resolvers: Any) -> None:
 def test_merge_into_resolver_output(
     restore_resolvers: Any, cfg2: Any, expected: Any
 ) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "make", lambda _parent_: OmegaConf.create({"a": 0}, parent=_parent_)
     )
 
@@ -492,7 +495,7 @@ def test_merge_into_resolver_output(
 def test_resolve_resolver_returning_primitive_container(
     restore_resolvers: Any, primitive_container: Any
 ) -> None:
-    OmegaConf.register_new_resolver("returns_container", lambda: primitive_container)
+    OmegaConf.register_resolver("returns_container", lambda: primitive_container)
     cfg = OmegaConf.create({"foo": "${returns_container:}"})
     assert cfg.foo == primitive_container
     OmegaConf.resolve(cfg)

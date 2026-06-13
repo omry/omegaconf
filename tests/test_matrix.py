@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from pytest import mark, raises
+from pytest import mark, raises, warns
 
 from omegaconf import (
     BooleanNode,
@@ -24,6 +24,14 @@ from omegaconf._utils import _is_optional
 from tests import Color, Group
 
 SKIP = object()
+
+
+def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
+    if register_func is OmegaConf.legacy_register_resolver:
+        with warns(UserWarning, match="legacy_register_resolver"):
+            register_func(name, resolver)
+    else:
+        register_func(name, resolver)
 
 
 def verify(
@@ -192,13 +200,13 @@ class TestNodeTypesMatrix:
 
     @mark.parametrize(
         "register_func",
-        [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
+        [OmegaConf.legacy_register_resolver, OmegaConf.register_resolver],
     )
     def test_interpolation(
         self, node_type: Any, values: Any, restore_resolvers: Any, register_func: Any
     ) -> None:
         resolver_output = "9999"
-        register_func("func", lambda: resolver_output)
+        _register_resolver(register_func, "func", lambda: resolver_output)
         values = copy.deepcopy(values)
         for value in values:
             node = {

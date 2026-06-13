@@ -20,11 +20,11 @@ Resolvers
 Custom resolvers
 ----------------
 
-You can add additional interpolation types by registering custom resolvers with ``OmegaConf.register_new_resolver()``:
+You can add additional interpolation types by registering custom resolvers with ``OmegaConf.register_resolver()``:
 
 .. code-block:: python
 
-    def register_new_resolver(
+    def register_resolver(
         name: str,
         resolver: Resolver,
         *,
@@ -34,11 +34,16 @@ You can add additional interpolation types by registering custom resolvers with 
 
 Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``.
 
+.. note::
+
+    ``OmegaConf.register_new_resolver()`` and ``OmegaConf.legacy_register_resolver()`` are deprecated and
+    will be removed in a future release. Use ``OmegaConf.register_resolver()`` instead.
+
 The example below creates a resolver that adds ``10`` to the given value.
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver("plus_10", lambda x: x + 10)
+    >>> OmegaConf.register_resolver("plus_10", lambda x: x + 10)
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
@@ -50,7 +55,7 @@ simply use quotes to bypass character limitations in strings.
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver("concat", lambda x, y: x+y)
+    >>> OmegaConf.register_resolver("concat", lambda x, y: x+y)
     >>> c = OmegaConf.create({
     ...     'key1': '${concat:Hello,World}',
     ...     'key_trimmed': '${concat:Hello , World}',
@@ -71,7 +76,7 @@ You can take advantage of nested interpolations to perform custom operations ove
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver("sum", lambda x, y: x + y)
+    >>> OmegaConf.register_resolver("sum", lambda x, y: x + y)
     >>> c = OmegaConf.create({"a": 1,
     ...                       "b": 2,
     ...                       "a_plus_b": "${sum:${a},${b}}"})
@@ -83,7 +88,7 @@ namespace, and to use interpolations in the name itself. The following example d
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver("mylib.plus1", lambda x: x + 1)
+    >>> OmegaConf.register_resolver("mylib.plus1", lambda x: x + 1)
     >>> c = OmegaConf.create(
     ...     {
     ...         "func": "plus1",
@@ -104,10 +109,10 @@ the inputs themselves:
 
     >>> import random
     >>> random.seed(1234)
-    >>> OmegaConf.register_new_resolver(
+    >>> OmegaConf.register_resolver(
     ...    "cached", random.randint, use_cache=True
     ... )
-    >>> OmegaConf.register_new_resolver("uncached", random.randint)
+    >>> OmegaConf.register_resolver("uncached", random.randint)
     >>> c = OmegaConf.create(
     ...     {
     ...         "uncached": "${uncached:0,10000}",
@@ -141,7 +146,7 @@ This is in contrast to the sum we defined earlier where accessing an invalid key
 
     >>> def sum2(a, b, *, _parent_):
     ...     return _parent_.get(a, 0) + _parent_.get(b, 0)
-    >>> OmegaConf.register_new_resolver("sum2", sum2)
+    >>> OmegaConf.register_resolver("sum2", sum2)
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "node": {
@@ -220,7 +225,7 @@ oc.create
 .. doctest::
 
 
-    >>> OmegaConf.register_new_resolver("make_dict", lambda: {"a": 10})
+    >>> OmegaConf.register_resolver("make_dict", lambda: {"a": 10})
     >>> cfg = OmegaConf.create(
     ...     {
     ...         "plain_dict": "${make_dict:}",
@@ -422,7 +427,7 @@ custom resolvers.
 .. doctest::
 
     >>> # register a new resolver: str.lower
-    >>> OmegaConf.register_new_resolver(
+    >>> OmegaConf.register_resolver(
     ...     name='str.lower',
     ...     resolver=lambda x: str(x).lower(),
     ... )

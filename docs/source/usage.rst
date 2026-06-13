@@ -421,13 +421,13 @@ Interpolated nodes can be any node in the config, not just leaf nodes:
 
 Resolvers
 ^^^^^^^^^
-Add new interpolation types by registering resolvers using ``OmegaConf.register_new_resolver()``.
+Add new interpolation types by registering resolvers using ``OmegaConf.register_resolver()``.
 Such resolvers are called when the config node is accessed.
 The minimal example below shows its most basic usage, see :doc:`custom_resolvers` for more details.
 
 .. doctest::
 
-    >>> OmegaConf.register_new_resolver(
+    >>> OmegaConf.register_resolver(
     ...     "add", lambda *numbers: sum(numbers)
     ... )
     >>> c = OmegaConf.create({'total': '${add:1,2,3}'})

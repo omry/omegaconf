@@ -99,7 +99,7 @@ def test_dict_keys(cfg: Any, key: Any, expected: Any) -> None:
 def test_get_and_validate_dict_input(
     restore_resolvers: Any, cfg: Any, key: Any, expected: Any
 ) -> None:
-    OmegaConf.register_new_resolver(
+    OmegaConf.register_resolver(
         "oc.dict.keys_or_values",
         lambda in_dict, _parent_: _get_and_validate_dict_input(
             in_dict, parent=_parent_, resolver_name="oc.dict.keys_or_values"
@@ -214,7 +214,7 @@ def test_dict_values_with_missing_value() -> None:
 def test_dict_values_dictconfig_resolver_output(
     restore_resolvers: Any, make_resolver: Any, key: Any, expected: Any
 ) -> None:
-    OmegaConf.register_new_resolver("make", make_resolver)
+    OmegaConf.register_resolver("make", make_resolver)
     cfg = OmegaConf.create(
         {
             "foo": "${oc.dict.values:bar}",
@@ -302,7 +302,7 @@ def test_relative_path(cfg: Any, expected: Any) -> None:
     ],
 )
 def test_nested_oc_dict(restore_resolvers: Any, cfg: Any, expected: Any) -> None:
-    OmegaConf.register_new_resolver("sum", sum)
+    OmegaConf.register_resolver("sum", sum)
     cfg = OmegaConf.create(cfg)
     assert cfg.x == expected
 

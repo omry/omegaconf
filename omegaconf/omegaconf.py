@@ -109,13 +109,13 @@ def SI(interpolation: str) -> Any:
 def register_default_resolvers() -> None:
     from omegaconf.resolvers import oc
 
-    OmegaConf.register_new_resolver("oc.create", oc.create)
-    OmegaConf.register_new_resolver("oc.decode", oc.decode)
-    OmegaConf.register_new_resolver("oc.deprecated", oc.deprecated)
-    OmegaConf.register_new_resolver("oc.env", oc.env)
-    OmegaConf.register_new_resolver("oc.select", oc.select)
-    OmegaConf.register_new_resolver("oc.dict.keys", oc.dict.keys)
-    OmegaConf.register_new_resolver("oc.dict.values", oc.dict.values)
+    OmegaConf.register_resolver("oc.create", oc.create)
+    OmegaConf.register_resolver("oc.decode", oc.decode)
+    OmegaConf.register_resolver("oc.deprecated", oc.deprecated)
+    OmegaConf.register_resolver("oc.env", oc.env)
+    OmegaConf.register_resolver("oc.select", oc.select)
+    OmegaConf.register_resolver("oc.dict.keys", oc.dict.keys)
+    OmegaConf.register_resolver("oc.dict.values", oc.dict.values)
 
 
 class OmegaConf:
@@ -484,61 +484,7 @@ class OmegaConf:
         return target
 
     @staticmethod
-    def register_resolver(name: str, resolver: Resolver) -> None:
-        warnings.warn(
-            dedent("""\
-            register_resolver() is deprecated.
-            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
-            """),
-            stacklevel=2,
-        )
-        return OmegaConf.legacy_register_resolver(name, resolver)
-
-    # This function will eventually be deprecated and removed.
-    @staticmethod
-    def legacy_register_resolver(name: str, resolver: Resolver) -> None:
-        assert callable(resolver), "resolver must be callable"
-        # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), f"resolver '{name}' is already registered"
-
-        def resolver_wrapper(
-            config: BaseContainer,
-            parent: BaseContainer,
-            node: Node,
-            args: Tuple[Any, ...],
-            args_str: Tuple[str, ...],
-        ) -> Any:
-            cache = OmegaConf.get_cache(config)[name]
-            # "Un-escape " spaces and commas.
-            args_unesc = [x.replace(r"\ ", " ").replace(r"\,", ",") for x in args_str]
-
-            # Nested interpolations behave in a potentially surprising way with
-            # legacy resolvers (they remain as strings, e.g., "${foo}"). If any
-            # input looks like an interpolation we thus raise an exception.
-            try:
-                bad_arg = next(i for i in args_unesc if "${" in i)
-            except StopIteration:
-                pass
-            else:
-                raise ValueError(
-                    f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
-                    f"to be an interpolation. Nested interpolations are not supported for "
-                    f"resolvers registered with `[legacy_]register_resolver()`, please use "
-                    f"`register_new_resolver()` instead (see "
-                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."  # noqa: E231
-                )
-            key = args_str
-            val = cache[key] if key in cache else resolver(*args_unesc)
-            cache[key] = val
-            return val
-
-        # noinspection PyProtectedMember
-        BaseContainer._resolvers[name] = resolver_wrapper
-
-    @staticmethod
-    def register_new_resolver(
+    def register_resolver(
         name: str,
         resolver: Resolver,
         *,
@@ -614,6 +560,76 @@ class OmegaConf:
 
             ret = resolver(*args, **kwargs)
             return ret
+
+        # noinspection PyProtectedMember
+        BaseContainer._resolvers[name] = resolver_wrapper
+
+    @staticmethod
+    def register_new_resolver(
+        name: str,
+        resolver: Resolver,
+        *,
+        replace: bool = False,
+        use_cache: bool = False,
+    ) -> None:
+        warnings.warn(
+            dedent("""\
+            register_new_resolver() is deprecated and will be removed in a future release.
+            Use register_resolver() instead.
+            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            """),
+            stacklevel=2,
+        )
+        return OmegaConf.register_resolver(
+            name, resolver, replace=replace, use_cache=use_cache
+        )
+
+    @staticmethod
+    def legacy_register_resolver(name: str, resolver: Resolver) -> None:
+        warnings.warn(
+            dedent("""\
+            legacy_register_resolver() is deprecated and will be removed in a future release.
+            Use register_resolver() instead.
+            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            """),
+            stacklevel=2,
+        )
+        assert callable(resolver), "resolver must be callable"
+        # noinspection PyProtectedMember
+        assert (
+            name not in BaseContainer._resolvers
+        ), f"resolver '{name}' is already registered"
+
+        def resolver_wrapper(
+            config: BaseContainer,
+            parent: BaseContainer,
+            node: Node,
+            args: Tuple[Any, ...],
+            args_str: Tuple[str, ...],
+        ) -> Any:
+            cache = OmegaConf.get_cache(config)[name]
+            # "Un-escape " spaces and commas.
+            args_unesc = [x.replace(r"\ ", " ").replace(r"\,", ",") for x in args_str]
+
+            # Nested interpolations behave in a potentially surprising way with
+            # legacy resolvers (they remain as strings, e.g., "${foo}"). If any
+            # input looks like an interpolation we thus raise an exception.
+            try:
+                bad_arg = next(i for i in args_unesc if "${" in i)
+            except StopIteration:
+                pass
+            else:
+                raise ValueError(
+                    f"Resolver '{name}' was called with argument '{bad_arg}' that appears "
+                    f"to be an interpolation. Nested interpolations are not supported for "
+                    f"resolvers registered with `legacy_register_resolver()`, please use "
+                    f"`register_resolver()` instead (see "
+                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."  # noqa: E231
+                )
+            key = args_str
+            val = cache[key] if key in cache else resolver(*args_unesc)
+            cache[key] = val
+            return val
 
         # noinspection PyProtectedMember
         BaseContainer._resolvers[name] = resolver_wrapper

@@ -6,7 +6,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 import tests
 from omegaconf import (
@@ -58,6 +58,14 @@ from tests import (
     User,
     warns_dict_subclass_deprecated,
 )
+
+
+def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
+    if register_func is OmegaConf.legacy_register_resolver:
+        with warns(UserWarning, match="legacy_register_resolver"):
+            register_func(name, resolver)
+    else:
+        register_func(name, resolver)
 
 
 # tests classes
@@ -1847,13 +1855,13 @@ def test_format_and_raise_initialized_exception_does_not_self_chain(
 
 @mark.parametrize(
     "register_func",
-    [OmegaConf.legacy_register_resolver, OmegaConf.register_new_resolver],
+    [OmegaConf.legacy_register_resolver, OmegaConf.register_resolver],
 )
 def test_resolver_error(restore_resolvers: Any, register_func: Any) -> None:
     def div(x: Any, y: Any) -> float:
         return float(x) / float(y)
 
-    register_func("div", div)
+    _register_resolver(register_func, "div", div)
     c = OmegaConf.create({"div_by_zero": "${div:1,0}"})
     expected_msg = dedent("""\
         ZeroDivisionError raised while resolving interpolation: (float )?division( by zero)?
