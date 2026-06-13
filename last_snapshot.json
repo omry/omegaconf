@@ -12,9 +12,10 @@
     "1315": "2026-06-11",
     "771": "2026-06-12",
     "945": "2026-06-10",
+    "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-06-13T06:24:20Z",
+  "generated_at": "2026-06-13T09:53:00Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -696,21 +697,6 @@
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
       "updated_at": "2026-05-15T14:39:55Z"
     },
-    "969": {
-      "category": "Enhancement",
-      "created_at": "2022-06-21T22:31:15Z",
-      "labels": [
-        "maintenance",
-        "needs triage"
-      ],
-      "pr_numbers": [
-        "1322"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Follow up on deprecation of `register_resolver()`",
-      "updated_at": "2026-04-24T06:28:21Z"
-    },
     "999": {
       "category": "Enhancement",
       "created_at": "2022-08-29T16:40:13Z",
@@ -886,6 +872,21 @@
       "status": "done",
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "updated_at": "2026-04-24T06:28:20Z"
+    },
+    "969": {
+      "category": "Enhancement",
+      "created_at": "2022-06-21T22:31:15Z",
+      "labels": [
+        "maintenance",
+        "needs triage"
+      ],
+      "pr_numbers": [
+        "1322"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Follow up on deprecation of `register_resolver()`",
+      "updated_at": "2026-04-24T06:28:21Z"
     },
     "998": {
       "category": "Bug",
