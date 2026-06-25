@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-06-24",
-  "generated_at": "2026-06-24T10:26:02Z",
+  "generated_on": "2026-06-25",
+  "generated_at": "2026-06-25T10:18:22Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 55,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 3
+        "count": 4
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 52
+        "count": 51
       },
       {
         "status": "done",
@@ -132,6 +132,26 @@
         "low priority"
       ],
       "url": "https://github.com/omry/omegaconf/issues/813"
+    },
+    {
+      "number": 1058,
+      "title": "structured config types are discarded on list merge",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1323,
+          "url": "https://github.com/omry/omegaconf/pull/1323"
+        }
+      ],
+      "created": "2023-02-19",
+      "updated": "2026-06-12",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1058"
     },
     {
       "number": 131,
@@ -660,21 +680,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1048"
     },
     {
-      "number": 1058,
-      "title": "structured config types are discarded on list merge",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2023-02-19",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1058"
-    },
-    {
       "number": 1160,
       "title": "Support `Boost.Python.enum` Enums as annotation and supported type.",
       "category": "Enhancement",
@@ -1197,6 +1202,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-25T10:18:22Z",
+      "kind": "pr",
+      "issue": 1058,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1058",
+      "title": "structured config types are discarded on list merge",
+      "detail": "linked #1323"
+    },
+    {
+      "ts": "2026-06-25T10:18:22Z",
+      "kind": "status",
+      "issue": 1058,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1058",
+      "title": "structured config types are discarded on list merge",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1323,
+        "url": "https://github.com/omry/omegaconf/pull/1323"
+      }
+    },
     {
       "ts": "2026-06-13T09:53:00Z",
       "kind": "closed",
