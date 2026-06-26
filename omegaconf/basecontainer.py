@@ -537,9 +537,10 @@ class BaseContainer(Container, ABC):
                         src_et, ref_type=src_et, is_optional=src_is_optional
                     )
                     content = dest.__dict__["_content"]
-                    for idx, item in enumerate(content):
-                        if isinstance(item, DictConfig):
-                            content[idx] = OmegaConf.merge(prototype, item)
+                    if isinstance(content, list):
+                        for idx, item in enumerate(content):
+                            if isinstance(item, DictConfig):
+                                content[idx] = OmegaConf.merge(prototype, item)
         elif src._is_interpolation():
             dest._set_value(src._value())
         else:
