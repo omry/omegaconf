@@ -1,0 +1,1 @@
+Fixed OmegaConf.structured() mutating existing OmegaConf nodes passed as structured config field values.

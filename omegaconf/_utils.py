@@ -340,6 +340,7 @@ def get_attr_class_fields(obj: Any) -> List["AttrAttribute[Any]"]:
 
 
 def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
+    from omegaconf.base import Node
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
@@ -377,6 +378,8 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
                 value = default.factory()
             else:
                 value = default
+        if isinstance(value, Node):
+            value = copy.deepcopy(value)
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
                 f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
@@ -410,6 +413,7 @@ def get_dataclass_fields(obj: Any) -> List["dataclasses.Field[Any]"]:
 def get_dataclass_data(
     obj: Any, allow_objects: Optional[bool] = None
 ) -> Dict[str, Any]:
+    from omegaconf.base import Node
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
     flags = {"allow_objects": allow_objects} if allow_objects is not None else {}
@@ -435,6 +439,8 @@ def get_dataclass_data(
                 value = field.default_factory()  # type: ignore
             else:
                 value = MISSING
+        if isinstance(value, Node):
+            value = copy.deepcopy(value)
 
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
