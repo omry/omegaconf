@@ -1,8 +1,10 @@
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, List
 
+import attr
 from pytest import mark, param
 
-from omegaconf import AnyNode, DictConfig, ListConfig, OmegaConf
+from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf
 from tests import Group, User
 
 
@@ -169,3 +171,259 @@ def test_config_eq_mismatch_types() -> None:
 def test_dict_not_eq_with_another_class() -> None:
     assert OmegaConf.create({}) != "string"
     assert OmegaConf.create([]) != "string"
+
+
+def _assert_structural_equality(input1: Any, input2: Any, expected: bool) -> None:
+    cfg1 = input1 if OmegaConf.is_config(input1) else OmegaConf.create(input1)
+    cfg2 = input2 if OmegaConf.is_config(input2) else OmegaConf.create(input2)
+
+    assert OmegaConf.structural_equality(cfg1, cfg2) is expected
+    assert OmegaConf.structural_equality(cfg2, cfg1) is expected
+    assert (
+        OmegaConf.to_container(cfg1, resolve=False, throw_on_missing=False)
+        == OmegaConf.to_container(cfg2, resolve=False, throw_on_missing=False)
+    ) is expected
+
+
+@mark.parametrize(
+    "input1,input2,expected",
+    [
+        param({}, {}, True, id="dict:empty"),
+        param({"a": 10}, {"a": 10}, True, id="dict:level1-same"),
+        param({"a": 10}, {"a": 20}, False, id="dict:level1-diff"),
+        param({"a": {"b": 10}}, {"a": {"b": 10}}, True, id="dict:level2-same"),
+        param({"a": {"b": 10}}, {"a": {"b": 20}}, False, id="dict:level2-diff"),
+        param(
+            {"a": {"b": {"c": 10}}},
+            {"a": {"b": {"c": 10}}},
+            True,
+            id="dict:level3-same",
+        ),
+        param(
+            {"a": {"b": {"c": 10}}},
+            {"a": {"b": {"c": 20}}},
+            False,
+            id="dict:level3-diff",
+        ),
+        param([], [], True, id="list:empty"),
+        param([10], [10], True, id="list:level1-same"),
+        param([10], [20], False, id="list:level1-diff"),
+        param([[10]], [[10]], True, id="list:level2-same"),
+        param([[10]], [[20]], False, id="list:level2-diff"),
+        param([[[10]]], [[[10]]], True, id="list:level3-same"),
+        param([[[10]]], [[[20]]], False, id="list:level3-diff"),
+        param(
+            {"a": [{"b": [10, {"c": 20}]}]},
+            {"a": [{"b": [10, {"c": 20}]}]},
+            True,
+            id="mixed:dict-list-dict-list-dict-same",
+        ),
+        param(
+            {"a": [{"b": [10, {"c": 20}]}]},
+            {"a": [{"b": [10, {"c": 21}]}]},
+            False,
+            id="mixed:dict-list-dict-list-dict-diff",
+        ),
+        param({}, [], False, id="type:dict-vs-list"),
+        param({"a": "???"}, {"a": "???"}, True, id="missing:dict-value-same"),
+        param({"a": "???"}, {"a": 10}, False, id="missing:dict-value-vs-value"),
+        param(["???"], ["???"], True, id="missing:list-item-same"),
+        param(["???"], [10], False, id="missing:list-item-vs-value"),
+        param(DictConfig("???"), DictConfig("???"), True, id="missing:dictconfig-root"),
+        param(ListConfig("???"), ListConfig("???"), True, id="missing:listconfig-root"),
+        param(
+            {"a": DictConfig("???")},
+            {"a": DictConfig("???")},
+            True,
+            id="missing:nested-dictconfig",
+        ),
+        param(
+            {"a": ListConfig("???")},
+            {"a": ListConfig("???")},
+            True,
+            id="missing:nested-listconfig",
+        ),
+    ],
+)
+def test_structural_equality_plain_containers(
+    input1: Any, input2: Any, expected: bool
+) -> None:
+    _assert_structural_equality(input1, input2, expected)
+
+
+@mark.parametrize(
+    "data1,data2,path",
+    [
+        param(
+            {"node": {"value": "${target}"}, "target": 10},
+            {"node": {"value": "${target}"}, "target": 20},
+            ["node"],
+            id="dict:level1",
+        ),
+        param(
+            {"node": {"child": {"value": "${target}"}}, "target": 10},
+            {"node": {"child": {"value": "${target}"}}, "target": 20},
+            ["node", "child"],
+            id="dict:level2",
+        ),
+        param(
+            {"node": [{"value": "${target}"}], "target": 10},
+            {"node": [{"value": "${target}"}], "target": 20},
+            ["node", 0],
+            id="list-in-dict",
+        ),
+        param(
+            [[{"value": "${target}"}], {"target": 10}],
+            [[{"value": "${target}"}], {"target": 20}],
+            [0, 0],
+            id="dict-in-nested-list",
+        ),
+    ],
+)
+def test_structural_equality_compares_raw_interpolations_at_nested_levels(
+    data1: Any, data2: Any, path: List[Any]
+) -> None:
+    cfg1 = OmegaConf.create(data1)
+    cfg2 = OmegaConf.create(data2)
+    node1 = cfg1
+    node2 = cfg2
+    for key in path:
+        node1 = node1[key]
+        node2 = node2[key]
+
+    assert OmegaConf.structural_equality(node1, node2)
+    assert not OmegaConf.structural_equality(cfg1, cfg2)
+
+
+def test_structural_equality_compares_different_raw_interpolations() -> None:
+    cfg1 = OmegaConf.create({"a": {"b": "${c}"}, "c": 10})
+    cfg2 = OmegaConf.create({"a": {"b": "${d}"}, "d": 10})
+
+    assert not OmegaConf.structural_equality(cfg1.a, cfg2.a)
+
+
+def test_structural_equality_does_not_resolve_missing_interpolation() -> None:
+    cfg1 = OmegaConf.create({"a": "${missing}"})
+    cfg2 = OmegaConf.create({"a": "${missing}"})
+
+    assert OmegaConf.structural_equality(cfg1, cfg2)
+
+
+def test_structural_equality_dataclass_structured_configs() -> None:
+    @dataclass
+    class Level3:
+        value: int = 10
+        raw: str = "${target}"
+        missing: str = MISSING
+
+    @dataclass
+    class Level2:
+        child: Level3 = field(default_factory=Level3)
+        values: List[int] = field(default_factory=lambda: [1, 2, 3])
+
+    @dataclass
+    class Level1:
+        child: Level2 = field(default_factory=Level2)
+        target: int = 10
+
+    cfg1 = OmegaConf.structured(Level1(target=10))
+    cfg2 = OmegaConf.structured(Level1(target=20))
+    cfg3 = OmegaConf.structured(Level1(child=Level2(child=Level3(value=20)), target=10))
+
+    assert OmegaConf.structural_equality(cfg1.child, cfg2.child)
+    assert OmegaConf.structural_equality(cfg1.child.child, cfg2.child.child)
+    assert not OmegaConf.structural_equality(cfg1, cfg2)
+    assert not OmegaConf.structural_equality(cfg1, cfg3)
+
+
+def test_structural_equality_attrs_structured_configs() -> None:
+    @attr.s(auto_attribs=True)
+    class Level3:
+        value: int = 10
+        raw: str = "${target}"
+        missing: str = MISSING
+
+    @attr.s(auto_attribs=True)
+    class Level2:
+        child: Level3 = attr.ib(factory=Level3)
+        values: List[int] = attr.ib(factory=lambda: [1, 2, 3])
+
+    @attr.s(auto_attribs=True)
+    class Level1:
+        child: Level2 = attr.ib(factory=Level2)
+        target: int = 10
+
+    cfg1 = OmegaConf.structured(Level1(target=10))
+    cfg2 = OmegaConf.structured(Level1(target=20))
+    cfg3 = OmegaConf.structured(Level1(child=Level2(child=Level3(value=20))))
+
+    assert OmegaConf.structural_equality(cfg1.child, cfg2.child)
+    assert OmegaConf.structural_equality(cfg1.child.child, cfg2.child.child)
+    assert not OmegaConf.structural_equality(cfg1, cfg2)
+    assert not OmegaConf.structural_equality(cfg1, cfg3)
+
+
+def test_structural_equality_custom_resolvers_are_not_called_in_dicts_and_lists(
+    restore_resolvers: Any,
+) -> None:
+    calls = 0
+
+    def fail_if_called() -> int:
+        nonlocal calls
+        calls += 1
+        raise AssertionError("resolver should not be called")
+
+    OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
+
+    cfg1 = OmegaConf.create(
+        {
+            "dict_node": {"value": "${fail_if_called:}"},
+            "list_node": [{"value": "${fail_if_called:1}"}],
+            "other": 10,
+        }
+    )
+    cfg2 = OmegaConf.create(
+        {
+            "dict_node": {"value": "${fail_if_called:}"},
+            "list_node": [{"value": "${fail_if_called:1}"}],
+            "other": 20,
+        }
+    )
+    cfg3 = OmegaConf.create({"dict_node": {"value": "${fail_if_called:2}"}})
+
+    assert OmegaConf.structural_equality(cfg1.dict_node, cfg2.dict_node)
+    assert OmegaConf.structural_equality(cfg1.list_node[0], cfg2.list_node[0])
+    assert not OmegaConf.structural_equality(cfg1, cfg2)
+    assert not OmegaConf.structural_equality(cfg1.dict_node, cfg3.dict_node)
+    assert calls == 0
+
+
+def test_structural_equality_custom_resolvers_are_not_called_in_structured_configs(
+    restore_resolvers: Any,
+) -> None:
+    calls = 0
+
+    def fail_if_called() -> int:
+        nonlocal calls
+        calls += 1
+        raise AssertionError("resolver should not be called")
+
+    OmegaConf.register_new_resolver("fail_if_called", fail_if_called)
+
+    @dataclass
+    class Child:
+        value: str = "${fail_if_called:}"
+
+    @dataclass
+    class Parent:
+        child: Child = field(default_factory=Child)
+        other: int = 10
+
+    cfg1 = OmegaConf.structured(Parent(other=10))
+    cfg2 = OmegaConf.structured(Parent(other=20))
+    cfg3 = OmegaConf.structured(Parent(child=Child(value="${fail_if_called:1}")))
+
+    assert OmegaConf.structural_equality(cfg1.child, cfg2.child)
+    assert not OmegaConf.structural_equality(cfg1, cfg2)
+    assert not OmegaConf.structural_equality(cfg1.child, cfg3.child)
+    assert calls == 0
