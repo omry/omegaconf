@@ -5,10 +5,12 @@ import re
 import sys
 from collections import OrderedDict
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional
 
+import attr
 import yaml
 from pytest import mark, param, raises
 
@@ -290,6 +292,40 @@ def test_create_node_parent_retained_on_create(node: Any) -> None:
     assert cfg2 == {"zonk": node}
     assert cfg1.foo._get_parent() == cfg1
     assert cfg1.foo._get_parent() is cfg1
+
+
+def test_structured_dataclass_node_parent_retained_on_create() -> None:
+    @dataclass
+    class User:
+        name: str = "Bond"
+
+    @dataclass
+    class HasUser:
+        user: User
+
+    cfg1 = OmegaConf.structured(HasUser(User()))
+    cfg2 = OmegaConf.structured(HasUser(cfg1.user))
+
+    assert cfg1.user._get_parent() is cfg1
+    assert cfg2.user._get_parent() is cfg2
+    assert cfg1.user is not cfg2.user
+
+
+def test_structured_attr_node_parent_retained_on_create() -> None:
+    @attr.s(auto_attribs=True)
+    class User:
+        name: str = "Bond"
+
+    @attr.s(auto_attribs=True)
+    class HasUser:
+        user: User
+
+    cfg1 = OmegaConf.structured(HasUser(User()))
+    cfg2 = OmegaConf.structured(HasUser(cfg1.user))
+
+    assert cfg1.user._get_parent() is cfg1
+    assert cfg2.user._get_parent() is cfg2
+    assert cfg1.user is not cfg2.user
 
 
 @mark.parametrize("node", [({"bar": 10}), ([1, 2, 3])])
