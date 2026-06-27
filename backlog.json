@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-06-27",
-  "generated_at": "2026-06-27T14:33:56Z",
+  "generated_at": "2026-06-27T15:21:21Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 55,
+    "open_total": 54,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 13,
-        "percentage": 23.6
+        "percentage": 24.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 38,
-        "percentage": 69.1
+        "count": 37,
+        "percentage": 68.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.8
+        "percentage": 1.9
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.5
+        "percentage": 5.6
       },
       {
         "category": "Build",
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,29 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 15
+        "count": 16
       }
     ]
   },
   "issues": [
-    {
-      "number": 1326,
-      "title": "Support structural equality for configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1327,
-          "url": "https://github.com/omry/omegaconf/pull/1327"
-        }
-      ],
-      "created": "2026-06-27",
-      "updated": "2026-06-27",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -971,6 +953,27 @@
       "url": "https://github.com/omry/omegaconf/issues/771"
     },
     {
+      "number": 908,
+      "title": "`OmegaConf.structured(...)` may mutate its input",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1325,
+          "url": "https://github.com/omry/omegaconf/pull/1325"
+        }
+      ],
+      "created": "2022-05-02",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/908"
+    },
+    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1208,28 +1211,32 @@
       "url": "https://github.com/omry/omegaconf/issues/1315"
     },
     {
-      "number": 908,
-      "title": "`OmegaConf.structured(...)` may mutate its input",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 1326,
+      "title": "Support structural equality for configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [
         {
-          "number": 1325,
-          "url": "https://github.com/omry/omegaconf/pull/1325"
+          "number": 1327,
+          "url": "https://github.com/omry/omegaconf/pull/1327"
         }
       ],
-      "created": "2022-05-02",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/908"
+      "created": "2026-06-27",
+      "updated": "2026-06-27",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1326"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-27T15:21:21Z",
+      "kind": "closed",
+      "issue": 1326,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1326",
+      "title": "Support structural equality for configs"
+    },
     {
       "ts": "2026-06-27T14:33:56Z",
       "kind": "pr",
