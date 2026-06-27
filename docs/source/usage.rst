@@ -765,6 +765,27 @@ the ``resolve`` keyword arg.
     >>> show(container["structured_config"])
     type: DictConfig, value: {'port': 80, 'host': 'localhost'}
 
+OmegaConf.structural_equality
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``OmegaConf.structural_equality(cfg1, cfg2)`` compares two configs by their
+unresolved container structure. This is equivalent to converting both configs
+with ``OmegaConf.to_container(resolve=False, throw_on_missing=False)`` and
+comparing the resulting containers.
+
+Interpolations and custom resolver expressions are compared as raw strings.
+They are not resolved during structural equality checks, and missing values do
+not raise.
+
+.. doctest::
+
+    >>> cfg1 = OmegaConf.create({"a": {"b": "${c}"}, "c": 10})
+    >>> cfg2 = OmegaConf.create({"a": {"b": "${c}"}, "c": 20})
+    >>> assert OmegaConf.structural_equality(cfg1.a, cfg2.a)
+    >>> assert not OmegaConf.structural_equality(cfg1, cfg2)
+    >>> missing1 = OmegaConf.create({"a": "???"})
+    >>> missing2 = OmegaConf.create({"a": "???"})
+    >>> assert OmegaConf.structural_equality(missing1, missing2)
+
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
 The ``OmegaConf.to_object`` method recursively converts ``DictConfig`` and ``ListConfig`` objects
