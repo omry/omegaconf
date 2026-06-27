@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-06-27",
-  "generated_at": "2026-06-27T13:07:40Z",
+  "generated_at": "2026-06-27T14:33:56Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 56,
+    "open_total": 55,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 14,
-        "percentage": 25.0
+        "count": 13,
+        "percentage": 23.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 38,
-        "percentage": 67.9
+        "percentage": 69.1
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.4
+        "percentage": 5.5
       },
       {
         "category": "Build",
@@ -61,36 +61,33 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 50
+        "count": 49
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 14
+        "count": 15
       }
     ]
   },
   "issues": [
     {
-      "number": 908,
-      "title": "`OmegaConf.structured(...)` may mutate its input",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 1326,
+      "title": "Support structural equality for configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "in progress",
       "status_emoji": "🔄",
       "prs": [
         {
-          "number": 1325,
-          "url": "https://github.com/omry/omegaconf/pull/1325"
+          "number": 1327,
+          "url": "https://github.com/omry/omegaconf/pull/1327"
         }
       ],
-      "created": "2022-05-02",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/908"
+      "created": "2026-06-27",
+      "updated": "2026-06-27",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
       "number": 91,
@@ -953,19 +950,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
-      "number": 1326,
-      "title": "Support structural equality for configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-06-27",
-      "updated": "2026-06-27",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -1222,9 +1206,57 @@
       "updated": "2026-06-11",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1315"
+    },
+    {
+      "number": 908,
+      "title": "`OmegaConf.structured(...)` may mutate its input",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1325,
+          "url": "https://github.com/omry/omegaconf/pull/1325"
+        }
+      ],
+      "created": "2022-05-02",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/908"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-27T14:33:56Z",
+      "kind": "pr",
+      "issue": 1326,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1326",
+      "title": "Support structural equality for configs",
+      "detail": "linked #1327"
+    },
+    {
+      "ts": "2026-06-27T14:33:56Z",
+      "kind": "closed",
+      "issue": 908,
+      "issue_url": "https://github.com/omry/omegaconf/issues/908",
+      "title": "`OmegaConf.structured(...)` may mutate its input"
+    },
+    {
+      "ts": "2026-06-27T14:33:56Z",
+      "kind": "status",
+      "issue": 1326,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1326",
+      "title": "Support structural equality for configs",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1327,
+        "url": "https://github.com/omry/omegaconf/pull/1327"
+      }
+    },
     {
       "ts": "2026-06-27T13:07:40Z",
       "kind": "new",
