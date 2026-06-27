@@ -825,6 +825,25 @@ class OmegaConf:
         )
 
     @staticmethod
+    def structural_equality(cfg1: Any, cfg2: Any) -> bool:
+        """
+        Compare two configs by their unresolved container structure.
+
+        This is equivalent to converting both configs with
+        ``OmegaConf.to_container(resolve=False, throw_on_missing=False)`` and
+        comparing the resulting containers. Interpolations and custom resolver
+        expressions are compared as their raw strings and are not resolved.
+        Missing values do not raise.
+
+        :param cfg1: First OmegaConf config to compare.
+        :param cfg2: Second OmegaConf config to compare.
+        :return: ``True`` if both configs have the same unresolved structure.
+        """
+        return OmegaConf.to_container(
+            cfg1, resolve=False, throw_on_missing=False
+        ) == OmegaConf.to_container(cfg2, resolve=False, throw_on_missing=False)
+
+    @staticmethod
     def to_object(cfg: Any) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
         """
         Recursively converts an OmegaConf config to a primitive container (dict or list).
