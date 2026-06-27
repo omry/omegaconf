@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-06-27",
-  "generated_at": "2026-06-27T09:31:59Z",
+  "generated_at": "2026-06-27T13:05:07Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 55,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 50
+        "count": 49
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 908,
+      "title": "`OmegaConf.structured(...)` may mutate its input",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1325,
+          "url": "https://github.com/omry/omegaconf/pull/1325"
+        }
+      ],
+      "created": "2022-05-02",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/908"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -134,26 +155,6 @@
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
-      "number": 1058,
-      "title": "structured config types are discarded on list merge",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1323,
-          "url": "https://github.com/omry/omegaconf/pull/1323"
-        }
-      ],
-      "created": "2023-02-19",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1058"
-    },
-    {
       "number": 898,
       "title": "_promote is erasing values from the config",
       "category": "Bug",
@@ -173,6 +174,26 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/898"
+    },
+    {
+      "number": 1058,
+      "title": "structured config types are discarded on list merge",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1323,
+          "url": "https://github.com/omry/omegaconf/pull/1323"
+        }
+      ],
+      "created": "2023-02-19",
+      "updated": "2026-06-12",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1058"
     },
     {
       "number": 131,
@@ -559,22 +580,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/899"
-    },
-    {
-      "number": 908,
-      "title": "`OmegaConf.structured(...)` may mutate its input",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-05-02",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/908"
     },
     {
       "number": 928,
@@ -1207,6 +1212,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-27T13:05:07Z",
+      "kind": "pr",
+      "issue": 908,
+      "issue_url": "https://github.com/omry/omegaconf/issues/908",
+      "title": "`OmegaConf.structured(...)` may mutate its input",
+      "detail": "linked #1325"
+    },
+    {
+      "ts": "2026-06-27T13:05:07Z",
+      "kind": "status",
+      "issue": 908,
+      "issue_url": "https://github.com/omry/omegaconf/issues/908",
+      "title": "`OmegaConf.structured(...)` may mutate its input",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1325,
+        "url": "https://github.com/omry/omegaconf/pull/1325"
+      }
+    },
     {
       "ts": "2026-06-27T09:31:59Z",
       "kind": "pr",

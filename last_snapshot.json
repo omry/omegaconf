@@ -15,7 +15,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-06-27T09:31:59Z",
+  "generated_at": "2026-06-27T13:05:07Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -667,9 +667,11 @@
         "bug",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1325"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "`OmegaConf.structured(...)` may mutate its input",
       "updated_at": "2026-04-24T06:28:18Z"
     },
