@@ -51,3 +51,4 @@
 {"ts": "2026-06-27T09:31:59Z", "kind": "pr", "issue": 898, "issue_url": "https://github.com/omry/omegaconf/issues/898", "title": "_promote is erasing values from the config", "detail": "linked #1324"}
 {"ts": "2026-06-27T13:05:07Z", "kind": "status", "issue": 908, "issue_url": "https://github.com/omry/omegaconf/issues/908", "title": "`OmegaConf.structured(...)` may mutate its input", "detail": "not started → in progress", "pr": {"number": 1325, "url": "https://github.com/omry/omegaconf/pull/1325"}}
 {"ts": "2026-06-27T13:05:07Z", "kind": "pr", "issue": 908, "issue_url": "https://github.com/omry/omegaconf/issues/908", "title": "`OmegaConf.structured(...)` may mutate its input", "detail": "linked #1325"}
+{"ts": "2026-06-27T13:07:40Z", "kind": "new", "issue": 1326, "issue_url": "https://github.com/omry/omegaconf/issues/1326", "title": "Support structural equality for configs"}

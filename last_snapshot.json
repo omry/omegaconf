@@ -15,7 +15,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-06-27T13:05:07Z",
+  "generated_at": "2026-06-27T13:07:40Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -313,6 +313,16 @@
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
       "updated_at": "2026-06-10T17:16:07Z"
+    },
+    "1326": {
+      "category": "Enhancement",
+      "created_at": "2026-06-27T13:06:20Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Support structural equality for configs",
+      "updated_at": "2026-06-27T13:06:20Z"
     },
     "144": {
       "category": "Enhancement",
