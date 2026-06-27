@@ -15,7 +15,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-06-26T10:26:05Z",
+  "generated_at": "2026-06-27T09:31:59Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -639,9 +639,11 @@
         "bug",
         "needs triage"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1324"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "_promote is erasing values from the config",
       "updated_at": "2026-04-24T06:28:17Z"
     },

@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-06-26",
-  "generated_at": "2026-06-26T10:26:05Z",
+  "generated_on": "2026-06-27",
+  "generated_at": "2026-06-27T09:31:59Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 55,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 4
+        "count": 5
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 50
       },
       {
         "status": "done",
@@ -152,6 +152,27 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1058"
+    },
+    {
+      "number": 898,
+      "title": "_promote is erasing values from the config",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1324,
+          "url": "https://github.com/omry/omegaconf/pull/1324"
+        }
+      ],
+      "created": "2022-04-14",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/898"
     },
     {
       "number": 131,
@@ -522,22 +543,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/883"
-    },
-    {
-      "number": 898,
-      "title": "_promote is erasing values from the config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-04-14",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/898"
     },
     {
       "number": 899,
@@ -1202,6 +1207,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-06-27T09:31:59Z",
+      "kind": "pr",
+      "issue": 898,
+      "issue_url": "https://github.com/omry/omegaconf/issues/898",
+      "title": "_promote is erasing values from the config",
+      "detail": "linked #1324"
+    },
+    {
+      "ts": "2026-06-27T09:31:59Z",
+      "kind": "status",
+      "issue": 898,
+      "issue_url": "https://github.com/omry/omegaconf/issues/898",
+      "title": "_promote is erasing values from the config",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1324,
+        "url": "https://github.com/omry/omegaconf/pull/1324"
+      }
+    },
     {
       "ts": "2026-06-25T10:18:22Z",
       "kind": "pr",
