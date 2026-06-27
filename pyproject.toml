@@ -32,7 +32,7 @@ pythonpath = ["."]
 norecursedirs = ["subprojects", ".git", ".sl", ".venv"]
 
 [tool.bumpversion]
-current_version = "2.4.0.dev11"
+current_version = "2.4.0.dev12"
 parse = '''(?x)
     (?P<major>\d+)
     \.(?P<minor>\d+)
