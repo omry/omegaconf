@@ -1114,6 +1114,26 @@ def test_ensure_container_raises_ValueError() -> None:
         _ensure_container("abc")
 
 
+# Regression test for https://github.com/omry/omegaconf/issues/580 — when
+# `_ensure_container` was called with a pre-built DictConfig/ListConfig the
+# `flags` argument was silently discarded. The post-condition we want is
+# uniform: regardless of input shape, `flags` ends up applied to the returned
+# config (matching the contract already honored for dict / list / dataclass
+# inputs via `OmegaConf.create(..., flags=flags)`).
+@mark.parametrize(
+    "target",
+    [
+        param({"name": "bond", "age": 7}, id="dict"),
+        param([1, 2, 3], id="list"),
+        param(DictConfig(content={"name": "bond", "age": 7}), id="dictconfig"),
+        param(ListConfig(content=[1, 2, 3]), id="listconfig"),
+    ],
+)
+def test_ensure_container_applies_flags(target: Any) -> None:
+    cfg = _ensure_container(target, flags={"my_flag": True})
+    assert cfg._get_flag("my_flag") is True
+
+
 def test_marker_string_representation() -> None:
     marker = Marker("marker")
     assert repr(marker) == "marker"
