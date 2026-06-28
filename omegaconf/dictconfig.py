@@ -642,13 +642,23 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
         from omegaconf import OmegaConf
 
+        previous_nodes = {
+            key: copy.deepcopy(self._get_node(key, validate_access=False))
+            for key in self.keys()
+        }
         proto: DictConfig = OmegaConf.structured(type_or_prototype)
         object_type = proto._metadata.object_type
-        # remove the type to prevent assignment validation from rejecting the promotion.
+        # Remove the type to prevent assignment validation from rejecting the promotion.
         proto._metadata.object_type = None
         self.merge_with(proto)
-        # restore the type.
         self._metadata.object_type = object_type
+
+        for key, node in previous_nodes.items():
+            if key in self:
+                try:
+                    self[key] = node
+                except ValidationError:
+                    pass
 
     def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
         previous_content = self.__dict__["_content"]

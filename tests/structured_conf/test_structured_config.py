@@ -982,7 +982,7 @@ class TestConfigs:
         @dataclasses.dataclass
         class Foo:
             foo: pathlib.Path
-            bar: str
+            bar: str = "goodbye.err"
             qub: int = 5
 
         x = DictConfig({"foo": "hello.txt", "bar": "hello.txt"})
@@ -991,6 +991,7 @@ class TestConfigs:
 
         x._promote(Foo)
         assert isinstance(x.foo, pathlib.Path)
+        assert x.bar == "hello.txt"
         assert isinstance(x.bar, str)
         assert x.qub == 5
 
