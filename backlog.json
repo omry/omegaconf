@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-06-27",
-  "generated_at": "2026-06-27T15:21:21Z",
+  "generated_on": "2026-06-28",
+  "generated_at": "2026-06-28T10:07:07Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 54,
@@ -147,7 +147,7 @@
         }
       ],
       "created": "2022-04-14",
-      "updated": "2026-04-24",
+      "updated": "2026-06-27",
       "labels": [
         "bug",
         "needs triage"
