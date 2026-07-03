@@ -1,27 +1,27 @@
 {
-  "generated_on": "2026-07-02",
-  "generated_at": "2026-07-02T10:13:14Z",
+  "generated_on": "2026-07-03",
+  "generated_at": "2026-07-03T04:55:36Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 54,
+    "open_total": 55,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 13,
-        "percentage": 24.1
+        "percentage": 23.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 37,
-        "percentage": 68.5
+        "count": 38,
+        "percentage": 69.1
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.9
+        "percentage": 1.8
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.6
+        "percentage": 5.5
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 49
+        "count": 50
       },
       {
         "status": "done",
@@ -932,6 +932,19 @@
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
+      "number": 1328,
+      "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-03",
+      "updated": "2026-07-03",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1328"
+    },
+    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -1230,6 +1243,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-03T04:55:36Z",
+      "kind": "new",
+      "issue": 1328,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1328",
+      "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs"
+    },
     {
       "ts": "2026-06-27T15:21:21Z",
       "kind": "closed",

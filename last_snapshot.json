@@ -17,7 +17,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-02T10:13:14Z",
+  "generated_at": "2026-07-03T04:55:36Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -315,6 +315,16 @@
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
       "updated_at": "2026-06-10T17:16:07Z"
+    },
+    "1328": {
+      "category": "Enhancement",
+      "created_at": "2026-07-03T04:54:17Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
+      "updated_at": "2026-07-03T04:54:17Z"
     },
     "144": {
       "category": "Enhancement",
