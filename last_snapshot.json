@@ -17,7 +17,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-15T09:15:02Z",
+  "generated_at": "2026-07-15T12:30:22Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -325,6 +325,18 @@
       "status": "not started",
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
       "updated_at": "2026-07-03T04:54:17Z"
+    },
+    "1329": {
+      "category": "Bug",
+      "created_at": "2026-07-15T12:29:03Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "updated_at": "2026-07-15T12:30:01Z"
     },
     "144": {
       "category": "Enhancement",
