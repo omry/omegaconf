@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-15",
-  "generated_at": "2026-07-15T12:30:22Z",
+  "generated_at": "2026-07-15T18:13:33Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 56,
+    "open_total": 57,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 14,
-        "percentage": 25.0
+        "count": 15,
+        "percentage": 26.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 38,
-        "percentage": 67.9
+        "percentage": 66.7
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.4
+        "percentage": 5.3
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 52
       },
       {
         "status": "done",
@@ -960,6 +960,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1329"
     },
     {
+      "number": 1330,
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-15",
+      "updated": "2026-07-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1330"
+    },
+    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -1258,6 +1273,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-15T18:13:33Z",
+      "kind": "new",
+      "issue": 1330,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1330",
+      "title": "`OmegaConf.resolve()` drops interpolation error context"
+    },
     {
       "ts": "2026-07-15T12:30:22Z",
       "kind": "new",

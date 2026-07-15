@@ -58,3 +58,4 @@
 {"ts": "2026-06-27T15:21:21Z", "kind": "closed", "issue": 1326, "issue_url": "https://github.com/omry/omegaconf/issues/1326", "title": "Support structural equality for configs"}
 {"ts": "2026-07-03T04:55:36Z", "kind": "new", "issue": 1328, "issue_url": "https://github.com/omry/omegaconf/issues/1328", "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs"}
 {"ts": "2026-07-15T12:30:22Z", "kind": "new", "issue": 1329, "issue_url": "https://github.com/omry/omegaconf/issues/1329", "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key"}
+{"ts": "2026-07-15T18:13:33Z", "kind": "new", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context"}
