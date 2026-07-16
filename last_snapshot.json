@@ -8,6 +8,7 @@
     "1120": "2026-06-11",
     "1126": "2026-06-11",
     "1310": "2026-06-10",
+    "1312": "2026-07-16",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "1326": "2026-06-27",
@@ -17,7 +18,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-16T09:20:05Z",
+  "generated_at": "2026-07-16T12:08:42Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -305,16 +306,6 @@
       "status": "not started",
       "title": "Evaluate usefulness of pep-593 for structured configs",
       "updated_at": "2026-04-24T06:29:52Z"
-    },
-    "1312": {
-      "category": "Enhancement",
-      "created_at": "2026-06-10T17:16:07Z",
-      "labels": [],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "updated_at": "2026-06-10T17:16:07Z"
     },
     "1328": {
       "category": "Enhancement",
@@ -847,6 +838,16 @@
       "status": "done",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "updated_at": "2026-06-10T04:19:24Z"
+    },
+    "1312": {
+      "category": "Enhancement",
+      "created_at": "2026-06-10T17:16:07Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Support more flexible merge semantics in OmegaConf.merge",
+      "updated_at": "2026-06-10T17:16:07Z"
     },
     "1314": {
       "category": "Bug",
