@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-16",
-  "generated_at": "2026-07-16T12:08:42Z",
+  "generated_at": "2026-07-16T12:12:46Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 56,
+    "open_total": 57,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 15,
-        "percentage": 26.8
+        "percentage": 26.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 37,
-        "percentage": 66.1
+        "count": 38,
+        "percentage": 66.7
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.4
+        "percentage": 5.3
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 52
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 17
+        "count": 16
       }
     ]
   },
@@ -962,6 +962,19 @@
       "url": "https://github.com/omry/omegaconf/issues/1330"
     },
     {
+      "number": 1312,
+      "title": "Support more flexible merge semantics in OmegaConf.merge",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-06-10",
+      "updated": "2026-07-16",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1312"
+    },
+    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -1257,22 +1270,16 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 1312,
-      "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-06-10",
-      "updated": "2026-06-10",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1312"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-16T12:12:46Z",
+      "kind": "new",
+      "issue": 1312,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
+      "title": "Support more flexible merge semantics in OmegaConf.merge"
+    },
     {
       "ts": "2026-07-16T12:08:42Z",
       "kind": "closed",
