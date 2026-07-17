@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-16",
-  "generated_at": "2026-07-16T12:12:46Z",
+  "generated_on": "2026-07-17",
+  "generated_at": "2026-07-17T09:14:56Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 57,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 5
+        "count": 6
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 52
+        "count": 51
       },
       {
         "status": "done",
@@ -173,6 +173,26 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1058"
+    },
+    {
+      "number": 1020,
+      "title": "Failure to merge interpolation into structured config",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1331,
+          "url": "https://github.com/omry/omegaconf/pull/1331"
+        }
+      ],
+      "created": "2022-10-20",
+      "updated": "2026-06-13",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1020"
     },
     {
       "number": 131,
@@ -592,21 +612,6 @@
       "url": "https://github.com/omry/omegaconf/issues/999"
     },
     {
-      "number": 1020,
-      "title": "Failure to merge interpolation into structured config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-10-20",
-      "updated": "2026-06-13",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1020"
-    },
-    {
       "number": 1024,
       "title": "Interpolations in dictionary keys",
       "category": "Enhancement",
@@ -919,6 +924,19 @@
       "url": "https://github.com/omry/omegaconf/issues/1302"
     },
     {
+      "number": 1312,
+      "title": "Support more flexible merge semantics in OmegaConf.merge",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-06-10",
+      "updated": "2026-07-16",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1312"
+    },
+    {
       "number": 1328,
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
       "category": "Enhancement",
@@ -960,19 +978,6 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1330"
-    },
-    {
-      "number": 1312,
-      "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-06-10",
-      "updated": "2026-07-16",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
       "number": 771,
@@ -1273,6 +1278,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-17T09:14:56Z",
+      "kind": "pr",
+      "issue": 1020,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
+      "title": "Failure to merge interpolation into structured config",
+      "detail": "linked #1331"
+    },
+    {
+      "ts": "2026-07-17T09:14:56Z",
+      "kind": "status",
+      "issue": 1020,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
+      "title": "Failure to merge interpolation into structured config",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1331,
+        "url": "https://github.com/omry/omegaconf/pull/1331"
+      }
+    },
     {
       "ts": "2026-07-16T12:12:46Z",
       "kind": "new",

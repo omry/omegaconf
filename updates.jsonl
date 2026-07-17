@@ -61,3 +61,5 @@
 {"ts": "2026-07-15T18:13:33Z", "kind": "new", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context"}
 {"ts": "2026-07-16T12:08:42Z", "kind": "closed", "issue": 1312, "issue_url": "https://github.com/omry/omegaconf/issues/1312", "title": "Support more flexible merge semantics in OmegaConf.merge"}
 {"ts": "2026-07-16T12:12:46Z", "kind": "new", "issue": 1312, "issue_url": "https://github.com/omry/omegaconf/issues/1312", "title": "Support more flexible merge semantics in OmegaConf.merge"}
+{"ts": "2026-07-17T09:14:56Z", "kind": "status", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "not started → community PR", "pr": {"number": 1331, "url": "https://github.com/omry/omegaconf/pull/1331"}}
+{"ts": "2026-07-17T09:14:56Z", "kind": "pr", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "linked #1331"}

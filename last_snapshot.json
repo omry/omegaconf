@@ -17,7 +17,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-16T12:12:46Z",
+  "generated_at": "2026-07-17T09:14:56Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -25,9 +25,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1331"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "Failure to merge interpolation into structured config",
       "updated_at": "2026-06-13T03:22:54Z"
     },
