@@ -434,14 +434,20 @@ class BaseContainer(Container, ABC):
 
             src_vk = get_value_kind(src_node)
             src_node_missing = src_vk is ValueKind.MANDATORY_MISSING
+            # An interpolation source must be merged as-is and resolved lazily:
+            # its type is not known until resolution, and resolving it here (in
+            # the source's context, which may lack the referenced keys) is wrong
+            # (issue #1020).
+            src_node_interpolation = src_vk is ValueKind.INTERPOLATION
 
-            if isinstance(dest_node, DictConfig):
+            if isinstance(dest_node, DictConfig) and not src_node_interpolation:
                 dest_node._validate_merge(value=src_node)
 
             if (
                 isinstance(dest_node, Container)
                 and dest_node._is_none()
                 and not src_node_missing
+                and not src_node_interpolation
                 and not _is_none(src_node, resolve=True)
             ):
                 expand(dest_node)
