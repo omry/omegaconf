@@ -63,3 +63,5 @@
 {"ts": "2026-07-16T12:12:46Z", "kind": "new", "issue": 1312, "issue_url": "https://github.com/omry/omegaconf/issues/1312", "title": "Support more flexible merge semantics in OmegaConf.merge"}
 {"ts": "2026-07-17T09:14:56Z", "kind": "status", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "not started → community PR", "pr": {"number": 1331, "url": "https://github.com/omry/omegaconf/pull/1331"}}
 {"ts": "2026-07-17T09:14:56Z", "kind": "pr", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "linked #1331"}
+{"ts": "2026-07-17T17:36:36Z", "kind": "closed", "issue": 731, "issue_url": "https://github.com/omry/omegaconf/issues/731", "title": "Subclasses of `Generic` cannot be used as structured configs"}
+{"ts": "2026-07-17T17:36:36Z", "kind": "closed", "issue": 898, "issue_url": "https://github.com/omry/omegaconf/issues/898", "title": "_promote is erasing values from the config"}

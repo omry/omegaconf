@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-17",
-  "generated_at": "2026-07-17T09:14:56Z",
+  "generated_at": "2026-07-17T17:36:36Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 57,
+    "open_total": 55,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 15,
-        "percentage": 26.3
+        "count": 13,
+        "percentage": 23.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 38,
-        "percentage": 66.7
+        "percentage": 69.1
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.3
+        "percentage": 5.5
       },
       {
         "category": "Build",
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 6
+        "count": 5
       },
       {
         "status": "blocked",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 50
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 16
+        "count": 18
       }
     ]
   },
@@ -134,25 +134,24 @@
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
-      "number": 898,
-      "title": "_promote is erasing values from the config",
+      "number": 1020,
+      "title": "Failure to merge interpolation into structured config",
       "category": "Bug",
       "category_emoji": "🐛",
       "status": "community PR",
       "status_emoji": "🤝",
       "prs": [
         {
-          "number": 1324,
-          "url": "https://github.com/omry/omegaconf/pull/1324"
+          "number": 1331,
+          "url": "https://github.com/omry/omegaconf/pull/1331"
         }
       ],
-      "created": "2022-04-14",
-      "updated": "2026-06-27",
+      "created": "2022-10-20",
+      "updated": "2026-06-13",
       "labels": [
-        "bug",
-        "needs triage"
+        "bug"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/898"
+      "url": "https://github.com/omry/omegaconf/issues/1020"
     },
     {
       "number": 1058,
@@ -173,26 +172,6 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1058"
-    },
-    {
-      "number": 1020,
-      "title": "Failure to merge interpolation into structured config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1331,
-          "url": "https://github.com/omry/omegaconf/pull/1331"
-        }
-      ],
-      "created": "2022-10-20",
-      "updated": "2026-06-13",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1020"
     },
     {
       "number": 131,
@@ -419,22 +398,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/726"
-    },
-    {
-      "number": 731,
-      "title": "Subclasses of `Generic` cannot be used as structured configs",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-05-24",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug",
-        "priority_medium"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/731"
     },
     {
       "number": 750,
@@ -1275,9 +1238,60 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 731,
+      "title": "Subclasses of `Generic` cannot be used as structured configs",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-05-24",
+      "updated": "2026-06-10",
+      "labels": [
+        "bug",
+        "priority_medium"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/731"
+    },
+    {
+      "number": 898,
+      "title": "_promote is erasing values from the config",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1324,
+          "url": "https://github.com/omry/omegaconf/pull/1324"
+        }
+      ],
+      "created": "2022-04-14",
+      "updated": "2026-06-27",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/898"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-17T17:36:36Z",
+      "kind": "closed",
+      "issue": 898,
+      "issue_url": "https://github.com/omry/omegaconf/issues/898",
+      "title": "_promote is erasing values from the config"
+    },
+    {
+      "ts": "2026-07-17T17:36:36Z",
+      "kind": "closed",
+      "issue": 731,
+      "issue_url": "https://github.com/omry/omegaconf/issues/731",
+      "title": "Subclasses of `Generic` cannot be used as structured configs"
+    },
     {
       "ts": "2026-07-17T09:14:56Z",
       "kind": "pr",
