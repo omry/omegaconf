@@ -65,3 +65,4 @@
 {"ts": "2026-07-17T09:14:56Z", "kind": "pr", "issue": 1020, "issue_url": "https://github.com/omry/omegaconf/issues/1020", "title": "Failure to merge interpolation into structured config", "detail": "linked #1331"}
 {"ts": "2026-07-17T17:36:36Z", "kind": "closed", "issue": 731, "issue_url": "https://github.com/omry/omegaconf/issues/731", "title": "Subclasses of `Generic` cannot be used as structured configs"}
 {"ts": "2026-07-17T17:36:36Z", "kind": "closed", "issue": 898, "issue_url": "https://github.com/omry/omegaconf/issues/898", "title": "_promote is erasing values from the config"}
+{"ts": "2026-07-18T02:56:51Z", "kind": "new", "issue": 1332, "issue_url": "https://github.com/omry/omegaconf/issues/1332", "title": "Define type compatibility rules for typed interpolations"}

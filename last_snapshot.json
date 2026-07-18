@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-17T17:36:36Z",
+  "generated_at": "2026-07-18T02:56:51Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -354,6 +354,19 @@
       "title": "`OmegaConf.resolve()` drops interpolation error context",
       "updated_at": "2026-07-15T18:12:15Z"
     },
+    "1332": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T02:55:26Z",
+      "labels": [
+        "RFC",
+        "interpolation"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Define type compatibility rules for typed interpolations",
+      "updated_at": "2026-07-18T02:55:26Z"
+    },
     "144": {
       "category": "Enhancement",
       "created_at": "2020-01-30T01:58:10Z",
@@ -498,7 +511,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Interpolations can't refer to non-string keys",
-      "updated_at": "2026-04-26T17:45:26Z"
+      "updated_at": "2026-07-17T19:03:23Z"
     },
     "702": {
       "category": "Bug",
@@ -512,7 +525,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Provide correct full key on nested Structured Config creation error.",
-      "updated_at": "2026-04-26T17:46:48Z"
+      "updated_at": "2026-07-17T18:12:56Z"
     },
     "725": {
       "category": "Enhancement",

@@ -1,21 +1,21 @@
 {
-  "generated_on": "2026-07-17",
-  "generated_at": "2026-07-17T17:36:36Z",
+  "generated_on": "2026-07-18",
+  "generated_at": "2026-07-18T02:56:51Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 55,
+    "open_total": 56,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 13,
-        "percentage": 23.6
+        "percentage": 23.2
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 38,
-        "percentage": 69.1
+        "count": 39,
+        "percentage": 69.6
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.5
+        "percentage": 5.4
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 50
+        "count": 51
       },
       {
         "status": "done",
@@ -343,7 +343,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-03-29",
-      "updated": "2026-04-26",
+      "updated": "2026-07-17",
       "labels": [
         "bug",
         "priority_low"
@@ -359,7 +359,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-04-29",
-      "updated": "2026-04-26",
+      "updated": "2026-07-17",
       "labels": [
         "bug",
         "wishlist",
@@ -943,6 +943,38 @@
       "url": "https://github.com/omry/omegaconf/issues/1330"
     },
     {
+      "number": 1332,
+      "title": "Define type compatibility rules for typed interpolations",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "interpolation",
+        "RFC"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1332"
+    },
+    {
+      "number": 731,
+      "title": "Subclasses of `Generic` cannot be used as structured configs",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-05-24",
+      "updated": "2026-06-10",
+      "labels": [
+        "bug",
+        "priority_medium"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/731"
+    },
+    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -962,6 +994,27 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/771"
+    },
+    {
+      "number": 898,
+      "title": "_promote is erasing values from the config",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1324,
+          "url": "https://github.com/omry/omegaconf/pull/1324"
+        }
+      ],
+      "created": "2022-04-14",
+      "updated": "2026-06-27",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/898"
     },
     {
       "number": 908,
@@ -1238,46 +1291,16 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 731,
-      "title": "Subclasses of `Generic` cannot be used as structured configs",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-05-24",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug",
-        "priority_medium"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/731"
-    },
-    {
-      "number": 898,
-      "title": "_promote is erasing values from the config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1324,
-          "url": "https://github.com/omry/omegaconf/pull/1324"
-        }
-      ],
-      "created": "2022-04-14",
-      "updated": "2026-06-27",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/898"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T02:56:51Z",
+      "kind": "new",
+      "issue": 1332,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1332",
+      "title": "Define type compatibility rules for typed interpolations"
+    },
     {
       "ts": "2026-07-17T17:36:36Z",
       "kind": "closed",
