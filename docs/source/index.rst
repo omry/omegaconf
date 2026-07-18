@@ -12,6 +12,7 @@ OmegaConf also offers runtime type safety via Structured Configs.
    :maxdepth: 2
 
    usage
+   tuple_migration
    custom_resolvers
    structured_config
    grammar

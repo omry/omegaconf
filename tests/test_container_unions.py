@@ -5,11 +5,11 @@ Tests for Union[List[...], Dict[...], ...] support (issue #1261).
 import copy
 import pickle
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import ListMergeMode, OmegaConf, ValidationError
+from omegaconf import ListMergeMode, OmegaConf, TupleConfig, ValidationError
 from omegaconf._utils import is_supported_union_annotation
 
 # ---------------------------------------------------------------------------
@@ -47,6 +47,26 @@ class CfgDictOrList:
 @dataclass
 class CfgMissing:
     value: Union[List[int], List[str]] = field(default_factory=lambda: [1])
+
+
+@dataclass
+class CfgListOrTupleInt:
+    value: Union[List[int], Tuple[int, ...]] = field(default_factory=lambda: [1])
+
+
+@dataclass
+class CfgTupleIntOrTupleStr:
+    value: Union[Tuple[int, ...], Tuple[str, ...]] = (1,)
+
+
+@dataclass
+class CfgBuiltinTupleIntOrTupleStr:
+    value: Union[tuple[int, ...], tuple[str, ...]] = (1,)
+
+
+@dataclass
+class CfgListIntOrTupleStr:
+    value: Union[List[int], Tuple[str, ...]] = field(default_factory=lambda: [1])
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +163,32 @@ class TestBranchSelection:
         with raises(ValidationError):
             cfg.value = {"x": 1}  # dict when only int or List[str] allowed
 
+    @mark.parametrize(
+        "value,expected_type,expected",
+        [
+            param([1, 2], List, [1, 2], id="native_list"),
+            param((1, 2), TupleConfig, (1, 2), id="native_tuple"),
+        ],
+    )
+    def test_mixed_sequence_union_prefers_native_kind(
+        self, value: Any, expected_type: Any, expected: Any
+    ) -> None:
+        cfg = OmegaConf.structured(CfgListOrTupleInt)
+        cfg.value = value
+
+        if expected_type is List:
+            assert isinstance(cfg.value, list) or OmegaConf.is_list(cfg.value)
+        else:
+            assert isinstance(cfg.value, expected_type)
+        assert cfg.value == expected
+
+    def test_mixed_sequence_union_falls_back_to_other_kind(self) -> None:
+        cfg = OmegaConf.structured(CfgListIntOrTupleStr)
+        cfg.value = ["not-an-int"]
+
+        assert isinstance(cfg.value, TupleConfig)
+        assert cfg.value == ("not-an-int",)
+
 
 # ---------------------------------------------------------------------------
 # Ambiguity errors for empty containers
@@ -182,6 +228,12 @@ class TestAmbiguity:
         cfg.value = ("a", "b")
         assert cfg.value == ["a", "b"]
 
+    def test_same_kind_tuple_union_is_ambiguous(self) -> None:
+        cfg = OmegaConf.structured(CfgTupleIntOrTupleStr)
+
+        with raises(ValidationError, match="[Aa]mbig"):
+            cfg.value = ()
+
 
 # ---------------------------------------------------------------------------
 # OmegaConf.typed_list / typed_dict — explicit disambiguation
@@ -220,6 +272,38 @@ class TestTypedContainers:
         assert cfg.value == {}
         cfg.value["x"] = "hello"
         assert cfg.value == {"x": "hello"}
+
+    def test_typed_tuple_disambiguates_empty_tuple(self) -> None:
+        cfg = OmegaConf.structured(CfgTupleIntOrTupleStr)
+        typed = OmegaConf.typed_tuple([], Tuple[int, ...])
+
+        cfg.value = typed
+
+        node = cfg._get_node("value")
+        assert node is not None
+        selected = node._value()
+        assert isinstance(selected, TupleConfig)
+        assert selected._metadata.ref_type == Tuple[int, ...]
+
+    @mark.parametrize(
+        "config_type,tuple_type,expected_type",
+        [
+            (CfgTupleIntOrTupleStr, tuple[int, ...], Tuple[int, ...]),
+            (CfgBuiltinTupleIntOrTupleStr, Tuple[int, ...], tuple[int, ...]),
+        ],
+    )
+    def test_typed_tuple_disambiguates_equivalent_annotation_spelling(
+        self, config_type: Any, tuple_type: Any, expected_type: Any
+    ) -> None:
+        cfg = OmegaConf.structured(config_type)
+
+        cfg.value = OmegaConf.typed_tuple([], tuple_type)
+
+        node = cfg._get_node("value")
+        assert node is not None
+        selected = node._value()
+        assert isinstance(selected, TupleConfig)
+        assert selected._metadata.ref_type == expected_type
 
     def test_typed_list_standalone(self) -> None:
         lst = OmegaConf.typed_list([1, 2, 3], element_type=int)

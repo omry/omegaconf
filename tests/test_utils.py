@@ -1108,7 +1108,7 @@ def test_ensure_container_raises_ValueError() -> None:
         ValueError,
         match=re.escape(
             "Invalid input. Supports one of "
-            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+            + "[dict,list,tuple,DictConfig,ListConfig,TupleConfig,dataclass,dataclass instance,attr class,attr class instance]"
         ),
     ):
         _ensure_container("abc")
@@ -1446,6 +1446,7 @@ def test_get_list_element_type_python_3_10() -> None:
         param(Tuple[int], (int,), id="Tuple_int"),
         param(Tuple[int, str], (int, str), id="Tuple[int,str]"),
         param(Tuple[int, ...], (int, ...), id="Tuple[int,...]"),
+        param(Tuple[()], (), id="Tuple[()]"),
         param(Tuple[User], (User,), id="user"),
         param(Tuple[Tuple[int]], (Tuple[int],), id="tuple"),
         param(Tuple[Dict[int, float]], (Dict[int, float],), id="dict"),
@@ -1463,6 +1464,7 @@ if sys.version_info >= (3, 9):
             param(tuple[int], (int,), id="tuple_int"),
             param(tuple[int, str], (int, str), id="tuple[int,str]"),
             param(tuple[int, ...], (int, ...), id="tuple[int,...]"),
+            param(tuple[()], (), id="tuple[()]"),
         ],
     )
     def test_get_tuple_item_types_python_3_9(
@@ -1622,6 +1624,7 @@ def test_resolve_optional_support_pep_604() -> None:
             id="Tuple[int,str]_forward",
         ),
         param(Tuple[int, ...], Tuple[int, ...], id="Tuple[int,...]"),
+        param(Tuple[()], Tuple[()], id="Tuple[()]"),
         param(dict, Dict[Any, Any], id="dict"),
         param(Dict, Dict[Any, Any], id="Dict"),
         param(Dict[int, str], Dict[int, str], id="Dict[int,str]"),
