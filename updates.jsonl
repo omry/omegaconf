@@ -73,3 +73,4 @@
 {"ts": "2026-07-18T12:25:02Z", "kind": "pr", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support", "detail": "linked #1336"}
 {"ts": "2026-07-18T13:16:18Z", "kind": "new", "issue": 1338, "issue_url": "https://github.com/omry/omegaconf/issues/1338", "title": "Consider a compatibility mode for legacy tuple-to-list conversion"}
 {"ts": "2026-07-18T19:15:15Z", "kind": "new", "issue": 1340, "issue_url": "https://github.com/omry/omegaconf/issues/1340", "title": "Inherited flag cache is not invalidated through container-valued unions"}
+{"ts": "2026-07-18T20:21:32Z", "kind": "closed", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support"}

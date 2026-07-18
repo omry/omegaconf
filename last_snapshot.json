@@ -11,6 +11,7 @@
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "1326": "2026-06-27",
+    "392": "2026-07-18",
     "731": "2026-07-17",
     "771": "2026-06-12",
     "898": "2026-07-17",
@@ -19,7 +20,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T19:15:15Z",
+  "generated_at": "2026-07-18T20:21:32Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -466,20 +467,6 @@
       "status": "not started",
       "title": "Attribute/KeyError can suggest matches from the available keys.",
       "updated_at": "2026-04-24T06:29:16Z"
-    },
-    "392": {
-      "category": "Enhancement",
-      "created_at": "2020-09-24T17:32:16Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [
-        "1336"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Improve Tuple support",
-      "updated_at": "2026-04-26T17:48:26Z"
     },
     "459": {
       "category": "Enhancement",
@@ -934,6 +921,20 @@
       "status": "done",
       "title": "Support structural equality for configs",
       "updated_at": "2026-06-27T13:06:20Z"
+    },
+    "392": {
+      "category": "Enhancement",
+      "created_at": "2020-09-24T17:32:16Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [
+        "1336"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Improve Tuple support",
+      "updated_at": "2026-04-26T17:48:26Z"
     },
     "731": {
       "category": "Bug",
