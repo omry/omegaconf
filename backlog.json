@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T02:56:51Z",
+  "generated_at": "2026-07-18T04:41:59Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 56,
+    "open_total": 57,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 13,
-        "percentage": 23.2
+        "count": 14,
+        "percentage": 24.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 39,
-        "percentage": 69.6
+        "percentage": 68.4
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.4
+        "percentage": 5.3
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 52
       },
       {
         "status": "done",
@@ -959,6 +959,22 @@
       "url": "https://github.com/omry/omegaconf/issues/1332"
     },
     {
+      "number": 1333,
+      "title": "Consider making OmegaConf configs unhashable",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "bug",
+        "RFC"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1333"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1294,6 +1310,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T04:41:59Z",
+      "kind": "new",
+      "issue": 1333,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1333",
+      "title": "Consider making OmegaConf configs unhashable"
+    },
     {
       "ts": "2026-07-18T02:56:51Z",
       "kind": "new",

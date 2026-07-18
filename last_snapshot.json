@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T02:56:51Z",
+  "generated_at": "2026-07-18T04:41:59Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -366,6 +366,19 @@
       "status": "not started",
       "title": "Define type compatibility rules for typed interpolations",
       "updated_at": "2026-07-18T02:55:26Z"
+    },
+    "1333": {
+      "category": "Bug",
+      "created_at": "2026-07-18T04:40:41Z",
+      "labels": [
+        "RFC",
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Consider making OmegaConf configs unhashable",
+      "updated_at": "2026-07-18T04:40:41Z"
     },
     "144": {
       "category": "Enhancement",
