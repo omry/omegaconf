@@ -1,4 +1,12 @@
+---
+status: Draft
+updated: 2026-04-24
+summary: Proposed per-node provenance model across creation, mutation, merging, and loading.
+---
+
 # Provenance Tracking Design Note
+
+Tracking issue: [issue #1173](https://github.com/omry/omegaconf/issues/1173)
 
 This is an interesting feature request, but it is much larger than adding
 line/column information to YAML-loaded configs.

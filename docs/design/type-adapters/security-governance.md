@@ -1,3 +1,9 @@
+---
+status: Draft
+updated: 2026-04-29
+summary: Proposed ownership, discovery, security, and compatibility policy for type adapters.
+---
+
 # Type Adapter Security And Governance
 
 This appendix contains the detailed ownership, discovery, security, and

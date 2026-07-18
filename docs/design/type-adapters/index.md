@@ -1,3 +1,9 @@
+---
+status: Draft
+updated: 2026-04-29
+summary: Entry point for the proposed OmegaConf type adapter design documents.
+---
+
 # Type Adapter System
 
 This design note has been split into a reviewer-facing RFC and supporting

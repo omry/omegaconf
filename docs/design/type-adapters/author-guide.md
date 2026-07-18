@@ -1,3 +1,9 @@
+---
+status: Draft
+updated: 2026-04-29
+summary: Proposed authoring contract and examples for external OmegaConf type adapters.
+---
+
 # Type Adapter Author Guide
 
 This guide is for people writing an OmegaConf type adapter. For architecture

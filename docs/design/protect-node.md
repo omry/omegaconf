@@ -1,3 +1,9 @@
+---
+status: Draft
+updated: 2026-04-25
+summary: Proposed protected-node semantics that prevent replacement and deletion through a parent container.
+---
+
 # protect_node Design Note
 
 ## What users want
@@ -5,9 +11,11 @@
 Users want to mark specific keys in a config as immutable so that neither the
 value nor the key itself can be changed after the config is set up.
 
-The motivating case from issue #1161 is locking interpolation nodes so they
-cannot be accidentally overwritten during config composition or runtime
-mutation.
+The feature is tracked by [issue #1300](https://github.com/omry/omegaconf/issues/1300),
+which supersedes the original request in
+[issue #1161](https://github.com/omry/omegaconf/issues/1161). The motivating
+case is locking interpolation nodes so they cannot be accidentally overwritten
+during config composition or runtime mutation.
 
 ## Current workaround and its limitations
 
@@ -166,7 +174,7 @@ internally suppress readonly and protected checks when calling `merge_with`.
    `OmegaConf.is_protected(cfg, key)`.
 5. Add `unprotect(cfg, key_or_keys)` context manager temporarily clearing
    `protected` on the named child nodes via `flag_override`.
-6. Add a news fragment under `news/1161.feature`.
+6. Add a news fragment under `news/1300.feature`.
 
 ## Decisions
 

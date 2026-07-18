@@ -1,6 +1,11 @@
+---
+status: Draft
+updated: 2026-04-29
+summary: Proposed dependency-free extension point for external value types.
+---
+
 # Type Adapter System RFC
 
-**Status:** Draft
 **Stability:** Experimental for the initial release.
 
 This is the short reviewer-facing version of the type adapter design. Detailed

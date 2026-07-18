@@ -1,3 +1,9 @@
+---
+status: Draft
+updated: 2026-04-29
+summary: Proposed implementor specification for the OmegaConf type adapter system.
+---
+
 # Type Adapter System Implementor Spec
 
 This is the detailed implementor and maintainer specification for the type
@@ -5,7 +11,6 @@ adapter system. Most reviewers should start with
 [rfc.md](rfc.md), which summarizes the architecture,
 public API shape, and open decisions.
 
-**Status:** Draft
 **Stability:** The initial release will be marked experimental, allowing the public-facing adapter API (`TypeAdapter`, `TypeAdapterDescriptor`, `load_type_adapter`, etc.) to evolve without backward-compatibility constraints.
 
 ---

@@ -1,4 +1,15 @@
+---
+status: Archived
+updated: 2026-04-25
+summary: Historical design for escaping delimiters in OmegaConf keypath APIs.
+---
+
 # Key Escaping in Keypaths Design Note
+
+> Archived after implementation in [PR #1279](https://github.com/omry/omegaconf/pull/1279).
+> Current user-facing behavior is documented in
+> [`usage.rst`](../../source/usage.rst). Direct interpolation support is tracked
+> by [issue #1335](https://github.com/omry/omegaconf/issues/1335).
 
 ## Problem
 
@@ -99,7 +110,8 @@ Backslash escaping is **not** supported in `${...}` interpolation expressions.
 The ANTLR lexer rule for interpolation keys (`INTER_KEY: ~[\\{}()[\]:. \t'"]+`)
 explicitly excludes backslash, so `${a\.b}` is a grammar error. There is
 therefore no way to write an interpolation that targets a key containing a
-literal dot, bracket, or equals sign.
+literal dot, bracket, or colon. Keys containing an equals sign already work in
+direct node interpolations.
 
 The full fix would require changes at three levels:
 
