@@ -45,8 +45,8 @@ from tests import (
         ("", {}),
         # list value
         ([1, 2], [1, 2]),
-        # For simplicity, tuples are converted to lists.
-        ((1, 2), [1, 2]),
+        # Tuples preserve tuple identity.
+        ((1, 2), (1, 2)),
         # dict 1
         ({"a": 2, "b": 10}, {"a": 2, "b": 10}),
         # dict 2
@@ -178,6 +178,7 @@ class TestCreationWithCustomClass:
     [
         param({"foo": "bar"}, id="dict"),
         param([1, 2, 3], id="list"),
+        param((1, 2, 3), id="tuple"),
     ],
 )
 def test_create_flags_overriding(input_: Any) -> Any:
@@ -193,6 +194,13 @@ def test_create_flags_overriding(input_: Any) -> Any:
     cfg2 = OmegaConf.create(cfg, flags={"readonly": True})
     assert not OmegaConf.is_struct(cfg2)
     assert OmegaConf.is_readonly(cfg2)
+
+
+def test_create_tupleconfig_can_restrict_allow_objects() -> None:
+    cfg = OmegaConf.create((IllegalType(),), flags={"allow_objects": True})
+
+    with raises(UnsupportedValueType):
+        OmegaConf.create(cfg, flags={"allow_objects": False})
 
 
 def test_create_from_cli() -> None:

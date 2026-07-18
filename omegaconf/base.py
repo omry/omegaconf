@@ -30,6 +30,7 @@ from ._utils import (
     get_value_kind,
     is_dict_annotation,
     is_list_annotation,
+    is_tuple_annotation,
     is_union_annotation,
     is_valid_value_annotation,
     split_key,
@@ -377,7 +378,7 @@ class Node(ABC):
 class Box(Node):
     """
     Base class for nodes that can contain other nodes.
-    Concrete subclasses include DictConfig, ListConfig, and UnionNode.
+    Concrete subclasses include DictConfig, ListConfig, TupleConfig, and UnionNode.
     """
 
     _content: Any
@@ -393,6 +394,7 @@ class Box(Node):
     def _re_parent(self) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .tupleconfig import TupleConfig
 
         # update parents of first level Config nodes to self
 
@@ -404,7 +406,7 @@ class Box(Node):
                         value._set_parent(self)
                     if isinstance(value, Box):
                         value._re_parent()
-        elif isinstance(self, ListConfig):
+        elif isinstance(self, (ListConfig, TupleConfig)):
             content = self.__dict__["_content"]
             if isinstance(content, list):
                 for item in self.__dict__["_content"]:
@@ -844,6 +846,7 @@ class Container(Box):
     def _invalidate_flags_cache(self) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .tupleconfig import TupleConfig
 
         # invalidate subtree cache only if the cache is initialized in this node.
 
@@ -854,7 +857,7 @@ class Container(Box):
                 if isinstance(content, dict):
                     for value in self.__dict__["_content"].values():
                         value._invalidate_flags_cache()
-            elif isinstance(self, ListConfig):
+            elif isinstance(self, (ListConfig, TupleConfig)):
                 content = self.__dict__["_content"]
                 if isinstance(content, list):
                     for item in self.__dict__["_content"]:
@@ -969,6 +972,7 @@ class UnionNode(Box):
     ) -> None:
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
+        from omegaconf.tupleconfig import TupleConfig
 
         ref_type = self._metadata.ref_type
         type_hint = self._metadata.type_hint
@@ -982,12 +986,25 @@ class UnionNode(Box):
                         f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
                     )
             self.__dict__["_content"] = value
-        elif isinstance(value, (list, tuple, ListConfig)):
-            # Only try List[...] candidates — keeps primitive members out of container
-            # dispatch and makes ambiguity an error instead of silent first-match.
+        elif isinstance(value, (list, tuple, ListConfig, TupleConfig)):
+            sequence_candidates = [
+                t
+                for t in ref_type.__args__
+                if is_list_annotation(t) or is_tuple_annotation(t)
+            ]
+            input_is_tuple = isinstance(value, (tuple, TupleConfig))
+            preferred_candidates = [
+                t
+                for t in sequence_candidates
+                if is_tuple_annotation(t) == input_is_tuple
+            ]
+            fallback_candidates = [
+                t for t in sequence_candidates if t not in preferred_candidates
+            ]
             self._set_container_value(
                 value=value,
-                candidates=[t for t in ref_type.__args__ if is_list_annotation(t)],
+                candidates=preferred_candidates,
+                fallback_candidates=fallback_candidates,
                 type_hint=type_hint,
             )
         elif isinstance(value, (dict, Container)):
@@ -1020,48 +1037,76 @@ class UnionNode(Box):
         value: Any,
         candidates: List[Any],
         type_hint: Any,
+        fallback_candidates: Optional[List[Any]] = None,
     ) -> None:
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
+        from omegaconf.tupleconfig import TupleConfig
 
-        from ._utils import get_dict_key_value_types, get_list_element_type
+        from ._utils import (
+            get_dict_key_value_types,
+            get_list_element_type,
+            normalize_tuple_annotation,
+        )
 
         # For an already-typed container (from typed_list/typed_dict or another
         # structured config), use its element-type metadata to narrow candidates
         # before falling back to content-based validation. This makes empty
         # containers unambiguous when the metadata uniquely identifies one branch.
-        if isinstance(value, ListConfig) and value._metadata.element_type is not Any:
-            meta_candidates = [
-                t
-                for t in candidates
-                if get_list_element_type(t) == value._metadata.element_type
-            ]
-            if meta_candidates:
-                candidates = meta_candidates
-        elif isinstance(value, Container) and not isinstance(value, ListConfig):
-            vkey, vval = get_dict_key_value_types(value._metadata.ref_type)
-            if vkey is not Any or vval is not Any:
+        def narrow_by_metadata(candidate_types: List[Any]) -> List[Any]:
+            meta_candidates: List[Any] = []
+            if (
+                isinstance(value, ListConfig)
+                and value._metadata.element_type is not Any
+            ):
                 meta_candidates = [
-                    t for t in candidates if get_dict_key_value_types(t) == (vkey, vval)
+                    t
+                    for t in candidate_types
+                    if is_list_annotation(t)
+                    and get_list_element_type(t) == value._metadata.element_type
                 ]
-                if meta_candidates:
-                    candidates = meta_candidates
+            elif isinstance(value, TupleConfig):
+                value_type = normalize_tuple_annotation(value._metadata.ref_type)
+                meta_candidates = [
+                    t
+                    for t in candidate_types
+                    if is_tuple_annotation(t)
+                    and normalize_tuple_annotation(t) == value_type
+                ]
+            elif isinstance(value, Container) and not isinstance(
+                value, (ListConfig, TupleConfig)
+            ):
+                vkey, vval = get_dict_key_value_types(value._metadata.ref_type)
+                if vkey is not Any or vval is not Any:
+                    meta_candidates = [
+                        t
+                        for t in candidate_types
+                        if is_dict_annotation(t)
+                        and get_dict_key_value_types(t) == (vkey, vval)
+                    ]
+            return meta_candidates or candidate_types
 
-        matches: List[Node] = []
-        for candidate_ref_type in candidates:
-            try:
-                node = _node_wrap(
-                    value=value,
-                    ref_type=candidate_ref_type,
-                    is_optional=False,
-                    key=None,
-                    parent=self,
-                )
-                matches.append(node)
-                if len(matches) > 1:
-                    break  # ambiguous — stop constructing further candidates
-            except Exception:
-                continue
+        def find_matches(candidate_types: List[Any]) -> List[Node]:
+            matches: List[Node] = []
+            for candidate_ref_type in narrow_by_metadata(candidate_types):
+                try:
+                    node = _node_wrap(
+                        value=value,
+                        ref_type=candidate_ref_type,
+                        is_optional=False,
+                        key=None,
+                        parent=self,
+                    )
+                    matches.append(node)
+                    if len(matches) > 1:
+                        break
+                except Exception:
+                    continue
+            return matches
+
+        matches = find_matches(candidates)
+        if len(matches) == 0 and fallback_candidates:
+            matches = find_matches(fallback_candidates)
 
         if len(matches) == 0:
             raise ValidationError(

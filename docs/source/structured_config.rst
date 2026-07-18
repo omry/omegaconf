@@ -42,10 +42,10 @@ Currently, type hints supported in OmegaConf’s structured configs include:
    See :ref:`literal_types` below.
  - structured config fields (i.e. MyConfig.x can have type hint MySubConfig).
    See the :ref:`nesting_structured_configs` section below.
- - dict and list types: ``typing.Dict[K, V]`` or ``typing.List[V]``, where K is
-   primitive or enum, and where V is any of the above (including nested dicts
-   or lists, e.g. ``Dict[str, List[int]]``).
-   See the :ref:`lists` and :ref:`dictionaries` sections below.
+ - dict, list, and tuple types: ``typing.Dict[K, V]``, ``typing.List[V]``, or
+   ``typing.Tuple[...]``. Dictionary keys K are primitive or enum values, and
+   container values may use any supported type, including nested containers.
+   See the :ref:`lists`, :ref:`tuples`, and :ref:`dictionaries` sections below.
  - optional types (any of the above can be wrapped in a ``typing.Optional[...]``
    annotation). See :ref:`other_special_features` below.
 
@@ -284,13 +284,13 @@ of values. Literal annotations are also supported inside containers.
 
 Lists
 ^^^^^
-Structured Config fields annotated with ``typing.List`` or ``typing.Tuple`` can hold any type
+Structured Config fields annotated with ``typing.List`` can hold any type
 supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``bytes``, ``pathlib.Path``, ``Enum`` or Structured configs).
 
 .. doctest::
 
     >>> from dataclasses import dataclass, field
-    >>> from typing import List, Tuple
+    >>> from typing import List
     >>> @dataclass
     ... class User:
     ...     name: str = MISSING
@@ -300,7 +300,6 @@ supported by OmegaConf (``int``, ``float``. ``bool``, ``str``, ``bytes``, ``path
     ...     # Typed list can hold Any, int, float, bool, str,
     ...     # bytes, pathlib.Path and Enums as well as arbitrary Structured configs.
     ...     ints: List[int] = field(default_factory=lambda: [10, 20, 30])
-    ...     bools: Tuple[bool, bool] = field(default_factory=lambda: (True, False))
     ...     users: List[User] = field(default_factory=lambda: [User(name="omry")])
 
 OmegaConf verifies at runtime that your Lists contains only values of the correct type.
@@ -315,11 +314,52 @@ In the example below, the OmegaConf object ``conf`` (which is actually an instan
     >>> # Okay, "20" can be converted to an int
     >>> conf.ints.append("20")
 
-    >>> conf.bools.append(True)
     >>> conf.users.append(User(name="Joe"))
     >>> # Not okay, 10 cannot be converted to a User
     >>> with raises(ValidationError):
     ...     conf.users.append(10)
+
+.. _tuples:
+
+Tuples (experimental)
+^^^^^^^^^^^^^^^^^^^^^
+
+Tuple support is experimental in OmegaConf 2.4, and its semantics may evolve
+based on user feedback. Tuple fields use ``TupleConfig`` rather than
+``ListConfig``. They preserve tuple identity, support fixed heterogeneous and
+homogeneous variadic annotations, and are structurally immutable. See
+:doc:`tuple_migration` for the breaking change from earlier OmegaConf versions
+and guidance for choosing between tuple and list annotations.
+
+.. doctest::
+
+    >>> from typing import Tuple
+    >>> @dataclass
+    ... class TupleExample:
+    ...     fixed: Tuple[int, str] = (10, "name")
+    ...     variadic: Tuple[int, ...] = (1, 2, 3)
+
+    >>> conf = OmegaConf.structured(TupleExample)
+    >>> isinstance(conf.fixed, TupleConfig)
+    True
+    >>> conf.fixed == (10, "name")
+    True
+    >>> conf.fixed = [20, 30]
+    >>> conf.fixed == (20, "30")
+    True
+    >>> with raises(TypeError):
+    ...     conf.fixed[0] = 30
+
+Nested mutable containers remain mutable, as they do inside a native Python
+tuple. Complete tuple replacement is allowed through a mutable parent, but
+fixed annotations enforce arity and positional types. ``OmegaConf.typed_tuple``
+creates an explicitly typed tuple and requires its complete content up front.
+
+.. doctest::
+
+    >>> value = OmegaConf.typed_tuple([1, "x"], Tuple[int, str])
+    >>> value == (1, "x")
+    True
 
 .. _dictionaries:
 

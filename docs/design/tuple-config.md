@@ -1,7 +1,7 @@
 ---
-status: Draft
+status: Active
 updated: 2026-07-18
-summary: Proposed TupleConfig semantics for immutable and positionally typed tuple values.
+summary: Current experimental TupleConfig semantics for immutable and positionally typed tuple values.
 ---
 
 # TupleConfig Design
@@ -22,7 +22,7 @@ Tracking issue: [issue #392](https://github.com/omry/omegaconf/issues/392)
 - Let the declared destination type control conversion: list or tuple input becomes `TupleConfig` for tuple-typed fields and `ListConfig` for list-typed fields.
 - Require fixed-length tuple annotations to have exactly the declared arity.
 - Validate tuple elements using the existing OmegaConf scalar conversion rules.
-- Do not validate, traverse, or convert whole containers when resolving interpolations. Interpolations stored in typed primitive tuple positions still use normal scalar coercion.
+- Lazy whole-container interpolation access follows existing list and dictionary behavior and does not eagerly convert the result. Explicit ``OmegaConf.resolve()`` materializes and validates the result as a ``TupleConfig``.
 - Reject all direct structural mutation of a `TupleConfig`; reading a slice is supported and returns a new `TupleConfig`.
 - Raise `ConfigTypeError` for intrinsic tuple immutability violations.
 - Keep nested containers mutable, matching Python tuple behavior.
@@ -74,7 +74,7 @@ Tracking issue: [issue #392](https://github.com/omry/omegaconf/issues/392)
 
 8. Decision: each tuple position uses the existing OmegaConf scalar conversion rules.
 
-9. Decision: follow existing typed-container interpolation behavior. Do not validate, traverse, or convert a resolved container as a complete tuple. An interpolation stored in a typed primitive tuple position uses normal scalar coercion, but resolving a whole tuple does not walk or coerce its elements.
+9. Decision: follow existing typed-container interpolation behavior. Lazy access does not eagerly convert or validate a whole-container result. An interpolation stored in a typed primitive tuple position uses normal scalar coercion. Explicit ``OmegaConf.resolve()`` is covered by decisions 28 and 29 and materializes and validates the complete tuple.
 
 ## 3. Immutability
 

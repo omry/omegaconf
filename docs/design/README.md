@@ -8,9 +8,12 @@ For lifecycle statuses and metadata conventions, see
 [`../document-lifecycle.md`](../document-lifecycle.md). Start new design
 documents from [`TEMPLATE.md`](TEMPLATE.md).
 
-## Draft and planned design work
+## Active design guidance
 
 - [TupleConfig](tuple-config.md)
+
+## Draft and planned design work
+
 - [Protected nodes](protect-node.md)
 - [Provenance tracking](provenance-tracking.md)
 - [Type adapter system](type-adapters/index.md)
