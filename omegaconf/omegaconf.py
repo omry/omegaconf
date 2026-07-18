@@ -79,6 +79,7 @@ from .nodes import (
     StringNode,
     ValueNode,
 )
+from .tupleconfig import TupleConfig
 
 MISSING: Any = "???"
 
@@ -146,7 +147,7 @@ class OmegaConf:
             otherwise ``10_000``. Explicit arguments override the environment.
             Pass ``None`` only for trusted input. See
             https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
-        :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
+        :return: A ``DictConfig``, ``ListConfig``, ``TupleConfig``, or ``None``.
         """
         return OmegaConf.create(
             obj, parent, flags, max_yaml_expanded_nodes=max_yaml_expanded_nodes
@@ -165,12 +166,22 @@ class OmegaConf:
     @staticmethod
     @overload
     def create(
-        obj: Union[List[Any], Tuple[Any, ...]],
+        obj: List[Any],
         parent: Optional[BaseContainer] = None,
         flags: Optional[Dict[str, bool]] = None,
         *,
         max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
+
+    @staticmethod
+    @overload
+    def create(
+        obj: Tuple[Any, ...],
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> TupleConfig: ...
 
     @staticmethod
     @overload
@@ -191,6 +202,16 @@ class OmegaConf:
         *,
         max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
+
+    @staticmethod
+    @overload
+    def create(
+        obj: TupleConfig,
+        parent: Optional[BaseContainer] = None,
+        flags: Optional[Dict[str, bool]] = None,
+        *,
+        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> TupleConfig: ...
 
     @staticmethod
     @overload
@@ -219,12 +240,13 @@ class OmegaConf:
         flags: Optional[Dict[str, bool]] = None,
         *,
         max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Optional[Union[DictConfig, ListConfig]]:
+    ) -> Optional[Union[DictConfig, ListConfig, TupleConfig]]:
         """
         Create an OmegaConf config from ``obj``.
 
         ``obj`` may be a YAML string, a dict, a list or tuple, a dataclass or attrs class (type or
-        instance), an existing ``DictConfig`` / ``ListConfig``, or ``None``.
+        instance), an existing ``DictConfig`` / ``ListConfig`` / ``TupleConfig``,
+        or ``None``.
         Omitting ``obj`` (or passing ``{}`` explicitly) returns an empty ``DictConfig``.
 
         :param obj: Source object to build the config from.
@@ -236,7 +258,7 @@ class OmegaConf:
             otherwise ``10_000``. Explicit arguments override the environment.
             Pass ``None`` only for trusted input. See
             https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
-        :return: A ``DictConfig``, ``ListConfig``, or ``None`` (when ``obj`` is ``None``).
+        :return: A ``DictConfig``, ``ListConfig``, ``TupleConfig``, or ``None``.
         """
         return OmegaConf._create_impl(
             obj=obj,
@@ -263,6 +285,19 @@ class OmegaConf:
             element_type=element_type,
             ref_type=ref_type,
         )
+
+    @staticmethod
+    def typed_tuple(
+        content: Any,
+        tuple_type: Any = Tuple[Any, ...],
+    ) -> TupleConfig:
+        """Create and immediately validate a TupleConfig.
+
+        ``content`` is required because TupleConfig is structurally immutable.
+        ``tuple_type`` accepts complete fixed or variadic tuple annotations, such
+        as ``Tuple[int, str]`` or ``tuple[int, ...]``.
+        """
+        return TupleConfig(content=content, ref_type=tuple_type)
 
     @staticmethod
     def typed_dict(
@@ -338,7 +373,7 @@ class OmegaConf:
         """
         Save as configuration object to a file
 
-        :param config: omegaconf.Config object (DictConfig or ListConfig).
+        :param config: OmegaConf container to save.
         :param f: filename or file object
         :param resolve: True to save a resolved config (defaults to False)
         """
@@ -407,13 +442,14 @@ class OmegaConf:
         *configs: Union[
             DictConfig,
             ListConfig,
+            TupleConfig,
             Dict[DictKeyType, Any],
             List[Any],
             Tuple[Any, ...],
             Any,
         ],
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
-    ) -> Union[ListConfig, DictConfig]:
+    ) -> Union[ListConfig, TupleConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
 
@@ -431,7 +467,7 @@ class OmegaConf:
         assert len(configs) > 0
         target = copy.deepcopy(configs[0])
         target = _ensure_container(target)
-        assert isinstance(target, (DictConfig, ListConfig))
+        assert isinstance(target, (DictConfig, ListConfig, TupleConfig))
 
         target._merge_with(
             *configs[1:],
@@ -446,13 +482,14 @@ class OmegaConf:
         *configs: Union[
             DictConfig,
             ListConfig,
+            TupleConfig,
             Dict[DictKeyType, Any],
             List[Any],
             Tuple[Any, ...],
             Any,
         ],
         list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
-    ) -> Union[ListConfig, DictConfig]:
+    ) -> Union[ListConfig, TupleConfig, DictConfig]:
         """
         Merge a list of previously created configs into a single one
         This is much faster than OmegaConf.merge() as the input configs are not copied.
@@ -469,6 +506,8 @@ class OmegaConf:
         assert len(configs) > 0
         target = configs[0]
         target = _ensure_container(target)
+        if isinstance(target, TupleConfig):
+            raise ConfigTypeError("unsafe_merge cannot merge into a TupleConfig")
         assert isinstance(target, (DictConfig, ListConfig))
 
         with flag_override(
@@ -793,9 +832,9 @@ class OmegaConf:
         throw_on_missing: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
-    ) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
+    ) -> Union[Dict[DictKeyType, Any], List[Any], Tuple[Any, ...], None, str, Any]:
         """
-        Recursively converts an OmegaConf config to a primitive container (dict or list).
+        Recursively converts an OmegaConf config to a primitive container.
 
         :param cfg: the config to convert
         :param resolve: True to resolve all values
@@ -809,7 +848,7 @@ class OmegaConf:
               (DictConfigs backed by a dataclass), by creating an instance of the underlying dataclass.
 
           See also OmegaConf.to_object.
-        :return: A dict or a list representing this config as a primitive container.
+        :return: A dict, list, or tuple representing this config as a primitive container.
         """
         if not OmegaConf.is_config(cfg):
             raise ValueError(
@@ -844,9 +883,11 @@ class OmegaConf:
         ) == OmegaConf.to_container(cfg2, resolve=False, throw_on_missing=False)
 
     @staticmethod
-    def to_object(cfg: Any) -> Union[Dict[DictKeyType, Any], List[Any], None, str, Any]:
+    def to_object(
+        cfg: Any,
+    ) -> Union[Dict[DictKeyType, Any], List[Any], Tuple[Any, ...], None, str, Any]:
         """
-        Recursively converts an OmegaConf config to a primitive container (dict or list).
+        Recursively converts an OmegaConf config to a primitive container.
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
         as instances of those backing classes.
 
@@ -854,7 +895,7 @@ class OmegaConf:
                                                     structured_config_mode=SCMode.INSTANTIATE)
 
         :param cfg: the config to convert
-        :return: A dict or a list or dataclass representing this config.
+        :return: A dict, list, tuple, or dataclass representing this config.
         """
         return OmegaConf.to_container(
             cfg=cfg,
@@ -870,7 +911,7 @@ class OmegaConf:
         Return ``True`` if ``cfg[key]`` is set to the mandatory-missing sentinel ``???``.
 
         :param cfg: An OmegaConf container.
-        :param key: Key (str for DictConfig, int for ListConfig) to check.
+        :param key: Key (str for DictConfig, int for a sequence) to check.
         :return: ``True`` if the value is missing, ``False`` otherwise.
         """
         assert isinstance(cfg, Container)
@@ -917,6 +958,23 @@ class OmegaConf:
         return isinstance(obj, ListConfig)
 
     @staticmethod
+    def is_tuple(obj: Any) -> bool:
+        """Return ``True`` if ``obj`` is an OmegaConf ``TupleConfig``.
+
+        Native Python tuples return ``False``.
+        """
+        from . import TupleConfig
+
+        return isinstance(obj, TupleConfig)
+
+    @staticmethod
+    def is_sequence(obj: Any) -> bool:
+        """Return ``True`` for ``ListConfig`` and ``TupleConfig`` values only."""
+        from . import ListConfig, TupleConfig
+
+        return isinstance(obj, (ListConfig, TupleConfig))
+
+    @staticmethod
     def is_dict(obj: Any) -> bool:
         """
         Return ``True`` if ``obj`` is an OmegaConf ``DictConfig``.
@@ -931,7 +989,7 @@ class OmegaConf:
     @staticmethod
     def is_config(obj: Any) -> bool:
         """
-        Return ``True`` if ``obj`` is an OmegaConf config (``DictConfig`` or ``ListConfig``).
+        Return ``True`` if ``obj`` is an OmegaConf container.
 
         :param obj: Object to test.
         :return: ``True`` if ``obj`` is an OmegaConf container, ``False`` otherwise.
@@ -1104,7 +1162,7 @@ class OmegaConf:
         ), f"Unexpected type for root: {type(root).__name__}"
 
         last_key: Union[str, int] = last
-        if isinstance(root, ListConfig):
+        if OmegaConf.is_sequence(root):
             last_key = int(last)
 
         ctx = flag_override(root, "struct", False) if force_add else nullcontext()
@@ -1114,13 +1172,14 @@ class OmegaConf:
                 node = root._get_child(last_key)
                 if OmegaConf.is_config(node):
                     assert isinstance(node, BaseContainer)
-                    node.merge_with(value)
-                    return
+                    if not OmegaConf.is_tuple(node):
+                        node.merge_with(value)
+                        return
 
             if OmegaConf.is_dict(root):
                 assert isinstance(last_key, str)
                 root.__setattr__(last_key, value)
-            elif OmegaConf.is_list(root):
+            elif OmegaConf.is_sequence(root):
                 assert isinstance(last_key, int)
                 root.__setitem__(last_key, value)
             else:
@@ -1166,7 +1225,7 @@ class OmegaConf:
         return different values on each call — and this function has no way to account
         for that.
 
-        :param cfg: An OmegaConf container (DictConfig or ListConfig).
+        :param cfg: An OmegaConf container.
         :raises ValueError: If the input object is not an OmegaConf container.
         """
         import omegaconf._impl
@@ -1237,7 +1296,7 @@ class OmegaConf:
 
         def gather(_cfg: Container) -> None:
             itr: Iterable[Any]
-            if isinstance(_cfg, ListConfig):
+            if isinstance(_cfg, (ListConfig, TupleConfig)):
                 itr = range(len(_cfg))
             else:
                 itr = _cfg
@@ -1277,10 +1336,11 @@ class OmegaConf:
         flags: Optional[Dict[str, bool]] = None,
         *,
         max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Optional[Union[DictConfig, ListConfig]]:
+    ) -> Optional[Union[DictConfig, ListConfig, TupleConfig]]:
         try:
             from .dictconfig import DictConfig
             from .listconfig import ListConfig
+            from .tupleconfig import TupleConfig
 
             if obj is _DEFAULT_MARKER_:
                 obj = {}
@@ -1328,6 +1388,22 @@ class OmegaConf:
                             element_type=element_type,
                             flags=flags,
                         )
+                elif type(obj) is tuple or OmegaConf.is_tuple(obj):
+                    if isinstance(obj, TupleConfig):
+                        return TupleConfig(
+                            content=obj,
+                            parent=parent,
+                            ref_type=obj._metadata.ref_type,
+                            is_optional=obj._metadata.optional,
+                            flags=flags,
+                        )
+                    return TupleConfig(
+                        content=obj,
+                        parent=parent,
+                        ref_type=Tuple[Any, ...],
+                        is_optional=True,
+                        flags=flags,
+                    )
                 elif is_primitive_list(obj) or OmegaConf.is_list(obj):
                     if isinstance(obj, ListConfig):
                         return ListConfig(
@@ -1381,14 +1457,18 @@ class OmegaConf:
                     return dict
         elif isinstance(c, ListConfig):
             return list
+        elif isinstance(c, TupleConfig):
+            return tuple
         elif isinstance(c, ValueNode):
             return type(c._value())
         elif isinstance(c, UnionNode):
             return type(_get_value(c))
         elif isinstance(c, dict):
             return dict
-        elif isinstance(c, (list, tuple)):
+        elif isinstance(c, list):
             return list
+        elif isinstance(c, tuple):
+            return tuple
         else:
             return get_type_of(c)
 
@@ -1500,9 +1580,15 @@ def _node_wrap(
             key_type=key_type,
             element_type=element_type,
         )
-    elif (is_list_annotation(ref_type) or is_tuple_annotation(ref_type)) or (
-        type(value) in (list, tuple) and ref_type is Any
-    ):
+    elif is_tuple_annotation(ref_type) or (type(value) is tuple and ref_type is Any):
+        node = TupleConfig(
+            content=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            ref_type=ref_type if ref_type is not Any else Tuple[Any, ...],
+        )
+    elif is_list_annotation(ref_type) or (type(value) is list and ref_type is Any):
         element_type = get_list_element_type(ref_type)
         node = ListConfig(
             content=value,
@@ -1614,6 +1700,7 @@ def _select_one(
 ) -> Tuple[Optional[Node], Union[str, int]]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
+    from .tupleconfig import TupleConfig
 
     ret_key: Union[str, int] = key
     assert isinstance(c, Container), f"Unexpected type: {c}"
@@ -1623,7 +1710,7 @@ def _select_one(
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_child(ret_key, validate_access=False)
-    elif isinstance(c, ListConfig):
+    elif isinstance(c, (ListConfig, TupleConfig)):
         assert isinstance(ret_key, str)
         if not is_int(ret_key):
             if throw_on_type_error:

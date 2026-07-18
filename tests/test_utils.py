@@ -1108,7 +1108,7 @@ def test_ensure_container_raises_ValueError() -> None:
         ValueError,
         match=re.escape(
             "Invalid input. Supports one of "
-            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+            + "[dict,list,tuple,DictConfig,ListConfig,TupleConfig,dataclass,dataclass instance,attr class,attr class instance]"
         ),
     ):
         _ensure_container("abc")

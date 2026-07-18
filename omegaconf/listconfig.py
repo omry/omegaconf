@@ -1,5 +1,6 @@
 import copy
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -12,6 +13,9 @@ from typing import (
     Type,
     Union,
 )
+
+if TYPE_CHECKING:
+    from .tupleconfig import TupleConfig
 
 from ._utils import (
     ValueKind,
@@ -44,7 +48,9 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def __init__(
         self,
-        content: Union[List[Any], Tuple[Any, ...], "ListConfig", str, None],
+        content: Union[
+            List[Any], Tuple[Any, ...], "ListConfig", "TupleConfig", str, None
+        ],
         key: Any = None,
         parent: Optional[Box] = None,
         element_type: Union[Type[Any], Any] = Any,
@@ -604,6 +610,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         self, value: Any, flags: Optional[Dict[str, bool]] = None
     ) -> None:
         from omegaconf import MISSING, flag_override
+        from omegaconf.tupleconfig import TupleConfig
 
         if flags is None:
             flags = {}
@@ -623,13 +630,15 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
         else:
-            if not (is_primitive_list(value) or isinstance(value, ListConfig)):
+            if not (
+                is_primitive_list(value) or isinstance(value, (ListConfig, TupleConfig))
+            ):
                 type_ = type(value)
                 msg = f"Invalid value assigned: {type_.__name__} is not a ListConfig, list or tuple."
                 raise ValidationError(msg)
 
             self.__dict__["_content"] = []
-            if isinstance(value, ListConfig):
+            if isinstance(value, (ListConfig, TupleConfig)):
                 self._metadata.flags = copy.deepcopy(flags)
                 # disable struct and readonly for the construction phase
                 # retaining other flags like allow_objects. The real flags are restored at the end of this function

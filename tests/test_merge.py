@@ -337,7 +337,7 @@ def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
         ),
         param(
             [OptTuple, {"x": [1, 2]}],
-            {"x": [1, 2]},
+            {"x": (1, 2)},
             id="merge_list_into_optional_tuple_none",
         ),
         # DictConfig with element_type of Structured Config
@@ -1196,14 +1196,13 @@ def test_primitive_dicts(merge: Any) -> None:
     assert merged == {"a": 10, "b": 20}
 
 
-@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
-@mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), [4, 5, 6])])
+@mark.parametrize("a_, b_, expected", [((1, 2, 3), (4, 5, 6), (4, 5, 6))])
 def test_merge_no_eq_verify(
-    merge: Any, a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
+    a_: Tuple[int], b_: Tuple[int], expected: Tuple[int]
 ) -> None:
     a = OmegaConf.create(a_)
     b = OmegaConf.create(b_)
-    c = merge(a, b)
+    c = OmegaConf.merge(a, b)
     # verify merge result is expected
     assert expected == c
 

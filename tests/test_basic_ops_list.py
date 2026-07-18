@@ -7,7 +7,15 @@ from typing import Any, Callable, List, MutableSequence, Optional, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
+from omegaconf import (
+    MISSING,
+    AnyNode,
+    DictConfig,
+    ListConfig,
+    OmegaConf,
+    TupleConfig,
+    flag_override,
+)
 from omegaconf._utils import _ensure_container
 from omegaconf.base import Node
 from omegaconf.errors import (
@@ -289,9 +297,9 @@ def test_list_config_with_list() -> None:
     assert isinstance(c, ListConfig)
 
 
-def test_list_config_with_tuple() -> None:
+def test_tuple_config_with_tuple() -> None:
     c = OmegaConf.create(())
-    assert isinstance(c, ListConfig)
+    assert isinstance(c, TupleConfig)
 
 
 def test_items_on_list() -> None:

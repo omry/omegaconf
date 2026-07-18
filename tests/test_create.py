@@ -45,8 +45,8 @@ from tests import (
         ("", {}),
         # list value
         ([1, 2], [1, 2]),
-        # For simplicity, tuples are converted to lists.
-        ((1, 2), [1, 2]),
+        # Tuples preserve tuple identity.
+        ((1, 2), (1, 2)),
         # dict 1
         ({"a": 2, "b": 10}, {"a": 2, "b": 10}),
         # dict 2

@@ -557,7 +557,7 @@ def test_omegaconf_create() -> None:
         ([None], 0, {"foo": "bar"}, [{"foo": "bar"}]),
         ([None], 0, OmegaConf.create({"foo": "bar"}), [{"foo": "bar"}]),
         ({}, "foo", ["a", "b"], {"foo": ["a", "b"]}),
-        ({}, "foo", ("a", "b"), {"foo": ["a", "b"]}),
+        ({}, "foo", ("a", "b"), {"foo": ("a", "b")}),
         ({}, "foo", OmegaConf.create({"foo": "bar"}), {"foo": {"foo": "bar"}}),
     ],
 )

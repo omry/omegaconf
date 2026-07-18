@@ -7,11 +7,12 @@ Usage
 
 .. testsetup:: *
 
-    from omegaconf import OmegaConf, DictConfig, ListConfig, open_dict, read_write
+    from omegaconf import OmegaConf, DictConfig, ListConfig, TupleConfig, open_dict, read_write
     import os
     import sys
     import tempfile
     import pickle
+    from pytest import raises
     # ensures that DB_TIMEOUT is not set in the doc.
     os.environ.pop('DB_TIMEOUT', None)
 
@@ -93,7 +94,21 @@ From a list
         123: int_key
     <BLANKLINE>
 
-Tuples are supported as a valid option too.
+From a tuple (experimental)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Native tuples create immutable ``TupleConfig`` values. Tuple semantics are
+experimental in OmegaConf 2.4 and feedback is welcome.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create((1, "two"))
+    >>> isinstance(conf, TupleConfig)
+    True
+    >>> conf == (1, "two")
+    True
+    >>> with raises(TypeError):
+    ...     conf[0] = 10
 
 From a YAML file
 ^^^^^^^^^^^^^^^^
@@ -695,8 +710,9 @@ Utility functions
 
 OmegaConf.to_container
 ^^^^^^^^^^^^^^^^^^^^^^
-OmegaConf config objects looks very similar to python dict and list, but in fact are not.
-Use ``OmegaConf.to_container(cfg: Container, resolve: bool)`` to convert to a primitive container.
+OmegaConf containers look similar to Python dictionaries, lists, and tuples, but
+are not native containers. Use ``OmegaConf.to_container(cfg: Container,
+resolve: bool)`` to convert them to plain dictionaries, lists, and tuples.
 If ``resolve`` is set to ``True``, interpolations will be resolved during conversion.
 
 .. doctest::
@@ -788,8 +804,8 @@ not raise.
 
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
-The ``OmegaConf.to_object`` method recursively converts ``DictConfig`` and ``ListConfig`` objects
-into plain Python dicts and lists, with the exception that Structured Config objects are
+The ``OmegaConf.to_object`` method recursively converts ``DictConfig``, ``ListConfig``, and
+``TupleConfig`` objects into plain Python dicts, lists, and tuples, with the exception that Structured Config objects are
 converted into instances of the backing dataclass or attr class.  Interpolations in the config are always resolved by ``OmegaConf.to_object``.
 
 .. doctest::
@@ -1061,12 +1077,15 @@ Tests if a value is an interpolation.
     >>> assert OmegaConf.is_interpolation(cfg, "bar")
 
 
-OmegaConf.{is_config, is_dict, is_list}
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OmegaConf.{is_config, is_dict, is_list, is_tuple, is_sequence}
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``OmegaConf.is_config`` tests whether an object is an OmegaConf object (e.g. ``DictConfig`` or ``ListConfig``).
+``OmegaConf.is_config`` tests whether an object is an OmegaConf container.
 ``OmegaConf.is_dict(cfg)`` is equivalent to ``isinstance(cfg, DictConfig)``,
-and ``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``.
+``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``, and
+``OmegaConf.is_tuple(cfg)`` is equivalent to ``isinstance(cfg, TupleConfig)``.
+``OmegaConf.is_sequence(cfg)`` is true for ``ListConfig`` and ``TupleConfig``
+but false for native Python lists and tuples.
 
 .. doctest::
 
@@ -1080,6 +1099,12 @@ and ``OmegaConf.is_list(cfg)`` is equivalent to ``isinstance(cfg, ListConfig)``.
     >>> assert OmegaConf.is_config(l)
     >>> assert OmegaConf.is_list(l)
     >>> assert not OmegaConf.is_dict(l)
+    >>> # tuple:
+    >>> t = OmegaConf.create((1, 2, 3))
+    >>> assert OmegaConf.is_config(t)
+    >>> assert OmegaConf.is_tuple(t)
+    >>> assert OmegaConf.is_sequence(t)
+    >>> assert not OmegaConf.is_list(t)
 
 
 OmegaConf.missing_keys

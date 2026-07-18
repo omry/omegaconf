@@ -1,0 +1,1 @@
+Native tuples now create a public, structurally immutable ``TupleConfig`` instead of a mutable ``ListConfig``. Tuple annotations support fixed positional and homogeneous variadic types, complete replacement merges, typed container unions, native tuple conversion, and tuple-style sequence operations. Tuple semantics are experimental in OmegaConf 2.4 and feedback is welcome.
