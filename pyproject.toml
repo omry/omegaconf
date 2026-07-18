@@ -35,7 +35,7 @@ norecursedirs = ["subprojects", ".git", ".sl", ".venv"]
 # Version source of truth. Use bump-my-version so configured files stay in sync.
 # `bump-my-version bump pre_n` updates 2.4.0.dev13 to 2.4.0.dev14.
 # `bump-my-version bump --new-version 2.4.0` sets the final release version.
-current_version = "2.4.0.dev13"
+current_version = "2.4.0.dev14"
 parse = '''(?x)
     (?P<major>\d+)
     \.(?P<minor>\d+)
