@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T04:41:59Z",
+  "generated_at": "2026-07-18T06:51:09Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -379,6 +379,19 @@
       "status": "not started",
       "title": "Consider making OmegaConf configs unhashable",
       "updated_at": "2026-07-18T04:40:41Z"
+    },
+    "1334": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T06:49:52Z",
+      "labels": [
+        "RFC",
+        "interpolation"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Materialize container results returned by custom resolvers",
+      "updated_at": "2026-07-18T06:49:52Z"
     },
     "144": {
       "category": "Enhancement",

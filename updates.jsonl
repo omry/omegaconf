@@ -67,3 +67,4 @@
 {"ts": "2026-07-17T17:36:36Z", "kind": "closed", "issue": 898, "issue_url": "https://github.com/omry/omegaconf/issues/898", "title": "_promote is erasing values from the config"}
 {"ts": "2026-07-18T02:56:51Z", "kind": "new", "issue": 1332, "issue_url": "https://github.com/omry/omegaconf/issues/1332", "title": "Define type compatibility rules for typed interpolations"}
 {"ts": "2026-07-18T04:41:59Z", "kind": "new", "issue": 1333, "issue_url": "https://github.com/omry/omegaconf/issues/1333", "title": "Consider making OmegaConf configs unhashable"}
+{"ts": "2026-07-18T06:51:09Z", "kind": "new", "issue": 1334, "issue_url": "https://github.com/omry/omegaconf/issues/1334", "title": "Materialize container results returned by custom resolvers"}
