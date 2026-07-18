@@ -1,5 +1,6 @@
 import sys  # pragma: no cover
 
+# Managed by bump-my-version; see pyproject.toml for bump commands.
 __version__ = "2.4.0.dev13"
 
 msg = """OmegaConf 2.4 and above is compatible with Python 3.10 and newer.
