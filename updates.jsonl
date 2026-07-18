@@ -69,3 +69,5 @@
 {"ts": "2026-07-18T04:41:59Z", "kind": "new", "issue": 1333, "issue_url": "https://github.com/omry/omegaconf/issues/1333", "title": "Consider making OmegaConf configs unhashable"}
 {"ts": "2026-07-18T06:51:09Z", "kind": "new", "issue": 1334, "issue_url": "https://github.com/omry/omegaconf/issues/1334", "title": "Materialize container results returned by custom resolvers"}
 {"ts": "2026-07-18T09:42:06Z", "kind": "new", "issue": 1335, "issue_url": "https://github.com/omry/omegaconf/issues/1335", "title": "Support escaped keys in node interpolation paths"}
+{"ts": "2026-07-18T12:25:02Z", "kind": "status", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support", "detail": "not started → in progress", "pr": {"number": 1336, "url": "https://github.com/omry/omegaconf/pull/1336"}}
+{"ts": "2026-07-18T12:25:02Z", "kind": "pr", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support", "detail": "linked #1336"}

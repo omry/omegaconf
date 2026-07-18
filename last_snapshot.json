@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T09:42:06Z",
+  "generated_at": "2026-07-18T12:25:02Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -451,9 +451,11 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1336"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Improve Tuple support",
       "updated_at": "2026-04-26T17:48:26Z"
     },

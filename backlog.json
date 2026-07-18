@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T09:42:06Z",
+  "generated_at": "2026-07-18T12:25:02Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 59,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 54
+        "count": 53
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 392,
+      "title": "Improve Tuple support",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1336,
+          "url": "https://github.com/omry/omegaconf/pull/1336"
+        }
+      ],
+      "created": "2020-09-24",
+      "updated": "2026-04-26",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/392"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -236,21 +256,6 @@
         "priority_low"
       ],
       "url": "https://github.com/omry/omegaconf/issues/265"
-    },
-    {
-      "number": 392,
-      "title": "Improve Tuple support",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2020-09-24",
-      "updated": "2026-04-26",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/392"
     },
     {
       "number": 459,
@@ -1341,6 +1346,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T12:25:02Z",
+      "kind": "pr",
+      "issue": 392,
+      "issue_url": "https://github.com/omry/omegaconf/issues/392",
+      "title": "Improve Tuple support",
+      "detail": "linked #1336"
+    },
+    {
+      "ts": "2026-07-18T12:25:02Z",
+      "kind": "status",
+      "issue": 392,
+      "issue_url": "https://github.com/omry/omegaconf/issues/392",
+      "title": "Improve Tuple support",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1336,
+        "url": "https://github.com/omry/omegaconf/pull/1336"
+      }
+    },
     {
       "ts": "2026-07-18T09:42:06Z",
       "kind": "new",
