@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T08:52:27Z",
+  "generated_at": "2026-07-18T09:42:06Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 58,
+    "open_total": 59,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 14,
-        "percentage": 24.1
+        "percentage": 23.7
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 40,
-        "percentage": 69.0
+        "count": 41,
+        "percentage": 69.5
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.2
+        "percentage": 5.1
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 53
+        "count": 54
       },
       {
         "status": "done",
@@ -991,6 +991,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1334"
     },
     {
+      "number": 1335,
+      "title": "Support escaped keys in node interpolation paths",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1335"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1326,6 +1341,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T09:42:06Z",
+      "kind": "new",
+      "issue": 1335,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1335",
+      "title": "Support escaped keys in node interpolation paths"
+    },
     {
       "ts": "2026-07-18T06:51:09Z",
       "kind": "new",
