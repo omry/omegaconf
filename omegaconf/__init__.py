@@ -30,6 +30,7 @@ from .omegaconf import (
     open_dict,
     read_write,
 )
+from .tupleconfig import TupleConfig
 from .typing import Antlr4ParserRuleContext
 from .version import __version__
 
@@ -43,6 +44,7 @@ __all__ = [
     "Container",
     "UnionNode",
     "ListConfig",
+    "TupleConfig",
     "DictConfig",
     "DictKeyType",
     "OmegaConf",

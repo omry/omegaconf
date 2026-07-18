@@ -131,6 +131,8 @@ class BaseContainer(Container, ABC):
                 dict_copy["_metadata"].ref_type = Dict
             elif is_list_annotation(ref_type):
                 dict_copy["_metadata"].ref_type = List
+            elif is_tuple_annotation(ref_type):
+                pass
             else:
                 assert False
         return dict_copy
@@ -164,6 +166,8 @@ class BaseContainer(Container, ABC):
                 ]
             elif is_generic_list(ref_type):
                 state_dict["_metadata"].ref_type = List[element_type]  # type: ignore
+            elif is_tuple_annotation(ref_type):
+                pass
             else:
                 assert False
 
@@ -253,8 +257,8 @@ class BaseContainer(Container, ABC):
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
         resolved_node_cache: Optional[Dict[int, Node]] = None,
-    ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any]]:
-        from omegaconf import MISSING, DictConfig, ListConfig
+    ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any], Tuple[Any, ...]]:
+        from omegaconf import MISSING, DictConfig, ListConfig, TupleConfig
 
         if resolve and resolved_node_cache is None:
             resolved_node_cache = {}
@@ -352,6 +356,8 @@ class BaseContainer(Container, ABC):
                 retlist.append(item)
 
             return retlist
+        elif isinstance(conf, TupleConfig):
+            return tuple(get_node_value(index) for index in range(len(conf)))
         assert False
 
     @staticmethod
@@ -362,7 +368,7 @@ class BaseContainer(Container, ABC):
         _allow_readonly_target: bool = False,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
-        from omegaconf import AnyNode, DictConfig, ValueNode
+        from omegaconf import AnyNode, DictConfig, ListConfig, TupleConfig, ValueNode
 
         assert isinstance(dest, DictConfig)
         assert isinstance(src, DictConfig)
@@ -440,13 +446,18 @@ class BaseContainer(Container, ABC):
 
             if (
                 isinstance(dest_node, Container)
+                and not isinstance(dest_node, TupleConfig)
                 and dest_node._is_none()
                 and not src_node_missing
                 and not _is_none(src_node, resolve=True)
             ):
                 expand(dest_node)
 
-            if dest_node is not None and dest_node._is_interpolation():
+            if (
+                dest_node is not None
+                and not isinstance(dest_node, TupleConfig)
+                and dest_node._is_interpolation()
+            ):
                 target_node = dest_node._maybe_dereference_node()
                 if isinstance(target_node, Container):
                     dest[key] = target_node
@@ -462,7 +473,11 @@ class BaseContainer(Container, ABC):
 
             if dest_node is not None:
                 if isinstance(dest_node, BaseContainer):
-                    if isinstance(src_node, BaseContainer):
+                    if isinstance(dest_node, TupleConfig) and isinstance(
+                        src_node, (ListConfig, TupleConfig)
+                    ):
+                        BaseContainer._tuple_merge(dest_node, src_node)
+                    elif isinstance(src_node, BaseContainer):
                         dest_node._merge_with(
                             src_node,
                             list_merge_mode=list_merge_mode,
@@ -562,6 +577,21 @@ class BaseContainer(Container, ABC):
             if value is not None:
                 dest._set_flag(flag, value)
 
+    @staticmethod
+    def _tuple_merge(dest: Any, src: Any) -> None:
+        from omegaconf import ListConfig, TupleConfig
+
+        assert isinstance(dest, TupleConfig)
+        assert isinstance(src, (ListConfig, TupleConfig))
+        if not src._is_missing():
+            dest._set_value(src)
+
+        flags = src._metadata.flags
+        assert flags is not None
+        for flag, value in flags.items():
+            if value is not None:
+                dest._set_flag(flag, value)
+
     def merge_with(
         self,
         *others: Union[
@@ -587,6 +617,7 @@ class BaseContainer(Container, ABC):
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .tupleconfig import TupleConfig
 
         """merge a list of other Config objects into this one, overriding as needed"""
         for other in others:
@@ -615,14 +646,26 @@ class BaseContainer(Container, ABC):
                         list_merge_mode=list_merge_mode,
                         _allow_readonly_target=_allow_readonly_target,
                     )
-                elif isinstance(self, ListConfig) and isinstance(other, ListConfig):
+                elif isinstance(self, ListConfig) and isinstance(
+                    other, (ListConfig, TupleConfig)
+                ):
+                    if isinstance(other, TupleConfig):
+                        other = ListConfig(content=other)
                     BaseContainer._list_merge(
                         self,
                         other,
                         list_merge_mode=list_merge_mode,
                     )
+                elif isinstance(self, TupleConfig) and isinstance(
+                    other, (ListConfig, TupleConfig)
+                ):
+                    if not _allow_readonly_target:
+                        raise ConfigTypeError(
+                            "Cannot merge into a TupleConfig in-place"
+                        )
+                    BaseContainer._tuple_merge(self, other)
                 else:
-                    raise TypeError("Cannot merge DictConfig with ListConfig")
+                    raise TypeError("Cannot merge incompatible container types")
             finally:
                 if readonly_overridden:
                     self._set_flag("readonly", prev_readonly)
@@ -829,6 +872,9 @@ class BaseContainer(Container, ABC):
     def _get_full_key(self, key: Union[DictKeyType, int, slice, None]) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
+        from .tupleconfig import TupleConfig
+
+        sequence_types = (ListConfig, TupleConfig)
 
         if not isinstance(key, (int, str, Enum, float, bool, slice, bytes, type(None))):
             return ""
@@ -857,9 +903,9 @@ class BaseContainer(Container, ABC):
 
             assert isinstance(key, str)
 
-            if issubclass(parent_type, ListConfig):
+            if issubclass(parent_type, sequence_types):
                 if full_key != "":
-                    if issubclass(cur_type, ListConfig):
+                    if issubclass(cur_type, sequence_types):
                         full_key = f"[{key}]{full_key}"
                     else:
                         full_key = f"[{key}].{full_key}"
@@ -869,7 +915,7 @@ class BaseContainer(Container, ABC):
                 if full_key == "":
                     full_key = key
                 else:
-                    if issubclass(cur_type, ListConfig):
+                    if issubclass(cur_type, sequence_types):
                         full_key = f"{key}{full_key}"
                     else:
                         full_key = f"{key}.{full_key}"
@@ -952,9 +998,14 @@ def _update_types(node: Node, ref_type: Any, object_type: Optional[type]) -> Non
 
 def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
     """Ensure node is compatible with type_hint, mutating if necessary."""
-    from omegaconf import DictConfig, ListConfig, OmegaConf
+    from omegaconf import DictConfig, ListConfig, OmegaConf, TupleConfig
 
-    from ._utils import get_dict_key_value_types, get_list_element_type
+    from ._utils import (
+        get_dict_key_value_types,
+        get_list_element_type,
+        get_tuple_item_types,
+        is_variadic_tuple_annotation,
+    )
 
     if type_hint is Any:
         return
@@ -985,6 +1036,18 @@ def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
         if not _is_special(node):
             for i in range(len(node)):
                 _deep_update_subnode(node, i, new_element_type)
+
+    if is_tuple_annotation(new_ref_type) and isinstance(node, TupleConfig):
+        item_types = get_tuple_item_types(new_ref_type)
+        variadic = is_variadic_tuple_annotation(new_ref_type)
+        if not variadic and len(node) != len(item_types):
+            raise ValidationError(
+                f"TupleConfig length {len(node)} does not match type hint length {len(item_types)}"
+            )
+        if not _is_special(node):
+            for index in range(len(node)):
+                item_type = item_types[0] if variadic else item_types[index]
+                _deep_update_subnode(node, index, item_type)
 
     if is_dict_annotation(new_ref_type) and isinstance(node, DictConfig):
         new_key_type, new_element_type = get_dict_key_value_types(new_ref_type)
@@ -1028,7 +1091,7 @@ def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) ->
 
 def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     """Error if node's type, content and metadata are not compatible with type_hint."""
-    from omegaconf import DictConfig, ListConfig, UnionNode, ValueNode
+    from omegaconf import DictConfig, ListConfig, TupleConfig, UnionNode, ValueNode
 
     is_optional, ref_type = _resolve_optional(type_hint)
 
@@ -1066,6 +1129,8 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
         elif is_dict_annotation(ref_type) and isinstance(node, DictConfig):
             return
         elif is_list_annotation(ref_type) and isinstance(node, ListConfig):
+            return
+        elif is_tuple_annotation(ref_type) and isinstance(node, TupleConfig):
             return
         else:
             if isinstance(node, ValueNode):

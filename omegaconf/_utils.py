@@ -131,6 +131,7 @@ _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
     pathlib_representers_added = False
+    tuple_representer_added = False
 
     @staticmethod
     def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
@@ -166,6 +167,12 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
             [str(data)],
         )
 
+    @staticmethod
+    def tuple_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
+        return dumper.represent_sequence(
+            yaml.resolver.BaseResolver.DEFAULT_SEQUENCE_TAG, data
+        )
+
 
 def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
     if not OmegaConfDumper.str_representer_added:
@@ -185,6 +192,10 @@ def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
             WindowsPath, OmegaConfDumper.pathlib_windows_path_representer
         )
         OmegaConfDumper.pathlib_representers_added = True
+
+    if not OmegaConfDumper.tuple_representer_added:
+        OmegaConfDumper.add_representer(tuple, OmegaConfDumper.tuple_representer)
+        OmegaConfDumper.tuple_representer_added = True
 
     return OmegaConfDumper
 
@@ -742,10 +753,43 @@ def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
 
 def get_tuple_item_types(ref_type: Type[Any]) -> Tuple[Any, ...]:
     args = getattr(ref_type, "__args__", None)
-    if args in (None, ()):
+    if ref_type in (tuple, Tuple) or args is None:
         args = (Any, ...)
+    elif args == ((),):
+        args = ()
     assert isinstance(args, tuple)
     return args
+
+
+def normalize_tuple_annotation(ref_type: Any) -> Any:
+    if not is_tuple_annotation(ref_type):
+        raise ValidationError(f"Unsupported tuple type: '{type_str(ref_type)}'")
+
+    if ref_type in (tuple, Tuple):
+        return Tuple[Any, ...]
+
+    args = get_tuple_item_types(ref_type)
+    if Ellipsis in args and not (len(args) == 2 and args[1] is Ellipsis):
+        raise ValidationError(f"Unsupported tuple type: '{type_str(ref_type)}'")
+
+    for item_type in args:
+        origin = getattr(item_type, "__origin__", None)
+        if (
+            getattr(origin, "__module__", None),
+            getattr(origin, "__qualname__", None),
+        ) in (("typing", "Unpack"), ("typing_extensions", "Unpack")):
+            raise ValidationError(f"Unsupported tuple type: '{type_str(ref_type)}'")
+
+    return ref_type
+
+
+def is_variadic_tuple_annotation(ref_type: Any) -> bool:
+    args = get_tuple_item_types(normalize_tuple_annotation(ref_type))
+    return len(args) == 2 and args[1] is Ellipsis
+
+
+def make_tuple_annotation(item_types: Tuple[Any, ...]) -> Any:
+    return Tuple[item_types]  # type: ignore[valid-type]
 
 
 def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
@@ -1043,14 +1087,14 @@ def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> A
     from omegaconf import OmegaConf
 
     if is_primitive_container(target):
-        assert isinstance(target, (list, dict))
+        assert isinstance(target, (list, tuple, dict))
         target = OmegaConf.create(target, flags=flags)
     elif is_structured_config(target):
         target = OmegaConf.structured(target, flags=flags)
     elif not OmegaConf.is_config(target):
         raise ValueError(
             "Invalid input. Supports one of "
-            + "[dict,list,DictConfig,ListConfig,dataclass,dataclass instance,attr class,attr class instance]"
+            + "[dict,list,tuple,DictConfig,ListConfig,TupleConfig,dataclass,dataclass instance,attr class,attr class instance]"
         )
 
     return target
@@ -1083,7 +1127,11 @@ def is_generic_dict(type_: Any) -> bool:
 
 
 def is_container_annotation(type_: Any) -> bool:
-    return is_list_annotation(type_) or is_dict_annotation(type_)
+    return (
+        is_list_annotation(type_)
+        or is_tuple_annotation(type_)
+        or is_dict_annotation(type_)
+    )
 
 
 # Characters recognised after a backslash in key paths and dotlist entries.
