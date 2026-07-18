@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T06:51:09Z",
+  "generated_at": "2026-07-18T08:52:27Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -391,7 +391,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Materialize container results returned by custom resolvers",
-      "updated_at": "2026-07-18T06:49:52Z"
+      "updated_at": "2026-07-18T07:41:52Z"
     },
     "144": {
       "category": "Enhancement",
