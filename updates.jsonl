@@ -71,3 +71,4 @@
 {"ts": "2026-07-18T09:42:06Z", "kind": "new", "issue": 1335, "issue_url": "https://github.com/omry/omegaconf/issues/1335", "title": "Support escaped keys in node interpolation paths"}
 {"ts": "2026-07-18T12:25:02Z", "kind": "status", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support", "detail": "not started → in progress", "pr": {"number": 1336, "url": "https://github.com/omry/omegaconf/pull/1336"}}
 {"ts": "2026-07-18T12:25:02Z", "kind": "pr", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support", "detail": "linked #1336"}
+{"ts": "2026-07-18T13:16:18Z", "kind": "new", "issue": 1338, "issue_url": "https://github.com/omry/omegaconf/issues/1338", "title": "Consider a compatibility mode for legacy tuple-to-list conversion"}

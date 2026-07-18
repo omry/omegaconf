@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T12:31:26Z",
+  "generated_at": "2026-07-18T13:16:18Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -404,6 +404,18 @@
       "status": "not started",
       "title": "Support escaped keys in node interpolation paths",
       "updated_at": "2026-07-18T09:40:48Z"
+    },
+    "1338": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T13:14:56Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "updated_at": "2026-07-18T13:15:53Z"
     },
     "144": {
       "category": "Enhancement",

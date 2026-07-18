@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T12:31:26Z",
+  "generated_at": "2026-07-18T13:16:18Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 59,
+    "open_total": 60,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 14,
-        "percentage": 23.7
+        "percentage": 23.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 41,
-        "percentage": 69.5
+        "count": 42,
+        "percentage": 70.0
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.1
+        "percentage": 5.0
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 53
+        "count": 54
       },
       {
         "status": "done",
@@ -1011,6 +1011,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1335"
     },
     {
+      "number": 1338,
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1338"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1346,6 +1361,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T13:16:18Z",
+      "kind": "new",
+      "issue": 1338,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1338",
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion"
+    },
     {
       "ts": "2026-07-18T12:25:02Z",
       "kind": "pr",
