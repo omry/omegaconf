@@ -19,7 +19,7 @@
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-18T13:16:18Z",
+  "generated_at": "2026-07-18T19:15:15Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -415,7 +415,17 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
-      "updated_at": "2026-07-18T13:15:53Z"
+      "updated_at": "2026-07-18T13:18:29Z"
+    },
+    "1340": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T19:13:56Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Inherited flag cache is not invalidated through container-valued unions",
+      "updated_at": "2026-07-18T19:13:56Z"
     },
     "144": {
       "category": "Enhancement",

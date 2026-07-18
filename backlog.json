@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T13:16:18Z",
+  "generated_at": "2026-07-18T19:15:15Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 60,
+    "open_total": 61,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 14,
-        "percentage": 23.3
+        "percentage": 23.0
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 42,
-        "percentage": 70.0
+        "count": 43,
+        "percentage": 70.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.7
+        "percentage": 1.6
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.0
+        "percentage": 4.9
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 54
+        "count": 55
       },
       {
         "status": "done",
@@ -1026,6 +1026,19 @@
       "url": "https://github.com/omry/omegaconf/issues/1338"
     },
     {
+      "number": 1340,
+      "title": "Inherited flag cache is not invalidated through container-valued unions",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1361,6 +1374,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-18T19:15:15Z",
+      "kind": "new",
+      "issue": 1340,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1340",
+      "title": "Inherited flag cache is not invalidated through container-valued unions"
+    },
     {
       "ts": "2026-07-18T13:16:18Z",
       "kind": "new",
