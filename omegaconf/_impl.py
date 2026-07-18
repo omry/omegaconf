@@ -1,13 +1,18 @@
 from typing import Any
 
-from omegaconf import Container, DictConfig, ListConfig, Node, ValueNode
-from omegaconf.errors import ConfigKeyError, ConfigTypeError
+from omegaconf import Container, DictConfig, ListConfig, Node, TupleConfig, ValueNode
+from omegaconf.errors import (
+    ConfigKeyError,
+    ConfigTypeError,
+    InterpolationToMissingValueError,
+)
 from omegaconf.nodes import InterpolationResultNode
 
 from ._utils import (
     _DEFAULT_MARKER_,
     _ensure_container,
     _get_value,
+    _is_missing_literal,
     is_primitive_container,
     is_structured_config,
 )
@@ -26,8 +31,19 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
                 resolved_value
             ):
                 resolved = _ensure_container(resolved_value)
+        if isinstance(cfg, TupleConfig) and _is_missing_literal(_get_value(resolved)):
+            cfg._format_and_raise(
+                key=key,
+                value=_get_value(resolved),
+                cause=InterpolationToMissingValueError(
+                    "TupleConfig interpolation resolved to a missing value"
+                ),
+            )
         if isinstance(resolved, Container) and isinstance(node, ValueNode):
-            cfg[key] = resolved
+            if isinstance(cfg, TupleConfig):
+                cfg._set_item_for_resolution(key, resolved)
+            else:
+                cfg[key] = resolved
         else:
             node._set_value(_get_value(resolved))
     else:
@@ -44,7 +60,7 @@ def _resolve(cfg: Node) -> Node:
         for k in list(cfg.keys()):
             _resolve_container_value(cfg, k)
 
-    elif isinstance(cfg, ListConfig):
+    elif isinstance(cfg, (ListConfig, TupleConfig)):
         for i in range(len(cfg)):
             _resolve_container_value(cfg, i)
 

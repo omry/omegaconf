@@ -7,7 +7,15 @@ from typing import Any, Callable, List, MutableSequence, Optional, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import MISSING, AnyNode, DictConfig, ListConfig, OmegaConf, flag_override
+from omegaconf import (
+    MISSING,
+    AnyNode,
+    DictConfig,
+    ListConfig,
+    OmegaConf,
+    TupleConfig,
+    flag_override,
+)
 from omegaconf._utils import _ensure_container
 from omegaconf.base import Node
 from omegaconf.errors import (
@@ -289,9 +297,9 @@ def test_list_config_with_list() -> None:
     assert isinstance(c, ListConfig)
 
 
-def test_list_config_with_tuple() -> None:
+def test_tuple_config_with_tuple() -> None:
     c = OmegaConf.create(())
-    assert isinstance(c, ListConfig)
+    assert isinstance(c, TupleConfig)
 
 
 def test_items_on_list() -> None:
@@ -395,7 +403,8 @@ def test_list_append() -> None:
         param(
             ListConfig(content=[], element_type=List[int]),
             123,
-            "Invalid value assigned: int is not a ListConfig, list or tuple.",
+            "Invalid value assigned: int is not a ListConfig, "
+            "TupleConfig, list, or tuple.",
         ),
         param(
             ListConfig(content=[], element_type=List[int]),
@@ -655,6 +664,29 @@ def test_extend(src: List[Any], append: List[Any], result: List[Any]) -> None:
     lst = OmegaConf.create(src)
     lst.extend(append)
     assert lst == result
+
+
+def test_extend_tupleconfig() -> None:
+    lst = OmegaConf.create([1, 2, 3])
+    values = OmegaConf.create((4, 5))
+
+    lst.extend(values)
+
+    assert lst == [1, 2, 3, 4, 5]
+
+
+def test_extend_rejects_unsupported_input_type() -> None:
+    lst = OmegaConf.create([1, 2, 3])
+    value: Any = 123
+
+    with raises(
+        TypeError,
+        match=re.escape(
+            "ListConfig.extend() expected a list, tuple, ListConfig, "
+            "or TupleConfig, got int"
+        ),
+    ):
+        lst.extend(value)
 
 
 @mark.parametrize(

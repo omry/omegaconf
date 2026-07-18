@@ -22,10 +22,15 @@ from omegaconf import (
     MissingMandatoryValue,
     OmegaConf,
     ReadonlyConfigError,
+    TupleConfig,
     ValidationError,
     _utils,
 )
-from omegaconf.errors import ConfigKeyError, InterpolationToMissingValueError
+from omegaconf.errors import (
+    ConfigKeyError,
+    ConfigTypeError,
+    InterpolationToMissingValueError,
+)
 from tests import Color, Enum1, User, warns_dict_subclass_deprecated
 
 
@@ -305,7 +310,11 @@ class TestConfigs:
 
     def test_config_with_list(self, module: Any) -> None:
         def validate(cfg: DictConfig) -> None:
-            assert cfg == {"list1": [1, 2, 3], "list2": [1, 2, 3], "missing": MISSING}
+            assert cfg == {
+                "list1": [1, 2, 3],
+                "list2": (1, 2, 3),
+                "missing": MISSING,
+            }
             with raises(ValidationError):
                 cfg.list1[1] = "foo"
 
@@ -717,7 +726,7 @@ class TestConfigs:
         with raises(ValidationError):
             OmegaConf.structured(input_)
 
-    @mark.parametrize("example", ["ListExamples", "TupleExamples"])
+    @mark.parametrize("example", ["ListExamples"])
     def test_list_examples(self, module: Any, example: str) -> None:
         input_ = getattr(module, example)
         conf = OmegaConf.structured(input_)
@@ -764,6 +773,25 @@ class TestConfigs:
             Color.GREEN,
             Color.BLUE,
         ]
+
+    def test_tuple_examples(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.TupleExamples)
+        expected = {
+            "any": (1, "foo"),
+            "ints": (1, 2),
+            "strings": ("foo", "bar"),
+            "booleans": (True, False),
+            "colors": (Color.RED, Color.GREEN),
+        }
+        for name, value in expected.items():
+            assert isinstance(conf[name], TupleConfig)
+            assert conf[name] == value
+            with raises(ConfigTypeError, match="immutable"):
+                conf[name].append(value[0])
+
+        conf.ints = [3, 4]
+        assert isinstance(conf.ints, TupleConfig)
+        assert conf.ints == (3, 4)
 
     def test_dict_examples_any(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
@@ -1000,11 +1028,10 @@ class TestConfigs:
 
     def test_set_list_correct_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
-        value = [1, 2, 3]
-        cfg.list = value
-        cfg.tuple = value
-        assert cfg.list == value
-        assert cfg.tuple == value
+        cfg.list = [1, 2, 3]
+        cfg.tuple = [1, 2]
+        assert cfg.list == [1, 2, 3]
+        assert cfg.tuple == (1, 2)
 
     @mark.parametrize(
         "value",

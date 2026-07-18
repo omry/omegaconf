@@ -1021,7 +1021,10 @@ params = [
             create=lambda: None,
             op=lambda _: OmegaConf.structured(StructuredWithBadList),
             exception_type=ValidationError,
-            msg="Invalid value assigned: int is not a ListConfig, list or tuple.",
+            msg=(
+                "Invalid value assigned: int is not a ListConfig, "
+                "TupleConfig, list, or tuple."
+            ),
             key="foo",
         ),
         id="structured,bad_default_value_for_list",
@@ -1302,7 +1305,10 @@ params = [
             op=lambda cfg: cfg._set_value(True),
             exception_type=ValidationError,
             object_type=None,
-            msg="Invalid value assigned: bool is not a ListConfig, list or tuple.",
+            msg=(
+                "Invalid value assigned: bool is not a ListConfig, "
+                "TupleConfig, list, or tuple."
+            ),
             ref_type=List[int],
             low_level=True,
         ),

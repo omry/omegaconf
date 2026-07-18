@@ -753,7 +753,10 @@ def test_dict_assign_to_container_typed_element_special(
         param(
             DictConfig({"key": [123]}, element_type=List[int]),
             "foo",
-            re.escape("Invalid value assigned: str is not a ListConfig, list or tuple"),
+            re.escape(
+                "Invalid value assigned: str is not a ListConfig, "
+                "TupleConfig, list, or tuple"
+            ),
             id="assign-str-to-list[int]",
         ),
         param(
@@ -771,7 +774,10 @@ def test_dict_assign_to_container_typed_element_special(
         param(
             DictConfig({"key": [123]}, element_type=List[int]),
             456,
-            re.escape("Invalid value assigned: int is not a ListConfig, list or tuple"),
+            re.escape(
+                "Invalid value assigned: int is not a ListConfig, "
+                "TupleConfig, list, or tuple"
+            ),
             id="assign-int-to-list[int]",
         ),
         param(
@@ -791,8 +797,10 @@ def test_dict_assign_to_container_typed_element_special(
         param(
             DictConfig({"key": [123]}, element_type=List[int]),
             {"baz": 456},
-            r"(Invalid value assigned: dict is not a ListConfig, list or tuple)"
-            + r"|(Invalid value assigned: DictConfig is not a ListConfig, list or tuple)"
+            r"(Invalid value assigned: dict is not a ListConfig, "
+            + r"TupleConfig, list, or tuple)"
+            + r"|(Invalid value assigned: DictConfig is not a ListConfig, "
+            + r"TupleConfig, list, or tuple)"
             + r"|(Invalid value assigned: dict does not match type hint typing\.List\[int\])"
             + r"|('DictConfig' is incompatible with type hint 'typing\.List\[int\]')",
             id="assign-dict[str-int]-to-list[int]]",
@@ -951,7 +959,8 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([[123]], element_type=List[int]),
             0,
             "foo",
-            "Invalid value assigned: str is not a ListConfig, list or tuple",
+            "Invalid value assigned: str is not a ListConfig, "
+            "TupleConfig, list, or tuple",
             id="assign_str_to_list[int]",
         ),
         param(
@@ -972,7 +981,8 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([[123]], element_type=List[int]),
             0,
             456,
-            "Invalid value assigned: int is not a ListConfig, list or tuple",
+            "Invalid value assigned: int is not a ListConfig, "
+            "TupleConfig, list, or tuple",
             id="assign_int_to_list[int]",
         ),
         param(
@@ -1028,7 +1038,8 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([], element_type=List[int]),
             None,
             "foo",
-            "Invalid value assigned: str is not a ListConfig, list or tuple",
+            "Invalid value assigned: str is not a ListConfig, "
+            "TupleConfig, list, or tuple",
             id="append_str_to_list[int]",
         ),
         param(
@@ -1049,7 +1060,8 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([], element_type=List[int]),
             None,
             456,
-            "Invalid value assigned: int is not a ListConfig, list or tuple",
+            "Invalid value assigned: int is not a ListConfig, "
+            "TupleConfig, list, or tuple",
             id="append_int_to_list[int]",
         ),
         param(
