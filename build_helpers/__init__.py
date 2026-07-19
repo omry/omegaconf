@@ -1,3 +1,5 @@
+# ruff: noqa: F401, I001
+
 # Order of imports is important (see warning otherwise when running tests)
-import setuptools  # isort:skip # noqa
-import distutils  # isort:skip # noqa
+import setuptools
+import distutils

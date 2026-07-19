@@ -439,7 +439,8 @@ def test_create_float_yaml() -> None:
     #   c_s not parsed as float. antlr does parse as float
     #   e_s and f_s not parsed. antlr does parse as float
     #   h_f and i_f parsed as float. antlr does not parse as float
-    cfg = OmegaConf.create(dedent("""\
+    cfg = OmegaConf.create(
+        dedent("""\
             a_s: 0_e0
             b_i: 0_0
             c_s: 1_0e1_0
@@ -449,7 +450,8 @@ def test_create_float_yaml() -> None:
             g_f: 1_1_2.1
             h_f: 1__2.1
             i_f: 1.2_
-            """))
+            """)
+    )
     assert cfg == {
         "a_s": "0_e0",
         "b_i": 0,
@@ -699,16 +701,20 @@ def test_yaml_merge_sequence_error() -> None:
 
 def test_yaml_merge_invalid_value() -> None:
     with raises(yaml.constructor.ConstructorError):
-        OmegaConf.create(dedent("""\
+        OmegaConf.create(
+            dedent("""\
             a:
                 <<: 123
-            """))
+            """)
+        )
 
 
 def test_yaml_value_key() -> None:
-    cfg = OmegaConf.create(dedent("""\
+    cfg = OmegaConf.create(
+        dedent("""\
         = : value
-        """))
+        """)
+    )
     assert cfg == {"=": "value"}
 
 
