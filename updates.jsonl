@@ -84,3 +84,4 @@
 {"ts": "2026-07-19T16:30:47Z", "kind": "closed", "issue": 846, "issue_url": "https://github.com/omry/omegaconf/issues/846", "title": "Nightly builds"}
 {"ts": "2026-07-19T16:42:29Z", "kind": "closed", "issue": 815, "issue_url": "https://github.com/omry/omegaconf/issues/815", "title": "merge-readonly interatction"}
 {"ts": "2026-07-19T16:52:09Z", "kind": "closed", "issue": 762, "issue_url": "https://github.com/omry/omegaconf/issues/762", "title": "Dereferencing a resolver that returns \"???\""}
+{"ts": "2026-07-19T18:36:55Z", "kind": "label", "issue": 750, "issue_url": "https://github.com/omry/omegaconf/issues/750", "title": "ListConfig.insert() mishandles negative and out-of-range indices", "detail": "added \"bug\"; removed \"needs triage\""}

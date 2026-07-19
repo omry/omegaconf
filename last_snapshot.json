@@ -29,7 +29,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T16:52:09Z",
+  "generated_at": "2026-07-19T18:36:55Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -612,16 +612,16 @@
       "updated_at": "2026-04-24T06:29:23Z"
     },
     "750": {
-      "category": "Refactor",
+      "category": "Bug",
       "created_at": "2021-06-15T03:54:09Z",
       "labels": [
-        "needs triage"
+        "bug"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
-      "title": "Followup: refactor ListConfig.{insert,append}",
-      "updated_at": "2026-04-24T06:29:24Z"
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "updated_at": "2026-07-19T18:35:40Z"
     },
     "851": {
       "category": "Enhancement",

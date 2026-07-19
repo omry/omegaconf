@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T16:52:09Z",
+  "generated_at": "2026-07-19T18:36:55Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 51,
@@ -8,8 +8,8 @@
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 10,
-        "percentage": 19.6
+        "count": 11,
+        "percentage": 21.6
       },
       {
         "category": "Enhancement",
@@ -32,8 +32,8 @@
       {
         "category": "Refactor",
         "emoji": "🔧",
-        "count": 3,
-        "percentage": 5.9
+        "count": 2,
+        "percentage": 3.9
       },
       {
         "category": "Build",
@@ -365,16 +365,16 @@
     },
     {
       "number": 750,
-      "title": "Followup: refactor ListConfig.{insert,append}",
-      "category": "Refactor",
-      "category_emoji": "🔧",
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "category": "Bug",
+      "category_emoji": "🐛",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-06-15",
-      "updated": "2026-04-24",
+      "updated": "2026-07-19",
       "labels": [
-        "needs triage"
+        "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/750"
     },
@@ -904,6 +904,22 @@
       "url": "https://github.com/omry/omegaconf/issues/731"
     },
     {
+      "number": 762,
+      "title": "Dereferencing a resolver that returns \"???\"",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-06-28",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/762"
+    },
+    {
       "number": 771,
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "category": "Documentation",
@@ -1354,25 +1370,17 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 762,
-      "title": "Dereferencing a resolver that returns \"???\"",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-06-28",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/762"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T18:36:55Z",
+      "kind": "label",
+      "issue": 750,
+      "issue_url": "https://github.com/omry/omegaconf/issues/750",
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "detail": "added \"bug\"; removed \"needs triage\""
+    },
     {
       "ts": "2026-07-19T16:52:09Z",
       "kind": "closed",
