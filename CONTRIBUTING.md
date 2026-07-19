@@ -54,12 +54,11 @@ Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
 * test_jupyter_notebook-3.10
 ```
 
-To run a specific session use `-s`, for example `nox -s lint` will run linting
+To run a specific session use `-s`, for example `nox -s lint` will run linting.
 
-
-OmegaConf is formatted with black, to format your code automatically use `black .`
-
-Imports are sorted using isort, use `isort .` to sort all imports prior to pushing.
+OmegaConf uses Ruff for formatting, linting, and import sorting. Run
+`ruff format .` to format code and `ruff check .` to lint it. Use
+`ruff check --fix .` to apply safe fixes, including import sorting.
 
 To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html`. Once the docs are built you can open `index.html` in the build directory to view the generated docs with your browser.
 

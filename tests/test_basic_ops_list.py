@@ -349,9 +349,11 @@ def test_nested_list_assign_illegal_value() -> None:
     c = OmegaConf.create({"a": [None]})
     with raises(
         UnsupportedValueType,
-        match=re.escape(dedent("""\
+        match=re.escape(
+            dedent("""\
                 Value 'IllegalType' is not a supported primitive type
-                    full_key: a[0]""")),
+                    full_key: a[0]""")
+        ),
     ):
         c.a[0] = IllegalType()
 

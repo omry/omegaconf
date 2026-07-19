@@ -1,30 +1,24 @@
-[tool.black]
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | omegaconf/grammar/gen
-    | omegaconf/vendor
-    | \.nox
-    | \.venv
-    | build
-    | subprojects
-    | temp
-    | vendor
-    | \.claude
-  )
-)
-'''
-
-[tool.isort]
-skip_glob = [
-    ".venv/*",
-    "temp/*",
-    "omegaconf/vendor/*",
-    "subprojects/*",
-    ".claude/*",
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+include = ["*.py", "*.pyi", "*.ipynb"]
+extend-exclude = [
+    ".claude",
+    ".sl",
+    "omegaconf/grammar/gen",
+    "omegaconf/vendor",
+    "subprojects",
+    "temp",
 ]
+
+[tool.ruff.lint]
+exclude = ["docs/notebook/Tutorial.ipynb"]
+fixable = ["I"]
+ignore = ["E501", "E701", "E714", "E721"]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["omegaconf"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=append -Werror"
