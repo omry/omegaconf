@@ -12,6 +12,7 @@
     "1315": "2026-06-11",
     "1326": "2026-06-27",
     "392": "2026-07-18",
+    "726": "2026-07-19",
     "731": "2026-07-17",
     "762": "2026-07-19",
     "771": "2026-06-12",
@@ -29,7 +30,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T18:36:55Z",
+  "generated_at": "2026-07-19T18:58:16Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -599,18 +600,6 @@
       "title": "Support assignment of numpy floats to FloatNode",
       "updated_at": "2026-04-29T05:36:39Z"
     },
-    "726": {
-      "category": "Enhancement",
-      "created_at": "2021-05-20T22:51:55Z",
-      "labels": [
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Consistent resolving of interpolations to random resolver values",
-      "updated_at": "2026-04-24T06:29:23Z"
-    },
     "750": {
       "category": "Bug",
       "created_at": "2021-06-15T03:54:09Z",
@@ -823,6 +812,18 @@
       "status": "done",
       "title": "Improve Tuple support",
       "updated_at": "2026-04-26T17:48:26Z"
+    },
+    "726": {
+      "category": "Enhancement",
+      "created_at": "2021-05-20T22:51:55Z",
+      "labels": [
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Consistent resolving of interpolations to random resolver values",
+      "updated_at": "2026-04-24T06:29:23Z"
     },
     "731": {
       "category": "Bug",

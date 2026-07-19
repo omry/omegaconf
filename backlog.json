@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T18:36:55Z",
+  "generated_at": "2026-07-19T18:58:16Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 51,
+    "open_total": 50,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 21.6
+        "percentage": 22.0
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 37,
-        "percentage": 72.5
+        "count": 36,
+        "percentage": 72.0
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 3.9
+        "percentage": 4.0
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 47
+        "count": 46
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 28
+        "count": 29
       }
     ]
   },
@@ -347,21 +347,6 @@
         "priority_low"
       ],
       "url": "https://github.com/omry/omegaconf/issues/725"
-    },
-    {
-      "number": 726,
-      "title": "Consistent resolving of interpolations to random resolver values",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-05-20",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/726"
     },
     {
       "number": 750,
@@ -1370,9 +1355,31 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 726,
+      "title": "Consistent resolving of interpolations to random resolver values",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-05-20",
+      "updated": "2026-04-24",
+      "labels": [
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/726"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T18:58:16Z",
+      "kind": "closed",
+      "issue": 726,
+      "issue_url": "https://github.com/omry/omegaconf/issues/726",
+      "title": "Consistent resolving of interpolations to random resolver values"
+    },
     {
       "ts": "2026-07-19T18:36:55Z",
       "kind": "label",
