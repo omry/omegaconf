@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T16:08:39Z",
+  "generated_at": "2026-07-19T16:30:47Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 54,
+    "open_total": 53,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 20.4
+        "percentage": 20.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 39,
-        "percentage": 72.2
+        "count": 38,
+        "percentage": 71.7
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.6
+        "percentage": 5.7
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 50
+        "count": 49
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 25
+        "count": 26
       }
     ]
   },
@@ -408,22 +408,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/815"
-    },
-    {
-      "number": 846,
-      "title": "Nightly builds",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-12-27",
-      "updated": "2026-04-24",
-      "labels": [
-        "maintenance",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/846"
     },
     {
       "number": 851,
@@ -993,6 +977,24 @@
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
+      "number": 864,
+      "title": "Support interpolation to integer keys (or other non-string keys)",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-02-21",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "interpolation",
+        "needs triage",
+        "wishlist"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/864"
+    },
+    {
       "number": 882,
       "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
       "category": "Bug",
@@ -1354,25 +1356,30 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 864,
-      "title": "Support interpolation to integer keys (or other non-string keys)",
+      "number": 846,
+      "title": "Nightly builds",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2022-02-21",
+      "created": "2021-12-27",
       "updated": "2026-04-24",
       "labels": [
-        "enhancement",
-        "interpolation",
-        "needs triage",
-        "wishlist"
+        "maintenance",
+        "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/864"
+      "url": "https://github.com/omry/omegaconf/issues/846"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T16:30:47Z",
+      "kind": "closed",
+      "issue": 846,
+      "issue_url": "https://github.com/omry/omegaconf/issues/846",
+      "title": "Nightly builds"
+    },
     {
       "ts": "2026-07-19T16:08:39Z",
       "kind": "closed",

@@ -15,6 +15,7 @@
     "731": "2026-07-17",
     "771": "2026-06-12",
     "813": "2026-07-19",
+    "846": "2026-07-19",
     "864": "2026-07-19",
     "882": "2026-07-19",
     "883": "2026-07-19",
@@ -26,7 +27,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T16:08:39Z",
+  "generated_at": "2026-07-19T16:30:47Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -645,19 +646,6 @@
       "title": "merge-readonly interatction",
       "updated_at": "2026-04-24T06:28:14Z"
     },
-    "846": {
-      "category": "Enhancement",
-      "created_at": "2021-12-27T21:48:09Z",
-      "labels": [
-        "maintenance",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Nightly builds",
-      "updated_at": "2026-04-24T06:28:14Z"
-    },
     "851": {
       "category": "Enhancement",
       "created_at": "2022-01-22T09:56:13Z",
@@ -901,6 +889,19 @@
       "status": "done",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
       "updated_at": "2026-05-22T14:13:34Z"
+    },
+    "846": {
+      "category": "Enhancement",
+      "created_at": "2021-12-27T21:48:09Z",
+      "labels": [
+        "maintenance",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Nightly builds",
+      "updated_at": "2026-04-24T06:28:14Z"
     },
     "864": {
       "category": "Enhancement",
