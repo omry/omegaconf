@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T15:48:00Z",
+  "generated_at": "2026-07-19T16:08:39Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 55,
+    "open_total": 54,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 20.0
+        "percentage": 20.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 40,
-        "percentage": 72.7
+        "count": 39,
+        "percentage": 72.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.8
+        "percentage": 1.9
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.5
+        "percentage": 5.6
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 51
+        "count": 50
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 24
+        "count": 25
       }
     ]
   },
@@ -307,7 +307,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-03-29",
-      "updated": "2026-07-17",
+      "updated": "2026-07-19",
       "labels": [
         "bug",
         "priority_low"
@@ -439,24 +439,6 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/851"
-    },
-    {
-      "number": 864,
-      "title": "Support interpolation to integer keys (or other non-string keys)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-02-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "wishlist",
-        "needs triage",
-        "interpolation"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/864"
     },
     {
       "number": 928,
@@ -1011,6 +993,23 @@
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
+      "number": 882,
+      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-03-29",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "has-workaround",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/882"
+    },
+    {
       "number": 883,
       "title": "Error when creating structured config with untyped Tuple",
       "category": "Bug",
@@ -1355,24 +1354,32 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 882,
-      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 864,
+      "title": "Support interpolation to integer keys (or other non-string keys)",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2022-03-29",
+      "created": "2022-02-21",
       "updated": "2026-04-24",
       "labels": [
-        "bug",
-        "has-workaround",
-        "needs triage"
+        "enhancement",
+        "interpolation",
+        "needs triage",
+        "wishlist"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/882"
+      "url": "https://github.com/omry/omegaconf/issues/864"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T16:08:39Z",
+      "kind": "closed",
+      "issue": 864,
+      "issue_url": "https://github.com/omry/omegaconf/issues/864",
+      "title": "Support interpolation to integer keys (or other non-string keys)"
+    },
     {
       "ts": "2026-07-19T15:48:00Z",
       "kind": "closed",
