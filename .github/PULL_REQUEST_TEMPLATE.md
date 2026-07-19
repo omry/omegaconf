@@ -4,9 +4,14 @@
 
 (Write your motivation for proposed changes here.)
 
-### Have you read the [Contributing Guidelines on pull requests](https://github.com/omry/omegaconf/blob/master/CONTRIBUTING.md)?
+### Have you read the [Contributing Guidelines on pull requests](https://github.com/omry/omegaconf/blob/main/CONTRIBUTING.md)?
 
 Yes/No
+
+### For any non-trivial change: is there an issue or design discussion where maintainers agreed on the direction?
+
+(Link to the issue or discussion. Pull requests without prior design alignment
+may be redirected to discussion before implementation review.)
 
 ## Test Plan
 

@@ -638,9 +638,9 @@ class OmegaConf:
         )
         assert callable(resolver), "resolver must be callable"
         # noinspection PyProtectedMember
-        assert (
-            name not in BaseContainer._resolvers
-        ), f"resolver '{name}' is already registered"
+        assert name not in BaseContainer._resolvers, (
+            f"resolver '{name}' is already registered"
+        )
 
         def resolver_wrapper(
             config: BaseContainer,
@@ -1144,8 +1144,7 @@ class OmegaConf:
             next_root, key_ = _select_one(root, k, throw_on_missing=False)
             if isinstance(next_root, Container) and next_root._is_none():
                 raise ConfigTypeError(
-                    f"Cannot set '{key}' because"
-                    f" '{root._get_full_key(key_)}' is None"
+                    f"Cannot set '{key}' because '{root._get_full_key(key_)}' is None"
                 )
             if not isinstance(next_root, Container):
                 if force_add:
@@ -1157,9 +1156,9 @@ class OmegaConf:
 
         last = split[-1]
 
-        assert isinstance(
-            root, Container
-        ), f"Unexpected type for root: {type(root).__name__}"
+        assert isinstance(root, Container), (
+            f"Unexpected type for root: {type(root).__name__}"
+        )
 
         last_key: Union[str, int] = last
         if OmegaConf.is_sequence(root):

@@ -95,7 +95,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             return res
         else:
             assert isinstance(child, TerminalNode) and isinstance(
-                child.symbol.text, str  # type: ignore[attr-defined]
+                child.symbol.text,  # type: ignore[attr-defined]
+                str,
             )
             return child.symbol.text  # type: ignore[attr-defined]
 

@@ -1,19 +1,16 @@
 -r base.txt
 -r docs.txt
 attrs
-black[jupyter]==26.3.1
 build
 bump-my-version
 coveralls
-flake8==7.3.0
-isort==5.13.2
 nox[pbs]
 pre-commit
-pyflakes
 pyrefly==0.62.0
 pytest
 pytest-benchmark
 pytest-mock
+ruff==0.15.22
 towncrier
 twine
 pydevd

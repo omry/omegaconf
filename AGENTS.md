@@ -87,19 +87,18 @@ When asked to create a reproduction for an issue, place files under `temp/`:
 
 ## Linting and formatting
 
-This project uses several linting and formatting tools. Run them via `nox -s lint` or individually:
+Run linting and formatting checks via `nox -s lint` or individually:
 
-- `black .` / `black --check .` — code formatting
-- `flake8` — style and error checks (may need `--jobs=1` on some Python versions)
-- `isort . --check` — import sorting
+- `ruff format .` / `ruff format --check .` — code formatting
+- `ruff check .` / `ruff check --fix .` — linting and import sorting
 - `pyrefly check` — static type checking
 
-All four must pass before a change is considered clean.
+All three checks must pass before a change is considered clean.
 
 ## Environment and hooks
 
 - Use the repo-local `.venv` directory as the default development environment.
-- Prefer `.venv/bin/python -m ...` for Python module commands and `.venv/bin/<tool>` for installed tools such as `pytest`, `nox`, `black`, and `isort`.
+- Prefer `.venv/bin/python -m ...` for Python module commands and `.venv/bin/<tool>` for installed tools such as `pytest`, `nox`, and `ruff`.
 - If `.venv` is missing and environment setup is part of the task, create it with `python3 -m venv .venv` and install development dependencies with `.venv/bin/python -m pip install -r requirements/dev.txt -e .`.
 - When validating contributor setup, shell initialization, or hook behavior, verify it from the same `.venv` environment a developer would actually use, such as a normal shell session or `sl commit`, not only from a temporary sandbox-only environment.
 - Prefer hooks that do not depend on nontrivial user-environment tooling.

@@ -54,21 +54,34 @@ Sessions defined in /home/omry/dev/omegaconf/noxfile.py:
 * test_jupyter_notebook-3.10
 ```
 
-To run a specific session use `-s`, for example `nox -s lint` will run linting
+To run a specific session use `-s`, for example `nox -s lint` will run linting.
 
-
-OmegaConf is formatted with black, to format your code automatically use `black .`
-
-Imports are sorted using isort, use `isort .` to sort all imports prior to pushing.
+OmegaConf uses Ruff for formatting, linting, and import sorting. Run
+`ruff format .` to format code and `ruff check .` to lint it. Use
+`ruff check --fix .` to apply safe fixes, including import sorting.
 
 To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html`. Once the docs are built you can open `index.html` in the build directory to view the generated docs with your browser.
 
 #### Submitting a PR
 
+We welcome your pull requests.
+
 When submitting a PR please ensure that it includes:
 - automated tests for any new feature or bugfix
 - documentation for any user-facing change
-- a one-line news fragment under the `news` folder (valid extensions are: `.feature`, `.bugfix`, `.api_change`, `.docs`, `.misc`)
+- a one-line news fragment under the `news` folder for any non-trivial
+  user-visible change. Use the issue or pull request number as the filename,
+  with one of these extensions: `.feature`, `.bugfix`, `.api_change`, `.docs`,
+  `.misc` (for example, `news/1234.bugfix`).
+
+Developer-only tooling, repository maintenance, and CI-only changes do not need
+a news fragment unless they affect the shipped product experience.
+
+For any non-trivial change, please open an issue or design discussion and wait
+for maintainer feedback before starting substantial implementation work. Pull
+requests in these areas should link to the issue or discussion where the
+direction was agreed. Pull requests without prior design alignment may be
+redirected to discussion before implementation review.
 
 #### Modifying the Jupyter notebook
 
@@ -109,7 +122,7 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
 
 4. Create the `pypi-publish-dev` environment in GitHub repository settings:
    - Allow publishing from the development branch you use for dev releases
-     (for example `master`)
+     (for example `main`)
    - Add protection rules (e.g., require manual approval)
 
 **Official release process:**
@@ -134,10 +147,14 @@ The workflow handles:
 - Publishing to PyPI via Trusted Publishers (no API tokens needed)
 
 **Development release process:**
-1. Bump the dev version with `bump-my-version bump pre_n`
-2. Commit changes and push to the branch you use for dev releases
-3. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions
-4. Approve the `pypi-publish-dev` environment if required
+1. Ensure the dev version to publish is committed and pushed to the branch you
+   use for dev releases.
+2. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions,
+   or run `gh workflow run publish_dev.yml --ref <branch>`.
+3. Approve the `pypi-publish-dev` environment if required.
+4. After the release publishes successfully, advance to the next dev version
+   with `bump-my-version bump pre_n`.
+5. Commit and push the version bump.
 
 **Manual release (fallback):**
 If you need to publish manually:
