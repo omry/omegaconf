@@ -14,13 +14,14 @@
     "392": "2026-07-18",
     "731": "2026-07-17",
     "771": "2026-06-12",
+    "813": "2026-07-19",
     "898": "2026-07-17",
     "908": "2026-06-27",
     "945": "2026-06-10",
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-19T10:27:06Z",
+  "generated_at": "2026-07-19T13:03:06Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -627,21 +628,6 @@
       "title": "Dereferencing a resolver that returns \"???\"",
       "updated_at": "2026-04-24T06:29:25Z"
     },
-    "813": {
-      "category": "Bug",
-      "created_at": "2021-10-28T03:06:32Z",
-      "labels": [
-        "bug",
-        "low priority"
-      ],
-      "pr_numbers": [
-        "1308"
-      ],
-      "state": "OPEN",
-      "status": "community PR",
-      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
-      "updated_at": "2026-05-22T14:13:34Z"
-    },
     "815": {
       "category": "Enhancement",
       "created_at": "2021-10-29T06:49:40Z",
@@ -753,14 +739,13 @@
       "category": "Bug",
       "created_at": "2022-05-15T22:31:17Z",
       "labels": [
-        "bug",
-        "needs triage"
+        "bug"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
-      "updated_at": "2026-05-15T14:39:55Z"
+      "updated_at": "2026-07-19T13:01:53Z"
     },
     "999": {
       "category": "Enhancement",
@@ -963,6 +948,21 @@
       "status": "done",
       "title": "Document special treatment of \"???\" by OmegaConf.merge",
       "updated_at": "2026-04-24T06:29:26Z"
+    },
+    "813": {
+      "category": "Bug",
+      "created_at": "2021-10-28T03:06:32Z",
+      "labels": [
+        "bug",
+        "low priority"
+      ],
+      "pr_numbers": [
+        "1308"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "updated_at": "2026-05-22T14:13:34Z"
     },
     "898": {
       "category": "Bug",
