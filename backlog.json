@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T18:58:16Z",
+  "generated_at": "2026-07-19T19:35:30Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 50,
+    "open_total": 49,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 22.0
+        "percentage": 22.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 36,
-        "percentage": 72.0
+        "count": 35,
+        "percentage": 71.4
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.0
+        "percentage": 4.1
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 46
+        "count": 45
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 29
+        "count": 30
       }
     ]
   },
@@ -330,23 +330,6 @@
         "priority_low"
       ],
       "url": "https://github.com/omry/omegaconf/issues/702"
-    },
-    {
-      "number": 725,
-      "title": "Support assignment of numpy floats to FloatNode",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-05-20",
-      "updated": "2026-04-29",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/725"
     },
     {
       "number": 750,
@@ -873,6 +856,21 @@
       "url": "https://github.com/omry/omegaconf/issues/392"
     },
     {
+      "number": 726,
+      "title": "Consistent resolving of interpolations to random resolver values",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-05-20",
+      "updated": "2026-04-24",
+      "labels": [
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/726"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1357,22 +1355,31 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 726,
-      "title": "Consistent resolving of interpolations to random resolver values",
+      "number": 725,
+      "title": "Support assignment of numpy floats to FloatNode",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
       "created": "2021-05-20",
-      "updated": "2026-04-24",
+      "updated": "2026-04-29",
       "labels": [
-        "needs triage"
+        "enhancement",
+        "needs triage",
+        "priority_low"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/726"
+      "url": "https://github.com/omry/omegaconf/issues/725"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T19:35:30Z",
+      "kind": "closed",
+      "issue": 725,
+      "issue_url": "https://github.com/omry/omegaconf/issues/725",
+      "title": "Support assignment of numpy floats to FloatNode"
+    },
     {
       "ts": "2026-07-19T18:58:16Z",
       "kind": "closed",
