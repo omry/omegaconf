@@ -277,39 +277,6 @@ class InterpolationDict:
     dict: Dict[str, int] = II("optimization.lr")
 
 
-# Structures for merging an interpolation into a structured config (issue #1020).
-@dataclass
-class TableConfig:
-    rows: int = 1
-
-
-@dataclass
-class DatabaseConfig:
-    table_cfg: TableConfig = field(default_factory=TableConfig)
-
-
-@dataclass
-class ModelConfigOptional:
-    data_source: Optional[TableConfig] = None
-
-
-@dataclass
-class ModelConfigStructured:
-    data_source: TableConfig = field(default_factory=TableConfig)
-
-
-@dataclass
-class ServerConfigOptional:
-    db: DatabaseConfig = field(default_factory=DatabaseConfig)
-    model: ModelConfigOptional = field(default_factory=ModelConfigOptional)
-
-
-@dataclass
-class ServerConfigStructured:
-    db: DatabaseConfig = field(default_factory=DatabaseConfig)
-    model: ModelConfigStructured = field(default_factory=ModelConfigStructured)
-
-
 @dataclass
 class Str2Int(Dict[str, int]):
     pass

@@ -1,0 +1,1 @@
+Fix merging an interpolation into a structured config field failing with InterpolationKeyError or ValidationError; the interpolation is now kept unresolved and resolved lazily against the merged result.

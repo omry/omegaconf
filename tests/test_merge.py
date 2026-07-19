@@ -62,8 +62,6 @@ from tests import (
     OuterB,
     Package,
     Plugin,
-    ServerConfigOptional,
-    ServerConfigStructured,
     User,
     Users,
 )
@@ -1591,25 +1589,23 @@ def test_merge_with_other_as_interpolation(
 
 @mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 @mark.parametrize(
-    "server",
-    [ServerConfigOptional, ServerConfigStructured],
+    "model",
+    [C(), B(x=A())],
     ids=["optional_none_target", "structured_target"],
 )
-def test_merge_interpolation_into_structured_config(merge: Any, server: Any) -> None:
-    # Merging an interpolation into a structured-config field must keep it
-    # unresolved (resolved lazily against the merged result) instead of
-    # resolving it in the source's context or type-checking the raw string.
+def test_merge_interpolation_into_structured_config(merge: Any, model: Any) -> None:
+    # An interpolation merged into a structured-config field must be kept
+    # unresolved (resolved lazily against the merged result) instead of being
+    # resolved in the source's context or type-checked as a raw string.
     # https://github.com/omry/omegaconf/issues/1020
     res = merge(
-        server,
-        {"db": {"table_cfg": {"rows": 9}}},
-        {"model": {"data_source": "${db.table_cfg}"}},
+        {"src": A, "model": model},
+        {"src": {"a": 9}},
+        {"model": {"x": "${src}"}},
     )
-    assert OmegaConf.is_interpolation(res.model, "data_source")
-    assert res.model.data_source == {"rows": 9}
-    assert OmegaConf.to_container(res, resolve=True)["model"]["data_source"] == {
-        "rows": 9
-    }
+    assert OmegaConf.is_interpolation(res.model, "x")
+    assert OmegaConf.get_type(res.model.x) is A
+    assert res.model.x.a == 9
 
 
 @mark.parametrize(
