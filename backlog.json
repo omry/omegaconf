@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-18",
-  "generated_at": "2026-07-18T20:21:32Z",
+  "generated_on": "2026-07-19",
+  "generated_at": "2026-07-19T09:08:49Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 60,
@@ -1019,6 +1019,26 @@
       "url": "https://github.com/omry/omegaconf/issues/1340"
     },
     {
+      "number": 392,
+      "title": "Improve Tuple support",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1336,
+          "url": "https://github.com/omry/omegaconf/pull/1336"
+        }
+      ],
+      "created": "2020-09-24",
+      "updated": "2026-04-26",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/392"
+    },
+    {
       "number": 731,
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "category": "Bug",
@@ -1351,26 +1371,6 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 392,
-      "title": "Improve Tuple support",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1336,
-          "url": "https://github.com/omry/omegaconf/pull/1336"
-        }
-      ],
-      "created": "2020-09-24",
-      "updated": "2026-04-26",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/392"
     }
   ],
   "updates": [
