@@ -83,3 +83,4 @@
 {"ts": "2026-07-19T16:08:39Z", "kind": "closed", "issue": 864, "issue_url": "https://github.com/omry/omegaconf/issues/864", "title": "Support interpolation to integer keys (or other non-string keys)"}
 {"ts": "2026-07-19T16:30:47Z", "kind": "closed", "issue": 846, "issue_url": "https://github.com/omry/omegaconf/issues/846", "title": "Nightly builds"}
 {"ts": "2026-07-19T16:42:29Z", "kind": "closed", "issue": 815, "issue_url": "https://github.com/omry/omegaconf/issues/815", "title": "merge-readonly interatction"}
+{"ts": "2026-07-19T16:52:09Z", "kind": "closed", "issue": 762, "issue_url": "https://github.com/omry/omegaconf/issues/762", "title": "Dereferencing a resolver that returns \"???\""}

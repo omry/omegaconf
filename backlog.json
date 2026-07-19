@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T16:42:29Z",
+  "generated_at": "2026-07-19T16:52:09Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 52,
+    "open_total": 51,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 11,
-        "percentage": 21.2
+        "count": 10,
+        "percentage": 19.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 37,
-        "percentage": 71.2
+        "percentage": 72.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.9
+        "percentage": 2.0
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.8
+        "percentage": 5.9
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 48
+        "count": 47
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 27
+        "count": 28
       }
     ]
   },
@@ -377,22 +377,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/750"
-    },
-    {
-      "number": 762,
-      "title": "Dereferencing a resolver that returns \"???\"",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-06-28",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/762"
     },
     {
       "number": 851,
@@ -730,7 +714,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-05-13",
-      "updated": "2026-05-13",
+      "updated": "2026-07-19",
       "labels": [
         "enhancement"
       ],
@@ -960,6 +944,21 @@
         "low priority"
       ],
       "url": "https://github.com/omry/omegaconf/issues/813"
+    },
+    {
+      "number": 815,
+      "title": "merge-readonly interatction",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-10-29",
+      "updated": "2026-04-24",
+      "labels": [
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/815"
     },
     {
       "number": 846,
@@ -1357,22 +1356,30 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 815,
-      "title": "merge-readonly interatction",
-      "category": "Enhancement",
-      "category_emoji": "✨",
+      "number": 762,
+      "title": "Dereferencing a resolver that returns \"???\"",
+      "category": "Bug",
+      "category_emoji": "🐛",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2021-10-29",
+      "created": "2021-06-28",
       "updated": "2026-04-24",
       "labels": [
+        "bug",
         "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/815"
+      "url": "https://github.com/omry/omegaconf/issues/762"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T16:52:09Z",
+      "kind": "closed",
+      "issue": 762,
+      "issue_url": "https://github.com/omry/omegaconf/issues/762",
+      "title": "Dereferencing a resolver that returns \"???\""
+    },
     {
       "ts": "2026-07-19T16:42:29Z",
       "kind": "closed",

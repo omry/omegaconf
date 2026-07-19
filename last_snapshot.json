@@ -13,6 +13,7 @@
     "1326": "2026-06-27",
     "392": "2026-07-18",
     "731": "2026-07-17",
+    "762": "2026-07-19",
     "771": "2026-06-12",
     "813": "2026-07-19",
     "815": "2026-07-19",
@@ -28,7 +29,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T16:42:29Z",
+  "generated_at": "2026-07-19T16:52:09Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -305,7 +306,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Feature: distinguish literal \"???\" from the missing sentinel in interpolation grammar",
-      "updated_at": "2026-05-13T14:50:34Z"
+      "updated_at": "2026-07-19T16:45:42Z"
     },
     "131": {
       "category": "Enhancement",
@@ -622,19 +623,6 @@
       "title": "Followup: refactor ListConfig.{insert,append}",
       "updated_at": "2026-04-24T06:29:24Z"
     },
-    "762": {
-      "category": "Bug",
-      "created_at": "2021-06-28T23:10:23Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Dereferencing a resolver that returns \"???\"",
-      "updated_at": "2026-04-24T06:29:25Z"
-    },
     "851": {
       "category": "Enhancement",
       "created_at": "2022-01-22T09:56:13Z",
@@ -848,6 +836,19 @@
       "status": "done",
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "updated_at": "2026-06-10T17:42:42Z"
+    },
+    "762": {
+      "category": "Bug",
+      "created_at": "2021-06-28T23:10:23Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Dereferencing a resolver that returns \"???\"",
+      "updated_at": "2026-04-24T06:29:25Z"
     },
     "771": {
       "category": "Documentation",
