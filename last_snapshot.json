@@ -15,14 +15,16 @@
     "731": "2026-07-17",
     "771": "2026-06-12",
     "813": "2026-07-19",
+    "883": "2026-07-19",
     "898": "2026-07-17",
     "899": "2026-07-19",
     "908": "2026-06-27",
     "945": "2026-06-10",
     "969": "2026-06-13",
-    "998": "2026-06-13"
+    "998": "2026-06-13",
+    "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T15:22:11Z",
+  "generated_at": "2026-07-19T15:39:05Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -695,19 +697,6 @@
       "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
       "updated_at": "2026-04-24T06:28:16Z"
     },
-    "883": {
-      "category": "Bug",
-      "created_at": "2022-03-29T21:35:12Z",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Error when creating structured config with untyped Tuple",
-      "updated_at": "2026-04-24T06:28:16Z"
-    },
     "91": {
       "category": "Enhancement",
       "created_at": "2019-12-02T16:57:04Z",
@@ -734,18 +723,6 @@
       "status": "not started",
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
       "updated_at": "2026-07-19T13:01:53Z"
-    },
-    "999": {
-      "category": "Enhancement",
-      "created_at": "2022-08-29T16:40:13Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "`List[Tuple[T, ...]]` not supported",
-      "updated_at": "2026-06-13T03:27:17Z"
     }
   },
   "recent_done": {
@@ -952,6 +929,19 @@
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
       "updated_at": "2026-05-22T14:13:34Z"
     },
+    "883": {
+      "category": "Bug",
+      "created_at": "2022-03-29T21:35:12Z",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Error when creating structured config with untyped Tuple",
+      "updated_at": "2026-04-24T06:28:16Z"
+    },
     "898": {
       "category": "Bug",
       "created_at": "2022-04-14T12:37:55Z",
@@ -1037,6 +1027,18 @@
       "status": "done",
       "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
       "updated_at": "2026-04-24T06:28:23Z"
+    },
+    "999": {
+      "category": "Enhancement",
+      "created_at": "2022-08-29T16:40:13Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "`List[Tuple[T, ...]]` not supported",
+      "updated_at": "2026-06-13T03:27:17Z"
     }
   },
   "repo": "omry/omegaconf"

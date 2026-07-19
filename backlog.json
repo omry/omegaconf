@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T15:22:11Z",
+  "generated_at": "2026-07-19T15:39:05Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 58,
+    "open_total": 56,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 13,
-        "percentage": 22.4
+        "count": 12,
+        "percentage": 21.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 41,
-        "percentage": 70.7
+        "count": 40,
+        "percentage": 71.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 1.7
+        "percentage": 1.8
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.2
+        "percentage": 5.4
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 54
+        "count": 52
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 21
+        "count": 23
       }
     ]
   },
@@ -476,22 +476,6 @@
       "url": "https://github.com/omry/omegaconf/issues/882"
     },
     {
-      "number": 883,
-      "title": "Error when creating structured config with untyped Tuple",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-03-29",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/883"
-    },
-    {
       "number": 928,
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
       "category": "Bug",
@@ -505,21 +489,6 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/928"
-    },
-    {
-      "number": 999,
-      "title": "`List[Tuple[T, ...]]` not supported",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-08-29",
-      "updated": "2026-06-13",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/999"
     },
     {
       "number": 1024,
@@ -1080,6 +1049,22 @@
       "url": "https://github.com/omry/omegaconf/issues/898"
     },
     {
+      "number": 899,
+      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-04-15",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/899"
+    },
+    {
       "number": 908,
       "title": "`OmegaConf.structured(...)` may mutate its input",
       "category": "Bug",
@@ -1356,23 +1341,52 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 899,
-      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
+      "number": 883,
+      "title": "Error when creating structured config with untyped Tuple",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-03-29",
+      "updated": "2026-04-24",
+      "labels": [
+        "bug",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/883"
+    },
+    {
+      "number": 999,
+      "title": "`List[Tuple[T, ...]]` not supported",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2022-04-15",
-      "updated": "2026-04-24",
+      "created": "2022-08-29",
+      "updated": "2026-06-13",
       "labels": [
-        "enhancement",
-        "needs triage"
+        "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/899"
+      "url": "https://github.com/omry/omegaconf/issues/999"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T15:39:05Z",
+      "kind": "closed",
+      "issue": 999,
+      "issue_url": "https://github.com/omry/omegaconf/issues/999",
+      "title": "`List[Tuple[T, ...]]` not supported"
+    },
+    {
+      "ts": "2026-07-19T15:39:05Z",
+      "kind": "closed",
+      "issue": 883,
+      "issue_url": "https://github.com/omry/omegaconf/issues/883",
+      "title": "Error when creating structured config with untyped Tuple"
+    },
     {
       "ts": "2026-07-19T15:22:11Z",
       "kind": "closed",
