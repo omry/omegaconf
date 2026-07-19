@@ -79,3 +79,4 @@
 {"ts": "2026-07-19T15:22:11Z", "kind": "closed", "issue": 899, "issue_url": "https://github.com/omry/omegaconf/issues/899", "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)"}
 {"ts": "2026-07-19T15:39:05Z", "kind": "closed", "issue": 883, "issue_url": "https://github.com/omry/omegaconf/issues/883", "title": "Error when creating structured config with untyped Tuple"}
 {"ts": "2026-07-19T15:39:05Z", "kind": "closed", "issue": 999, "issue_url": "https://github.com/omry/omegaconf/issues/999", "title": "`List[Tuple[T, ...]]` not supported"}
+{"ts": "2026-07-19T15:48:00Z", "kind": "closed", "issue": 882, "issue_url": "https://github.com/omry/omegaconf/issues/882", "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields"}

@@ -15,6 +15,7 @@
     "731": "2026-07-17",
     "771": "2026-06-12",
     "813": "2026-07-19",
+    "882": "2026-07-19",
     "883": "2026-07-19",
     "898": "2026-07-17",
     "899": "2026-07-19",
@@ -24,7 +25,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T15:39:05Z",
+  "generated_at": "2026-07-19T15:48:00Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -396,7 +397,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Materialize container results returned by custom resolvers",
-      "updated_at": "2026-07-18T07:41:52Z"
+      "updated_at": "2026-07-19T15:46:20Z"
     },
     "1335": {
       "category": "Enhancement",
@@ -683,20 +684,6 @@
       "title": "Support interpolation to integer keys (or other non-string keys)",
       "updated_at": "2026-04-24T06:28:15Z"
     },
-    "882": {
-      "category": "Bug",
-      "created_at": "2022-03-29T20:38:57Z",
-      "labels": [
-        "bug",
-        "has-workaround",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
-      "updated_at": "2026-04-24T06:28:16Z"
-    },
     "91": {
       "category": "Enhancement",
       "created_at": "2019-12-02T16:57:04Z",
@@ -928,6 +915,20 @@
       "status": "done",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
       "updated_at": "2026-05-22T14:13:34Z"
+    },
+    "882": {
+      "category": "Bug",
+      "created_at": "2022-03-29T20:38:57Z",
+      "labels": [
+        "bug",
+        "has-workaround",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
+      "updated_at": "2026-04-24T06:28:16Z"
     },
     "883": {
       "category": "Bug",
