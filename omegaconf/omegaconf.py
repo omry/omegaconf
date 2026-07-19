@@ -821,7 +821,8 @@ class OmegaConf:
 
         if isinstance(keys, str):
             keys = [keys]
-        content = {key: value for key, value in conf.items_ex(resolve=False, keys=keys)}
+        # Preserve node type and metadata instead of unwrapping ValueNodes.
+        content = {key: conf._get_node(key) for key in conf.keys() if key in keys}
         return DictConfig(content=content)
 
     @staticmethod

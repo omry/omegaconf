@@ -1,0 +1,1 @@
+Fixed `OmegaConf.masked_copy` losing typed leaf node classes at the top level of the copy.
