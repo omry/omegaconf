@@ -1,1 +1,1 @@
-Fixed `OmegaConf.masked_copy` losing typed leaf node classes (e.g. `IntegerNode`, `StringNode`, `EnumNode`) at the top level of the copy.
+Fixed `OmegaConf.masked_copy` losing typed leaf node classes at the top level of the copy.
