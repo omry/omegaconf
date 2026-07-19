@@ -16,12 +16,13 @@
     "771": "2026-06-12",
     "813": "2026-07-19",
     "898": "2026-07-17",
+    "899": "2026-07-19",
     "908": "2026-06-27",
     "945": "2026-06-10",
     "969": "2026-06-13",
     "998": "2026-06-13"
   },
-  "generated_at": "2026-07-19T13:03:06Z",
+  "generated_at": "2026-07-19T15:22:11Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -707,19 +708,6 @@
       "title": "Error when creating structured config with untyped Tuple",
       "updated_at": "2026-04-24T06:28:16Z"
     },
-    "899": {
-      "category": "Enhancement",
-      "created_at": "2022-04-15T11:50:43Z",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
-      "updated_at": "2026-04-24T06:28:17Z"
-    },
     "91": {
       "category": "Enhancement",
       "created_at": "2019-12-02T16:57:04Z",
@@ -978,6 +966,19 @@
       "status": "done",
       "title": "_promote is erasing values from the config",
       "updated_at": "2026-06-27T17:12:04Z"
+    },
+    "899": {
+      "category": "Enhancement",
+      "created_at": "2022-04-15T11:50:43Z",
+      "labels": [
+        "enhancement",
+        "needs triage"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
+      "updated_at": "2026-04-24T06:28:17Z"
     },
     "908": {
       "category": "Bug",

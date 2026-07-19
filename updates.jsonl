@@ -76,3 +76,4 @@
 {"ts": "2026-07-18T20:21:32Z", "kind": "closed", "issue": 392, "issue_url": "https://github.com/omry/omegaconf/issues/392", "title": "Improve Tuple support"}
 {"ts": "2026-07-19T13:03:06Z", "kind": "label", "issue": 928, "issue_url": "https://github.com/omry/omegaconf/issues/928", "title": "`OmegaConf.get_type` inconsistent on `NoneType`", "detail": "removed \"needs triage\""}
 {"ts": "2026-07-19T13:03:06Z", "kind": "closed", "issue": 813, "issue_url": "https://github.com/omry/omegaconf/issues/813", "title": "OmegaConf.masked_copy does not preserve ValueNode type"}
+{"ts": "2026-07-19T15:22:11Z", "kind": "closed", "issue": 899, "issue_url": "https://github.com/omry/omegaconf/issues/899", "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)"}

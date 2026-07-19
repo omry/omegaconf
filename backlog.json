@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T13:03:06Z",
+  "generated_at": "2026-07-19T15:22:11Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 59,
+    "open_total": 58,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 13,
-        "percentage": 22.0
+        "percentage": 22.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 42,
-        "percentage": 71.2
+        "count": 41,
+        "percentage": 70.7
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.1
+        "percentage": 5.2
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 55
+        "count": 54
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 20
+        "count": 21
       }
     ]
   },
@@ -490,22 +490,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/883"
-    },
-    {
-      "number": 899,
-      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-04-15",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/899"
     },
     {
       "number": 928,
@@ -1054,6 +1038,27 @@
       "url": "https://github.com/omry/omegaconf/issues/771"
     },
     {
+      "number": 813,
+      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1308,
+          "url": "https://github.com/omry/omegaconf/pull/1308"
+        }
+      ],
+      "created": "2021-10-28",
+      "updated": "2026-05-22",
+      "labels": [
+        "bug",
+        "low priority"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/813"
+    },
+    {
       "number": 898,
       "title": "_promote is erasing values from the config",
       "category": "Bug",
@@ -1351,28 +1356,30 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 813,
-      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 899,
+      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1308,
-          "url": "https://github.com/omry/omegaconf/pull/1308"
-        }
-      ],
-      "created": "2021-10-28",
-      "updated": "2026-05-22",
+      "prs": [],
+      "created": "2022-04-15",
+      "updated": "2026-04-24",
       "labels": [
-        "bug",
-        "low priority"
+        "enhancement",
+        "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/813"
+      "url": "https://github.com/omry/omegaconf/issues/899"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T15:22:11Z",
+      "kind": "closed",
+      "issue": 899,
+      "issue_url": "https://github.com/omry/omegaconf/issues/899",
+      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)"
+    },
     {
       "ts": "2026-07-19T13:03:06Z",
       "kind": "closed",
