@@ -1,4 +1,4 @@
-import distutils.log
+import logging
 import errno
 import os
 import re
@@ -41,14 +41,14 @@ class ANTLRCommand(Command):  # type: ignore  # pragma: no cover
 
             self.announce(
                 f"Generating parser for Python3: {command}",
-                level=distutils.log.INFO,
+                level=logging.INFO,
             )
 
             subprocess.check_call(command)
 
             self.announce(
                 "Fixing imports for generated parsers",
-                level=distutils.log.INFO,
+                level=logging.INFO,
             )
             self._fix_imports()
 
@@ -108,8 +108,8 @@ class CleanCommand(Command):  # type: ignore  # pragma: no cover
             root=root,
             include_files=["^omegaconf/grammar/gen/.*"],
             include_dirs=[
-                "^omegaconf\\.egg-info$",
-                "\\.eggs$",
+                "^omegaconf\.egg-info$",
+                "\.eggs$",
                 "^\\.mypy_cache$",
                 "^\\.pytest_cache$",
                 ".*/__pycache__$",
@@ -213,13 +213,13 @@ def matches(patterns: List[str], path: Path) -> bool:
 
 def run_antlr(cmd: Any) -> None:  # pragma: no cover
     try:
-        cmd.announce("Generating parsers with antlr4", level=distutils.log.INFO)
+        cmd.announce("Generating parsers with antlr4", level=logging.INFO)
         cmd.run_command("antlr")
     except OSError as e:
         if e.errno == errno.ENOENT:
             msg = f"| Unable to generate parsers: {e} |"
             msg = "=" * len(msg) + "\n" + msg + "\n" + "=" * len(msg)
-            cmd.announce(f"{msg}", level=distutils.log.FATAL)
+            cmd.announce(f"{msg}", level=logging.FATAL)
             sys.exit(1)
         else:
             raise
