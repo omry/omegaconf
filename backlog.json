@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T16:30:47Z",
+  "generated_at": "2026-07-19T16:42:29Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 53,
+    "open_total": 52,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 20.8
+        "percentage": 21.2
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 38,
-        "percentage": 71.7
+        "count": 37,
+        "percentage": 71.2
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 5.7
+        "percentage": 5.8
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 49
+        "count": 48
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 26
+        "count": 27
       }
     ]
   },
@@ -393,21 +393,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/762"
-    },
-    {
-      "number": 815,
-      "title": "merge-readonly interatction",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-10-29",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/815"
     },
     {
       "number": 851,
@@ -977,6 +962,22 @@
       "url": "https://github.com/omry/omegaconf/issues/813"
     },
     {
+      "number": 846,
+      "title": "Nightly builds",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-12-27",
+      "updated": "2026-04-24",
+      "labels": [
+        "maintenance",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/846"
+    },
+    {
       "number": 864,
       "title": "Support interpolation to integer keys (or other non-string keys)",
       "category": "Enhancement",
@@ -1356,23 +1357,29 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 846,
-      "title": "Nightly builds",
+      "number": 815,
+      "title": "merge-readonly interatction",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2021-12-27",
+      "created": "2021-10-29",
       "updated": "2026-04-24",
       "labels": [
-        "maintenance",
         "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/846"
+      "url": "https://github.com/omry/omegaconf/issues/815"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-19T16:42:29Z",
+      "kind": "closed",
+      "issue": 815,
+      "issue_url": "https://github.com/omry/omegaconf/issues/815",
+      "title": "merge-readonly interatction"
+    },
     {
       "ts": "2026-07-19T16:30:47Z",
       "kind": "closed",

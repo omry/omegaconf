@@ -82,3 +82,4 @@
 {"ts": "2026-07-19T15:48:00Z", "kind": "closed", "issue": 882, "issue_url": "https://github.com/omry/omegaconf/issues/882", "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields"}
 {"ts": "2026-07-19T16:08:39Z", "kind": "closed", "issue": 864, "issue_url": "https://github.com/omry/omegaconf/issues/864", "title": "Support interpolation to integer keys (or other non-string keys)"}
 {"ts": "2026-07-19T16:30:47Z", "kind": "closed", "issue": 846, "issue_url": "https://github.com/omry/omegaconf/issues/846", "title": "Nightly builds"}
+{"ts": "2026-07-19T16:42:29Z", "kind": "closed", "issue": 815, "issue_url": "https://github.com/omry/omegaconf/issues/815", "title": "merge-readonly interatction"}
