@@ -108,3 +108,4 @@
 {"ts": "2026-07-20T17:36:30Z", "kind": "label", "issue": 537, "issue_url": "https://github.com/omry/omegaconf/issues/537", "title": "Refactor test_errors.py", "detail": "removed \"needs triage\""}
 {"ts": "2026-07-20T18:35:12Z", "kind": "label", "issue": 459, "issue_url": "https://github.com/omry/omegaconf/issues/459", "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode", "detail": "added \"RFC\", \"enhancement\"; removed \"needs triage\", \"priority_low\""}
 {"ts": "2026-07-20T18:50:28Z", "kind": "closed", "issue": 265, "issue_url": "https://github.com/omry/omegaconf/issues/265", "title": "Attribute/KeyError can suggest matches from the available keys."}
+{"ts": "2026-07-20T18:53:04Z", "kind": "closed", "issue": 181, "issue_url": "https://github.com/omry/omegaconf/issues/181", "title": "[Feature Request] Add .toJSON() method"}

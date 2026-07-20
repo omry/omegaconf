@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T18:50:28Z",
+  "generated_at": "2026-07-20T18:53:04Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 43,
+    "open_total": 42,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 9,
-        "percentage": 20.9
+        "percentage": 21.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 31,
-        "percentage": 72.1
+        "count": 30,
+        "percentage": 71.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.3
+        "percentage": 2.4
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.7
+        "percentage": 4.8
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 43
+        "count": 42
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 36
+        "count": 37
       }
     ]
   },
@@ -117,22 +117,6 @@
         "priority_high"
       ],
       "url": "https://github.com/omry/omegaconf/issues/144"
-    },
-    {
-      "number": 181,
-      "title": "[Feature Request] Add .toJSON() method",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2020-03-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/181"
     },
     {
       "number": 459,
@@ -744,6 +728,23 @@
         "priority_high"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 265,
+      "title": "Attribute/KeyError can suggest matches from the available keys.",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2020-06-11",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/265"
     },
     {
       "number": 392,
@@ -1380,24 +1381,30 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 265,
-      "title": "Attribute/KeyError can suggest matches from the available keys.",
+      "number": 181,
+      "title": "[Feature Request] Add .toJSON() method",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "done",
       "status_emoji": "✅",
       "prs": [],
-      "created": "2020-06-11",
+      "created": "2020-03-25",
       "updated": "2026-04-24",
       "labels": [
         "enhancement",
-        "needs triage",
-        "priority_low"
+        "needs triage"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/265"
+      "url": "https://github.com/omry/omegaconf/issues/181"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T18:53:04Z",
+      "kind": "closed",
+      "issue": 181,
+      "issue_url": "https://github.com/omry/omegaconf/issues/181",
+      "title": "[Feature Request] Add .toJSON() method"
+    },
     {
       "ts": "2026-07-20T18:50:28Z",
       "kind": "closed",
