@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T09:56:27Z",
+  "generated_at": "2026-07-20T10:17:42Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 48,
@@ -838,6 +838,29 @@
       "url": "https://github.com/omry/omegaconf/issues/392"
     },
     {
+      "number": 612,
+      "title": "Automatic validation of resolver arguments",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1344,
+          "url": "https://github.com/omry/omegaconf/pull/1344"
+        }
+      ],
+      "created": "2021-03-16",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage",
+        "priority_low",
+        "wishlist"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/612"
+    },
+    {
       "number": 725,
       "title": "Support assignment of numpy floats to FloatNode",
       "category": "Enhancement",
@@ -1352,29 +1375,6 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 612,
-      "title": "Automatic validation of resolver arguments",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1344,
-          "url": "https://github.com/omry/omegaconf/pull/1344"
-        }
-      ],
-      "created": "2021-03-16",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low",
-        "wishlist"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/612"
     }
   ],
   "updates": [
