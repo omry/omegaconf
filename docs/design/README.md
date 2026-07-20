@@ -10,6 +10,7 @@ documents from [`TEMPLATE.md`](TEMPLATE.md).
 
 ## Active design guidance
 
+- [Resolver annotation validation](resolver-annotation-validation.md)
 - [TupleConfig](tuple-config.md)
 
 ## Draft and planned design work

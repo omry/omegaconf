@@ -30,6 +30,7 @@ You can add additional interpolation types by registering custom resolvers with 
         *,
         replace: bool = False,
         use_cache: bool = False,
+        annotation_validation: Literal["off", "warn", "error"] = "warn",
     ) -> None
 
 Attempting to register the same resolver twice will raise a ``ValueError`` unless using ``replace=True``.
@@ -47,6 +48,65 @@ The example below creates a resolver that adds ``10`` to the given value.
     >>> c = OmegaConf.create({'key': '${plus_10:990}'})
     >>> c.key
     1000
+
+Resolver annotation validation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``OmegaConf.register_resolver()`` can validate resolver arguments and return
+values against their annotations at runtime. This also covers resolver calls
+composed in configuration, which static type checkers cannot inspect.
+
+For example, a type checker can verify the resolver definition below, but it
+cannot detect that the interpolation passes a string where an ``int`` is
+expected. Runtime validation reports the mismatch when ``cfg.result`` is
+accessed, before ``double`` is called.
+
+.. code-block:: python
+
+    def double(value: int) -> int:
+        return value * 2
+
+    OmegaConf.register_resolver(
+        "double", double, annotation_validation="error"
+    )
+    cfg = OmegaConf.create(
+        {
+            "value": "not an integer",
+            "result": "${double:${value}}",
+        }
+    )
+    cfg.result  # raises InterpolationResolutionError
+
+Set ``annotation_validation`` to one of the following modes:
+
+- ``"off"`` disables annotation validation.
+- ``"warn"`` emits ``UserWarning`` on a mismatch and passes through the
+  original argument or result.
+- ``"error"`` raises ``TypeError`` for registration problems. A mismatch while
+  resolving an interpolation is exposed as ``InterpolationResolutionError``
+  caused by the ``TypeError``.
+
+OmegaConf 2.4 defaults to ``"warn"``. OmegaConf 2.5 will default to
+``"error"``; explicit modes retain the same behavior across both releases.
+Validation never converts values. Parameter validation occurs after nested
+argument interpolations are evaluated, includes omitted parameter defaults, and
+precedes resolver cache lookup. Return validation occurs before a new result is
+cached and also checks cache hits.
+
+Runtime-checkable classes, unions, ``Optional``, ``Literal``, and ``Annotated``
+are supported. For ``Annotated``, validation uses the underlying type and
+ignores metadata. If a callable cannot be inspected or an annotation cannot be
+resolved or checked at runtime, ``"warn"`` reports the problem at registration
+and registers the resolver without annotation validation, while ``"error"``
+rejects registration. ``"off"`` does not inspect ordinary annotations.
+
+Container annotations describe the actual runtime representation. For example,
+``ListConfig`` and ``list`` remain distinct; use ``ListConfig | list`` only
+when the resolver intentionally accepts both. The same rule applies to
+``DictConfig | dict`` and ``TupleConfig | tuple``. Parameterized containers are
+validated shallowly, without checking individual element types. OmegaConf's
+injected ``_parent_``, ``_node_``, and ``_root_`` parameters are excluded from
+runtime annotation validation.
 
 Custom resolvers support variadic argument lists in the form of a comma-separated list of zero or more values.
 In a variadic argument list, whitespace is stripped from the ends of each value ("foo,bar" gives the same result as "foo, bar ").
