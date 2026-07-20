@@ -1536,6 +1536,18 @@ def test_merge_allow_objects(merge: Any) -> None:
     assert ret == {"a": 10, "foo": iv}
 
 
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_allow_objects_does_not_mutate_existing_config(merge: Any) -> None:
+    cfg = OmegaConf.create({"a": 10})
+    cfg._set_flag("allow_objects", True)
+    other = OmegaConf.create({"foo": "bar"})
+
+    assert other._get_flag("allow_objects") is None
+    ret = merge(cfg, other)
+    assert ret == {"a": 10, "foo": "bar"}
+    assert other._get_flag("allow_objects") is None
+
+
 def test_merge_with_allow_Dataframe() -> None:
     cfg = OmegaConf.create({"a": Dataframe()}, flags={"allow_objects": True})
     ret = OmegaConf.merge({}, cfg)

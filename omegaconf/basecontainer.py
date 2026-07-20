@@ -23,6 +23,7 @@ from ._utils import (
     is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
+    is_primitive_container,
     is_primitive_dict,
     is_primitive_type_annotation,
     is_structured_config,
@@ -623,6 +624,7 @@ class BaseContainer(Container, ABC):
     ) -> None:
         from .dictconfig import DictConfig
         from .listconfig import ListConfig
+        from .omegaconf import OmegaConf
         from .tupleconfig import TupleConfig
 
         """merge a list of other Config objects into this one, overriding as needed"""
@@ -630,10 +632,19 @@ class BaseContainer(Container, ABC):
             if other is None:
                 raise ValueError("Cannot merge with a None config")
 
-            my_flags = {}
-            if self._get_flag("allow_objects") is True:
+            if self._get_flag("allow_objects") is True and not OmegaConf.is_config(
+                other
+            ):
                 my_flags = {"allow_objects": True}
-            other = _ensure_container(other, flags=my_flags)
+                if is_primitive_container(other):
+                    assert isinstance(other, (list, tuple, dict))
+                    other = OmegaConf.create(other, flags=my_flags)
+                elif is_structured_config(other):
+                    other = OmegaConf.structured(other, flags=my_flags)
+                else:
+                    other = _ensure_container(other)
+            else:
+                other = _ensure_container(other)
             prev_readonly = self._get_node_flag("readonly")
 
             readonly_overridden = (

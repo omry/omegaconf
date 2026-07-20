@@ -1083,14 +1083,14 @@ def type_str(t: Any, include_module_name: bool = False) -> str:
         return ret
 
 
-def _ensure_container(target: Any, flags: Optional[Dict[str, bool]] = None) -> Any:
+def _ensure_container(target: Any) -> Any:
     from omegaconf import OmegaConf
 
     if is_primitive_container(target):
         assert isinstance(target, (list, tuple, dict))
-        target = OmegaConf.create(target, flags=flags)
+        target = OmegaConf.create(target)
     elif is_structured_config(target):
-        target = OmegaConf.structured(target, flags=flags)
+        target = OmegaConf.structured(target)
     elif not OmegaConf.is_config(target):
         raise ValueError(
             "Invalid input. Supports one of "
