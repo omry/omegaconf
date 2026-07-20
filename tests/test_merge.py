@@ -1772,3 +1772,30 @@ def test_merge_plain_dict_into_structured_config_preserves_list_element_type(
     assert OmegaConf.get_type(result.aa[1]) == Item
     assert result.aa[0].num == 1
     assert result.aa[1].num == 2
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_structured_list_with_content_into_plain_list_preserves_element_type(
+    merge: Any,
+) -> None:
+    """Merging a structured-typed list (with actual items) into a plain list retains element types.
+
+    Covers the branch in _list_merge where dest has Any element type and src has
+    a structured element type with non-MISSING content (lines 554-557 of basecontainer.py).
+    """
+
+    @dataclass
+    class Item:
+        num: int = MISSING
+
+    @dataclass
+    class Config:
+        aa: List[Item] = field(default_factory=lambda: [Item(num=42)])
+
+    structured = OmegaConf.structured(Config)
+    plain = OmegaConf.create({"aa": [{"num": 1}, {"num": 2}]})
+    # plain is dest (Any element type), structured is src (List[Item] with actual content)
+    result = merge(plain, structured)
+
+    assert OmegaConf.get_type(result.aa[0]) == Item
+    assert result.aa[0].num == 42
