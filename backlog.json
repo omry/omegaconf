@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T17:36:30Z",
+  "generated_at": "2026-07-20T18:35:12Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 44,
@@ -160,10 +160,10 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-12-15",
-      "updated": "2026-04-24",
+      "updated": "2026-07-20",
       "labels": [
-        "needs triage",
-        "priority_low"
+        "enhancement",
+        "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/459"
     },
@@ -1398,6 +1398,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T18:35:12Z",
+      "kind": "label",
+      "issue": 459,
+      "issue_url": "https://github.com/omry/omegaconf/issues/459",
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
+      "detail": "added \"RFC\", \"enhancement\"; removed \"needs triage\", \"priority_low\""
+    },
     {
       "ts": "2026-07-20T17:36:30Z",
       "kind": "label",
