@@ -558,9 +558,16 @@ class BaseContainer(Container, ABC):
                         src_et, ref_type=src_et, is_optional=src_is_optional
                     )
                     content = dest.__dict__["_content"]
-                    for idx, item in enumerate(content):
-                        if isinstance(item, DictConfig):
-                            content[idx] = OmegaConf.merge(prototype, item)
+                    if isinstance(content, list):
+                        temp_target = ListConfig(content=[], parent=dest._get_parent())
+                        temp_target.__dict__["_metadata"] = copy.deepcopy(
+                            dest.__dict__["_metadata"]
+                        )
+                        for item in content:
+                            if isinstance(item, DictConfig):
+                                item = OmegaConf.merge(prototype, item)
+                            temp_target.append(item)
+                        dest.__dict__["_content"] = temp_target.__dict__["_content"]
         elif src._is_interpolation():
             dest._set_value(src._value())
         else:
@@ -569,13 +576,16 @@ class BaseContainer(Container, ABC):
                 dest.__dict__["_metadata"]
             )
             is_optional, et = _resolve_optional(dest._metadata.element_type)
+            element_type = None
             if et is Any:
-                # When dest has no element type info, fall back to src's element type
+                # When replacing a list whose destination has no element type info,
+                # fall back to src's element type.
                 src_is_optional, src_et = _resolve_optional(src._metadata.element_type)
                 if is_structured_config(src_et):
                     et = src_et
                     is_optional = src_is_optional
-                    temp_target._metadata.element_type = src._metadata.element_type
+                    element_type = src._metadata.element_type
+                    temp_target._metadata.element_type = element_type
             if is_structured_config(et):
                 prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
                 for item in src._iter_ex(resolve=False):
@@ -593,6 +603,8 @@ class BaseContainer(Container, ABC):
                     if entry not in dest.__dict__["_content"]:
                         dest.__dict__["_content"].append(entry)
             else:  # REPLACE (default)
+                if element_type is not None:
+                    dest._metadata.element_type = element_type
                 dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination

@@ -1765,23 +1765,64 @@ def test_merge_plain_dict_into_structured_config_preserves_list_element_type(
         aa: List[Item] = MISSING
 
     structured = OmegaConf.structured(Config)
-    plain = OmegaConf.create({"aa": [{"num": 1}, {"num": 2}]})
+    plain = {"aa": [{"num": 1}, {"num": 2}]}
     result = merge(plain, structured)
 
     assert OmegaConf.get_type(result.aa[0]) == Item
     assert OmegaConf.get_type(result.aa[1]) == Item
     assert result.aa[0].num == 1
     assert result.aa[1].num == 2
+    assert result.aa._get_node(0)._get_parent() is result.aa
+    assert result.aa._get_node(0)._key() == 0
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize("content", [None, MISSING])
+def test_merge_missing_structured_list_type_into_none_or_missing_plain_list(
+    merge: Any,
+    content: Any,
+) -> None:
+    """A missing structured list source can update metadata without list content."""
+
+    @dataclass
+    class Item:
+        num: int = MISSING
+
+    dest = ListConfig(content=content)
+    src = ListConfig(content=MISSING, element_type=Item)
+    result = merge(dest, src)
+
+    assert result._metadata.element_type is Item
+    if content is None:
+        assert result._is_none()
+    else:
+        assert result._is_missing()
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_missing_structured_list_type_rejects_incompatible_plain_item(
+    merge: Any,
+) -> None:
+    @dataclass
+    class Item:
+        num: int = MISSING
+
+    @dataclass
+    class Config:
+        aa: List[Item] = MISSING
+
+    with raises(ValidationError):
+        merge({"aa": [1]}, OmegaConf.structured(Config))
 
 
 @mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
 def test_merge_structured_list_with_content_into_plain_list_preserves_element_type(
     merge: Any,
 ) -> None:
-    """Merging a structured-typed list (with actual items) into a plain list retains element types.
+    """Merging structured-typed list content into a plain list retains element types.
 
     Covers the branch in _list_merge where dest has Any element type and src has
-    a structured element type with non-MISSING content (lines 554-557 of basecontainer.py).
+    a structured element type with non-MISSING content.
     """
 
     @dataclass
@@ -1797,5 +1838,8 @@ def test_merge_structured_list_with_content_into_plain_list_preserves_element_ty
     # plain is dest (Any element type), structured is src (List[Item] with actual content)
     result = merge(plain, structured)
 
+    assert result.aa._metadata.element_type is Item
     assert OmegaConf.get_type(result.aa[0]) == Item
     assert result.aa[0].num == 42
+    with raises(ValidationError):
+        result.aa.append(123)
