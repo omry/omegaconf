@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T08:01:37Z",
+  "generated_at": "2026-07-20T09:56:27Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 49,
+    "open_total": 48,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 11,
-        "percentage": 22.4
+        "percentage": 22.9
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 35,
-        "percentage": 71.4
+        "count": 34,
+        "percentage": 70.8
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.0
+        "percentage": 2.1
       },
       {
         "category": "Question",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.1
+        "percentage": 4.2
       },
       {
         "category": "Build",
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,34 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 30
+        "count": 31
       }
     ]
   },
   "issues": [
-    {
-      "number": 612,
-      "title": "Automatic validation of resolver arguments",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1344,
-          "url": "https://github.com/omry/omegaconf/pull/1344"
-        }
-      ],
-      "created": "2021-03-16",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "wishlist",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/612"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1375,9 +1352,39 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 612,
+      "title": "Automatic validation of resolver arguments",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1344,
+          "url": "https://github.com/omry/omegaconf/pull/1344"
+        }
+      ],
+      "created": "2021-03-16",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage",
+        "priority_low",
+        "wishlist"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/612"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T09:56:27Z",
+      "kind": "closed",
+      "issue": 612,
+      "issue_url": "https://github.com/omry/omegaconf/issues/612",
+      "title": "Automatic validation of resolver arguments"
+    },
     {
       "ts": "2026-07-20T08:01:37Z",
       "kind": "pr",
