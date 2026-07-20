@@ -549,6 +549,18 @@ class BaseContainer(Container, ABC):
             # do not change dest if src is MISSING.
             if dest._metadata.element_type is Any:
                 dest._metadata.element_type = src._metadata.element_type
+                # Re-merge existing dest items against a prototype when the src
+                # element type is a structured config, so that items acquire the
+                # proper type information from the structured config definition.
+                src_is_optional, src_et = _resolve_optional(src._metadata.element_type)
+                if is_structured_config(src_et):
+                    prototype = DictConfig(
+                        src_et, ref_type=src_et, is_optional=src_is_optional
+                    )
+                    content = dest.__dict__["_content"]
+                    for idx, item in enumerate(content):
+                        if isinstance(item, DictConfig):
+                            content[idx] = OmegaConf.merge(prototype, item)
         elif src._is_interpolation():
             dest._set_value(src._value())
         else:
@@ -557,6 +569,13 @@ class BaseContainer(Container, ABC):
                 dest.__dict__["_metadata"]
             )
             is_optional, et = _resolve_optional(dest._metadata.element_type)
+            if et is Any:
+                # When dest has no element type info, fall back to src's element type
+                src_is_optional, src_et = _resolve_optional(src._metadata.element_type)
+                if is_structured_config(src_et):
+                    et = src_et
+                    is_optional = src_is_optional
+                    temp_target._metadata.element_type = src._metadata.element_type
             if is_structured_config(et):
                 prototype = DictConfig(et, ref_type=et, is_optional=is_optional)
                 for item in src._iter_ex(resolve=False):

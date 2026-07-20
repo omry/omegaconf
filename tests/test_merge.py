@@ -1745,3 +1745,30 @@ def test_merge_with_nested_structured_config_and_union_type(
 
     expected = {"inner": {"x": 10}}
     assert res == expected
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_plain_dict_into_structured_config_preserves_list_element_type(
+    merge: Any,
+) -> None:
+    """Merging a plain dict with a list into a structured config retains element types.
+
+    Regression test for https://github.com/omry/omegaconf/issues/1058.
+    """
+
+    @dataclass
+    class Item:
+        num: int = MISSING
+
+    @dataclass
+    class Config:
+        aa: List[Item] = MISSING
+
+    structured = OmegaConf.structured(Config)
+    plain = OmegaConf.create({"aa": [{"num": 1}, {"num": 2}]})
+    result = merge(plain, structured)
+
+    assert OmegaConf.get_type(result.aa[0]) == Item
+    assert OmegaConf.get_type(result.aa[1]) == Item
+    assert result.aa[0].num == 1
+    assert result.aa[1].num == 2
