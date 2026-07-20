@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T19:05:33Z",
+  "generated_at": "2026-07-20T19:21:32Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 42,
@@ -112,7 +112,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-01-30",
-      "updated": "2026-04-27",
+      "updated": "2026-07-20",
       "labels": [
         "enhancement",
         "priority_high"
@@ -444,8 +444,7 @@
       "updated": "2026-07-20",
       "labels": [
         "enhancement",
-        "structured config",
-        "RFC"
+        "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1275"
     },
@@ -1399,6 +1398,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T19:21:32Z",
+      "kind": "label",
+      "issue": 1275,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1275",
+      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
+      "detail": "removed \"RFC\""
+    },
     {
       "ts": "2026-07-20T19:05:33Z",
       "kind": "label",

@@ -110,3 +110,4 @@
 {"ts": "2026-07-20T18:50:28Z", "kind": "closed", "issue": 265, "issue_url": "https://github.com/omry/omegaconf/issues/265", "title": "Attribute/KeyError can suggest matches from the available keys."}
 {"ts": "2026-07-20T18:53:04Z", "kind": "closed", "issue": 181, "issue_url": "https://github.com/omry/omegaconf/issues/181", "title": "[Feature Request] Add .toJSON() method"}
 {"ts": "2026-07-20T19:05:33Z", "kind": "label", "issue": 131, "issue_url": "https://github.com/omry/omegaconf/issues/131", "title": "Support field metadata via `Annotated` in structured configs", "detail": "added \"enhancement\", \"structured config\"; removed \"needs triage\""}
+{"ts": "2026-07-20T19:21:32Z", "kind": "label", "issue": 1275, "issue_url": "https://github.com/omry/omegaconf/issues/1275", "title": "Support Union of Structured Configs (dataclasses/attr classes)", "detail": "removed \"RFC\""}
