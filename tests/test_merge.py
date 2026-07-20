@@ -1592,6 +1592,27 @@ def test_merge_with_other_as_interpolation(
     assert OmegaConf.is_interpolation(res, node)
 
 
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
+    "model",
+    [C(), B(x=A())],
+    ids=["optional_none_target", "structured_target"],
+)
+def test_merge_interpolation_into_structured_config(merge: Any, model: Any) -> None:
+    # An interpolation merged into a structured-config field must be kept
+    # unresolved (resolved lazily against the merged result) instead of being
+    # resolved in the source's context or type-checked as a raw string.
+    # https://github.com/omry/omegaconf/issues/1020
+    res = merge(
+        {"src": A, "model": model},
+        {"src": {"a": 9}},
+        {"model": {"x": "${src}"}},
+    )
+    assert OmegaConf.is_interpolation(res.model, "x")
+    assert OmegaConf.get_type(res.model.x) is A
+    assert res.model.x.a == 9
+
+
 @mark.parametrize(
     ("c1", "c2"),
     [
