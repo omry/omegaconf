@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T17:31:10Z",
+  "generated_at": "2026-07-20T17:36:30Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 44,
@@ -176,10 +176,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-02-11",
-      "updated": "2026-04-24",
+      "updated": "2026-07-20",
       "labels": [
-        "maintenance",
-        "needs triage"
+        "maintenance"
       ],
       "url": "https://github.com/omry/omegaconf/issues/537"
     },
@@ -1399,6 +1398,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T17:36:30Z",
+      "kind": "label",
+      "issue": 537,
+      "issue_url": "https://github.com/omry/omegaconf/issues/537",
+      "title": "Refactor test_errors.py",
+      "detail": "removed \"needs triage\""
+    },
     {
       "ts": "2026-07-20T17:31:10Z",
       "kind": "label",
