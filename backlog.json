@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T17:12:14Z",
+  "generated_at": "2026-07-20T17:31:10Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 44,
@@ -192,9 +192,10 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2021-03-16",
-      "updated": "2026-04-24",
+      "updated": "2026-07-20",
       "labels": [
-        "needs triage",
+        "enhancement",
+        "interpolation",
         "has-workaround",
         "priority_low"
       ],
@@ -1398,6 +1399,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T17:31:10Z",
+      "kind": "label",
+      "issue": 610,
+      "issue_url": "https://github.com/omry/omegaconf/issues/610",
+      "title": "Feature: nested string interpolations",
+      "detail": "added \"enhancement\", \"interpolation\"; removed \"needs triage\""
+    },
     {
       "ts": "2026-07-20T17:12:14Z",
       "kind": "label",

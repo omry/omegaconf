@@ -36,7 +36,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T17:12:14Z",
+  "generated_at": "2026-07-20T17:31:10Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -511,15 +511,16 @@
       "category": "Enhancement",
       "created_at": "2021-03-16T18:14:15Z",
       "labels": [
+        "enhancement",
         "has-workaround",
-        "needs triage",
+        "interpolation",
         "priority_low"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Feature: nested string interpolations",
-      "updated_at": "2026-04-24T06:29:21Z"
+      "updated_at": "2026-07-20T17:29:39Z"
     },
     "651": {
       "category": "Bug",
