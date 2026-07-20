@@ -1,0 +1,1 @@
+Removed the internal `flags` argument from `_ensure_container` and made merge conversion preserve `allow_objects` explicitly.
