@@ -103,3 +103,4 @@
 {"ts": "2026-07-20T17:01:59Z", "kind": "closed", "issue": 1058, "issue_url": "https://github.com/omry/omegaconf/issues/1058", "title": "structured config types are discarded on list merge"}
 {"ts": "2026-07-20T17:01:59Z", "kind": "closed", "issue": 580, "issue_url": "https://github.com/omry/omegaconf/issues/580", "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig"}
 {"ts": "2026-07-20T17:01:59Z", "kind": "pr", "issue": 91, "issue_url": "https://github.com/omry/omegaconf/issues/91", "title": "Consider supporting basic operators in interpolations of numbers", "detail": "unlinked #1229"}
+{"ts": "2026-07-20T17:12:14Z", "kind": "label", "issue": 1338, "issue_url": "https://github.com/omry/omegaconf/issues/1338", "title": "Consider a compatibility mode for legacy tuple-to-list conversion", "detail": "added \"RFC\""}

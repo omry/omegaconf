@@ -36,7 +36,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T17:01:59Z",
+  "generated_at": "2026-07-20T17:12:14Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -418,13 +418,14 @@
       "category": "Enhancement",
       "created_at": "2026-07-18T13:14:56Z",
       "labels": [
+        "RFC",
         "enhancement"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
-      "updated_at": "2026-07-18T13:18:29Z"
+      "updated_at": "2026-07-20T17:10:52Z"
     },
     "1340": {
       "category": "Bug",

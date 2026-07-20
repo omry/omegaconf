@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T17:01:59Z",
+  "generated_at": "2026-07-20T17:12:14Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 44,
@@ -71,6 +71,22 @@
     ]
   },
   "issues": [
+    {
+      "number": 91,
+      "title": "Consider supporting basic operators in interpolations of numbers",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2019-12-02",
+      "updated": "2026-04-26",
+      "labels": [
+        "enhancement",
+        "has-workaround"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/91"
+    },
     {
       "number": 131,
       "title": "Evaluate usefulness of pep-593 for structured configs",
@@ -722,9 +738,10 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-18",
-      "updated": "2026-07-18",
+      "updated": "2026-07-20",
       "labels": [
-        "enhancement"
+        "enhancement",
+        "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1338"
     },
@@ -744,22 +761,6 @@
         "priority_high"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 91,
-      "title": "Consider supporting basic operators in interpolations of numbers",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2019-12-02",
-      "updated": "2026-04-26",
-      "labels": [
-        "enhancement",
-        "has-workaround"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/91"
     },
     {
       "number": 392,
@@ -795,6 +796,26 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/519"
+    },
+    {
+      "number": 580,
+      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1307,
+          "url": "https://github.com/omry/omegaconf/pull/1307"
+        }
+      ],
+      "created": "2021-03-05",
+      "updated": "2026-05-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/580"
     },
     {
       "number": 612,
@@ -1190,6 +1211,26 @@
       "url": "https://github.com/omry/omegaconf/issues/1054"
     },
     {
+      "number": 1058,
+      "title": "structured config types are discarded on list merge",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1323,
+          "url": "https://github.com/omry/omegaconf/pull/1323"
+        }
+      ],
+      "created": "2023-02-19",
+      "updated": "2026-06-12",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1058"
+    },
+    {
       "number": 1061,
       "title": "Enum inheritance Support",
       "category": "Enhancement",
@@ -1354,49 +1395,17 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 580,
-      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1307,
-          "url": "https://github.com/omry/omegaconf/pull/1307"
-        }
-      ],
-      "created": "2021-03-05",
-      "updated": "2026-05-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/580"
-    },
-    {
-      "number": 1058,
-      "title": "structured config types are discarded on list merge",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1323,
-          "url": "https://github.com/omry/omegaconf/pull/1323"
-        }
-      ],
-      "created": "2023-02-19",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1058"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T17:12:14Z",
+      "kind": "label",
+      "issue": 1338,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1338",
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "detail": "added \"RFC\""
+    },
     {
       "ts": "2026-07-20T17:01:59Z",
       "kind": "pr",
