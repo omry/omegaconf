@@ -33,7 +33,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T13:20:32Z",
+  "generated_at": "2026-07-20T14:31:15Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -177,42 +177,55 @@
     "1263": {
       "category": "Enhancement",
       "created_at": "2026-04-24T08:46:03Z",
-      "labels": [],
+      "labels": [
+        "RFC",
+        "listconfig",
+        "maintenance"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "updated_at": "2026-06-10T17:26:37Z"
+      "updated_at": "2026-07-20T14:29:53Z"
     },
     "1271": {
       "category": "Enhancement",
       "created_at": "2026-04-24T11:44:32Z",
-      "labels": [],
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "updated_at": "2026-04-24T11:46:34Z"
+      "updated_at": "2026-07-20T14:29:39Z"
     },
     "1274": {
       "category": "Refactor",
       "created_at": "2026-04-24T14:30:07Z",
-      "labels": [],
+      "labels": [
+        "maintenance"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "updated_at": "2026-04-24T14:30:35Z"
+      "updated_at": "2026-07-20T14:29:27Z"
     },
     "1275": {
       "category": "Enhancement",
       "created_at": "2026-04-24T14:34:45Z",
-      "labels": [],
+      "labels": [
+        "RFC",
+        "enhancement",
+        "structured config"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Support Union of Structured Configs (dataclasses/attr classes)",
-      "updated_at": "2026-04-24T14:34:45Z"
+      "updated_at": "2026-07-20T14:29:12Z"
     },
     "1282": {
       "category": "Documentation",
@@ -327,22 +340,29 @@
     "1312": {
       "category": "Enhancement",
       "created_at": "2026-06-10T17:16:07Z",
-      "labels": [],
+      "labels": [
+        "RFC",
+        "enhancement",
+        "listconfig"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "updated_at": "2026-07-16T12:11:27Z"
+      "updated_at": "2026-07-20T14:29:00Z"
     },
     "1328": {
       "category": "Enhancement",
       "created_at": "2026-07-03T04:54:17Z",
-      "labels": [],
+      "labels": [
+        "RFC",
+        "structured config"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
-      "updated_at": "2026-07-03T04:54:17Z"
+      "updated_at": "2026-07-20T14:28:40Z"
     },
     "1329": {
       "category": "Bug",

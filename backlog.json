@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T13:20:32Z",
+  "generated_at": "2026-07-20T14:31:15Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 47,
@@ -490,8 +490,12 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-06-10",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance",
+        "listconfig",
+        "RFC"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1263"
     },
     {
@@ -503,8 +507,11 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-04-24",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1271"
     },
     {
@@ -516,8 +523,10 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-04-24",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1274"
     },
     {
@@ -529,8 +538,12 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-24",
-      "updated": "2026-04-24",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "structured config",
+        "RFC"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1275"
     },
     {
@@ -664,8 +677,12 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-06-10",
-      "updated": "2026-07-16",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "listconfig",
+        "RFC"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1312"
     },
     {
@@ -677,8 +694,11 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-03",
-      "updated": "2026-07-03",
-      "labels": [],
+      "updated": "2026-07-20",
+      "labels": [
+        "structured config",
+        "RFC"
+      ],
       "url": "https://github.com/omry/omegaconf/issues/1328"
     },
     {
@@ -821,6 +841,21 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/392"
+    },
+    {
+      "number": 519,
+      "title": "allow exporting to dotlist-style format",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-02-05",
+      "updated": "2026-04-25",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/519"
     },
     {
       "number": 612,
@@ -1360,24 +1395,57 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 519,
-      "title": "allow exporting to dotlist-style format",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-02-05",
-      "updated": "2026-04-25",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/519"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1328,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1328",
+      "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
+      "detail": "added \"RFC\", \"structured config\""
+    },
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1312,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
+      "title": "Support more flexible merge semantics in OmegaConf.merge",
+      "detail": "added \"RFC\", \"enhancement\", \"listconfig\""
+    },
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1275,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1275",
+      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
+      "detail": "added \"RFC\", \"enhancement\", \"structured config\""
+    },
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1274,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1274",
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "detail": "added \"maintenance\""
+    },
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1271,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1271",
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "detail": "added \"enhancement\", \"structured config\""
+    },
+    {
+      "ts": "2026-07-20T14:31:15Z",
+      "kind": "label",
+      "issue": 1263,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1263",
+      "title": "RFC: Revert list_merge_mode before stable 2.4",
+      "detail": "added \"RFC\", \"listconfig\", \"maintenance\""
+    },
     {
       "ts": "2026-07-20T13:20:32Z",
       "kind": "closed",
