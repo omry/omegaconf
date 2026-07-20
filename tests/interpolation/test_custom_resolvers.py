@@ -62,7 +62,9 @@ def test_register_non_inspectable_resolver(mocker: Any, restore_resolvers: Any) 
         raise ValueError
 
     mocker.patch("inspect.signature", signature_not_inspectable)
-    OmegaConf.register_resolver("not_inspectable", lambda: 123)
+    with warns(UserWarning, match="cannot be inspected") as warning_records:
+        OmegaConf.register_resolver("not_inspectable", lambda: 123)
+    assert warning_records[0].filename == __file__
     assert OmegaConf.create({"x": "${not_inspectable:}"}).x == 123
 
 
