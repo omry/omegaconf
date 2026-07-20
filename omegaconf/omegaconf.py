@@ -1,6 +1,7 @@
 """OmegaConf module"""
 
 import copy
+import functools
 import inspect
 import io
 import os
@@ -14,17 +15,23 @@ from enum import Enum
 from textwrap import dedent
 from typing import (
     IO,
+    Annotated,
     Any,
     Callable,
     Dict,
+    ForwardRef,
     Generator,
     Iterable,
     List,
+    Literal,
     Optional,
     Set,
     Tuple,
     Type,
     Union,
+    get_args,
+    get_origin,
+    get_type_hints,
     overload,
 )
 
@@ -85,6 +92,87 @@ MISSING: Any = "???"
 
 Resolver = Callable[..., Any]
 _CUSTOM_RESOLVER_INTERPOLATION_PATTERN = re.compile(r"\${[^}]*:")
+_RESOLVER_ANNOTATION_VALIDATION_POLICIES = ("off", "warn", "error")
+_SPECIAL_RESOLVER_PARAMETERS = ("_parent_", "_node_", "_root_")
+_STRICT_PRIMITIVE_TYPES = (bool, bytes, float, int, str)
+
+
+def _resolver_warning_stacklevel() -> int:
+    package_dir = pathlib.Path(__file__).parent.resolve()
+    frame = inspect.currentframe()
+    stacklevel = 1
+    while frame is not None:
+        frame = frame.f_back
+        if frame is None:
+            break
+        if (
+            not pathlib.Path(frame.f_code.co_filename)
+            .resolve()
+            .is_relative_to(package_dir)
+        ):
+            break
+        stacklevel += 1
+    return stacklevel
+
+
+def _is_supported_resolver_annotation(annotation: Any) -> bool:
+    if annotation in (Any, inspect.Signature.empty, None, type(None)):
+        return True
+    if is_union_annotation(annotation):
+        return all(
+            _is_supported_resolver_annotation(arg) for arg in get_args(annotation)
+        )
+
+    origin = get_origin(annotation)
+    if origin is Literal:
+        return True
+    if origin is Annotated:
+        return _is_supported_resolver_annotation(get_args(annotation)[0])
+    runtime_type = origin if origin is not None else annotation
+    if not isinstance(runtime_type, type):
+        return False
+    try:
+        _ = isinstance(None, runtime_type)
+    except TypeError:
+        return False
+    return True
+
+
+def _resolver_annotation_needs_resolution(annotation: Any) -> bool:
+    origin = get_origin(annotation)
+    if origin is Literal:
+        return False
+    if origin is Annotated:
+        return _resolver_annotation_needs_resolution(get_args(annotation)[0])
+    return isinstance(annotation, (str, ForwardRef)) or any(
+        _resolver_annotation_needs_resolution(arg) for arg in get_args(annotation)
+    )
+
+
+def _value_matches_resolver_annotation(value: Any, annotation: Any) -> bool:
+    if annotation in (Any, inspect.Signature.empty):
+        return True
+    if annotation in (None, type(None)):
+        return value is None
+    if is_union_annotation(annotation):
+        return any(
+            _value_matches_resolver_annotation(value, arg)
+            for arg in get_args(annotation)
+        )
+
+    origin = get_origin(annotation)
+    if origin is Literal:
+        return any(
+            type(value) is type(expected) and value == expected
+            for expected in get_args(annotation)
+        )
+    if origin is Annotated:
+        return _value_matches_resolver_annotation(value, get_args(annotation)[0])
+
+    runtime_type = origin if origin is not None else annotation
+    if runtime_type in _STRICT_PRIMITIVE_TYPES:
+        return type(value) is runtime_type
+    return isinstance(value, runtime_type)
 
 
 def II(interpolation: str) -> Any:
@@ -110,13 +198,19 @@ def SI(interpolation: str) -> Any:
 def register_default_resolvers() -> None:
     from omegaconf.resolvers import oc
 
-    OmegaConf.register_resolver("oc.create", oc.create)
-    OmegaConf.register_resolver("oc.decode", oc.decode)
-    OmegaConf.register_resolver("oc.deprecated", oc.deprecated)
-    OmegaConf.register_resolver("oc.env", oc.env)
-    OmegaConf.register_resolver("oc.select", oc.select)
-    OmegaConf.register_resolver("oc.dict.keys", oc.dict.keys)
-    OmegaConf.register_resolver("oc.dict.values", oc.dict.values)
+    OmegaConf.register_resolver("oc.create", oc.create, annotation_validation="off")
+    OmegaConf.register_resolver("oc.decode", oc.decode, annotation_validation="off")
+    OmegaConf.register_resolver(
+        "oc.deprecated", oc.deprecated, annotation_validation="off"
+    )
+    OmegaConf.register_resolver("oc.env", oc.env, annotation_validation="off")
+    OmegaConf.register_resolver("oc.select", oc.select, annotation_validation="off")
+    OmegaConf.register_resolver(
+        "oc.dict.keys", oc.dict.keys, annotation_validation="off"
+    )
+    OmegaConf.register_resolver(
+        "oc.dict.values", oc.dict.values, annotation_validation="off"
+    )
 
 
 class OmegaConf:
@@ -532,6 +626,7 @@ class OmegaConf:
         *,
         replace: bool = False,
         use_cache: bool = False,
+        annotation_validation: Literal["off", "warn", "error"] = "warn",
     ) -> None:
         """
         Register a resolver.
@@ -549,7 +644,17 @@ class OmegaConf:
             based only on the string literals representing the resolver arguments, e.g.,
             ${foo:${bar}} will always return the same value regardless of the value of
             ``bar`` if the cache is enabled for ``foo``.
+        :param annotation_validation: Runtime policy for resolver parameter and return
+            annotations. ``"off"`` disables validation, ``"warn"`` emits
+            ``UserWarning`` and preserves the value, and ``"error"`` raises
+            ``TypeError``. Defaults to ``"warn"`` in OmegaConf 2.4.
         """
+        if annotation_validation not in _RESOLVER_ANNOTATION_VALIDATION_POLICIES:
+            raise TypeError(
+                "annotation_validation must be one of "
+                f"{_RESOLVER_ANNOTATION_VALIDATION_POLICIES}, "
+                f"got {annotation_validation!r}"
+            )
         if not callable(resolver):
             raise TypeError("resolver must be callable")
         if not name:
@@ -558,10 +663,74 @@ class OmegaConf:
         if not replace and OmegaConf.has_resolver(name):
             raise ValueError(f"resolver '{name}' is already registered")
 
+        def handle_registration_failure(message: str) -> None:
+            if annotation_validation == "error":
+                raise TypeError(message)
+            if annotation_validation == "warn":
+                warnings.warn(
+                    message,
+                    UserWarning,
+                    stacklevel=_resolver_warning_stacklevel(),
+                )
+
+        validation_enabled = annotation_validation != "off"
         try:
             sig: Optional[inspect.Signature] = inspect.signature(resolver)
-        except ValueError:
+        except (TypeError, ValueError) as exc:
             sig = None
+            validation_enabled = False
+            handle_registration_failure(
+                f"Resolver '{name}' cannot be inspected for annotation validation: "
+                f"{exc}"
+            )
+
+        resolved_annotations: Dict[str, Any] = {}
+        if validation_enabled:
+            assert sig is not None
+            resolved_annotations = {
+                parameter_name: parameter.annotation
+                for parameter_name, parameter in sig.parameters.items()
+                if parameter_name not in _SPECIAL_RESOLVER_PARAMETERS
+            }
+            resolved_annotations["return"] = sig.return_annotation
+            if any(
+                _resolver_annotation_needs_resolution(annotation)
+                for annotation in resolved_annotations.values()
+            ):
+                try:
+                    annotation_target = resolver
+                    while isinstance(annotation_target, functools.partial):
+                        annotation_target = annotation_target.func
+                    if not inspect.isroutine(annotation_target) and not inspect.isclass(
+                        annotation_target
+                    ):
+                        annotation_target = annotation_target.__call__
+                    hints = get_type_hints(annotation_target, include_extras=True)
+                except Exception as exc:
+                    validation_enabled = False
+                    handle_registration_failure(
+                        f"Resolver '{name}' cannot resolve annotations for runtime "
+                        f"validation: {exc}"
+                    )
+                else:
+                    resolved_annotations.update(
+                        {
+                            annotation_name: annotation
+                            for annotation_name, annotation in hints.items()
+                            if annotation_name in resolved_annotations
+                        }
+                    )
+
+        if validation_enabled:
+            assert sig is not None
+            for annotation_name, annotation in resolved_annotations.items():
+                if not _is_supported_resolver_annotation(annotation):
+                    validation_enabled = False
+                    handle_registration_failure(
+                        f"Resolver '{name}' annotation for '{annotation_name}' cannot "
+                        f"be checked at runtime: {annotation!r}"
+                    )
+                    break
 
         def _should_pass(special: str) -> bool:
             ret = sig is not None and special in sig.parameters
@@ -575,6 +744,90 @@ class OmegaConf:
         pass_node = _should_pass("_node_")
         pass_root = _should_pass("_root_")
 
+        def handle_mismatch(message: str) -> None:
+            if annotation_validation == "error":
+                raise TypeError(message)
+            assert annotation_validation == "warn"
+            warnings.warn(
+                message,
+                UserWarning,
+                stacklevel=_resolver_warning_stacklevel(),
+            )
+
+        def validation_message(
+            *,
+            target: str,
+            annotation: Any,
+            value: Any,
+            node: Node,
+            cached: bool = False,
+        ) -> str:
+            full_key = node._get_full_key(key=None) or "<root>"
+            cached_prefix = "cached " if cached else ""
+            message = (
+                f"Resolver '{name}' {cached_prefix}{target} expected "
+                f"{type_str(annotation)}, got {type(value).__name__} at full key "
+                f"'{full_key}'"
+            )
+            if cached:
+                message += (
+                    ". The cached result may be stale; call OmegaConf.clear_cache(cfg)."
+                )
+            return message
+
+        def validate_arguments(
+            args: Tuple[Any, ...], kwargs: Dict[str, Node], node: Node
+        ) -> None:
+            if not validation_enabled:
+                return
+            assert sig is not None
+            bound = sig.bind(*args, **kwargs)
+            for parameter_name, value in bound.arguments.items():
+                if parameter_name in _SPECIAL_RESOLVER_PARAMETERS:
+                    continue
+                parameter = sig.parameters[parameter_name]
+                annotation = resolved_annotations.get(
+                    parameter_name, parameter.annotation
+                )
+                if parameter.kind is inspect.Parameter.VAR_POSITIONAL:
+                    values = enumerate(value)
+                elif parameter.kind is inspect.Parameter.VAR_KEYWORD:
+                    values = value.items()
+                else:
+                    values = ((None, value),)
+
+                for index, item in values:
+                    if _value_matches_resolver_annotation(item, annotation):
+                        continue
+                    label = parameter_name
+                    if index is not None:
+                        label += f"[{index}]"
+                    handle_mismatch(
+                        validation_message(
+                            target=f"parameter '{label}'",
+                            annotation=annotation,
+                            value=item,
+                            node=node,
+                        )
+                    )
+
+        def validate_return(value: Any, node: Node, *, cached: bool = False) -> None:
+            if not validation_enabled:
+                return
+            assert sig is not None
+            annotation = resolved_annotations.get("return", sig.return_annotation)
+            if _value_matches_resolver_annotation(value, annotation):
+                return
+            handle_mismatch(
+                validation_message(
+                    target="return value",
+                    annotation=annotation,
+                    value=value,
+                    node=node,
+                    cached=cached,
+                )
+            )
+
         def resolver_wrapper(
             config: BaseContainer,
             parent: Container,
@@ -582,16 +835,6 @@ class OmegaConf:
             args: Tuple[Any, ...],
             args_str: Tuple[str, ...],
         ) -> Any:
-            if use_cache:
-                cache = OmegaConf.get_cache(config)[name]
-                try:
-                    return cache[args_str]
-                except KeyError:
-                    ret = resolver(*args)
-                    cache[args_str] = ret
-                    return ret
-
-            # Call resolver.
             kwargs: Dict[str, Node] = {}
             if pass_parent:
                 kwargs["_parent_"] = parent
@@ -600,7 +843,23 @@ class OmegaConf:
             if pass_root:
                 kwargs["_root_"] = config
 
+            validate_arguments(args, kwargs, node)
+
+            if use_cache:
+                cache = OmegaConf.get_cache(config)[name]
+                try:
+                    ret = cache[args_str]
+                except KeyError:
+                    ret = resolver(*args)
+                    validate_return(ret, node)
+                    cache[args_str] = ret
+                    return ret
+                validate_return(ret, node, cached=True)
+                return ret
+
+            # Call resolver.
             ret = resolver(*args, **kwargs)
+            validate_return(ret, node)
             return ret
 
         # noinspection PyProtectedMember

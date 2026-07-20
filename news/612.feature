@@ -1,0 +1,1 @@
+Custom resolvers can now validate runtime arguments and return values against their annotations using explicit ``"off"``, ``"warn"``, and ``"error"`` policies. OmegaConf 2.4 defaults to advisory warnings.
