@@ -31,7 +31,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-19T19:35:30Z",
+  "generated_at": "2026-07-20T08:01:37Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -554,9 +554,11 @@
         "priority_low",
         "wishlist"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1344"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Automatic validation of resolver arguments",
       "updated_at": "2026-04-24T06:29:21Z"
     },

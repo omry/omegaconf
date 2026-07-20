@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-19",
-  "generated_at": "2026-07-19T19:35:30Z",
+  "generated_on": "2026-07-20",
+  "generated_at": "2026-07-20T08:01:37Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 49,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 45
+        "count": 44
       },
       {
         "status": "done",
@@ -71,6 +71,29 @@
     ]
   },
   "issues": [
+    {
+      "number": 612,
+      "title": "Automatic validation of resolver arguments",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1344,
+          "url": "https://github.com/omry/omegaconf/pull/1344"
+        }
+      ],
+      "created": "2021-03-16",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "wishlist",
+        "needs triage",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/612"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -279,24 +302,6 @@
         "priority_low"
       ],
       "url": "https://github.com/omry/omegaconf/issues/610"
-    },
-    {
-      "number": 612,
-      "title": "Automatic validation of resolver arguments",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2021-03-16",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "wishlist",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/612"
     },
     {
       "number": 651,
@@ -856,6 +861,23 @@
       "url": "https://github.com/omry/omegaconf/issues/392"
     },
     {
+      "number": 725,
+      "title": "Support assignment of numpy floats to FloatNode",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2021-05-20",
+      "updated": "2026-04-29",
+      "labels": [
+        "enhancement",
+        "needs triage",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/725"
+    },
+    {
       "number": 726,
       "title": "Consistent resolving of interpolations to random resolver values",
       "category": "Enhancement",
@@ -1353,26 +1375,29 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 725,
-      "title": "Support assignment of numpy floats to FloatNode",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-05-20",
-      "updated": "2026-04-29",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/725"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T08:01:37Z",
+      "kind": "pr",
+      "issue": 612,
+      "issue_url": "https://github.com/omry/omegaconf/issues/612",
+      "title": "Automatic validation of resolver arguments",
+      "detail": "linked #1344"
+    },
+    {
+      "ts": "2026-07-20T08:01:37Z",
+      "kind": "status",
+      "issue": 612,
+      "issue_url": "https://github.com/omry/omegaconf/issues/612",
+      "title": "Automatic validation of resolver arguments",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1344,
+        "url": "https://github.com/omry/omegaconf/pull/1344"
+      }
+    },
     {
       "ts": "2026-07-19T19:35:30Z",
       "kind": "closed",

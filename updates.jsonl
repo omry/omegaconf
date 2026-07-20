@@ -87,3 +87,5 @@
 {"ts": "2026-07-19T18:36:55Z", "kind": "label", "issue": 750, "issue_url": "https://github.com/omry/omegaconf/issues/750", "title": "ListConfig.insert() mishandles negative and out-of-range indices", "detail": "added \"bug\"; removed \"needs triage\""}
 {"ts": "2026-07-19T18:58:16Z", "kind": "closed", "issue": 726, "issue_url": "https://github.com/omry/omegaconf/issues/726", "title": "Consistent resolving of interpolations to random resolver values"}
 {"ts": "2026-07-19T19:35:30Z", "kind": "closed", "issue": 725, "issue_url": "https://github.com/omry/omegaconf/issues/725", "title": "Support assignment of numpy floats to FloatNode"}
+{"ts": "2026-07-20T08:01:37Z", "kind": "status", "issue": 612, "issue_url": "https://github.com/omry/omegaconf/issues/612", "title": "Automatic validation of resolver arguments", "detail": "not started → in progress", "pr": {"number": 1344, "url": "https://github.com/omry/omegaconf/pull/1344"}}
+{"ts": "2026-07-20T08:01:37Z", "kind": "pr", "issue": 612, "issue_url": "https://github.com/omry/omegaconf/issues/612", "title": "Automatic validation of resolver arguments", "detail": "linked #1344"}
