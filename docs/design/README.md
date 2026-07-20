@@ -19,6 +19,10 @@ documents from [`TEMPLATE.md`](TEMPLATE.md).
 - [Provenance tracking](provenance-tracking.md)
 - [Type adapter system](type-adapters/index.md)
 
+## Suspended design work
+
+- [Dotlist container syntax](dotlist-container-syntax.md)
+
 ## Historical design documents
 
 - [Container union support](archive/container-union-support.md)
