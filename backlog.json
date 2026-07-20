@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T18:35:12Z",
+  "generated_at": "2026-07-20T18:50:28Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 44,
+    "open_total": 43,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 9,
-        "percentage": 20.5
+        "percentage": 20.9
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 32,
-        "percentage": 72.7
+        "count": 31,
+        "percentage": 72.1
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.5
+        "percentage": 4.7
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 44
+        "count": 43
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 35
+        "count": 36
       }
     ]
   },
@@ -133,23 +133,6 @@
         "needs triage"
       ],
       "url": "https://github.com/omry/omegaconf/issues/181"
-    },
-    {
-      "number": 265,
-      "title": "Attribute/KeyError can suggest matches from the available keys.",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2020-06-11",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/265"
     },
     {
       "number": 459,
@@ -1395,9 +1378,33 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 265,
+      "title": "Attribute/KeyError can suggest matches from the available keys.",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2020-06-11",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/265"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T18:50:28Z",
+      "kind": "closed",
+      "issue": 265,
+      "issue_url": "https://github.com/omry/omegaconf/issues/265",
+      "title": "Attribute/KeyError can suggest matches from the available keys."
+    },
     {
       "ts": "2026-07-20T18:35:12Z",
       "kind": "label",
