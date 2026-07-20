@@ -12,6 +12,7 @@
     "1315": "2026-06-11",
     "1326": "2026-06-27",
     "392": "2026-07-18",
+    "519": "2026-07-20",
     "612": "2026-07-20",
     "725": "2026-07-19",
     "726": "2026-07-19",
@@ -32,7 +33,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T10:17:42Z",
+  "generated_at": "2026-07-20T13:20:32Z",
   "issues": {
     "1020": {
       "category": "Bug",
@@ -493,18 +494,6 @@
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "updated_at": "2026-04-24T06:29:18Z"
     },
-    "519": {
-      "category": "Enhancement",
-      "created_at": "2021-02-05T03:49:58Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "allow exporting to dotlist-style format",
-      "updated_at": "2026-04-25T12:58:52Z"
-    },
     "537": {
       "category": "Refactor",
       "created_at": "2021-02-11T01:05:19Z",
@@ -785,6 +774,18 @@
       "status": "done",
       "title": "Improve Tuple support",
       "updated_at": "2026-04-26T17:48:26Z"
+    },
+    "519": {
+      "category": "Enhancement",
+      "created_at": "2021-02-05T03:49:58Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "allow exporting to dotlist-style format",
+      "updated_at": "2026-04-25T12:58:52Z"
     },
     "612": {
       "category": "Enhancement",
