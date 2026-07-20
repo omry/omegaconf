@@ -3,6 +3,7 @@
     "1020": "2026-07-20",
     "1052": "2026-06-12",
     "1054": "2026-06-12",
+    "1058": "2026-07-20",
     "1061": "2026-06-12",
     "1095": "2026-06-12",
     "1102": "2026-06-11",
@@ -14,6 +15,7 @@
     "1326": "2026-06-27",
     "392": "2026-07-18",
     "519": "2026-07-20",
+    "580": "2026-07-20",
     "612": "2026-07-20",
     "725": "2026-07-19",
     "726": "2026-07-19",
@@ -34,7 +36,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T14:42:52Z",
+  "generated_at": "2026-07-20T17:01:59Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -85,20 +87,6 @@
       "status": "not started",
       "title": "[Feature Request] Use SimpleNamespace for to_container() and to_object()",
       "updated_at": "2026-06-12T18:41:30Z"
-    },
-    "1058": {
-      "category": "Bug",
-      "created_at": "2023-02-19T09:50:12Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1323"
-      ],
-      "state": "OPEN",
-      "status": "community PR",
-      "title": "structured config types are discarded on list merge",
-      "updated_at": "2026-06-12T18:06:05Z"
     },
     "1160": {
       "category": "Enhancement",
@@ -439,14 +427,18 @@
       "updated_at": "2026-07-18T13:18:29Z"
     },
     "1340": {
-      "category": "Enhancement",
+      "category": "Bug",
       "created_at": "2026-07-18T19:13:56Z",
-      "labels": [],
+      "labels": [
+        "bug",
+        "priority_high",
+        "structured config"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Inherited flag cache is not invalidated through container-valued unions",
-      "updated_at": "2026-07-18T19:13:56Z"
+      "updated_at": "2026-07-20T17:00:38Z"
     },
     "144": {
       "category": "Enhancement",
@@ -513,20 +505,6 @@
       "status": "not started",
       "title": "Refactor test_errors.py",
       "updated_at": "2026-04-24T06:29:20Z"
-    },
-    "580": {
-      "category": "Bug",
-      "created_at": "2021-03-05T05:43:21Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1307"
-      ],
-      "state": "OPEN",
-      "status": "community PR",
-      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
-      "updated_at": "2026-05-15T14:39:54Z"
     },
     "610": {
       "category": "Enhancement",
@@ -600,11 +578,9 @@
         "enhancement",
         "has-workaround"
       ],
-      "pr_numbers": [
-        "1229"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "community PR",
+      "status": "not started",
       "title": "Consider supporting basic operators in interpolations of numbers",
       "updated_at": "2026-04-26T11:42:05Z"
     },
@@ -660,6 +636,20 @@
       "status": "done",
       "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
       "updated_at": "2026-04-24T06:27:53Z"
+    },
+    "1058": {
+      "category": "Bug",
+      "created_at": "2023-02-19T09:50:12Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1323"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "structured config types are discarded on list merge",
+      "updated_at": "2026-06-12T18:06:05Z"
     },
     "1061": {
       "category": "Enhancement",
@@ -807,6 +797,20 @@
       "status": "done",
       "title": "allow exporting to dotlist-style format",
       "updated_at": "2026-04-25T12:58:52Z"
+    },
+    "580": {
+      "category": "Bug",
+      "created_at": "2021-03-05T05:43:21Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1307"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
+      "updated_at": "2026-05-15T14:39:54Z"
     },
     "612": {
       "category": "Enhancement",
