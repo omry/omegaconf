@@ -1,5 +1,6 @@
 {
   "closed_at": {
+    "1020": "2026-07-20",
     "1052": "2026-06-12",
     "1054": "2026-06-12",
     "1061": "2026-06-12",
@@ -33,22 +34,8 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T14:31:15Z",
+  "generated_at": "2026-07-20T14:42:52Z",
   "issues": {
-    "1020": {
-      "category": "Bug",
-      "created_at": "2022-10-20T18:34:18Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1331"
-      ],
-      "state": "OPEN",
-      "status": "community PR",
-      "title": "Failure to merge interpolation into structured config",
-      "updated_at": "2026-06-13T03:22:54Z"
-    },
     "1024": {
       "category": "Enhancement",
       "created_at": "2022-10-29T00:15:10Z",
@@ -635,6 +622,20 @@
     }
   },
   "recent_done": {
+    "1020": {
+      "category": "Bug",
+      "created_at": "2022-10-20T18:34:18Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1331"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Failure to merge interpolation into structured config",
+      "updated_at": "2026-06-13T03:22:54Z"
+    },
     "1052": {
       "category": "Enhancement",
       "created_at": "2023-01-06T23:25:05Z",

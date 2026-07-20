@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T14:31:15Z",
+  "generated_at": "2026-07-20T14:42:52Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 47,
+    "open_total": 46,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 11,
-        "percentage": 23.4
+        "count": 10,
+        "percentage": 21.7
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 33,
-        "percentage": 70.2
+        "percentage": 71.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.1
+        "percentage": 2.2
       },
       {
         "category": "Question",
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 4
+        "count": 3
       },
       {
         "status": "blocked",
@@ -66,7 +66,7 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 32
+        "count": 33
       }
     ]
   },
@@ -111,26 +111,6 @@
         "bug"
       ],
       "url": "https://github.com/omry/omegaconf/issues/580"
-    },
-    {
-      "number": 1020,
-      "title": "Failure to merge interpolation into structured config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1331,
-          "url": "https://github.com/omry/omegaconf/pull/1331"
-        }
-      ],
-      "created": "2022-10-20",
-      "updated": "2026-06-13",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1020"
     },
     {
       "number": 1058,
@@ -1395,9 +1375,36 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 1020,
+      "title": "Failure to merge interpolation into structured config",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1331,
+          "url": "https://github.com/omry/omegaconf/pull/1331"
+        }
+      ],
+      "created": "2022-10-20",
+      "updated": "2026-06-13",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1020"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T14:42:52Z",
+      "kind": "closed",
+      "issue": 1020,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
+      "title": "Failure to merge interpolation into structured config"
+    },
     {
       "ts": "2026-07-20T14:31:15Z",
       "kind": "label",
