@@ -924,6 +924,18 @@ def test_masked_copy_is_deep() -> None:
         OmegaConf.masked_copy("fail", [])  # type: ignore
 
 
+def test_masked_copy_preserves_value_node_types() -> None:
+    from omegaconf import IntegerNode, StringNode
+
+    cfg = OmegaConf.structured(User(name="alice", age=10))
+    masked = OmegaConf.masked_copy(cfg, ["name", "age"])
+
+    assert isinstance(masked._get_node("name"), StringNode)
+    assert isinstance(masked._get_node("age"), IntegerNode)
+    with raises(ValidationError):
+        masked.age = "not an integer"
+
+
 def test_shallow_copy() -> None:
     cfg = OmegaConf.create({"a": 1, "b": 2})
     c = cfg.copy()

@@ -16,6 +16,7 @@ documents from [`TEMPLATE.md`](TEMPLATE.md).
 
 - [Protected nodes](protect-node.md)
 - [Provenance tracking](provenance-tracking.md)
+- [Resolver annotation validation](resolver-annotation-validation.md)
 - [Type adapter system](type-adapters/index.md)
 
 ## Historical design documents
