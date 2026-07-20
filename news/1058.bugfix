@@ -1,0 +1,1 @@
+Preserve structured list element types when merging a plain list into a missing structured config list field.
