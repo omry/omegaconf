@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T18:53:04Z",
+  "generated_at": "2026-07-20T19:05:33Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 42,
@@ -89,16 +89,17 @@
     },
     {
       "number": 131,
-      "title": "Evaluate usefulness of pep-593 for structured configs",
+      "title": "Support field metadata via `Annotated` in structured configs",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-01-21",
-      "updated": "2026-04-24",
+      "updated": "2026-07-20",
       "labels": [
-        "needs triage"
+        "enhancement",
+        "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/131"
     },
@@ -728,6 +729,22 @@
         "priority_high"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 181,
+      "title": "[Feature Request] Add .toJSON() method",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2020-03-25",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement",
+        "needs triage"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/181"
     },
     {
       "number": 265,
@@ -1379,25 +1396,17 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 181,
-      "title": "[Feature Request] Add .toJSON() method",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2020-03-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/181"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-20T19:05:33Z",
+      "kind": "label",
+      "issue": 131,
+      "issue_url": "https://github.com/omry/omegaconf/issues/131",
+      "title": "Support field metadata via `Annotated` in structured configs",
+      "detail": "added \"enhancement\", \"structured config\"; removed \"needs triage\""
+    },
     {
       "ts": "2026-07-20T18:53:04Z",
       "kind": "closed",
