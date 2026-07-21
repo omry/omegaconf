@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-20",
-  "generated_at": "2026-07-20T19:21:32Z",
+  "generated_on": "2026-07-21",
+  "generated_at": "2026-07-21T06:38:33Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 42,
@@ -519,9 +519,11 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-05-13",
-      "updated": "2026-05-13",
+      "updated": "2026-07-21",
       "labels": [
-        "enhancement"
+        "maintenance",
+        "structured config",
+        "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1299"
     },
@@ -1398,6 +1400,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-21T06:38:33Z",
+      "kind": "label",
+      "issue": 1299,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1299",
+      "title": "Design: Backend-independent structured config IR",
+      "detail": "added \"RFC\", \"maintenance\", \"structured config\"; removed \"enhancement\""
+    },
     {
       "ts": "2026-07-20T19:21:32Z",
       "kind": "label",

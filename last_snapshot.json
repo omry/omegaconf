@@ -38,7 +38,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-20T19:21:32Z",
+  "generated_at": "2026-07-21T06:38:33Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -257,13 +257,15 @@
       "category": "Enhancement",
       "created_at": "2026-05-13T13:47:45Z",
       "labels": [
-        "enhancement"
+        "RFC",
+        "maintenance",
+        "structured config"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Design: Backend-independent structured config IR",
-      "updated_at": "2026-05-13T13:47:45Z"
+      "updated_at": "2026-07-21T06:37:17Z"
     },
     "1300": {
       "category": "Enhancement",

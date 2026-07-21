@@ -111,3 +111,4 @@
 {"ts": "2026-07-20T18:53:04Z", "kind": "closed", "issue": 181, "issue_url": "https://github.com/omry/omegaconf/issues/181", "title": "[Feature Request] Add .toJSON() method"}
 {"ts": "2026-07-20T19:05:33Z", "kind": "label", "issue": 131, "issue_url": "https://github.com/omry/omegaconf/issues/131", "title": "Support field metadata via `Annotated` in structured configs", "detail": "added \"enhancement\", \"structured config\"; removed \"needs triage\""}
 {"ts": "2026-07-20T19:21:32Z", "kind": "label", "issue": 1275, "issue_url": "https://github.com/omry/omegaconf/issues/1275", "title": "Support Union of Structured Configs (dataclasses/attr classes)", "detail": "removed \"RFC\""}
+{"ts": "2026-07-21T06:38:33Z", "kind": "label", "issue": 1299, "issue_url": "https://github.com/omry/omegaconf/issues/1299", "title": "Design: Backend-independent structured config IR", "detail": "added \"RFC\", \"maintenance\", \"structured config\"; removed \"enhancement\""}
