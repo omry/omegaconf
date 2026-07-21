@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-21",
-  "generated_at": "2026-07-21T06:38:33Z",
+  "generated_at": "2026-07-21T06:52:07Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 42,
@@ -14,8 +14,8 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 30,
-        "percentage": 71.4
+        "count": 29,
+        "percentage": 69.0
       },
       {
         "category": "Documentation",
@@ -38,8 +38,8 @@
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 0,
-        "percentage": 0.0
+        "count": 1,
+        "percentage": 2.4
       }
     ],
     "by_status": [
@@ -372,15 +372,16 @@
     {
       "number": 1255,
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
-      "category": "Enhancement",
-      "category_emoji": "✨",
+      "category": "Build",
+      "category_emoji": "🏗️",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-22",
-      "updated": "2026-04-24",
+      "updated": "2026-07-21",
       "labels": [
-        "enhancement"
+        "maintenance",
+        "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1255"
     },
@@ -457,7 +458,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-26",
-      "updated": "2026-04-26",
+      "updated": "2026-07-21",
       "labels": [
         "documentation"
       ],
@@ -1400,6 +1401,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-21T06:52:07Z",
+      "kind": "label",
+      "issue": 1255,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1255",
+      "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
+      "detail": "added \"RFC\", \"maintenance\"; removed \"enhancement\""
+    },
     {
       "ts": "2026-07-21T06:38:33Z",
       "kind": "label",

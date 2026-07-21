@@ -38,7 +38,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-21T06:38:33Z",
+  "generated_at": "2026-07-21T06:52:07Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -140,16 +140,17 @@
       "updated_at": "2026-04-24T12:22:30Z"
     },
     "1255": {
-      "category": "Enhancement",
+      "category": "Build",
       "created_at": "2026-04-22T18:11:22Z",
       "labels": [
-        "enhancement"
+        "RFC",
+        "maintenance"
       ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
-      "updated_at": "2026-04-24T05:03:44Z"
+      "updated_at": "2026-07-21T06:50:46Z"
     },
     "1263": {
       "category": "Enhancement",
@@ -213,7 +214,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "updated_at": "2026-04-26T10:51:51Z"
+      "updated_at": "2026-07-21T06:42:51Z"
     },
     "1288": {
       "category": "Enhancement",
