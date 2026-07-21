@@ -9,6 +9,7 @@
     "1102": "2026-06-11",
     "1120": "2026-06-11",
     "1126": "2026-06-11",
+    "1191": "2026-07-21",
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
@@ -38,7 +39,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-21T06:52:07Z",
+  "generated_at": "2026-07-21T07:00:42Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -126,18 +127,6 @@
       "status": "not started",
       "title": "Merging Multiple Configs with Interpolation has Unexpected Precedence",
       "updated_at": "2026-04-24T12:23:09Z"
-    },
-    "1191": {
-      "category": "Enhancement",
-      "created_at": "2024-08-20T11:20:02Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Controlling conflict resolution in merge_with",
-      "updated_at": "2026-04-24T12:22:30Z"
     },
     "1255": {
       "category": "Build",
@@ -329,7 +318,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "updated_at": "2026-07-20T14:29:00Z"
+      "updated_at": "2026-07-21T06:59:22Z"
     },
     "1328": {
       "category": "Enhancement",
@@ -698,6 +687,18 @@
       "status": "done",
       "title": "Improve error message for relative interpolations",
       "updated_at": "2026-04-24T06:27:59Z"
+    },
+    "1191": {
+      "category": "Enhancement",
+      "created_at": "2024-08-20T11:20:02Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Controlling conflict resolution in merge_with",
+      "updated_at": "2026-04-24T12:22:30Z"
     },
     "1310": {
       "category": "Bug",

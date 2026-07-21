@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-21",
-  "generated_at": "2026-07-21T06:52:07Z",
+  "generated_at": "2026-07-21T07:00:42Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 42,
+    "open_total": 41,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 9,
-        "percentage": 21.4
+        "percentage": 22.0
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 29,
-        "percentage": 69.0
+        "count": 28,
+        "percentage": 68.3
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.8
+        "percentage": 4.9
       },
       {
         "category": "Build",
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 42
+        "count": 41
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 37
+        "count": 38
       }
     ]
   },
@@ -355,21 +355,6 @@
       "url": "https://github.com/omry/omegaconf/issues/1184"
     },
     {
-      "number": 1191,
-      "title": "Controlling conflict resolution in merge_with",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2024-08-20",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1191"
-    },
-    {
       "number": 1255,
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
       "category": "Build",
@@ -582,7 +567,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-06-10",
-      "updated": "2026-07-20",
+      "updated": "2026-07-21",
       "labels": [
         "enhancement",
         "listconfig",
@@ -1398,9 +1383,31 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 1191,
+      "title": "Controlling conflict resolution in merge_with",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2024-08-20",
+      "updated": "2026-04-24",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1191"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-21T07:00:42Z",
+      "kind": "closed",
+      "issue": 1191,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1191",
+      "title": "Controlling conflict resolution in merge_with"
+    },
     {
       "ts": "2026-07-21T06:52:07Z",
       "kind": "label",

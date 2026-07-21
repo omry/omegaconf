@@ -113,3 +113,4 @@
 {"ts": "2026-07-20T19:21:32Z", "kind": "label", "issue": 1275, "issue_url": "https://github.com/omry/omegaconf/issues/1275", "title": "Support Union of Structured Configs (dataclasses/attr classes)", "detail": "removed \"RFC\""}
 {"ts": "2026-07-21T06:38:33Z", "kind": "label", "issue": 1299, "issue_url": "https://github.com/omry/omegaconf/issues/1299", "title": "Design: Backend-independent structured config IR", "detail": "added \"RFC\", \"maintenance\", \"structured config\"; removed \"enhancement\""}
 {"ts": "2026-07-21T06:52:07Z", "kind": "label", "issue": 1255, "issue_url": "https://github.com/omry/omegaconf/issues/1255", "title": "Evaluate migrating packaging metadata and build config to pyproject.toml", "detail": "added \"RFC\", \"maintenance\"; removed \"enhancement\""}
+{"ts": "2026-07-21T07:00:42Z", "kind": "closed", "issue": 1191, "issue_url": "https://github.com/omry/omegaconf/issues/1191", "title": "Controlling conflict resolution in merge_with"}
