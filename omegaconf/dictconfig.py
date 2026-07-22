@@ -683,7 +683,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             if is_structured_config(value):
                 self._metadata.object_type = None
                 ao = self._get_flag("allow_objects")
-                data = get_structured_config_data(value, allow_objects=ao)
+                data = get_structured_config_data(value, allow_objects=ao, parent=self)
                 with flag_override(self, ["struct", "readonly"], False):
                     for k, v in data.items():
                         self.__setitem__(k, v)
