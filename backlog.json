@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T11:55:26Z",
+  "generated_at": "2026-07-22T15:00:20Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 39,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 2
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 38
+        "count": 37
       },
       {
         "status": "done",
@@ -92,6 +92,26 @@
         "priority_low"
       ],
       "url": "https://github.com/omry/omegaconf/issues/702"
+    },
+    {
+      "number": 928,
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1351,
+          "url": "https://github.com/omry/omegaconf/pull/1351"
+        }
+      ],
+      "created": "2022-05-15",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/928"
     },
     {
       "number": 91,
@@ -220,21 +240,6 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/851"
-    },
-    {
-      "number": 928,
-      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-05-15",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/928"
     },
     {
       "number": 1024,
@@ -1436,6 +1441,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T15:00:20Z",
+      "kind": "pr",
+      "issue": 928,
+      "issue_url": "https://github.com/omry/omegaconf/issues/928",
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
+      "detail": "linked #1351"
+    },
+    {
+      "ts": "2026-07-22T15:00:20Z",
+      "kind": "status",
+      "issue": 928,
+      "issue_url": "https://github.com/omry/omegaconf/issues/928",
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1351,
+        "url": "https://github.com/omry/omegaconf/pull/1351"
+      }
+    },
     {
       "ts": "2026-07-22T11:55:26Z",
       "kind": "pr",
