@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from pytest import mark, param, raises
+from pytest import mark, raises
 
 from omegaconf import (
     DictConfig,
     ListConfig,
-    ListMergeMode,
     OmegaConf,
     TupleConfig,
     ValidationError,
@@ -122,20 +121,6 @@ def test_merge_source_sequence_converts_to_destination_kind() -> None:
 def test_nested_tuple_merge_rejects_dict_source(merge: Any) -> None:
     with raises(TypeError, match="Cannot merge incompatible container types"):
         merge({"value": (1,)}, {"value": {"key": 1}})
-
-
-@mark.parametrize(
-    "mode",
-    [
-        param(ListMergeMode.REPLACE, id="replace"),
-        param(ListMergeMode.EXTEND, id="extend"),
-        param(ListMergeMode.EXTEND_UNIQUE, id="extend_unique"),
-    ],
-)
-def test_tuple_merge_ignores_list_merge_mode(mode: ListMergeMode) -> None:
-    result = OmegaConf.merge((1, 2), (3,), list_merge_mode=mode)
-
-    assert result == (3,)
 
 
 def test_tuple_merge_copies_explicit_source_flags() -> None:
