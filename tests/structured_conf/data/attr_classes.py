@@ -360,6 +360,16 @@ class DictOptional:
 
 
 @attr.s(auto_attribs=True)
+class NoneTypeAnnotations:
+    none: None = None
+    none_type: type(None) = None  # type: ignore[valid-type]
+    list_none: list[None] = [None]
+    list_none_type: list[type(None)] = [None]  # type: ignore[valid-type]
+    dict_none: dict[str, None] = {"key": None}
+    tuple_none: tuple[None] = (None,)
+
+
+@attr.s(auto_attribs=True)
 class RecursiveDict:
     d: Dict[str, "RecursiveDict"] = MISSING
 

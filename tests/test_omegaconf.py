@@ -19,6 +19,7 @@ from omegaconf import (
     OmegaConf,
     PathNode,
     StringNode,
+    TupleConfig,
     UnionNode,
 )
 from omegaconf._utils import _is_none
@@ -430,6 +431,10 @@ def test_get_type(cfg: Any, type_: Any) -> None:
             ),
         ),
         ("foo", str),
+        (None, None),
+        (DictConfig(content=None), type(None)),
+        (ListConfig(content=None), type(None)),
+        (TupleConfig(content=None), type(None)),
         (DictConfig(content={}), dict),
         (ListConfig(content=[]), list),
         (IllegalType, IllegalType),

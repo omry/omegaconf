@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Type, Union
 
 from omegaconf._utils import (
+    NoneType,
     ValueKind,
     _is_interpolation,
     get_type_of,
@@ -158,6 +159,37 @@ class AnyNode(ValueNode):
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> "AnyNode":
         res = AnyNode()
+        self._deepcopy_impl(res, memo)
+        return res
+
+
+class NoneNode(ValueNode):
+    def __init__(
+        self,
+        value: Any = None,
+        key: Any = None,
+        parent: Optional[Box] = None,
+        flags: Optional[Dict[str, bool]] = None,
+    ):
+        super().__init__(
+            parent=parent,
+            value=value,
+            metadata=Metadata(
+                ref_type=NoneType,
+                object_type=NoneType,
+                key=key,
+                optional=True,
+                flags=flags,
+            ),
+        )
+
+    def _validate_and_convert_impl(self, value: Any) -> None:
+        raise ValidationError(
+            "Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint 'NoneType'"
+        )
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "NoneNode":
+        res = NoneNode()
         self._deepcopy_impl(res, memo)
         return res
 
