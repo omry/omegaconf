@@ -1,0 +1,1 @@
+Change ``OmegaConf.get_type()`` to return ``NoneType`` for OmegaConf nodes containing ``None``, and validate ``None``/``NoneType`` annotations.

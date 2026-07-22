@@ -760,8 +760,10 @@ def is_primitive_container(obj: Any) -> bool:
 
 def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     args = getattr(ref_type, "__args__", None)
-    if ref_type is not List and args is not None and args[0]:
+    if ref_type is not List and args is not None:
         element_type = args[0]
+        if element_type is None:
+            element_type = NoneType
     else:
         element_type = Any
     return element_type
@@ -827,6 +829,8 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
         if args is not None and len(args) == 2:
             key_type = args[0]
             element_type = args[1]
+            if element_type is None:
+                element_type = NoneType
         else:
             key_type = Any
             element_type = Any

@@ -208,7 +208,7 @@ class TestConfigs:
     def test_nested_config_is_none(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.NestedWithNone)
         assert cfg == {"plugin": None}
-        assert OmegaConf.get_type(cfg, "plugin") is None
+        assert OmegaConf.get_type(cfg, "plugin") is type(None)
         assert _utils.get_type_hint(cfg, "plugin") == Optional[module.Plugin]
 
     def test_nested_config(self, module: Any) -> None:
@@ -588,10 +588,44 @@ class TestConfigs:
             conf.not_optional = None
 
         assert conf.as_none is None
+        assert OmegaConf.get_type(conf, "as_none") is type(None)
         assert conf.with_default == obj.with_default
         # assign None to an optional field
         conf.with_default = None
         assert conf.with_default is None
+        assert OmegaConf.get_type(conf, "with_default") is type(None)
+
+    def test_none_type_annotations(self, module: Any) -> None:
+        conf = OmegaConf.structured(module.NoneTypeAnnotations)
+        assert conf == {
+            "none": None,
+            "none_type": None,
+            "list_none": [None],
+            "list_none_type": [None],
+            "dict_none": {"key": None},
+            "tuple_none": (None,),
+        }
+
+        with raises(ValidationError):
+            conf.none = 123
+        with raises(ValidationError):
+            conf.none_type = 123
+        with raises(ValidationError):
+            conf.list_none.append(123)
+        with raises(ValidationError):
+            conf.list_none_type.append(123)
+        with raises(ValidationError):
+            conf.dict_none["key"] = 123
+
+    def test_list_none_annotation_rejects_non_none(self, module: Any) -> None:
+        obj = module.NoneTypeAnnotations(list_none=[123])
+        with raises(ValidationError):
+            OmegaConf.structured(obj)
+
+    def test_tuple_none_annotation_rejects_non_none(self, module: Any) -> None:
+        obj = module.NoneTypeAnnotations(tuple_none=(123,))
+        with raises(ValidationError):
+            OmegaConf.structured(obj)
 
     def test_list_field(self, module: Any) -> None:
         input_ = module.WithListField

@@ -117,10 +117,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             return
         else:
             is_optional, target_type = _resolve_optional(self._metadata.element_type)
+            value_is_none = value is None or (
+                isinstance(value, BaseContainer) and _is_none(value)
+            )
             value_type = OmegaConf.get_type(value)
 
-            if (value_type is None and not is_optional) or (
+            if (value_is_none and not is_optional) or (
                 is_structured_config(target_type)
+                and not value_is_none
                 and value_type is not None
                 and not issubclass(value_type, target_type)
             ):

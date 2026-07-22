@@ -365,6 +365,18 @@ class DictOptional:
 
 
 @dataclass
+class NoneTypeAnnotations:
+    none: None = None
+    none_type: type(None) = None  # type: ignore[valid-type]
+    list_none: list[None] = field(default_factory=lambda: [None])
+    list_none_type: list[type(None)] = field(  # type: ignore[valid-type]
+        default_factory=lambda: [None]
+    )
+    dict_none: dict[str, None] = field(default_factory=lambda: {"key": None})
+    tuple_none: tuple[None] = (None,)
+
+
+@dataclass
 class RecursiveDict:
     d: Dict[str, "RecursiveDict"] = MISSING
 
