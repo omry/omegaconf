@@ -439,6 +439,16 @@ class ErrorListUnsupportedStructuredConfig:
 
 
 @dataclass
+class InvalidNestedValue:
+    value: int = "not-an-int"  # type: ignore[assignment]
+
+
+@dataclass
+class StructuredWithInvalidNestedValue:
+    inner: InvalidNestedValue = field(default_factory=InvalidNestedValue)
+
+
+@dataclass
 class ListExamples:
     any: List[Any] = field(default_factory=lambda: [1, "foo"])
     ints: List[int] = field(default_factory=lambda: [1, 2])

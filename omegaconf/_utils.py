@@ -52,6 +52,8 @@ if TYPE_CHECKING:
     import attr
     from attr import Attribute as AttrAttribute
 
+    from .basecontainer import BaseContainer
+
 
 NoneType: Type[None] = type(None)
 
@@ -350,7 +352,11 @@ def get_attr_class_fields(obj: Any) -> List["AttrAttribute[Any]"]:
     return [f for f in fields if f.metadata.get("omegaconf_ignore") is not True]
 
 
-def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, Any]:
+def get_attr_data(
+    obj: Any,
+    allow_objects: Optional[bool] = None,
+    parent: Optional["BaseContainer"] = None,
+) -> Dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -363,6 +369,9 @@ def get_attr_data(obj: Any, allow_objects: Optional[bool] = None) -> Dict[str, A
     obj_type = obj if is_type else type(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
+    if parent is not None:
+        dummy_parent._set_key(parent._key())
+        dummy_parent._set_parent(parent._get_parent())
     resolved_hints = get_type_hints(obj_type)
 
     for attrib in get_attr_class_fields(obj):
@@ -422,7 +431,9 @@ def get_dataclass_fields(obj: Any) -> List["dataclasses.Field[Any]"]:
 
 
 def get_dataclass_data(
-    obj: Any, allow_objects: Optional[bool] = None
+    obj: Any,
+    allow_objects: Optional[bool] = None,
+    parent: Optional["BaseContainer"] = None,
 ) -> Dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
@@ -433,6 +444,9 @@ def get_dataclass_data(
     obj_type = get_type_of(obj)
     dummy_parent = OmegaConf.create({}, flags=flags)
     dummy_parent._metadata.object_type = obj_type
+    if parent is not None:
+        dummy_parent._set_key(parent._key())
+        dummy_parent._set_parent(parent._get_parent())
     resolved_hints = get_type_hints(obj_type)
     for field in get_dataclass_fields(obj):
         name = field.name
@@ -552,12 +566,14 @@ def get_structured_config_init_field_aliases(obj: Any) -> Dict[str, str]:
 
 
 def get_structured_config_data(
-    obj: Any, allow_objects: Optional[bool] = None
+    obj: Any,
+    allow_objects: Optional[bool] = None,
+    parent: Optional["BaseContainer"] = None,
 ) -> Dict[str, Any]:
     if is_dataclass(obj):
-        return get_dataclass_data(obj, allow_objects=allow_objects)
+        return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
     elif is_attr_class(obj):
-        return get_attr_data(obj, allow_objects=allow_objects)
+        return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
 

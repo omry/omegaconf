@@ -717,7 +717,7 @@ params = [
             exception_type=ValidationError,
             msg="Value 'x' of type 'str' could not be converted to Integer",
             key="foo",
-            full_key="foo",
+            full_key="params.foo",
             parent_node=lambda _: {},
             object_type=ConcretePlugin.FoobarParams,
         ),
