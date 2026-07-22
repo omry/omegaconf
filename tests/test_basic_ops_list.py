@@ -643,6 +643,34 @@ def test_insert(
 
 
 @mark.parametrize(
+    "index,expected",
+    [
+        param(-1, [1, 2, 4, 3], id="negative"),
+        param(-10, [4, 1, 2, 3], id="negative_out_of_range"),
+        param(10, [1, 2, 3, 4], id="positive_out_of_range"),
+    ],
+)
+def test_insert_normalizes_index(index: int, expected: List[int]) -> None:
+    cfg = OmegaConf.create([1, 2, 3])
+
+    cfg.insert(index, 4)
+
+    assert cfg == expected
+    validate_list_keys(cfg)
+
+
+@mark.parametrize("index", [-1, 10])
+def test_insert_validation_failure_is_atomic(index: int) -> None:
+    cfg = ListConfig(content=[1, 2, 3], element_type=int)
+
+    with raises(ValidationError):
+        cfg.insert(index, "invalid")
+
+    assert cfg == [1, 2, 3]
+    validate_list_keys(cfg)
+
+
+@mark.parametrize(
     "lst,idx,value,expectation",
     [
         (ListConfig(content=None), 0, 10, raises(TypeError)),
