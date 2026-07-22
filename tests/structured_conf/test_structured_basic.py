@@ -147,7 +147,7 @@ class TestStructured:
         cfg1 = OmegaConf.create(module.LinkedList)
         assert OmegaConf.get_type(cfg1) == module.LinkedList
         assert _utils.get_type_hint(cfg1, "next") == Optional[module.LinkedList]
-        assert OmegaConf.get_type(cfg1, "next") is None
+        assert OmegaConf.get_type(cfg1, "next") is type(None)
 
         assert cfg1.next is None
         assert OmegaConf.is_missing(cfg1, "value")
@@ -275,7 +275,7 @@ class TestStructured:
 
             assert _is_optional(cfg, "none")
             assert _utils.get_type_hint(cfg, "none") == Optional[module.Plugin]
-            assert OmegaConf.get_type(cfg, "none") is None
+            assert OmegaConf.get_type(cfg, "none") is type(None)
 
             assert not _is_optional(cfg, "missing")
             assert _utils.get_type_hint(cfg, "missing") == module.Plugin

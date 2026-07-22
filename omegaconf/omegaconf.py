@@ -40,6 +40,7 @@ import yaml
 from . import DictConfig, DictKeyType, ListConfig
 from ._utils import (
     _DEFAULT_MARKER_,
+    NoneType,
     _ensure_container,
     _get_value,
     format_and_raise,
@@ -82,6 +83,7 @@ from .nodes import (
     FloatNode,
     IntegerNode,
     LiteralNode,
+    NoneNode,
     PathNode,
     StringNode,
     ValueNode,
@@ -1698,7 +1700,7 @@ class OmegaConf:
             return None
         elif isinstance(c, DictConfig):
             if c._is_none():
-                return None
+                return NoneType
             elif c._is_missing():
                 return None
             else:
@@ -1707,9 +1709,9 @@ class OmegaConf:
                 else:
                     return dict
         elif isinstance(c, ListConfig):
-            return list
+            return NoneType if c._is_none() else list
         elif isinstance(c, TupleConfig):
-            return tuple
+            return NoneType if c._is_none() else tuple
         elif isinstance(c, ValueNode):
             return type(c._value())
         elif isinstance(c, UnionNode):
@@ -1876,6 +1878,8 @@ def _node_wrap(
             parent=parent,
             is_optional=is_optional,
         )
+    elif ref_type is NoneType:
+        node = NoneNode(value=value, key=key, parent=parent)
     elif ref_type == Any or ref_type is None:
         node = AnyNode(value=value, key=key, parent=parent)
     elif isinstance(ref_type, type) and issubclass(ref_type, Enum):
