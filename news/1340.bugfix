@@ -1,0 +1,1 @@
+Inherited flags are now updated correctly for containers selected by a union type.

@@ -926,6 +926,13 @@ class UnionNode(Box):
         else:
             return parent._get_full_key(self._metadata.key)
 
+    def _invalidate_flags_cache(self) -> None:
+        if self.__dict__["_flags_cache"] is not None:
+            super()._invalidate_flags_cache()
+            content = self.__dict__["_content"]
+            if isinstance(content, Node):
+                content._invalidate_flags_cache()
+
     def __eq__(self, other: Any) -> bool:
         content = self.__dict__["_content"]
         if isinstance(content, Node):
