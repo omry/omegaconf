@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T09:59:07Z",
+  "generated_at": "2026-07-22T11:06:21Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 38,
+    "open_total": 39,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 7,
-        "percentage": 18.4
+        "percentage": 17.9
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 71.1
+        "percentage": 69.2
       },
       {
         "category": "Documentation",
@@ -32,8 +32,8 @@
       {
         "category": "Refactor",
         "emoji": "🔧",
-        "count": 2,
-        "percentage": 5.3
+        "count": 3,
+        "percentage": 7.7
       },
       {
         "category": "Build",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 38
+        "count": 39
       },
       {
         "status": "done",
@@ -667,6 +667,21 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1338"
+    },
+    {
+      "number": 1349,
+      "title": "Refactor core class and module boundaries",
+      "category": "Refactor",
+      "category_emoji": "🔧",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-22",
+      "updated": "2026-07-22",
+      "labels": [
+        "internal"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1349"
     },
     {
       "number": 181,
@@ -1416,6 +1431,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T11:06:21Z",
+      "kind": "new",
+      "issue": 1349,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1349",
+      "title": "Refactor core class and module boundaries"
+    },
     {
       "ts": "2026-07-22T09:59:07Z",
       "kind": "closed",
