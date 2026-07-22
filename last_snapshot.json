@@ -40,7 +40,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T09:14:29Z",
+  "generated_at": "2026-07-22T09:18:21Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -416,9 +416,11 @@
         "priority_high",
         "structured config"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1348"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Inherited flag cache is not invalidated through container-valued unions",
       "updated_at": "2026-07-20T17:00:38Z"
     },
