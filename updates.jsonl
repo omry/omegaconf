@@ -116,3 +116,4 @@
 {"ts": "2026-07-21T07:00:42Z", "kind": "closed", "issue": 1191, "issue_url": "https://github.com/omry/omegaconf/issues/1191", "title": "Controlling conflict resolution in merge_with"}
 {"ts": "2026-07-22T08:44:01Z", "kind": "status", "issue": 1263, "issue_url": "https://github.com/omry/omegaconf/issues/1263", "title": "RFC: Revert list_merge_mode before stable 2.4", "detail": "not started → in progress", "pr": {"number": 1345, "url": "https://github.com/omry/omegaconf/pull/1345"}}
 {"ts": "2026-07-22T08:44:01Z", "kind": "pr", "issue": 1263, "issue_url": "https://github.com/omry/omegaconf/issues/1263", "title": "RFC: Revert list_merge_mode before stable 2.4", "detail": "linked #1345"}
+{"ts": "2026-07-22T08:49:31Z", "kind": "closed", "issue": 1263, "issue_url": "https://github.com/omry/omegaconf/issues/1263", "title": "RFC: Revert list_merge_mode before stable 2.4"}

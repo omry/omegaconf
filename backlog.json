@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T08:44:01Z",
+  "generated_at": "2026-07-22T08:49:31Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 41,
+    "open_total": 40,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 9,
-        "percentage": 22.0
+        "percentage": 22.5
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 28,
-        "percentage": 68.3
+        "count": 27,
+        "percentage": 67.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.4
+        "percentage": 2.5
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 4.9
+        "percentage": 5.0
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 2.4
+        "percentage": 2.5
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,33 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 38
+        "count": 39
       }
     ]
   },
   "issues": [
-    {
-      "number": 1263,
-      "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1345,
-          "url": "https://github.com/omry/omegaconf/pull/1345"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "maintenance",
-        "listconfig",
-        "RFC"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1263"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1403,9 +1381,38 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 1263,
+      "title": "RFC: Revert list_merge_mode before stable 2.4",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1345,
+          "url": "https://github.com/omry/omegaconf/pull/1345"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "RFC",
+        "listconfig",
+        "maintenance"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1263"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T08:49:31Z",
+      "kind": "closed",
+      "issue": 1263,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1263",
+      "title": "RFC: Revert list_merge_mode before stable 2.4"
+    },
     {
       "ts": "2026-07-22T08:44:01Z",
       "kind": "pr",

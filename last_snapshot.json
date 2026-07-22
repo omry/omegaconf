@@ -10,6 +10,7 @@
     "1120": "2026-06-11",
     "1126": "2026-06-11",
     "1191": "2026-07-21",
+    "1263": "2026-07-22",
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
@@ -39,7 +40,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T08:44:01Z",
+  "generated_at": "2026-07-22T08:49:31Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -140,22 +141,6 @@
       "status": "not started",
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
       "updated_at": "2026-07-21T06:50:46Z"
-    },
-    "1263": {
-      "category": "Enhancement",
-      "created_at": "2026-04-24T08:46:03Z",
-      "labels": [
-        "RFC",
-        "listconfig",
-        "maintenance"
-      ],
-      "pr_numbers": [
-        "1345"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "updated_at": "2026-07-20T14:29:53Z"
     },
     "1271": {
       "category": "Enhancement",
@@ -701,6 +686,22 @@
       "status": "done",
       "title": "Controlling conflict resolution in merge_with",
       "updated_at": "2026-04-24T12:22:30Z"
+    },
+    "1263": {
+      "category": "Enhancement",
+      "created_at": "2026-04-24T08:46:03Z",
+      "labels": [
+        "RFC",
+        "listconfig",
+        "maintenance"
+      ],
+      "pr_numbers": [
+        "1345"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "RFC: Revert list_merge_mode before stable 2.4",
+      "updated_at": "2026-07-20T14:29:53Z"
     },
     "1310": {
       "category": "Bug",
