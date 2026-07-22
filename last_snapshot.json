@@ -42,7 +42,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T11:06:21Z",
+  "generated_at": "2026-07-22T11:55:26Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -244,7 +244,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Design: Backend-independent structured config IR",
-      "updated_at": "2026-07-21T06:37:17Z"
+      "updated_at": "2026-07-22T11:31:40Z"
     },
     "1300": {
       "category": "Enhancement",
@@ -496,9 +496,11 @@
         "priority_low",
         "wishlist"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1350"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Provide correct full key on nested Structured Config creation error.",
       "updated_at": "2026-07-17T18:12:56Z"
     },

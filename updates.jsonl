@@ -124,3 +124,5 @@
 {"ts": "2026-07-22T09:54:07Z", "kind": "closed", "issue": 750, "issue_url": "https://github.com/omry/omegaconf/issues/750", "title": "ListConfig.insert() mishandles negative and out-of-range indices"}
 {"ts": "2026-07-22T09:59:07Z", "kind": "closed", "issue": 1340, "issue_url": "https://github.com/omry/omegaconf/issues/1340", "title": "Inherited flag cache is not invalidated through container-valued unions"}
 {"ts": "2026-07-22T11:06:21Z", "kind": "new", "issue": 1349, "issue_url": "https://github.com/omry/omegaconf/issues/1349", "title": "Refactor core class and module boundaries"}
+{"ts": "2026-07-22T11:55:26Z", "kind": "status", "issue": 702, "issue_url": "https://github.com/omry/omegaconf/issues/702", "title": "Provide correct full key on nested Structured Config creation error.", "detail": "not started → in progress", "pr": {"number": 1350, "url": "https://github.com/omry/omegaconf/pull/1350"}}
+{"ts": "2026-07-22T11:55:26Z", "kind": "pr", "issue": 702, "issue_url": "https://github.com/omry/omegaconf/issues/702", "title": "Provide correct full key on nested Structured Config creation error.", "detail": "linked #1350"}
