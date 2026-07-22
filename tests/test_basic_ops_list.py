@@ -176,6 +176,29 @@ def test_structured_list_of_dataclasses_with_missing_default_factory() -> None:
     assert OmegaConf.is_missing(cfg.entries, 0)
 
 
+@mark.parametrize(
+    "null_container",
+    [DictConfig(None), ListConfig(None), TupleConfig(None)],
+    ids=["dict", "list", "tuple"],
+)
+def test_optional_structured_list_accepts_null_container(
+    null_container: Any,
+) -> None:
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class Item:
+        x: int = 0
+
+    @dataclass
+    class Cfg:
+        entries: List[Optional[Item]] = field(default_factory=list)
+
+    cfg = OmegaConf.structured(Cfg)
+    cfg.entries.append(null_container)
+    assert cfg.entries == [None]
+
+
 def test_iterate_list_with_missing() -> None:
     c = OmegaConf.create([1, "???"])
     itr = iter(c)
