@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T15:00:20Z",
+  "generated_at": "2026-07-22T15:10:03Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 39,
+    "open_total": 38,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 7,
-        "percentage": 17.9
+        "count": 6,
+        "percentage": 15.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 69.2
+        "percentage": 71.1
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 7.7
+        "percentage": 7.9
       },
       {
         "category": "Build",
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 2
+        "count": 1
       },
       {
         "status": "community PR",
@@ -66,33 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 41
+        "count": 42
       }
     ]
   },
   "issues": [
-    {
-      "number": 702,
-      "title": "Provide correct full key on nested Structured Config creation error.",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1350,
-          "url": "https://github.com/omry/omegaconf/pull/1350"
-        }
-      ],
-      "created": "2021-04-29",
-      "updated": "2026-07-17",
-      "labels": [
-        "bug",
-        "wishlist",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/702"
-    },
     {
       "number": 928,
       "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
@@ -1438,9 +1416,38 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 702,
+      "title": "Provide correct full key on nested Structured Config creation error.",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1350,
+          "url": "https://github.com/omry/omegaconf/pull/1350"
+        }
+      ],
+      "created": "2021-04-29",
+      "updated": "2026-07-17",
+      "labels": [
+        "bug",
+        "priority_low",
+        "wishlist"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/702"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T15:10:03Z",
+      "kind": "closed",
+      "issue": 702,
+      "issue_url": "https://github.com/omry/omegaconf/issues/702",
+      "title": "Provide correct full key on nested Structured Config creation error."
+    },
     {
       "ts": "2026-07-22T15:00:20Z",
       "kind": "pr",

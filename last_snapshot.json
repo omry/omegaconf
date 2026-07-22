@@ -22,6 +22,7 @@
     "519": "2026-07-20",
     "580": "2026-07-20",
     "612": "2026-07-20",
+    "702": "2026-07-22",
     "725": "2026-07-19",
     "726": "2026-07-19",
     "731": "2026-07-17",
@@ -42,7 +43,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T15:00:20Z",
+  "generated_at": "2026-07-22T15:10:03Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -488,22 +489,6 @@
       "title": "Interpolations can't refer to non-string keys",
       "updated_at": "2026-07-19T16:02:00Z"
     },
-    "702": {
-      "category": "Bug",
-      "created_at": "2021-04-29T21:14:16Z",
-      "labels": [
-        "bug",
-        "priority_low",
-        "wishlist"
-      ],
-      "pr_numbers": [
-        "1350"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Provide correct full key on nested Structured Config creation error.",
-      "updated_at": "2026-07-17T18:12:56Z"
-    },
     "851": {
       "category": "Enhancement",
       "created_at": "2022-01-22T09:56:13Z",
@@ -846,6 +831,22 @@
       "status": "done",
       "title": "Automatic validation of resolver arguments",
       "updated_at": "2026-04-24T06:29:21Z"
+    },
+    "702": {
+      "category": "Bug",
+      "created_at": "2021-04-29T21:14:16Z",
+      "labels": [
+        "bug",
+        "priority_low",
+        "wishlist"
+      ],
+      "pr_numbers": [
+        "1350"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Provide correct full key on nested Structured Config creation error.",
+      "updated_at": "2026-07-17T18:12:56Z"
     },
     "725": {
       "category": "Enhancement",
