@@ -40,7 +40,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T08:49:31Z",
+  "generated_at": "2026-07-22T08:59:41Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -508,9 +508,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1346"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "ListConfig.insert() mishandles negative and out-of-range indices",
       "updated_at": "2026-07-19T18:35:40Z"
     },
