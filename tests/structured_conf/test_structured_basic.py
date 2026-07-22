@@ -65,6 +65,12 @@ class TestStructured:
             ):
                 OmegaConf.structured(module.User(age="seven"))
 
+        def test_nested_creation_error_has_full_key(self, module: Any) -> None:
+            with raises(ValidationError) as exc_info:
+                OmegaConf.structured(module.StructuredWithInvalidNestedValue)
+
+            assert exc_info.value.full_key == "inner.value"
+
         def test_assignment_of_subclass(self, module: Any) -> None:
             cfg = OmegaConf.create({"plugin": module.Plugin})
             cfg.plugin = OmegaConf.structured(module.ConcretePlugin)

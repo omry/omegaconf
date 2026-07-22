@@ -424,6 +424,16 @@ class ErrorListUnsupportedValue:
 
 
 @attr.s(auto_attribs=True)
+class InvalidNestedValue:
+    value: int = "not-an-int"  # type: ignore[assignment]
+
+
+@attr.s(auto_attribs=True)
+class StructuredWithInvalidNestedValue:
+    inner: InvalidNestedValue = attr.Factory(InvalidNestedValue)
+
+
+@attr.s(auto_attribs=True)
 class ListExamples:
     any: List[Any] = [1, "foo"]
     ints: List[int] = [1, 2]
