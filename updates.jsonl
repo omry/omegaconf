@@ -129,3 +129,4 @@
 {"ts": "2026-07-22T15:00:20Z", "kind": "status", "issue": 928, "issue_url": "https://github.com/omry/omegaconf/issues/928", "title": "`OmegaConf.get_type` inconsistent on `NoneType`", "detail": "not started → in progress", "pr": {"number": 1351, "url": "https://github.com/omry/omegaconf/pull/1351"}}
 {"ts": "2026-07-22T15:00:20Z", "kind": "pr", "issue": 928, "issue_url": "https://github.com/omry/omegaconf/issues/928", "title": "`OmegaConf.get_type` inconsistent on `NoneType`", "detail": "linked #1351"}
 {"ts": "2026-07-22T15:10:03Z", "kind": "closed", "issue": 702, "issue_url": "https://github.com/omry/omegaconf/issues/702", "title": "Provide correct full key on nested Structured Config creation error."}
+{"ts": "2026-07-22T17:09:29Z", "kind": "closed", "issue": 928, "issue_url": "https://github.com/omry/omegaconf/issues/928", "title": "`OmegaConf.get_type` inconsistent on `NoneType`"}

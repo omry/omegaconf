@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T15:10:03Z",
+  "generated_at": "2026-07-22T17:09:29Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 38,
+    "open_total": 37,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 6,
-        "percentage": 15.8
+        "count": 5,
+        "percentage": 13.5
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 71.1
+        "percentage": 73.0
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.6
+        "percentage": 2.7
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 7.9
+        "percentage": 8.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 2.6
+        "percentage": 2.7
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 42
+        "count": 43
       }
     ]
   },
   "issues": [
-    {
-      "number": 928,
-      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1351,
-          "url": "https://github.com/omry/omegaconf/pull/1351"
-        }
-      ],
-      "created": "2022-05-15",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/928"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -783,6 +763,28 @@
       "url": "https://github.com/omry/omegaconf/issues/612"
     },
     {
+      "number": 702,
+      "title": "Provide correct full key on nested Structured Config creation error.",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1350,
+          "url": "https://github.com/omry/omegaconf/pull/1350"
+        }
+      ],
+      "created": "2021-04-29",
+      "updated": "2026-07-17",
+      "labels": [
+        "bug",
+        "priority_low",
+        "wishlist"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/702"
+    },
+    {
       "number": 725,
       "title": "Support assignment of numpy floats to FloatNode",
       "category": "Enhancement",
@@ -1418,29 +1420,34 @@
       "url": "https://github.com/omry/omegaconf/issues/1340"
     },
     {
-      "number": 702,
-      "title": "Provide correct full key on nested Structured Config creation error.",
+      "number": 928,
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
       "category": "Bug",
       "category_emoji": "🐛",
       "status": "done",
       "status_emoji": "✅",
       "prs": [
         {
-          "number": 1350,
-          "url": "https://github.com/omry/omegaconf/pull/1350"
+          "number": 1351,
+          "url": "https://github.com/omry/omegaconf/pull/1351"
         }
       ],
-      "created": "2021-04-29",
-      "updated": "2026-07-17",
+      "created": "2022-05-15",
+      "updated": "2026-07-19",
       "labels": [
-        "bug",
-        "priority_low",
-        "wishlist"
+        "bug"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/702"
+      "url": "https://github.com/omry/omegaconf/issues/928"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T17:09:29Z",
+      "kind": "closed",
+      "issue": 928,
+      "issue_url": "https://github.com/omry/omegaconf/issues/928",
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`"
+    },
     {
       "ts": "2026-07-22T15:10:03Z",
       "kind": "closed",
