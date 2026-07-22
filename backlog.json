@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T09:31:45Z",
+  "generated_at": "2026-07-22T09:54:07Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 40,
+    "open_total": 39,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 9,
-        "percentage": 22.5
+        "count": 8,
+        "percentage": 20.5
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 67.5
+        "percentage": 69.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.5
+        "percentage": 2.6
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 5.0
+        "percentage": 5.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 2.5
+        "percentage": 2.6
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 2
+        "count": 1
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 39
+        "count": 40
       }
     ]
   },
   "issues": [
-    {
-      "number": 750,
-      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1346,
-          "url": "https://github.com/omry/omegaconf/pull/1346"
-        }
-      ],
-      "created": "2021-06-15",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/750"
-    },
     {
       "number": 1340,
       "title": "Inherited flag cache is not invalidated through container-valued unions",
@@ -1413,9 +1393,36 @@
       "updated": "2026-06-27",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1326"
+    },
+    {
+      "number": 750,
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1346,
+          "url": "https://github.com/omry/omegaconf/pull/1346"
+        }
+      ],
+      "created": "2021-06-15",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/750"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T09:54:07Z",
+      "kind": "closed",
+      "issue": 750,
+      "issue_url": "https://github.com/omry/omegaconf/issues/750",
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices"
+    },
     {
       "ts": "2026-07-22T09:18:21Z",
       "kind": "pr",

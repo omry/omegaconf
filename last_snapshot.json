@@ -24,6 +24,7 @@
     "725": "2026-07-19",
     "726": "2026-07-19",
     "731": "2026-07-17",
+    "750": "2026-07-22",
     "762": "2026-07-19",
     "771": "2026-06-12",
     "813": "2026-07-19",
@@ -40,7 +41,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T09:31:45Z",
+  "generated_at": "2026-07-22T09:54:07Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -504,20 +505,6 @@
       "title": "Provide correct full key on nested Structured Config creation error.",
       "updated_at": "2026-07-17T18:12:56Z"
     },
-    "750": {
-      "category": "Bug",
-      "created_at": "2021-06-15T03:54:09Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1346"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
-      "updated_at": "2026-07-19T18:35:40Z"
-    },
     "851": {
       "category": "Enhancement",
       "created_at": "2022-01-22T09:56:13Z",
@@ -881,6 +868,20 @@
       "status": "done",
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "updated_at": "2026-06-10T17:42:42Z"
+    },
+    "750": {
+      "category": "Bug",
+      "created_at": "2021-06-15T03:54:09Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1346"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "updated_at": "2026-07-19T18:35:40Z"
     },
     "762": {
       "category": "Bug",
