@@ -1,21 +1,21 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T09:54:07Z",
+  "generated_at": "2026-07-22T09:59:07Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 39,
+    "open_total": 38,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 8,
-        "percentage": 20.5
+        "count": 7,
+        "percentage": 18.4
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 69.2
+        "percentage": 71.1
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 5.1
+        "percentage": 5.3
       },
       {
         "category": "Build",
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,33 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 40
+        "count": 41
       }
     ]
   },
   "issues": [
-    {
-      "number": 1340,
-      "title": "Inherited flag cache is not invalidated through container-valued unions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1348,
-          "url": "https://github.com/omry/omegaconf/pull/1348"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-07-20",
-      "labels": [
-        "bug",
-        "structured config",
-        "priority_high"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -850,6 +828,26 @@
       "url": "https://github.com/omry/omegaconf/issues/731"
     },
     {
+      "number": 750,
+      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1346,
+          "url": "https://github.com/omry/omegaconf/pull/1346"
+        }
+      ],
+      "created": "2021-06-15",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/750"
+    },
+    {
       "number": 762,
       "title": "Dereferencing a resolver that returns \"???\"",
       "category": "Bug",
@@ -1395,27 +1393,36 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
-      "number": 750,
-      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
+      "number": 1340,
+      "title": "Inherited flag cache is not invalidated through container-valued unions",
       "category": "Bug",
       "category_emoji": "🐛",
       "status": "done",
       "status_emoji": "✅",
       "prs": [
         {
-          "number": 1346,
-          "url": "https://github.com/omry/omegaconf/pull/1346"
+          "number": 1348,
+          "url": "https://github.com/omry/omegaconf/pull/1348"
         }
       ],
-      "created": "2021-06-15",
-      "updated": "2026-07-19",
+      "created": "2026-07-18",
+      "updated": "2026-07-20",
       "labels": [
-        "bug"
+        "bug",
+        "priority_high",
+        "structured config"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/750"
+      "url": "https://github.com/omry/omegaconf/issues/1340"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T09:59:07Z",
+      "kind": "closed",
+      "issue": 1340,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1340",
+      "title": "Inherited flag cache is not invalidated through container-valued unions"
+    },
     {
       "ts": "2026-07-22T09:54:07Z",
       "kind": "closed",
