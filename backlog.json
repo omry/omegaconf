@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T17:09:29Z",
+  "generated_at": "2026-07-22T19:23:52Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 37,
+    "open_total": 36,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 5,
-        "percentage": 13.5
+        "count": 4,
+        "percentage": 11.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 73.0
+        "percentage": 75.0
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.7
+        "percentage": 2.8
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 8.1
+        "percentage": 8.3
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 2.7
+        "percentage": 2.8
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 37
+        "count": 36
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 43
+        "count": 44
       }
     ]
   },
@@ -230,21 +230,6 @@
         "enhancement"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1028"
-    },
-    {
-      "number": 1037,
-      "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2022-11-28",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1037"
     },
     {
       "number": 1048,
@@ -1051,6 +1036,26 @@
       "url": "https://github.com/omry/omegaconf/issues/908"
     },
     {
+      "number": 928,
+      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1351,
+          "url": "https://github.com/omry/omegaconf/pull/1351"
+        }
+      ],
+      "created": "2022-05-15",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/928"
+    },
+    {
       "number": 945,
       "title": "`get_attr_data` doesn't handle default factory correctly",
       "category": "Bug",
@@ -1420,27 +1425,29 @@
       "url": "https://github.com/omry/omegaconf/issues/1340"
     },
     {
-      "number": 928,
-      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
+      "number": 1037,
+      "title": "Structured config type coercion not working correctly for DictConfig keys",
       "category": "Bug",
       "category_emoji": "🐛",
       "status": "done",
       "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1351,
-          "url": "https://github.com/omry/omegaconf/pull/1351"
-        }
-      ],
-      "created": "2022-05-15",
-      "updated": "2026-07-19",
+      "prs": [],
+      "created": "2022-11-28",
+      "updated": "2026-06-12",
       "labels": [
         "bug"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/928"
+      "url": "https://github.com/omry/omegaconf/issues/1037"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-22T19:23:52Z",
+      "kind": "closed",
+      "issue": 1037,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1037",
+      "title": "Structured config type coercion not working correctly for DictConfig keys"
+    },
     {
       "ts": "2026-07-22T17:09:29Z",
       "kind": "closed",

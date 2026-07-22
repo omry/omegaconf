@@ -1,6 +1,7 @@
 {
   "closed_at": {
     "1020": "2026-07-20",
+    "1037": "2026-07-22",
     "1052": "2026-06-12",
     "1054": "2026-06-12",
     "1058": "2026-07-20",
@@ -44,7 +45,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-22T17:09:29Z",
+  "generated_at": "2026-07-22T19:23:52Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -71,18 +72,6 @@
       "status": "not started",
       "title": "Add support for equals sign and other symbols in resolver arguments",
       "updated_at": "2026-06-12T19:11:34Z"
-    },
-    "1037": {
-      "category": "Bug",
-      "created_at": "2022-11-28T21:48:45Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "updated_at": "2026-06-12T18:54:53Z"
     },
     "1048": {
       "category": "Enhancement",
@@ -530,6 +519,18 @@
       "status": "done",
       "title": "Failure to merge interpolation into structured config",
       "updated_at": "2026-06-13T03:22:54Z"
+    },
+    "1037": {
+      "category": "Bug",
+      "created_at": "2022-11-28T21:48:45Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Structured config type coercion not working correctly for DictConfig keys",
+      "updated_at": "2026-06-12T18:54:53Z"
     },
     "1052": {
       "category": "Enhancement",
