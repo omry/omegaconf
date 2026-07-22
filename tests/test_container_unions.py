@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import OmegaConf, TupleConfig, ValidationError
+from omegaconf import OmegaConf, ReadonlyConfigError, TupleConfig, ValidationError
 from omegaconf._utils import is_supported_union_annotation
 
 # ---------------------------------------------------------------------------
@@ -119,6 +119,22 @@ class TestStructuredConfigCreation:
     def test_create(self, cls: Any, expected: Any) -> None:
         cfg = OmegaConf.structured(cls)
         assert cfg.value == expected
+
+
+def test_inherited_flag_cache_is_invalidated_through_container_union() -> None:
+    @dataclass
+    class Config:
+        value: Union[List[int], int] = field(default_factory=lambda: [1])
+
+    cfg = OmegaConf.structured(Config)
+    value = cfg.value
+    assert OmegaConf.is_readonly(value) is None
+
+    OmegaConf.set_readonly(cfg, True)
+
+    assert OmegaConf.is_readonly(value) is True
+    with raises(ReadonlyConfigError):
+        value.append(2)
 
 
 # ---------------------------------------------------------------------------
