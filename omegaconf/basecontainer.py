@@ -36,7 +36,6 @@ from .base import (
     Container,
     ContainerMetadata,
     DictKeyType,
-    ListMergeMode,
     Node,
     SCMode,
     UnionNode,
@@ -365,7 +364,6 @@ class BaseContainer(Container, ABC):
     def _map_merge(
         dest: "BaseContainer",
         src: "BaseContainer",
-        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
         _allow_readonly_target: bool = False,
     ) -> None:
         """merge src into dest and return a new copy, does not modified input"""
@@ -487,7 +485,6 @@ class BaseContainer(Container, ABC):
                     elif isinstance(src_node, BaseContainer):
                         dest_node._merge_with(
                             src_node,
-                            list_merge_mode=list_merge_mode,
                             _allow_readonly_target=_allow_readonly_target,
                         )
                     elif not src_node_missing:
@@ -537,7 +534,6 @@ class BaseContainer(Container, ABC):
     def _list_merge(
         dest: Any,
         src: Any,
-        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         from omegaconf import DictConfig, ListConfig, OmegaConf
 
@@ -597,16 +593,9 @@ class BaseContainer(Container, ABC):
                 for item in src._iter_ex(resolve=False):
                     temp_target.append(item)
 
-            if list_merge_mode == ListMergeMode.EXTEND:
-                dest.__dict__["_content"].extend(temp_target.__dict__["_content"])
-            elif list_merge_mode == ListMergeMode.EXTEND_UNIQUE:
-                for entry in temp_target.__dict__["_content"]:
-                    if entry not in dest.__dict__["_content"]:
-                        dest.__dict__["_content"].append(entry)
-            else:  # REPLACE (default)
-                if element_type is not None:
-                    dest._metadata.element_type = element_type
-                dest.__dict__["_content"] = temp_target.__dict__["_content"]
+            if element_type is not None:
+                dest._metadata.element_type = element_type
+            dest.__dict__["_content"] = temp_target.__dict__["_content"]
 
         # explicit flags on the source config are replacing the flag values in the destination
         flags = src._metadata.flags
@@ -635,13 +624,9 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
     ) -> None:
         try:
-            self._merge_with(
-                *others,
-                list_merge_mode=list_merge_mode,
-            )
+            self._merge_with(*others)
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
 
@@ -650,7 +635,6 @@ class BaseContainer(Container, ABC):
         *others: Union[
             "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
         ],
-        list_merge_mode: ListMergeMode = ListMergeMode.REPLACE,
         _allow_readonly_target: bool = False,
     ) -> None:
         from .dictconfig import DictConfig
@@ -691,7 +675,6 @@ class BaseContainer(Container, ABC):
                     BaseContainer._map_merge(
                         self,
                         other,
-                        list_merge_mode=list_merge_mode,
                         _allow_readonly_target=_allow_readonly_target,
                     )
                 elif isinstance(self, ListConfig) and isinstance(
@@ -699,11 +682,7 @@ class BaseContainer(Container, ABC):
                 ):
                     if isinstance(other, TupleConfig):
                         other = ListConfig(content=other)
-                    BaseContainer._list_merge(
-                        self,
-                        other,
-                        list_merge_mode=list_merge_mode,
-                    )
+                    BaseContainer._list_merge(self, other)
                 elif isinstance(self, TupleConfig) and isinstance(
                     other, (ListConfig, TupleConfig)
                 ):

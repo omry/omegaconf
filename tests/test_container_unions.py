@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import ListMergeMode, OmegaConf, TupleConfig, ValidationError
+from omegaconf import OmegaConf, TupleConfig, ValidationError
 from omegaconf._utils import is_supported_union_annotation
 
 # ---------------------------------------------------------------------------
@@ -512,25 +512,6 @@ class TestMerge:
         cfg = OmegaConf.structured(CfgDictStrIntOrDictStrStr)
         with raises(ValidationError, match="[Aa]mbig"):
             cfg.merge_with({"value": {}})
-
-    @mark.parametrize(
-        "list_merge_mode",
-        [
-            param(ListMergeMode.REPLACE, id="replace"),
-            param(ListMergeMode.EXTEND, id="extend"),
-            param(ListMergeMode.EXTEND_UNIQUE, id="extend_unique"),
-        ],
-    )
-    def test_list_merge_mode_replaces_union_branch(
-        self, list_merge_mode: ListMergeMode
-    ) -> None:
-        cfg = OmegaConf.structured(CfgListIntOrListStr)
-        merged = OmegaConf.merge(
-            cfg,
-            {"value": [2, 3]},
-            list_merge_mode=list_merge_mode,
-        )
-        assert merged.value == [2, 3]
 
 
 # ---------------------------------------------------------------------------
