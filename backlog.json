@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-22",
-  "generated_at": "2026-07-22T19:23:52Z",
+  "generated_on": "2026-07-23",
+  "generated_at": "2026-07-23T07:32:34Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 36,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 36
+        "count": 35
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1329,
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1352,
+          "url": "https://github.com/omry/omegaconf/pull/1352"
+        }
+      ],
+      "created": "2026-07-15",
+      "updated": "2026-07-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1329"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -511,21 +531,6 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1328"
-    },
-    {
-      "number": 1329,
-      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-15",
-      "updated": "2026-07-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1329"
     },
     {
       "number": 1330,
@@ -1149,6 +1154,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1020"
     },
     {
+      "number": 1037,
+      "title": "Structured config type coercion not working correctly for DictConfig keys",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2022-11-28",
+      "updated": "2026-06-12",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1037"
+    },
+    {
       "number": 1052,
       "title": "How can I get the data type of an attribute at a depth>1?",
       "category": "Enhancement",
@@ -1423,24 +1443,29 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 1037,
-      "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-11-28",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1037"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-23T07:32:34Z",
+      "kind": "pr",
+      "issue": 1329,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1329",
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "detail": "linked #1352"
+    },
+    {
+      "ts": "2026-07-23T07:32:34Z",
+      "kind": "status",
+      "issue": 1329,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1329",
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1352,
+        "url": "https://github.com/omry/omegaconf/pull/1352"
+      }
+    },
     {
       "ts": "2026-07-22T19:23:52Z",
       "kind": "closed",
