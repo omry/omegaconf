@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-23",
-  "generated_at": "2026-07-23T19:17:26Z",
+  "generated_at": "2026-07-23T20:13:48Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 35,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 35
+        "count": 34
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 1271,
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1353,
+          "url": "https://github.com/omry/omegaconf/pull/1353"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1271"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -307,22 +328,6 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1255"
-    },
-    {
-      "number": 1271,
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1271"
     },
     {
       "number": 1274,
@@ -1403,6 +1408,26 @@
       "url": "https://github.com/omry/omegaconf/issues/1326"
     },
     {
+      "number": 1329,
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1352,
+          "url": "https://github.com/omry/omegaconf/pull/1352"
+        }
+      ],
+      "created": "2026-07-15",
+      "updated": "2026-07-23",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1329"
+    },
+    {
       "number": 1340,
       "title": "Inherited flag cache is not invalidated through container-valued unions",
       "category": "Bug",
@@ -1423,29 +1448,29 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 1329,
-      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1352,
-          "url": "https://github.com/omry/omegaconf/pull/1352"
-        }
-      ],
-      "created": "2026-07-15",
-      "updated": "2026-07-23",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1329"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-23T20:13:48Z",
+      "kind": "pr",
+      "issue": 1271,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1271",
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "detail": "linked #1353"
+    },
+    {
+      "ts": "2026-07-23T20:13:48Z",
+      "kind": "status",
+      "issue": 1271,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1271",
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1353,
+        "url": "https://github.com/omry/omegaconf/pull/1353"
+      }
+    },
     {
       "ts": "2026-07-23T19:17:26Z",
       "kind": "closed",

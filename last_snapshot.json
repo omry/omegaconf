@@ -46,7 +46,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-23T19:17:26Z",
+  "generated_at": "2026-07-23T20:13:48Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -143,9 +143,11 @@
         "enhancement",
         "structured config"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1353"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Support Union[Literal[...], other_type] annotations in structured configs",
       "updated_at": "2026-07-20T14:29:39Z"
     },
