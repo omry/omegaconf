@@ -1,11 +1,36 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Literal, Union
 
 from pytest import mark, param, raises
 
 from omegaconf import OmegaConf, UnionNode, ValidationError
 from omegaconf._utils import _get_value
 from tests import Color
+
+
+@dataclass
+class LiteralOrIntConfig:
+    value: Union[Literal["auto", "manual"], int] = "auto"
+
+
+def test_structured_config_union_with_literal_creation() -> None:
+    cfg = OmegaConf.structured(LiteralOrIntConfig)
+
+    assert cfg.value == "auto"
+
+
+def test_structured_config_union_with_literal_assignment() -> None:
+    cfg = OmegaConf.structured(LiteralOrIntConfig)
+
+    cfg.value = "manual"
+    assert cfg.value == "manual"
+
+    cfg.value = 10
+    assert cfg.value == 10
+
+    with raises(ValidationError):
+        cfg.value = "invalid"
 
 
 @mark.parametrize(

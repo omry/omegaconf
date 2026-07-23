@@ -569,6 +569,9 @@ class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
     def _validate_and_convert_impl(self, value: Any) -> Any:
         return self.validate_and_convert_to_literal(ref_type=self.ref_type, value=value)
 
+    def _strict_validate_type(self, value: Any) -> None:
+        self.validate_and_convert_to_literal(ref_type=self.ref_type, value=value)
+
     @staticmethod
     def validate_and_convert_to_literal(ref_type: Any, value: Any) -> Any:
         # Use type identity (not isinstance) to keep bool and int distinct.
