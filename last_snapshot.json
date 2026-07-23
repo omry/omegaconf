@@ -16,6 +16,7 @@
     "1314": "2026-06-11",
     "1315": "2026-06-11",
     "1326": "2026-06-27",
+    "1329": "2026-07-23",
     "1340": "2026-07-22",
     "181": "2026-07-20",
     "265": "2026-07-20",
@@ -45,7 +46,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-23T09:28:37Z",
+  "generated_at": "2026-07-23T19:17:26Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -312,20 +313,6 @@
       "status": "not started",
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
       "updated_at": "2026-07-20T14:28:40Z"
-    },
-    "1329": {
-      "category": "Bug",
-      "created_at": "2026-07-15T12:29:03Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1352"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
-      "updated_at": "2026-07-23T08:27:47Z"
     },
     "1330": {
       "category": "Bug",
@@ -721,6 +708,20 @@
       "status": "done",
       "title": "Support structural equality for configs",
       "updated_at": "2026-06-27T13:06:20Z"
+    },
+    "1329": {
+      "category": "Bug",
+      "created_at": "2026-07-15T12:29:03Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1352"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
+      "updated_at": "2026-07-23T08:27:47Z"
     },
     "1340": {
       "category": "Bug",
