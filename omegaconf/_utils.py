@@ -731,12 +731,14 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 
 def is_supported_union_annotation(obj: Any) -> bool:
-    """Primitives and typed List/Dict containers are supported in Unions."""
+    """Primitives, literals, and typed containers are supported in Unions."""
     if not is_union_annotation(obj):
         return False
     args = obj.__args__
     return all(
-        is_primitive_type_annotation(arg) or is_container_annotation(arg)
+        is_primitive_type_annotation(arg)
+        or is_literal_annotation(arg)
+        or is_container_annotation(arg)
         for arg in args
     )
 

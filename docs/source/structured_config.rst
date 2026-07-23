@@ -261,7 +261,7 @@ Literal types
 ^^^^^^^^^^^^^
 
 ``typing.Literal`` can be used when a field must be exactly one of a fixed set
-of values. Literal annotations are also supported inside containers.
+of values. Literal annotations are also supported inside containers and unions.
 
 .. doctest::
 
@@ -431,7 +431,7 @@ Unions
 ^^^^^^
 
 You can use `typing.Union <https://docs.python.org/3/library/typing.html#typing.Union>`_
-to annotate unions of :ref:`simple_types`. 
+to combine supported simple types, ``Literal`` annotations, and typed container types.
 
 .. doctest::
 
