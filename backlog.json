@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-23",
-  "generated_at": "2026-07-23T07:32:34Z",
+  "generated_at": "2026-07-23T09:28:37Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 36,
@@ -85,7 +85,7 @@
         }
       ],
       "created": "2026-07-15",
-      "updated": "2026-07-15",
+      "updated": "2026-07-23",
       "labels": [
         "bug"
       ],

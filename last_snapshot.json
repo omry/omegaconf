@@ -45,7 +45,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-23T07:32:34Z",
+  "generated_at": "2026-07-23T09:28:37Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -325,7 +325,7 @@
       "state": "OPEN",
       "status": "in progress",
       "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
-      "updated_at": "2026-07-15T12:30:01Z"
+      "updated_at": "2026-07-23T08:27:47Z"
     },
     "1330": {
       "category": "Bug",
