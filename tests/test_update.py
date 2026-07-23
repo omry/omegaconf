@@ -2,9 +2,14 @@ from typing import Any
 
 from pytest import mark, param, raises
 
-from omegaconf import ListConfig, OmegaConf, ValidationError
+from omegaconf import DictConfig, ListConfig, OmegaConf, ValidationError
 from omegaconf._utils import _ensure_container, is_primitive_container
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError, ConfigTypeError
+from omegaconf.errors import (
+    ConfigAttributeError,
+    ConfigKeyError,
+    ConfigTypeError,
+    InterpolationResolutionError,
+)
 from tests import Group, Package, User
 
 
@@ -192,6 +197,256 @@ def test_update_merge_by_default() -> None:
     cfg = OmegaConf.create({"a": {"b": 10}})
     OmegaConf.update(cfg, "a", {"c": 20})
     assert cfg == {"a": {"b": 10, "c": 20}}
+
+
+@mark.parametrize(
+    "source,key,value,expected",
+    [
+        param(
+            {"arg1": 1, "arg2": 2},
+            "target.arg3",
+            3,
+            {"arg1": 1, "arg2": 2, "arg3": 3},
+            id="dict",
+        ),
+        param(
+            [{"arg1": 1}],
+            "target.0.arg2",
+            2,
+            [{"arg1": 1, "arg2": 2}],
+            id="list",
+        ),
+        param(
+            ({"arg1": 1},),
+            "target.0.arg2",
+            2,
+            ({"arg1": 1, "arg2": 2},),
+            id="tuple",
+        ),
+    ],
+)
+def test_update_follows_intermediate_container_interpolation(
+    source: Any, key: str, value: Any, expected: Any
+) -> None:
+    cfg = OmegaConf.create({"source": source, "target": "${source}"})
+
+    OmegaConf.update(cfg, key, value)
+
+    assert cfg.source == expected
+    assert cfg.target == expected
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+
+@mark.parametrize(
+    "source,target,key,value,expected",
+    [
+        param(
+            {"arg1": 1},
+            DictConfig("${source}"),
+            "target.arg2",
+            2,
+            {"arg1": 1, "arg2": 2},
+            id="dict",
+        ),
+        param(
+            [{"arg1": 1}],
+            ListConfig("${source}"),
+            "target.0.arg2",
+            2,
+            [{"arg1": 1, "arg2": 2}],
+            id="list",
+        ),
+    ],
+)
+def test_update_follows_intermediate_container_config_interpolation(
+    source: Any, target: Any, key: str, value: Any, expected: Any
+) -> None:
+    cfg = OmegaConf.create({"source": source, "target": target})
+
+    OmegaConf.update(cfg, key, value)
+
+    assert cfg.source == expected
+    assert cfg.target == expected
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+
+@mark.parametrize(
+    "content,key,expected",
+    [
+        param(
+            {
+                "source": {"arg1": 1},
+                "middle": "${source}",
+                "target": "${middle}",
+            },
+            "target.arg2",
+            {
+                "source": {"arg1": 1, "arg2": 2},
+                "middle": "${source}",
+                "target": "${middle}",
+            },
+            id="chained",
+        ),
+        param(
+            {"group": {"source": {"arg1": 1}, "target": "${.source}"}},
+            "group.target.arg2",
+            {
+                "group": {
+                    "source": {"arg1": 1, "arg2": 2},
+                    "target": "${.source}",
+                }
+            },
+            id="relative",
+        ),
+        param(
+            {
+                "key": "source",
+                "source": {"arg1": 1},
+                "target": "${${key}}",
+            },
+            "target.arg2",
+            {
+                "key": "source",
+                "source": {"arg1": 1, "arg2": 2},
+                "target": "${${key}}",
+            },
+            id="dynamic",
+        ),
+    ],
+)
+def test_update_follows_intermediate_container_interpolation_path(
+    content: Any, key: str, expected: Any
+) -> None:
+    cfg = OmegaConf.create(content)
+
+    OmegaConf.update(cfg, key, 2)
+
+    assert OmegaConf.to_container(cfg, resolve=False) == expected
+    parent = cfg.group if "group" in content else cfg
+    assert OmegaConf.is_interpolation(parent, "target")
+
+
+@mark.parametrize(
+    "content,key,error",
+    [
+        param(
+            {"a": {"b": "${a}"}},
+            "a.b.x",
+            "Interpolation to parent node detected",
+            id="ancestor",
+        ),
+        param(
+            {"a": "${b}", "b": "${a}"},
+            "a.x",
+            "Recursive interpolation detected",
+            id="cycle",
+        ),
+        param(
+            {"target": "${missing}"},
+            "target.x",
+            "Interpolation key 'missing' not found",
+            id="missing-key",
+        ),
+        param(
+            {"missing": "???", "target": "${missing}"},
+            "target.x",
+            "MissingMandatoryValue while resolving interpolation",
+            id="mandatory-missing",
+        ),
+    ],
+)
+def test_update_rejects_invalid_intermediate_interpolation(
+    content: Any, key: str, error: str
+) -> None:
+    cfg = OmegaConf.create(content)
+
+    with raises(InterpolationResolutionError, match=error):
+        OmegaConf.update(cfg, key, 1)
+
+    assert OmegaConf.to_container(cfg, resolve=False) == content
+
+
+def test_update_intermediate_interpolation_respects_struct() -> None:
+    cfg = OmegaConf.create({"source": {"arg1": 1}, "target": "${source}"})
+    OmegaConf.set_struct(cfg.source, True)
+
+    with raises((ConfigAttributeError, ConfigKeyError)):
+        OmegaConf.update(cfg, "target.arg2", 2)
+
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+    OmegaConf.update(cfg, "target.arg2", 2, force_add=True)
+
+    assert cfg.source == {"arg1": 1, "arg2": 2}
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+
+def test_update_intermediate_interpolation_respects_structured_config() -> None:
+    cfg = OmegaConf.create(
+        {
+            "source": OmegaConf.structured(User(name="Bond", age=7)),
+            "target": "${source}",
+        }
+    )
+
+    OmegaConf.update(cfg, "target.age", 8)
+
+    assert cfg.source.age == 8
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+    with raises((ConfigAttributeError, ConfigKeyError)):
+        OmegaConf.update(cfg, "target.location", "London")
+
+    assert OmegaConf.is_interpolation(cfg, "target")
+
+
+@mark.parametrize(
+    "resolver_result",
+    [
+        param({"existing": 1}, id="dict"),
+        param(DictConfig({"existing": 1}), id="dict_config"),
+    ],
+)
+@mark.parametrize(
+    "content,expected",
+    [
+        param(
+            {"target": "${test_update_intermediate:}"},
+            {"target": {"added": 2}},
+            id="direct",
+        ),
+        param(
+            {
+                "middle": "${test_update_intermediate:}",
+                "target": "${middle}",
+            },
+            {
+                "middle": "${test_update_intermediate:}",
+                "target": {"added": 2},
+            },
+            id="chained",
+        ),
+    ],
+)
+def test_update_does_not_resolve_intermediate_resolver_interpolation(
+    resolver_result: Any, content: Any, expected: Any
+) -> None:
+    calls = 0
+
+    def resolver() -> Any:
+        nonlocal calls
+        calls += 1
+        return resolver_result
+
+    OmegaConf.register_resolver("test_update_intermediate", resolver)
+    try:
+        cfg = OmegaConf.create(content)
+        OmegaConf.update(cfg, "target.added", 2)
+    finally:
+        OmegaConf.clear_resolver("test_update_intermediate")
+
+    assert OmegaConf.to_container(cfg, resolve=False) == expected
+    assert calls == 0
 
 
 @mark.parametrize(
