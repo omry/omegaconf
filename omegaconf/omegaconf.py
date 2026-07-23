@@ -1396,6 +1396,11 @@ class OmegaConf:
             k = split[i]
             # if next_root is a primitive (string, int etc) replace it with an empty map
             next_root, key_ = _select_one(root, k, throw_on_missing=False)
+            if next_root is not None:
+                target = _get_update_interpolation_target(next_root)
+                if target is not None:
+                    root[key_] = target
+                    next_root = root._get_child(key_)
             if isinstance(next_root, Container) and next_root._is_none():
                 raise ConfigTypeError(
                     f"Cannot set '{key}' because '{root._get_full_key(key_)}' is None"
@@ -1998,3 +2003,73 @@ def _select_one(
 
     assert val is None or isinstance(val, Node)
     return val, ret_key
+
+
+def _get_update_interpolation_target(
+    node: Node, memo: Optional[Set[int]] = None
+) -> Optional[Container]:
+    if not node._is_interpolation():
+        return None
+    target = _get_update_interpolation_result(node, memo=memo)
+    return target if isinstance(target, Container) else None
+
+
+def _get_update_interpolation_result(
+    node: Node, memo: Optional[Set[int]] = None
+) -> Optional[Node]:
+    if not node._is_interpolation():
+        return node
+
+    from .grammar_parser import OmegaConfGrammarParser, parse
+    from .grammar_visitor import GrammarVisitor
+
+    node_id = id(node)
+    memo = set() if memo is None else memo
+    if node_id in memo:
+        return None
+
+    memo.add(node_id)
+    try:
+        parse_tree = parse(_get_value(node))
+        assert isinstance(parse_tree, OmegaConfGrammarParser.ConfigValueContext)
+        text = parse_tree.text()
+        assert text is not None
+        interpolation = text.interpolation(0)
+        interpolation_node = interpolation.interpolationNode()
+        if text.getChildCount() != 1 or interpolation_node is None:
+            return None
+
+        parent = node._get_parent_container()
+        if parent is None:
+            return None
+
+        def resolve_node(inter_key: str, _memo: Optional[Set[int]]) -> Optional[Node]:
+            target, inter_key = parent._resolve_key_and_root(inter_key)
+            split = split_key(inter_key)
+            selected: Node = target
+            for index, key in enumerate(split):
+                child, _resolved_key = _select_one(target, key, throw_on_missing=False)
+                if child is None:
+                    return None
+                if child._is_interpolation():
+                    child = _get_update_interpolation_result(child, memo=memo)
+                    if child is None:
+                        return None
+                if index < len(split) - 1:
+                    if not isinstance(child, Container):
+                        return None
+                    target = child
+                selected = child
+            return selected
+
+        visitor = GrammarVisitor(
+            node_interpolation_callback=resolve_node,
+            resolver_interpolation_callback=lambda **_: None,
+            memo=memo,
+        )
+        target = visitor.visitInterpolationNode(interpolation_node)
+        return target if isinstance(target, Node) else None
+    except OmegaConfBaseException:
+        return None
+    finally:
+        memo.remove(node_id)
