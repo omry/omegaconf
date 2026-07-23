@@ -921,6 +921,19 @@ The ``force_add`` flag ensures that the path is created even if it will result i
     >>> OmegaConf.update(cfg, "a.b.c.d", 10, force_add=True)
     >>> assert cfg.a.b.c.d == 10
 
+When an intermediate path element is a node interpolation whose reference
+chain ends at an existing config container, ``OmegaConf.update()`` materializes
+an independent copy before updating it.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"base": {"x": 1}, "copy": "${base}"})
+    >>> OmegaConf.update(cfg, "copy.y", 2)
+    >>> OmegaConf.to_container(cfg, resolve=True)
+    {'base': {'x': 1}, 'copy': {'x': 1, 'y': 2}}
+    >>> OmegaConf.is_interpolation(cfg, "copy")
+    False
+
 .. _keypath-escaping:
 
 Key path escaping
