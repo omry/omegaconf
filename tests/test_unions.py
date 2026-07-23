@@ -1,11 +1,68 @@
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, List, Literal, Union
 
 from pytest import mark, param, raises
 
 from omegaconf import OmegaConf, UnionNode, ValidationError
 from omegaconf._utils import _get_value
 from tests import Color
+
+
+@dataclass
+class LiteralOrIntConfig:
+    value: Union[Literal["auto", "manual"], int] = "auto"
+
+
+@dataclass
+class NoneLiteralOrIntConfig:
+    value: Union[Literal[None], int] = None
+    sequence: List[Union[Literal[None], int]] = field(default_factory=lambda: [None, 1])
+    mapping: Dict[str, Union[Literal[None], int]] = field(
+        default_factory=lambda: {"none": None, "int": 1}
+    )
+
+
+def test_structured_config_union_with_literal_creation() -> None:
+    cfg = OmegaConf.structured(LiteralOrIntConfig)
+
+    assert cfg.value == "auto"
+
+
+def test_structured_config_union_with_literal_assignment() -> None:
+    cfg = OmegaConf.structured(LiteralOrIntConfig)
+
+    cfg.value = "manual"
+    assert cfg.value == "manual"
+
+    cfg.value = 10
+    assert cfg.value == 10
+
+    with raises(ValidationError):
+        cfg.value = "invalid"
+
+
+def test_structured_config_union_with_none_literal_creation() -> None:
+    cfg = OmegaConf.structured(NoneLiteralOrIntConfig)
+
+    assert cfg.value is None
+    assert cfg.sequence == [None, 1]
+    assert cfg.mapping == {"none": None, "int": 1}
+
+
+def test_structured_config_union_with_none_literal_assignment() -> None:
+    cfg = OmegaConf.structured(NoneLiteralOrIntConfig)
+
+    cfg.value = 10
+    cfg.value = None
+    cfg.sequence.append(None)
+    cfg.sequence[1] = None
+    cfg.mapping["int"] = None
+    cfg.mapping["new"] = None
+
+    assert cfg.value is None
+    assert cfg.sequence == [None, None, None]
+    assert cfg.mapping == {"none": None, "int": None, "new": None}
 
 
 @mark.parametrize(

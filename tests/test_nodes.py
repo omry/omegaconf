@@ -667,6 +667,12 @@ def test_literal_node_type_mismatch() -> None:
         LiteralNode(ref_type=Literal[0], value=False)
 
 
+def test_literal_node_accepts_none_literal() -> None:
+    node = LiteralNode(ref_type=Literal[None], value=None, is_optional=False)
+
+    assert node._value() is None
+
+
 @mark.parametrize(
     "ref_type,value",
     [

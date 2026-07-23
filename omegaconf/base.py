@@ -34,6 +34,7 @@ from ._utils import (
     is_union_annotation,
     is_valid_value_annotation,
     split_key,
+    type_hint_contains_none_literal,
     type_str,
 )
 from .errors import (
@@ -979,13 +980,16 @@ class UnionNode(Box):
         type_hint = self._metadata.type_hint
 
         value = _get_value(value)
-        if _is_special(value):
+        if _is_special(value) and not (
+            value is None
+            and not self._is_optional()
+            and type_hint_contains_none_literal(ref_type)
+        ):
             assert isinstance(value, (str, NoneType))
-            if value is None:
-                if not self._is_optional():
-                    raise ValidationError(
-                        f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
-                    )
+            if value is None and not self._is_optional():
+                raise ValidationError(
+                    f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
+                )
             self.__dict__["_content"] = value
         elif isinstance(value, (list, tuple, ListConfig, TupleConfig)):
             sequence_candidates = [

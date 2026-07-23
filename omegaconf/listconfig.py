@@ -29,6 +29,7 @@ from ._utils import (
     is_int,
     is_primitive_list,
     is_structured_config,
+    type_hint_contains_none_literal,
     type_str,
 )
 from .base import Box, ContainerMetadata, Node
@@ -105,7 +106,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             target = self._get_node(key)
             if target is not None:
                 assert isinstance(target, Node)
-                if value is None and not target._is_optional():
+                if (
+                    value is None
+                    and not target._is_optional()
+                    and not type_hint_contains_none_literal(target._metadata.ref_type)
+                ):
                     raise ValidationError(
                         "$FULL_KEY is not optional and cannot be assigned None"
                     )
@@ -122,7 +127,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
             value_type = OmegaConf.get_type(value)
 
-            if (value_is_none and not is_optional) or (
+            if (
+                value_is_none
+                and not is_optional
+                and not type_hint_contains_none_literal(target_type)
+            ) or (
                 is_structured_config(target_type)
                 and not value_is_none
                 and value_type is not None

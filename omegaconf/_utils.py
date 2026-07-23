@@ -731,12 +731,14 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 
 def is_supported_union_annotation(obj: Any) -> bool:
-    """Primitives and typed List/Dict containers are supported in Unions."""
+    """Primitives, literals, and typed containers are supported in Unions."""
     if not is_union_annotation(obj):
         return False
     args = obj.__args__
     return all(
-        is_primitive_type_annotation(arg) or is_container_annotation(arg)
+        is_primitive_type_annotation(arg)
+        or is_literal_annotation(arg)
+        or is_container_annotation(arg)
         for arg in args
     )
 
@@ -744,6 +746,14 @@ def is_supported_union_annotation(obj: Any) -> bool:
 def is_literal_annotation(type_: Any) -> bool:
     origin = getattr(type_, "__origin__", None)
     return origin is Literal
+
+
+def type_hint_contains_none_literal(type_: Any) -> bool:
+    if is_literal_annotation(type_):
+        return any(arg is None for arg in type_.__args__)
+    return is_union_annotation(type_) and any(
+        type_hint_contains_none_literal(arg) for arg in type_.__args__
+    )
 
 
 def is_dict_subclass(type_: Any) -> bool:

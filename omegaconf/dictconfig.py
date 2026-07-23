@@ -37,6 +37,7 @@ from ._utils import (
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
+    type_hint_contains_none_literal,
     type_str,
 )
 from .base import Box, Container, ContainerMetadata, DictKeyType, Node
@@ -263,7 +264,15 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             else:
                 field_is_optional = self._is_optional()
 
-            if not field_is_optional:
+            target = self._get_node(key) if key is not None else self
+            target_type = (
+                self._metadata.element_type
+                if target is None
+                else target._metadata.ref_type
+            )
+            if not field_is_optional and not type_hint_contains_none_literal(
+                target_type
+            ):
                 self._format_and_raise(
                     key=key,
                     value=value,
