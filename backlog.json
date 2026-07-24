@@ -1,21 +1,21 @@
 {
-  "generated_on": "2026-07-23",
-  "generated_at": "2026-07-23T20:13:48Z",
+  "generated_on": "2026-07-24",
+  "generated_at": "2026-07-24T04:09:24Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 35,
+    "open_total": 34,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 3,
-        "percentage": 8.6
+        "percentage": 8.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 27,
-        "percentage": 77.1
+        "count": 26,
+        "percentage": 76.5
       },
       {
         "category": "Documentation",
@@ -33,7 +33,7 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 8.6
+        "percentage": 8.8
       },
       {
         "category": "Build",
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,32 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 45
+        "count": 46
       }
     ]
   },
   "issues": [
-    {
-      "number": 1271,
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1353,
-          "url": "https://github.com/omry/omegaconf/pull/1353"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1271"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1448,9 +1427,37 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 1271,
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1353,
+          "url": "https://github.com/omry/omegaconf/pull/1353"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1271"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-24T04:09:24Z",
+      "kind": "closed",
+      "issue": 1271,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1271",
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs"
+    },
     {
       "ts": "2026-07-23T20:13:48Z",
       "kind": "pr",

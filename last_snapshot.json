@@ -12,6 +12,7 @@
     "1126": "2026-06-11",
     "1191": "2026-07-21",
     "1263": "2026-07-22",
+    "1271": "2026-07-24",
     "1310": "2026-06-10",
     "1314": "2026-06-11",
     "1315": "2026-06-11",
@@ -46,7 +47,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-23T20:13:48Z",
+  "generated_at": "2026-07-24T04:09:24Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -135,21 +136,6 @@
       "status": "not started",
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
       "updated_at": "2026-07-21T06:50:46Z"
-    },
-    "1271": {
-      "category": "Enhancement",
-      "created_at": "2026-04-24T11:44:32Z",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "pr_numbers": [
-        "1353"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "updated_at": "2026-07-20T14:29:39Z"
     },
     "1274": {
       "category": "Refactor",
@@ -658,6 +644,21 @@
       "status": "done",
       "title": "RFC: Revert list_merge_mode before stable 2.4",
       "updated_at": "2026-07-20T14:29:53Z"
+    },
+    "1271": {
+      "category": "Enhancement",
+      "created_at": "2026-04-24T11:44:32Z",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
+      "pr_numbers": [
+        "1353"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "updated_at": "2026-07-20T14:29:39Z"
     },
     "1310": {
       "category": "Bug",
