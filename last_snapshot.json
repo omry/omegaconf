@@ -20,6 +20,7 @@
     "1326": "2026-06-27",
     "1329": "2026-07-23",
     "1340": "2026-07-22",
+    "144": "2026-07-24",
     "181": "2026-07-20",
     "265": "2026-07-20",
     "392": "2026-07-18",
@@ -48,7 +49,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-24T11:53:15Z",
+  "generated_at": "2026-07-24T11:55:18Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -377,19 +378,6 @@
       "status": "not started",
       "title": "Refactor core class and module boundaries",
       "updated_at": "2026-07-22T11:05:01Z"
-    },
-    "144": {
-      "category": "Enhancement",
-      "created_at": "2020-01-30T01:58:10Z",
-      "labels": [
-        "enhancement",
-        "priority_high"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Full Union type support in structured configs",
-      "updated_at": "2026-07-24T08:40:34Z"
     },
     "459": {
       "category": "Enhancement",
@@ -744,6 +732,19 @@
       "status": "done",
       "title": "Inherited flag cache is not invalidated through container-valued unions",
       "updated_at": "2026-07-20T17:00:38Z"
+    },
+    "144": {
+      "category": "Enhancement",
+      "created_at": "2020-01-30T01:58:10Z",
+      "labels": [
+        "enhancement",
+        "priority_high"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Full Union type support in structured configs",
+      "updated_at": "2026-07-24T08:40:34Z"
     },
     "181": {
       "category": "Enhancement",
