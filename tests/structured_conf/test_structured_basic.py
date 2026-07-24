@@ -15,7 +15,7 @@ from omegaconf import (
     flag_override,
 )
 from omegaconf._utils import _is_optional, get_type_hint
-from omegaconf.errors import ConfigKeyError, UnsupportedValueType
+from omegaconf.errors import ConfigKeyError, ConfigValueError, UnsupportedValueType
 from tests import IllegalType
 
 
@@ -362,3 +362,235 @@ class TestTypeAliases:
 
         cfg = OmegaConf.structured(C)
         assert cfg.x == 0
+
+    def test_parameterized_type_alias(self) -> None:
+        from dataclasses import dataclass
+        from typing import List, TypeAliasType, TypeVar  # type: ignore[attr-defined]
+
+        T = TypeVar("T")
+        Vec = TypeAliasType("Vec", list[T], type_params=(T,))
+
+        @dataclass
+        class C:
+            values: Vec[int]
+
+        cfg = OmegaConf.structured(C)
+        cfg["values"] = [1, 2]
+        assert cfg["values"] == [1, 2]
+        assert _utils.get_type_hint(cfg, "values") == List[int]
+
+        with raises(ValidationError):
+            cfg["values"] = ["invalid"]
+
+    def test_parameterized_type_alias_substitution_order(self) -> None:
+        from dataclasses import dataclass
+        from typing import Tuple, TypeAliasType, TypeVar  # type: ignore[attr-defined]
+
+        T = TypeVar("T")
+        U = TypeVar("U")
+        Pair = TypeAliasType("Pair", tuple[U, T], type_params=(T, U))
+
+        @dataclass
+        class C:
+            value: Pair[str, int]
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = (10, "text")
+        assert cfg.value == (10, "text")
+        assert _utils.get_type_hint(cfg, "value") == Tuple[int, str]
+
+    @mark.skipif(
+        sys.version_info < (3, 13), reason="type parameter defaults require 3.13+"
+    )
+    def test_parameterized_type_alias_default(self) -> None:
+        import typing
+        from dataclasses import dataclass
+        from typing import List, Tuple, TypeVar
+
+        TypeAliasType = typing.TypeAliasType  # type: ignore[attr-defined]
+        T = TypeVar("T")
+        U = TypeVar("U", default=list[T])
+        Pair = TypeAliasType("Pair", tuple[T, U], type_params=(T, U))
+
+        @dataclass
+        class C:
+            value: Pair[int]
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = (10, [20])
+        assert cfg.value == (10, [20])
+        assert _utils.get_type_hint(cfg, "value") == Tuple[int, List[int]]
+
+    def test_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        MyInt = TypeAliasType("MyInt", int)
+        MyList = TypeAliasType("MyList", list[int])
+        assert _utils.is_supported_union_annotation(MyInt | MyList | str)
+
+        @dataclass
+        class C:
+            value: MyInt | MyList | str = 0
+
+        cfg = OmegaConf.structured(C)
+        assert cfg.value == 0
+
+        cfg.value = [1, 2]
+        assert cfg.value == [1, 2]
+
+        cfg.value = "text"
+        assert cfg.value == "text"
+
+    def test_type_alias_as_dict_key(self) -> None:
+        from dataclasses import dataclass, field
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        Key = TypeAliasType("Key", str)
+
+        @dataclass
+        class C:
+            values: dict[Key, int] = field(default_factory=dict)
+
+        cfg = OmegaConf.structured(C)
+        cfg["values"]["key"] = 10
+
+        assert cfg["values"] == {"key": 10}
+        assert cfg["values"]._metadata.key_type is str
+
+    def test_parameterized_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType, TypeVar  # type: ignore[attr-defined]
+
+        T = TypeVar("T")
+        Vec = TypeAliasType("Vec", list[T], type_params=(T,))
+
+        @dataclass
+        class C:
+            value: Vec[int] | str = "default"
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = [1, 2]
+        assert cfg.value == [1, 2]
+
+        with raises(ValidationError):
+            cfg.value = ["invalid"]
+
+    def test_nested_parameterized_type_alias(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType, TypeVar  # type: ignore[attr-defined]
+
+        T = TypeVar("T")
+        Vec = TypeAliasType("Vec", list[T], type_params=(T,))
+        MaybeVec = TypeAliasType("MaybeVec", Vec[T] | None, type_params=(T,))
+
+        @dataclass
+        class C:
+            value: MaybeVec[int] = None
+
+        cfg = OmegaConf.structured(C)
+        assert cfg.value is None
+
+        cfg.value = [1, 2]
+        assert cfg.value == [1, 2]
+
+    def test_unsupported_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        class Unsupported:
+            pass
+
+        UnsupportedAlias = TypeAliasType("UnsupportedAlias", Unsupported)
+
+        @dataclass
+        class C:
+            value: UnsupportedAlias | int = 0
+
+        with raises(ConfigValueError, match="Unsupported type annotation in Union"):
+            OmegaConf.structured(C)
+
+    def test_structured_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        @dataclass
+        class Plugin:
+            name: str
+
+        PluginAlias = TypeAliasType("PluginAlias", Plugin)
+
+        @dataclass
+        class C:
+            value: PluginAlias | int = 0
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = Plugin(name="demo")
+
+        assert OmegaConf.get_type(cfg.value) is Plugin
+        assert cfg.value == {"name": "demo"}
+
+    def test_union_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        IntOrStr = TypeAliasType("IntOrStr", int | str)
+
+        @dataclass
+        class C:
+            value: IntOrStr | float = 0
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = "text"
+        assert cfg.value == "text"
+
+        cfg.value = 1.5
+        assert cfg.value == 1.5
+
+    def test_none_type_aliases_as_union_members(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        Nothing = TypeAliasType("Nothing", None)
+        AlsoNothing = TypeAliasType("AlsoNothing", None)
+
+        @dataclass
+        class C:
+            value: Nothing | AlsoNothing = None
+
+        cfg = OmegaConf.structured(C)
+        assert cfg.value is None
+
+    def test_optional_type_alias_as_union_member(self) -> None:
+        from dataclasses import dataclass
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        MaybeInt = TypeAliasType("MaybeInt", int | None)
+
+        @dataclass
+        class C:
+            value: MaybeInt | str = None
+
+        cfg = OmegaConf.structured(C)
+        assert cfg.value is None
+
+        cfg.value = 10
+        assert cfg.value == 10
+
+        cfg.value = "text"
+        assert cfg.value == "text"
+
+    def test_attrs_type_alias_as_union_member(self) -> None:
+        from typing import TypeAliasType  # type: ignore[attr-defined]
+
+        import attr
+
+        MyInt = TypeAliasType("MyInt", int)
+
+        @attr.s(auto_attribs=True)
+        class C:
+            value: MyInt | str = 0
+
+        cfg = OmegaConf.structured(C)
+        cfg.value = "text"
+        assert cfg.value == "text"
