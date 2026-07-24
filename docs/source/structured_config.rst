@@ -35,8 +35,9 @@ in the input class.
 Currently, type hints supported in OmegaConf’s structured configs include:
  - primitive types (``int``, ``float``, ``bool``, ``str``, ``bytes``, ``Path``) and enum types
    (user-defined subclasses of ``enum.Enum``). See the :ref:`simple_types` section below.
- - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``, and
-   unions of typed container types, e.g. ``Union[List[int], Dict[str, int]]``.
+ - unions of primitive/enum types, e.g. ``Union[float, bool, MyEnum]``, typed
+   container types, e.g. ``Union[List[int], Dict[str, int]]``, and structured
+   config types, e.g. ``Union[CatConfig, DogConfig]``.
    See :ref:`union_types` below.
  - literal types, e.g. ``Literal["train", "eval"]``.
    See :ref:`literal_types` below.
@@ -431,7 +432,8 @@ Unions
 ^^^^^^
 
 You can use `typing.Union <https://docs.python.org/3/library/typing.html#typing.Union>`_
-to combine supported simple types, ``Literal`` annotations, and typed container types.
+to combine supported simple types, ``Literal`` annotations, typed container types,
+and structured config types.
 
 .. doctest::
 
@@ -457,6 +459,62 @@ to combine supported simple types, ``Literal`` annotations, and typed container 
         full_key: u
         object_type=None
 
+For unions of structured config types, typed values select the most specific
+declared branch according to their runtime type's method resolution order.
+Plain mappings do not select between multiple structured branches by matching
+their fields:
+
+.. doctest::
+
+    >>> @dataclass
+    ... class Dog:
+    ...     name: str = MISSING
+    ...     breed: str = MISSING
+    ...
+    >>> @dataclass
+    ... class Cat:
+    ...     name: str = MISSING
+    ...     indoor: bool = MISSING
+    ...
+    >>> @dataclass
+    ... class PetOwner:
+    ...     pet: Union[Dog, Cat] = MISSING
+    ...
+    >>> cfg = OmegaConf.structured(PetOwner)
+    >>> cfg.pet = Dog(name="Rex", breed="Lab")
+    >>> assert OmegaConf.get_type(cfg, "pet") is Dog
+    >>> cfg.pet |= {"name": "Fido"}  # merge into the selected branch
+    >>> assert cfg.pet == {"name": "Fido", "breed": "Lab"}
+    >>> override = OmegaConf.structured(PetOwner)
+    >>> override.pet = Dog(name="Buddy")
+    >>> merged = OmegaConf.merge(cfg, override)  # same branch: recursive merge
+    >>> assert merged.pet == {"name": "Buddy", "breed": "Lab"}
+    >>> cfg.pet = {"name": "Spot"}  # assignment replaces the selected branch
+    >>> assert cfg.pet.name == "Spot"
+    >>> assert OmegaConf.is_missing(cfg.pet, "breed")
+    >>> cfg.pet.breed = 123  # selected branches retain normal field conversion
+    >>> assert cfg.pet.breed == "123"
+
+A mapping can initialize a structured branch when it is the only
+mapping-compatible member of the union. If multiple structured or dictionary
+branches are possible and none is selected, OmegaConf raises ``ValidationError``
+and requires a typed value. A typed structured value may switch the selected
+branch. Branch selection itself is strict, but after selection the structured
+branch retains normal structured-config validation and conversion behavior,
+including support for ``Any`` fields and ``open_dict``.
+
+Merge operations distinguish branch identity from assignment. A typed source
+that selects the same declared structured branch is merged recursively, so
+``MISSING`` source fields do not replace existing values. A typed source that
+selects a different declared branch replaces the destination branch. An untyped
+mapping merges into an already selected structured branch.
+
+OmegaConf does not inject a discriminator or other type tag when serializing a
+structured union. Consequently, ``to_yaml`` followed by ``load`` does not retain
+the selected branch's structured type. If multiple structured branches are
+possible, callers must restore that information with a typed value rather than
+expecting OmegaConf to select a branch from mapping keys.
+
 If any argument of a ``Union`` type hint is ``Optional``, the *whole*
 union is considered optional. For example, OmegaConf treats all four of the
 following type hints as equivalent:
@@ -480,9 +538,9 @@ field typed as ``str`` results in the integer being coverted to a string:
     >>> cfg.s = 10.1
     >>> assert cfg.s == "10.1"  # The assigned value has been converted to a string
 
-When dealing with ``Union`` types, however, conversion is disabled so as to
-avoid ambiguity. Values assigned to a union-typed field of a structured config
-must precisely match one of the types in the ``Union`` annotation:
+When selecting among members of a ``Union``, conversion is disabled so as to
+avoid ambiguity. Values assigned directly to a union-typed field of a structured
+config must precisely match one of the types in the ``Union`` annotation:
 
 .. doctest::
 
@@ -501,6 +559,9 @@ must precisely match one of the types in the ``Union`` annotation:
     omegaconf.errors.ValidationError: Value '123' of type 'int' is incompatible with type hint 'Union[str, float]'
         full_key: u
         object_type=StrOrInt
+
+Once a structured member is selected, assignments to its fields use the normal
+structured-config conversion rules described above.
 
 
 Unions of container types

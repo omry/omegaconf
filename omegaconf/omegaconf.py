@@ -1859,6 +1859,14 @@ def _node_wrap(
             element_type=element_type,
             ref_type=ref_type,
         )
+    elif is_union_annotation(ref_type):
+        node = UnionNode(
+            content=value,
+            ref_type=ref_type,
+            is_optional=is_optional,
+            key=key,
+            parent=parent,
+        )
     elif is_structured_config(ref_type) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(value)
         node = DictConfig(
@@ -1869,14 +1877,6 @@ def _node_wrap(
             parent=parent,
             key_type=key_type,
             element_type=element_type,
-        )
-    elif is_union_annotation(ref_type):
-        node = UnionNode(
-            content=value,
-            ref_type=ref_type,
-            is_optional=is_optional,
-            key=key,
-            parent=parent,
         )
     elif is_literal_annotation(ref_type):
         node = LiteralNode(

@@ -640,7 +640,7 @@ class NestedWithNone:
 
 
 @dataclass
-class UnionError:
+class StructuredUnion:
     x: Union[int, Plugin] = 10
 
 

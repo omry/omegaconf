@@ -148,11 +148,6 @@ class StructuredWithMissing:
 
 
 @dataclass
-class UnionError:
-    x: Union[int, User] = 10
-
-
-@dataclass
 class StructuredWithBadDict:
     foo: Dict[str, str] = 123  # type: ignore
 

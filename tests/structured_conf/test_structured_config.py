@@ -294,9 +294,12 @@ class TestConfigs:
 
         OmegaConf.structured(module.NoDefaultValue(no_default=10)) == {"no_default": 10}
 
-    def test_union_errors(self, module: Any) -> None:
-        with raises(ValueError):
-            OmegaConf.structured(module.UnionError)
+    def test_structured_union(self, module: Any) -> None:
+        cfg = OmegaConf.structured(module.StructuredUnion)
+        assert cfg.x == 10
+
+        cfg.x = module.ConcretePlugin()
+        assert OmegaConf.get_type(cfg, "x") is module.ConcretePlugin
 
     def test_container_union(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ContainerUnion)

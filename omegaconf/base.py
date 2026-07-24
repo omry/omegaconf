@@ -30,9 +30,11 @@ from ._utils import (
     get_value_kind,
     is_dict_annotation,
     is_list_annotation,
+    is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
     is_valid_value_annotation,
+    select_structured_config_union_member,
     split_key,
     type_hint_contains_none_literal,
     type_str,
@@ -419,9 +421,7 @@ class Box(Node):
             content = self.__dict__["_content"]
             if isinstance(content, Node):
                 content._set_parent(self)
-                if isinstance(content, Box):  # pragma: no cover
-                    # No coverage here as support for containers inside
-                    # UnionNode is not yet implemented
+                if isinstance(content, Box):
                     content._re_parent()
 
 
@@ -991,6 +991,18 @@ class UnionNode(Box):
                     f"Value '$VALUE' is incompatible with type hint '{type_str(type_hint)}'"
                 )
             self.__dict__["_content"] = value
+        elif is_structured_config(value):
+            structured_candidates = [
+                t for t in ref_type.__args__ if is_structured_config(t)
+            ]
+            selected = select_structured_config_union_member(
+                value=value, candidates=structured_candidates
+            )
+            if selected is None:
+                raise ValidationError(
+                    f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
+                )
+            self._set_structured_config_value(value=value, ref_type=selected)
         elif isinstance(value, (list, tuple, ListConfig, TupleConfig)):
             sequence_candidates = [
                 t
@@ -1013,12 +1025,7 @@ class UnionNode(Box):
                 type_hint=type_hint,
             )
         elif isinstance(value, (dict, Container)):
-            # Same policy for Dict[...] candidates.
-            self._set_container_value(
-                value=value,
-                candidates=[t for t in ref_type.__args__ if is_dict_annotation(t)],
-                type_hint=type_hint,
-            )
+            self._set_mapping_value(value=value, type_hint=type_hint)
         else:
             for candidate_ref_type in ref_type.__args__:
                 try:
@@ -1036,6 +1043,107 @@ class UnionNode(Box):
                 raise ValidationError(
                     f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
                 )
+
+    def _set_mapping_value(self, value: Any, type_hint: Any) -> None:
+        from omegaconf.dictconfig import DictConfig
+        from omegaconf.omegaconf import _node_wrap
+
+        ref_type = self._metadata.ref_type
+        structured_candidates = [
+            t for t in ref_type.__args__ if is_structured_config(t)
+        ]
+        dict_candidates = [t for t in ref_type.__args__ if is_dict_annotation(t)]
+
+        if not structured_candidates:
+            self._set_container_value(
+                value=value,
+                candidates=dict_candidates,
+                type_hint=type_hint,
+            )
+            return
+
+        selected = select_structured_config_union_member(
+            value=value, candidates=structured_candidates
+        )
+        if selected is not None:
+            self._set_structured_config_value(value=value, ref_type=selected)
+            return
+
+        is_explicitly_typed_dict = isinstance(value, DictConfig) and (
+            value._metadata.ref_type not in (Any, dict)
+            or value._metadata.key_type is not Any
+            or value._metadata.element_type is not Any
+        )
+        if is_explicitly_typed_dict and dict_candidates:
+            self._set_container_value(
+                value=value,
+                candidates=dict_candidates,
+                type_hint=type_hint,
+            )
+            return
+
+        content = self.__dict__["_content"]
+        if isinstance(content, DictConfig):
+            active_ref_type = content._metadata.ref_type
+            if is_structured_config(active_ref_type):
+                self._set_structured_config_value(value=value, ref_type=active_ref_type)
+                return
+            if active_ref_type in dict_candidates:
+                node = _node_wrap(
+                    value=value,
+                    ref_type=active_ref_type,
+                    is_optional=False,
+                    key=None,
+                    parent=None,
+                )
+                node._set_parent(self)
+                self.__dict__["_content"] = node
+                return
+
+        mapping_candidates = structured_candidates + dict_candidates
+        if len(mapping_candidates) == 1:
+            self._set_structured_config_value(
+                value=value, ref_type=mapping_candidates[0]
+            )
+            return
+
+        matching_types = ", ".join(type_str(t) for t in mapping_candidates)
+        raise ValidationError(
+            f"Ambiguous assignment to {type_str(type_hint)}. "
+            f"Mapping value matches multiple union members: {matching_types}. "
+            f"Use a typed value to select a branch."
+        )
+
+    def _set_structured_config_value(self, value: Any, ref_type: Any) -> None:
+        from omegaconf.dictconfig import DictConfig
+        from omegaconf.omegaconf import _node_wrap, flag_override
+
+        value_is_mapping = isinstance(value, (dict, DictConfig)) and not (
+            isinstance(value, DictConfig)
+            and is_structured_config(value._metadata.object_type)
+        )
+        with flag_override(self, "convert", True):
+            if value_is_mapping:
+                node = _node_wrap(
+                    value=ref_type,
+                    ref_type=ref_type,
+                    is_optional=False,
+                    key=None,
+                    parent=self,
+                )
+            else:
+                node = _node_wrap(
+                    value=value,
+                    ref_type=ref_type,
+                    is_optional=False,
+                    key=None,
+                    parent=self,
+                )
+            assert isinstance(node, DictConfig)
+            node._set_flag("convert", True)
+            if value_is_mapping:
+                node._merge_with(value, _allow_readonly_target=True)
+        self.__dict__["_content"] = node
 
     def _set_container_value(
         self,

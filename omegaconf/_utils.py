@@ -402,7 +402,7 @@ def get_attr_data(
             value = copy.deepcopy(value)
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
-                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
+                f"Unsupported type annotation in Union:\n{name}: {type_str(type_)}"  # noqa: E231
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
 
@@ -469,7 +469,7 @@ def get_dataclass_data(
 
         if is_union_annotation(type_) and not is_supported_union_annotation(type_):
             e = ConfigValueError(
-                f"Unions of containers are not supported:\n{name}: {type_str(type_)}"  # noqa: E231
+                f"Unsupported type annotation in Union:\n{name}: {type_str(type_)}"  # noqa: E231
             )
             format_and_raise(node=None, key=None, value=value, cause=e, msg=str(e))
         try:
@@ -731,15 +731,38 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 
 def is_supported_union_annotation(obj: Any) -> bool:
-    """Primitives, literals, and typed containers are supported in Unions."""
+    """Supported value annotations can be used as members of Unions."""
     if not is_union_annotation(obj):
         return False
     args = obj.__args__
     return all(
         is_primitive_type_annotation(arg)
         or is_literal_annotation(arg)
+        or is_structured_config(arg)
         or is_container_annotation(arg)
         for arg in args
+    )
+
+
+def select_structured_config_union_member(
+    value: Any, candidates: List[Any]
+) -> Optional[Any]:
+    from omegaconf.dictconfig import DictConfig
+
+    if isinstance(value, DictConfig):
+        value_type = value._metadata.object_type
+    elif is_structured_config(value):
+        value_type = get_type_of(value)
+    else:
+        return None
+
+    if not is_structured_config(value_type):
+        return None
+
+    candidate_set = set(candidates)
+    return next(
+        (base for base in value_type.__mro__ if base in candidate_set),
+        None,
     )
 
 
