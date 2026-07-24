@@ -144,3 +144,5 @@
 {"ts": "2026-07-24T12:34:56Z", "kind": "new", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs"}
 {"ts": "2026-07-24T13:47:14Z", "kind": "status", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "not started → in progress", "pr": {"number": 1355, "url": "https://github.com/omry/omegaconf/pull/1355"}}
 {"ts": "2026-07-24T13:47:14Z", "kind": "pr", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "linked #1355"}
+{"ts": "2026-07-24T17:17:33Z", "kind": "status", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "in progress → not started"}
+{"ts": "2026-07-24T17:17:33Z", "kind": "pr", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "unlinked #1355"}

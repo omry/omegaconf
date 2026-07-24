@@ -48,7 +48,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-24T13:47:14Z",
+  "generated_at": "2026-07-24T17:17:33Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -385,11 +385,9 @@
         "enhancement",
         "priority_high"
       ],
-      "pr_numbers": [
-        "1355"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Full Union type support in structured configs",
       "updated_at": "2026-07-24T12:43:57Z"
     },
