@@ -566,8 +566,18 @@ class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
             ),
         )
 
+    def validate_and_convert(self, value: Any) -> Any:
+        if value is None and any(field is None for field in self.ref_type.__args__):
+            return self.validate_and_convert_to_literal(
+                ref_type=self.ref_type, value=value
+            )
+        return super().validate_and_convert(value)
+
     def _validate_and_convert_impl(self, value: Any) -> Any:
         return self.validate_and_convert_to_literal(ref_type=self.ref_type, value=value)
+
+    def _strict_validate_type(self, value: Any) -> None:
+        self.validate_and_convert_to_literal(ref_type=self.ref_type, value=value)
 
     @staticmethod
     def validate_and_convert_to_literal(ref_type: Any, value: Any) -> Any:
