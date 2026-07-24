@@ -232,26 +232,130 @@ def is_union_annotation(type_: Any) -> bool:
     return getattr(type_, "__origin__", None) is Union
 
 
-def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
-    """Check whether `type_` is equivalent to `typing.Optional[T]` for some T."""
+def _resolve_type_alias(type_: Any) -> Any:
     if sys.version_info >= (3, 12):  # pragma: no cover
         import typing  # lgtm [py/import-and-import-from]
 
-        if isinstance(type_, typing.TypeAliasType):
-            type_ = type_.__value__
+        seen = set()
+        while id(type_) not in seen:
+            seen.add(id(type_))
+            if isinstance(type_, typing.TypeAliasType):
+                bare_alias = True
+                origin = type_
+                arguments: Tuple[Any, ...] = ()
+            else:
+                bare_alias = False
+                origin = typing.get_origin(type_)
+                if not isinstance(origin, typing.TypeAliasType):
+                    break
+                arguments = typing.get_args(type_)
+
+            parameters = origin.__type_params__
+            variadic = [
+                parameter
+                for parameter in parameters
+                if isinstance(parameter, typing.TypeVarTuple)
+            ]
+            if len(variadic) > 1:
+                break
+
+            if bare_alias:
+                substitutions = {}
+            elif variadic:
+                variadic_index = parameters.index(variadic[0])
+                trailing = len(parameters) - variadic_index - 1
+                if len(arguments) < len(parameters) - 1:
+                    break
+                substitutions = dict(zip(parameters[:variadic_index], arguments))
+                substitutions[variadic[0]] = arguments[
+                    variadic_index : len(arguments) - trailing if trailing else None
+                ]
+                if trailing:
+                    substitutions.update(
+                        zip(parameters[-trailing:], arguments[-trailing:])
+                    )
+            else:
+                if len(arguments) > len(parameters):
+                    break
+                substitutions = dict(zip(parameters, arguments))
+
+            def substitution_args(value: Any) -> Tuple[Any, ...]:
+                result = []
+                for parameter in getattr(value, "__parameters__", ()):
+                    argument = substitutions[parameter]
+                    if isinstance(parameter, typing.TypeVarTuple):
+                        result.extend(argument)
+                    else:
+                        result.append(argument)
+                return tuple(result)
+
+            no_default = getattr(typing, "NoDefault", None)
+            for parameter in parameters:
+                if parameter in substitutions:
+                    continue
+                default: Any = getattr(parameter, "__default__", no_default)
+                if default is no_default:
+                    break
+
+                for known_parameter, argument in substitutions.items():
+                    if default is known_parameter:
+                        default = argument
+                        break
+                else:
+                    default_parameters = getattr(default, "__parameters__", ())
+                    if default_parameters:
+                        try:
+                            default_arguments = substitution_args(default)
+                        except KeyError:
+                            break
+                        default = default[default_arguments]
+                if isinstance(parameter, typing.TypeVarTuple):
+                    default_args = typing.get_args(default)
+                    if typing.get_origin(default) is typing.Unpack and default_args:
+                        default = typing.get_args(default_args[0])
+                substitutions[parameter] = default
+            else:
+                value = origin.__value__
+                for parameter, argument in substitutions.items():
+                    if value is parameter:
+                        value = argument
+                        break
+                else:
+                    value_parameters = getattr(value, "__parameters__", ())
+                    if value_parameters:
+                        try:
+                            value_arguments = substitution_args(value)
+                        except KeyError:
+                            break
+                        value = value[value_arguments]
+                type_ = value
+                continue
+            break
+    return type_
+
+
+def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
+    """Normalize aliases and check whether `type_` accepts None."""
+    type_ = _resolve_type_alias(type_)
     if is_union_annotation(type_):
-        args = type_.__args__
-        if NoneType in args:
-            optional = True
-            args = tuple(a for a in args if a is not NoneType)
-        else:
-            optional = False
+        optional = False
+        args = []
+        for arg in type_.__args__:
+            arg_optional, arg_type = _resolve_optional(arg)
+            if arg_type is Any:
+                return True, Any
+            optional = optional or arg_optional
+            if arg_type is NoneType:
+                continue
+            args.append(arg_type)
+
         if len(args) == 1:
             return optional, args[0]
         elif len(args) >= 2:
-            return optional, Union[args]
+            return optional, Union[tuple(args)]  # pyrefly: ignore[not-a-type]
         else:
-            assert False
+            # Only distinct PEP 695 aliases that all resolve to None can reach this.
+            return True, NoneType  # pragma: no cover
 
     if type_ is Any:
         return True, Any
@@ -273,30 +377,111 @@ def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
     return obj._is_optional()
 
 
-def _resolve_forward(type_: Type[Any], module: str) -> Type[Any]:
+def _resolve_forward(
+    type_: Type[Any],
+    module: str,
+    preserve_container_origin: bool = False,
+    type_alias_guard: Optional[set[int]] = None,
+) -> Type[Any]:
     import typing  # lgtm [py/import-and-import-from]
 
+    if sys.version_info >= (3, 12):  # pragma: no cover
+        type_alias = (
+            type_
+            if isinstance(type_, typing.TypeAliasType)
+            else typing.get_origin(type_)
+        )
+        if isinstance(type_alias, typing.TypeAliasType):
+            if type_alias_guard is None:
+                type_alias_guard = set()
+            if id(type_alias) in type_alias_guard:
+                raise ValidationError(
+                    f"Recursive type alias '{type_alias.__name__}' is not supported"
+                )
+            type_alias_guard = type_alias_guard | {id(type_alias)}
+
+    type_ = _resolve_type_alias(type_)
     forward = typing.ForwardRef if hasattr(typing, "ForwardRef") else typing._ForwardRef  # type: ignore
     if type(type_) is forward:
         return _get_class(module, type_.__forward_arg__)
     elif isinstance(type_, str):
         return _get_class(module, type_)
+    elif is_union_annotation(type_):
+        is_optional, type_ = _resolve_optional(type_)
+        if type_ is Any:
+            return Any
+        if is_union_annotation(type_):
+            args = tuple(
+                _resolve_forward(
+                    arg,
+                    module=module,
+                    preserve_container_origin=True,
+                    type_alias_guard=type_alias_guard,
+                )
+                for arg in type_.__args__
+            )
+            type_ = Union[args]  # pyrefly: ignore[not-a-type]
+        else:
+            type_ = _resolve_forward(
+                type_,
+                module=module,
+                preserve_container_origin=True,
+                type_alias_guard=type_alias_guard,
+            )
+        return Optional[type_] if is_optional else type_
     else:
         if is_dict_annotation(type_):
+            if preserve_container_origin and (
+                type_ in (dict, Dict) or getattr(type_, "__origin__", None) is None
+            ):
+                return type_
             kt, vt = get_dict_key_value_types(type_)
             if kt is not None:
-                kt = _resolve_forward(kt, module=module)
+                kt = _resolve_forward(
+                    kt,
+                    module=module,
+                    preserve_container_origin=preserve_container_origin,
+                    type_alias_guard=type_alias_guard,
+                )
             if vt is not None:
-                vt = _resolve_forward(vt, module=module)
+                vt = _resolve_forward(
+                    vt,
+                    module=module,
+                    preserve_container_origin=preserve_container_origin,
+                    type_alias_guard=type_alias_guard,
+                )
+            if preserve_container_origin and isinstance(type_, types.GenericAlias):
+                return dict[kt, vt]  # type: ignore
             return Dict[kt, vt]  # type: ignore
         if is_list_annotation(type_):
+            if preserve_container_origin and type_ in (list, List):
+                return type_
             et = get_list_element_type(type_)
             if et is not None:
-                et = _resolve_forward(et, module=module)
+                et = _resolve_forward(
+                    et,
+                    module=module,
+                    preserve_container_origin=preserve_container_origin,
+                    type_alias_guard=type_alias_guard,
+                )
+            if preserve_container_origin and isinstance(type_, types.GenericAlias):
+                return list[et]  # type: ignore
             return List[et]  # type: ignore
         if is_tuple_annotation(type_):
+            if preserve_container_origin and type_ in (tuple, Tuple):
+                return type_
             its = get_tuple_item_types(type_)
-            its = tuple(_resolve_forward(it, module=module) for it in its)
+            its = tuple(
+                _resolve_forward(
+                    it,
+                    module=module,
+                    preserve_container_origin=preserve_container_origin,
+                    type_alias_guard=type_alias_guard,
+                )
+                for it in its
+            )
+            if preserve_container_origin and isinstance(type_, types.GenericAlias):
+                return tuple[its]  # type: ignore
             return Tuple[its]  # type: ignore
 
         return type_
@@ -732,9 +917,13 @@ def is_tuple_annotation(type_: Any) -> bool:
 
 def is_supported_union_annotation(obj: Any) -> bool:
     """Supported value annotations can be used as members of Unions."""
+    obj = _resolve_type_alias(obj)
     if not is_union_annotation(obj):
         return False
-    args = obj.__args__
+    _, obj = _resolve_optional(obj)
+    if obj is Any:
+        return True
+    args = obj.__args__ if is_union_annotation(obj) else (obj,)
     return all(
         is_primitive_type_annotation(arg)
         or is_literal_annotation(arg)

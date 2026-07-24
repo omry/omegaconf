@@ -435,6 +435,11 @@ You can use `typing.Union <https://docs.python.org/3/library/typing.html#typing.
 to combine supported simple types, ``Literal`` annotations, typed container types,
 and structured config types.
 
+A union containing ``Any`` is normalized to ``Any`` because every value already
+matches that member. PEP 695 ``type`` aliases are transparent on Python 3.12 and
+newer: an alias can be used wherever its expanded annotation is supported,
+including aliases with type parameters.
+
 .. doctest::
 
     >>> from typing import Union
