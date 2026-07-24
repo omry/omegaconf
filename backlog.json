@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-24",
-  "generated_at": "2026-07-24T04:09:24Z",
+  "generated_at": "2026-07-24T07:34:41Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 34,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 34
+        "count": 33
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 1275,
+      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1354,
+          "url": "https://github.com/omry/omegaconf/pull/1354"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-24",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1275"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -112,7 +133,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-01-30",
-      "updated": "2026-07-20",
+      "updated": "2026-07-24",
       "labels": [
         "enhancement",
         "priority_high"
@@ -322,22 +343,6 @@
         "maintenance"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1274"
-    },
-    {
-      "number": 1275,
-      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1275"
     },
     {
       "number": 1282,
@@ -1314,6 +1319,27 @@
       "url": "https://github.com/omry/omegaconf/issues/1263"
     },
     {
+      "number": 1271,
+      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1353,
+          "url": "https://github.com/omry/omegaconf/pull/1353"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "enhancement",
+        "structured config"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1271"
+    },
+    {
       "number": 1310,
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "category": "Bug",
@@ -1427,30 +1453,29 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 1271,
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1353,
-          "url": "https://github.com/omry/omegaconf/pull/1353"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1271"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-24T07:34:41Z",
+      "kind": "pr",
+      "issue": 1275,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1275",
+      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
+      "detail": "linked #1354"
+    },
+    {
+      "ts": "2026-07-24T07:34:41Z",
+      "kind": "status",
+      "issue": 1275,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1275",
+      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1354,
+        "url": "https://github.com/omry/omegaconf/pull/1354"
+      }
+    },
     {
       "ts": "2026-07-24T04:09:24Z",
       "kind": "closed",

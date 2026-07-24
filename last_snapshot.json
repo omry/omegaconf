@@ -47,7 +47,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-24T04:09:24Z",
+  "generated_at": "2026-07-24T07:34:41Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -156,11 +156,13 @@
         "enhancement",
         "structured config"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1354"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Support Union of Structured Configs (dataclasses/attr classes)",
-      "updated_at": "2026-07-20T19:20:11Z"
+      "updated_at": "2026-07-24T06:54:12Z"
     },
     "1282": {
       "category": "Documentation",
@@ -401,7 +403,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Full Union type support in structured configs",
-      "updated_at": "2026-07-20T19:20:12Z"
+      "updated_at": "2026-07-24T04:13:33Z"
     },
     "459": {
       "category": "Enhancement",
