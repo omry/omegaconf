@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Literal, Union
 from pytest import mark, param, raises
 
 from omegaconf import OmegaConf, UnionNode, ValidationError
-from omegaconf._utils import _get_value
+from omegaconf._utils import _get_value, get_type_hint
 from tests import Color
 
 
@@ -21,6 +21,20 @@ class NoneLiteralOrIntConfig:
     mapping: Dict[str, Union[Literal[None], int]] = field(
         default_factory=lambda: {"none": None, "int": 1}
     )
+
+
+@dataclass
+class AnyOrIntConfig:
+    value: Union[Any, int] = 10
+
+
+def test_union_containing_any_is_normalized_to_any() -> None:
+    cfg = OmegaConf.structured(AnyOrIntConfig)
+    assert get_type_hint(cfg, "value") is Any
+
+    for value in (None, "text", [1, "two"], {"three": 3}):
+        cfg.value = value
+        assert cfg.value == value
 
 
 def test_structured_config_union_with_literal_creation() -> None:
