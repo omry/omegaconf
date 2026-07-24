@@ -141,3 +141,4 @@
 {"ts": "2026-07-24T07:34:41Z", "kind": "pr", "issue": 1275, "issue_url": "https://github.com/omry/omegaconf/issues/1275", "title": "Support Union of Structured Configs (dataclasses/attr classes)", "detail": "linked #1354"}
 {"ts": "2026-07-24T11:53:15Z", "kind": "closed", "issue": 1275, "issue_url": "https://github.com/omry/omegaconf/issues/1275", "title": "Support Union of Structured Configs (dataclasses/attr classes)"}
 {"ts": "2026-07-24T11:55:18Z", "kind": "closed", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs"}
+{"ts": "2026-07-24T12:34:56Z", "kind": "new", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs"}
