@@ -54,7 +54,6 @@ from tests import (
     StructuredWithBadList,
     StructuredWithMissing,
     SubscriptedDict,
-    UnionError,
     User,
     warns_dict_subclass_deprecated,
 )
@@ -876,16 +875,6 @@ params = [
             msg="Unsupported value type: 'tests.IllegalType'",
         ),
         id="structured:create_with_unsupported_element_type",
-    ),
-    param(
-        Expected(
-            create=lambda: None,
-            op=lambda cfg: OmegaConf.structured(UnionError),
-            exception_type=ValueError,
-            msg="Unions of containers are not supported:\nx: Union[int, User]",
-            num_lines=3,
-        ),
-        id="structured:create_with_union_error",
     ),
     # assign
     param(

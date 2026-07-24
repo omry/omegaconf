@@ -613,7 +613,7 @@ class NestedWithNone:
 
 
 @attr.s(auto_attribs=True)
-class UnionError:
+class StructuredUnion:
     x: Union[int, Plugin] = 10
 
 
