@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-07-24",
-  "generated_at": "2026-07-24T12:34:56Z",
+  "generated_at": "2026-07-24T13:47:14Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 33,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 33
+        "count": 32
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 144,
+      "title": "Full Union type support in structured configs",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1355,
+          "url": "https://github.com/omry/omegaconf/pull/1355"
+        }
+      ],
+      "created": "2020-01-30",
+      "updated": "2026-07-24",
+      "labels": [
+        "enhancement",
+        "priority_high"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/144"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -572,22 +593,6 @@
         "internal"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1349"
-    },
-    {
-      "number": 144,
-      "title": "Full Union type support in structured configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2020-01-30",
-      "updated": "2026-07-24",
-      "labels": [
-        "enhancement",
-        "priority_high"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/144"
     },
     {
       "number": 181,
@@ -1456,6 +1461,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-24T13:47:14Z",
+      "kind": "pr",
+      "issue": 144,
+      "issue_url": "https://github.com/omry/omegaconf/issues/144",
+      "title": "Full Union type support in structured configs",
+      "detail": "linked #1355"
+    },
+    {
+      "ts": "2026-07-24T13:47:14Z",
+      "kind": "status",
+      "issue": 144,
+      "issue_url": "https://github.com/omry/omegaconf/issues/144",
+      "title": "Full Union type support in structured configs",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1355,
+        "url": "https://github.com/omry/omegaconf/pull/1355"
+      }
+    },
     {
       "ts": "2026-07-24T12:34:56Z",
       "kind": "new",
