@@ -572,6 +572,20 @@ def test_resolve_raises_on_resolver_arg_to_missing(restore_resolvers: Any) -> No
         OmegaConf.resolve(cfg)
 
 
+def test_resolve_error_keeps_key_and_object_type() -> None:
+    """https://github.com/omry/omegaconf/issues/1330"""
+    cfg = OmegaConf.structured(StructuredWithMissing)
+    cfg.num = "${no_such_key}"
+
+    with raises(InterpolationKeyError) as direct:
+        cfg.num
+    with raises(InterpolationKeyError) as resolved:
+        OmegaConf.resolve(cfg)
+
+    assert resolved.value.full_key == direct.value.full_key == "num"
+    assert resolved.value.object_type is direct.value.object_type
+
+
 def test_resolve_does_not_raise_when_resolver_returns_dict_config(
     restore_resolvers: Any,
 ) -> None:
