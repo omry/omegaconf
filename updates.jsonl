@@ -146,3 +146,5 @@
 {"ts": "2026-07-24T13:47:14Z", "kind": "pr", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "linked #1355"}
 {"ts": "2026-07-24T17:17:33Z", "kind": "status", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "in progress → not started"}
 {"ts": "2026-07-24T17:17:33Z", "kind": "pr", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "unlinked #1355"}
+{"ts": "2026-07-25T09:04:46Z", "kind": "status", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "not started → community PR", "pr": {"number": 1356, "url": "https://github.com/omry/omegaconf/pull/1356"}}
+{"ts": "2026-07-25T09:04:46Z", "kind": "pr", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "linked #1356"}
