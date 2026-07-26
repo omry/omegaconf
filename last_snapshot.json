@@ -48,7 +48,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-25T09:04:46Z",
+  "generated_at": "2026-07-26T05:44:16Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -379,6 +379,16 @@
       "status": "not started",
       "title": "Refactor core class and module boundaries",
       "updated_at": "2026-07-22T11:05:01Z"
+    },
+    "1357": {
+      "category": "Enhancement",
+      "created_at": "2026-07-26T05:42:55Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Consider order-independent handling of overlapping scalar union members",
+      "updated_at": "2026-07-26T05:42:55Z"
     },
     "144": {
       "category": "Enhancement",

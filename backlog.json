@@ -1,27 +1,27 @@
 {
-  "generated_on": "2026-07-25",
-  "generated_at": "2026-07-25T09:04:46Z",
+  "generated_on": "2026-07-26",
+  "generated_at": "2026-07-26T05:44:16Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 33,
+    "open_total": 34,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 3,
-        "percentage": 9.1
+        "percentage": 8.8
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 25,
-        "percentage": 75.8
+        "count": 26,
+        "percentage": 76.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 2.9
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.1
+        "percentage": 8.8
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 2.9
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 32
+        "count": 33
       },
       {
         "status": "done",
@@ -593,6 +593,19 @@
         "internal"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1349"
+    },
+    {
+      "number": 1357,
+      "title": "Consider order-independent handling of overlapping scalar union members",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-26",
+      "updated": "2026-07-26",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1357"
     },
     {
       "number": 181,
@@ -1461,6 +1474,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-26T05:44:16Z",
+      "kind": "new",
+      "issue": 1357,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1357",
+      "title": "Consider order-independent handling of overlapping scalar union members"
+    },
     {
       "ts": "2026-07-25T09:04:46Z",
       "kind": "pr",

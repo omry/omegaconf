@@ -148,3 +148,4 @@
 {"ts": "2026-07-24T17:17:33Z", "kind": "pr", "issue": 144, "issue_url": "https://github.com/omry/omegaconf/issues/144", "title": "Full Union type support in structured configs", "detail": "unlinked #1355"}
 {"ts": "2026-07-25T09:04:46Z", "kind": "status", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "not started → community PR", "pr": {"number": 1356, "url": "https://github.com/omry/omegaconf/pull/1356"}}
 {"ts": "2026-07-25T09:04:46Z", "kind": "pr", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "linked #1356"}
+{"ts": "2026-07-26T05:44:16Z", "kind": "new", "issue": 1357, "issue_url": "https://github.com/omry/omegaconf/issues/1357", "title": "Consider order-independent handling of overlapping scalar union members"}
