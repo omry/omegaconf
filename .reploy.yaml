@@ -1,0 +1,6 @@
+schema: 1
+project: omegaconf
+type: python
+build: setuptools-legacy
+requires:
+  - tool:java
