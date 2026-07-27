@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-26",
-  "generated_at": "2026-07-26T09:19:21Z",
+  "generated_on": "2026-07-27",
+  "generated_at": "2026-07-27T10:48:51Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 34,
@@ -481,6 +481,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1328"
     },
     {
+      "number": 1330,
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-07-15",
+      "updated": "2026-07-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1330"
+    },
+    {
       "number": 1332,
       "title": "Define type compatibility rules for typed interpolations",
       "category": "Enhancement",
@@ -586,21 +601,6 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
-    },
-    {
-      "number": 1330,
-      "title": "`OmegaConf.resolve()` drops interpolation error context",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-15",
-      "updated": "2026-07-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1330"
     },
     {
       "number": 181,
