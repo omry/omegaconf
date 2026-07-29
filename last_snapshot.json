@@ -48,7 +48,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-07-28T09:40:06Z",
+  "generated_at": "2026-07-29T09:42:47Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -296,9 +296,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1356"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "`OmegaConf.resolve()` drops interpolation error context",
       "updated_at": "2026-07-15T18:12:15Z"
     },

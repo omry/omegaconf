@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-28",
-  "generated_at": "2026-07-28T09:40:06Z",
+  "generated_on": "2026-07-29",
+  "generated_at": "2026-07-29T09:42:47Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 34,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 0
+        "count": 1
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 34
+        "count": 33
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1330,
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1356,
+          "url": "https://github.com/omry/omegaconf/pull/1356"
+        }
+      ],
+      "created": "2026-07-15",
+      "updated": "2026-07-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1330"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -479,21 +499,6 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1328"
-    },
-    {
-      "number": 1330,
-      "title": "`OmegaConf.resolve()` drops interpolation error context",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-15",
-      "updated": "2026-07-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1330"
     },
     {
       "number": 1332,
@@ -1469,6 +1474,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-07-29T09:42:47Z",
+      "kind": "pr",
+      "issue": 1330,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1330",
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "detail": "linked #1356"
+    },
+    {
+      "ts": "2026-07-29T09:42:47Z",
+      "kind": "status",
+      "issue": 1330,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1330",
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1356,
+        "url": "https://github.com/omry/omegaconf/pull/1356"
+      }
+    },
     {
       "ts": "2026-07-26T09:19:21Z",
       "kind": "pr",
