@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-07-30",
-  "generated_at": "2026-07-30T09:34:35Z",
+  "generated_on": "2026-07-31",
+  "generated_at": "2026-07-31T09:49:21Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 34,
@@ -493,7 +493,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-03",
-      "updated": "2026-07-20",
+      "updated": "2026-07-30",
       "labels": [
         "structured config",
         "RFC"
