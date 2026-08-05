@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-08-05",
-  "generated_at": "2026-08-05T09:41:06Z",
+  "generated_at": "2026-08-05T19:40:54Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 34,
+    "open_total": 33,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 3,
-        "percentage": 8.8
+        "count": 2,
+        "percentage": 6.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 26,
-        "percentage": 76.5
+        "percentage": 78.8
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 2.9
+        "percentage": 3.0
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 8.8
+        "percentage": 9.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 2.9
+        "percentage": 3.0
       }
     ],
     "by_status": [
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 1
+        "count": 0
       },
       {
         "status": "blocked",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 47
+        "count": 48
       }
     ]
   },
   "issues": [
-    {
-      "number": 1330,
-      "title": "`OmegaConf.resolve()` drops interpolation error context",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1356,
-          "url": "https://github.com/omry/omegaconf/pull/1356"
-        }
-      ],
-      "created": "2026-07-15",
-      "updated": "2026-07-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1330"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1471,9 +1451,36 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 1330,
+      "title": "`OmegaConf.resolve()` drops interpolation error context",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1356,
+          "url": "https://github.com/omry/omegaconf/pull/1356"
+        }
+      ],
+      "created": "2026-07-15",
+      "updated": "2026-07-15",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1330"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-08-05T19:40:54Z",
+      "kind": "closed",
+      "issue": 1330,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1330",
+      "title": "`OmegaConf.resolve()` drops interpolation error context"
+    },
     {
       "ts": "2026-07-29T09:42:47Z",
       "kind": "pr",

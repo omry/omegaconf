@@ -153,3 +153,4 @@
 {"ts": "2026-07-26T09:19:21Z", "kind": "pr", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "unlinked #1356"}
 {"ts": "2026-07-29T09:42:47Z", "kind": "status", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "not started → community PR", "pr": {"number": 1356, "url": "https://github.com/omry/omegaconf/pull/1356"}}
 {"ts": "2026-07-29T09:42:47Z", "kind": "pr", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context", "detail": "linked #1356"}
+{"ts": "2026-08-05T19:40:54Z", "kind": "closed", "issue": 1330, "issue_url": "https://github.com/omry/omegaconf/issues/1330", "title": "`OmegaConf.resolve()` drops interpolation error context"}
