@@ -22,7 +22,13 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
     node = cfg._get_child(key)
     assert isinstance(node, Node)
     if node._is_interpolation():
-        resolved = node._dereference_node()
+        try:
+            resolved = node._dereference_node()
+        except Exception as e:
+            # Attach the same key/object_type context that direct node access
+            # reports, so errors surfaced through OmegaConf.resolve() stay
+            # diagnosable.
+            cfg._format_and_raise(key=key, value=None, cause=e)
         if isinstance(resolved, Container):
             _resolve(resolved)
         if isinstance(resolved, InterpolationResultNode):
