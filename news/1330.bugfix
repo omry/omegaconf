@@ -1,0 +1,1 @@
+Keep the failing key and object type on interpolation errors raised through `OmegaConf.resolve()`, so they match the errors raised by direct node access.

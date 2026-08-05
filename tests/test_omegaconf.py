@@ -583,7 +583,8 @@ def test_resolve_error_keeps_key_and_object_type() -> None:
         OmegaConf.resolve(cfg)
 
     assert resolved.value.full_key == direct.value.full_key == "num"
-    assert resolved.value.object_type is direct.value.object_type
+    assert direct.value.object_type is StructuredWithMissing
+    assert resolved.value.object_type is StructuredWithMissing
 
 
 def test_resolve_does_not_raise_when_resolver_returns_dict_config(
