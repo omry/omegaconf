@@ -49,7 +49,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-08-05T19:40:54Z",
+  "generated_at": "2026-08-06T05:47:30Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -437,9 +437,11 @@
         "bug",
         "priority_low"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1358"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Interpolations can't refer to non-string keys",
       "updated_at": "2026-07-19T16:02:00Z"
     },
