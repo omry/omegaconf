@@ -80,6 +80,13 @@ Here is an example of various supported key types:
 
 OmegaConf supports ``str``, ``int``, ``bool``, ``float`` ``bytes``, and ``Enum`` as dictionary key types.
 
+Integer keys can be referenced by interpolation and key-path selection in the
+same way that integer path elements select list indices. For example, ``${1}``
+can reference either the integer key ``1`` or the string key ``"1"``. A
+``DictConfig`` cannot contain both forms because that would make the
+interpolation ambiguous. This fallback applies only to integers; float,
+boolean, and enum keys are not inferred from string path elements.
+
 From a list
 ^^^^^^^^^^^
 
@@ -831,6 +838,8 @@ OmegaConf.select
 ^^^^^^^^^^^^^^^^
 ``OmegaConf.select()`` allows you to select a config node or value, using either a dot-notation or brackets to denote sub-keys.
 Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash (see :ref:`keypath-escaping`).
+String path elements that represent integers can also select integer dictionary
+keys, consistent with integer list-index selection.
 
 .. doctest::
 
@@ -853,6 +862,7 @@ Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash
     ... }
     >>> assert OmegaConf.select(cfg, "foo.bar.zonk") == 10    # dots
     >>> assert OmegaConf.select(cfg, "foo[bar][zonk]") == 10  # brackets
+    >>> assert OmegaConf.select(OmegaConf.create({1: "one"}), "1") == "one"
     >>> assert OmegaConf.select(cfg, "no_such_key", default=99) == 99
     >>> assert OmegaConf.select(cfg, "foo.missing") is None
     >>> assert OmegaConf.select(cfg, "foo.missing", default=99) == 99

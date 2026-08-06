@@ -1,0 +1,1 @@
+Integer interpolation segments and integer-looking string paths used by ``OmegaConf.select()`` and ``OmegaConf.update()`` can now resolve integer dictionary keys. Configurations reject ambiguous pairs such as ``1`` and ``"1"``.

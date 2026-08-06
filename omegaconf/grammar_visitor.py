@@ -86,10 +86,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         if isinstance(child, OmegaConfGrammarParser.InterpolationContext):
             child_text = child.getText()
             res = _get_value(self.visitInterpolation(child))
-            if not isinstance(res, str):
+            if type(res) is int:
+                return str(res)
+            elif not isinstance(res, str):
                 raise InterpolationResolutionError(
                     f"The following interpolation is used to denote a config key and "
-                    f"thus should return a string, but instead returned `{res}` of "
+                    f"thus should return a string or integer, but instead returned `{res}` of "
                     f"type `{type(res)}`: {child_text}"
                 )
             return res

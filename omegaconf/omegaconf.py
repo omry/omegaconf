@@ -1423,7 +1423,9 @@ class OmegaConf:
         )
 
         last_key: Union[str, int] = last
-        if OmegaConf.is_sequence(root):
+        if OmegaConf.is_dict(root):
+            _, last_key = _select_one(root, last, throw_on_missing=False)
+        elif OmegaConf.is_sequence(root):
             last_key = int(last)
 
         ctx = flag_override(root, "struct", False) if force_add else nullcontext()
@@ -1438,8 +1440,10 @@ class OmegaConf:
                         return
 
             if OmegaConf.is_dict(root):
-                assert isinstance(last_key, str)
-                root.__setattr__(last_key, value)
+                if isinstance(last_key, int):
+                    root.__setitem__(last_key, value)
+                else:
+                    root.__setattr__(last_key, value)
             elif OmegaConf.is_sequence(root):
                 assert isinstance(last_key, int)
                 root.__setitem__(last_key, value)
@@ -1973,6 +1977,14 @@ def _select_one(
     if isinstance(c, DictConfig):
         assert isinstance(ret_key, str)
         val = c._get_child(ret_key, validate_access=False)
+        if val is None and is_int(ret_key):
+            numeric_key = int(ret_key)
+            raw_node = c._get_node(numeric_key, validate_access=False)
+            if isinstance(raw_node, Node) and type(raw_node._key()) is int:
+                val = c._get_child(numeric_key, validate_access=False)
+                ret_key = numeric_key
+            else:
+                val = None
     elif isinstance(c, (ListConfig, TupleConfig)):
         assert isinstance(ret_key, str)
         if not is_int(ret_key):

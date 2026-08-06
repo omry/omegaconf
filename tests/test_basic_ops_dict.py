@@ -988,6 +988,49 @@ def test_creation_with_invalid_key() -> None:
         OmegaConf.create({object(): "a"})
 
 
+@mark.parametrize(
+    "items",
+    [
+        param([(1, "numeric"), ("1", "string")], id="int-first"),
+        param([("1", "string"), (1, "numeric")], id="str-first"),
+    ],
+)
+def test_creation_with_ambiguous_integer_key(items: Any) -> None:
+    with raises(KeyValidationError, match="integer and string keys"):
+        OmegaConf.create(dict(items))
+
+
+@mark.parametrize(
+    ("initial_key", "new_key"),
+    [param(1, "1", id="int-first"), param("1", 1, id="str-first")],
+)
+def test_setitem_with_ambiguous_integer_key(initial_key: Any, new_key: Any) -> None:
+    cfg = OmegaConf.create({initial_key: "initial"})
+
+    with raises(KeyValidationError, match="integer and string keys"):
+        cfg[new_key] = "new"
+
+
+def test_float_and_string_keys_are_not_ambiguous() -> None:
+    cfg = OmegaConf.create({1.5: "float", "1.5": "string"})
+
+    assert cfg[1.5] == "float"
+    assert cfg["1.5"] == "string"
+
+
+@mark.parametrize("stored_key", [param(True, id="bool"), param(1.0, id="float")])
+def test_setitem_integer_key_updates_equal_non_integer_key(stored_key: Any) -> None:
+    cfg = OmegaConf.create({stored_key: "initial", "1": "string"})
+
+    cfg[1] = "updated"
+
+    assert cfg[stored_key] == "updated"
+    assert cfg["1"] == "string"
+    node = cfg._get_node(stored_key)
+    assert node is not None
+    assert type(node._key()) is type(stored_key)
+
+
 def test_setitem_with_invalid_key() -> None:
     cfg = OmegaConf.create()
     with raises(KeyValidationError):

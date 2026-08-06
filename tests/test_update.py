@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 from pytest import mark, param, raises
 
@@ -18,6 +18,7 @@ from tests import Group, Package, User
     [
         # dict
         param({"a": "b"}, "a", "c", {"a": "c"}, id="replace:string"),
+        param({1: "old"}, "1", "new", {1: "new"}, id="replace:integer-key"),
         param({"a": "b"}, "c", "d", {"a": "b", "c": "d"}, id="add:string"),
         param({"a": "b"}, "c", None, {"a": "b", "c": None}, id="none_value"),
         param({}, "a", {}, {"a": {}}, id="dict:value:empty_dict"),
@@ -55,6 +56,13 @@ from tests import Group, Package, User
             {"c": 2},
             {"a": {"b": 1, "c": 2}},
             id="dict_value:merge",
+        ),
+        param(
+            {1: {"a": 1}},
+            "1",
+            {"b": 2},
+            {1: {"a": 1, "b": 2}},
+            id="dict_value:integer-key:merge",
         ),
         # list
         param({"a": [1, 2]}, "a", [2, 3], {"a": [2, 3]}, id="list:replace"),
@@ -191,6 +199,14 @@ def test_update_list_index_error() -> None:
         OmegaConf.update(c, "4", "abc")
 
     assert c == [1, 2, 3]
+
+
+def test_update_union_typed_integer_key() -> None:
+    cfg = DictConfig({1: 10}, element_type=Union[int, str])
+
+    OmegaConf.update(cfg, "1", 20)
+
+    assert cfg == {1: 20}
 
 
 def test_update_merge_by_default() -> None:
