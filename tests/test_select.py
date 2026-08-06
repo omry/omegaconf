@@ -1,5 +1,5 @@
 from contextlib import AbstractContextManager
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pytest import mark, param, raises, warns
 
@@ -7,6 +7,7 @@ from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
 from omegaconf.errors import InterpolationKeyError
+from tests import Color
 
 
 def _register_resolver(register_func: Any, name: str, resolver: Any) -> None:
@@ -35,6 +36,16 @@ class TestSelect:
             param({"a": ListConfig(None)}, "a.b", None, id="dict:nesting_into_none"),
             # value returned
             param({"c": 1}, "c", 1, id="dict:int"),
+            param({1: "one"}, "1", "one", id="dict:integer-key"),
+            param(
+                DictConfig({1: 10}, element_type=Union[int, str]),
+                "1",
+                10,
+                id="dict:union-typed-integer-key",
+            ),
+            param({True: "bool"}, "1", None, id="dict:bool-key-not-coerced"),
+            param({1.5: "float"}, r"1\.5", None, id="dict:float-key-not-coerced"),
+            param({Color.RED: "red"}, "RED", None, id="dict:enum-key-not-coerced"),
             param({"a": {"v": 1}}, "a.v", 1, id="dict:int"),
             param({"a": {"v": 1}}, "a", {"v": 1}, id="dict:dict"),
             param({"missing": "???"}, "missing", None, id="dict:missing"),
@@ -87,6 +98,12 @@ class TestSelect:
                 OmegaConf.select(cfg, key)
         else:
             assert OmegaConf.select(cfg, key) == expected
+
+    def test_can_select_integer_key(self, struct: Optional[bool]) -> None:
+        cfg = _ensure_container({1: "one"})
+        OmegaConf.set_struct(cfg, struct)
+
+        assert OmegaConf.can_select(cfg, "1")
 
     @mark.parametrize(
         "register_func",

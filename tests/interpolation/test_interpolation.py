@@ -2,7 +2,7 @@ import copy
 import re
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 
 from pytest import mark, param, raises
 
@@ -212,6 +212,59 @@ def test_resolve_key_and_root(
 def test_interpolation_after_copy(copy_func: Any, data: Any, key: Any) -> None:
     dict_cfg = OmegaConf.create(data)
     assert copy_func(dict_cfg._get_node(key))._dereference_node() == 10
+
+
+@mark.parametrize("key", [param(1, id="int"), param("1", id="str")])
+def test_interpolation_to_integer_key(key: Any) -> None:
+    cfg = OmegaConf.create({key: "value", "ref": "${1}"})
+
+    assert cfg.ref == "value"
+
+
+@mark.parametrize("resolution", [param(224, id="int"), param("224", id="str")])
+def test_interpolation_with_nested_integer_key(resolution: Any) -> None:
+    cfg = OmegaConf.create(
+        {
+            "anchors": {"imagenet": {resolution: {"data": "value"}}},
+            "dataset": "imagenet",
+            "resolution": 224,
+            "ref": "${anchors.${dataset}.${resolution}.data}",
+        }
+    )
+
+    assert cfg.ref == "value"
+
+
+def test_interpolation_with_nested_integer_key_from_yaml() -> None:
+    cfg = OmegaConf.create(
+        dedent(
+            """
+            anchors:
+              coco2014:
+                224:
+                  data: [1, 2, 3]
+            dataset: coco2014
+            resolution: 224
+            ref: ${anchors.${dataset}.${resolution}.data}
+            """
+        )
+    )
+
+    assert cfg.ref == [1, 2, 3]
+
+
+def test_interpolation_to_typed_integer_key() -> None:
+    values = DictConfig({1: "value"}, key_type=int)
+    cfg = OmegaConf.create({"values": values, "ref": "${values.1}"})
+
+    assert cfg.ref == "value"
+
+
+def test_interpolation_to_union_typed_integer_key() -> None:
+    values = DictConfig({1: 10}, element_type=Union[int, str])
+    cfg = OmegaConf.create({"values": values, "ref": "${values.1}"})
+
+    assert cfg.ref == 10
 
 
 def test_resolve_interpolation_without_parent() -> None:

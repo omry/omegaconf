@@ -34,6 +34,7 @@ from ._utils import (
     get_value_kind,
     is_container_annotation,
     is_dict,
+    is_int,
     is_primitive_dict,
     is_structured_config,
     is_structured_config_frozen,
@@ -334,7 +335,33 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
 
     def __set_impl(self, key: DictKeyType, value: Any) -> None:
         key = self._validate_and_normalize_key(key)
+        self._validate_non_ambiguous_key(key)
         self._set_item_impl(key, value)
+
+    def _validate_non_ambiguous_key(self, key: DictKeyType) -> None:
+        content = self.__dict__["_content"]
+        if self._metadata.key_type is not Any or not isinstance(content, dict):
+            return
+
+        conflicting_key: Optional[DictKeyType] = None
+        if isinstance(key, str) and is_int(key):
+            numeric_key = int(key)
+            node = content.get(numeric_key)
+            if (
+                str(numeric_key) == key
+                and isinstance(node, Node)
+                and type(node._key()) is int
+            ):
+                conflicting_key = numeric_key
+        elif type(key) is int and str(key) in content:
+            node = content.get(key)
+            if not isinstance(node, Node) or type(node._key()) is int:
+                conflicting_key = str(key)
+
+        if conflicting_key is not None:
+            raise KeyValidationError(
+                f"Conflicting integer and string keys: {conflicting_key!r} and {key!r}"
+            )
 
     # hide content while inspecting in debugger
     def __dir__(self) -> Iterable[str]:
