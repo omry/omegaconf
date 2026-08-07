@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-08-07",
-  "generated_at": "2026-08-07T19:41:51Z",
+  "generated_at": "2026-08-07T20:26:40Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 32,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 32
+        "count": 31
       },
       {
         "status": "done",
@@ -71,6 +71,24 @@
     ]
   },
   "issues": [
+    {
+      "number": 1360,
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1361,
+          "url": "https://github.com/omry/omegaconf/pull/1361"
+        }
+      ],
+      "created": "2026-08-07",
+      "updated": "2026-08-07",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1360"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -554,19 +572,6 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
-    },
-    {
-      "number": 1360,
-      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-08-07",
-      "updated": "2026-08-07",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1360"
     },
     {
       "number": 181,
@@ -1497,6 +1502,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-08-07T20:26:40Z",
+      "kind": "pr",
+      "issue": 1360,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1360",
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
+      "detail": "linked #1361"
+    },
+    {
+      "ts": "2026-08-07T20:26:40Z",
+      "kind": "status",
+      "issue": 1360,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1360",
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1361,
+        "url": "https://github.com/omry/omegaconf/pull/1361"
+      }
+    },
     {
       "ts": "2026-08-07T19:41:51Z",
       "kind": "new",
