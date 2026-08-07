@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-08-07",
-  "generated_at": "2026-08-07T07:58:44Z",
+  "generated_at": "2026-08-07T08:18:39Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 32,
@@ -686,6 +686,27 @@
         "wishlist"
       ],
       "url": "https://github.com/omry/omegaconf/issues/612"
+    },
+    {
+      "number": 651,
+      "title": "Interpolations can't refer to non-string keys",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1358,
+          "url": "https://github.com/omry/omegaconf/pull/1358"
+        }
+      ],
+      "created": "2021-03-29",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/651"
     },
     {
       "number": 702,
@@ -1460,27 +1481,6 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 651,
-      "title": "Interpolations can't refer to non-string keys",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1358,
-          "url": "https://github.com/omry/omegaconf/pull/1358"
-        }
-      ],
-      "created": "2021-03-29",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/651"
     }
   ],
   "updates": [
