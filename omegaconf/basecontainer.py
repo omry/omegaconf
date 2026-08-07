@@ -417,16 +417,17 @@ class BaseContainer(Container, ABC):
                 ref_type=src_ref_type, object_type=src_type
             )
 
-        if dest._is_interpolation() and src_was_missing_structured:
-            # Keep unresolved structured interpolations intact when the source
-            # was originally MISSING; the synthesized prototype only exists to
-            # preserve type information during merge.
+        if (dest._is_interpolation() or dest._is_none()) and src_was_missing_structured:
+            # Keep unresolved structured interpolations and null values intact
+            # when the source was originally MISSING; the synthesized prototype
+            # only exists to preserve type information during merge.
             _update_types(node=dest, ref_type=src_ref_type, object_type=src_type)
             return
 
         if (
             (dest._is_interpolation() and not src_was_missing_structured)
             or dest._is_missing()
+            or dest._is_none()
         ) and not src._is_missing():
             expand(dest)
 

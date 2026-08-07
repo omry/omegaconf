@@ -1,0 +1,1 @@
+``OmegaConf.merge()`` and ``OmegaConf.unsafe_merge()`` no longer fail with an ``AttributeError`` when merging into a null dictionary root, including optional Structured Config fields.

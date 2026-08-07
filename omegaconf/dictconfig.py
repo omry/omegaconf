@@ -229,6 +229,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         self._validate_non_optional(None, src)
 
         dest_obj_type = OmegaConf.get_type(dest)
+        if dest._is_none() and is_structured_config(dest._metadata.ref_type):
+            dest_obj_type = dest._metadata.ref_type
         src_obj_type = OmegaConf.get_type(src)
 
         if dest._is_missing() and src._metadata.object_type not in (dict, None):
