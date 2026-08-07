@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-08-07",
-  "generated_at": "2026-08-07T08:18:39Z",
+  "generated_at": "2026-08-07T08:25:42Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 32,
+    "open_total": 31,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 1,
-        "percentage": 3.1
+        "count": 0,
+        "percentage": 0.0
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 26,
-        "percentage": 81.2
+        "percentage": 83.9
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.2
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.4
+        "percentage": 9.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.2
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,32 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 49
+        "count": 50
       }
     ]
   },
   "issues": [
-    {
-      "number": 1333,
-      "title": "Consider making OmegaConf configs unhashable",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1359,
-          "url": "https://github.com/omry/omegaconf/pull/1359"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-07-18",
-      "labels": [
-        "bug",
-        "RFC"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1333"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -1481,9 +1460,37 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 1333,
+      "title": "Consider making OmegaConf configs unhashable",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1359,
+          "url": "https://github.com/omry/omegaconf/pull/1359"
+        }
+      ],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "RFC",
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1333"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-08-07T08:25:42Z",
+      "kind": "closed",
+      "issue": 1333,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1333",
+      "title": "Consider making OmegaConf configs unhashable"
+    },
     {
       "ts": "2026-08-07T07:58:44Z",
       "kind": "pr",
