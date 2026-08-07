@@ -858,12 +858,13 @@ def test_append_throws_not_changing_list() -> None:
     assert c == [iv]
 
 
-def test_hash() -> None:
-    c1 = OmegaConf.create([10])
-    c2 = OmegaConf.create([10])
-    assert hash(c1) == hash(c2)
-    c2[0] = 20
-    assert hash(c1) != hash(c2)
+def test_unhashable() -> None:
+    cfg = OmegaConf.create([10])
+    with raises(TypeError, match="unhashable"):
+        hash(cfg)
+    OmegaConf.set_readonly(cfg, True)
+    with raises(TypeError, match="unhashable"):
+        hash(cfg)
 
 
 @mark.parametrize(
