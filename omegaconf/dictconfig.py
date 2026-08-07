@@ -70,6 +70,7 @@ def _make_key_suggestion(key: Any, available: Iterable) -> str:
 class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     _metadata: ContainerMetadata
     _content: Union[Dict[DictKeyType, Node], None, str]
+    __hash__ = None  # type: ignore[assignment]
 
     def __init__(
         self,
@@ -660,9 +661,6 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if x is not NotImplemented:
             return not x
         return NotImplemented
-
-    def __hash__(self) -> int:
-        return hash(str(self))
 
     def _promote(self, type_or_prototype: Optional[Type[Any]]) -> None:
         """

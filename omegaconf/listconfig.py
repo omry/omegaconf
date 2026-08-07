@@ -47,6 +47,7 @@ from .errors import (
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
     _content: Union[List[Node], None, str]
+    __hash__ = None  # type: ignore[assignment]
 
     def __init__(
         self,
@@ -522,9 +523,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         if x is not NotImplemented:
             return not x
         return NotImplemented
-
-    def __hash__(self) -> int:
-        return hash(str(self))
 
     def __iter__(self) -> Iterator[Any]:
         return self._iter_ex(resolve=True)

@@ -1,0 +1,1 @@
+Make ``DictConfig`` and ``ListConfig`` unhashable, preventing their use as dictionary keys or set elements.

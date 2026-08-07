@@ -309,6 +309,25 @@ Manipulation
     >>> conf.database = {'hostname': 'database01', 'port': 3306}
 
 
+Hashing
+^^^^^^^
+
+OmegaConf containers are unhashable because their values can change. They
+cannot be used as dictionary keys or set elements. If you currently use
+containers this way, migrate to an application-defined stable key. OmegaConf
+does not provide a hashable representation that preserves all config semantics.
+Read-only configs remain unhashable because the read-only flag is reversible
+and interpolations or resolvers can change their effective values.
+
+.. doctest::
+
+    >>> conf = OmegaConf.create({"key": "value"})
+    >>> hash(conf)
+    Traceback (most recent call last):
+    ...
+    TypeError: unhashable type: 'DictConfig'
+
+
 Serialization
 -------------
 OmegaConf objects can be saved and loaded with OmegaConf.save() and OmegaConf.load().

@@ -871,12 +871,13 @@ def test_dir(cfg: Any, key: Any, expected: Any) -> None:
         assert dir(c._get_node(key)) == expected
 
 
-def test_hash() -> None:
-    c1 = OmegaConf.create({"a": 10})
-    c2 = OmegaConf.create({"a": 10})
-    assert hash(c1) == hash(c2)
-    c2.a = 20
-    assert hash(c1) != hash(c2)
+def test_unhashable() -> None:
+    cfg = OmegaConf.create({"a": 10})
+    with raises(TypeError, match="unhashable"):
+        hash(cfg)
+    OmegaConf.set_readonly(cfg, True)
+    with raises(TypeError, match="unhashable"):
+        hash(cfg)
 
 
 @mark.parametrize("default", ["default", 0, None])
