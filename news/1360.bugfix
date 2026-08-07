@@ -1,0 +1,1 @@
+``OmegaConf.merge()`` and ``OmegaConf.unsafe_merge()`` now materialize null dictionary roots before merging into them, preserving Structured Config types when present.

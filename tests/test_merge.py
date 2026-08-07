@@ -459,6 +459,78 @@ def test_merge(
             merge_function(*configs)
 
 
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
+    ("override", "expected_count"),
+    [param({}, 10, id="empty"), param({"count": 20}, 20, id="non-empty")],
+)
+def test_merge_none_structured_config_root(
+    merge: Any, override: Dict[str, Any], expected_count: int
+) -> None:
+    class RuntimeObject: ...
+
+    @dataclass
+    class Value:
+        count: int = 10
+        inherited: int = "${..template}"  # type: ignore[assignment]
+        payload: Any = field(default_factory=RuntimeObject)
+
+    @dataclass
+    class Config:
+        template: int = 30
+        value: Optional[Value] = None
+
+    cfg = OmegaConf.structured(Config, flags={"allow_objects": True})
+    value = cfg._get_node("value")
+
+    result = merge(value, override)
+
+    assert OmegaConf.get_type(result) is Value
+    assert result.count == expected_count
+    assert result.inherited == 30
+    assert isinstance(result.payload, RuntimeObject)
+    assert result._get_flag("allow_objects") is True
+    assert result._key() == "value"
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+def test_merge_missing_structured_config_into_none_root(merge: Any) -> None:
+    @dataclass
+    class Value:
+        count: int = 10
+
+    @dataclass
+    class NoneConfig:
+        value: Optional[Value] = None
+
+    @dataclass
+    class MissingConfig:
+        value: Optional[Value] = MISSING
+
+    destination = OmegaConf.structured(NoneConfig)._get_node("value")
+    source = OmegaConf.structured(MissingConfig)._get_node("value")
+
+    result = merge(destination, source)
+
+    assert result._is_none()
+
+
+@mark.parametrize("merge", [OmegaConf.merge, OmegaConf.unsafe_merge])
+@mark.parametrize(
+    ("override", "expected"),
+    [
+        param({}, {}, id="empty"),
+        param({"key": "value"}, {"key": "value"}, id="non-empty"),
+    ],
+)
+def test_merge_none_dictconfig_root(
+    merge: Any, override: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    result = merge(DictConfig(None), override)
+
+    assert result == expected
+
+
 def test_merge_missing_structured_keeps_interpolation_target() -> None:
     @dataclass
     class Defaults:
