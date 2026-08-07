@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-08-07",
-  "generated_at": "2026-08-07T08:25:42Z",
+  "generated_at": "2026-08-07T19:41:51Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 31,
+    "open_total": 32,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 26,
-        "percentage": 83.9
+        "count": 27,
+        "percentage": 84.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.7
+        "percentage": 9.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.1
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 31
+        "count": 32
       },
       {
         "status": "done",
@@ -505,7 +505,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-18",
-      "updated": "2026-07-18",
+      "updated": "2026-08-07",
       "labels": [
         "enhancement"
       ],
@@ -554,6 +554,19 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
+    },
+    {
+      "number": 1360,
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-08-07",
+      "updated": "2026-08-07",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1360"
     },
     {
       "number": 181,
@@ -1440,6 +1453,27 @@
       "url": "https://github.com/omry/omegaconf/issues/1330"
     },
     {
+      "number": 1333,
+      "title": "Consider making OmegaConf configs unhashable",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1359,
+          "url": "https://github.com/omry/omegaconf/pull/1359"
+        }
+      ],
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
+      "labels": [
+        "RFC",
+        "bug"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1333"
+    },
+    {
       "number": 1340,
       "title": "Inherited flag cache is not invalidated through container-valued unions",
       "category": "Bug",
@@ -1460,30 +1494,16 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 1333,
-      "title": "Consider making OmegaConf configs unhashable",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1359,
-          "url": "https://github.com/omry/omegaconf/pull/1359"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-07-18",
-      "labels": [
-        "RFC",
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1333"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-08-07T19:41:51Z",
+      "kind": "new",
+      "issue": 1360,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1360",
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root"
+    },
     {
       "ts": "2026-08-07T08:25:42Z",
       "kind": "closed",

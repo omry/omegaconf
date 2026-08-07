@@ -51,7 +51,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-08-07T08:25:42Z",
+  "generated_at": "2026-08-07T19:41:51Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -329,7 +329,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Support escaped keys in node interpolation paths",
-      "updated_at": "2026-07-18T09:40:48Z"
+      "updated_at": "2026-08-07T18:29:57Z"
     },
     "1338": {
       "category": "Enhancement",
@@ -365,6 +365,16 @@
       "status": "not started",
       "title": "Consider order-independent handling of overlapping scalar union members",
       "updated_at": "2026-07-26T05:42:55Z"
+    },
+    "1360": {
+      "category": "Enhancement",
+      "created_at": "2026-08-07T19:40:24Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
+      "updated_at": "2026-08-07T19:40:24Z"
     },
     "144": {
       "category": "Enhancement",
