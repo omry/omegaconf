@@ -1,27 +1,27 @@
 {
-  "generated_on": "2026-08-06",
-  "generated_at": "2026-08-06T09:44:09Z",
+  "generated_on": "2026-08-07",
+  "generated_at": "2026-08-07T07:58:44Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 33,
+    "open_total": 32,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 2,
-        "percentage": 6.1
+        "count": 1,
+        "percentage": 3.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 26,
-        "percentage": 78.8
+        "percentage": 81.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.1
+        "percentage": 9.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 3.1
       }
     ],
     "by_status": [
@@ -61,36 +61,36 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 32
+        "count": 31
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 48
+        "count": 49
       }
     ]
   },
   "issues": [
     {
-      "number": 651,
-      "title": "Interpolations can't refer to non-string keys",
+      "number": 1333,
+      "title": "Consider making OmegaConf configs unhashable",
       "category": "Bug",
       "category_emoji": "🐛",
       "status": "in progress",
       "status_emoji": "🔄",
       "prs": [
         {
-          "number": 1358,
-          "url": "https://github.com/omry/omegaconf/pull/1358"
+          "number": 1359,
+          "url": "https://github.com/omry/omegaconf/pull/1359"
         }
       ],
-      "created": "2021-03-29",
-      "updated": "2026-07-19",
+      "created": "2026-07-18",
+      "updated": "2026-07-18",
       "labels": [
         "bug",
-        "priority_low"
+        "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/651"
+      "url": "https://github.com/omry/omegaconf/issues/1333"
     },
     {
       "number": 91,
@@ -500,22 +500,6 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1332"
-    },
-    {
-      "number": 1333,
-      "title": "Consider making OmegaConf configs unhashable",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-18",
-      "updated": "2026-07-18",
-      "labels": [
-        "bug",
-        "RFC"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1333"
     },
     {
       "number": 1334,
@@ -1476,9 +1460,57 @@
         "structured config"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1340"
+    },
+    {
+      "number": 651,
+      "title": "Interpolations can't refer to non-string keys",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1358,
+          "url": "https://github.com/omry/omegaconf/pull/1358"
+        }
+      ],
+      "created": "2021-03-29",
+      "updated": "2026-07-19",
+      "labels": [
+        "bug",
+        "priority_low"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/651"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-08-07T07:58:44Z",
+      "kind": "pr",
+      "issue": 1333,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1333",
+      "title": "Consider making OmegaConf configs unhashable",
+      "detail": "linked #1359"
+    },
+    {
+      "ts": "2026-08-07T07:58:44Z",
+      "kind": "closed",
+      "issue": 651,
+      "issue_url": "https://github.com/omry/omegaconf/issues/651",
+      "title": "Interpolations can't refer to non-string keys"
+    },
+    {
+      "ts": "2026-08-07T07:58:44Z",
+      "kind": "status",
+      "issue": 1333,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1333",
+      "title": "Consider making OmegaConf configs unhashable",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1359,
+        "url": "https://github.com/omry/omegaconf/pull/1359"
+      }
+    },
     {
       "ts": "2026-08-06T05:47:30Z",
       "kind": "pr",
