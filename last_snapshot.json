@@ -52,7 +52,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-08-08T07:53:04Z",
+  "generated_at": "2026-08-09T07:55:58Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -292,7 +292,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
-      "updated_at": "2026-07-30T20:55:06Z"
+      "updated_at": "2026-08-08T19:34:25Z"
     },
     "1332": {
       "category": "Enhancement",
