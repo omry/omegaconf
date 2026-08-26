@@ -2,20 +2,10 @@ import copy
 import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    NoReturn,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, NoReturn, Optional
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -55,14 +45,14 @@ from .grammar_parser import parse
 from .grammar_visitor import GrammarVisitor
 from .typing import Antlr4ParserRuleContext
 
-DictKeyType = Union[str, bytes, int, Enum, float, bool]
+DictKeyType = str | bytes | int | Enum | float | bool
 
 
 @dataclass
 class Metadata:
-    ref_type: Union[Type[Any], Any]
+    ref_type: type[Any] | Any
 
-    object_type: Union[Type[Any], Any]
+    object_type: type[Any] | Any
 
     optional: bool
 
@@ -72,20 +62,20 @@ class Metadata:
     #   unset : inherit from parent (None if no parent specifies)
     #   set to true: flag is true
     #   set to false: flag is false
-    flags: Optional[Dict[str, bool]] = None
+    flags: dict[str, bool] | None = None
 
     # If True, when checking the value of a flag, if the flag is not set None is returned
     # otherwise, the parent node is queried.
     flags_root: bool = False
 
-    resolver_cache: Dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
+    resolver_cache: dict[str, Any] = field(default_factory=lambda: defaultdict(dict))
 
     def __post_init__(self) -> None:
         if self.flags is None:
             self.flags = {}
 
     @property
-    def type_hint(self) -> Union[Type[Any], Any]:
+    def type_hint(self) -> type[Any] | Any:
         """Compute `type_hint` from `self.optional` and `self.ref_type`"""
         # For compatibility with pickled OmegaConf objects created using older
         # versions of OmegaConf, we store `ref_type` and `object_type`
@@ -118,25 +108,25 @@ class ContainerMetadata(Metadata):
 class Node(ABC):
     _metadata: Metadata
 
-    _parent: Optional["Box"]
-    _flags_cache: Optional[Dict[str, Optional[bool]]]
+    _parent: "Box | None"
+    _flags_cache: dict[str, bool | None] | None
 
-    def __init__(self, parent: Optional["Box"], metadata: Metadata):
+    def __init__(self, parent: "Box | None", metadata: Metadata):
         self.__dict__["_metadata"] = metadata
         self.__dict__["_parent"] = parent
         self.__dict__["_flags_cache"] = None
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # Overridden to ensure that the flags cache is cleared on serialization.
         state_dict = copy.copy(self.__dict__)
         del state_dict["_flags_cache"]
         return state_dict
 
-    def __setstate__(self, state_dict: Dict[str, Any]) -> None:
+    def __setstate__(self, state_dict: dict[str, Any]) -> None:
         self.__dict__.update(state_dict)
         self.__dict__["_flags_cache"] = None
 
-    def _set_parent(self, parent: Optional["Box"]) -> None:
+    def _set_parent(self, parent: "Box | None") -> None:
         assert parent is None or isinstance(parent, Box)
         self.__dict__["_parent"] = parent
         self._invalidate_flags_cache()
@@ -144,12 +134,12 @@ class Node(ABC):
     def _invalidate_flags_cache(self) -> None:
         self.__dict__["_flags_cache"] = None
 
-    def _get_parent(self) -> Optional["Box"]:
+    def _get_parent(self) -> "Box | None":
         parent = self.__dict__["_parent"]
         assert parent is None or isinstance(parent, Box)
         return parent
 
-    def _get_parent_container(self) -> Optional["Container"]:
+    def _get_parent_container(self) -> "Container | None":
         """
         Like _get_parent, but returns the grandparent
         in the case where `self` is wrapped by a UnionNode.
@@ -167,8 +157,8 @@ class Node(ABC):
 
     def _set_flag(
         self,
-        flags: Union[List[str], str],
-        values: Union[List[Optional[bool]], Optional[bool]],
+        flags: list[str] | str,
+        values: list[bool | None] | bool | None,
     ) -> "Node":
         if isinstance(flags, str):
             flags = [flags]
@@ -194,7 +184,7 @@ class Node(ABC):
         self._invalidate_flags_cache()
         return self
 
-    def _get_node_flag(self, flag: str) -> Optional[bool]:
+    def _get_node_flag(self, flag: str) -> bool | None:
         """
         :param flag: flag to inspect
         :return: the state of the flag on this node.
@@ -202,7 +192,7 @@ class Node(ABC):
         assert self._metadata.flags is not None
         return self._metadata.flags.get(flag)
 
-    def _get_flag(self, flag: str) -> Optional[bool]:
+    def _get_flag(self, flag: str) -> bool | None:
         cache = self.__dict__["_flags_cache"]
         if cache is None:
             cache = self.__dict__["_flags_cache"] = {}
@@ -214,7 +204,7 @@ class Node(ABC):
         assert ret is None or isinstance(ret, bool)
         return ret
 
-    def _get_flag_no_cache(self, flag: str) -> Optional[bool]:
+    def _get_flag_no_cache(self, flag: str) -> bool | None:
         """
         Returns True if this config node flag is set
         A flag is set if node.set_flag(True) was called
@@ -241,7 +231,7 @@ class Node(ABC):
         key: Any,
         value: Any,
         cause: Exception,
-        msg: Optional[str] = None,
+        msg: str | None = None,
         type_override: Any = None,
     ) -> NoReturn:
         if (
@@ -266,7 +256,7 @@ class Node(ABC):
         assert False
 
     @abstractmethod
-    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str: ...
+    def _get_full_key(self, key: DictKeyType | int | None) -> str: ...
 
     def _dereference_node(self) -> "Node":
         node = self._dereference_node_impl(throw_on_resolution_failure=True)
@@ -276,9 +266,9 @@ class Node(ABC):
     def _maybe_dereference_node(
         self,
         throw_on_resolution_failure: bool = False,
-        memo: Optional[Set[int]] = None,
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
-    ) -> Optional["Node"]:
+        memo: set[int] | None = None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
+    ) -> "Node | None":
         return self._dereference_node_impl(
             throw_on_resolution_failure=throw_on_resolution_failure,
             memo=memo,
@@ -288,9 +278,9 @@ class Node(ABC):
     def _dereference_node_impl(
         self,
         throw_on_resolution_failure: bool,
-        memo: Optional[Set[int]] = None,
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
-    ) -> Optional["Node"]:
+        memo: set[int] | None = None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
+    ) -> "Node | None":
         if not self._is_interpolation():
             return self
 
@@ -314,7 +304,7 @@ class Node(ABC):
         )
 
     def _get_root(self) -> "Container":
-        root: Optional[Box] = self._get_parent()
+        root: Box | None = self._get_parent()
         if root is None:
             assert isinstance(self, Container)
             return self
@@ -350,9 +340,7 @@ class Node(ABC):
     def _value(self) -> Any: ...
 
     @abstractmethod
-    def _set_value(
-        self, value: Any, flags: Optional[Dict[str, bool]] = None
-    ) -> None: ...
+    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None: ...
 
     @abstractmethod
     def _is_optional(self) -> bool: ...
@@ -386,7 +374,7 @@ class Box(Node):
 
     _content: Any
 
-    def __init__(self, parent: Optional["Box"], metadata: Metadata):
+    def __init__(self, parent: "Box | None", metadata: Metadata):
         super().__init__(parent=parent, metadata=metadata)
         self.__dict__["_content"] = None
 
@@ -440,7 +428,7 @@ class Container(Box):
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]: ...
+    ) -> list[Node | None] | Node | None: ...
 
     @abstractmethod
     def _get_node(
@@ -450,7 +438,7 @@ class Container(Box):
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]: ...
+    ) -> list[Node | None] | Node | None: ...
 
     @abstractmethod
     def __delitem__(self, key: Any) -> None: ...
@@ -464,12 +452,12 @@ class Container(Box):
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any: ...
 
-    def _resolve_key_and_root(self, key: str) -> Tuple["Container", str]:
+    def _resolve_key_and_root(self, key: str) -> tuple["Container", str]:
         orig = key
         if not key.startswith("."):
             return self._get_root(), key
         else:
-            root: Optional[Container] = self
+            root: Container | None = self
             assert key.startswith(".")
             while True:
                 assert root is not None
@@ -487,9 +475,9 @@ class Container(Box):
         key: str,
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
-        memo: Optional[Set[int]] = None,
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
-    ) -> Tuple[Optional["Container"], Optional[str], Optional[Node]]:
+        memo: set[int] | None = None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
+    ) -> tuple["Container | None", str | None, Node | None]:
         """
         Select a value using dot separated key sequence
         """
@@ -499,7 +487,7 @@ class Container(Box):
             return self, "", self
 
         split = split_key(key)
-        root: Optional[Container] = self
+        root: Container | None = self
         for i in range(len(split) - 1):
             if root is None:
                 break
@@ -571,14 +559,14 @@ class Container(Box):
 
     def _resolve_interpolation_from_parse_tree(
         self,
-        parent: Optional["Container"],
+        parent: "Container | None",
         value: "Node",
         key: Any,
         parse_tree: Antlr4ParserRuleContext,
         throw_on_resolution_failure: bool,
-        memo: Optional[Set[int]],
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
-    ) -> Optional["Node"]:
+        memo: set[int] | None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
+    ) -> "Node | None":
         """
         Resolve an interpolation.
 
@@ -631,12 +619,12 @@ class Container(Box):
 
     def _validate_and_convert_interpolation_result(
         self,
-        parent: Optional["Container"],
+        parent: "Container | None",
         value: "Node",
         key: Any,
         resolved: Any,
         throw_on_resolution_failure: bool,
-    ) -> Optional["Node"]:
+    ) -> "Node | None":
         from .nodes import AnyNode, InterpolationResultNode, ValueNode
 
         # If the output is not a Node already (e.g., because it is the output of a
@@ -691,7 +679,7 @@ class Container(Box):
             return resolved
 
     def _validate_not_dereferencing_to_parent(self, node: Node, target: Node) -> None:
-        parent: Optional[Node] = node
+        parent: Node | None = node
         while parent is not None:
             if parent is target:
                 raise InterpolationResolutionError(
@@ -702,8 +690,8 @@ class Container(Box):
     def _resolve_node_interpolation(
         self,
         inter_key: str,
-        memo: Optional[Set[int]],
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
+        memo: set[int] | None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
         original_inter_key = inter_key
@@ -750,8 +738,8 @@ class Container(Box):
         key: Any,
         node: Node,
         inter_type: str,
-        inter_args: Tuple[Any, ...],
-        inter_args_str: Tuple[str, ...],
+        inter_args: tuple[Any, ...],
+        inter_args_str: tuple[str, ...],
     ) -> Any:
         from omegaconf import OmegaConf
 
@@ -772,13 +760,13 @@ class Container(Box):
 
     def _maybe_resolve_interpolation(
         self,
-        parent: Optional["Container"],
+        parent: "Container | None",
         key: Any,
         value: Node,
         throw_on_resolution_failure: bool,
-        memo: Optional[Set[int]] = None,
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
-    ) -> Optional[Node]:
+        memo: set[int] | None = None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
+    ) -> Node | None:
         value_kind = get_value_kind(value)
         if value_kind != ValueKind.INTERPOLATION:
             return value
@@ -798,9 +786,9 @@ class Container(Box):
         self,
         parse_tree: Antlr4ParserRuleContext,
         node: Node,
-        memo: Optional[Set[int]] = None,
-        key: Optional[Any] = None,
-        resolved_node_cache: Optional[Dict[int, "Node"]] = None,
+        memo: set[int] | None = None,
+        key: Any | None = None,
+        resolved_node_cache: dict[int, "Node"] | None = None,
     ) -> Any:
         """
         Resolve a given parse tree into its value.
@@ -810,8 +798,8 @@ class Container(Box):
         """
 
         def node_interpolation_callback(
-            inter_key: str, memo: Optional[Set[int]]
-        ) -> Optional["Node"]:
+            inter_key: str, memo: set[int] | None
+        ) -> "Node | None":
             return self._resolve_node_interpolation(
                 inter_key=inter_key,
                 memo=memo,
@@ -819,7 +807,7 @@ class Container(Box):
             )
 
         def resolver_interpolation_callback(
-            name: str, args: Tuple[Any, ...], args_str: Tuple[str, ...]
+            name: str, args: tuple[Any, ...], args_str: tuple[str, ...]
         ) -> Any:
             return self._evaluate_custom_resolver(
                 key=key,
@@ -883,8 +871,8 @@ class UnionNode(Box):
     know about UnionNode (assuming they only use OmegaConf's public API).
     """
 
-    _parent: Optional[Container]  # pyrefly: ignore[bad-override]
-    _content: Union[Node, None, str]
+    _parent: Container | None  # pyrefly: ignore[bad-override]
+    _content: Node | str | None
 
     def __init__(
         self,
@@ -892,7 +880,7 @@ class UnionNode(Box):
         ref_type: Any,
         is_optional: bool = True,
         key: Any = None,
-        parent: Optional[Box] = None,
+        parent: Box | None = None,
     ) -> None:
         try:
             if not is_union_annotation(ref_type):  # pragma: no cover
@@ -917,7 +905,7 @@ class UnionNode(Box):
         except Exception as ex:
             format_and_raise(node=None, key=key, value=content, msg=str(ex), cause=ex)
 
-    def _get_full_key(self, key: Optional[Union[DictKeyType, int]]) -> str:
+    def _get_full_key(self, key: DictKeyType | int | None) -> str:
         parent = self._get_parent()
         if parent is None:
             if self._metadata.key is None:
@@ -954,12 +942,12 @@ class UnionNode(Box):
     def __hash__(self) -> int:
         return hash(self.__dict__["_content"])
 
-    def _value(self) -> Union[Node, None, str]:
+    def _value(self) -> Node | str | None:
         content = self.__dict__["_content"]
         assert isinstance(content, (Node, NoneType, str))
         return content
 
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         previous_content = self.__dict__["_content"]
         previous_metadata = self.__dict__["_metadata"]
         try:
@@ -969,9 +957,7 @@ class UnionNode(Box):
             self.__dict__["_metadata"] = previous_metadata
             raise e
 
-    def _set_value_impl(
-        self, value: Any, flags: Optional[Dict[str, bool]] = None
-    ) -> None:
+    def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
         from omegaconf.tupleconfig import TupleConfig
@@ -1148,9 +1134,9 @@ class UnionNode(Box):
     def _set_container_value(
         self,
         value: Any,
-        candidates: List[Any],
+        candidates: list[Any],
         type_hint: Any,
-        fallback_candidates: Optional[List[Any]] = None,
+        fallback_candidates: list[Any] | None = None,
     ) -> None:
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
@@ -1167,8 +1153,8 @@ class UnionNode(Box):
         # structured config), use its element-type metadata to narrow candidates
         # before falling back to content-based validation. This makes empty
         # containers unambiguous when the metadata uniquely identifies one branch.
-        def narrow_by_metadata(candidate_types: List[Any]) -> List[Any]:
-            meta_candidates: List[Any] = []
+        def narrow_by_metadata(candidate_types: list[Any]) -> list[Any]:
+            meta_candidates: list[Any] = []
             if (
                 isinstance(value, ListConfig)
                 and value._metadata.element_type is not Any
@@ -1202,8 +1188,8 @@ class UnionNode(Box):
                     ]
             return meta_candidates or candidate_types
 
-        def find_matches(candidate_types: List[Any]) -> List[Node]:
-            matches: List[Node] = []
+        def find_matches(candidate_types: list[Any]) -> list[Node]:
+            matches: list[Node] = []
             for candidate_ref_type in narrow_by_metadata(candidate_types):
                 try:
                     node = _node_wrap(
@@ -1250,7 +1236,7 @@ class UnionNode(Box):
     def __repr__(self) -> str:
         return repr(self.__dict__["_content"])
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> "UnionNode":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "UnionNode":
         res = object.__new__(type(self))
         for key, value in self.__dict__.items():
             if key not in ("_content", "_parent"):

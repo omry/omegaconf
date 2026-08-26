@@ -1,21 +1,18 @@
 import copy
 import difflib
-from enum import Enum
-from typing import (
-    Any,
-    Dict,
+from collections.abc import (
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
-    List,
     MutableMapping,
-    Optional,
     Sequence,
-    Tuple,
-    Type,
-    Union,
 )
+from enum import Enum
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -69,19 +66,19 @@ def _make_key_suggestion(key: Any, available: Iterable) -> str:
 
 class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     _metadata: ContainerMetadata
-    _content: Union[Dict[DictKeyType, Node], None, str]
+    _content: dict[DictKeyType, Node] | str | None
     __hash__ = None  # type: ignore[assignment]
 
     def __init__(
         self,
-        content: Union[Dict[DictKeyType, Any], "DictConfig", Any],
+        content: "dict[DictKeyType, Any] | DictConfig | Any",
         key: Any = None,
-        parent: Optional[Box] = None,
-        ref_type: Union[Any, Type[Any]] = Any,
-        key_type: Union[Any, Type[Any]] = Any,
-        element_type: Union[Any, Type[Any]] = Any,
+        parent: Box | None = None,
+        ref_type: Any | type[Any] = Any,
+        key_type: Any | type[Any] = Any,
+        element_type: Any | type[Any] = Any,
         is_optional: bool = True,
-        flags: Optional[Dict[str, bool]] = None,
+        flags: dict[str, bool] | None = None,
     ) -> None:
         try:
             if isinstance(content, DictConfig):
@@ -123,7 +120,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         except Exception as ex:
             format_and_raise(node=None, key=key, value=None, cause=ex, msg=str(ex))
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> "DictConfig":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "DictConfig":
         res = DictConfig(None)
         res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
         res.__dict__["_flags_cache"] = copy.deepcopy(
@@ -151,7 +148,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         res.__dict__["_parent"] = self.__dict__["_parent"]
         return res
 
-    def copy(self) -> "DictConfig":
+    def copy(self) -> "Self":
         return copy.copy(self)
 
     def _is_typed(self) -> bool:
@@ -254,7 +251,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             )
             raise ValidationError(msg)
 
-    def _validate_non_optional(self, key: Optional[DictKeyType], value: Any) -> None:
+    def _validate_non_optional(self, key: DictKeyType | None, value: Any) -> None:
         if _is_none(value, resolve=True, throw_on_resolution_failure=False):
             if key is not None:
                 child = self._get_node(key)
@@ -346,7 +343,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if self._metadata.key_type is not Any or not isinstance(content, dict):
             return
 
-        conflicting_key: Optional[DictKeyType] = None
+        conflicting_key: DictKeyType | None = None
         if isinstance(key, str) and is_int(key):
             numeric_key = int(key)
             node = content.get(numeric_key)
@@ -509,7 +506,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Optional[Node]:
+    ) -> Node | None:
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:
@@ -524,7 +521,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         if validate_access:
             self._validate_get(key)
 
-        value: Optional[Node] = self.__dict__["_content"].get(key)
+        value: Node | None = self.__dict__["_content"].get(key)
         if value is None:
             if throw_on_missing_key:
                 msg = f"Missing key {key!s}" + _make_key_suggestion(key, self.keys())
@@ -621,9 +618,9 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         return ret
 
     def items_ex(
-        self, resolve: bool = True, keys: Optional[Sequence[DictKeyType]] = None
-    ) -> List[Tuple[DictKeyType, Any]]:
-        items: List[Tuple[DictKeyType, Any]] = []
+        self, resolve: bool = True, keys: Sequence[DictKeyType] | None = None
+    ) -> list[tuple[DictKeyType, Any]]:
+        items: list[tuple[DictKeyType, Any]] = []
 
         if self._is_none():
             self._format_and_raise(
@@ -664,7 +661,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return not x
         return NotImplemented
 
-    def _promote(self, type_or_prototype: Optional[Type[Any]]) -> None:
+    def _promote(self, type_or_prototype: type[Any] | None) -> None:
         """
         Retypes a node.
         This should only be used in rare circumstances, where you want to dynamically change
@@ -686,7 +683,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         # restore the type.
         self._metadata.object_type = object_type
 
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         previous_content = self.__dict__["_content"]
         try:
             self._set_value_impl(value, flags)
@@ -694,9 +691,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             self.__dict__["_content"] = previous_content
             raise
 
-    def _set_value_impl(
-        self, value: Any, flags: Optional[Dict[str, bool]] = None
-    ) -> None:
+    def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING, flag_override
 
         if flags is None:
@@ -778,8 +773,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         assert is_structured_config(object_type)
         init_field_aliases = get_structured_config_init_field_aliases(object_type)
 
-        init_field_items: Dict[str, Any] = {}
-        non_init_field_items: Dict[str, Any] = {}
+        init_field_items: dict[str, Any] = {}
+        non_init_field_items: dict[str, Any] = {}
         for k in self.keys():
             assert isinstance(k, str)
             node = self._get_child(k)

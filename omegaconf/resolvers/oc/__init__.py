@@ -1,7 +1,7 @@
 import os
 import string
 import warnings
-from typing import Any, Optional
+from typing import Any
 
 from omegaconf import Container, Node
 from omegaconf._utils import _DEFAULT_MARKER_, _get_value
@@ -19,7 +19,7 @@ def create(obj: Any, _parent_: Container) -> Any:
     return OmegaConf.create(obj, parent=_parent_)
 
 
-def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
+def env(key: str, default: Any = _DEFAULT_MARKER_) -> str | None:
     """
     :param key: Environment variable key
     :param default: Optional default value to use in case the key environment variable is not set.
@@ -38,7 +38,7 @@ def env(key: str, default: Any = _DEFAULT_MARKER_) -> Optional[str]:
             raise KeyError(f"Environment variable '{key}' not found")
 
 
-def decode(expr: Optional[str], _parent_: Container, _node_: Node) -> Any:
+def decode(expr: str | None, _parent_: Container, _node_: Node) -> Any:
     """
     Parse and evaluate `expr` according to the `singleElement` rule of the grammar.
 
