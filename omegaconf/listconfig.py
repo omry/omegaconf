@@ -1,19 +1,7 @@
 import copy
 import operator
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    MutableSequence,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from collections.abc import Callable, Iterable, Iterator, MutableSequence
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .tupleconfig import TupleConfig
@@ -46,20 +34,18 @@ from .errors import (
 
 
 class ListConfig(BaseContainer, MutableSequence[Any]):
-    _content: Union[List[Node], None, str]
+    _content: list[Node] | str | None
     __hash__ = None  # type: ignore[assignment]
 
     def __init__(
         self,
-        content: Union[
-            List[Any], Tuple[Any, ...], "ListConfig", "TupleConfig", str, None
-        ],
+        content: "list[Any] | tuple[Any, ...] | ListConfig | TupleConfig | str | None",
         key: Any = None,
-        parent: Optional[Box] = None,
-        element_type: Union[Type[Any], Any] = Any,
+        parent: Box | None = None,
+        element_type: type[Any] | Any = Any,
         is_optional: bool = True,
-        ref_type: Union[Type[Any], Any] = Any,
-        flags: Optional[Dict[str, bool]] = None,
+        ref_type: type[Any] | Any = Any,
+        flags: dict[str, bool] | None = None,
     ) -> None:
         try:
             if isinstance(content, ListConfig):
@@ -144,7 +130,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 )
                 raise ValidationError(msg)
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> "ListConfig":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "ListConfig":
         res = ListConfig(None)
         res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo=memo)
         res.__dict__["_flags_cache"] = copy.deepcopy(
@@ -153,7 +139,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
         src_content = self.__dict__["_content"]
         if isinstance(src_content, list):
-            content_copy: List[Optional[Node]] = []
+            content_copy: list[Node | None] = []
             for v in src_content:
                 old_parent = v.__dict__["_parent"]
                 try:
@@ -209,7 +195,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             )
 
     def __getitem__(  # pyrefly: ignore[bad-param-name-override]
-        self, index: Union[int, slice]
+        self, index: int | slice
     ) -> Any:
         try:
             if self._is_missing():
@@ -238,11 +224,11 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         except Exception as e:
             self._format_and_raise(key=index, value=None, cause=e)
 
-    def _set_at_index(self, index: Union[int, slice], value: Any) -> None:
+    def _set_at_index(self, index: int | slice, value: Any) -> None:
         self._set_item_impl(index, value)
 
     def __setitem__(  # pyrefly: ignore[bad-param-name-override]
-        self, index: Union[int, slice], value: Any
+        self, index: int | slice, value: Any
     ) -> None:
         try:
             if isinstance(index, slice):
@@ -351,7 +337,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def remove(self, x: Any) -> None:
         del self[self.index(x)]
 
-    def __delitem__(self, key: Union[int, slice]) -> None:
+    def __delitem__(self, key: int | slice) -> None:
         if self._get_flag("readonly"):
             self._format_and_raise(
                 key=key,
@@ -366,9 +352,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def clear(self) -> None:
         del self[:]
 
-    def index(
-        self, x: Any, start: Optional[int] = None, end: Optional[int] = None
-    ) -> int:
+    def index(self, x: Any, start: int | None = None, end: int | None = None) -> int:
         if start is None:
             start = 0
         if end is None:
@@ -400,12 +384,12 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _get_node(
         self,
-        key: Union[int, slice],
+        key: int | slice,
         validate_access: bool = True,
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]:
+    ) -> list[Node | None] | Node | None:
         try:
             if self._is_none():
                 raise TypeError(
@@ -481,7 +465,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             assert False
 
     def sort(
-        self, key: Optional[Callable[[Any], Any]] = None, reverse: bool = False
+        self, key: Callable[[Any], Any] | None = None, reverse: bool = False
     ) -> None:
         try:
             if self._get_flag("readonly"):
@@ -574,14 +558,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._format_and_raise(key=None, value=None, cause=e)
             assert False
 
-    def __add__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
+    def __add__(self, other: "list[Any] | ListConfig") -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
         res = ListConfig(parent=self._get_parent(), content=[])
         res.extend(self)
         res.extend(other)
         return res
 
-    def __radd__(self, other: Union[List[Any], "ListConfig"]) -> "ListConfig":
+    def __radd__(self, other: "list[Any] | ListConfig") -> "ListConfig":
         # res is sharing this list's parent to allow interpolation to work as expected
         res = ListConfig(parent=self._get_parent(), content=[])
         res.extend(other)
@@ -609,7 +593,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 return True
         return False
 
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         previous_content = self.__dict__["_content"]
         previous_metadata = self.__dict__["_metadata"]
         try:
@@ -619,9 +603,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_metadata"] = previous_metadata
             raise
 
-    def _set_value_impl(
-        self, value: Any, flags: Optional[Dict[str, bool]] = None
-    ) -> None:
+    def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING, flag_override
         from omegaconf.tupleconfig import TupleConfig
 
@@ -668,7 +650,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self._metadata.object_type = list
 
     @staticmethod
-    def _list_eq(l1: Optional["ListConfig"], l2: Optional["ListConfig"]) -> bool:
+    def _list_eq(l1: "ListConfig | None", l2: "ListConfig | None") -> bool:
         l1_none = l1.__dict__["_content"] is None
         l2_none = l2.__dict__["_content"] is None
         if l1_none and l2_none:
