@@ -176,3 +176,4 @@
 {"ts": "2026-09-10T20:41:09Z", "kind": "pr", "issue": 1274, "issue_url": "https://github.com/omry/omegaconf/issues/1274", "title": "Python 3.10 minimum: remove version guards and modernize type annotations", "detail": "unlinked #1365"}
 {"ts": "2026-09-10T20:43:03Z", "kind": "new", "issue": 1368, "issue_url": "https://github.com/omry/omegaconf/issues/1368", "title": "Enforce 100% type coverage in CI"}
 {"ts": "2026-09-10T20:43:03Z", "kind": "new", "issue": 1369, "issue_url": "https://github.com/omry/omegaconf/issues/1369", "title": "Move OmegaConf to the hydra-ecosystem GitHub organization"}
+{"ts": "2026-09-10T21:18:27Z", "kind": "closed", "issue": 1368, "issue_url": "https://github.com/omry/omegaconf/issues/1368", "title": "Enforce 100% type coverage in CI"}

@@ -24,6 +24,7 @@
     "1340": "2026-07-22",
     "1360": "2026-08-07",
     "1366": "2026-09-10",
+    "1368": "2026-09-10",
     "181": "2026-07-20",
     "265": "2026-07-20",
     "392": "2026-07-18",
@@ -53,7 +54,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-09-10T20:44:20Z",
+  "generated_at": "2026-09-10T21:18:27Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -366,17 +367,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Consider order-independent handling of overlapping scalar union members",
-      "updated_at": "2026-07-26T05:42:55Z"
-    },
-    "1368": {
-      "category": "Build",
-      "created_at": "2026-09-10T20:41:43Z",
-      "labels": [],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Enforce 100% type coverage in CI",
-      "updated_at": "2026-09-10T20:41:43Z"
+      "updated_at": "2026-09-10T20:49:56Z"
     },
     "1369": {
       "category": "Enhancement",
@@ -792,6 +783,16 @@
       "status": "done",
       "title": "Ship the ANTLR license with the vendored runtime and build JAR",
       "updated_at": "2026-09-10T15:48:49Z"
+    },
+    "1368": {
+      "category": "Build",
+      "created_at": "2026-09-10T20:41:43Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Enforce 100% type coverage in CI",
+      "updated_at": "2026-09-10T20:41:43Z"
     },
     "181": {
       "category": "Enhancement",

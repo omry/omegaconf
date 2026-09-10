@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-10",
-  "generated_at": "2026-09-10T20:44:20Z",
+  "generated_at": "2026-09-10T21:18:27Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 33,
+    "open_total": 32,
     "by_category": [
       {
         "category": "Bug",
@@ -15,13 +15,13 @@
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 81.8
+        "percentage": 84.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.1
+        "percentage": 9.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 2,
-        "percentage": 6.1
+        "count": 1,
+        "percentage": 3.1
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 33
+        "count": 32
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 52
+        "count": 53
       }
     ]
   },
@@ -551,22 +551,9 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-26",
-      "updated": "2026-07-26",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1357"
-    },
-    {
-      "number": 1368,
-      "title": "Enforce 100% type coverage in CI",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-09-10",
       "updated": "2026-09-10",
       "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1368"
+      "url": "https://github.com/omry/omegaconf/issues/1357"
     },
     {
       "number": 1369,
@@ -1538,9 +1525,29 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1366"
+    },
+    {
+      "number": 1368,
+      "title": "Enforce 100% type coverage in CI",
+      "category": "Build",
+      "category_emoji": "🏗️",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-09-10",
+      "updated": "2026-09-10",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1368"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-10T21:18:27Z",
+      "kind": "closed",
+      "issue": 1368,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1368",
+      "title": "Enforce 100% type coverage in CI"
+    },
     {
       "ts": "2026-09-10T20:43:03Z",
       "kind": "new",
