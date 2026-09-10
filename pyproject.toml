@@ -122,3 +122,12 @@ project-includes = [
 ignore-missing-imports = [
     "omegaconf.grammar.gen.*",
 ]
+
+[tool.pyrefly.coverage]
+includes = [
+    "omegaconf",
+]
+excludes = [
+    "omegaconf/vendor/**",
+    "omegaconf/grammar/gen/**",
+]
