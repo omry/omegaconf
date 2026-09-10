@@ -10,6 +10,7 @@ import re
 import sys
 import warnings
 from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager, nullcontext
 from enum import Enum
 from textwrap import dedent
@@ -17,18 +18,9 @@ from typing import (
     IO,
     Annotated,
     Any,
-    Callable,
-    Dict,
     ForwardRef,
-    Generator,
-    Iterable,
-    List,
     Literal,
-    Optional,
-    Set,
     Tuple,
-    Type,
-    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -224,10 +216,10 @@ class OmegaConf:
     @staticmethod
     def structured(
         obj: Any,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> Any:
         """
         Alias for ``OmegaConf.create(obj)``. Accepts any input that ``create`` accepts,
@@ -253,90 +245,90 @@ class OmegaConf:
     @overload
     def create(
         obj: str,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Union[DictConfig, ListConfig]: ...
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> DictConfig | ListConfig: ...
 
     @staticmethod
     @overload
     def create(
-        obj: List[Any],
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        obj: list[Any],
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
 
     @staticmethod
     @overload
     def create(
-        obj: Tuple[Any, ...],
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        obj: tuple[Any, ...],
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> TupleConfig: ...
 
     @staticmethod
     @overload
     def create(
         obj: DictConfig,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> DictConfig: ...
 
     @staticmethod
     @overload
     def create(
         obj: ListConfig,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> ListConfig: ...
 
     @staticmethod
     @overload
     def create(
         obj: TupleConfig,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> TupleConfig: ...
 
     @staticmethod
     @overload
     def create(
         obj: None,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> None: ...
 
     @staticmethod
     @overload
     def create(
-        obj: Dict[Any, Any] = ...,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        obj: dict[Any, Any] = ...,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
     ) -> DictConfig: ...
 
     @staticmethod
     def create(  # noqa F811
         obj: Any = _DEFAULT_MARKER_,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Optional[Union[DictConfig, ListConfig, TupleConfig]]:
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> DictConfig | ListConfig | TupleConfig | None:
         """
         Create an OmegaConf config from ``obj``.
 
@@ -365,12 +357,12 @@ class OmegaConf:
 
     @staticmethod
     def typed_list(
-        content: Optional[List[Any]] = None,
+        content: list[Any] | None = None,
         element_type: Any = Any,
     ) -> ListConfig:
         """Create a ListConfig with an explicit element type.
 
-        Useful for disambiguating assignment to a Union[List[X], List[Y]] field
+        Useful for disambiguating assignment to a list[X] | list[Y] field
         when the value is empty or otherwise matches multiple candidates.
         """
         from typing import List as _List
@@ -391,19 +383,19 @@ class OmegaConf:
 
         ``content`` is required because TupleConfig is structurally immutable.
         ``tuple_type`` accepts complete fixed or variadic tuple annotations, such
-        as ``Tuple[int, str]`` or ``tuple[int, ...]``.
+        as ``tuple[int, str]`` or ``tuple[int, ...]``.
         """
         return TupleConfig(content=content, ref_type=tuple_type, is_optional=False)
 
     @staticmethod
     def typed_dict(
-        content: Optional[Dict[Any, Any]] = None,
+        content: dict[Any, Any] | None = None,
         key_type: Any = Any,
         element_type: Any = Any,
     ) -> DictConfig:
         """Create a DictConfig with explicit key and value types.
 
-        Useful for disambiguating assignment to a Union[Dict[str, X], Dict[str, Y]]
+        Useful for disambiguating assignment to a dict[str, X] | dict[str, Y]
         field when the value is empty or otherwise matches multiple candidates.
         """
         from typing import Dict as _Dict
@@ -418,10 +410,10 @@ class OmegaConf:
 
     @staticmethod
     def load(
-        file_: Union[str, pathlib.Path, IO[Any]],
+        file_: str | pathlib.Path | IO[Any],
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Union[DictConfig, ListConfig]:
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> DictConfig | ListConfig:
         """
         Load a YAML config from a file path or file-like object.
 
@@ -455,7 +447,7 @@ class OmegaConf:
                 f"Invalid loaded object type: {type(obj).__name__}"
             )
 
-        ret: Union[DictConfig, ListConfig]
+        ret: DictConfig | ListConfig
         if obj is None:
             ret = OmegaConf.create()
         else:
@@ -464,7 +456,7 @@ class OmegaConf:
 
     @staticmethod
     def save(
-        config: Any, f: Union[str, pathlib.Path, IO[Any]], resolve: bool = False
+        config: Any, f: str | pathlib.Path | IO[Any], resolve: bool = False
     ) -> None:
         """
         Save as configuration object to a file
@@ -486,7 +478,7 @@ class OmegaConf:
             raise TypeError("Unexpected file type")
 
     @staticmethod
-    def from_cli(args_list: Optional[List[str]] = None) -> DictConfig:
+    def from_cli(args_list: list[str] | None = None) -> DictConfig:
         """
         Create a config from command-line arguments (``sys.argv[1:]`` by default).
 
@@ -501,7 +493,7 @@ class OmegaConf:
         return OmegaConf.from_dotlist(args_list)
 
     @staticmethod
-    def from_dotlist(dotlist: List[str]) -> DictConfig:
+    def from_dotlist(dotlist: list[str]) -> DictConfig:
         r"""
         Creates a config from a list of dotlist-style strings (``"key=value"`` pairs).
 
@@ -535,16 +527,16 @@ class OmegaConf:
 
     @staticmethod
     def merge(
-        *configs: Union[
-            DictConfig,
-            ListConfig,
-            TupleConfig,
-            Dict[DictKeyType, Any],
-            List[Any],
-            Tuple[Any, ...],
-            Any,
-        ],
-    ) -> Union[ListConfig, TupleConfig, DictConfig]:
+        *configs: (
+            DictConfig
+            | ListConfig
+            | TupleConfig
+            | dict[DictKeyType, Any]
+            | list[Any]
+            | tuple[Any, ...]
+            | Any
+        ),
+    ) -> ListConfig | TupleConfig | DictConfig:
         """
         Merge a list of previously created configs into a single one
 
@@ -568,16 +560,16 @@ class OmegaConf:
 
     @staticmethod
     def unsafe_merge(
-        *configs: Union[
-            DictConfig,
-            ListConfig,
-            TupleConfig,
-            Dict[DictKeyType, Any],
-            List[Any],
-            Tuple[Any, ...],
-            Any,
-        ],
-    ) -> Union[ListConfig, TupleConfig, DictConfig]:
+        *configs: (
+            DictConfig
+            | ListConfig
+            | TupleConfig
+            | dict[DictKeyType, Any]
+            | list[Any]
+            | tuple[Any, ...]
+            | Any
+        ),
+    ) -> ListConfig | TupleConfig | DictConfig:
         """
         Merge a list of previously created configs into a single one
         This is much faster than OmegaConf.merge() as the input configs are not copied.
@@ -665,7 +657,7 @@ class OmegaConf:
 
         validation_enabled = annotation_validation != "off"
         try:
-            sig: Optional[inspect.Signature] = inspect.signature(resolver)
+            sig: inspect.Signature | None = inspect.signature(resolver)
         except (TypeError, ValueError) as exc:
             sig = None
             validation_enabled = False
@@ -674,7 +666,7 @@ class OmegaConf:
                 f"{exc}"
             )
 
-        resolved_annotations: Dict[str, Any] = {}
+        resolved_annotations: dict[str, Any] = {}
         if validation_enabled:
             assert sig is not None
             resolved_annotations = {
@@ -773,7 +765,7 @@ class OmegaConf:
             return message
 
         def validate_arguments(
-            args: Tuple[Any, ...], kwargs: Dict[str, Node], node: Node
+            args: tuple[Any, ...], kwargs: dict[str, Node], node: Node
         ) -> None:
             if not validation_enabled or not parameter_annotations:
                 return
@@ -828,10 +820,10 @@ class OmegaConf:
             config: BaseContainer,
             parent: Container,
             node: Node,
-            args: Tuple[Any, ...],
-            args_str: Tuple[str, ...],
+            args: tuple[Any, ...],
+            args_str: tuple[str, ...],
         ) -> Any:
-            kwargs: Dict[str, Node] = {}
+            kwargs: dict[str, Node] = {}
             if pass_parent:
                 kwargs["_parent_"] = parent
             if pass_node:
@@ -901,8 +893,8 @@ class OmegaConf:
             config: BaseContainer,
             parent: BaseContainer,
             node: Node,
-            args: Tuple[Any, ...],
-            args_str: Tuple[str, ...],
+            args: tuple[Any, ...],
+            args_str: tuple[str, ...],
         ) -> Any:
             cache = OmegaConf.get_cache(config)[name]
             # "Un-escape " spaces and commas.
@@ -971,7 +963,7 @@ class OmegaConf:
             return False
 
     @staticmethod
-    def get_cache(conf: BaseContainer) -> Dict[str, Any]:
+    def get_cache(conf: BaseContainer) -> dict[str, Any]:
         """
         Return the resolver cache for ``conf``.
 
@@ -981,7 +973,7 @@ class OmegaConf:
         return conf._metadata.resolver_cache
 
     @staticmethod
-    def set_cache(conf: BaseContainer, cache: Dict[str, Any]) -> None:
+    def set_cache(conf: BaseContainer, cache: dict[str, Any]) -> None:
         """
         Replace the resolver cache for ``conf`` with a deep copy of ``cache``.
 
@@ -1010,7 +1002,7 @@ class OmegaConf:
         OmegaConf.set_cache(to_config, OmegaConf.get_cache(from_config))
 
     @staticmethod
-    def set_readonly(conf: Node, value: Optional[bool]) -> None:
+    def set_readonly(conf: Node, value: bool | None) -> None:
         """
         Set the read-only flag on ``conf``.
 
@@ -1022,7 +1014,7 @@ class OmegaConf:
         conf._set_flag("readonly", value)
 
     @staticmethod
-    def is_readonly(conf: Node) -> Optional[bool]:
+    def is_readonly(conf: Node) -> bool | None:
         """
         Return the effective read-only flag of ``conf``.
 
@@ -1034,7 +1026,7 @@ class OmegaConf:
         return conf._get_flag("readonly")
 
     @staticmethod
-    def set_struct(conf: Container, value: Optional[bool]) -> None:
+    def set_struct(conf: Container, value: bool | None) -> None:
         """
         Set the struct flag on ``conf``.
 
@@ -1049,7 +1041,7 @@ class OmegaConf:
         conf._set_flag("struct", value)
 
     @staticmethod
-    def is_struct(conf: Container) -> Optional[bool]:
+    def is_struct(conf: Container) -> bool | None:
         """
         Return the effective struct flag of ``conf``.
 
@@ -1061,7 +1053,7 @@ class OmegaConf:
         return conf._get_flag("struct")
 
     @staticmethod
-    def masked_copy(conf: DictConfig, keys: Union[str, List[str]]) -> DictConfig:
+    def masked_copy(conf: DictConfig, keys: str | list[str]) -> DictConfig:
         """
         Create a masked copy of of this config that contains a subset of the keys
 
@@ -1088,7 +1080,7 @@ class OmegaConf:
         throw_on_missing: bool = False,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
-    ) -> Union[Dict[DictKeyType, Any], List[Any], Tuple[Any, ...], None, str, Any]:
+    ) -> dict[DictKeyType, Any] | list[Any] | tuple[Any, ...] | str | Any | None:
         """
         Recursively converts an OmegaConf config to a primitive container.
 
@@ -1141,7 +1133,7 @@ class OmegaConf:
     @staticmethod
     def to_object(
         cfg: Any,
-    ) -> Union[Dict[DictKeyType, Any], List[Any], Tuple[Any, ...], None, str, Any]:
+    ) -> dict[DictKeyType, Any] | list[Any] | tuple[Any, ...] | None | str | Any:
         """
         Recursively converts an OmegaConf config to a primitive container.
         Any DictConfig objects backed by dataclasses or attrs classes are instantiated
@@ -1181,7 +1173,7 @@ class OmegaConf:
             return False
 
     @staticmethod
-    def is_interpolation(node: Any, key: Optional[Union[int, str]] = None) -> bool:
+    def is_interpolation(node: Any, key: int | str | None = None) -> bool:
         """
         Return ``True`` if the target node is an interpolation (e.g. ``${foo.bar}``).
 
@@ -1255,7 +1247,7 @@ class OmegaConf:
         return isinstance(obj, Container)
 
     @staticmethod
-    def get_type(obj: Any, key: Optional[str] = None) -> Optional[Type[Any]]:
+    def get_type(obj: Any, key: str | None = None) -> type[Any] | None:
         """
         Return the type of ``obj``, or of ``obj[key]`` when ``key`` is provided.
 
@@ -1422,7 +1414,7 @@ class OmegaConf:
             f"Unexpected type for root: {type(root).__name__}"
         )
 
-        last_key: Union[str, int] = last
+        last_key: str | int = last
         if OmegaConf.is_dict(root):
             _, last_key = _select_one(root, last, throw_on_missing=False)
         elif OmegaConf.is_sequence(root):
@@ -1456,7 +1448,7 @@ class OmegaConf:
         *,
         resolve: bool = False,
         sort_keys: bool = False,
-        default_flow_style: Optional[bool] = False,
+        default_flow_style: bool | None = False,
     ) -> str:
         """
         returns a yaml dump of this config object.
@@ -1504,7 +1496,7 @@ class OmegaConf:
         omegaconf._impl._resolve(cfg)
 
     @staticmethod
-    def missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> Set[str]:
+    def missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> set[str]:
         """
         Returns a set of missing keys in a dotlist style.
 
@@ -1522,7 +1514,7 @@ class OmegaConf:
         :raises ValueError: On input not representing a config.
         """
         cfg = _ensure_container(cfg)
-        missings: Set[str] = set()
+        missings: set[str] = set()
 
         def contains_custom_resolver_interpolation(node: Node) -> bool:
             value = node._value()
@@ -1545,7 +1537,7 @@ class OmegaConf:
             return has_resolver_interpolation(parse(value))
 
         def is_missing_value_error(exc: BaseException) -> bool:
-            current: Optional[BaseException] = exc
+            current: BaseException | None = exc
             while current is not None:
                 if isinstance(
                     current,
@@ -1597,11 +1589,11 @@ class OmegaConf:
     @staticmethod
     def _create_impl(  # noqa F811
         obj: Any = _DEFAULT_MARKER_,
-        parent: Optional[BaseContainer] = None,
-        flags: Optional[Dict[str, bool]] = None,
+        parent: BaseContainer | None = None,
+        flags: dict[str, bool] | None = None,
         *,
-        max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES,
-    ) -> Optional[Union[DictConfig, ListConfig, TupleConfig]]:
+        max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES,
+    ) -> DictConfig | ListConfig | TupleConfig | None:
         try:
             from .dictconfig import DictConfig
             from .listconfig import ListConfig
@@ -1705,7 +1697,7 @@ class OmegaConf:
             assert False
 
     @staticmethod
-    def _get_obj_type(c: Any) -> Optional[Type[Any]]:
+    def _get_obj_type(c: Any) -> type[Any] | None:
         if is_structured_config(c):
             return get_type_of(c)
         elif c is None:
@@ -1740,12 +1732,13 @@ class OmegaConf:
     @staticmethod
     def _get_resolver(
         name: str,
-    ) -> Optional[
+    ) -> (
         Callable[
-            [Container, Container, Node, Tuple[Any, ...], Tuple[str, ...]],
+            [Container, Container, Node, tuple[Any, ...], tuple[str, ...]],
             Any,
         ]
-    ]:
+        | None
+    ):
         # noinspection PyProtectedMember
         return (
             BaseContainer._resolvers[name] if name in BaseContainer._resolvers else None
@@ -1759,8 +1752,8 @@ register_default_resolvers()
 @contextmanager
 def flag_override(
     config: Node,
-    names: Union[List[str], str],
-    values: Union[List[Optional[bool]], Optional[bool]],
+    names: list[str] | str,
+    values: list[bool | None] | bool | None,
 ) -> Generator[Node, None, None]:
     """
     Context manager that temporarily overrides one or more flags on ``config``.
@@ -1827,7 +1820,7 @@ def open_dict(config: Container) -> Generator[Container, None, None]:
 
 
 def _node_wrap(
-    parent: Optional[Box],
+    parent: Box | None,
     is_optional: bool,
     value: Any,
     key: Any,
@@ -1944,7 +1937,7 @@ def _maybe_wrap(
     key: Any,
     value: Any,
     is_optional: bool,
-    parent: Optional[BaseContainer],
+    parent: BaseContainer | None,
 ) -> Node:
     # if already a node, update key and parent and return as is.
     # NOTE: that this mutate the input node!
@@ -1964,12 +1957,12 @@ def _maybe_wrap(
 
 def _select_one(
     c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
-) -> Tuple[Optional[Node], Union[str, int]]:
+) -> tuple[Node | None, str | int]:
     from .dictconfig import DictConfig
     from .listconfig import ListConfig
     from .tupleconfig import TupleConfig
 
-    ret_key: Union[str, int] = key
+    ret_key: str | int = key
     assert isinstance(c, Container), f"Unexpected type: {c}"
     if c._is_none():
         return None, ret_key
@@ -2021,8 +2014,8 @@ def _select_one(
 
 
 def _get_update_interpolation_target(
-    node: Node, memo: Optional[Set[int]] = None
-) -> Optional[Container]:
+    node: Node, memo: set[int] | None = None
+) -> Container | None:
     if not node._is_interpolation():
         return None
     target = _get_update_interpolation_result(node, memo=memo)
@@ -2030,8 +2023,8 @@ def _get_update_interpolation_target(
 
 
 def _get_update_interpolation_result(
-    node: Node, memo: Optional[Set[int]] = None
-) -> Optional[Node]:
+    node: Node, memo: set[int] | None = None
+) -> Node | None:
     if not node._is_interpolation():  # pragma: no cover
         return node
 
@@ -2058,7 +2051,7 @@ def _get_update_interpolation_result(
         if parent is None:  # pragma: no cover
             return None
 
-        def resolve_node(inter_key: str, _memo: Optional[Set[int]]) -> Optional[Node]:
+        def resolve_node(inter_key: str, _memo: set[int] | None) -> Node | None:
             try:
                 target, inter_key = parent._resolve_key_and_root(inter_key)
             except ConfigKeyError as exc:

@@ -1,7 +1,7 @@
 import os
 import pathlib
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -31,7 +31,7 @@ class _DefaultMaxYamlExpandedNodes(int):
 _DEFAULT_MAX_YAML_EXPANDED_NODES = _DefaultMaxYamlExpandedNodes()
 
 
-def _parse_max_yaml_expanded_nodes(value: str) -> Optional[int]:
+def _parse_max_yaml_expanded_nodes(value: str) -> int | None:
     value = value.strip()
     if value.lower() == "none":
         return None
@@ -47,7 +47,7 @@ def _parse_max_yaml_expanded_nodes(value: str) -> Optional[int]:
     return limit
 
 
-def _resolve_max_yaml_expanded_nodes(max_yaml_expanded_nodes: Any) -> Optional[int]:
+def _resolve_max_yaml_expanded_nodes(max_yaml_expanded_nodes: Any) -> int | None:
     if max_yaml_expanded_nodes is _DEFAULT_MAX_YAML_EXPANDED_NODES:
         env_value = os.environ.get(_MAX_YAML_EXPANDED_NODES_ENV)
         if env_value is None:
@@ -65,7 +65,7 @@ def _resolve_max_yaml_expanded_nodes(max_yaml_expanded_nodes: Any) -> Optional[i
 
 
 def get_yaml_loader(
-    *, max_yaml_expanded_nodes: Optional[int] = _DEFAULT_MAX_YAML_EXPANDED_NODES
+    *, max_yaml_expanded_nodes: int | None = _DEFAULT_MAX_YAML_EXPANDED_NODES
 ) -> Any:
     effective_max_yaml_expanded_nodes = _resolve_max_yaml_expanded_nodes(
         max_yaml_expanded_nodes
@@ -111,8 +111,8 @@ def get_yaml_loader(
             return super().construct_document(node)
 
         def _reject_recursive_aliases(self, node: yaml.Node) -> None:
-            seen: Dict[yaml.Node, None] = {}
-            visiting: Dict[yaml.Node, None] = {}
+            seen: dict[yaml.Node, None] = {}
+            visiting: dict[yaml.Node, None] = {}
 
             def visit(n: yaml.Node) -> None:
                 if n in seen:
@@ -142,7 +142,7 @@ def get_yaml_loader(
             visit(node)
 
         def _unique_node_count(self, node: yaml.Node) -> int:
-            seen: Dict[yaml.Node, None] = {}
+            seen: dict[yaml.Node, None] = {}
 
             def count(n: yaml.Node) -> int:
                 if n in seen:
@@ -162,7 +162,7 @@ def get_yaml_loader(
             return count(node)
 
         def _expanded_node_count(self, node: yaml.Node, limit: int) -> int:
-            memo: Dict[yaml.Node, int] = {}
+            memo: dict[yaml.Node, int] = {}
 
             def count(n: yaml.Node) -> int:
                 if n in memo:
