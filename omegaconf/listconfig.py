@@ -4,6 +4,8 @@ from collections.abc import Callable, Iterable, Iterator, MutableSequence
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .base import UnionNode
+    from .nodes import ValueNode
     from .tupleconfig import TupleConfig
 
 from ._utils import (
@@ -512,6 +514,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         return self._iter_ex(resolve=True)
 
     class ListIterator(Iterator[Any]):
+        resolve: bool
+        iterator: Iterator[Any]
+        index: int
+
+        ValueNode: type["ValueNode"]
+        UnionNode: type["UnionNode"]
+
         def __init__(self, lst: Any, resolve: bool) -> None:
             self.resolve = resolve
             self.iterator = iter(lst.__dict__["_content"])
