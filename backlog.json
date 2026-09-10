@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-09-09",
-  "generated_at": "2026-09-09T12:15:39Z",
+  "generated_on": "2026-09-10",
+  "generated_at": "2026-09-10T11:27:03Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 31,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 1
+        "count": 0
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 31
       },
       {
         "status": "done",
@@ -71,26 +71,6 @@
     ]
   },
   "issues": [
-    {
-      "number": 1274,
-      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "category": "Refactor",
-      "category_emoji": "🔧",
-      "status": "community PR",
-      "status_emoji": "🤝",
-      "prs": [
-        {
-          "number": 1364,
-          "url": "https://github.com/omry/omegaconf/pull/1364"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "maintenance"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1274"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -559,6 +539,21 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
+    },
+    {
+      "number": 1274,
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "category": "Refactor",
+      "category_emoji": "🔧",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1274"
     },
     {
       "number": 181,
@@ -1507,6 +1502,22 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-10T11:27:03Z",
+      "kind": "pr",
+      "issue": 1274,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1274",
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "detail": "unlinked #1364"
+    },
+    {
+      "ts": "2026-09-10T11:27:03Z",
+      "kind": "status",
+      "issue": 1274,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1274",
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "detail": "community PR → not started"
+    },
     {
       "ts": "2026-08-27T18:11:35Z",
       "kind": "pr",

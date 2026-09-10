@@ -52,7 +52,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-09-09T12:15:39Z",
+  "generated_at": "2026-09-10T11:27:03Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -148,11 +148,9 @@
       "labels": [
         "maintenance"
       ],
-      "pr_numbers": [
-        "1364"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "community PR",
+      "status": "not started",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
     },
