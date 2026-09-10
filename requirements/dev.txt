@@ -6,7 +6,7 @@ bump-my-version
 coveralls
 nox[pbs]
 pre-commit
-pyrefly==0.62.0
+pyrefly==1.2.0
 pytest
 pytest-benchmark
 pytest-mock
