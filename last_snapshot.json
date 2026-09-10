@@ -52,7 +52,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-09-10T12:10:12Z",
+  "generated_at": "2026-09-10T15:50:09Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -148,9 +148,11 @@
       "labels": [
         "maintenance"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1365"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
     },
@@ -366,6 +368,16 @@
       "status": "not started",
       "title": "Consider order-independent handling of overlapping scalar union members",
       "updated_at": "2026-07-26T05:42:55Z"
+    },
+    "1366": {
+      "category": "Build",
+      "created_at": "2026-09-10T15:48:49Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Ship the ANTLR license with the vendored runtime and build JAR",
+      "updated_at": "2026-09-10T15:48:49Z"
     },
     "144": {
       "category": "Enhancement",
