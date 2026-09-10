@@ -53,7 +53,7 @@
     "998": "2026-06-13",
     "999": "2026-07-19"
   },
-  "generated_at": "2026-09-10T20:41:09Z",
+  "generated_at": "2026-09-10T20:43:03Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -367,6 +367,26 @@
       "status": "not started",
       "title": "Consider order-independent handling of overlapping scalar union members",
       "updated_at": "2026-07-26T05:42:55Z"
+    },
+    "1368": {
+      "category": "Build",
+      "created_at": "2026-09-10T20:41:43Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Enforce 100% type coverage in CI",
+      "updated_at": "2026-09-10T20:41:43Z"
+    },
+    "1369": {
+      "category": "Enhancement",
+      "created_at": "2026-09-10T20:42:54Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Move OmegaConf to the hydra-ecosystem GitHub organization",
+      "updated_at": "2026-09-10T20:42:54Z"
     },
     "144": {
       "category": "Enhancement",

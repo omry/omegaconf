@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-10",
-  "generated_at": "2026-09-10T20:41:09Z",
+  "generated_at": "2026-09-10T20:43:03Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 31,
+    "open_total": 33,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 26,
-        "percentage": 83.9
+        "count": 27,
+        "percentage": 81.8
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.0
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.7
+        "percentage": 9.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 1,
-        "percentage": 3.2
+        "count": 2,
+        "percentage": 6.1
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 31
+        "count": 33
       },
       {
         "status": "done",
@@ -291,6 +291,21 @@
         "RFC"
       ],
       "url": "https://github.com/omry/omegaconf/issues/1255"
+    },
+    {
+      "number": 1274,
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "category": "Refactor",
+      "category_emoji": "🔧",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1274"
     },
     {
       "number": 1282,
@@ -541,19 +556,30 @@
       "url": "https://github.com/omry/omegaconf/issues/1357"
     },
     {
-      "number": 1274,
-      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "category": "Refactor",
-      "category_emoji": "🔧",
+      "number": 1368,
+      "title": "Enforce 100% type coverage in CI",
+      "category": "Build",
+      "category_emoji": "🏗️",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "maintenance"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1274"
+      "created": "2026-09-10",
+      "updated": "2026-09-10",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1368"
+    },
+    {
+      "number": 1369,
+      "title": "Move OmegaConf to the hydra-ecosystem GitHub organization",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-09-10",
+      "updated": "2026-09-10",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1369"
     },
     {
       "number": 181,
@@ -1515,6 +1541,20 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-10T20:43:03Z",
+      "kind": "new",
+      "issue": 1369,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1369",
+      "title": "Move OmegaConf to the hydra-ecosystem GitHub organization"
+    },
+    {
+      "ts": "2026-09-10T20:43:03Z",
+      "kind": "new",
+      "issue": 1368,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1368",
+      "title": "Enforce 100% type coverage in CI"
+    },
     {
       "ts": "2026-09-10T20:41:09Z",
       "kind": "pr",
