@@ -26,6 +26,10 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
+    node_interpolation_callback: Callable[[str, set[int] | None], "Node | None"] | None
+    resolver_interpolation_callback: Callable[..., Any] | None
+    memo: set[int] | None
+
     def __init__(
         self,
         node_interpolation_callback: (
