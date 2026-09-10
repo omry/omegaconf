@@ -65,6 +65,7 @@ with open("README.md", "r") as fh:
         long_description_content_type="text/markdown",
         url="https://github.com/omry/omegaconf",
         keywords="yaml configuration config",
+        license_files=["LICENSE", "ATTRIBUTION/LICENSE-antlr4"],
         packages=[
             "omegaconf",
             "omegaconf.grammar",
