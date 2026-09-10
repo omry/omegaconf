@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-09-10",
-  "generated_at": "2026-09-10T11:27:03Z",
+  "generated_at": "2026-09-10T12:10:12Z",
   "repo": "omry/omegaconf",
   "summary": {
     "open_total": 31,
@@ -293,6 +293,21 @@
       "url": "https://github.com/omry/omegaconf/issues/1255"
     },
     {
+      "number": 1274,
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "category": "Refactor",
+      "category_emoji": "🔧",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance"
+      ],
+      "url": "https://github.com/omry/omegaconf/issues/1274"
+    },
+    {
       "number": 1282,
       "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
       "category": "Documentation",
@@ -539,21 +554,6 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
-    },
-    {
-      "number": 1274,
-      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "category": "Refactor",
-      "category_emoji": "🔧",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "maintenance"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1274"
     },
     {
       "number": 181,
