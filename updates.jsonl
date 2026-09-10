@@ -171,3 +171,4 @@
 {"ts": "2026-09-10T15:50:09Z", "kind": "new", "issue": 1366, "issue_url": "https://github.com/omry/omegaconf/issues/1366", "title": "Ship the ANTLR license with the vendored runtime and build JAR"}
 {"ts": "2026-09-10T15:50:09Z", "kind": "status", "issue": 1274, "issue_url": "https://github.com/omry/omegaconf/issues/1274", "title": "Python 3.10 minimum: remove version guards and modernize type annotations", "detail": "not started → community PR", "pr": {"number": 1365, "url": "https://github.com/omry/omegaconf/pull/1365"}}
 {"ts": "2026-09-10T15:50:09Z", "kind": "pr", "issue": 1274, "issue_url": "https://github.com/omry/omegaconf/issues/1274", "title": "Python 3.10 minimum: remove version guards and modernize type annotations", "detail": "linked #1365"}
+{"ts": "2026-09-10T20:09:20Z", "kind": "closed", "issue": 1366, "issue_url": "https://github.com/omry/omegaconf/issues/1366", "title": "Ship the ANTLR license with the vendored runtime and build JAR"}

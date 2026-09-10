@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-10",
-  "generated_at": "2026-09-10T20:07:54Z",
+  "generated_at": "2026-09-10T20:09:20Z",
   "repo": "omry/omegaconf",
   "summary": {
-    "open_total": 32,
+    "open_total": 31,
     "by_category": [
       {
         "category": "Bug",
@@ -15,13 +15,13 @@
         "category": "Enhancement",
         "emoji": "✨",
         "count": 26,
-        "percentage": 81.2
+        "percentage": 83.9
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.2
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.4
+        "percentage": 9.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
-        "count": 2,
-        "percentage": 6.2
+        "count": 1,
+        "percentage": 3.2
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 31
+        "count": 30
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 51
+        "count": 52
       }
     ]
   },
@@ -559,19 +559,6 @@
       "updated": "2026-07-26",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1357"
-    },
-    {
-      "number": 1366,
-      "title": "Ship the ANTLR license with the vendored runtime and build JAR",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-09-10",
-      "updated": "2026-09-10",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1366"
     },
     {
       "number": 181,
@@ -1517,9 +1504,29 @@
       "updated": "2026-08-07",
       "labels": [],
       "url": "https://github.com/omry/omegaconf/issues/1360"
+    },
+    {
+      "number": 1366,
+      "title": "Ship the ANTLR license with the vendored runtime and build JAR",
+      "category": "Build",
+      "category_emoji": "🏗️",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-09-10",
+      "updated": "2026-09-10",
+      "labels": [],
+      "url": "https://github.com/omry/omegaconf/issues/1366"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-10T20:09:20Z",
+      "kind": "closed",
+      "issue": 1366,
+      "issue_url": "https://github.com/omry/omegaconf/issues/1366",
+      "title": "Ship the ANTLR license with the vendored runtime and build JAR"
+    },
     {
       "ts": "2026-09-10T15:50:09Z",
       "kind": "pr",
