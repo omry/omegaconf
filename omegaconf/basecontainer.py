@@ -2,7 +2,7 @@ import copy
 import sys
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List
 
 import yaml
 
@@ -56,9 +56,9 @@ if TYPE_CHECKING:
 
 
 class BaseContainer(Container, ABC):
-    _resolvers: ClassVar[Dict[str, Any]] = {}
+    _resolvers: ClassVar[dict[str, Any]] = {}
 
-    def __init__(self, parent: Optional[Box], metadata: ContainerMetadata):
+    def __init__(self, parent: Box | None, metadata: ContainerMetadata):
         if not (parent is None or isinstance(parent, Box)):
             raise ConfigTypeError("Parent type is not omegaconf.Box")
         super().__init__(parent=parent, metadata=metadata)
@@ -70,7 +70,7 @@ class BaseContainer(Container, ABC):
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]:
+    ) -> list[Node | None] | Node | None:
         """Like _get_node, passing through to the nearest concrete Node."""
         child = self._get_node(
             key=key,
@@ -87,7 +87,7 @@ class BaseContainer(Container, ABC):
 
     def _resolve_with_default(
         self,
-        key: Union[DictKeyType, int],
+        key: DictKeyType | int,
         value: Node,
         default_value: Any = _DEFAULT_MARKER_,
     ) -> Any:
@@ -119,7 +119,7 @@ class BaseContainer(Container, ABC):
             return self.__dict__["_content"].__repr__()  # type: ignore
 
     # Support pickle
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         dict_copy = copy.copy(self.__dict__)
 
         # no need to serialize the flags cache, it can be re-constructed later
@@ -139,7 +139,7 @@ class BaseContainer(Container, ABC):
         return dict_copy
 
     # Support pickle
-    def __setstate__(self, state_dict: Dict[str, Any]) -> None:
+    def __setstate__(self, state_dict: dict[str, Any]) -> None:
         from omegaconf import DictConfig
         from omegaconf._utils import is_generic_dict, is_generic_list
 
@@ -222,7 +222,7 @@ class BaseContainer(Container, ABC):
         args_list = sys.argv[1:]
         self.merge_with_dotlist(args_list)
 
-    def merge_with_dotlist(self, dotlist: List[str]) -> None:
+    def merge_with_dotlist(self, dotlist: list[str]) -> None:
         from omegaconf import OmegaConf
 
         def fail() -> None:
@@ -257,8 +257,8 @@ class BaseContainer(Container, ABC):
         throw_on_missing: bool,
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
-        resolved_node_cache: Optional[Dict[int, Node]] = None,
-    ) -> Union[None, Any, str, Dict[DictKeyType, Any], List[Any], Tuple[Any, ...]]:
+        resolved_node_cache: dict[int, Node] | None = None,
+    ) -> Any | str | dict[DictKeyType, Any] | list[Any] | tuple[Any, ...] | None:
         from omegaconf import MISSING, DictConfig, ListConfig, TupleConfig
 
         if resolve and resolved_node_cache is None:
@@ -271,7 +271,7 @@ class BaseContainer(Container, ABC):
 
             return value
 
-        def get_node_value(key: Union[DictKeyType, int]) -> Any:
+        def get_node_value(key: DictKeyType | int) -> Any:
             try:
                 node = conf._get_child(key, throw_on_missing_value=throw_on_missing)
             except MissingMandatoryValue as e:
@@ -343,7 +343,7 @@ class BaseContainer(Container, ABC):
             ):
                 return conf._to_object()
 
-            retdict: Dict[DictKeyType, Any] = {}
+            retdict: dict[DictKeyType, Any] = {}
             for key in conf.keys():
                 value = get_node_value(key)
                 if enum_to_str and isinstance(key, Enum):
@@ -351,7 +351,7 @@ class BaseContainer(Container, ABC):
                 retdict[key] = value
             return retdict
         elif isinstance(conf, ListConfig):
-            retlist: List[Any] = []
+            retlist: list[Any] = []
             for index in range(len(conf)):
                 item = get_node_value(index)
                 retlist.append(item)
@@ -671,9 +671,7 @@ class BaseContainer(Container, ABC):
 
     def merge_with(
         self,
-        *others: Union[
-            "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
-        ],
+        *others: "BaseContainer | dict[str, Any] | list[Any] | tuple[Any, ...] | Any",
     ) -> None:
         try:
             self._merge_with(*others)
@@ -682,9 +680,7 @@ class BaseContainer(Container, ABC):
 
     def _merge_with(
         self,
-        *others: Union[
-            "BaseContainer", Dict[str, Any], List[Any], Tuple[Any, ...], Any
-        ],
+        *others: "BaseContainer | dict[str, Any] | list[Any] | tuple[Any, ...] | Any",
         _allow_readonly_target: bool = False,
     ) -> None:
         from .dictconfig import DictConfig
@@ -880,9 +876,9 @@ class BaseContainer(Container, ABC):
     @staticmethod
     def _item_eq(
         c1: Container,
-        k1: Union[DictKeyType, int],
+        k1: DictKeyType | int,
         c2: Container,
-        k2: Union[DictKeyType, int],
+        k2: DictKeyType | int,
     ) -> bool:
         v1 = c1._get_child(k1)
         v2 = c2._get_child(k2)
@@ -899,8 +895,8 @@ class BaseContainer(Container, ABC):
 
         v1_inter = v1._is_interpolation()
         v2_inter = v2._is_interpolation()
-        dv1: Optional[Node] = v1
-        dv2: Optional[Node] = v2
+        dv1: Node | None = v1
+        dv2: Node | None = v2
 
         if v1_inter:
             dv1 = v1._maybe_dereference_node()
@@ -946,7 +942,7 @@ class BaseContainer(Container, ABC):
     def _value(self) -> Any:
         return self.__dict__["_content"]
 
-    def _get_full_key(self, key: Union[DictKeyType, int, slice, None]) -> str:
+    def _get_full_key(self, key: DictKeyType | int | slice | None) -> str:
         from .listconfig import ListConfig
         from .omegaconf import _select_one
         from .tupleconfig import TupleConfig
@@ -966,7 +962,7 @@ class BaseContainer(Container, ABC):
             full_key: str,
             parent_type: Any,
             cur_type: Any,
-            key: Optional[Union[DictKeyType, int, slice]],
+            key: DictKeyType | int | slice | None,
         ) -> str:
             if key is None:
                 return full_key
@@ -1037,7 +1033,7 @@ class BaseContainer(Container, ABC):
 
 
 def _create_structured_with_missing_fields(
-    ref_type: type, object_type: Optional[type] = None
+    ref_type: type, object_type: type | None = None
 ) -> "DictConfig":
     from . import MISSING, DictConfig
 
@@ -1052,7 +1048,7 @@ def _create_structured_with_missing_fields(
     return cfg
 
 
-def _update_types(node: Node, ref_type: Any, object_type: Optional[type]) -> None:
+def _update_types(node: Node, ref_type: Any, object_type: type | None) -> None:
     if object_type is not None and not is_primitive_dict(object_type):
         node._metadata.object_type = object_type
 

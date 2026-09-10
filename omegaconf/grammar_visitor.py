@@ -1,20 +1,8 @@
 import sys
 import warnings
+from collections.abc import Callable, Generator
 from itertools import zip_longest
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    NoReturn,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 from .errors import InterpolationResolutionError
 from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
@@ -40,15 +28,16 @@ except ModuleNotFoundError:  # pragma: no cover
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def __init__(
         self,
-        node_interpolation_callback: Optional[
+        node_interpolation_callback: (
             Callable[
-                [str, Optional[Set[int]]],
-                Optional["Node"],
+                [str, set[int] | None],
+                "Node | None",
             ]
-        ],
-        resolver_interpolation_callback: Optional[Callable[..., Any]],
-        memo: Optional[Set[int]],
-        **kw: Dict[Any, Any],
+            | None
+        ),
+        resolver_interpolation_callback: Callable[..., Any] | None,
+        memo: set[int] | None,
+        **kw: dict[Any, Any],
     ):
         """
         Constructor.
@@ -70,7 +59,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         self.resolver_interpolation_callback = resolver_interpolation_callback
         self.memo = memo
 
-    def aggregateResult(self, aggregate: List[Any], nextResult: Any) -> List[Any]:
+    def aggregateResult(self, aggregate: list[Any], nextResult: Any) -> list[Any]:
         raise NotImplementedError
 
     def defaultResult(self) -> NoReturn:
@@ -112,7 +101,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitDictContainer(
         self, ctx: OmegaConfGrammarParser.DictContainerContext
-    ) -> Dict[Any, Any]:
+    ) -> dict[Any, Any]:
         # BRACE_OPEN (dictKeyValuePair (COMMA dictKeyValuePair)*)? BRACE_CLOSE
         assert ctx.getChildCount() >= 2
         return dict(
@@ -135,7 +124,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitInterpolationNode(
         self, ctx: OmegaConfGrammarParser.InterpolationNodeContext
-    ) -> Optional["Node"]:
+    ) -> "Node | None":
         # INTER_OPEN
         # DOT*                                                     // relative interpolation?
         # (configKey | BRACKET_OPEN configKey BRACKET_CLOSE)       // foo, [foo]
@@ -194,7 +183,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitDictKeyValuePair(
         self, ctx: OmegaConfGrammarParser.DictKeyValuePairContext
-    ) -> Tuple[Any, Any]:
+    ) -> tuple[Any, Any]:
         from ._utils import _get_value
 
         assert ctx.getChildCount() == 3  # dictKey COLON element
@@ -211,7 +200,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def visitListContainer(
         self, ctx: OmegaConfGrammarParser.ListContainerContext
-    ) -> List[Any]:
+    ) -> list[Any]:
         # BRACKET_OPEN sequence? BRACKET_CLOSE;
         assert ctx.getChildCount() in (2, 3)
         if ctx.getChildCount() == 2:
@@ -314,10 +303,10 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def _createPrimitive(
         self,
-        ctx: Union[
-            OmegaConfGrammarParser.PrimitiveContext,
-            OmegaConfGrammarParser.DictKeyContext,
-        ],
+        ctx: (
+            OmegaConfGrammarParser.PrimitiveContext
+            | OmegaConfGrammarParser.DictKeyContext
+        ),
     ) -> Any:
         # (ID | NULL | INT | FLOAT | BOOL | UNQUOTED_CHAR | COLON | ESC | WS | interpolation)+
         if ctx.getChildCount() == 1:
@@ -352,7 +341,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
     def _unescape(
         self,
-        seq: List[Union[TerminalNode, OmegaConfGrammarParser.InterpolationContext]],
+        seq: list[TerminalNode | OmegaConfGrammarParser.InterpolationContext],
     ) -> str:
         """
         Concatenate all symbols / interpolations in `seq`, unescaping symbols as needed.

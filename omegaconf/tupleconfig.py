@@ -1,7 +1,7 @@
 import copy
 import operator
-from collections.abc import Sequence
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Any, Tuple
 
 from ._utils import (
     ValueKind,
@@ -31,17 +31,17 @@ from .errors import (
 
 
 class TupleConfig(BaseContainer, Sequence[Any]):
-    _content: Union[List[Node], None, str]
+    _content: list[Node] | str | None
     __hash__ = None  # type: ignore[assignment]
 
     def __init__(
         self,
-        content: Union[List[Any], Tuple[Any, ...], "TupleConfig", str, None],
+        content: "list[Any] | tuple[Any, ...] | TupleConfig | str | None",
         key: Any = None,
-        parent: Optional[Box] = None,
+        parent: Box | None = None,
         ref_type: Any = Tuple[Any, ...],
         is_optional: bool = True,
-        flags: Optional[Dict[str, bool]] = None,
+        flags: dict[str, bool] | None = None,
     ) -> None:
         try:
             ref_type = normalize_tuple_annotation(ref_type)
@@ -93,7 +93,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             cause=ConfigTypeError("TupleConfig is immutable"),
         )
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> "TupleConfig":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "TupleConfig":
         res = TupleConfig(None)
         res.__dict__["_metadata"] = copy.deepcopy(self.__dict__["_metadata"], memo)
         res.__dict__["_flags_cache"] = copy.deepcopy(
@@ -102,7 +102,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
 
         src_content = self.__dict__["_content"]
         if isinstance(src_content, list):
-            content_copy: List[Node] = []
+            content_copy: list[Node] = []
             for value in src_content:
                 old_parent = value.__dict__["_parent"]
                 try:
@@ -161,13 +161,13 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         indexes = range(*index.indices(len(self)))
         return make_tuple_annotation(tuple(item_types[item] for item in indexes))
 
-    def _expanded_item_types(self) -> Tuple[Any, ...]:
+    def _expanded_item_types(self) -> tuple[Any, ...]:
         item_types = get_tuple_item_types(self._metadata.ref_type)
         if is_variadic_tuple_annotation(self._metadata.ref_type):
             return (item_types[0],) * len(self)
         return item_types
 
-    def _unresolved_nodes(self) -> List[Node]:
+    def _unresolved_nodes(self) -> list[Node]:
         if self._is_none():
             raise TypeError("Cannot operate on a TupleConfig object representing None")
         if self._is_missing():
@@ -181,7 +181,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         return content
 
     def _new_with_fixed_type(
-        self, content: List[Any], item_types: Tuple[Any, ...]
+        self, content: list[Any], item_types: tuple[Any, ...]
     ) -> "TupleConfig":
         return TupleConfig(
             content=content,
@@ -190,7 +190,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             flags=copy.deepcopy(self._metadata.flags),
         )
 
-    def __getitem__(self, key_or_index: Union[int, slice]) -> Any:
+    def __getitem__(self, key_or_index: int | slice) -> Any:
         index = key_or_index
         try:
             if self._is_missing():
@@ -276,12 +276,12 @@ class TupleConfig(BaseContainer, Sequence[Any]):
 
     def _get_node(
         self,
-        key: Union[int, slice],
+        key: int | slice,
         validate_access: bool = True,
         validate_key: bool = True,
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
-    ) -> Union[Optional[Node], List[Optional[Node]]]:
+    ) -> list[Node | None] | Node | None:
         try:
             if self._is_none():
                 raise TypeError(
@@ -318,7 +318,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             self._format_and_raise(key=index, value=None, cause=ex)
 
     def index(
-        self, item: Any, start: Optional[int] = None, stop: Optional[int] = None
+        self, item: Any, start: int | None = None, stop: int | None = None
     ) -> int:
         self._unresolved_nodes()
         start = 0 if start is None else start
@@ -400,7 +400,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
 
     def __add__(self, other: Any) -> "TupleConfig":
         if isinstance(other, TupleConfig):
-            other_content: List[Any] = other._unresolved_nodes()
+            other_content: list[Any] = other._unresolved_nodes()
             other_types = other._expanded_item_types()
         elif isinstance(other, tuple):
             other_content = list(other)
@@ -449,7 +449,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
     def __rmul__(self, count: Any) -> "TupleConfig":
         return self * count
 
-    def _set_value(self, value: Any, flags: Optional[Dict[str, bool]] = None) -> None:
+    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         previous_content = self.__dict__["_content"]
         previous_metadata = self.__dict__["_metadata"]
         try:
@@ -459,9 +459,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             self.__dict__["_metadata"] = previous_metadata
             raise
 
-    def _set_value_impl(
-        self, value: Any, flags: Optional[Dict[str, bool]] = None
-    ) -> None:
+    def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _maybe_wrap
@@ -503,7 +501,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
                 f"TupleConfig length {len(values)} does not match type hint length {len(item_types)}"
             )
 
-        content: List[Node] = []
+        content: list[Node] = []
         self.__dict__["_content"] = content
         for index, item in enumerate(values):
             if get_value_kind(item) is ValueKind.MANDATORY_MISSING:

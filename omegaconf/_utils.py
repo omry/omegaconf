@@ -13,12 +13,10 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
-    FrozenSet,
     List,
     Literal,
     Optional,
     Tuple,
-    Type,
     Union,
     get_type_hints,
 )
@@ -55,18 +53,18 @@ if TYPE_CHECKING:
     from .basecontainer import BaseContainer
 
 
-NoneType: Type[None] = type(None)
+NoneType: type[None] = type(None)
 
 # (module, qualname) pairs for dict types that are treated as primitive dicts,
 # enabling whitelisting of other dict types without pulling in extra dependencies.
-_PRIMITIVE_DICT_TYPES: FrozenSet[Tuple[str, str]] = frozenset(
+_PRIMITIVE_DICT_TYPES: frozenset[tuple[str, str]] = frozenset(
     {
         ("builtins", "dict"),
         ("collections", "OrderedDict"),
     }
 )
 
-BUILTIN_VALUE_TYPES: Tuple[Type[Any], ...] = (
+BUILTIN_VALUE_TYPES: tuple[type[Any], ...] = (
     int,
     float,
     bool,
@@ -176,7 +174,7 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
         )
 
 
-def get_omega_conf_dumper() -> Type[OmegaConfDumper]:
+def get_omega_conf_dumper() -> type[OmegaConfDumper]:
     if not OmegaConfDumper.str_representer_added:
         OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
         OmegaConfDumper.str_representer_added = True
@@ -242,7 +240,7 @@ def _resolve_type_alias(type_: Any) -> Any:
             if isinstance(type_, typing.TypeAliasType):
                 bare_alias = True
                 origin = type_
-                arguments: Tuple[Any, ...] = ()
+                arguments: tuple[Any, ...] = ()
             else:
                 bare_alias = False
                 origin = typing.get_origin(type_)
@@ -279,7 +277,7 @@ def _resolve_type_alias(type_: Any) -> Any:
                     break
                 substitutions = dict(zip(parameters, arguments))
 
-            def substitution_args(value: Any) -> Tuple[Any, ...]:
+            def substitution_args(value: Any) -> tuple[Any, ...]:
                 result = []
                 for parameter in getattr(value, "__parameters__", ()):
                     argument = substitutions[parameter]
@@ -334,7 +332,7 @@ def _resolve_type_alias(type_: Any) -> Any:
     return type_
 
 
-def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
+def _resolve_optional(type_: Any) -> tuple[bool, Any]:
     """Normalize aliases and check whether `type_` accepts None."""
     type_ = _resolve_type_alias(type_)
     if is_union_annotation(type_):
@@ -366,7 +364,7 @@ def _resolve_optional(type_: Any) -> Tuple[bool, Any]:
     return False, type_
 
 
-def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
+def _is_optional(obj: Any, key: int | str | None = None) -> bool:
     """Check `obj` metadata to see if the given node is optional."""
     from .base import Container, Node
 
@@ -378,11 +376,11 @@ def _is_optional(obj: Any, key: Optional[Union[int, str]] = None) -> bool:
 
 
 def _resolve_forward(
-    type_: Type[Any],
+    type_: type[Any],
     module: str,
     preserve_container_origin: bool = False,
-    type_alias_guard: Optional[set[int]] = None,
-) -> Type[Any]:
+    type_alias_guard: set[int] | None = None,
+) -> type[Any]:
     import typing  # lgtm [py/import-and-import-from]
 
     if sys.version_info >= (3, 12):  # pragma: no cover
@@ -487,7 +485,7 @@ def _resolve_forward(
         return type_
 
 
-def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]]:
+def extract_dict_subclass_data(obj: Any, parent: Any) -> dict[str, Any] | None:
     """Check if obj is an instance of a subclass of Dict. If so, extract the Dict keys/values."""
     from omegaconf.omegaconf import _maybe_wrap
 
@@ -529,7 +527,7 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> Optional[Dict[str, Any]
         return None
 
 
-def get_attr_class_fields(obj: Any) -> List["AttrAttribute[Any]"]:
+def get_attr_class_fields(obj: Any) -> list["AttrAttribute[Any]"]:
     assert attr is not None  # help type-checkers
     is_type = isinstance(obj, type)
     obj_type = obj if is_type else type(obj)
@@ -539,9 +537,9 @@ def get_attr_class_fields(obj: Any) -> List["AttrAttribute[Any]"]:
 
 def get_attr_data(
     obj: Any,
-    allow_objects: Optional[bool] = None,
-    parent: Optional["BaseContainer"] = None,
-) -> Dict[str, Any]:
+    allow_objects: bool | None = None,
+    parent: "BaseContainer | None" = None,
+) -> dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
 
@@ -610,16 +608,16 @@ def get_attr_data(
     return d
 
 
-def get_dataclass_fields(obj: Any) -> List["dataclasses.Field[Any]"]:
+def get_dataclass_fields(obj: Any) -> list["dataclasses.Field[Any]"]:
     fields = dataclasses.fields(obj)
     return [f for f in fields if f.metadata.get("omegaconf_ignore") is not True]
 
 
 def get_dataclass_data(
     obj: Any,
-    allow_objects: Optional[bool] = None,
-    parent: Optional["BaseContainer"] = None,
-) -> Dict[str, Any]:
+    allow_objects: bool | None = None,
+    parent: "BaseContainer | None" = None,
+) -> dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
 
@@ -709,7 +707,7 @@ def is_attr_frozen(type_: type) -> bool:
     return type_.__setattr__ == attr._make._frozen_setattrs  # type: ignore
 
 
-def get_type_of(class_or_object: Any) -> Type[Any]:
+def get_type_of(class_or_object: Any) -> type[Any]:
     type_ = class_or_object
     if not isinstance(type_, type):
         type_ = type(class_or_object)
@@ -738,8 +736,8 @@ def _find_attrs_init_field_alias(field: Any) -> str:
         return field.name.lstrip("_")
 
 
-def get_structured_config_init_field_aliases(obj: Any) -> Dict[str, str]:
-    fields: Union[List["dataclasses.Field[Any]"], List["AttrAttribute[Any]"]]
+def get_structured_config_init_field_aliases(obj: Any) -> dict[str, str]:
+    fields: list["dataclasses.Field[Any]"] | list["AttrAttribute[Any]"]
     if is_dataclass(obj):
         fields = get_dataclass_fields(obj)
         return {f.name: f.name for f in fields if f.init}
@@ -752,9 +750,9 @@ def get_structured_config_init_field_aliases(obj: Any) -> Dict[str, str]:
 
 def get_structured_config_data(
     obj: Any,
-    allow_objects: Optional[bool] = None,
-    parent: Optional["BaseContainer"] = None,
-) -> Dict[str, Any]:
+    allow_objects: bool | None = None,
+    parent: "BaseContainer | None" = None,
+) -> dict[str, Any]:
     if is_dataclass(obj):
         return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
     elif is_attr_class(obj):
@@ -934,8 +932,8 @@ def is_supported_union_annotation(obj: Any) -> bool:
 
 
 def select_structured_config_union_member(
-    value: Any, candidates: List[Any]
-) -> Optional[Any]:
+    value: Any, candidates: list[Any]
+) -> Any | None:
     from omegaconf.dictconfig import DictConfig
 
     if isinstance(value, DictConfig):
@@ -980,7 +978,7 @@ def is_primitive_container(obj: Any) -> bool:
     return is_primitive_list(obj) or is_primitive_dict(obj)
 
 
-def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
+def get_list_element_type(ref_type: type[Any] | None) -> Any:
     args = getattr(ref_type, "__args__", None)
     if ref_type is not List and args is not None:
         element_type = args[0]
@@ -991,7 +989,7 @@ def get_list_element_type(ref_type: Optional[Type[Any]]) -> Any:
     return element_type
 
 
-def get_tuple_item_types(ref_type: Type[Any]) -> Tuple[Any, ...]:
+def get_tuple_item_types(ref_type: type[Any]) -> tuple[Any, ...]:
     args = getattr(ref_type, "__args__", None)
     if ref_type in (tuple, Tuple) or args is None:
         args = (Any, ...)
@@ -1028,11 +1026,11 @@ def is_variadic_tuple_annotation(ref_type: Any) -> bool:
     return len(args) == 2 and args[1] is Ellipsis
 
 
-def make_tuple_annotation(item_types: Tuple[Any, ...]) -> Any:
+def make_tuple_annotation(item_types: tuple[Any, ...]) -> Any:
     return Tuple[item_types]  # type: ignore[valid-type]
 
 
-def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
+def get_dict_key_value_types(ref_type: Any) -> tuple[Any, Any]:
     args = getattr(ref_type, "__args__", None)
     if args is None:
         bases = getattr(ref_type, "__orig_bases__", None)
@@ -1104,7 +1102,7 @@ def _get_value(value: Any) -> Any:
     return value
 
 
-def get_type_hint(obj: Any, key: Any = None) -> Optional[Type[Any]]:
+def get_type_hint(obj: Any, key: Any = None) -> type[Any] | None:
     from omegaconf import Container, Node
 
     if isinstance(obj, Container):
@@ -1190,12 +1188,12 @@ def format_and_raise(
         # this branch, so `cause` stays bound for the rest of the function.
         return  # pragma: no cover
 
-    object_type: Optional[Type[Any]]
-    object_type_str: Optional[str] = None
-    ref_type: Optional[Type[Any]]
-    ref_type_str: Optional[str]
+    object_type: type[Any] | None
+    object_type_str: str | None = None
+    ref_type: type[Any] | None
+    ref_type_str: str | None
 
-    child_node: Optional[Node] = None
+    child_node: Node | None = None
     if node is None:
         full_key = key if key is not None else ""
         object_type = None
@@ -1382,7 +1380,7 @@ def is_container_annotation(type_: Any) -> bool:
 _ESCAPABLE = frozenset(".[]=")
 
 
-def split_key(key: str) -> List[str]:
+def split_key(key: str) -> list[str]:
     r"""
     Split a full key path into its individual components.
 
@@ -1424,14 +1422,14 @@ def split_key(key: str) -> List[str]:
     # Slow path: backslash present, parse character by character.
     # Escape rules: \. -> literal '.', \[ -> literal '[', \] -> literal ']',
     # \= -> literal '=', \x (anything else) -> literal '\x' (passthrough).
-    tokens: List[str] = []
+    tokens: list[str] = []
     i = 0
     n = len(key)
 
     # Parse a dot-mode segment: reads until '.', '[', or end of string.
     def _read_dot_seg() -> str:
         nonlocal i
-        seg: List[str] = []
+        seg: list[str] = []
         while i < n and key[i] not in (".", "["):
             if key[i] == "\\" and i + 1 < n and key[i + 1] in _ESCAPABLE:
                 seg.append(key[i + 1])
@@ -1445,9 +1443,9 @@ def split_key(key: str) -> List[str]:
     # Returns the segment string if a closing ']' was found, None if the bracket
     # was never closed (matching the fast path's regex which also drops unclosed
     # brackets silently).
-    def _read_bracket_seg() -> Optional[str]:
+    def _read_bracket_seg() -> str | None:
         nonlocal i
-        seg: List[str] = []
+        seg: list[str] = []
         saved_i = i
         while i < n and key[i] != "]":
             if key[i] == "\\" and i + 1 < n and key[i + 1] in _ESCAPABLE:

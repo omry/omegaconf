@@ -48,6 +48,7 @@ jobs:
         ls -lah subprojects/omegaconf-pydevd/dist/
         python -m pip install twine
         twine check dist/* subprojects/omegaconf-pydevd/dist/*
+        python build_helpers/verify_distribution_licenses.py dist/omegaconf-*
 
     - name: Stage publish artifacts
       run: |
