@@ -6,7 +6,7 @@ summary: Current experimental TupleConfig semantics for immutable and positional
 
 # TupleConfig Design
 
-Tracking issue: [issue #392](https://github.com/omry/omegaconf/issues/392)
+Tracking issue: [issue #392](https://github.com/hydra-ecosystem/omegaconf/issues/392)
 
 ## Settled direction
 

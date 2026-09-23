@@ -6,7 +6,7 @@ summary: Runtime validation and staged enforcement of custom-resolver annotation
 
 # Resolver Annotation Validation
 
-Tracking issue: [issue #612](https://github.com/omry/omegaconf/issues/612)
+Tracking issue: [issue #612](https://github.com/hydra-ecosystem/omegaconf/issues/612)
 
 ## Summary
 
@@ -126,8 +126,8 @@ Missing arguments currently fail before the resolver is called. Any future
 resolver opt-in for receiving missing values must run its missing-value policy
 before ordinary annotation validation and define how the missing sentinel can
 be accepted. This remains coordinated with
-[issue #1301](https://github.com/omry/omegaconf/issues/1301) and
-[issue #1302](https://github.com/omry/omegaconf/issues/1302).
+[issue #1301](https://github.com/hydra-ecosystem/omegaconf/issues/1301) and
+[issue #1302](https://github.com/hydra-ecosystem/omegaconf/issues/1302).
 
 ## Diagnostics
 

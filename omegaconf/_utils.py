@@ -497,7 +497,7 @@ def extract_dict_subclass_data(obj: Any, parent: Any) -> dict[str, Any] | None:
         warnings.warn(
             f"Class `{obj_type.__name__}` subclasses `Dict`."
             + " Subclassing `Dict` in Structured Config classes is deprecated,"
-            + " see github.com/omry/omegaconf/issues/663",
+            + " see github.com/hydra-ecosystem/omegaconf/issues/663",
             UserWarning,
             stacklevel=9,
         )
