@@ -101,28 +101,38 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
 1. Configure Trusted Publisher on PyPI (project maintainers only):
    - Go to https://pypi.org/manage/project/omegaconf/settings/publishing/
    - Add GitHub as a trusted publisher with:
-     - Owner: `omry` (or your organization)
+     - Owner: `hydra-ecosystem`
      - Repository name: `omegaconf`
      - Workflow name: `publish.yml`
      - Environment name: `pypi-publish`
-   - Repeat for the `omegaconf-pydevd` PyPI project if you want the plugin
-     package published by the same workflow.
+   - Repeat for the `omegaconf-pydevd` PyPI project; the workflow publishes
+     both packages.
 
 2. Configure Trusted Publisher for dev releases on PyPI (project maintainers only):
    - Add GitHub as a trusted publisher with:
-     - Owner: `omry` (or your organization)
+     - Owner: `hydra-ecosystem`
      - Repository name: `omegaconf`
      - Workflow name: `publish_dev.yml`
      - Environment name: `pypi-publish-dev`
-   - Repeat for the `omegaconf-pydevd` PyPI project if you want dev plugin
-     releases published too.
+   - Repeat for the `omegaconf-pydevd` PyPI project; the workflow publishes
+     both packages.
 
-3. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
+3. Configure Trusted Publishers on TestPyPI for both `omegaconf` and
+   `omegaconf-pydevd`:
+   - Owner: `hydra-ecosystem`
+   - Repository name: `omegaconf`
+   - Workflow name: `publish_test.yml`
+   - Environment name: `testpypi-publish`
+
+4. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
    - Add protection rules (e.g., require manual approval)
 
-4. Create the `pypi-publish-dev` environment in GitHub repository settings:
+5. Create the `pypi-publish-dev` environment in GitHub repository settings:
    - Allow publishing from the development branch you use for dev releases
      (for example `main`)
+   - Add protection rules (e.g., require manual approval)
+
+6. Create the `testpypi-publish` environment in GitHub repository settings:
    - Add protection rules (e.g., require manual approval)
 
 **Official release process:**
@@ -133,20 +143,25 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
 2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`)
 3. Commit changes and push to main branch
 4. Create a new release on GitHub:
-   - Go to https://github.com/omry/omegaconf/releases/new
+   - Go to https://github.com/hydra-ecosystem/omegaconf/releases/new
    - Create a new tag (e.g., `v2.4.0`)
    - Add release notes
    - Publish release
-5. GitHub Actions will automatically build and publish to PyPI
+5. GitHub Actions will automatically build and publish stable GitHub releases
+   to PyPI and GitHub pre-releases to TestPyPI.
 
-The workflow handles:
+The release workflows handle:
 - Installing Java (required for ANTLR parser generation)
 - Building source distribution and wheel for both `omegaconf` and
   `omegaconf-pydevd`
 - Verifying artifacts for both packages with `twine check`
-- Publishing to PyPI via Trusted Publishers (no API tokens needed)
+- Publishing to PyPI or TestPyPI via Trusted Publishers (no API tokens needed)
 
 **Development release process:**
+The separate, manually triggered `publish_dev.yml` workflow can publish
+pre-release or development package versions to PyPI. It does not run when a
+GitHub pre-release is published.
+
 1. Ensure the dev version to publish is committed and pushed to the branch you
    use for dev releases.
 2. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions,

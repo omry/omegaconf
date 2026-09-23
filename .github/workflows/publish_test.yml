@@ -1,15 +1,17 @@
 # This workflow uploads OmegaConf to TestPyPI for testing
-# Trigger manually or on pre-release to test the publishing workflow
+# Trigger manually or when a GitHub pre-release is published. The published
+# event also covers pre-releases published from drafts, unlike prereleased.
 name: Publish to TestPyPI
 
 on:
   release:
-    types: [prereleased]
+    types: [published]
   workflow_dispatch:  # Allows manual triggering from GitHub Actions tab
 
 jobs:
   build-artifacts:
     name: Build distribution artifacts
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     runs-on: ubuntu-latest
     environment: testpypi-publish
     steps:

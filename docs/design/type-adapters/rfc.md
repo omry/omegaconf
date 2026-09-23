@@ -72,12 +72,12 @@ unsafe loading, and break portability.
 
 Related issues and discussions:
 
-- [#725](https://github.com/omry/omegaconf/issues/725) - numpy float/ndarray assignment
-- [#1160](https://github.com/omry/omegaconf/issues/1160) - Boost.Python.enum support
-- [#851](https://github.com/omry/omegaconf/issues/851) - datetime.datetime support
-- [#97](https://github.com/omry/omegaconf/issues/97), [#873](https://github.com/omry/omegaconf/issues/873) - pathlib.Path support, now integrated into core
-- [#844](https://github.com/omry/omegaconf/issues/844), [#872](https://github.com/omry/omegaconf/issues/872) - bytes support, now integrated into core
-- [discussion #874](https://github.com/omry/omegaconf/discussions/874) - register custom node type
+- [#725](https://github.com/hydra-ecosystem/omegaconf/issues/725) - numpy float/ndarray assignment
+- [#1160](https://github.com/hydra-ecosystem/omegaconf/issues/1160) - Boost.Python.enum support
+- [#851](https://github.com/hydra-ecosystem/omegaconf/issues/851) - datetime.datetime support
+- [#97](https://github.com/hydra-ecosystem/omegaconf/issues/97), [#873](https://github.com/hydra-ecosystem/omegaconf/issues/873) - pathlib.Path support, now integrated into core
+- [#844](https://github.com/hydra-ecosystem/omegaconf/issues/844), [#872](https://github.com/hydra-ecosystem/omegaconf/issues/872) - bytes support, now integrated into core
+- [discussion #874](https://github.com/hydra-ecosystem/omegaconf/discussions/874) - register custom node type
 
 ## Motivation And Alternatives
 

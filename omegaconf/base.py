@@ -886,7 +886,7 @@ class UnionNode(Box):
             if not is_union_annotation(ref_type):  # pragma: no cover
                 msg = (
                     f"UnionNode got unexpected ref_type {ref_type}. Please file a bug"
-                    + " report at https://github.com/omry/omegaconf/issues"
+                    + " report at https://github.com/hydra-ecosystem/omegaconf/issues"
                 )
                 raise AssertionError(msg)
             if not isinstance(parent, (Container, NoneType)):

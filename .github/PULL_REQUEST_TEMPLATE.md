@@ -4,7 +4,7 @@
 
 (Write your motivation for proposed changes here.)
 
-### Have you read the [Contributing Guidelines on pull requests](https://github.com/omry/omegaconf/blob/main/CONTRIBUTING.md)?
+### Have you read the [Contributing Guidelines on pull requests](https://github.com/hydra-ecosystem/omegaconf/blob/main/CONTRIBUTING.md)?
 
 Yes/No
 

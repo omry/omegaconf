@@ -6,7 +6,7 @@ summary: Proposed per-node provenance model across creation, mutation, merging, 
 
 # Provenance Tracking Design Note
 
-Tracking issue: [issue #1173](https://github.com/omry/omegaconf/issues/1173)
+Tracking issue: [issue #1173](https://github.com/hydra-ecosystem/omegaconf/issues/1173)
 
 This is an interesting feature request, but it is much larger than adding
 line/column information to YAML-loaded configs.
