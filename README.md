@@ -1,4 +1,13 @@
 # OmegaConf
+
+> [!IMPORTANT]
+> **OmegaConf project transition:** OmegaConf moved from the `omry` GitHub account
+> to [`hydra-ecosystem`](https://github.com/hydra-ecosystem). The repository moved
+> with its history, issues, and pull requests intact. OmegaConf remains BSD
+> 3-Clause licensed. No action is required from OmegaConf users. Contributors
+> should use the [new repository](https://github.com/hydra-ecosystem/omegaconf)
+> for issues and pull requests.
+
 |  | Description |
 | --- | --- |
 | Project | [![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)[![Downloads](https://pepy.tech/badge/omegaconf/month)](https://pepy.tech/project/omegaconf)![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue) |
