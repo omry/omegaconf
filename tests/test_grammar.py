@@ -491,7 +491,8 @@ class TestOmegaConfGrammar:
 
         parse_tree, expected_visit = self._parse("singleElement", definition, expected)
         with warns(
-            UserWarning, match=re.escape("https://github.com/omry/omegaconf/issues/572")
+            UserWarning,
+            match=re.escape("https://github.com/hydra-ecosystem/omegaconf/issues/572"),
         ):
             self._visit_with_config(parse_tree, expected_visit)
 

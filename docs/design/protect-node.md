@@ -11,9 +11,9 @@ summary: Proposed protected-node semantics that prevent replacement and deletion
 Users want to mark specific keys in a config as immutable so that neither the
 value nor the key itself can be changed after the config is set up.
 
-The feature is tracked by [issue #1300](https://github.com/omry/omegaconf/issues/1300),
+The feature is tracked by [issue #1300](https://github.com/hydra-ecosystem/omegaconf/issues/1300),
 which supersedes the original request in
-[issue #1161](https://github.com/omry/omegaconf/issues/1161). The motivating
+[issue #1161](https://github.com/hydra-ecosystem/omegaconf/issues/1161). The motivating
 case is locking interpolation nodes so they cannot be accidentally overwritten
 during config composition or runtime mutation.
 

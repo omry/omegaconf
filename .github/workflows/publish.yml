@@ -5,7 +5,7 @@ name: Publish to PyPI
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 # Use separate jobs for building and publishing so that write 
 # permissions are only accessible minimally.
@@ -16,6 +16,7 @@ on:
 jobs:
   build-artifacts:
     name: Build distribution artifacts
+    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     environment: pypi-publish 
     steps:

@@ -6,7 +6,7 @@ summary: Incremental dotlist syntax for dictionaries, lists, and tuples.
 
 # Dotlist Container Syntax
 
-Tracking issue: [issue #519](https://github.com/omry/omegaconf/issues/519)
+Tracking issue: [issue #519](https://github.com/hydra-ecosystem/omegaconf/issues/519)
 
 This design is suspended. The feature started from a request for dotlist-style
 flattened export, but a reliable `to_dotlist()` / `from_dotlist()` pair implies
