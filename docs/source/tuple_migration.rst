@@ -100,4 +100,4 @@ When upgrading to OmegaConf 2.4, review code that:
   produces a native ``tuple``.
 
 Tuple semantics are experimental in OmegaConf 2.4. Feedback is welcome on
-`GitHub issue #392 <https://github.com/omry/omegaconf/issues/392>`_.
+`GitHub issue #392 <https://github.com/hydra-ecosystem/omegaconf/issues/392>`_.

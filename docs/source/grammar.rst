@@ -10,8 +10,8 @@ The OmegaConf grammar
     from omegaconf import OmegaConf
 
 OmegaConf uses an `ANTLR <https://www.antlr.org/>`_-based grammar to parse string expressions,
-where the `lexer rules <https://github.com/omry/omegaconf/blob/master/omegaconf/grammar/OmegaConfGrammarLexer.g4>`_
-rules define the tokens used by the `parser rules <https://github.com/omry/omegaconf/blob/master/omegaconf/grammar/OmegaConfGrammarParser.g4>`_.
+where the `lexer rules <https://github.com/hydra-ecosystem/omegaconf/blob/main/omegaconf/grammar/OmegaConfGrammarLexer.g4>`_
+rules define the tokens used by the `parser rules <https://github.com/hydra-ecosystem/omegaconf/blob/main/omegaconf/grammar/OmegaConfGrammarParser.g4>`_.
 Currently this grammar's main usage is in the parsing of :ref:`interpolations<interpolation>`, detailed below.
 
 
@@ -85,7 +85,7 @@ Resolver arguments must be provided in a comma-separated list as per the followi
         sequence: (element (COMMA element?)*) | (COMMA element?)+;
 
 *Note that this rule currently supports empty arguments to preserve backward compatibility
-with OmegaConf 2.0, but this has been deprecated (see* `#572 <https://github.com/omry/omegaconf/issues/572>`_ *).*
+with OmegaConf 2.0, but this has been deprecated (see* `#572 <https://github.com/hydra-ecosystem/omegaconf/issues/572>`_ *).*
 
 
 .. _element-types:
@@ -139,9 +139,9 @@ Their corresponding parser rules are:
 
 Regarding dictionaries, note that although values can be any ``element``, keys are more
 restricted, and in particular quoted strings and interpolations are currently *not* allowed as
-dictionary keys (see the definition of ``dictKey`` in the `grammar <https://github.com/omry/omegaconf/blob/master/omegaconf/grammar/OmegaConfGrammarParser.g4>`_).
+dictionary keys (see the definition of ``dictKey`` in the `grammar <https://github.com/hydra-ecosystem/omegaconf/blob/main/omegaconf/grammar/OmegaConfGrammarParser.g4>`_).
 
-Finally, a ``primitive`` is everything else that is allowed, including in particular (see the `full grammar <https://github.com/omry/omegaconf/blob/master/omegaconf/grammar/OmegaConfGrammarParser.g4>`_
+Finally, a ``primitive`` is everything else that is allowed, including in particular (see the `full grammar <https://github.com/hydra-ecosystem/omegaconf/blob/main/omegaconf/grammar/OmegaConfGrammarParser.g4>`_
 for details):
 
     - Unquoted strings (that support only a subset of characters, contrary to quoted ones): ``foo``, ``foo_bar``, ``hello world 123``

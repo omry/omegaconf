@@ -540,6 +540,8 @@ class EnumNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
 
 
 class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
+    ref_type: Any
+
     def __init__(
         self,
         ref_type: Any,

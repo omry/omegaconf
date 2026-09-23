@@ -26,6 +26,10 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
+    node_interpolation_callback: Callable[[str, set[int] | None], "Node | None"] | None
+    resolver_interpolation_callback: Callable[..., Any] | None
+    memo: set[int] | None
+
     def __init__(
         self,
         node_interpolation_callback: (
@@ -254,7 +258,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             warnings.warn(
                 f"In the sequence `{txt}` some elements are missing: please replace "
                 f"them with empty quoted strings. "
-                f"See https://github.com/omry/omegaconf/issues/572 for details.",  # noqa: E231
+                f"See https://github.com/hydra-ecosystem/omegaconf/issues/572 for details.",  # noqa: E231
                 category=UserWarning,
             )
 

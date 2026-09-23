@@ -365,6 +365,10 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         return not self.__eq__(other)
 
     class TupleIterator(Iterator[Any]):
+        resolve: bool
+        iterator: Iterator[Any]
+        index: int
+
         def __init__(self, value: "TupleConfig", resolve: bool) -> None:
             self.resolve = resolve
             self.iterator = iter(value.__dict__["_content"])

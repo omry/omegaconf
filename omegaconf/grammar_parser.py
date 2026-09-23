@@ -34,7 +34,7 @@ _resolver_inter = (
 )
 _inter = f"({_node_inter}|{_resolver_inter})"  # any kind of interpolation
 _outer = "([^$]|\\$(?!{))+"  # any character except $ (unless not followed by {)
-SIMPLE_INTERPOLATION_PATTERN = re.compile(
+SIMPLE_INTERPOLATION_PATTERN: re.Pattern[str] = re.compile(
     f"({_outer})?({_inter}({_outer})?)+$", flags=re.ASCII
 )
 # NOTE: SIMPLE_INTERPOLATION_PATTERN must not generate false positive matches:

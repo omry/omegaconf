@@ -77,6 +77,7 @@ def lint(session: Session) -> None:
     # Note: Linting only runs on Python 3.10 to avoid running it on every CI job
     deps(session, editable_install=True)
     session.run("pyrefly", "check", silent=True)
+    session.run("pyrefly", "coverage", "check", "--public-only", silent=True)
     session.run("ruff", "check", ".", silent=True)
     session.run("ruff", "format", "--check", ".", silent=True)
 

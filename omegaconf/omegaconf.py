@@ -865,7 +865,7 @@ class OmegaConf:
             dedent("""\
             register_new_resolver() is deprecated and will be removed in a future release.
             Use register_resolver() instead.
-            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            See https://github.com/hydra-ecosystem/omegaconf/issues/426 for migration instructions.
             """),
             stacklevel=2,
         )
@@ -879,7 +879,7 @@ class OmegaConf:
             dedent("""\
             legacy_register_resolver() is deprecated and will be removed in a future release.
             Use register_resolver() instead.
-            See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+            See https://github.com/hydra-ecosystem/omegaconf/issues/426 for migration instructions.
             """),
             stacklevel=2,
         )
@@ -913,7 +913,7 @@ class OmegaConf:
                     f"to be an interpolation. Nested interpolations are not supported for "
                     f"resolvers registered with `legacy_register_resolver()`, please use "
                     f"`register_resolver()` instead (see "
-                    f"https://github.com/omry/omegaconf/issues/426 for migration instructions)."  # noqa: E231
+                    f"https://github.com/hydra-ecosystem/omegaconf/issues/426 for migration instructions)."  # noqa: E231
                 )
             key = args_str
             val = cache[key] if key in cache else resolver(*args_unesc)

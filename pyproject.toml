@@ -72,7 +72,7 @@ filename = "subprojects/omegaconf-pydevd/version.py"
     directory = "news/"
     title_format = "## {version} ({project_date})"
     template = "news/_template.rst"
-    issue_format = "[#{issue}](https://github.com/omry/omegaconf/issues/{issue})"
+    issue_format = "[#{issue}](https://github.com/hydra-ecosystem/omegaconf/issues/{issue})"
     start_string = "<!-- TOWNCRIER -->\n"
     underlines = [""]
 
@@ -121,4 +121,13 @@ project-includes = [
 ]
 ignore-missing-imports = [
     "omegaconf.grammar.gen.*",
+]
+
+[tool.pyrefly.coverage]
+includes = [
+    "omegaconf",
+]
+excludes = [
+    "omegaconf/vendor/**",
+    "omegaconf/grammar/gen/**",
 ]
