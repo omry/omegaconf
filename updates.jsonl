@@ -177,3 +177,4 @@
 {"ts": "2026-09-10T20:43:03Z", "kind": "new", "issue": 1368, "issue_url": "https://github.com/omry/omegaconf/issues/1368", "title": "Enforce 100% type coverage in CI"}
 {"ts": "2026-09-10T20:43:03Z", "kind": "new", "issue": 1369, "issue_url": "https://github.com/omry/omegaconf/issues/1369", "title": "Move OmegaConf to the hydra-ecosystem GitHub organization"}
 {"ts": "2026-09-10T21:18:27Z", "kind": "closed", "issue": 1368, "issue_url": "https://github.com/omry/omegaconf/issues/1368", "title": "Enforce 100% type coverage in CI"}
+{"ts": "2026-09-23T20:59:33Z", "kind": "new", "issue": 1372, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1372", "title": "OmegaConf 2.4: drop Python 3.10 and evaluate Python 3.15"}

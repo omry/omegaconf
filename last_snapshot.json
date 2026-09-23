@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-09-23T12:41:29Z",
+  "generated_at": "2026-09-23T20:59:33Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -324,6 +324,16 @@
       "status": "not started",
       "title": "Move OmegaConf to the hydra-ecosystem GitHub organization",
       "updated_at": "2026-09-10T20:42:54Z"
+    },
+    "1372": {
+      "category": "Enhancement",
+      "created_at": "2026-09-23T20:58:13Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "OmegaConf 2.4: drop Python 3.10 and evaluate Python 3.15",
+      "updated_at": "2026-09-23T20:58:13Z"
     },
     "144": {
       "category": "Enhancement",
