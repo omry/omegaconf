@@ -318,7 +318,7 @@ def warns_dict_subclass_deprecated(dict_subclass: Any) -> Any:
         match=re.escape(
             f"Class `{dict_subclass.__name__}` subclasses `Dict`."
             + " Subclassing `Dict` in Structured Config classes is deprecated,"
-            + " see github.com/omry/omegaconf/issues/663"
+            + " see github.com/hydra-ecosystem/omegaconf/issues/663"
         ),
     )
 
