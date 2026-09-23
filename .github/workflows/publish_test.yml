@@ -4,12 +4,13 @@ name: Publish to TestPyPI
 
 on:
   release:
-    types: [prereleased]
+    types: [published]
   workflow_dispatch:  # Allows manual triggering from GitHub Actions tab
 
 jobs:
   build-artifacts:
     name: Build distribution artifacts
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     runs-on: ubuntu-latest
     environment: testpypi-publish
     steps:

@@ -35,7 +35,7 @@ setuptools.setup(
     description="pydevd debugger plugin for OmegaConf",
     long_description=LONG_DESC,
     long_description_content_type="text/markdown",
-    url="https://github.com/omry/omegaconf",
+    url="https://github.com/hydra-ecosystem/omegaconf",
     keywords="omegaconf pydevd debugpy debugger",
     packages=[
         "pydevd_plugins",

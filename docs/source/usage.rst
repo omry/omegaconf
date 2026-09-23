@@ -1156,7 +1156,7 @@ Install it with:
 
     pip install omegaconf-pydevd
 
-See the `omegaconf-pydevd README <https://github.com/omry/omegaconf/tree/master/subprojects/omegaconf-pydevd/README.md>`_
+See the `omegaconf-pydevd README <https://github.com/hydra-ecosystem/omegaconf/tree/main/subprojects/omegaconf-pydevd/README.md>`_
 for usage details and an example debugger demo.
 
 The debugger extension enables OmegaConf-aware object inspection:
