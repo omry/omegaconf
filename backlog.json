@@ -1,7 +1,7 @@
 {
   "generated_on": "2026-09-23",
-  "generated_at": "2026-09-23T06:28:52Z",
-  "repo": "omry/omegaconf",
+  "generated_at": "2026-09-23T07:40:50Z",
+  "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 32,
     "by_category": [
@@ -66,7 +66,7 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 53
+        "count": 0
       }
     ]
   },
@@ -85,7 +85,7 @@
         "enhancement",
         "has-workaround"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/91"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/91"
     },
     {
       "number": 131,
@@ -101,7 +101,7 @@
         "enhancement",
         "structured config"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/131"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/131"
     },
     {
       "number": 144,
@@ -117,7 +117,7 @@
         "enhancement",
         "priority_high"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/144"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/144"
     },
     {
       "number": 459,
@@ -133,7 +133,7 @@
         "enhancement",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/459"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/459"
     },
     {
       "number": 537,
@@ -148,7 +148,7 @@
       "labels": [
         "maintenance"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/537"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/537"
     },
     {
       "number": 610,
@@ -166,7 +166,7 @@
         "has-workaround",
         "priority_low"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/610"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/610"
     },
     {
       "number": 851,
@@ -181,7 +181,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/851"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/851"
     },
     {
       "number": 1024,
@@ -198,7 +198,7 @@
         "interpolation",
         "has-workaround"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1024"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1024"
     },
     {
       "number": 1028,
@@ -213,7 +213,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1028"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1028"
     },
     {
       "number": 1048,
@@ -228,7 +228,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1048"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1048"
     },
     {
       "number": 1160,
@@ -243,7 +243,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1160"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1160"
     },
     {
       "number": 1173,
@@ -258,7 +258,7 @@
       "labels": [
         "wishlist"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1173"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1173"
     },
     {
       "number": 1184,
@@ -274,7 +274,7 @@
         "enhancement",
         "wishlist"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1184"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1184"
     },
     {
       "number": 1255,
@@ -290,7 +290,7 @@
         "maintenance",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1255"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1255"
     },
     {
       "number": 1274,
@@ -305,7 +305,7 @@
       "labels": [
         "maintenance"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1274"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
     },
     {
       "number": 1282,
@@ -320,7 +320,7 @@
       "labels": [
         "documentation"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1282"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282"
     },
     {
       "number": 1288,
@@ -335,7 +335,7 @@
       "labels": [
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1288"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1288"
     },
     {
       "number": 1297,
@@ -351,7 +351,7 @@
         "enhancement",
         "wishlist"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1297"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1297"
     },
     {
       "number": 1298,
@@ -367,7 +367,7 @@
         "enhancement",
         "wishlist"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1298"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1298"
     },
     {
       "number": 1299,
@@ -384,7 +384,7 @@
         "structured config",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1299"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1299"
     },
     {
       "number": 1300,
@@ -399,7 +399,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1300"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1300"
     },
     {
       "number": 1301,
@@ -414,7 +414,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1301"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1301"
     },
     {
       "number": 1302,
@@ -429,7 +429,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1302"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1302"
     },
     {
       "number": 1312,
@@ -446,7 +446,7 @@
         "listconfig",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1312"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1312"
     },
     {
       "number": 1328,
@@ -462,7 +462,7 @@
         "structured config",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1328"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1328"
     },
     {
       "number": 1332,
@@ -478,7 +478,7 @@
         "interpolation",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1332"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1332"
     },
     {
       "number": 1334,
@@ -494,7 +494,7 @@
         "interpolation",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1334"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1334"
     },
     {
       "number": 1335,
@@ -509,7 +509,7 @@
       "labels": [
         "enhancement"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1335"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
     },
     {
       "number": 1338,
@@ -525,7 +525,7 @@
         "enhancement",
         "RFC"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1338"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338"
     },
     {
       "number": 1349,
@@ -540,7 +540,7 @@
       "labels": [
         "internal"
       ],
-      "url": "https://github.com/omry/omegaconf/issues/1349"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1349"
     },
     {
       "number": 1357,
@@ -553,7 +553,7 @@
       "created": "2026-07-26",
       "updated": "2026-09-10",
       "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1357"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
     },
     {
       "number": 1369,
@@ -566,978 +566,7 @@
       "created": "2026-09-10",
       "updated": "2026-09-10",
       "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1369"
-    },
-    {
-      "number": 181,
-      "title": "[Feature Request] Add .toJSON() method",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2020-03-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/181"
-    },
-    {
-      "number": 265,
-      "title": "Attribute/KeyError can suggest matches from the available keys.",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2020-06-11",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/265"
-    },
-    {
-      "number": 392,
-      "title": "Improve Tuple support",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1336,
-          "url": "https://github.com/omry/omegaconf/pull/1336"
-        }
-      ],
-      "created": "2020-09-24",
-      "updated": "2026-04-26",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/392"
-    },
-    {
-      "number": 519,
-      "title": "allow exporting to dotlist-style format",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-02-05",
-      "updated": "2026-04-25",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/519"
-    },
-    {
-      "number": 580,
-      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1307,
-          "url": "https://github.com/omry/omegaconf/pull/1307"
-        }
-      ],
-      "created": "2021-03-05",
-      "updated": "2026-05-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/580"
-    },
-    {
-      "number": 612,
-      "title": "Automatic validation of resolver arguments",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1344,
-          "url": "https://github.com/omry/omegaconf/pull/1344"
-        }
-      ],
-      "created": "2021-03-16",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low",
-        "wishlist"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/612"
-    },
-    {
-      "number": 651,
-      "title": "Interpolations can't refer to non-string keys",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1358,
-          "url": "https://github.com/omry/omegaconf/pull/1358"
-        }
-      ],
-      "created": "2021-03-29",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/651"
-    },
-    {
-      "number": 702,
-      "title": "Provide correct full key on nested Structured Config creation error.",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1350,
-          "url": "https://github.com/omry/omegaconf/pull/1350"
-        }
-      ],
-      "created": "2021-04-29",
-      "updated": "2026-07-17",
-      "labels": [
-        "bug",
-        "priority_low",
-        "wishlist"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/702"
-    },
-    {
-      "number": 725,
-      "title": "Support assignment of numpy floats to FloatNode",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-05-20",
-      "updated": "2026-04-29",
-      "labels": [
-        "enhancement",
-        "needs triage",
-        "priority_low"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/725"
-    },
-    {
-      "number": 726,
-      "title": "Consistent resolving of interpolations to random resolver values",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-05-20",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/726"
-    },
-    {
-      "number": 731,
-      "title": "Subclasses of `Generic` cannot be used as structured configs",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-05-24",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug",
-        "priority_medium"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/731"
-    },
-    {
-      "number": 750,
-      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1346,
-          "url": "https://github.com/omry/omegaconf/pull/1346"
-        }
-      ],
-      "created": "2021-06-15",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/750"
-    },
-    {
-      "number": 762,
-      "title": "Dereferencing a resolver that returns \"???\"",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-06-28",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/762"
-    },
-    {
-      "number": 771,
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1309,
-          "url": "https://github.com/omry/omegaconf/pull/1309"
-        }
-      ],
-      "created": "2021-07-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "documentation",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/771"
-    },
-    {
-      "number": 813,
-      "title": "OmegaConf.masked_copy does not preserve ValueNode type",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1308,
-          "url": "https://github.com/omry/omegaconf/pull/1308"
-        }
-      ],
-      "created": "2021-10-28",
-      "updated": "2026-05-22",
-      "labels": [
-        "bug",
-        "low priority"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/813"
-    },
-    {
-      "number": 815,
-      "title": "merge-readonly interatction",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-10-29",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/815"
-    },
-    {
-      "number": 846,
-      "title": "Nightly builds",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2021-12-27",
-      "updated": "2026-04-24",
-      "labels": [
-        "maintenance",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/846"
-    },
-    {
-      "number": 864,
-      "title": "Support interpolation to integer keys (or other non-string keys)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-02-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "interpolation",
-        "needs triage",
-        "wishlist"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/864"
-    },
-    {
-      "number": 882,
-      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-03-29",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "has-workaround",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/882"
-    },
-    {
-      "number": 883,
-      "title": "Error when creating structured config with untyped Tuple",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-03-29",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/883"
-    },
-    {
-      "number": 898,
-      "title": "_promote is erasing values from the config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1324,
-          "url": "https://github.com/omry/omegaconf/pull/1324"
-        }
-      ],
-      "created": "2022-04-14",
-      "updated": "2026-06-27",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/898"
-    },
-    {
-      "number": 899,
-      "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-04-15",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/899"
-    },
-    {
-      "number": 908,
-      "title": "`OmegaConf.structured(...)` may mutate its input",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1325,
-          "url": "https://github.com/omry/omegaconf/pull/1325"
-        }
-      ],
-      "created": "2022-05-02",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/908"
-    },
-    {
-      "number": 928,
-      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1351,
-          "url": "https://github.com/omry/omegaconf/pull/1351"
-        }
-      ],
-      "created": "2022-05-15",
-      "updated": "2026-07-19",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/928"
-    },
-    {
-      "number": 945,
-      "title": "`get_attr_data` doesn't handle default factory correctly",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-05-25",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/945"
-    },
-    {
-      "number": 969,
-      "title": "Follow up on deprecation of `register_resolver()`",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1322,
-          "url": "https://github.com/omry/omegaconf/pull/1322"
-        }
-      ],
-      "created": "2022-06-21",
-      "updated": "2026-04-24",
-      "labels": [
-        "maintenance",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/969"
-    },
-    {
-      "number": 998,
-      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1321,
-          "url": "https://github.com/omry/omegaconf/pull/1321"
-        }
-      ],
-      "created": "2022-08-18",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/998"
-    },
-    {
-      "number": 999,
-      "title": "`List[Tuple[T, ...]]` not supported",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-08-29",
-      "updated": "2026-06-13",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/999"
-    },
-    {
-      "number": 1020,
-      "title": "Failure to merge interpolation into structured config",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1331,
-          "url": "https://github.com/omry/omegaconf/pull/1331"
-        }
-      ],
-      "created": "2022-10-20",
-      "updated": "2026-06-13",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1020"
-    },
-    {
-      "number": 1037,
-      "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2022-11-28",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1037"
-    },
-    {
-      "number": 1052,
-      "title": "How can I get the data type of an attribute at a depth>1?",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2023-01-06",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1052"
-    },
-    {
-      "number": 1054,
-      "title": "Structured Config schema Type validation of \"list[list[float]]\" does not accept 'int'",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2023-01-22",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1054"
-    },
-    {
-      "number": 1058,
-      "title": "structured config types are discarded on list merge",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1323,
-          "url": "https://github.com/omry/omegaconf/pull/1323"
-        }
-      ],
-      "created": "2023-02-19",
-      "updated": "2026-06-12",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1058"
-    },
-    {
-      "number": 1061,
-      "title": "Enum inheritance Support",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2023-03-07",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1061"
-    },
-    {
-      "number": 1095,
-      "title": "Validation error merging structured configs containing enum in a nested list",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1320,
-          "url": "https://github.com/omry/omegaconf/pull/1320"
-        }
-      ],
-      "created": "2023-06-23",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1095"
-    },
-    {
-      "number": 1102,
-      "title": "Merging nested readonly structured configs doesn't work.",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1318,
-          "url": "https://github.com/omry/omegaconf/pull/1318"
-        }
-      ],
-      "created": "2023-07-14",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1102"
-    },
-    {
-      "number": 1120,
-      "title": "Escaped resolver modifying `_root_` doesn't work",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2023-08-30",
-      "updated": "2026-04-24",
-      "labels": [
-        "bug",
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1120"
-    },
-    {
-      "number": 1126,
-      "title": "Improve error message for relative interpolations",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1317,
-          "url": "https://github.com/omry/omegaconf/pull/1317"
-        }
-      ],
-      "created": "2023-09-22",
-      "updated": "2026-04-24",
-      "labels": [
-        "needs triage"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1126"
-    },
-    {
-      "number": 1191,
-      "title": "Controlling conflict resolution in merge_with",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2024-08-20",
-      "updated": "2026-04-24",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1191"
-    },
-    {
-      "number": 1263,
-      "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1345,
-          "url": "https://github.com/omry/omegaconf/pull/1345"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "RFC",
-        "listconfig",
-        "maintenance"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1263"
-    },
-    {
-      "number": 1271,
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1353,
-          "url": "https://github.com/omry/omegaconf/pull/1353"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1271"
-    },
-    {
-      "number": 1275,
-      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1354,
-          "url": "https://github.com/omry/omegaconf/pull/1354"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-24",
-      "labels": [
-        "enhancement",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1275"
-    },
-    {
-      "number": 1310,
-      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1311,
-          "url": "https://github.com/omry/omegaconf/pull/1311"
-        }
-      ],
-      "created": "2026-06-10",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug",
-        "listconfig",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1310"
-    },
-    {
-      "number": 1314,
-      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1316,
-          "url": "https://github.com/omry/omegaconf/pull/1316"
-        }
-      ],
-      "created": "2026-06-10",
-      "updated": "2026-06-10",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1314"
-    },
-    {
-      "number": 1315,
-      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-06-11",
-      "updated": "2026-06-11",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1315"
-    },
-    {
-      "number": 1326,
-      "title": "Support structural equality for configs",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1327,
-          "url": "https://github.com/omry/omegaconf/pull/1327"
-        }
-      ],
-      "created": "2026-06-27",
-      "updated": "2026-06-27",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1326"
-    },
-    {
-      "number": 1329,
-      "title": "OmegaConf.update() discards container-valued interpolation when updating a nested key",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1352,
-          "url": "https://github.com/omry/omegaconf/pull/1352"
-        }
-      ],
-      "created": "2026-07-15",
-      "updated": "2026-07-23",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1329"
-    },
-    {
-      "number": 1330,
-      "title": "`OmegaConf.resolve()` drops interpolation error context",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1356,
-          "url": "https://github.com/omry/omegaconf/pull/1356"
-        }
-      ],
-      "created": "2026-07-15",
-      "updated": "2026-07-15",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1330"
-    },
-    {
-      "number": 1333,
-      "title": "Consider making OmegaConf configs unhashable",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1359,
-          "url": "https://github.com/omry/omegaconf/pull/1359"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-07-18",
-      "labels": [
-        "RFC",
-        "bug"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1333"
-    },
-    {
-      "number": 1340,
-      "title": "Inherited flag cache is not invalidated through container-valued unions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1348,
-          "url": "https://github.com/omry/omegaconf/pull/1348"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-07-20",
-      "labels": [
-        "bug",
-        "priority_high",
-        "structured config"
-      ],
-      "url": "https://github.com/omry/omegaconf/issues/1340"
-    },
-    {
-      "number": 1360,
-      "title": "OmegaConf.merge fails when a typed null DictConfig is the merge root",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1361,
-          "url": "https://github.com/omry/omegaconf/pull/1361"
-        }
-      ],
-      "created": "2026-08-07",
-      "updated": "2026-08-07",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1360"
-    },
-    {
-      "number": 1366,
-      "title": "Ship the ANTLR license with the vendored runtime and build JAR",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-09-10",
-      "updated": "2026-09-10",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1366"
-    },
-    {
-      "number": 1368,
-      "title": "Enforce 100% type coverage in CI",
-      "category": "Build",
-      "category_emoji": "🏗️",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-09-10",
-      "updated": "2026-09-10",
-      "labels": [],
-      "url": "https://github.com/omry/omegaconf/issues/1368"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1369"
     }
   ],
   "updates": [
