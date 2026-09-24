@@ -6,6 +6,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from omegaconf._conversion_warnings import (
+    _conversion_warning_mode,
+    _warn_implicit_conversion,
+)
 from omegaconf._utils import (
     NoneType,
     ValueKind,
@@ -45,7 +49,14 @@ class ValueNode(Node):
         ):
             self._val = value
         else:
-            self._val = self.validate_and_convert(value)
+            converted = self.validate_and_convert(value)
+            if _conversion_warning_mode.get() is True and type(value) is not type(
+                converted
+            ):
+                _warn_implicit_conversion(
+                    type(value), type(converted), self._get_full_key(None)
+                )
+            self._val = converted
 
     def _strict_validate_type(self, value: Any) -> None:
         ref_type = self._metadata.ref_type

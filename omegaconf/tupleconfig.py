@@ -3,6 +3,7 @@ import operator
 from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, Tuple
 
+from ._conversion_warnings import _conversion_warning_mode, _warn_implicit_conversion
 from ._utils import (
     ValueKind,
     _get_value,
@@ -468,6 +469,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _maybe_wrap
 
+        source_is_list = isinstance(value, (list, ListConfig))
         value = _get_value(value)
         kind = get_value_kind(value, strict_interpolation_validation=True)
         if _is_none(value):
@@ -522,3 +524,5 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             )
             content.append(node)
         self._metadata.object_type = tuple
+        if _conversion_warning_mode.get() is True and source_is_list:
+            _warn_implicit_conversion(list, tuple, self._get_full_key(None))
