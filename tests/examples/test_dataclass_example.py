@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pytest import raises
+from pytest import mark, raises
 
 from omegaconf import (
     MISSING,
@@ -62,6 +62,7 @@ def test_simple_types_obj() -> None:
     assert conf.data == b"bin_data"
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_conversions() -> None:
     conf: SimpleTypes = OmegaConf.structured(SimpleTypes)
 
@@ -205,6 +206,7 @@ class Lists:
     int_list: List[int] = field(default_factory=lambda: [10, 20, 30])
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_typed_list_runtime_validation() -> None:
     conf = OmegaConf.structured(Lists)
 

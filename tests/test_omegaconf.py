@@ -142,6 +142,7 @@ def test_is_missing(
     assert OmegaConf.is_missing(cfg_obj, key) == expected_is_missing
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_is_missing_resets() -> None:
     cfg = OmegaConf.structured(StructuredWithMissing)
     assert OmegaConf.is_missing(cfg, "dict")

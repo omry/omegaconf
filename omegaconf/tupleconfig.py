@@ -3,6 +3,7 @@ import operator
 from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, Tuple
 
+from ._conversion_warnings import _conversion_warning_mode, _warn_implicit_conversion
 from ._utils import (
     ValueKind,
     _get_value,
@@ -456,10 +457,12 @@ class TupleConfig(BaseContainer, Sequence[Any]):
     def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         previous_content = self.__dict__["_content"]
         previous_metadata = self.__dict__["_metadata"]
+        metadata_snapshot = copy.copy(previous_metadata)
         try:
             self._set_value_impl(value, flags)
         except Exception:
             self.__dict__["_content"] = previous_content
+            previous_metadata.__dict__.update(metadata_snapshot.__dict__)
             self.__dict__["_metadata"] = previous_metadata
             raise
 
@@ -468,6 +471,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _maybe_wrap
 
+        source_is_list = isinstance(value, (list, ListConfig))
         value = _get_value(value)
         kind = get_value_kind(value, strict_interpolation_validation=True)
         if _is_none(value):
@@ -522,3 +526,5 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             )
             content.append(node)
         self._metadata.object_type = tuple
+        if _conversion_warning_mode.get() is True and source_is_list:
+            _warn_implicit_conversion(list, tuple, self._get_full_key(None))
