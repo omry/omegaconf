@@ -1,0 +1,1 @@
+Direct assignment and typed-container mutation now warn when they implicitly convert a value to another type. Use ``OmegaConf.update()`` for explicit conversion. Assigning structured-config objects or classes to structured-config fields retains its existing behavior.

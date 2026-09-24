@@ -152,10 +152,8 @@ This means some mistakes can not be identified by static type checkers, and runt
 
 .. doctest::
 
-    >>> # This is okay, the string "100" can be converted to an int
-    >>> # Note that static type checkers will not like it and you should
-    >>> # avoid such explicit mistyped assignments.
-    >>> conf.num = "100"
+    >>> # Explicitly convert the string "100" to an int.
+    >>> OmegaConf.update(conf, "num", "100")
     >>> assert conf.num == 100
 
     >>> with raises(ValidationError):
@@ -172,15 +170,15 @@ Runtime validation and conversion works for all supported types, including Enums
     >>> assert conf.height == Height.TALL
 
     >>> # The name of Height.TALL is TALL
-    >>> conf.height = "TALL"
+    >>> OmegaConf.update(conf, "height", "TALL")
     >>> assert conf.height == Height.TALL
 
     >>> # This works too
-    >>> conf.height = "Height.TALL"
+    >>> OmegaConf.update(conf, "height", "Height.TALL")
     >>> assert conf.height == Height.TALL
 
     >>> # The ordinal of Height.TALL is 1
-    >>> conf.height = 1
+    >>> OmegaConf.update(conf, "height", 1)
     >>> assert conf.height == Height.TALL
 
 For enums with string values, assignments can use either the enum member name
@@ -197,9 +195,9 @@ or the enum value:
     ...     status: HttpStatus = HttpStatus.OK
     ...
     >>> conf = OmegaConf.structured(StringEnumConfig)
-    >>> conf.status = "ERROR"
+    >>> OmegaConf.update(conf, "status", "ERROR")
     >>> assert conf.status == HttpStatus.ERROR
-    >>> conf.status = "error-status"
+    >>> OmegaConf.update(conf, "status", "error-status")
     >>> assert conf.status == HttpStatus.ERROR
 
 .. _nesting_structured_configs:
@@ -312,8 +310,8 @@ In the example below, the OmegaConf object ``conf`` (which is actually an instan
 
     >>> # Okay, 10 is an int
     >>> conf.ints.append(10)
-    >>> # Okay, "20" can be converted to an int
-    >>> conf.ints.append("20")
+    >>> # Typed-list mutation should receive an int directly.
+    >>> conf.ints.append(20)
 
     >>> conf.users.append(User(name="Joe"))
     >>> # Not okay, 10 cannot be converted to a User
@@ -345,7 +343,7 @@ and guidance for choosing between tuple and list annotations.
     True
     >>> conf.fixed == (10, "name")
     True
-    >>> conf.fixed = [20, 30]
+    >>> OmegaConf.update(conf, "fixed", [20, 30])
     >>> conf.fixed == (20, "30")
     True
     >>> with raises(TypeError):
@@ -497,7 +495,7 @@ their fields:
     >>> cfg.pet = {"name": "Spot"}  # assignment replaces the selected branch
     >>> assert cfg.pet.name == "Spot"
     >>> assert OmegaConf.is_missing(cfg.pet, "breed")
-    >>> cfg.pet.breed = 123  # selected branches retain normal field conversion
+    >>> OmegaConf.update(cfg, "pet.breed", 123)  # explicit field conversion
     >>> assert cfg.pet.breed == "123"
 
 A mapping can initialize a structured branch when it is the only
@@ -529,9 +527,15 @@ following type hints as equivalent:
 - ``Union[int, str, None]``
 - ``Union[int, str, type(None)]``
 
-Ordinarily, assignment to a structured config field results in coercion of the
-assigned value to the field's type. For example, assigning an integer to a
-field typed as ``str`` results in the integer being coverted to a string:
+OmegaConf can coerce a value to a structured config field's type. Use
+``OmegaConf.update()`` when requesting this conversion explicitly. Direct
+assignment still converts in 2.4, but emits a ``FutureWarning``; typed list
+and dict mutations that convert their values also warn. Supply values of the
+declared type to ``append()``, ``insert()``, and ``extend()``. Assigning a list
+to a tuple-typed field, or a tuple to a list-typed field, also warns.
+
+For example, updating a field typed as ``str`` with a float converts it to a
+string:
 
 .. doctest::
 
@@ -540,7 +544,7 @@ field typed as ``str`` results in the integer being coverted to a string:
     ...     s: str
     ...
     >>> cfg = OmegaConf.structured(HasStr)
-    >>> cfg.s = 10.1
+    >>> OmegaConf.update(cfg, "s", 10.1)
     >>> assert cfg.s == "10.1"  # The assigned value has been converted to a string
 
 When selecting among members of a ``Union``, conversion is disabled so as to

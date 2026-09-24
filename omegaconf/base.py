@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, NoReturn, Optional
 
+from ._conversion_warnings import _conversion_warning_mode, _conversion_warnings
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
@@ -1192,13 +1193,14 @@ class UnionNode(Box):
             matches: list[Node] = []
             for candidate_ref_type in narrow_by_metadata(candidate_types):
                 try:
-                    node = _node_wrap(
-                        value=value,
-                        ref_type=candidate_ref_type,
-                        is_optional=False,
-                        key=None,
-                        parent=self,
-                    )
+                    with _conversion_warnings(False):
+                        node = _node_wrap(
+                            value=value,
+                            ref_type=candidate_ref_type,
+                            is_optional=False,
+                            key=None,
+                            parent=self,
+                        )
                     matches.append(node)
                     if len(matches) > 1:
                         break
@@ -1215,7 +1217,16 @@ class UnionNode(Box):
                 f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
             )
         elif len(matches) == 1:
-            self.__dict__["_content"] = matches[0]
+            selected = matches[0]
+            if _conversion_warning_mode.get() is True:
+                selected = _node_wrap(
+                    value=value,
+                    ref_type=selected._metadata.ref_type,
+                    is_optional=False,
+                    key=None,
+                    parent=self,
+                )
+            self.__dict__["_content"] = selected
         else:
             matching_types = ", ".join(type_str(n._metadata.ref_type) for n in matches)
             raise ValidationError(
