@@ -30,6 +30,7 @@ from typing import (
 import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
+from ._conversion_warnings import _suppress_conversion_warnings
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,

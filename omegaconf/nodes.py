@@ -6,6 +6,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from omegaconf._conversion_warnings import (
+    _conversion_warning_mode,
+    _warn_implicit_conversion,
+)
 from omegaconf._utils import (
     NoneType,
     ValueKind,

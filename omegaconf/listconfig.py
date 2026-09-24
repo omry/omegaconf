@@ -8,6 +8,12 @@ if TYPE_CHECKING:
     from .nodes import ValueNode
     from .tupleconfig import TupleConfig
 
+from ._conversion_warnings import (
+    _conversion_warning_mode,
+    _conversion_warnings,
+    _warn_implicit_conversion,
+    _warn_on_conversion,
+)
 from ._utils import (
     ValueKind,
     _conversion_warning_mode,

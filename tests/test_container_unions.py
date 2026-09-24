@@ -198,6 +198,7 @@ class TestBranchSelection:
             assert isinstance(cfg.value, expected_type)
         assert cfg.value == expected
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_mixed_sequence_union_falls_back_to_other_kind(self) -> None:
         cfg = OmegaConf.structured(CfgListIntOrTupleStr)
         cfg.value = ["not-an-int"]
@@ -220,6 +221,7 @@ class TestAmbiguity:
             param(CfgListIntOrListStr, (), id="empty_tuple"),
         ],
     )
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_empty_container_is_ambiguous(self, cls: Any, value: Any) -> None:
         cfg = OmegaConf.structured(cls)
         with raises(ValidationError, match="[Aa]mbig"):
@@ -239,6 +241,7 @@ class TestAmbiguity:
         cfg.value = value
         assert cfg.value == expected
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_nonempty_tuple_selects_list_branch(self) -> None:
         cfg = OmegaConf.structured(CfgIntOrListStr)
         cfg.value = ("a", "b")
