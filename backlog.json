@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-09-24",
-  "generated_at": "2026-09-24T12:39:34Z",
+  "generated_at": "2026-09-24T21:23:35Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 33,
@@ -96,7 +96,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-01-21",
-      "updated": "2026-07-20",
+      "updated": "2026-09-24",
       "labels": [
         "enhancement",
         "structured config"
@@ -128,7 +128,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2020-12-15",
-      "updated": "2026-07-20",
+      "updated": "2026-09-24",
       "labels": [
         "enhancement",
         "RFC"
@@ -457,7 +457,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-03",
-      "updated": "2026-08-08",
+      "updated": "2026-09-24",
       "labels": [
         "structured config",
         "RFC"

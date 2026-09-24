@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-09-24T12:39:34Z",
+  "generated_at": "2026-09-24T21:23:35Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -213,7 +213,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Support field metadata via `Annotated` in structured configs",
-      "updated_at": "2026-07-20T19:04:14Z"
+      "updated_at": "2026-09-24T19:11:13Z"
     },
     "1312": {
       "category": "Enhancement",
@@ -240,7 +240,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
-      "updated_at": "2026-08-08T19:34:25Z"
+      "updated_at": "2026-09-24T19:27:02Z"
     },
     "1332": {
       "category": "Enhancement",
@@ -359,7 +359,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
-      "updated_at": "2026-07-20T18:45:52Z"
+      "updated_at": "2026-09-24T19:27:12Z"
     },
     "537": {
       "category": "Refactor",
