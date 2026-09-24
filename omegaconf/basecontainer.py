@@ -17,6 +17,7 @@ from ._utils import (
     _is_none,
     _is_special,
     _resolve_optional,
+    _suppress_conversion_warnings_if_unset,
     get_structured_config_data,
     get_type_hint,
     get_value_kind,
@@ -678,6 +679,7 @@ class BaseContainer(Container, ABC):
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
 
+    @_suppress_conversion_warnings_if_unset
     def _merge_with(
         self,
         *others: "BaseContainer | dict[str, Any] | list[Any] | tuple[Any, ...] | Any",

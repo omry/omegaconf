@@ -21,7 +21,8 @@ select = ["E", "F", "I", "W"]
 known-first-party = ["omegaconf"]
 
 [tool.pytest.ini_options]
-addopts = "--import-mode=append -Werror"
+# Existing conversion tests exercise the deprecated behavior until it is removed.
+addopts = "--import-mode=append -Werror -Wignore:Implicit:FutureWarning"
 pythonpath = ["."]
 norecursedirs = ["subprojects", ".git", ".sl", ".venv"]
 

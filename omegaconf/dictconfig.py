@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
+    _conversion_warnings,
     _get_value,
     _is_interpolation,
     _is_missing_literal,
@@ -24,6 +25,7 @@ from ._utils import (
     _is_none,
     _resolve_optional,
     _valid_dict_key_annotation_type,
+    _warn_on_conversion,
     format_and_raise,
     get_structured_config_data,
     get_structured_config_init_field_aliases,
@@ -101,7 +103,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 raise KeyValidationError(f"Unsupported key type {key_type}")
 
             if is_structured_config(content) or is_structured_config(ref_type):
-                self._set_value(content, flags=flags)
+                with _conversion_warnings(False):
+                    self._set_value(content, flags=flags)
                 if is_structured_config_frozen(content) or is_structured_config_frozen(
                     ref_type
                 ):
@@ -116,7 +119,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     metadata.element_type = element_type
                     metadata.key_type = key_type
                     self.__dict__["_metadata"] = metadata
-                self._set_value(content, flags=flags)
+                with _conversion_warnings(False, only_if_unset=True):
+                    self._set_value(content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=key, value=None, cause=ex, msg=str(ex))
 
@@ -323,6 +327,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         else:
             assert False, f"Unsupported key type {key_type}"
 
+    @_warn_on_conversion
     def __setitem__(self, key: DictKeyType, value: Any) -> None:
         try:
             self.__set_impl(key=key, value=value)
@@ -369,6 +374,7 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             return []
         return self.__dict__["_content"].keys()  # type: ignore
 
+    @_warn_on_conversion
     def __setattr__(self, key: str, value: Any) -> None:
         """
         Allow assigning attributes to DictConfig
@@ -712,13 +718,16 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         else:
             self.__dict__["_content"] = {}
             if is_structured_config(value):
-                self._metadata.object_type = None
-                ao = self._get_flag("allow_objects")
-                data = get_structured_config_data(value, allow_objects=ao, parent=self)
-                with flag_override(self, ["struct", "readonly"], False):
-                    for k, v in data.items():
-                        self.__setitem__(k, v)
-                self._metadata.object_type = get_type_of(value)
+                with _conversion_warnings(False):
+                    self._metadata.object_type = None
+                    ao = self._get_flag("allow_objects")
+                    data = get_structured_config_data(
+                        value, allow_objects=ao, parent=self
+                    )
+                    with flag_override(self, ["struct", "readonly"], False):
+                        for k, v in data.items():
+                            self.__setitem__(k, v)
+                    self._metadata.object_type = get_type_of(value)
 
             elif isinstance(value, DictConfig):
                 self._metadata.flags = copy.deepcopy(flags)
