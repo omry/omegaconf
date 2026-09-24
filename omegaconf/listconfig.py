@@ -10,10 +10,14 @@ if TYPE_CHECKING:
 
 from ._utils import (
     ValueKind,
+    _conversion_warning_mode,
+    _conversion_warnings,
     _get_value,
     _is_missing_literal,
     _is_none,
     _resolve_optional,
+    _warn_implicit_conversion,
+    _warn_on_conversion,
     format_and_raise,
     get_value_kind,
     is_int,
@@ -73,7 +77,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 metadata.optional = is_optional
                 metadata.element_type = element_type
                 self.__dict__["_metadata"] = metadata
-            self._set_value(value=content, flags=flags)
+            with _conversion_warnings(False, only_if_unset=True):
+                self._set_value(value=content, flags=flags)
         except Exception as ex:
             format_and_raise(node=None, key=key, value=None, cause=ex, msg=str(ex))
 
@@ -229,6 +234,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _set_at_index(self, index: int | slice, value: Any) -> None:
         self._set_item_impl(index, value)
 
+    @_warn_on_conversion
     def __setitem__(  # pyrefly: ignore[bad-param-name-override]
         self, index: int | slice, value: Any
     ) -> None:
@@ -276,6 +282,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         except Exception as e:
             self._format_and_raise(key=index, value=value, cause=e)
 
+    @_warn_on_conversion
     def append(self, item: Any) -> None:
         content = self.__dict__["_content"]
         index = len(content)
@@ -294,6 +301,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 assert isinstance(node, Node)
                 node._metadata.key = i
 
+    @_warn_on_conversion
     def insert(self, index: int, item: Any) -> None:
         try:
             if self._get_flag("readonly"):
@@ -657,6 +665,10 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                     for item in value:
                         self.append(item)
             self._metadata.object_type = list
+            if _conversion_warning_mode.get() is True and isinstance(
+                value, (tuple, TupleConfig)
+            ):
+                _warn_implicit_conversion(tuple, list, self._get_full_key(None))
 
     @staticmethod
     def _list_eq(l1: "ListConfig | None", l2: "ListConfig | None") -> bool:

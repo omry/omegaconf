@@ -5,10 +5,12 @@ from typing import Any, Tuple
 
 from ._utils import (
     ValueKind,
+    _conversion_warning_mode,
     _get_value,
     _is_missing_literal,
     _is_none,
     _resolve_optional,
+    _warn_implicit_conversion,
     format_and_raise,
     get_tuple_item_types,
     get_value_kind,
@@ -468,6 +470,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _maybe_wrap
 
+        source_is_list = isinstance(value, (list, ListConfig))
         value = _get_value(value)
         kind = get_value_kind(value, strict_interpolation_validation=True)
         if _is_none(value):
@@ -522,3 +525,5 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             )
             content.append(node)
         self._metadata.object_type = tuple
+        if _conversion_warning_mode.get() is True and source_is_list:
+            _warn_implicit_conversion(list, tuple, self._get_full_key(None))

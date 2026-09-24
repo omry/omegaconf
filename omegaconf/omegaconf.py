@@ -35,6 +35,7 @@ from ._utils import (
     NoneType,
     _ensure_container,
     _get_value,
+    _suppress_conversion_warnings,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -1354,6 +1355,7 @@ class OmegaConf:
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
+    @_suppress_conversion_warnings
     def update(
         cfg: Container,
         key: str,
