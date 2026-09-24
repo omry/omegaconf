@@ -484,6 +484,7 @@ def test_append_invalid_element_type(lc: ListConfig, element: Any, err: Any) -> 
         ),
     ],
 )
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_append_convert(lc: ListConfig, element: Any, expected: Any) -> None:
     lc.append(element)
     value = lc[-1]

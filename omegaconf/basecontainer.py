@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List
 
 import yaml
 
+from ._conversion_warnings import _suppress_conversion_warnings_if_unset
 from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
@@ -678,6 +679,7 @@ class BaseContainer(Container, ABC):
         except Exception as e:
             self._format_and_raise(key=None, value=None, cause=e)
 
+    @_suppress_conversion_warnings_if_unset
     def _merge_with(
         self,
         *others: "BaseContainer | dict[str, Any] | list[Any] | tuple[Any, ...] | Any",

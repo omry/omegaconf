@@ -106,6 +106,7 @@ class EnumConfigAssignments:
     illegal = ["foo", True, b"RED", False, 4, 1.0, Path("hello.txt")]
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_string_valued_enum_assignment_by_member_name_and_value() -> None:
     from dataclasses import dataclass
 
@@ -430,6 +431,7 @@ class TestConfigs:
             ("AnyTypeConfig", AnyTypeConfigAssignments, {}),
         ],
     )
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_field_with_default_value(
         self,
         module: Any,
@@ -764,6 +766,7 @@ class TestConfigs:
             OmegaConf.structured(input_)
 
     @mark.parametrize("example", ["ListExamples"])
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_list_examples(self, module: Any, example: str) -> None:
         input_ = getattr(module, example)
         conf = OmegaConf.structured(input_)
@@ -811,6 +814,7 @@ class TestConfigs:
             Color.BLUE,
         ]
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_tuple_examples(self, module: Any) -> None:
         conf = OmegaConf.structured(module.TupleExamples)
         expected = {
@@ -849,6 +853,7 @@ class TestConfigs:
         dct.c = 10
         assert dct == {"a": 10, "b": 20, "c": 10}
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_dict_examples_strings(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
 
@@ -856,6 +861,7 @@ class TestConfigs:
         conf.strings.c = Color.BLUE
         assert conf.strings == {"a": "foo", "b": "bar", "c": "Color.BLUE"}
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_dict_examples_bool(self, module: Any) -> None:
         conf = OmegaConf.structured(module.DictExamples)
         dct = conf.booleans
@@ -880,6 +886,7 @@ class TestConfigs:
             conf: DictConfig = OmegaConf.structured(module.DictExamples)
             return conf
 
+        @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
         def test_dict_examples_colors(self, conf: DictConfig) -> None:
             dct = conf.colors
 
@@ -1063,6 +1070,7 @@ class TestConfigs:
         cfg = OmegaConf.create({"foo": [1, 2]})
         cfg.foo = module.ListClass()
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_set_list_correct_type(self, module: Any) -> None:
         cfg = OmegaConf.structured(module.ListClass)
         cfg.list = [1, 2, 3]
@@ -1367,6 +1375,7 @@ class TestDictSubclass:
         with raises(KeyValidationError):
             cfg[123] = "nope"
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_color2color(self, module: Any) -> None:
         with warns_dict_subclass_deprecated(module.DictSubclass.Color2Color):
             cfg = OmegaConf.structured(module.DictSubclass.Color2Color())
@@ -1896,6 +1905,7 @@ class TestNestedContainers:
             ),
         ],
     )
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_assignment_conversion(
         self, module: Any, class_name: str, key: str, value: Any, expected: Any
     ) -> None:
@@ -2634,6 +2644,7 @@ class TestUnionsOfPrimitiveTypes:
         assert _utils.get_type_hint(cfg, "list_no_subscript") == List[Any]
         assert _utils.get_type_hint(cfg, "tuple_no_subscript") == Tuple[Any, ...]
 
+    @mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
     def test_assign_path_to_string_typed_field(self, module: Any) -> None:
         cfg = OmegaConf.create(module.StringConfig)
         cfg.null_default = Path("hello.txt")
