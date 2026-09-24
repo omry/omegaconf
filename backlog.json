@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-09-24",
-  "generated_at": "2026-09-24T21:23:35Z",
+  "generated_at": "2026-09-24T23:29:01Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 33,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 33
+        "count": 32
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 459,
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1373,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1373"
+        }
+      ],
+      "created": "2020-12-15",
+      "updated": "2026-09-24",
+      "labels": [
+        "enhancement",
+        "RFC"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/459"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -118,22 +139,6 @@
         "priority_high"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/144"
-    },
-    {
-      "number": 459,
-      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2020-12-15",
-      "updated": "2026-09-24",
-      "labels": [
-        "enhancement",
-        "RFC"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/459"
     },
     {
       "number": 537,
@@ -583,6 +588,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-24T23:29:01Z",
+      "kind": "pr",
+      "issue": 459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/459",
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
+      "detail": "linked #1373"
+    },
+    {
+      "ts": "2026-09-24T23:29:01Z",
+      "kind": "status",
+      "issue": 459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/459",
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1373,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1373"
+      }
+    },
     {
       "ts": "2026-09-23T20:59:33Z",
       "kind": "new",
