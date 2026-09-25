@@ -77,6 +77,7 @@ class TestSelect:
             param({"a[0]": 1}, r"a\[0\]", 1, id="key:brackets"),
             param({"a]b": 1}, r"a\]b", 1, id="key:close-bracket"),
             param({r"a\.b": 1}, r"a\\.b", 1, id="key:backslash-dot"),
+            param({r"a\:b": 1}, r"a\:b", 1, id="key:backslash-colon"),
             param({"x": {"a.b": 1}}, r"x.a\.b", 1, id="key:nested:dot"),
             param({"x": {"a[0]": 1}}, r"x.a\[0\]", 1, id="key:nested:brackets"),
             param({"a=b": 1}, r"a\=b", 1, id="key:equals"),

@@ -1,3 +1,4 @@
+import re
 import sys
 import warnings
 from collections.abc import Callable, Generator
@@ -93,7 +94,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 child.symbol.text,  # type: ignore[attr-defined]
                 str,
             )
-            return child.symbol.text  # type: ignore[attr-defined]
+            # Colon is structural only in interpolation grammar, not in split_key().
+            # Leave delimiter escapes for split_key(), while reducing doubled
+            # backslashes that are not followed by a delimiter to one literal slash.
+            text = child.symbol.text.replace(r"\:", ":")  # type: ignore[attr-defined]
+            return re.sub(r"\\\\(?![.\[\]=:])", r"\\", text)
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
