@@ -395,6 +395,18 @@ Config node interpolation
 The interpolated variable can be the path to another node in the configuration, and in that case
 the value will be the value of that node.
 This path may use either dot-notation (``foo.1``), brackets (``[foo][1]``) or a mix of both (``foo[1]``, ``[foo].1``).
+Escape a dot, bracket, or colon with a backslash when it is part of a key name
+rather than path syntax. For example:
+
+.. doctest::
+
+    >>> escaped_conf = OmegaConf.create({"a.b": 10, "ref": r"${a\.b}"})
+    >>> escaped_conf.ref
+    10
+
+Escaping also works in bracket notation and relative interpolations, such as
+``${[a\.b]}`` and ``${.a\.b}``. In Python source, use a raw string (as above)
+to preserve the backslash.
 
 Interpolations are absolute by default. Relative interpolation are prefixed by one or more dots:
 The first dot denotes the level of the node itself and additional dots are going up the parent hierarchy.

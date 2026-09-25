@@ -93,7 +93,9 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 child.symbol.text,  # type: ignore[attr-defined]
                 str,
             )
-            return child.symbol.text  # type: ignore[attr-defined]
+            # Colon is structural only in interpolation grammar, not in split_key().
+            # Leave other escapes intact for split_key() to decode once.
+            return child.symbol.text.replace(r"\:", ":")  # type: ignore[attr-defined]
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
