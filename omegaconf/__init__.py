@@ -1,3 +1,7 @@
+# Check the Python version before importing modules that require Python 3.10.
+from .version import __version__
+
+# isort: split
 from .base import Container, DictKeyType, Node, SCMode, UnionNode
 from .dictconfig import DictConfig
 from .errors import (
@@ -32,7 +36,6 @@ from .omegaconf import (
 )
 from .tupleconfig import TupleConfig
 from .typing import Antlr4ParserRuleContext
-from .version import __version__
 
 __all__ = [
     "__version__",
