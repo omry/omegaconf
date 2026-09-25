@@ -1,5 +1,4 @@
 import re
-import sys
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from enum import Enum
@@ -886,10 +885,8 @@ def test_is_union_annotation(input_: Any, expected: bool) -> None:
     assert is_union_annotation(input_) == expected
 
 
-@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_is_union_annotation_PEP604() -> None:
-    if sys.version_info >= (3, 10):  # this if-statement is for type checkers
-        assert is_union_annotation(int | str)
+    assert is_union_annotation(int | str)
 
 
 @mark.parametrize(
@@ -1408,12 +1405,10 @@ def test_get_dict_key_value_types(
     assert element_type == expected_element_type
 
 
-@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_dict_key_value_types_python_3_10() -> None:
-    if sys.version_info >= (3, 9):  # this if-statement is for type checkers
-        key_type, element_type = get_dict_key_value_types(dict[int, float])
-        assert key_type == int
-        assert element_type == float
+    key_type, element_type = get_dict_key_value_types(dict[int, float])
+    assert key_type == int
+    assert element_type == float
 
 
 @mark.parametrize(
@@ -1432,10 +1427,8 @@ def test_get_list_element_type(ref_type: Any, expected_element_type: Any) -> Non
     assert get_list_element_type(ref_type) == expected_element_type
 
 
-@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_get_list_element_type_python_3_10() -> None:
-    if sys.version_info >= (3, 9):  # this if-statement is for type checkers
-        assert get_list_element_type(list[int]) == int
+    assert get_list_element_type(list[int]) == int
 
 
 @mark.parametrize(
@@ -1457,21 +1450,19 @@ def test_get_tuple_item_types(ref_type: Any, expected_element_type: Any) -> None
     assert get_tuple_item_types(ref_type) == expected_element_type
 
 
-if sys.version_info >= (3, 9):
-
-    @mark.parametrize(
-        "ref_type, expected_element_type",
-        [
-            param(tuple[int], (int,), id="tuple_int"),
-            param(tuple[int, str], (int, str), id="tuple[int,str]"),
-            param(tuple[int, ...], (int, ...), id="tuple[int,...]"),
-            param(tuple[()], (), id="tuple[()]"),
-        ],
-    )
-    def test_get_tuple_item_types_python_3_9(
-        ref_type: Any, expected_element_type: Any
-    ) -> None:
-        assert get_tuple_item_types(ref_type) == expected_element_type
+@mark.parametrize(
+    "ref_type, expected_element_type",
+    [
+        param(tuple[int], (int,), id="tuple_int"),
+        param(tuple[int, str], (int, str), id="tuple[int,str]"),
+        param(tuple[int, ...], (int, ...), id="tuple[int,...]"),
+        param(tuple[()], (), id="tuple[()]"),
+    ],
+)
+def test_get_tuple_item_types_python_3_9(
+    ref_type: Any, expected_element_type: Any
+) -> None:
+    assert get_tuple_item_types(ref_type) == expected_element_type
 
 
 @mark.parametrize(
@@ -1587,22 +1578,20 @@ def test_resolve_optional(
     assert resolved_type == expected_type
 
 
-@mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
 def test_resolve_optional_support_pep_604() -> None:
-    if sys.version_info >= (3, 10):  # this if-statement is for type checkers
-        assert _resolve_optional(int | str) == (False, Union[int, str])
-        assert _resolve_optional(Optional[int | str]) == (True, Union[int, str])
-        assert _resolve_optional(int | Optional[str]) == (True, Union[int, str])
-        assert _resolve_optional(int | Union[str, float]) == (
-            False,
-            Union[int, str, float],
-        )
-        assert _resolve_optional(int | Union[str, Optional[float]]) == (
-            True,
-            Union[int, str, float],
-        )
-        assert _resolve_optional(int | str | None) == (True, Union[int, str])
-        assert _resolve_optional(int | str | NoneType) == (True, Union[int, str])
+    assert _resolve_optional(int | str) == (False, Union[int, str])
+    assert _resolve_optional(Optional[int | str]) == (True, Union[int, str])
+    assert _resolve_optional(int | Optional[str]) == (True, Union[int, str])
+    assert _resolve_optional(int | Union[str, float]) == (
+        False,
+        Union[int, str, float],
+    )
+    assert _resolve_optional(int | Union[str, Optional[float]]) == (
+        True,
+        Union[int, str, float],
+    )
+    assert _resolve_optional(int | str | None) == (True, Union[int, str])
+    assert _resolve_optional(int | str | NoneType) == (True, Union[int, str])
 
 
 @mark.parametrize(
