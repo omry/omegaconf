@@ -5,7 +5,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-25T17:40:54Z",
+  "generated_at": "2026-09-25T19:01:42Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -267,9 +267,11 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1376"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Support escaped keys in node interpolation paths",
       "updated_at": "2026-08-07T18:29:57Z"
     },

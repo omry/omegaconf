@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T17:40:54Z",
+  "generated_at": "2026-09-25T19:01:42Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 29,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 28
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1335,
+      "title": "Support escaped keys in node interpolation paths",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1376,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1376"
+        }
+      ],
+      "created": "2026-07-18",
+      "updated": "2026-08-07",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -466,21 +486,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1334"
     },
     {
-      "number": 1335,
-      "title": "Support escaped keys in node interpolation paths",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-18",
-      "updated": "2026-08-07",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
-    },
-    {
       "number": 1349,
       "title": "Refactor core class and module boundaries",
       "category": "Refactor",
@@ -558,6 +563,22 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
     },
     {
+      "number": 1338,
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-20",
+      "labels": [
+        "RFC",
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338"
+    },
+    {
       "number": 1357,
       "title": "Consider order-independent handling of overlapping scalar union members",
       "category": "Enhancement",
@@ -574,25 +595,29 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
-    },
-    {
-      "number": 1338,
-      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-07-18",
-      "updated": "2026-07-20",
-      "labels": [
-        "RFC",
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T19:01:42Z",
+      "kind": "pr",
+      "issue": 1335,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335",
+      "title": "Support escaped keys in node interpolation paths",
+      "detail": "linked #1376"
+    },
+    {
+      "ts": "2026-09-25T19:01:42Z",
+      "kind": "status",
+      "issue": 1335,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335",
+      "title": "Support escaped keys in node interpolation paths",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1376,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1376"
+      }
+    },
     {
       "ts": "2026-09-25T17:40:54Z",
       "kind": "closed",
