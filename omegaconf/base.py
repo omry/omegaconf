@@ -960,6 +960,7 @@ class UnionNode(Box):
             raise e
 
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
+        from omegaconf._utils import is_literal_annotation
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
         from omegaconf.tupleconfig import TupleConfig
