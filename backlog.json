@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T12:41:19Z",
+  "generated_at": "2026-09-25T17:26:00Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 31,
+    "open_total": 30,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 27,
-        "percentage": 87.1
+        "count": 26,
+        "percentage": 86.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.3
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.5
+        "percentage": 6.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.3
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,29 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 2
+        "count": 3
       }
     ]
   },
   "issues": [
-    {
-      "number": 1357,
-      "title": "Consider order-independent handling of overlapping scalar union members",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1375,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1375"
-        }
-      ],
-      "created": "2026-07-26",
-      "updated": "2026-09-10",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -590,9 +572,34 @@
         "maintenance"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
+    },
+    {
+      "number": 1357,
+      "title": "Consider order-independent handling of overlapping scalar union members",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1375,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1375"
+        }
+      ],
+      "created": "2026-07-26",
+      "updated": "2026-09-10",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T17:26:00Z",
+      "kind": "closed",
+      "issue": 1357,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357",
+      "title": "Consider order-independent handling of overlapping scalar union members"
+    },
     {
       "ts": "2026-09-25T09:56:03Z",
       "kind": "pr",
