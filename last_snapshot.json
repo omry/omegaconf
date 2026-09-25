@@ -1,6 +1,6 @@
 {
   "closed_at": {},
-  "generated_at": "2026-09-24T23:29:01Z",
+  "generated_at": "2026-09-25T07:19:10Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -355,11 +355,9 @@
         "RFC",
         "enhancement"
       ],
-      "pr_numbers": [
-        "1373"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "updated_at": "2026-09-24T19:27:12Z"
     },
