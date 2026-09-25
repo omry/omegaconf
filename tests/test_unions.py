@@ -56,6 +56,27 @@ def test_structured_config_union_with_literal_assignment() -> None:
         cfg.value = "invalid"
 
 
+@mark.parametrize(
+    "ref_type",
+    [Union[Literal["hidden"], str], Union[str, Literal["hidden"]]],
+)
+def test_union_prefers_matching_literal_over_scalar(ref_type: Any) -> None:
+    node = UnionNode("hidden", ref_type)
+    selected = node._value()
+    assert selected is not None and not isinstance(selected, str)
+    assert selected._metadata.ref_type == Literal["hidden"]
+
+    node._set_value("visible")
+    selected = node._value()
+    assert selected is not None and not isinstance(selected, str)
+    assert selected._metadata.ref_type is str
+
+    node._set_value("hidden")
+    selected = node._value()
+    assert selected is not None and not isinstance(selected, str)
+    assert selected._metadata.ref_type == Literal["hidden"]
+
+
 def test_structured_config_union_with_none_literal_creation() -> None:
     cfg = OmegaConf.structured(NoneLiteralOrIntConfig)
 

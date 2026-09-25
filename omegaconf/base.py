@@ -959,6 +959,7 @@ class UnionNode(Box):
             raise e
 
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
+        from omegaconf._utils import is_literal_annotation
         from omegaconf.listconfig import ListConfig
         from omegaconf.omegaconf import _node_wrap
         from omegaconf.tupleconfig import TupleConfig
@@ -1014,7 +1015,11 @@ class UnionNode(Box):
         elif isinstance(value, (dict, Container)):
             self._set_mapping_value(value=value, type_hint=type_hint)
         else:
-            for candidate_ref_type in ref_type.__args__:
+            # An exact Literal match takes precedence over a broader scalar type.
+            candidates = sorted(
+                ref_type.__args__, key=lambda t: not is_literal_annotation(t)
+            )
+            for candidate_ref_type in candidates:
                 try:
                     self.__dict__["_content"] = _node_wrap(
                         value=value,

@@ -443,6 +443,8 @@ Unions
 You can use `typing.Union <https://docs.python.org/3/library/typing.html#typing.Union>`_
 to combine supported simple types, ``Literal`` annotations, typed container types,
 and structured config types.
+When a value matches both a ``Literal`` member and a broader scalar member,
+OmegaConf selects the ``Literal`` member regardless of their order in the union.
 
 A union containing ``Any`` is normalized to ``Any`` because every value already
 matches that member. PEP 695 ``type`` aliases are transparent on Python 3.12 and
