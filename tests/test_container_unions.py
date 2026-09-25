@@ -7,7 +7,7 @@ import pickle
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import OmegaConf, ReadonlyConfigError, TupleConfig, ValidationError
 from omegaconf._utils import is_supported_union_annotation
@@ -200,8 +200,12 @@ class TestBranchSelection:
 
     def test_mixed_sequence_union_falls_back_to_other_kind(self) -> None:
         cfg = OmegaConf.structured(CfgListIntOrTupleStr)
-        cfg.value = ["not-an-int"]
+        with warns(
+            FutureWarning, match="Implicit conversion from list to tuple"
+        ) as recorded:
+            cfg.value = ["not-an-int"]
 
+        assert len(recorded) == 1
         assert isinstance(cfg.value, TupleConfig)
         assert cfg.value == ("not-an-int",)
 
@@ -241,7 +245,11 @@ class TestAmbiguity:
 
     def test_nonempty_tuple_selects_list_branch(self) -> None:
         cfg = OmegaConf.structured(CfgIntOrListStr)
-        cfg.value = ("a", "b")
+        with warns(
+            FutureWarning, match="Implicit conversion from tuple to list"
+        ) as recorded:
+            cfg.value = ("a", "b")
+        assert len(recorded) == 1
         assert cfg.value == ["a", "b"]
 
     def test_same_kind_tuple_union_is_ambiguous(self) -> None:

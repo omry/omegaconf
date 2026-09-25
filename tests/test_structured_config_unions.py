@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 import attr
-from pytest import mark, param, raises
+from pytest import mark, param, raises, warns
 
 from omegaconf import (
     MISSING,
@@ -388,11 +388,14 @@ def test_selected_structured_branch_supports_open_dict() -> None:
 def test_selected_structured_branch_preserves_field_conversion() -> None:
     cfg = OmegaConf.structured(NumericPetConfig)
 
-    cfg.pet.age = "10"
-    cfg.pet.scores.append("20")
+    with warns(FutureWarning, match="Implicit conversion from str to int"):
+        cfg.pet.age = "10"
+    with warns(FutureWarning, match="Implicit conversion from str to int"):
+        cfg.pet.scores.append("20")
     assert cfg.pet == {"age": 10, "scores": [20]}
 
-    cfg.pet = {"age": "30", "scores": ["40"]}
+    with warns(FutureWarning, match="Implicit conversion from str to int"):
+        cfg.pet = {"age": "30", "scores": ["40"]}
     assert cfg.pet == {"age": 30, "scores": [40]}
 
     merged = OmegaConf.merge(cfg, {"pet": {"age": "50", "scores": ["60"]}})
