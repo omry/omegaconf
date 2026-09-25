@@ -43,7 +43,7 @@ from .errors import (
     ValidationError,
 )
 from .grammar_parser import parse
-from .grammar_visitor import GrammarVisitor
+from .grammar_visitor import GrammarVisitor, NodeInterpolationKey
 from .typing import Antlr4ParserRuleContext
 
 DictKeyType = str | bytes | int | Enum | float | bool
@@ -453,7 +453,20 @@ class Container(Box):
     @abstractmethod
     def __getitem__(self, key_or_index: Any) -> Any: ...
 
-    def _resolve_key_and_root(self, key: str) -> tuple["Container", str]:
+    def _resolve_key_and_root(
+        self, key: str | NodeInterpolationKey
+    ) -> tuple["Container", str]:
+        if isinstance(key, NodeInterpolationKey):
+            root = self if key.relative_dots else self._get_root()
+            for _ in range(max(0, key.relative_dots - 1)):
+                parent = root._get_parent_container()
+                if parent is None:
+                    raise ConfigKeyError(f"Error resolving key '{key.raw}'")
+                root = parent
+            prefix = "." * key.relative_dots
+            return root, key.raw[len(prefix) :] if key.raw.startswith(
+                prefix
+            ) else key.raw
         orig = key
         if not key.startswith("."):
             return self._get_root(), key
@@ -473,7 +486,7 @@ class Container(Box):
 
     def _select_impl(
         self,
-        key: str,
+        key: str | tuple[str, ...],
         throw_on_missing: bool,
         throw_on_resolution_failure: bool,
         memo: set[int] | None = None,
@@ -484,10 +497,10 @@ class Container(Box):
         """
         from .omegaconf import _select_one
 
-        if key == "":
+        if key == "" or key == ():
             return self, "", self
 
-        split = split_key(key)
+        split = split_key(key) if isinstance(key, str) else list(key)
         root: Container | None = self
         for i in range(len(split) - 1):
             if root is None:
@@ -511,7 +524,7 @@ class Container(Box):
                 parent_key = ".".join(split[0 : i + 1])
                 child_key = split[i + 1]
                 raise ConfigTypeError(
-                    f"Error trying to access {key}: node `{parent_key}` "
+                    f"Error trying to access {key if isinstance(key, str) else '.'.join(key)}: node `{parent_key}` "
                     f"is not a container and thus cannot contain `{child_key}`"
                 )
             root = ret
@@ -690,14 +703,16 @@ class Container(Box):
 
     def _resolve_node_interpolation(
         self,
-        inter_key: str,
+        inter_key: str | NodeInterpolationKey,
         memo: set[int] | None,
         resolved_node_cache: dict[int, "Node"] | None = None,
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
-        original_inter_key = inter_key
+        original_inter_key = (
+            inter_key.raw if isinstance(inter_key, NodeInterpolationKey) else inter_key
+        )
         try:
-            root_node, inter_key = self._resolve_key_and_root(inter_key)
+            root_node, relative_key = self._resolve_key_and_root(inter_key)
         except ConfigKeyError as exc:
             raise InterpolationKeyError(
                 f"ConfigKeyError while resolving interpolation: {exc}"
@@ -705,7 +720,9 @@ class Container(Box):
 
         try:
             parent, last_key, value = root_node._select_impl(
-                inter_key,
+                inter_key.parts
+                if isinstance(inter_key, NodeInterpolationKey)
+                else relative_key,
                 throw_on_missing=True,
                 throw_on_resolution_failure=True,
                 memo=memo,
@@ -717,10 +734,10 @@ class Container(Box):
             ).with_traceback(sys.exc_info()[2])
 
         if parent is None or value is None:
-            msg = f"Interpolation key '{inter_key}' not found"
-            if original_inter_key != inter_key:
+            msg = f"Interpolation key '{relative_key}' not found"
+            if original_inter_key != relative_key:
                 try:
-                    resolved_inter_key = root_node._get_full_key(inter_key)
+                    resolved_inter_key = root_node._get_full_key(relative_key)
                 except Exception as exc:
                     resolved_inter_key = (
                         f"<unresolvable due to {type(exc).__name__}: {exc}>"
@@ -799,7 +816,7 @@ class Container(Box):
         """
 
         def node_interpolation_callback(
-            inter_key: str, memo: set[int] | None
+            inter_key: NodeInterpolationKey, memo: set[int] | None
         ) -> "Node | None":
             return self._resolve_node_interpolation(
                 inter_key=inter_key,

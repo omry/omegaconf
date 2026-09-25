@@ -1,6 +1,8 @@
+import re
 import sys
 import warnings
 from collections.abc import Callable, Generator
+from dataclasses import dataclass
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
@@ -25,8 +27,17 @@ except ModuleNotFoundError:  # pragma: no cover
     sys.exit(1)
 
 
+@dataclass(frozen=True)
+class NodeInterpolationKey:
+    raw: str
+    parts: tuple[str, ...]
+    relative_dots: int
+
+
 class GrammarVisitor(OmegaConfGrammarParserVisitor):
-    node_interpolation_callback: Callable[[str, set[int] | None], "Node | None"] | None
+    node_interpolation_callback: (
+        Callable[[NodeInterpolationKey, set[int] | None], "Node | None"] | None
+    )
     resolver_interpolation_callback: Callable[..., Any] | None
     memo: set[int] | None
 
@@ -34,7 +45,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         self,
         node_interpolation_callback: (
             Callable[
-                [str, set[int] | None],
+                [NodeInterpolationKey, set[int] | None],
                 "Node | None",
             ]
             | None
@@ -47,8 +58,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         Constructor.
 
         :param node_interpolation_callback: Callback function that is called when
-            needing to resolve a node interpolation. This function should take a single
-            string input which is the key's dot path (ex: `"foo.bar"`).
+            needing to resolve a node interpolation. Its key includes the raw path
+            and the parsed segments (ex: `("foo", "bar")`).
 
         :param resolver_interpolation_callback: Callback function that is called when
             needing to resolve a resolver interpolation. This function should accept
@@ -93,7 +104,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 child.symbol.text,  # type: ignore[attr-defined]
                 str,
             )
-            return child.symbol.text  # type: ignore[attr-defined]
+            text = child.symbol.text  # type: ignore[attr-defined]
+            return re.sub(r"\\([\\.\[\]:=])", r"\1", text)
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
@@ -137,7 +149,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
 
         assert ctx.getChildCount() >= 3
 
-        inter_key_tokens = []  # parsed elements of the dot path
+        from ._utils import split_key
+
+        inter_key_tokens = []  # original spelling for relative-root selection and errors
+        parts: list[str] = []
+        relative_dots = 0
+        first_key = True
+        in_brackets = False
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
                 s = child.symbol  # type: ignore[attr-defined]
@@ -147,6 +165,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                     OmegaConfGrammarLexer.BRACKET_CLOSE,
                 ]:
                     inter_key_tokens.append(s.text)
+                    if first_key and s.type == OmegaConfGrammarLexer.DOT:
+                        relative_dots += 1
+                    if s.type == OmegaConfGrammarLexer.BRACKET_OPEN:
+                        in_brackets = True
+                    elif s.type == OmegaConfGrammarLexer.BRACKET_CLOSE:
+                        in_brackets = False
                 else:
                     assert s.type in (
                         OmegaConfGrammarLexer.INTER_OPEN,
@@ -154,9 +178,31 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                     )
             else:
                 assert isinstance(child, OmegaConfGrammarParser.ConfigKeyContext)
-                inter_key_tokens.append(self.visitConfigKey(child))
+                value = self.visitConfigKey(child)
+                if isinstance(
+                    child.getChild(0), OmegaConfGrammarParser.InterpolationContext
+                ):
+                    inter_key_tokens.append(value)
+                    expanded = (
+                        split_key(f"[{value}]") if in_brackets else split_key(value)
+                    )
+                    if first_key and not in_brackets:
+                        leading_dots = len(value) - len(value.lstrip("."))
+                        relative_dots += leading_dots
+                        expanded = (
+                            []
+                            if leading_dots == len(value)
+                            else expanded[leading_dots:]
+                        )
+                    parts.extend(expanded)
+                else:
+                    inter_key_tokens.append(child.getText())
+                    parts.append(value)
+                first_key = False
 
-        inter_key = "".join(inter_key_tokens)
+        inter_key = NodeInterpolationKey(
+            "".join(inter_key_tokens), tuple(parts), relative_dots
+        )
         assert self.node_interpolation_callback is not None
         return self.node_interpolation_callback(inter_key, self.memo)
 
