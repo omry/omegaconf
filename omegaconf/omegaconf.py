@@ -31,6 +31,7 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._conversion_warnings import _suppress_conversion_warnings
+from ._key_path import split_key
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
@@ -53,7 +54,6 @@ from ._utils import (
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
-    split_key,
     type_str,
 )
 from ._yaml import _DEFAULT_MAX_YAML_EXPANDED_NODES, get_yaml_loader
@@ -2030,6 +2030,7 @@ def _get_update_interpolation_result(
     if not node._is_interpolation():  # pragma: no cover
         return node
 
+    from ._key_path import NodeInterpolationKey
     from .grammar_parser import OmegaConfGrammarParser, parse
     from .grammar_visitor import GrammarVisitor
 
@@ -2053,14 +2054,16 @@ def _get_update_interpolation_result(
         if parent is None:  # pragma: no cover
             return None
 
-        def resolve_node(inter_key: str, _memo: set[int] | None) -> Node | None:
+        def resolve_node(
+            inter_key: NodeInterpolationKey, _memo: set[int] | None
+        ) -> Node | None:
             try:
-                target, inter_key = parent._resolve_key_and_root(inter_key)
+                target, relative_key = parent._resolve_key_and_root(inter_key)
             except ConfigKeyError as exc:
                 raise InterpolationKeyError(
                     f"ConfigKeyError while resolving interpolation: {exc}"
                 ) from exc
-            split = split_key(inter_key)
+            split = inter_key.parts
             selected: Node = target
             for index, key in enumerate(split):
                 try:
@@ -2073,7 +2076,7 @@ def _get_update_interpolation_result(
                     ) from exc
                 if child is None:
                     raise InterpolationKeyError(
-                        f"Interpolation key '{inter_key}' not found"
+                        f"Interpolation key '{relative_key}' not found"
                     )
                 if child._is_interpolation():
                     child = _get_update_interpolation_result(child, memo=memo)
@@ -2085,7 +2088,7 @@ def _get_update_interpolation_result(
                         child_key = split[index + 1]
                         raise InterpolationResolutionError(
                             f"ConfigTypeError raised while resolving interpolation: "
-                            f"Error trying to access {inter_key}: node `{parent_key}` "
+                            f"Error trying to access {relative_key}: node `{parent_key}` "
                             f"is not a container and thus cannot contain `{child_key}`"
                         )
                     target = child

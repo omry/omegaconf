@@ -71,6 +71,14 @@ The following are all valid examples of config node interpolations according to 
     - ``${some_list[3]}``
     - ``${some_deep_dict[key1][subkey2].subsubkey3}``
 
+Within a config key, a backslash can escape a literal dot, opening or closing
+bracket, or colon. For example, ``${a\.b}`` addresses the key ``a.b``, while
+``${a.b}`` addresses the key ``b`` under ``a``. Escapes are interpreted once
+when the node path is resolved. Write two backslashes to represent one literal
+backslash. For example, ``${a\\.b}`` selects ``b`` under a key ending in a
+backslash; ``${a\\\.b}`` selects a single key containing a backslash followed
+by a dot.
+
 Here are also examples of resolver calls from the ``interpolationResolver`` rule:
 
     - ``${oc.env:B}``
