@@ -1,10 +1,11 @@
 {
   "closed_at": {
     "1274": "2026-09-25",
+    "1338": "2026-09-25",
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-25T17:26:00Z",
+  "generated_at": "2026-09-25T17:40:54Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -272,19 +273,6 @@
       "title": "Support escaped keys in node interpolation paths",
       "updated_at": "2026-08-07T18:29:57Z"
     },
-    "1338": {
-      "category": "Enhancement",
-      "created_at": "2026-07-18T13:14:56Z",
-      "labels": [
-        "RFC",
-        "enhancement"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
-      "updated_at": "2026-07-20T17:10:52Z"
-    },
     "1349": {
       "category": "Refactor",
       "created_at": "2026-07-22T11:05:01Z",
@@ -397,6 +385,19 @@
       "status": "done",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
+    },
+    "1338": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T13:14:56Z",
+      "labels": [
+        "RFC",
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "updated_at": "2026-07-20T17:10:52Z"
     },
     "1357": {
       "category": "Enhancement",

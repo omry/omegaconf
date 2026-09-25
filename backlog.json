@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T17:26:00Z",
+  "generated_at": "2026-09-25T17:40:54Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 30,
+    "open_total": 29,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 26,
-        "percentage": 86.7
+        "count": 25,
+        "percentage": 86.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.7
+        "percentage": 6.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 29
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 3
+        "count": 4
       }
     ]
   },
@@ -481,22 +481,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
     },
     {
-      "number": 1338,
-      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-07-18",
-      "updated": "2026-07-20",
-      "labels": [
-        "enhancement",
-        "RFC"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338"
-    },
-    {
       "number": 1349,
       "title": "Refactor core class and module boundaries",
       "category": "Refactor",
@@ -590,9 +574,32 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
+    },
+    {
+      "number": 1338,
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-07-18",
+      "updated": "2026-07-20",
+      "labels": [
+        "RFC",
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T17:40:54Z",
+      "kind": "closed",
+      "issue": 1338,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338",
+      "title": "Consider a compatibility mode for legacy tuple-to-list conversion"
+    },
     {
       "ts": "2026-09-25T17:26:00Z",
       "kind": "closed",
