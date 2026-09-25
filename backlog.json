@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T07:19:10Z",
+  "generated_at": "2026-09-25T07:26:01Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 33,
+    "open_total": 32,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 28,
-        "percentage": 84.8
+        "count": 27,
+        "percentage": 84.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 3,
-        "percentage": 9.1
+        "percentage": 9.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 3.1
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 33
+        "count": 32
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 0
+        "count": 1
       }
     ]
   },
@@ -570,19 +570,26 @@
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
       "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
+      "status": "done",
+      "status_emoji": "✅",
       "prs": [],
       "created": "2020-12-15",
       "updated": "2026-09-24",
       "labels": [
-        "enhancement",
-        "RFC"
+        "RFC",
+        "enhancement"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/459"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T07:26:01Z",
+      "kind": "closed",
+      "issue": 459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/459",
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode"
+    },
     {
       "ts": "2026-09-25T07:19:10Z",
       "kind": "pr",

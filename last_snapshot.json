@@ -1,6 +1,8 @@
 {
-  "closed_at": {},
-  "generated_at": "2026-09-25T07:19:10Z",
+  "closed_at": {
+    "459": "2026-09-25"
+  },
+  "generated_at": "2026-09-25T07:26:01Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -348,19 +350,6 @@
       "title": "Full Union type support in structured configs",
       "updated_at": "2026-07-24T12:43:57Z"
     },
-    "459": {
-      "category": "Enhancement",
-      "created_at": "2020-12-15T03:11:35Z",
-      "labels": [
-        "RFC",
-        "enhancement"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
-      "updated_at": "2026-09-24T19:27:12Z"
-    },
     "537": {
       "category": "Refactor",
       "created_at": "2021-02-11T01:05:19Z",
@@ -414,6 +403,20 @@
       "updated_at": "2026-04-26T11:42:05Z"
     }
   },
-  "recent_done": {},
+  "recent_done": {
+    "459": {
+      "category": "Enhancement",
+      "created_at": "2020-12-15T03:11:35Z",
+      "labels": [
+        "RFC",
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
+      "updated_at": "2026-09-24T19:27:12Z"
+    }
+  },
   "repo": "hydra-ecosystem/omegaconf"
 }
