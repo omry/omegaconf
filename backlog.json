@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T09:20:57Z",
+  "generated_at": "2026-09-25T09:28:35Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 32,
+    "open_total": 31,
     "by_category": [
       {
         "category": "Bug",
@@ -15,13 +15,13 @@
         "category": "Enhancement",
         "emoji": "✨",
         "count": 27,
-        "percentage": 84.4
+        "percentage": 87.1
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.2
       },
       {
         "category": "Question",
@@ -32,21 +32,21 @@
       {
         "category": "Refactor",
         "emoji": "🔧",
-        "count": 3,
-        "percentage": 9.4
+        "count": 2,
+        "percentage": 6.5
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.2
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 1
+        "count": 2
       }
     ]
   },
   "issues": [
-    {
-      "number": 1274,
-      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "category": "Refactor",
-      "category_emoji": "🔧",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1374,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1374"
-        }
-      ],
-      "created": "2026-04-24",
-      "updated": "2026-07-20",
-      "labels": [
-        "maintenance"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -585,9 +565,36 @@
         "enhancement"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/459"
+    },
+    {
+      "number": 1274,
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
+      "category": "Refactor",
+      "category_emoji": "🔧",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1374,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1374"
+        }
+      ],
+      "created": "2026-04-24",
+      "updated": "2026-07-20",
+      "labels": [
+        "maintenance"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T09:28:35Z",
+      "kind": "closed",
+      "issue": 1274,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274",
+      "title": "Python 3.10 minimum: remove version guards and modernize type annotations"
+    },
     {
       "ts": "2026-09-25T08:44:21Z",
       "kind": "pr",
