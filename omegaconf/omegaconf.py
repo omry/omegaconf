@@ -30,6 +30,7 @@ from typing import (
 import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
+from ._conversion_warnings import _suppress_conversion_warnings
 from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
@@ -1354,6 +1355,7 @@ class OmegaConf:
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
+    @_suppress_conversion_warnings
     def update(
         cfg: Container,
         key: str,

@@ -142,6 +142,7 @@ def test_attrs_tuple_fields() -> None:
     assert cfg.optional is None
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_tuple_field_accepts_list_and_coerces_scalars() -> None:
     cfg = OmegaConf.structured(TupleFields)
     cfg.fixed = [2, 3]
@@ -149,6 +150,7 @@ def test_tuple_field_accepts_list_and_coerces_scalars() -> None:
     assert cfg.fixed == (2, "3")
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_tuple_field_accepts_listconfig() -> None:
     cfg = OmegaConf.structured(TupleFields)
     cfg.fixed = OmegaConf.typed_list([2, 3], element_type=Any)
@@ -156,6 +158,7 @@ def test_tuple_field_accepts_listconfig() -> None:
     assert cfg.fixed == (2, "3")
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_list_field_accepts_tupleconfig() -> None:
     cfg = OmegaConf.structured(TupleFields)
     cfg.numbers = OmegaConf.typed_tuple([1, 2], Tuple[int, ...])
@@ -163,6 +166,7 @@ def test_list_field_accepts_tupleconfig() -> None:
     assert cfg.numbers == [1, 2]
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_list_field_accepts_native_tuple() -> None:
     cfg = OmegaConf.structured(TupleFields)
     cfg.numbers = (1, 2)  # type: ignore[assignment]
@@ -182,6 +186,7 @@ def test_tuple_field_rejects_direct_missing_element() -> None:
         cfg.fixed = [1, MISSING]
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_missing_whole_tuple_accepts_complete_replacement() -> None:
     cfg = OmegaConf.structured(TupleFields)
     assert OmegaConf.is_missing(cfg, "missing")
@@ -190,6 +195,7 @@ def test_missing_whole_tuple_accepts_complete_replacement() -> None:
     assert cfg.missing == (2, "3")
 
 
+@mark.filterwarnings("ignore:Implicit conversion from:FutureWarning")
 def test_optional_tuple_accepts_complete_replacement_and_none() -> None:
     cfg = OmegaConf.structured(TupleFields)
     cfg.optional = [1, 2]
