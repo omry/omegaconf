@@ -2,7 +2,7 @@
   "closed_at": {
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-25T07:26:01Z",
+  "generated_at": "2026-09-25T08:44:21Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -98,9 +98,11 @@
       "labels": [
         "maintenance"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1374"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
     },
@@ -334,8 +336,8 @@
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
-      "title": "OmegaConf 2.4: drop Python 3.10 and evaluate Python 3.15",
-      "updated_at": "2026-09-23T20:58:13Z"
+      "title": "OmegaConf 3.0: drop Python 3.10",
+      "updated_at": "2026-09-25T07:45:19Z"
     },
     "144": {
       "category": "Enhancement",
