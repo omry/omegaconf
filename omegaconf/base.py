@@ -21,6 +21,7 @@ from ._utils import (
     get_value_kind,
     is_dict_annotation,
     is_list_annotation,
+    is_literal_annotation,
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
@@ -1014,7 +1015,11 @@ class UnionNode(Box):
         elif isinstance(value, (dict, Container)):
             self._set_mapping_value(value=value, type_hint=type_hint)
         else:
-            for candidate_ref_type in ref_type.__args__:
+            # An exact Literal match takes precedence over a broader scalar type.
+            candidates = sorted(
+                ref_type.__args__, key=lambda t: not is_literal_annotation(t)
+            )
+            for candidate_ref_type in candidates:
                 try:
                     self.__dict__["_content"] = _node_wrap(
                         value=value,
