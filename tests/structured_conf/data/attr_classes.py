@@ -1,18 +1,10 @@
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Tuple, TypedDict, Union, cast
 
 import attr
-from pytest import importorskip
 
 from omegaconf import II, MISSING, SI
 from tests import Color, Enum1
-
-if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import TypedDict
-
-# attr is a dependency of pytest which means it's always available when testing with pytest.
-importorskip("attr")
 
 
 class NotStructuredConfig:
@@ -25,10 +17,8 @@ class NotStructuredConfig:
         return False
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-
-    class TypedDictSubclass(TypedDict):
-        foo: int
+class TypedDictSubclass(TypedDict):
+    foo: int
 
 
 @attr.s(auto_attribs=True)
@@ -404,11 +394,9 @@ class WithDictField:
     dict: Dict[str, int] = {"foo": 10, "bar": 20}
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-
-    @attr.s(auto_attribs=True)
-    class WithTypedDictField:
-        dict: TypedDictSubclass
+@attr.s(auto_attribs=True)
+class WithTypedDictField:
+    dict: TypedDictSubclass
 
 
 @attr.s(auto_attribs=True)
@@ -828,36 +816,32 @@ class UnionsOfPrimitveTypes:
         a_float: float = 10.1
         ubi: Union[bool, int] = II("a_float")
 
-    if sys.version_info >= (3, 10):
-
-        @attr.s(auto_attribs=True)
-        class SupportPEP604:
-            """https://peps.python.org/pep-0604/"""
-
-            uis: int | str
-            ouis: Optional[int | str]
-            uisn: int | str | None = None
-            uis_with_default: int | str = 123
-
-
-if sys.version_info >= (3, 9):
-
     @attr.s(auto_attribs=True)
-    class SupportPEP585:
-        """
-        PEP 585 – Type Hinting Generics In Standard Collections
-        https://peps.python.org/pep-0585/
+    class SupportPEP604:
+        """https://peps.python.org/pep-0604/"""
 
-        This means lower-case dict/list/tuple annotations
-        can be used instad of uppercase Dict/List/Tuple.
-        """
+        uis: int | str
+        ouis: Optional[int | str]
+        uisn: int | str | None = None
+        uis_with_default: int | str = 123
 
-        dict_: dict[int, str] = {123: "abc"}
-        list_: list[int] = [123]
-        tuple_: tuple[int] = (123,)
-        dict_no_subscript: dict = {123: "abc"}  # type: ignore[type-arg]
-        list_no_subscript: list = [123]  # type: ignore[type-arg]
-        tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
+
+@attr.s(auto_attribs=True)
+class SupportPEP585:
+    """
+    PEP 585 – Type Hinting Generics In Standard Collections
+    https://peps.python.org/pep-0585/
+
+    This means lower-case dict/list/tuple annotations
+    can be used instad of uppercase Dict/List/Tuple.
+    """
+
+    dict_: dict[int, str] = {123: "abc"}
+    list_: list[int] = [123]
+    tuple_: tuple[int] = (123,)
+    dict_no_subscript: dict = {123: "abc"}  # type: ignore[type-arg]
+    list_no_subscript: list = [123]  # type: ignore[type-arg]
+    tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
 
 
 @attr.s(auto_attribs=True)

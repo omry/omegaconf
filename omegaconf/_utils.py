@@ -224,9 +224,8 @@ def _get_class(module_path: str, class_name: str) -> type:
 
 
 def is_union_annotation(type_: Any) -> bool:
-    if sys.version_info >= (3, 10):  # pragma: no cover
-        if isinstance(type_, types.UnionType):
-            return True
+    if isinstance(type_, types.UnionType):
+        return True
     return getattr(type_, "__origin__", None) is Union
 
 
