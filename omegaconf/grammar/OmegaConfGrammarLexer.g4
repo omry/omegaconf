@@ -91,7 +91,9 @@ INTER_ID: ID -> type(ID);
 // Note that we can allow '$' because the parser does not support interpolations that
 // are only part of a key name, i.e., "${foo${bar}}" is not allowed. As a result, it
 // is ok to "consume" all '$' characters within the `INTER_KEY` token.
-INTER_KEY: ~[\\{}()[\]:. \t'"]+;
+// Keep escapes intact: the visitor decodes \:, and split_key() decodes the
+// remaining path escapes during node selection.
+INTER_KEY: (~[\\{}()[\]:. \t'"] | '\\'+ ('.' | '[' | ']' | ':' | '=') | '\\\\')+;
 
 
 ////////////////////////
