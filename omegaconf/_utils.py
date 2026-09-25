@@ -31,7 +31,12 @@ from .errors import (
     OmegaConfBaseException,
     ValidationError,
 )
-from .grammar_parser import SIMPLE_INTERPOLATION_PATTERN, parse
+
+# Bind these before importing the grammar parser, which imports the visitor.
+_ESCAPABLE = _key_path._ESCAPABLE
+split_key = _key_path.split_key
+
+from .grammar_parser import SIMPLE_INTERPOLATION_PATTERN, parse  # noqa: E402
 
 _ESCAPABLE = _key_path._ESCAPABLE
 split_key = _key_path.split_key
