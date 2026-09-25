@@ -391,9 +391,10 @@ The following example uses "/tmp" as the default value for the node output:
     >>> print(cfg.a)
     Saving output to /etc/config
 
-``oc.select`` can also be used to select keys that are otherwise illegal interpolation keys.
-The following example has a key with a colon. Such a key looks like a custom resolver and therefore
-cannot be accessed using a regular interpolation:
+``oc.select`` can also be used to select keys that contain characters with special meaning in
+interpolation syntax. An unescaped ``${a:b}`` is parsed as custom resolver syntax. Escape the colon
+as ``${a\:b}`` to select the literal key ``a:b`` with node interpolation; ``oc.select`` remains an
+alternative:
 
 .. doctest::
 
@@ -401,12 +402,15 @@ cannot be accessed using a regular interpolation:
     ...    # yes, there is a : in this key
     ...    "a:b": 10,
     ...    "bad": "${a:b}",
+    ...    "escaped": r"${a\:b}",
     ...    "good": "${oc.select:'a:b'}",
     ... })
     >>> print(cfg.bad)
     Traceback (most recent call last):
     ...
     UnsupportedInterpolationType: Unsupported interpolation type a
+    >>> print(cfg.escaped)
+    10
     >>> print(cfg.good)
     10
 

@@ -674,6 +674,7 @@ class TestMatchSimpleInterpolationPattern:
         (r"${foo:\}", False),
         # Valid according to the grammar but not matched by the regex.
         ("${foo.${bar}}", True),
+        (r"${a\.b}", True),
         ("${foo:${bar}}", True),
         ("${foo:'hello'}", True),
         (r"\${foo", True),
