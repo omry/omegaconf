@@ -1179,6 +1179,7 @@ def test_split_key(key: str, expected: List[str]) -> None:
         # \= -> literal equals sign in key (useful for dotlist keys containing =)
         (r"a\=b", ["a=b"]),
         (r"a\=b.c", ["a=b", "c"]),
+        (r"a\:b", [r"a\:b"]),
         # unescaped = is just a regular character (not a delimiter in split_key)
         ("a=b", ["a=b"]),
     ],

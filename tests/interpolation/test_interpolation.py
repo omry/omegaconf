@@ -78,6 +78,73 @@ def test_assign_to_interpolation() -> None:
     assert cfg.typed_bar == 30
 
 
+@mark.parametrize(
+    ("data", "path"),
+    [
+        ({"a.b": 10}, r"${a\.b}"),
+        ({"a[b]": 10}, r"${a\[b\]}"),
+        ({"a:b": 10}, r"${a\:b}"),
+        ({r"a\:b": 10}, r"${a\\\:b}"),
+        ({"a=b": 10}, r"${a\=b}"),
+        ({".a": 10}, r"${\.a}"),
+        ({"a.b": {"c[d]": 10}}, r"${a\.b[c\[d\]]}"),
+        ({r"a\.b": 10}, r"${a\\\.b}"),
+        ({r"a\b": 10}, r"${a\\b}"),
+        ({"a\\": 10}, r"${a\\}"),
+        ({"a\\": {"b": 10}}, r"${a\\.b}"),
+        ({"a\\": {"b": 10}}, r"${a\\[b]}"),
+        ({r"a\[b]": 10}, r"${a\\\[b\]}"),
+        ({r"a\\b": 10}, r"${a\\\\b}"),
+    ],
+)
+def test_interpolation_escaped_key(data: dict[str, Any], path: str) -> None:
+    cfg = OmegaConf.create({**data, "value": path})
+    assert cfg.value == 10
+
+
+def test_relative_interpolation_escaped_key() -> None:
+    cfg = OmegaConf.create({"outer": {"a.b": 10, "value": r"${.a\.b}"}})
+    assert cfg.outer.value == 10
+
+
+def test_update_through_interpolation_with_backslash_ending_key() -> None:
+    cfg = OmegaConf.create({"a\\": {"b": {"c": 10}}, "alias": r"${a\\.b}"})
+    OmegaConf.update(cfg, "alias.c", 20)
+    assert cfg["a\\"]["b"]["c"] == 20
+
+
+def test_dynamic_bracket_key_with_literal_dot() -> None:
+    cfg = OmegaConf.create(
+        {"choices": {"a.b": 10, ".c": 20}, "key": "a.b", "ref": "${choices[${key}]}"}
+    )
+    assert cfg.ref == 10
+    cfg.key = ".c"
+    assert cfg.ref == 20
+
+
+def test_empty_dynamic_key_preserves_relative_dots() -> None:
+    cfg = OmegaConf.create(
+        {
+            "foo": 20,
+            "key": "",
+            "group": {
+                "foo": 10,
+                "sibling": "${${key}.foo}",
+                "parent": "${.${key}.foo}",
+            },
+        }
+    )
+    assert cfg.group.sibling == 10
+    assert cfg.group.parent == 20
+    cfg.key = "."
+    assert cfg.group.sibling == 20
+
+
+def test_unescaped_interpolation_dot_still_selects_nested_key() -> None:
+    cfg = OmegaConf.create({"a.b": 10, "a": {"b": 20}, "value": "${a.b}"})
+    assert cfg.value == 20
+
+
 def test_merge_with_interpolation() -> None:
     cfg = OmegaConf.create(
         {
