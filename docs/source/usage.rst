@@ -235,11 +235,13 @@ OmegaConf objects constructed from Structured classes provide runtime type safet
 .. doctest::
 
     >>> conf.port = 42      # Ok, type matches
-    >>> conf.port = "1080"  # Ok! "1080" can be converted to an int
-    >>> conf.port = "oops"  # "oops" cannot be converted to an int
+    >>> OmegaConf.update(conf, "port", "oops")  # "oops" cannot be converted to an int
     Traceback (most recent call last):
     ...
     omegaconf.errors.ValidationError: Value 'oops' could not be converted to Integer
+
+For explicit conversion and the deprecation of conversion by direct assignment,
+see :ref:`structured-config-conversion`.
 
 In addition, the config class can be used as type annotation for static type checkers or IDEs:
 
