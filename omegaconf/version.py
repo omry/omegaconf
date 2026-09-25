@@ -11,5 +11,5 @@ You have the following options:
     You can pip install 'OmegaConf<2.4' to do that.
 """
 
-if sys.version_info < (3, 9):
+if sys.version_info < (3, 10):
     raise ImportError(msg)  # pragma: no cover

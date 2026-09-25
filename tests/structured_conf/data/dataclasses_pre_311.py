@@ -1,19 +1,10 @@
 import dataclasses
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, cast
-
-from pytest import importorskip
+from typing import Any, Dict, List, Literal, Optional, Tuple, TypedDict, Union, cast
 
 from omegaconf import II, MISSING, SI
 from tests import Color, Enum1
-
-if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import TypedDict
-
-# skip test if dataclasses are not available
-importorskip("dataclasses")
 
 
 class NotStructuredConfig:
@@ -26,10 +17,8 @@ class NotStructuredConfig:
         return False
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-
-    class TypedDictSubclass(TypedDict):
-        foo: str
+class TypedDictSubclass(TypedDict):
+    foo: str
 
 
 @dataclass
@@ -411,11 +400,9 @@ class WithDictField:
     dict: Dict[str, int] = field(default_factory=lambda: {"foo": 10, "bar": 20})
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-
-    @dataclass
-    class WithTypedDictField:
-        dict: TypedDictSubclass
+@dataclass
+class WithTypedDictField:
+    dict: TypedDictSubclass
 
 
 @dataclass
@@ -873,36 +860,32 @@ class UnionsOfPrimitveTypes:
         a_float: float = 10.1
         ubi: Union[bool, int] = II("a_float")
 
-    if sys.version_info >= (3, 10):
-
-        @dataclass
-        class SupportPEP604:
-            """https://peps.python.org/pep-0604/"""
-
-            uis: int | str
-            ouis: Optional[int | str]
-            uisn: int | str | None = None
-            uis_with_default: int | str = 123
-
-
-if sys.version_info >= (3, 9):
-
     @dataclass
-    class SupportPEP585:
-        """
-        PEP 585 – Type Hinting Generics In Standard Collections
-        https://peps.python.org/pep-0585/
+    class SupportPEP604:
+        """https://peps.python.org/pep-0604/"""
 
-        This means lower-case dict/list/tuple annotations
-        can be used instad of uppercase Dict/List/Tuple.
-        """
+        uis: int | str
+        ouis: Optional[int | str]
+        uisn: int | str | None = None
+        uis_with_default: int | str = 123
 
-        dict_: dict[int, str] = field(default_factory=lambda: {123: "abc"})
-        list_: list[int] = field(default_factory=lambda: [123])
-        tuple_: tuple[int] = (123,)
-        dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})  # type: ignore[type-arg]
-        list_no_subscript: list = field(default_factory=lambda: [123])  # type: ignore[type-arg]
-        tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
+
+@dataclass
+class SupportPEP585:
+    """
+    PEP 585 – Type Hinting Generics In Standard Collections
+    https://peps.python.org/pep-0585/
+
+    This means lower-case dict/list/tuple annotations
+    can be used instad of uppercase Dict/List/Tuple.
+    """
+
+    dict_: dict[int, str] = field(default_factory=lambda: {123: "abc"})
+    list_: list[int] = field(default_factory=lambda: [123])
+    tuple_: tuple[int] = (123,)
+    dict_no_subscript: dict = field(default_factory=lambda: {123: "abc"})  # type: ignore[type-arg]
+    list_no_subscript: list = field(default_factory=lambda: [123])  # type: ignore[type-arg]
+    tuple_no_subscript: tuple = (123,)  # type: ignore[type-arg]
 
 
 @dataclass

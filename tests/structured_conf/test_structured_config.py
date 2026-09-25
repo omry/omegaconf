@@ -654,7 +654,6 @@ class TestConfigs:
         with raises(ValidationError):
             OmegaConf.merge(conf, OmegaConf.create({"dict": {"foo": "fail"}}))
 
-    @mark.skipif(sys.version_info < (3, 8), reason="requires Python 3.8 or newer")
     def test_typed_dict_field(self, module: Any) -> None:
         input_ = module.WithTypedDictField
         conf = OmegaConf.structured(input_(dict={"foo": 10}))
@@ -2622,7 +2621,6 @@ class TestUnionsOfPrimitiveTypes:
         else:
             assert cfg[key] == expected
 
-    @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
     def test_support_pep_604(self, module: Any) -> None:
         class_ = module.UnionsOfPrimitveTypes.SupportPEP604
         cfg = OmegaConf.structured(class_)
@@ -2633,7 +2631,6 @@ class TestUnionsOfPrimitiveTypes:
         assert cfg.uisn is None
         assert cfg.uis_with_default == 123
 
-    @mark.skipif(sys.version_info < (3, 10), reason="requires Python 3.10 or newer")
     def test_support_pep_585(self, module: Any) -> None:
         class_ = module.SupportPEP585
         cfg = OmegaConf.structured(class_)
