@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-25",
-  "generated_at": "2026-09-25T21:13:37Z",
+  "generated_at": "2026-09-25T22:23:17Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 29,
+    "open_total": 28,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 25,
-        "percentage": 86.2
+        "count": 24,
+        "percentage": 85.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.9
+        "percentage": 7.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 4
+        "count": 5
       }
     ]
   },
   "issues": [
-    {
-      "number": 1335,
-      "title": "Support escaped keys in node interpolation paths",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1376,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1376"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-08-07",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -595,9 +575,36 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
+    },
+    {
+      "number": 1335,
+      "title": "Support escaped keys in node interpolation paths",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1376,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1376"
+        }
+      ],
+      "created": "2026-07-18",
+      "updated": "2026-08-07",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-25T22:23:17Z",
+      "kind": "closed",
+      "issue": 1335,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335",
+      "title": "Support escaped keys in node interpolation paths"
+    },
     {
       "ts": "2026-09-25T19:01:42Z",
       "kind": "pr",

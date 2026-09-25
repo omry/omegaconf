@@ -1,11 +1,12 @@
 {
   "closed_at": {
     "1274": "2026-09-25",
+    "1335": "2026-09-25",
     "1338": "2026-09-25",
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-25T21:13:37Z",
+  "generated_at": "2026-09-25T22:23:17Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -261,20 +262,6 @@
       "title": "Materialize container results returned by custom resolvers",
       "updated_at": "2026-07-19T15:46:20Z"
     },
-    "1335": {
-      "category": "Enhancement",
-      "created_at": "2026-07-18T09:40:47Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [
-        "1376"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Support escaped keys in node interpolation paths",
-      "updated_at": "2026-08-07T18:29:57Z"
-    },
     "1349": {
       "category": "Refactor",
       "created_at": "2026-07-22T11:05:01Z",
@@ -387,6 +374,20 @@
       "status": "done",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
+    },
+    "1335": {
+      "category": "Enhancement",
+      "created_at": "2026-07-18T09:40:47Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [
+        "1376"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Support escaped keys in node interpolation paths",
+      "updated_at": "2026-08-07T18:29:57Z"
     },
     "1338": {
       "category": "Enhancement",

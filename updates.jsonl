@@ -192,3 +192,4 @@
 {"ts": "2026-09-25T17:40:54Z", "kind": "closed", "issue": 1338, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1338", "title": "Consider a compatibility mode for legacy tuple-to-list conversion"}
 {"ts": "2026-09-25T19:01:42Z", "kind": "status", "issue": 1335, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335", "title": "Support escaped keys in node interpolation paths", "detail": "not started → in progress", "pr": {"number": 1376, "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1376"}}
 {"ts": "2026-09-25T19:01:42Z", "kind": "pr", "issue": 1335, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335", "title": "Support escaped keys in node interpolation paths", "detail": "linked #1376"}
+{"ts": "2026-09-25T22:23:17Z", "kind": "closed", "issue": 1335, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1335", "title": "Support escaped keys in node interpolation paths"}
